@@ -1,0 +1,45 @@
+{
+    "name": "oswedev",
+    "version": "0.0.1",
+    "description": "",
+    "scripts": {
+        "test": "nyc mocha",
+        "test-jenkins": "mocha -R xunit > test-reports.xml",
+        "clean": "rimraf dist",
+        "version": "echo $npm_package_version"
+    },
+    "nyc": {
+        "check-coverage": true,
+        "per-file": true,
+        "extension": [
+            ".ts"
+        ],
+        "include": [
+            "src/**/*.ts",
+            "test/**/*.ts",
+            "test/testchai.ts",
+            "test/test.ts"
+        ],
+        "reporter": [
+            "html",
+            "lcov",
+            "text-summary"
+        ],
+        "cache": true,
+        "all": true
+    },
+    "author": "Wedev",
+    "license": "Apache 2.0",
+    "dependencies": {},
+    "devDependencies": {},
+    "_dependencies": {},
+    "engines": {
+        "node": ">= 8.9.4",
+        "npm": ">= 5.8.0"
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not ie <= 8"
+    ]
+}
