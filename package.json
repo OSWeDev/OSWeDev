@@ -6,6 +6,8 @@
         "test": "nyc mocha",
         "test-jenkins": "mocha -R xunit > test-reports.xml",
         "clean": "rimraf dist",
+        "build-server": "tsc -p ./src/server",
+        "build-generator": "tsc -p ./src/generator",
         "version": "echo $npm_package_version"
     },
     "nyc": {
@@ -30,9 +32,38 @@
     },
     "author": "Wedev",
     "license": "Apache 2.0",
-    "dependencies": {},
+    "dependencies": {
+        "@types/node": "^7.0.11",
+        "@types/express-formidable": "1.0.2",
+        "@types/express-session": "^1.15.5",
+        "@types/nodemailer": "^4.6.0",
+        "moment": "^2.19.1",
+        "ts-node": "4.1.0",
+        "nodemailer": "^4.6.5",
+        "node-sass": "^4.8.3",
+        "pg": "^4.4.4",
+        "pg-promise": "8.1.0",
+        "express": "4.16.3",
+        "jquery": "^3.2.1",
+        "tsc-watch": "^1.0.11",
+        "i18next": "latest",
+        "i18next-express-middleware": "latest",
+        "http-proxy-middleware": "^0.17.4",
+        "express-formidable": "1.0.0",
+        "express-http-context": "^1.0.0",
+        "express-locale": "^1.0.5",
+        "tslib": "1.9.2",
+        "express-session": "^1.13.0",
+        "session-file-store": "^1.0.0",
+        "jsonwebtoken": "^5.7.0",
+        "winston": "^2.4.0",
+        "winston-daily-rotate-file": "^1.7.2",
+        "xlsx": "0.12.2"
+    },
     "devDependencies": {},
-    "_dependencies": {},
+    "_dependencies": {
+        "pg-promise": "^3.1.6"
+    },
     "engines": {
         "node": ">= 8.9.4",
         "npm": ">= 5.8.0"

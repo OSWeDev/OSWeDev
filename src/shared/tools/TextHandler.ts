@@ -1,11 +1,3 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
-import MonthEventVO from '../modules/MonthEvents/vos/MonthEventVO';
-import ModuleMonthEvents from '../modules/MonthEvents/ModuleMonthEvents';
-import ModuleHolidayController from '../modules/HolidayController/ModuleHolidayController';
-import StoreHolidayVO from '../modules/HolidayController/vos/StoreHolidayVO';
-import HolidayVO from '../modules/HolidayController/vos/HolidayVO';
-
 export default class TextHandler {
 
     public static Challenge_Cars: string[] =

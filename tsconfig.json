@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "sourceMap": true,
+        "strict": false,
+        "module": "commonjs",
+        "importHelpers": true,
+        "lib": [
+            "es2015",
+            "dom"
+        ],
+        "allowJs": true,
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "removeComments": true,
+        "outDir": "dist",
+        "declaration": true,
+        "types": [
+            "dist/index.d.ts"
+        ]
+    },
+    "include": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+    ],
+    "exclude": [
+        "src/client/public/bower",
+        "node_modules"
+    ],
+    "files": [
+        "./src/server/ServerBase.ts"
+    ]
+}
