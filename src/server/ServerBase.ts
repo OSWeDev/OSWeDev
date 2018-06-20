@@ -24,8 +24,10 @@ import TranslatableTextVO from '../shared/modules/Translation/vos/TranslatableTe
 import * as createLocaleMiddleware from 'express-locale';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import ModuleServiceBase from './modules/ModuleServiceBase';
+import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
+import * as compression from 'compression';
 
-export default class ServerBase {
+export default abstract class ServerBase {
 
     public static getInstance(): ServerBase {
         return ServerBase.instance;
@@ -54,11 +56,13 @@ export default class ServerBase {
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
     }
 
+    public abstract getHttpContext();
+
     public async initializeNodeServer() {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
-        this.version = require('../../package.json').version;
+        this.version = this.getVersion();
 
         this.connectionString = this.envParam.CONNECTION_STRING;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
@@ -85,15 +89,10 @@ export default class ServerBase {
         });*/
 
 
-        // Pour la lecture des template par exemple en HTML
-        require.extensions['.html'] = (module, filename) => {
-            module.exports = fs.readFileSync(filename, 'utf8');
-        };
-
         const logger = new (winston.Logger)({
             transports: [
                 new (winston.transports.Console)(),
-                new (require('winston-daily-rotate-file'))({
+                new (winston_daily_rotate_file)({
                     filename: './logs/log',
                     datePattern: 'yyyy-MM-dd.',
                     prepend: true
@@ -137,10 +136,9 @@ export default class ServerBase {
         // );
 
         this.app = express();
-        let httpContext = require('express-http-context');
+        let httpContext = ServerBase.getInstance().getHttpContext();
 
         if (this.envParam.COMPRESS) {
-            let compression = require('compression');
             this.app.use(compression());
         }
 
@@ -193,6 +191,8 @@ export default class ServerBase {
             }
             next();
         };
+
+        this.hook_configure_express();
 
         // app.get(/^[/]public[/]generated[/].*/, function (req, res, next) {
         //     tryuseGZ('client', req, res, next);
@@ -647,7 +647,9 @@ export default class ServerBase {
         });
     }
 
-    protected initializeDataImports() { }
+    protected abstract initializeDataImports();
+    protected abstract hook_configure_express();
+    protected abstract getVersion();
 
     protected async login(req, res, jwtSecret) {
 

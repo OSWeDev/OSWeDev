@@ -16,6 +16,7 @@ import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import ResetPwdParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ResetPwdParamVO';
 import PasswordReset from './PasswordReset/PasswordReset';
+import ServerBase from '../../ServerBase';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -105,7 +106,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {
-        let httpContext = require('express-http-context');
+        let httpContext = ServerBase.getInstance().getHttpContext();
         let uid: number = httpContext.get('UID');
 
         if (!uid) {
@@ -121,7 +122,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async isRole(role_translatable_name: string): Promise<boolean> {
-        let httpContext = require('express-http-context');
+        let httpContext = ServerBase.getInstance().getHttpContext();
         let uid: number = httpContext.get('UID');
 
         if (!uid) {
@@ -143,7 +144,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async isAdmin(): Promise<boolean> {
-        let httpContext = require('express-http-context');
+        let httpContext = ServerBase.getInstance().getHttpContext();
         let uid: number = httpContext.get('UID');
 
         if (!uid) {
@@ -184,7 +185,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        let httpContext = require('express-http-context');
+        let httpContext = ServerBase.getInstance().getHttpContext();
         if (!httpContext.get('IS_CLIENT')) {
             this.consoledebug("CHECKACCESS:" + checkAccessParam.group_name + ":" + checkAccessParam.policy_name + ":TRUE:IS_SERVER");
             return true;

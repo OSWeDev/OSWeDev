@@ -39,6 +39,7 @@
         "@types/nodemailer": "^4.6.0",
         "moment": "^2.19.1",
         "ts-node": "4.1.0",
+        "compression": "^1.7.2",
         "nodemailer": "^4.6.5",
         "node-sass": "^4.8.3",
         "pg": "^4.4.4",

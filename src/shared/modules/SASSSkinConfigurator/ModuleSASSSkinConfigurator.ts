@@ -1,6 +1,5 @@
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
-import ModuleParamChange from '../ModuleParamChange';
 
 export default class ModuleSASSSkinConfigurator extends Module {
 
@@ -13,81 +12,11 @@ export default class ModuleSASSSkinConfigurator extends Module {
 
     private static instance: ModuleSASSSkinConfigurator = null;
 
-    private fileName;
-
-    private sassDir;
-    private dynSassFile;
-
-    private cssDir;
-    private dynCssFile;
-
-    private sass;
-    private fs;
-
-    private sassOptionsDefaults = {};
-
-    private sassGenerator = {
-
-        sassVariable: function (name, value) {
-            return "$" + name + ": " + value + ";";
-        },
-
-        sassVariables: function (variablesObj) {
-            let self = this;
-            return Object.keys(variablesObj).map(function (name) {
-                return self.sassVariable(name, variablesObj[name]);
-            }).join('\n');
-        },
-
-        sassImport: function (path) {
-            return "@import '" + path + "';";
-        }
-    };
-
     private constructor() {
 
         super("sass_resource_planning_skin_configurator", "SASSSkinConfigurator");
 
         this.initialize();
-    }
-
-    /// #if false
-    public async hook_module_configure(db) { return true; }
-    /// #endif
-
-    public async hook_module_async_client_admin_initialization() { }
-
-    /// #if false
-    public async hook_module_install(db) {
-
-        // Cette section ne doit jamais être incluse sur le client
-
-        // On veut recharger le Sass dans 2 cas :
-        //	- les fichiers SCSS changent
-        //	- les paramètres du module sont mis à jour
-        this.fileName = 'resource-planning-skin';
-
-        this.sassDir = './src/client/scss/';
-        this.dynSassFile = this.sassDir + this.fileName + '.scss';
-
-        this.cssDir = './src/client/public/css/';
-        this.dynCssFile = this.cssDir + this.fileName + '.css';
-
-        this.sass = require('node-sass');
-        this.fs = require('fs');
-
-        let self = this;
-        this.fs.watch(this.sassDir, function (event, filename) {
-
-            self.load_dyn_sass();
-        });
-
-        return await this.load_dyn_sass();
-    }
-    /// #endif
-
-    public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) {
-        await this.load_dyn_sass();
     }
 
     protected initialize() {
@@ -142,68 +71,5 @@ export default class ModuleSASSSkinConfigurator extends Module {
             new ModuleTableField('header_text_color', 'text', 'header_text_color', true, true, '#563c22'),
         ];
         this.datatables = [];
-    }
-
-    private async dynamicSass(scssEntry, variables, handleSuccess, handleError): Promise<any> {
-
-        return new Promise((resolve, reject) => {
-
-            var dataString =
-                this.sassGenerator.sassVariables(variables) +
-                this.sassGenerator.sassImport(scssEntry);
-
-            this.sassOptionsDefaults['data'] = dataString;
-
-            let self = this;
-
-            this.sass.render(this.sassOptionsDefaults, function (err, result) {
-
-                if (!result) {
-                    console.log(self.fileName + '.css ERROR :result null:' + err);
-                    return;
-                }
-
-                self.fs.writeFile(self.dynCssFile, result.css, function (err) {
-                    if (!err) {
-                        console.log(self.fileName + '.css writen successfuly');
-                    } else {
-                        console.log(self.fileName + '.css ERROR :' + err);
-                    }
-                });
-
-                if (err) {
-                    handleError(err);
-                } else {
-                    handleSuccess(result.css.toString());
-                }
-                resolve();
-            });
-        });
-    }
-
-    private async load_dyn_sass(handleSuccess = null, handleError = null) {
-
-        // On configure les fichiers sass et on surcharge avec les datas configurées en admin
-        let SkinOptions = {};
-
-        for (let i in this.fields) {
-            let field = this.fields[i];
-
-            SkinOptions[field.field_id] = field.field_value;
-        }
-
-        await this.dynamicSass(this.dynSassFile, SkinOptions, function () {
-            console.log('SASS OK');
-            if (handleSuccess) {
-                handleSuccess();
-            }
-        }, function (e) {
-            console.log('SASS LOADING FAILED !' + e);
-            if (handleError) {
-                handleError();
-            }
-        });
-
-        return true;
     }
 }

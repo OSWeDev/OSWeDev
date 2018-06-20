@@ -5,7 +5,7 @@ import { IDatabase } from 'pg-promise';
 import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 
-export default class GeneratorBase {
+export default abstract class GeneratorBase {
 
     public static getInstance(): GeneratorBase {
         return GeneratorBase.instance;
@@ -26,11 +26,8 @@ export default class GeneratorBase {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
         const envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
-        const version = require('../../package.json').version;
 
         let connectionString = envParam.CONNECTION_STRING;
-        let uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
-        let port = envParam.PORT;
 
         let pgp: pg_promise.IMain = pg_promise({});
         let db: IDatabase<any> = pgp(connectionString);
