@@ -36,6 +36,10 @@ export default class ServerBase {
     protected db: IDatabase<any>;
     protected run_postgrest_apis: boolean = true;
     protected spawn;
+    protected app;
+    protected port;
+    protected uiDebug;
+    protected envParam: EnvParam;
     private connectionString: string;
     private jwtSecret: string;
     private modulesService: ModuleServiceBase;
@@ -52,12 +56,12 @@ export default class ServerBase {
     public async initializeNodeServer() {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
-        const envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
+        this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
         const version = require('../../package.json').version;
 
-        this.connectionString = envParam.CONNECTION_STRING;
-        let uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
-        let port = envParam.PORT;
+        this.connectionString = this.envParam.CONNECTION_STRING;
+        this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
+        this.port = this.envParam.PORT;
 
         this.jwtSecret = 'This is the jwt secret for the rest part';
 
@@ -72,8 +76,8 @@ export default class ServerBase {
         const FileStore = sessionFileStore(expressSession);
         this.spawn = child_process.spawn;
 
-        /* A voir l'intéret des différents routers app.use(apiRouter());
-        app.use(config.IS_PRODUCTION ? staticsRouter() : staticsDevRouter());*/
+        /* A voir l'intéret des différents routers this.app.use(apiRouter());
+        this.app.use(config.IS_PRODUCTION ? staticsRouter() : staticsDevRouter());*/
 
         /*app.listen(config.SERVER_PORT, () => {
             console.log(`App listening on port ${config.SERVER_PORT}!`);
@@ -131,15 +135,15 @@ export default class ServerBase {
         //   }*/
         // );
 
-        const app = express();
+        this.app = express();
         let httpContext = require('express-http-context');
 
-        if (envParam.COMPRESS) {
+        if (this.envParam.COMPRESS) {
             let compression = require('compression');
-            app.use(compression());
+            this.app.use(compression());
         }
 
-        app.use(createLocaleMiddleware({
+        this.app.use(createLocaleMiddleware({
             priority: ["accept-language", "default"],
             default: "fr_FR"
         }));
@@ -156,7 +160,7 @@ export default class ServerBase {
         // });
 
         // JNE : Ajout du header no cache sur les requetes gérées par express
-        app.use(
+        this.app.use(
             (req, res, next) => {
                 res.setHeader("cache-control", "no-cache");
                 return next();
@@ -203,17 +207,17 @@ export default class ServerBase {
         // });
 
         let i18nextInit = I18nextInit.getInstance(this.ALL_LOCALES);
-        app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
+        this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
         }));
 
         // Pour activation auto let's encrypt
-        app.use('/.well-known', express.static('.well-known'));
+        this.app.use('/.well-known', express.static('.well-known'));
 
-        app.use('/public', express.static('src/client/public'));
-        app.use('/admin/public', express.static('src/admin/public'));
+        this.app.use('/public', express.static('src/client/public'));
+        this.app.use('/admin/public', express.static('src/admin/public'));
 
-        // app.use(
+        // this.app.use(
         //     expressSession({
         //         secret: 'vk4s8dq2j4',
         //         name: 'sid',
@@ -224,7 +228,7 @@ export default class ServerBase {
         //     })
         // );
         // allow cors
-        app.use((req, res, next) => {
+        this.app.use((req, res, next) => {
             res.header('Access-Control-Allow-Credentials', 'true');
             res.header('Access-Control-Allow-Origin', (req.headers.origin ? req.headers.origin.toString() : ""));
             res.header('Access-Control-Allow-Methods', 'OPTIONS,GET,PUT,POST,DELETE');
@@ -233,7 +237,7 @@ export default class ServerBase {
         });
 
         // Log request & response
-        app.use((req: Request, res: Response, next: NextFunction) => {
+        this.app.use((req: Request, res: Response, next: NextFunction) => {
             // logger.info('req', {
             //     ip: req.ip,
             //     method: req.method,
@@ -262,7 +266,7 @@ export default class ServerBase {
         });
 
 
-        app.use(
+        this.app.use(
             expressSession({
                 secret: 'vk4s8dq2j4',
                 name: 'sid',
@@ -273,7 +277,7 @@ export default class ServerBase {
             })
         );
 
-        app.use((req, res, next) => {
+        this.app.use((req, res, next) => {
             const session = req.session;
             const publicPrefix = "/public/";
             const isPublic = req.path.substring(0, publicPrefix.length) == publicPrefix;
@@ -293,7 +297,7 @@ export default class ServerBase {
         // admin
         // FIXME:JNE:MODIF:FLK test sans le proxy dans nodejs mais dans IIS directement
         let proxy = proxyMiddleware('/admin/api/**', {
-            target: 'http://localhost:' + envParam.ADMIN_PROXY_PORT, // target host
+            target: 'http://localhost:' + ServerBase.getInstance().envParam.ADMIN_PROXY_PORT, // target host
             pathRewrite: {
                 '^/admin/api/': '/' // rewrite paths
             },
@@ -303,9 +307,9 @@ export default class ServerBase {
             },
         });
 
-        app.use(proxy);
+        this.app.use(proxy);
         proxy = proxyMiddleware('/ref/api/**', {
-            target: 'http://localhost:' + envParam.REF_PROXY_PORT, // target host
+            target: 'http://localhost:' + ServerBase.getInstance().envParam.REF_PROXY_PORT, // target host
             pathRewrite: {
                 '^/ref/api/': '/' // rewrite paths
             },
@@ -315,26 +319,26 @@ export default class ServerBase {
             },
         });
 
-        app.use(proxy);
+        this.app.use(proxy);
 
-        app.use('/admin/js', express.static('src/admin/public/js'));
+        this.app.use('/admin/js', express.static('src/admin/public/js'));
 
         // // La position semble très importante pour ce bodyParser
-        // app.use(bodyParser.urlencoded({
+        // this.app.use(bodyParser.urlencoded({
         //     limit: '150mb',
         //     extended: true
         // }));
-        // app.use(bodyParser.json({
+        // this.app.use(bodyParser.json({
         //     limit: '150mb'
         // }));
 
-        app.use(express.json({ limit: '150mb' }));
-        app.use(express.urlencoded({ extended: true, limit: '150mb' }));
+        this.app.use(express.json({ limit: '150mb' }));
+        this.app.use(express.urlencoded({ extended: true, limit: '150mb' }));
 
-        app.use(httpContext.middleware);
+        this.app.use(httpContext.middleware);
 
         // Example authorization middleware
-        app.use(async (req, res, next) => {
+        this.app.use(async (req, res, next) => {
 
             httpContext.set('IS_CLIENT', true);
 
@@ -349,7 +353,7 @@ export default class ServerBase {
             next();
         });
 
-        app.get('/admin', (req, res) => {
+        this.app.get('/admin', (req, res) => {
 
             if (ModuleAccessPolicy.getInstance().actif && (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.MAIN_ACCESS_GROUP_NAME, ModuleAccessPolicy.ADMIN_ACCESS_NAME))) {
                 res.redirect('/');
@@ -357,37 +361,37 @@ export default class ServerBase {
             res.sendFile(path.resolve(__dirname + '/../../src/admin/public/generated/admin.html'));
         });
 
-        app.set('view engine', 'jade');
-        app.set('views', 'src/client/views');
+        this.app.set('view engine', 'jade');
+        this.app.set('views', 'src/client/views');
 
-        app.get('/login', (req, res) => {
+        this.app.get('/login', (req, res) => {
             res.render('login.jade', {
                 url: req.query.url || '/'
             });
         });
 
-        app.get('/recover', (req, res) => {
+        this.app.get('/recover', (req, res) => {
             res.render('recover.jade');
         });
 
-        app.get('/reset', (req, res) => {
+        this.app.get('/reset', (req, res) => {
             res.render('reset.jade');
         });
 
 
-        app.post('/login', (req, res) => {
+        this.app.post('/login', (req, res) => {
             ServerBase.getInstance().login(req, res, ServerBase.getInstance().jwtSecret);
         });
 
 
-        app.post('/recover', async (req, res) => {
+        this.app.post('/recover', async (req, res) => {
             const session = req.session;
 
             // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
             httpContext.set('IS_CLIENT', false);
 
             const email = req.body.email;
-            let code_lang = (req['locale'] && (typeof req['locale'] == "string")) ? req['locale'].substr(0, 2) : envParam.DEFAULT_LOCALE;
+            let code_lang = (req['locale'] && (typeof req['locale'] == "string")) ? req['locale'].substr(0, 2) : ServerBase.getInstance().envParam.DEFAULT_LOCALE;
             let translation: TranslationVO;
 
             if (email && (email != "")) {
@@ -412,7 +416,7 @@ export default class ServerBase {
             });
         });
 
-        app.post('/reset', async (req, res) => {
+        this.app.post('/reset', async (req, res) => {
             const session = req.session;
 
             // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
@@ -422,7 +426,7 @@ export default class ServerBase {
             const challenge = req.body.challenge;
             const new_pwd1 = req.body.new_pwd1;
 
-            let code_lang = (req['locale'] && (typeof req['locale'] == "string")) ? req['locale'].substr(0, 2) : envParam.DEFAULT_LOCALE;
+            let code_lang = (req['locale'] && (typeof req['locale'] == "string")) ? req['locale'].substr(0, 2) : ServerBase.getInstance().envParam.DEFAULT_LOCALE;
 
             let langs: LangVO[] = await ModuleTranslation.getInstance().getLangs();
             let langObj: LangVO = langs[0];
@@ -453,7 +457,7 @@ export default class ServerBase {
             });
         });
 
-        app.get('/logout', (req, res) => {
+        this.app.get('/logout', (req, res) => {
             req.session.destroy((err) => {
                 if (err) {
                     console.log(err);
@@ -463,18 +467,18 @@ export default class ServerBase {
             });
         });
 
-        app.use('/js', express.static('client/js'));
-        app.use('/css', express.static('client/css'));
-        app.use('/temp', express.static('temp'));
+        this.app.use('/js', express.static('client/js'));
+        this.app.use('/css', express.static('client/css'));
+        this.app.use('/temp', express.static('temp'));
 
         // reflect_headers
-        app.get('/api/reflect_headers', (req, res) => {
+        this.app.get('/api/reflect_headers', (req, res) => {
 
             // console.log(JSON.stringify(req.headers));
             const result = JSON.stringify(req.headers);
             res.send(result);
         });
-        app.get('/api/clientappcontrollerinit', async (req, res) => {
+        this.app.get('/api/clientappcontrollerinit', async (req, res) => {
             const session = req.session;
 
             ServerBase.getInstance().handleError(async () => {
@@ -483,15 +487,15 @@ export default class ServerBase {
                     {
                         data_version: version,
                         data_user: user_infos,
-                        data_ui_debug: uiDebug,
+                        data_ui_debug: ServerBase.getInstance().uiDebug,
                         data_base_api_url: "",
-                        data_default_locale: envParam.DEFAULT_LOCALE
+                        data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
                     }
                 ));
             }, res);
         });
 
-        app.get('/api/adminappcontrollerinit', async (req, res) => {
+        this.app.get('/api/adminappcontrollerinit', async (req, res) => {
 
             const session = req.session;
 
@@ -500,34 +504,34 @@ export default class ServerBase {
                 res.json(JSON.stringify(
                     {
                         data_version: version,
-                        data_code_pays: envParam.CODE_PAYS,
-                        data_url_import: envParam.URL_IMPORT,
+                        data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
+                        data_url_import: ServerBase.getInstance().envParam.URL_IMPORT,
                         data_node_env: process.env.NODE_ENV,
                         data_user: user_infos,
-                        data_ui_debug: uiDebug,
+                        data_ui_debug: ServerBase.getInstance().uiDebug,
                         data_base_api_url: "/admin/api/",
-                        data_default_locale: envParam.DEFAULT_LOCALE,
-                        data_is_dev: envParam.ISDEV
+                        data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
+                        data_is_dev: ServerBase.getInstance().envParam.ISDEV
                     }
                 ));
             }, res);
         });
 
         // L'API qui renvoie les infos pour générer l'interface NGA pour les modules (activation / désactivation des modules et les paramètres de chaque module)
-        app.get('/api/modules_nga_fields_infos/:env', (req, res) => {
+        this.app.get('/api/modules_nga_fields_infos/:env', (req, res) => {
 
             // On envoie en fait un fichier JS... Pour avoir un chargement des modules synchrone côté client en intégrant juste un fichier js.
             res.send('GM_Modules = ' + JSON.stringify(GM.get_modules_infos(req.params.env)) + ';');
         });
 
         // JNE : Savoir si on est en DEV depuis la Vue.js client
-        app.get('/api/isdev', (req, res) => {
-            res.json(envParam.ISDEV);
+        this.app.get('/api/isdev', (req, res) => {
+            res.json(ServerBase.getInstance().envParam.ISDEV);
         });
         // !JNE : Savoir si on est en DEV depuis la Vue.js client
 
         // Déclenchement du cron
-        app.get('/cron', (req, res) => {
+        this.app.get('/cron', (req, res) => {
 
             // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
             httpContext.set('IS_CLIENT', false);
@@ -537,26 +541,26 @@ export default class ServerBase {
             }), res);
         });
 
-        app.post('/api/save', (req, res) => {
+        this.app.post('/api/save', (req, res) => {
             return ServerBase.getInstance().handleError(ModuleDAO.getInstance().db_tx_update(req.body).then((data) => {
                 res.json(data);
             }), res);
         });
 
-        this.modulesService.configure_server_modules(app);
+        this.modulesService.configure_server_modules(this.app);
 
-        console.log('listening on port', port);
+        console.log('listening on port', ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')
             .then(() => {
                 console.log('connection to db successful');
 
                 // On lance un deuxième postgres, sur le schéma ref et pour le front
                 if (ServerBase.getInstance().run_postgrest_apis) {
-                    ServerBase.getInstance().runPostgrestAPI('admin', envParam.ADMIN_PROXY_PORT).then(() => {
+                    ServerBase.getInstance().runPostgrestAPI('admin', ServerBase.getInstance().envParam.ADMIN_PROXY_PORT).then(() => {
 
-                        ServerBase.getInstance().runPostgrestAPI('ref', envParam.REF_PROXY_PORT).then(() => {
+                        ServerBase.getInstance().runPostgrestAPI('ref', ServerBase.getInstance().envParam.REF_PROXY_PORT).then(() => {
 
-                            app.listen(port);
+                            ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
                         });
                     });
                 }

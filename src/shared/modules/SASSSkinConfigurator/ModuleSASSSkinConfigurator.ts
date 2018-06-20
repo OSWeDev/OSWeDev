@@ -1,8 +1,6 @@
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
-import ModuleTable from '../ModuleTable';
 import ModuleParamChange from '../ModuleParamChange';
-import * as moment from 'moment';
 
 export default class ModuleSASSSkinConfigurator extends Module {
 

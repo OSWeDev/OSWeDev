@@ -21,6 +21,7 @@ import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
 import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import { IDatabase } from 'pg-promise';
+import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 
 export default abstract class ModuleServiceBase {
 
@@ -237,7 +238,8 @@ export default abstract class ModuleServiceBase {
             ModuleMailer.getInstance(),
             ModuleDataImport.getInstance(),
             ModuleDataExport.getInstance(),
-            ModuleDataRender.getInstance()
+            ModuleDataRender.getInstance(),
+            ModuleSASSSkinConfigurator.getInstance()
         ];
     }
 
