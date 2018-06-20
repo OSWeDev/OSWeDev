@@ -51,18 +51,29 @@ export default abstract class ModuleServiceBase {
         return this.server_modules;
     }
 
-    get sharedBaseModules(): Module[] {
-        return this.registered_base_modules;
-    }
-    get serverBaseModules(): ModuleServerBase[] {
-        return this.server_base_modules;
-    }
+    public isBaseSharedModule(module: Module): boolean {
+        if (!module) {
+            return false;
+        }
 
-    get sharedChildModules(): Module[] {
-        return this.registered_child_modules;
+        for (let i in this.registered_base_modules) {
+            if (this.registered_base_modules[i] == module) {
+                return true;
+            }
+        }
+        return false;
     }
-    get serverChildModules(): ModuleServerBase[] {
-        return this.server_child_modules;
+    public isBaseServerModule(module: ModuleServerBase): boolean {
+        if (!module) {
+            return false;
+        }
+
+        for (let i in this.server_base_modules) {
+            if (this.server_base_modules[i] == module) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public async register_all_modules(db: IDatabase<any>) {

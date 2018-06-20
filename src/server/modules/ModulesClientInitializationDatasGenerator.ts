@@ -72,11 +72,17 @@ export default class ModulesClientInitializationDatasGenerator {
     }
 
     private generateModuleImport(module: Module) {
+        let path: string = '../../../shared/modules/';
+
+        if (ModuleServiceBase.getInstance().isBaseSharedModule(module)) {
+            path = 'oswedev/dist/shared/modules/';
+        }
+
         if (module.specificImportPath) {
 
-            return "import Module" + module.reflexiveClassName + " from '../../../shared/modules/" + module.specificImportPath + "/Module" + module.reflexiveClassName + "';\n";
+            return "import Module" + module.reflexiveClassName + " from '" + path + module.specificImportPath + "/Module" + module.reflexiveClassName + "';\n";
         }
-        return "import Module" + module.reflexiveClassName + " from '../../../shared/modules/" + module.reflexiveClassName + "/Module" + module.reflexiveClassName + "';\n";
+        return "import Module" + module.reflexiveClassName + " from '" + path + module.reflexiveClassName + "/Module" + module.reflexiveClassName + "';\n";
     }
 
 
