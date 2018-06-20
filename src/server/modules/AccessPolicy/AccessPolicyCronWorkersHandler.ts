@@ -4,6 +4,7 @@ import PasswordInvalidationCronWorker from './workers/PasswordInvalidation/Passw
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import DateHandler from '../../../shared/tools/DateHandler';
 
+
 export default class AccessPolicyCronWorkersHandler {
 
     public static getInstance() {
