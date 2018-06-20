@@ -107,7 +107,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async getMyRoles(): Promise<RoleVO[]> {
         let httpContext = ServerBase.getInstance().getHttpContext();
-        let uid: number = httpContext.get('UID');
+        let uid: number = httpContext ? httpContext.get('UID') : null;
 
         if (!uid) {
             return null;
@@ -123,7 +123,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async isRole(role_translatable_name: string): Promise<boolean> {
         let httpContext = ServerBase.getInstance().getHttpContext();
-        let uid: number = httpContext.get('UID');
+        let uid: number = httpContext ? httpContext.get('UID') : null;
 
         if (!uid) {
             return false;
@@ -145,7 +145,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async isAdmin(): Promise<boolean> {
         let httpContext = ServerBase.getInstance().getHttpContext();
-        let uid: number = httpContext.get('UID');
+        let uid: number = httpContext ? httpContext.get('UID') : null;
 
         if (!uid) {
             return false;
@@ -186,7 +186,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         let httpContext = ServerBase.getInstance().getHttpContext();
-        if (!httpContext.get('IS_CLIENT')) {
+        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
             this.consoledebug("CHECKACCESS:" + checkAccessParam.group_name + ":" + checkAccessParam.policy_name + ":TRUE:IS_SERVER");
             return true;
         }

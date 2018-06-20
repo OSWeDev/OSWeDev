@@ -615,8 +615,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
             let httpContext = ServerBase.getInstance().getHttpContext();
-            let uid: number = httpContext.get('UID');
-            let user_data = httpContext.get('USER_DATA');
+            let uid: number = httpContext ? httpContext.get('UID') : null;
+            let user_data = httpContext ? httpContext.get('USER_DATA') : null;
             return await hook(datatable, vos, uid, user_data) as T[];
         }
 
@@ -644,8 +644,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
             let httpContext = ServerBase.getInstance().getHttpContext();
-            let uid: number = httpContext.get('UID');
-            let user_data = httpContext.get('USER_DATA');
+            let uid: number = httpContext ? httpContext.get('UID') : null;
+            let user_data = httpContext ? httpContext.get('USER_DATA') : null;
             let filtered: T[] = await hook(datatable, [vo], uid, user_data) as T[];
 
             if (filtered && (filtered.length == 1)) {
