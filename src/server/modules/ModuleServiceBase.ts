@@ -22,6 +22,7 @@ import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
 import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import { IDatabase } from 'pg-promise';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 
 export default abstract class ModuleServiceBase {
 
@@ -260,6 +261,7 @@ export default abstract class ModuleServiceBase {
             ModuleAccessPolicy.getInstance(),
             ModuleCron.getInstance(),
             ModuleTranslation.getInstance(),
+            ModuleFormatDatesNombres.getInstance(),
             ModuleMailer.getInstance(),
             ModuleDataImport.getInstance(),
             ModuleDataExport.getInstance(),
