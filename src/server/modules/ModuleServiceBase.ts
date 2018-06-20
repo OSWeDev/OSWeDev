@@ -51,6 +51,20 @@ export default abstract class ModuleServiceBase {
         return this.server_modules;
     }
 
+    get sharedBaseModules(): Module[] {
+        return this.registered_base_modules;
+    }
+    get serverBaseModules(): ModuleServerBase[] {
+        return this.server_base_modules;
+    }
+
+    get sharedChildModules(): Module[] {
+        return this.registered_child_modules;
+    }
+    get serverChildModules(): ModuleServerBase[] {
+        return this.server_child_modules;
+    }
+
     public async register_all_modules(db: IDatabase<any>) {
         this.db = db;
 
