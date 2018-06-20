@@ -614,7 +614,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
-            let httpContext = ServerBase.getInstance().getHttpContext();
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
             let uid: number = httpContext ? httpContext.get('UID') : null;
             let user_data = httpContext ? httpContext.get('USER_DATA') : null;
             return await hook(datatable, vos, uid, user_data) as T[];
@@ -643,7 +643,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
-            let httpContext = ServerBase.getInstance().getHttpContext();
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
             let uid: number = httpContext ? httpContext.get('UID') : null;
             let user_data = httpContext ? httpContext.get('USER_DATA') : null;
             let filtered: T[] = await hook(datatable, [vo], uid, user_data) as T[];
