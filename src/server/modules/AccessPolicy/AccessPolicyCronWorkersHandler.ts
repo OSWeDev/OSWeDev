@@ -2,7 +2,7 @@ import * as moment from 'moment';
 import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
 import PasswordInvalidationCronWorker from './workers/PasswordInvalidation/PasswordInvalidationCronWorker';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
-import DateHandler from '../../../../src/shared/tools/DateHandler';
+import DateHandler from '../../../shared/tools/DateHandler';
 
 export default class AccessPolicyCronWorkersHandler {
 
