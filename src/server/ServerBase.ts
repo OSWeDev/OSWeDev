@@ -40,6 +40,7 @@ export default class ServerBase {
     protected port;
     protected uiDebug;
     protected envParam: EnvParam;
+    protected version;
     private connectionString: string;
     private jwtSecret: string;
     private modulesService: ModuleServiceBase;
@@ -57,7 +58,7 @@ export default class ServerBase {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
-        const version = require('../../package.json').version;
+        this.version = require('../../package.json').version;
 
         this.connectionString = this.envParam.CONNECTION_STRING;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
@@ -485,7 +486,7 @@ export default class ServerBase {
                 let user_infos = await ServerBase.getInstance().getUserInfos(session.user.email);
                 res.json(JSON.stringify(
                     {
-                        data_version: version,
+                        data_version: ServerBase.getInstance().version,
                         data_user: user_infos,
                         data_ui_debug: ServerBase.getInstance().uiDebug,
                         data_base_api_url: "",
@@ -503,7 +504,7 @@ export default class ServerBase {
                 let user_infos = await ServerBase.getInstance().getUserInfos(session.user.email);
                 res.json(JSON.stringify(
                     {
-                        data_version: version,
+                        data_version: ServerBase.getInstance().version,
                         data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
                         data_url_import: ServerBase.getInstance().envParam.URL_IMPORT,
                         data_node_env: process.env.NODE_ENV,
