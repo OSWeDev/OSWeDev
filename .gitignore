@@ -1,4 +1,3 @@
 dist
 src/client/locales
 node_modules
-package-lock.json
