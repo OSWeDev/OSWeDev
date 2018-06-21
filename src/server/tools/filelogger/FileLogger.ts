@@ -1,4 +1,3 @@
-/// #if false
 import FileHandler from '../FileHandler';
 import { WriteStream } from 'fs';
 import * as moment from 'moment';
@@ -100,4 +99,3 @@ export default class FileLogger {
         return res;
     }
 }
-/// #endif

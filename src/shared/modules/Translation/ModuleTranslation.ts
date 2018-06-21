@@ -1,14 +1,7 @@
-/// #if false
-import FileHandler from '../../tools/FileHandler';
-/// #endif
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
 import ModuleTable from '../ModuleTable';
-import ModuleParamChange from '../ModuleParamChange';
-import * as moment from 'moment';
-import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import ModulesManager from '../ModulesManager';
-import TimeSegment from '../DataRender/vos/TimeSegment';
 import LangVO from './vos/LangVO';
 import TranslationVO from './vos/TranslationVO';
 import TranslatableTextVO from './vos/TranslatableTextVO';
@@ -49,15 +42,6 @@ export default class ModuleTranslation extends Module {
             this.registerApis();
         }
     }
-
-    /// #if false
-    public async hook_module_configure(db) {
-        await this.generate();
-
-        return true;
-    }
-    public async hook_module_install(db) { return true; }
-    /// #endif
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, TranslationVO[]>(
@@ -149,87 +133,4 @@ export default class ModuleTranslation extends Module {
         field_text_id.addRelation(this.datatable_translation, 'ref', this.datatable_translatabletext.name, 'id');
         this.datatables.push(this.datatable_translation);
     }
-
-    /// #if false
-    private async generate() {
-
-        // On charge les langs, puis les trads dans chaque lang
-        let langs: LangVO[] = await this.getLangs();
-        let langsFileContent: string = this.getLangsFileContent(langs);
-
-        if (!await FileHandler.getInstance().dirExists('./src/client/locales/')) {
-            await FileHandler.getInstance().dirCreate('./src/client/locales/');
-        }
-        await FileHandler.getInstance().writeFile('./src/client/locales/locales.ts', langsFileContent);
-
-        let translatableTexts: TranslatableTextVO[] = await this.getTranslatableTexts();
-
-        for (let i in langs) {
-
-            let lang: LangVO = langs[i];
-            let translations: TranslationVO[] = await this.getTranslations(lang.id);
-            let langFileContent: string = this.getLangFileContent(lang, translations, VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts));
-
-            if (!await FileHandler.getInstance().dirExists('./src/client/locales/' + lang.code_lang.toLowerCase())) {
-                await FileHandler.getInstance().dirCreate('./src/client/locales/' + lang.code_lang.toLowerCase());
-            }
-            await FileHandler.getInstance().writeFile('./src/client/locales/' + lang.code_lang.toLowerCase() + '/translation.ts', langFileContent);
-        }
-    }
-
-    private getLangsFileContent(langs: LangVO[]): string {
-        let res: string = "";
-
-        for (let i in langs) {
-            let lang: LangVO = langs[i];
-
-            res += "import { LOCALE_" + lang.code_lang.toUpperCase() + " } from './" + lang.code_lang.toLowerCase() + "/translation';\n";
-        }
-        res += "\n";
-
-        res += "export const ALL_LOCALES = {\n";
-
-        for (let i in langs) {
-            let lang: LangVO = langs[i];
-
-            res += "    " + lang.code_lang.toLowerCase() + ": LOCALE_" + lang.code_lang.toUpperCase() + ",\n";
-        }
-
-        res += "};\n";
-
-        return res;
-    }
-
-    private getLangFileContent(lang: LangVO, translations: TranslationVO[], translatableTexts_by_id: { [id: number]: TranslatableTextVO }): string {
-        let res: string = "";
-        res += "/* tslint:disable */\n";
-        res += "export const LOCALE_" + lang.code_lang.toUpperCase() + " = \n";
-
-        let translationsObj = {};
-        for (let i in translations) {
-            let translation: TranslationVO = translations[i];
-            this.index(translationsObj, translatableTexts_by_id[translation.text_id].code_text, translation.translated.replace('"', '\"'));
-        }
-
-        res += JSON.stringify(translationsObj);
-
-        res += ";\n";
-        return res;
-    }
-
-    private index(obj, is, value) {
-        if (typeof is == 'string') {
-            return this.index(obj, is.split('.'), value);
-        } else if (is.length == 1 && value !== undefined) {
-            return obj[is[0]] = value;
-        } else if (is.length == 0) {
-            return obj;
-        } else {
-            if (typeof obj[is[0]] == 'undefined') {
-                obj[is[0]] = {};
-            }
-            return this.index(obj[is[0]], is.slice(1), value);
-        }
-    }
-    /// #endif
 }

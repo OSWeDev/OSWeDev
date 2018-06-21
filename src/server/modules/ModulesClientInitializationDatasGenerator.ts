@@ -1,6 +1,6 @@
 import ModuleServiceBase from "./ModuleServiceBase";
 import Module from "../../shared/modules/Module";
-import FileHandler from '../../shared/tools/FileHandler';
+import FileHandler from '../tools/FileHandler';
 
 export default class ModulesClientInitializationDatasGenerator {
 

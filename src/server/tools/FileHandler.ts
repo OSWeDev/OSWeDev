@@ -1,4 +1,3 @@
-/// #if false
 import * as fs from 'fs';
 import { WriteStream } from 'fs';
 
@@ -62,4 +61,3 @@ export default class FileHandler {
         return fs.createWriteStream(filepath, { flags: flags });
     }
 }
-/// #endif

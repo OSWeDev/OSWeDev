@@ -94,18 +94,19 @@ export default abstract class ModuleServiceBase {
         await this.install_modules();
 
         // On lance la configuration des modules, et avant on configure les apis des modules server
-        this.configure_server_modules_apis();
+        await this.configure_server_modules_apis();
 
         // On appelle le hook de configuration
         await this.configure_modules();
     }
 
-    public configure_server_modules_apis() {
+    public async configure_server_modules_apis() {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
                 server_module.registerApis();
+                await server_module.configure();
             }
         }
     }
