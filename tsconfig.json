@@ -19,9 +19,9 @@
         //     "dom"
         // ],
         "moduleResolution": "node",
-        "types": [
-            "node"
-        ],
+        // "types": [
+        //     "node"
+        // ],
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "removeComments": true,
