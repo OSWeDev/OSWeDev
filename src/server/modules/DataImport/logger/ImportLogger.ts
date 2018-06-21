@@ -1,11 +1,10 @@
-/// #if false
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import DataImportFileVO from '../vos/DataImportFileVO';
-import DataImportHistoricVO from '../vos/DataImportHistoricVO';
-import DataImportLogVO from '../vos/DataImportLogVO';
-import DateHandler from '../../../tools/DateHandler';
-import ModuleDAO from '../../DAO/ModuleDAO';
+import DataImportFileVO from '../../../../shared/modules/DataImport/vos/DataImportFileVO';
+import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
+import DateHandler from '../../../../shared/tools/DateHandler';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
 
 export default class ImportLogger {
 
@@ -94,4 +93,3 @@ export default class ImportLogger {
         await Promise.all(promises);
     }
 }
-/// #endif

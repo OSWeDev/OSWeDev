@@ -32,27 +32,27 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, TranslationVO[]>(
             ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS,
             [TranslationVO.API_TYPE_ID],
-            this.getAllTranslations
+            this.getAllTranslations.bind(this)
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, LangVO[]>(
             ModuleTranslation.APINAME_GET_LANGS,
             [LangVO.API_TYPE_ID],
-            this.getLangs
+            this.getLangs.bind(this)
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, TranslatableTextVO>(
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT,
             [TranslatableTextVO.API_TYPE_ID],
-            this.getTranslatableText
+            this.getTranslatableText.bind(this)
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, TranslatableTextVO[]>(
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS,
             [TranslatableTextVO.API_TYPE_ID],
-            this.getTranslatableTexts
+            this.getTranslatableTexts.bind(this)
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<GetTranslationParamVO, TranslationVO>(
             ModuleTranslation.APINAME_GET_TRANSLATION,
             [TranslationVO.API_TYPE_ID],
-            this.getTranslation,
+            this.getTranslation.bind(this),
             GetTranslationParamVO.translateCheckAccessParams,
             GetTranslationParamVO.URL,
             GetTranslationParamVO.translateToURL,
@@ -61,7 +61,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, TranslationVO[]>(
             ModuleTranslation.APINAME_GET_TRANSLATIONS,
             [TranslationVO.API_TYPE_ID],
-            this.getTranslations
+            this.getTranslations.bind(this)
         ));
     }
 

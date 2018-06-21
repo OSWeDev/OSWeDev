@@ -9,7 +9,7 @@ import { Moment } from 'moment';
 import * as moment from 'moment';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
-import ImportLogger from '../../../../shared/modules/DataImport/logger/ImportLogger';
+import ImportLogger from '../logger/ImportLogger';
 import ModuleServiceBase from '../../ModuleServiceBase';
 
 export default class ImportTypeXLSXHandler {

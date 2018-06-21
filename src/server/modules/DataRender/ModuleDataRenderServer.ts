@@ -16,6 +16,8 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import GetAPIDefinition from '../../../shared/modules/API/vos/GetAPIDefinition';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import ModuleTable from '../../../shared/modules/ModuleTable';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -60,6 +62,35 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
     public async getDataRenderer(renderer_name: string): Promise<DataRendererVO> {
         return await ModuleDAO.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [renderer_name]);
+    }
+
+    /**
+     * Attention le résultat doit passer par un force numerics approprié
+     * @param bdd_full_name
+     * @param timeSegment
+     */
+    public async getDataSegment_needs_force_numerics<T extends IDistantVOBase>(
+        datatable: ModuleTable<T>,
+        timeSegment: TimeSegment,
+        rendered_data_time_segment_type: string): Promise<T[]> {
+
+        let timeSegments: TimeSegment[] = ModuleDataRender.getInstance().getAllDataTimeSegments(
+            ModuleDataRender.getInstance().getStartTimeSegment(timeSegment),
+            ModuleDataRender.getInstance().getEndTimeSegment(timeSegment),
+            rendered_data_time_segment_type
+        );
+        let timeSegments_in: string = null;
+        for (let i in timeSegments) {
+            let timeSegment: TimeSegment = timeSegments[i];
+
+            if (!timeSegments_in) {
+                timeSegments_in = "\'" + timeSegment.dateIndex + "\'";
+            } else {
+
+                timeSegments_in += ", \'" + timeSegment.dateIndex + "\'";
+            }
+        }
+        return await ModuleDAO.getInstance().selectAll<T>(datatable.vo_type, ' where data_dateindex in (' + timeSegments_in + ')') as T[];
     }
 
     public async clearDataSegments(bdd_full_name: string, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {

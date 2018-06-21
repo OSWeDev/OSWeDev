@@ -1,7 +1,6 @@
 import * as moment from 'moment';
 import { isNumber } from 'util';
 import Module from '../Module';
-import ModuleParamChange from '../ModuleParamChange';
 import ModuleTableField from '../ModuleTableField';
 
 export default class ModuleFormatDatesNombres extends Module {
@@ -26,14 +25,6 @@ export default class ModuleFormatDatesNombres extends Module {
         super("format_dates_nombres", "FormatDatesNombres");
         this.initialize();
     }
-
-    /// #if false
-    public async hook_module_configure(db) { return true; }
-    public async hook_module_install(db) { return true; }
-    /// #endif
-
-    public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
-    public async hook_module_async_client_admin_initialization() { }
 
     // On peut avoir des Dates ou des strings en entrée des fonctions, on crée un traducteur assez flexible qui renvoie une date
     public getMomentFromDate(dateToConvert) {

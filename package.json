@@ -6,8 +6,8 @@
         "test": "nyc mocha",
         "test-jenkins": "mocha -R xunit > test-reports.xml",
         "clean": "rimraf dist",
-        "build-server": "tsc -p ./src/server",
-        "build-generator": "tsc -p ./src/generator",
+        "build": "npm run-script clean && tsc --project ./",
+        "watch": "npm run-script clean && tsc -pproject -w ./",
         "version": "echo $npm_package_version"
     },
     "nyc": {

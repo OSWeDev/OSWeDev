@@ -1,16 +1,23 @@
-import Module from '../Module';
-import ModuleTableField from '../ModuleTableField';
-import ModuleTable from '../ModuleTable';
-import ModuleParamChange from '../ModuleParamChange';
 import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
-import DataImportFileVO from './vos/DataImportFileVO';
+import ModuleAPI from '../API/ModuleAPI';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import Module from '../Module';
 import ModulesManager from '../ModulesManager';
+import ModuleTable from '../ModuleTable';
+import ModuleTableField from '../ModuleTableField';
 import DataImportColumnVO from './vos/DataImportColumnVO';
-import DataImportLogVO from './vos/DataImportLogVO';
-import { IDatabase } from 'pg-promise';
+import DataImportFileVO from './vos/DataImportFileVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
+import DataImportLogVO from './vos/DataImportLogVO';
 
 export default class ModuleDataImport extends Module {
+
+    public static APINAME_getDataImportHistorics: string = 'getDataImportHistorics';
+    public static APINAME_getDataImportHistoric: string = 'getDataImportHistoric';
+    public static APINAME_getDataImportLogs: string = 'getDataImportLogs';
+    public static APINAME_getDataImportFiles: string = 'getDataImportFiles';
+    public static APINAME_getDataImportFile: string = 'getDataImportFile';
+    public static APINAME_getDataImportColumnsFromFileId: string = 'getDataImportColumnsFromFileId';
 
     public static getInstance(): ModuleDataImport {
         if (!ModuleDataImport.instance) {
@@ -24,31 +31,48 @@ export default class ModuleDataImport extends Module {
     public dataImportFiles_by_name: { [name: string]: DataImportFileVO } = {};
     public dataImportFiles_by_id: { [id: number]: DataImportFileVO } = {};
 
-    /// #if false
-    private db: IDatabase<any>;
-    /// #endif
-
-    private datatable_file: ModuleTable<DataImportFileVO>;
-    private datatable_column: ModuleTable<DataImportColumnVO>;
-    private datatable_historic: ModuleTable<DataImportHistoricVO>;
-    private datatable_log: ModuleTable<DataImportLogVO>;
+    public datatable_file: ModuleTable<DataImportFileVO>;
+    public datatable_column: ModuleTable<DataImportColumnVO>;
+    public datatable_historic: ModuleTable<DataImportHistoricVO>;
+    public datatable_log: ModuleTable<DataImportLogVO>;
 
     private constructor() {
 
         super("data_import", "DataImport");
         this.initialize();
+
+        // Si on est côté serveur l'init des apis se passe dans le module server
+        if (!ModulesManager.getInstance().isServerSide) {
+            this.registerApis();
+        }
     }
 
-    /// #if false
-    public async hook_module_configure(db): Promise<boolean> {
-        this.db = db;
-        return true;
+    public registerApis() {
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportHistoricVO[]>(
+            ModuleDataImport.APINAME_getDataImportHistorics,
+            [DataImportHistoricVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportHistoricVO>(
+            ModuleDataImport.APINAME_getDataImportHistoric,
+            [DataImportHistoricVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportLogVO[]>(
+            ModuleDataImport.APINAME_getDataImportLogs,
+            [DataImportLogVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataImportFileVO[]>(
+            ModuleDataImport.APINAME_getDataImportFiles,
+            [DataImportFileVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, DataImportFileVO>(
+            ModuleDataImport.APINAME_getDataImportFile,
+            [DataImportFileVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportColumnVO[]>(
+            ModuleDataImport.APINAME_getDataImportColumnsFromFileId,
+            [DataImportColumnVO.API_TYPE_ID]
+        ));
     }
-    public async hook_module_install(db) { return true; }
-    /// #endif
-
-    public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
-    public async hook_module_async_client_admin_initialization() { }
 
     public async hook_module_async_admin_initialization() {
         // On précharge les DataImportFile pour être synchrone sur l'admin sur ce sujet et pouvoir créer les menus adaptés
@@ -84,110 +108,33 @@ export default class ModuleDataImport extends Module {
     }
 
     public async getDataImportHistorics(data_import_file_id: number): Promise<DataImportHistoricVO[]> {
-
-        // Si on est en client / admin il faut utiliser un AjaxCache get, sinon on fait un appel en BDD
-        if (ModulesManager.getInstance().isServerSide) {
-
-            /// #if false
-
-            return DataImportHistoricVO.forceNumerics(await this.db.query(
-                'SELECT t.* FROM ' + this.datatable_historic.full_name + ' t ' +
-                '   WHERE t.data_import_file_id = $1 LIMIT 50;', [data_import_file_id]));
-
-            /// #endif
-        } else {
-            // On s'assure de recharger toujours une version fraîche sur cette api.
-            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
-            return await ModuleAjaxCache.getInstance().get("/modules/ModuleDataImport/getDataImportHistorics/" + data_import_file_id, [DataImportHistoricVO.API_TYPE_ID]) as DataImportHistoricVO[];
-        }
+        // On s'assure de recharger toujours une version fraîche sur cette api.
+        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
+        return await ModuleAPI.getInstance().handleAPI<number, DataImportHistoricVO[]>(ModuleDataImport.APINAME_getDataImportHistorics, data_import_file_id);
     }
 
     public async getDataImportHistoric(historic_id: number): Promise<DataImportHistoricVO> {
-
-        // Si on est en client / admin il faut utiliser un AjaxCache get, sinon on fait un appel en BDD
-        if (ModulesManager.getInstance().isServerSide) {
-
-            /// #if false
-
-            return DataImportHistoricVO.forceNumeric(await this.db.oneOrNone(
-                'SELECT t.* FROM ' + this.datatable_historic.full_name + ' t ' +
-                '   WHERE t.id = $1;', [historic_id]));
-
-            /// #endif
-        } else {
-            // On s'assure de recharger toujours une version fraîche sur cette api.
-            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
-            return await ModuleAjaxCache.getInstance().get("/modules/ModuleDataImport/getDataImportHistoric/" + historic_id, [DataImportHistoricVO.API_TYPE_ID]) as DataImportHistoricVO;
-        }
+        // On s'assure de recharger toujours une version fraîche sur cette api.
+        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
+        return await ModuleAPI.getInstance().handleAPI<number, DataImportHistoricVO>(ModuleDataImport.APINAME_getDataImportHistoric, historic_id);
     }
 
     public async getDataImportLogs(data_import_file_id: number): Promise<DataImportLogVO[]> {
-
-        // Si on est en client / admin il faut utiliser un AjaxCache get, sinon on fait un appel en BDD
-        if (ModulesManager.getInstance().isServerSide) {
-
-            /// #if false
-
-            return DataImportLogVO.forceNumerics(await this.db.query(
-                'SELECT t.* FROM ' + this.datatable_log.full_name + ' t ' +
-                '   WHERE t.data_import_file_id = $1 LIMIT 50;', [data_import_file_id]));
-
-            /// #endif
-        } else {
-            // On s'assure de recharger toujours une version fraîche sur cette api.
-            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportLogVO.API_TYPE_ID]);
-            return await ModuleAjaxCache.getInstance().get("/modules/ModuleDataImport/getDataImportLogs/" + data_import_file_id, [DataImportLogVO.API_TYPE_ID]) as DataImportLogVO[];
-        }
+        // On s'assure de recharger toujours une version fraîche sur cette api.
+        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportLogVO.API_TYPE_ID]);
+        return await ModuleAPI.getInstance().handleAPI<number, DataImportLogVO[]>(ModuleDataImport.APINAME_getDataImportLogs, data_import_file_id);
     }
 
     public async getDataImportFiles(): Promise<DataImportFileVO[]> {
-
-        // Si on est en client / admin il faut utiliser un AjaxCache get, sinon on fait un appel en BDD
-        if (ModulesManager.getInstance().isServerSide) {
-
-            /// #if false
-
-            return DataImportFileVO.forceNumerics(await this.db.query(
-                'SELECT t.* FROM ' + this.datatable_file.full_name + ' t;'));
-
-            /// #endif
-        } else {
-            return await ModuleAjaxCache.getInstance().get("/modules/ModuleDataImport/getDataImportFiles/", [DataImportFileVO.API_TYPE_ID]) as DataImportFileVO[];
-        }
+        return await ModuleAPI.getInstance().handleAPI<void, DataImportFileVO[]>(ModuleDataImport.APINAME_getDataImportFiles);
     }
 
     public async getDataImportFile(import_name: string): Promise<DataImportFileVO> {
-
-        // Si on est en client / admin il faut utiliser un AjaxCache get, sinon on fait un appel en BDD
-        if (ModulesManager.getInstance().isServerSide) {
-
-            /// #if false
-
-            return DataImportFileVO.forceNumeric(await this.db.oneOrNone(
-                'SELECT t.* FROM ' + this.datatable_file.full_name + ' t ' +
-                '  WHERE t.import_name = $1', [import_name]));
-
-            /// #endif
-        } else {
-            return await ModuleAjaxCache.getInstance().get("/modules/ModuleDataImport/getDataImportFile/" + import_name, [DataImportFileVO.API_TYPE_ID]) as DataImportFileVO;
-        }
+        return await ModuleAPI.getInstance().handleAPI<string, DataImportFileVO>(ModuleDataImport.APINAME_getDataImportFile, import_name);
     }
 
     public async getDataImportColumnsFromFileId(data_import_file_id: number): Promise<DataImportColumnVO[]> {
-
-        // Si on est en client / admin il faut utiliser un AjaxCache get, sinon on fait un appel en BDD
-        if (ModulesManager.getInstance().isServerSide) {
-
-            /// #if false
-
-            return DataImportColumnVO.forceNumerics(await this.db.query(
-                'SELECT t.* FROM ' + this.datatable_column.full_name + ' t ' +
-                '  WHERE t.data_import_file_id = $1', [data_import_file_id]));
-
-            /// #endif
-        } else {
-            return await ModuleAjaxCache.getInstance().get("/modules/ModuleDataImport/getDataImportColumnsFromFile/" + data_import_file_id, [DataImportColumnVO.API_TYPE_ID]) as DataImportColumnVO[];
-        }
+        return await ModuleAPI.getInstance().handleAPI<number, DataImportColumnVO[]>(ModuleDataImport.APINAME_getDataImportColumnsFromFileId, data_import_file_id);
     }
 
     protected initialize() {

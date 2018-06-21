@@ -11,8 +11,11 @@ import ModulesManager from '../../../shared/modules/ModulesManager';
 import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
 import IImportData from '../../../shared/modules/DataImport/interfaces/IImportData';
 import IImportOptions from '../../../shared/modules/DataImport/interfaces/IImportOptions';
-import ImportLogger from '../../../shared/modules/DataImport/logger/ImportLogger';
+import ImportLogger from './logger/ImportLogger';
 import DataImportHistoricVO from '../../../shared/modules/DataImport/vos/DataImportHistoricVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import GetAPIDefinition from '../../../shared/modules/API/vos/GetAPIDefinition';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -29,14 +32,72 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         return ModuleDataImport.getInstance().actif;
     }
 
-    public registerExpressApis(app: Express): void {
-        this.registerExpressApi_getDataImportLogs(app);
-        this.registerExpressApi_getDataImportHistorics(app);
-        this.registerExpressApi_getDataImportHistoric(app);
-        this.registerExpressApi_importFile(app);
-        this.registerExpressApi_getDataImportFile(app);
-        this.registerExpressApi_getDataImportColumnsFromFile(app);
-        this.registerExpressApi_getDataImportFiles(app);
+    public registerApis() {
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportHistoricVO[]>(
+            ModuleDataImport.APINAME_getDataImportHistorics,
+            [DataImportHistoricVO.API_TYPE_ID],
+            this.getDataImportHistorics.bind(this)
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportHistoricVO>(
+            ModuleDataImport.APINAME_getDataImportHistoric,
+            [DataImportHistoricVO.API_TYPE_ID],
+            this.getDataImportHistoric.bind(this)
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportLogVO[]>(
+            ModuleDataImport.APINAME_getDataImportLogs,
+            [DataImportLogVO.API_TYPE_ID],
+            this.getDataImportLogs.bind(this)
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataImportFileVO[]>(
+            ModuleDataImport.APINAME_getDataImportFiles,
+            [DataImportFileVO.API_TYPE_ID],
+            this.getDataImportFiles.bind(this)
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, DataImportFileVO>(
+            ModuleDataImport.APINAME_getDataImportFile,
+            [DataImportFileVO.API_TYPE_ID],
+            this.getDataImportFile.bind(this)
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportColumnVO[]>(
+            ModuleDataImport.APINAME_getDataImportColumnsFromFileId,
+            [DataImportColumnVO.API_TYPE_ID],
+            this.getDataImportColumnsFromFileId.bind(this)
+        ));
+    }
+
+    public async getDataImportHistorics(data_import_file_id: number): Promise<DataImportHistoricVO[]> {
+
+        return await ModuleDAO.getInstance().selectAll<DataImportHistoricVO>(
+            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.data_import_file_id = $1 LIMIT 50;', [data_import_file_id]);
+    }
+
+    public async getDataImportHistoric(historic_id: number): Promise<DataImportHistoricVO> {
+
+        return await ModuleDAO.getInstance().selectOne<DataImportHistoricVO>(
+            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.id = $1;', [historic_id]);
+    }
+
+    public async getDataImportLogs(data_import_file_id: number): Promise<DataImportLogVO[]> {
+
+        return await ModuleDAO.getInstance().selectAll<DataImportLogVO>(
+            DataImportLogVO.API_TYPE_ID, 'WHERE t.data_import_file_id = $1 LIMIT 50;', [data_import_file_id]);
+    }
+
+    public async getDataImportFiles(): Promise<DataImportFileVO[]> {
+
+        return await ModuleDAO.getInstance().getVos<DataImportFileVO>(DataImportFileVO.API_TYPE_ID);
+    }
+
+    public async getDataImportFile(import_name: string): Promise<DataImportFileVO> {
+
+        return await ModuleDAO.getInstance().selectOne<DataImportFileVO>(
+            DataImportFileVO.API_TYPE_ID, 'WHERE t.import_name = $1', [import_name]);
+    }
+
+    public async getDataImportColumnsFromFileId(data_import_file_id: number): Promise<DataImportColumnVO[]> {
+
+        return await ModuleDAO.getInstance().selectAll<DataImportColumnVO>(
+            DataImportColumnVO.API_TYPE_ID, 'WHERE t.data_import_file_id = $1', [data_import_file_id]);
     }
 
     private resolveExpressApi_getDataImportLogs(req: Request, res: Response) {

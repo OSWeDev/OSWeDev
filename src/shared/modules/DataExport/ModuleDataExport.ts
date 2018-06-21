@@ -20,10 +20,6 @@ export default class ModuleDataExport extends Module {
 
     private static instance: ModuleDataExport = null;
 
-    /// #if false
-    private db: IDatabase<any>;
-    /// #endif
-
     private constructor() {
 
         super("data_export", "DataExport");
@@ -34,14 +30,6 @@ export default class ModuleDataExport extends Module {
             this.registerApis();
         }
     }
-
-    /// #if false
-    public async hook_module_configure(db): Promise<boolean> {
-        this.db = db;
-        return true;
-    }
-    public async hook_module_install(db) { return true; }
-    /// #endif
 
     public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
     public async hook_module_async_client_admin_initialization() { }

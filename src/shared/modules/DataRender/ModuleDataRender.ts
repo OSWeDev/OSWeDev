@@ -1,21 +1,17 @@
-import Module from '../Module';
-import ModuleTableField from '../ModuleTableField';
-import ModuleTable from '../ModuleTable';
-import ModuleParamChange from '../ModuleParamChange';
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
-import DataRenderingLogVO from './vos/DataRenderingLogVO';
-import ModulesManager from '../ModulesManager';
-import TimeSegment from './vos/TimeSegment';
-import DateHandler from '../../tools/DateHandler';
-import DataRendererVO from './vos/DataRendererVO';
-import IRenderedData from './interfaces/IRenderedData';
 import { isNumber } from 'util';
-import ModuleDAO from '../DAO/ModuleDAO';
-import IDistantVOBase from '../IDistantVOBase';
+import DateHandler from '../../tools/DateHandler';
 import ModuleAPI from '../API/ModuleAPI';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import Module from '../Module';
+import ModulesManager from '../ModulesManager';
+import ModuleTable from '../ModuleTable';
+import ModuleTableField from '../ModuleTableField';
+import IRenderedData from './interfaces/IRenderedData';
+import DataRendererVO from './vos/DataRendererVO';
+import DataRenderingLogVO from './vos/DataRenderingLogVO';
+import TimeSegment from './vos/TimeSegment';
 
 export default class ModuleDataRender extends Module {
 
@@ -141,46 +137,6 @@ export default class ModuleDataRender extends Module {
 
     public async getDataRenderer(renderer_name: string): Promise<DataRendererVO> {
         return await ModuleAPI.getInstance().handleAPI<string, DataRendererVO>(ModuleDataRender.APINAME_GET_DATA_RENDERER, renderer_name);
-    }
-
-    /**
-     * Attention le résultat doit passer par un force numerics approprié
-     * @param bdd_full_name
-     * @param timeSegment
-     */
-    public async getDataSegment_needs_force_numerics<T extends IDistantVOBase>(
-        datatable: ModuleTable<T>,
-        timeSegment: TimeSegment,
-        rendered_data_time_segment_type: string): Promise<T[]> {
-
-        // ATTENTION secu sur cet api on recup une donnée qu'on insère directement en requete il faut pas faire ca...
-        // Si on est en client / admin il faut utiliser un AjaxCache get, sinon on fait un appel en BDD
-        if (ModulesManager.getInstance().isServerSide) {
-
-            /// #if false
-
-            let timeSegments: TimeSegment[] = this.getAllDataTimeSegments(
-                this.getStartTimeSegment(timeSegment),
-                this.getEndTimeSegment(timeSegment),
-                rendered_data_time_segment_type
-            );
-            let timeSegments_in: string = null;
-            for (let i in timeSegments) {
-                let timeSegment: TimeSegment = timeSegments[i];
-
-                if (!timeSegments_in) {
-                    timeSegments_in = "\'" + timeSegment.dateIndex + "\'";
-                } else {
-
-                    timeSegments_in += ", \'" + timeSegment.dateIndex + "\'";
-                }
-            }
-            return await ModuleDAO.getInstance().selectAll<T>(datatable.vo_type, ' where data_dateindex in (' + timeSegments_in + ')') as T[];
-
-            /// #endif
-        } else {
-            return null;
-        }
     }
 
     /**

@@ -1,6 +1,3 @@
-import AccessPolicyVO from '../AccessPolicyVO';
-import RoleVO from '../RoleVO';
-
 export default class ResetPwdParamVO {
 
     public static async translateCheckAccessParams(

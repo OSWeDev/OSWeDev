@@ -17,6 +17,8 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import ResetPwdParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ResetPwdParamVO';
 import PasswordReset from './PasswordReset/PasswordReset';
 import ServerBase from '../../ServerBase';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import RegisterModuleAccessPolicyParamVO from '../../../shared/modules/AccessPolicy/vos/apis/RegisterModuleAccessPolicyParamVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -37,6 +39,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public registerCrons(): void {
         AccessPolicyCronWorkersHandler.getInstance();
+    }
+
+    public async configure() {
+        // On init le Rôle super admin qui est la base de tout
+        let role_superadmin: RoleVO = await ModuleAccessPolicy.getInstance().addRoleIfNotExists(ModuleAccessPolicy.ROLE_SUPER_ADMIN);
+
+        // Register Policies
+        await ModuleAccessPolicy.getInstance().registerModuleAccessPolicy(ModuleAccessPolicy.MAIN_ACCESS_GROUP_NAME, ModuleAccessPolicy.ADMIN_ACCESS_NAME);
     }
 
     public registerApis() {
@@ -103,6 +113,59 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             this.resetPwd.bind(this),
             ResetPwdParamVO.translateCheckAccessParams
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<RegisterModuleAccessPolicyParamVO, void>(
+            ModuleAccessPolicy.APINAME_registerModuleAccessPolicy,
+            [AccessPolicyGroupVO.API_TYPE_ID, AccessPolicyVO.API_TYPE_ID],
+            this.registerModuleAccessPolicy.bind(this),
+            RegisterModuleAccessPolicyParamVO.translateCheckAccessParams
+        ));
+    }
+
+    /**
+     * On s'assure que la policy existe en base. Sinon on crée au besoin le groupe et/ou la policy
+     * @param group_name Le titre du groupe
+     * @param policy_name Le titre de la policy
+     */
+    public async registerModuleAccessPolicy(params: RegisterModuleAccessPolicyParamVO): Promise<void> {
+        let group_name: string = params.group_name;
+        let policy_name: string = params.policy_name;
+
+        if ((!group_name) || (!policy_name)) {
+            return;
+        }
+
+        let apg: AccessPolicyGroupVO = await ModuleDAO.getInstance().selectOne<AccessPolicyGroupVO>(
+            AccessPolicyGroupVO.API_TYPE_ID,
+            'WHERE uniq_id=$1',
+            [AccessPolicyGroupVO.getUniqID(group_name)]
+        );
+
+        if (!apg) {
+            apg = new AccessPolicyGroupVO(group_name);
+            // let request = "INSERT INTO " + this.accesspolicygroup_datatable.full_name + " (uniq_id, translatable_name) VALUES ('" + apg.uniq_id + "', '" + apg.translatable_name + "') RETURNING id;";
+            // let id = await this.db.query(request);
+            let insertres = await ModuleDAO.getInstance().insertOrUpdateVO(apg);
+
+            if ((!insertres) || (!insertres.id)) {
+                return;
+            }
+            apg.id = parseInt(insertres.id.toString());
+            apg = AccessPolicyGroupVO.forceNumeric(apg);
+        }
+
+        let ap: AccessPolicyVO = await ModuleDAO.getInstance().selectOne<AccessPolicyVO>(
+            AccessPolicyVO.API_TYPE_ID,
+            'WHERE uniq_id=$1', [AccessPolicyVO.getUniqID(group_name, policy_name)]);
+
+        if (!ap) {
+            ap = new AccessPolicyVO(group_name, policy_name, apg.id);
+            // let request = "INSERT INTO " + this.accesspolicy_datatable.full_name + " (uniq_id, translatable_name, group_id) VALUES ('" + apg.uniq_id + "', '" + apg.translatable_name + "', " + apg.id + ") RETURNING id;";
+            // await this.db.query(request);
+            await ModuleDAO.getInstance().insertOrUpdateVO(ap);
+
+            // TODO ajouter l'insert des traductions par défaut à ce niveau, pour toutes les langues ?
+        }
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {

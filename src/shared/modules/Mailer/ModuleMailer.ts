@@ -1,16 +1,5 @@
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
-import ModuleTable from '../ModuleTable';
-import ModuleParamChange from '../ModuleParamChange';
-import * as moment from 'moment';
-import { Duration } from 'moment';
-import IDistantVOBase from '../IDistantVOBase';
-import ModulesManager from '../ModulesManager';
-import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
-import { isArray } from 'util';
-import ModuleDAO from '../DAO/ModuleDAO';
-import ModuleDataExport from '../DataExport/ModuleDataExport';
-import DateHandler from '../../tools/DateHandler';
 
 export default class ModuleMailer extends Module {
 
