@@ -179,7 +179,7 @@ export default abstract class ServerBase {
 
         let tryuseGZ = function (bundle, req, res, next) {
 
-            let gzpath = __dirname + '/../../src/' + bundle + '/' + req.url + '.gz';
+            let gzpath = './src/' + bundle + '/' + req.url + '.gz';
             if (req.acceptsEncodings('gzip') || req.acceptsEncodings('deflate')) {
 
                 res.set('Content-Encoding', 'gzip');
@@ -359,7 +359,7 @@ export default abstract class ServerBase {
             if (ModuleAccessPolicy.getInstance().actif && (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.MAIN_ACCESS_GROUP_NAME, ModuleAccessPolicy.ADMIN_ACCESS_NAME))) {
                 res.redirect('/');
             }
-            res.sendFile(path.resolve(__dirname + '/../../src/admin/public/generated/admin.html'));
+            res.sendFile(path.resolve('./src/admin/public/generated/admin.html'));
         });
 
         this.app.set('view engine', 'jade');
