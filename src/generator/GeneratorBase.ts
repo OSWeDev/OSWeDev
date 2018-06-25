@@ -4,6 +4,7 @@ import ConfigurationService from '../server/env/ConfigurationService';
 import { IDatabase } from 'pg-promise';
 import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
+import ModulesManager from '../shared/modules/ModulesManager';
 
 export default abstract class GeneratorBase {
 
@@ -20,6 +21,7 @@ export default abstract class GeneratorBase {
         GeneratorBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
+        ModulesManager.getInstance().isServerSide = true;
     }
 
     public async generate() {

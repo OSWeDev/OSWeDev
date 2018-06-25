@@ -1,6 +1,5 @@
-import Module from "./Module";
-import ModuleWrapper from "./ModuleWrapper";
 import IModuleBase from "./IModuleBase";
+import ModuleWrapper from "./ModuleWrapper";
 
 export default class ModulesManager {
 
