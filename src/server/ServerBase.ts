@@ -480,41 +480,46 @@ export default abstract class ServerBase {
         });
         this.app.get('/api/clientappcontrollerinit', async (req, res) => {
             const session = req.session;
+            let user_infos = await ServerBase.getInstance().getUserInfos(session.user.email);
 
-            ServerBase.getInstance().handleError(async () => {
-                let user_infos = await ServerBase.getInstance().getUserInfos(session.user.email);
-                res.json(JSON.stringify(
-                    {
-                        data_version: ServerBase.getInstance().version,
-                        data_user: user_infos,
-                        data_ui_debug: ServerBase.getInstance().uiDebug,
-                        data_base_api_url: "",
-                        data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
-                    }
-                ));
-            }, res);
+            if (!user_infos) {
+                ServerBase.getInstance().sendError(res, "No user info. Please reload.");
+                return;
+            }
+
+            res.json(JSON.stringify(
+                {
+                    data_version: ServerBase.getInstance().version,
+                    data_user: user_infos,
+                    data_ui_debug: ServerBase.getInstance().uiDebug,
+                    data_base_api_url: "",
+                    data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
+                }
+            ));
         });
 
         this.app.get('/api/adminappcontrollerinit', async (req, res) => {
-
             const session = req.session;
+            let user_infos = await ServerBase.getInstance().getUserInfos(session.user.email);
 
-            ServerBase.getInstance().handleError(async () => {
-                let user_infos = await ServerBase.getInstance().getUserInfos(session.user.email);
-                res.json(JSON.stringify(
-                    {
-                        data_version: ServerBase.getInstance().version,
-                        data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
-                        data_url_import: ServerBase.getInstance().envParam.URL_IMPORT,
-                        data_node_env: process.env.NODE_ENV,
-                        data_user: user_infos,
-                        data_ui_debug: ServerBase.getInstance().uiDebug,
-                        data_base_api_url: "/admin/api/",
-                        data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
-                        data_is_dev: ServerBase.getInstance().envParam.ISDEV
-                    }
-                ));
-            }, res);
+            if (!user_infos) {
+                ServerBase.getInstance().sendError(res, "No user info. Please reload.");
+                return;
+            }
+
+            res.json(JSON.stringify(
+                {
+                    data_version: ServerBase.getInstance().version,
+                    data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
+                    data_url_import: ServerBase.getInstance().envParam.URL_IMPORT,
+                    data_node_env: process.env.NODE_ENV,
+                    data_user: user_infos,
+                    data_ui_debug: ServerBase.getInstance().uiDebug,
+                    data_base_api_url: "/admin/api/",
+                    data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
+                    data_is_dev: ServerBase.getInstance().envParam.ISDEV
+                }
+            ));
         });
 
         // L'API qui renvoie les infos pour générer l'interface NGA pour les modules (activation / désactivation des modules et les paramètres de chaque module)
@@ -642,10 +647,15 @@ export default abstract class ServerBase {
     }
 
     protected handleError(promise, res) {
-        promise.error((err) => {
+        promise.catch((err) => {
             console.error("error", err.message || err);
             return res.status(500).send(err.message || err);
         });
+    }
+
+    protected sendError(res, errormessage) {
+        console.error("error", errormessage);
+        return res.status(500).send(errormessage);
     }
 
     protected abstract initializeDataImports();
