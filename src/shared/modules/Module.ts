@@ -29,12 +29,10 @@ export default abstract class Module implements IModuleBase {
 
     public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
 
-    /// #if false
     public async hook_module_install(db): Promise<any> { }
     public async hook_module_configure(db): Promise<boolean> {
         return true;
     }
-    /// #endif
 
     // Pour le chargement de données nécessaires à l'application ou la mise en place de caches de données.
     public async hook_module_async_client_admin_initialization(): Promise<any> { }

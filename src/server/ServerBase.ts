@@ -25,6 +25,7 @@ import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
 import ModuleServiceBase from './modules/ModuleServiceBase';
+import ModulesManager from '../shared/modules/ModulesManager';
 
 export default abstract class ServerBase {
 
@@ -53,6 +54,7 @@ export default abstract class ServerBase {
         this.modulesService = modulesService;
         this.ALL_LOCALES = ALL_LOCALES;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
+        ModulesManager.getInstance().isServerSide = true;
     }
 
     public abstract getHttpContext();

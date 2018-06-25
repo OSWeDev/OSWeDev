@@ -16,11 +16,7 @@ export default class ModulesManager {
     public isServerSide: boolean = false;
     private modules_by_name: { [key: string]: ModuleWrapper } = {};
 
-    private constructor() {
-        /// #if false
-        this.isServerSide = true;
-        /// #endif
-    }
+    private constructor() { }
 
     public registerModule(role: string, module: IModuleBase) {
         if (!module) {
