@@ -1,31 +1,30 @@
-import * as express from 'express';
-import { Request, Response, NextFunction } from 'express';
-import * as fs from 'fs';
-import ConfigurationService from './env/ConfigurationService';
-import EnvParam from './env/EnvParam';
-import * as path from 'path';
-import * as expressSession from 'express-session';
-import * as sessionFileStore from 'session-file-store';
 import * as child_process from 'child_process';
-import * as jwt from 'jsonwebtoken';
-import * as tslib from 'tslib';
+import * as compression from 'compression';
+import * as express from 'express';
+import { NextFunction, Request, Response } from 'express';
+import * as createLocaleMiddleware from 'express-locale';
+import * as expressSession from 'express-session';
+import * as fs from 'fs';
 import * as proxyMiddleware from 'http-proxy-middleware';
+import * as jwt from 'jsonwebtoken';
+import * as path from 'path';
 import * as pg from 'pg';
-import * as winston from 'winston';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
-import I18nextInit from './I18nextInit';
-import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
-import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
-import ModuleCron from '../shared/modules/Cron/ModuleCron';
-import TranslationVO from '../shared/modules/Translation/vos/TranslationVO';
-import TranslatableTextVO from '../shared/modules/Translation/vos/TranslatableTextVO';
-import * as createLocaleMiddleware from 'express-locale';
-import LangVO from '../shared/modules/Translation/vos/LangVO';
-import ModuleServiceBase from './modules/ModuleServiceBase';
+import * as sessionFileStore from 'session-file-store';
+import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
-import * as compression from 'compression';
+import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleCron from '../shared/modules/Cron/ModuleCron';
+import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
+import LangVO from '../shared/modules/Translation/vos/LangVO';
+import TranslatableTextVO from '../shared/modules/Translation/vos/TranslatableTextVO';
+import TranslationVO from '../shared/modules/Translation/vos/TranslationVO';
+import ConfigurationService from './env/ConfigurationService';
+import EnvParam from './env/EnvParam';
+import I18nextInit from './I18nextInit';
+import ModuleServiceBase from './modules/ModuleServiceBase';
 
 export default abstract class ServerBase {
 
@@ -643,7 +642,7 @@ export default abstract class ServerBase {
     }
 
     protected handleError(promise, res) {
-        promise.catch((err) => {
+        promise.error((err) => {
             console.error("error", err.message || err);
             return res.status(500).send(err.message || err);
         });
