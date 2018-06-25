@@ -548,6 +548,8 @@ export default abstract class ServerBase {
             }), res);
         });
 
+        this.registerApis(this.app);
+
         this.modulesService.configure_server_modules(this.app);
 
         console.log('listening on port', ServerBase.getInstance().port);
@@ -703,5 +705,8 @@ export default abstract class ServerBase {
                     resolve(row.user);
                 });
         });
+    }
+
+    protected registerApis(app) {
     }
 }
