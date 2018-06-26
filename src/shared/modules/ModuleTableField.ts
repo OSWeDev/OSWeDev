@@ -1,5 +1,6 @@
 import ModuleTable from './ModuleTable';
 import { isNumber, isNull, isBoolean } from 'util';
+import IDistantVOBase from './IDistantVOBase';
 
 export default class ModuleTableField<T> {
 
@@ -18,10 +19,10 @@ export default class ModuleTableField<T> {
     public field_loaded: boolean;
 
     public has_relation: boolean;
-    public datatable_uid = null;
-    public target_database = null;
-    public target_table = null;
-    public target_field = null;
+    public datatable_uid: string = null;
+    public target_database: string = null;
+    public target_table: string = null;
+    public target_field: string = null;
 
     constructor(
         public field_id: string,
@@ -59,11 +60,11 @@ export default class ModuleTableField<T> {
             'ON UPDATE NO ACTION ON DELETE CASCADE';
     }
 
-    public addRelation(datatable, target_database, target_table, target_field) {
+    public addManyToOneRelation<T extends IDistantVOBase, U extends IDistantVOBase>(datatable: ModuleTable<T>, target_database: ModuleTable<U>) {
         this.datatable_uid = datatable.datatable_uid;
-        this.target_database = target_database;
-        this.target_table = target_table;
-        this.target_field = target_field;
+        this.target_database = target_database.database;
+        this.target_table = target_database.name;
+        this.target_field = 'id';
         this.has_relation = true;
     }
 

@@ -6,6 +6,11 @@ import IDistantVOBase from './IDistantVOBase';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
+    private static UID: number = 1;
+    private static getNextUID(): number {
+        return ModuleTable.UID++;
+    }
+
     public name: string;
     public full_name: string;
     public uid: string;
@@ -34,6 +39,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public prefix: string;
     public database: string;
     public vo_type: string;
+    public datatable_uid: string;
 
     constructor(
 
@@ -70,6 +76,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
+
+        this.datatable_uid = ModuleTable.getNextUID().toString();
     }
 
     public set_bdd_ref(

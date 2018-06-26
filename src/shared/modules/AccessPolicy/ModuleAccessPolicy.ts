@@ -19,6 +19,7 @@ import RolePoliciesVO from './vos/RolePoliciesVO';
 import RoleVO from './vos/RoleVO';
 import UserRolesVO from './vos/UserRolesVO';
 import UserVO from './vos/UserVO';
+import ModuleTranslation from '../Translation/ModuleTranslation';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -52,6 +53,7 @@ export default class ModuleAccessPolicy extends Module {
 
     private static instance: ModuleAccessPolicy = null;
 
+    public user_datatable: ModuleTable<UserVO>;
     public role_datatable: ModuleTable<RoleVO>;
     public userroles_datatable: ModuleTable<UserRolesVO>;
     public accesspolicygroup_datatable: ModuleTable<AccessPolicyGroupVO>;
@@ -247,11 +249,31 @@ export default class ModuleAccessPolicy extends Module {
         ];
         this.datatables = [];
 
+        this.initializeUser();
         this.initializeRole();
         this.initializeUserRoles();
         this.initializeModuleAccessPolicyGroup();
         this.initializeModuleAccessPolicy();
         this.initializeRolesPolicies();
+    }
+
+    private initializeUser() {
+        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'lang_id', false);
+        let datatable_fields = [
+            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'name', true),
+            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'email', true),
+            new ModuleTableField('password', ModuleTableField.FIELD_TYPE_string, 'password', true),
+            new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_string, 'password_change_date', true),
+            new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, 'reminded_pwd_1', true),
+            new ModuleTableField('reminded_pwd_2', ModuleTableField.FIELD_TYPE_boolean, 'reminded_pwd_2', true),
+            new ModuleTableField('invalidated', ModuleTableField.FIELD_TYPE_boolean, 'invalidated', true),
+            field_lang_id,
+            new ModuleTableField('recovery_challenge', ModuleTableField.FIELD_TYPE_string, 'recovery_challenge', true),
+            new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_int, 'recovery_expiration', true),
+        ];
+
+        this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, UserVO.forceNumeric, UserVO.forceNumerics, datatable_fields, UserVO.API_TYPE_ID);
+        field_lang_id.addManyToOneRelation(this.user_datatable, ModuleTranslation.getInstance().datatable_lang);
     }
 
     private initializeRole() {
@@ -274,8 +296,8 @@ export default class ModuleAccessPolicy extends Module {
 
         this.userroles_datatable = new ModuleTable(this, UserRolesVO.API_TYPE_ID, UserRolesVO.forceNumeric, UserRolesVO.forceNumerics, datatable_fields, UserRolesVO.API_TYPE_ID);
 
-        field_user_id.addRelation(this.userroles_datatable, 'ref', 'user', 'id');
-        field_role_id.addRelation(this.userroles_datatable, this.role_datatable.database, this.role_datatable.name, 'id');
+        field_user_id.addManyToOneRelation(this.userroles_datatable, ModuleAccessPolicy.getInstance().user_datatable);
+        field_role_id.addManyToOneRelation(this.userroles_datatable, this.role_datatable);
 
         this.datatables.push(this.userroles_datatable);
     }
@@ -302,7 +324,7 @@ export default class ModuleAccessPolicy extends Module {
 
         this.accesspolicy_datatable = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, AccessPolicyVO.forceNumeric, AccessPolicyVO.forceNumerics, datatable_fields, AccessPolicyVO.API_TYPE_ID);
 
-        field_accpolgroup_id.addRelation(this.accesspolicy_datatable, this.accesspolicygroup_datatable.database, this.accesspolicygroup_datatable.name, 'id');
+        field_accpolgroup_id.addManyToOneRelation(this.accesspolicy_datatable, this.accesspolicygroup_datatable);
 
         this.datatables.push(this.accesspolicy_datatable);
     }
@@ -318,8 +340,8 @@ export default class ModuleAccessPolicy extends Module {
 
         this.rolepolicies_datatable = new ModuleTable(this, RolePoliciesVO.API_TYPE_ID, RolePoliciesVO.forceNumeric, RolePoliciesVO.forceNumerics, datatable_fields, RolePoliciesVO.API_TYPE_ID);
 
-        field_accpol_id.addRelation(this.rolepolicies_datatable, this.accesspolicy_datatable.database, this.accesspolicy_datatable.name, 'id');
-        field_role_id.addRelation(this.rolepolicies_datatable, this.role_datatable.database, this.role_datatable.name, 'id');
+        field_accpol_id.addManyToOneRelation(this.rolepolicies_datatable, this.accesspolicy_datatable);
+        field_role_id.addManyToOneRelation(this.rolepolicies_datatable, this.role_datatable);
 
         this.datatables.push(this.rolepolicies_datatable);
     }
