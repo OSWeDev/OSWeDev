@@ -77,7 +77,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
 
-        this.datatable_uid = ModuleTable.getNextUID().toString();
+        this.datatable_uid = "";//TODO FIXME : pas de nombre ici, mais est-ce bien utile surtout ce uid (qui du coup n'en est pas)ModuleTable.getNextUID().toString();
     }
 
     public set_bdd_ref(
