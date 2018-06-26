@@ -296,7 +296,7 @@ export default class ModuleAccessPolicy extends Module {
 
         this.userroles_datatable = new ModuleTable(this, UserRolesVO.API_TYPE_ID, UserRolesVO.forceNumeric, UserRolesVO.forceNumerics, datatable_fields, UserRolesVO.API_TYPE_ID);
 
-        field_user_id.addManyToOneRelation(this.userroles_datatable, ModuleAccessPolicy.getInstance().user_datatable);
+        field_user_id.addManyToOneRelation(this.userroles_datatable, this.user_datatable);
         field_role_id.addManyToOneRelation(this.userroles_datatable, this.role_datatable);
 
         this.datatables.push(this.userroles_datatable);
