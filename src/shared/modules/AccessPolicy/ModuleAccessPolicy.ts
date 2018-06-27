@@ -77,7 +77,6 @@ export default class ModuleAccessPolicy extends Module {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<CheckAccessParamVO, boolean>(
             ModuleAccessPolicy.APINAME_CHECK_ACCESS,
             [AccessPolicyVO.API_TYPE_ID, UserRolesVO.API_TYPE_ID, RolePoliciesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
-            null,
             CheckAccessParamVO.translateCheckAccessParams,
             CheckAccessParamVO.URL,
             CheckAccessParamVO.translateToURL,
@@ -92,7 +91,6 @@ export default class ModuleAccessPolicy extends Module {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, boolean>(
             ModuleAccessPolicy.APINAME_IS_ROLE,
             [UserRolesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
-            null,
             null,
             ":role_translatable_name",
             null,
@@ -117,7 +115,6 @@ export default class ModuleAccessPolicy extends Module {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<AddRoleToUserParamVO, void>(
             ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
-            null,
             AddRoleToUserParamVO.translateCheckAccessParams
         ));
 
@@ -129,14 +126,12 @@ export default class ModuleAccessPolicy extends Module {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
             ModuleAccessPolicy.APINAME_RESET_PWD,
             [UserVO.API_TYPE_ID],
-            null,
             ResetPwdParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<RegisterModuleAccessPolicyParamVO, void>(
             ModuleAccessPolicy.APINAME_registerModuleAccessPolicy,
             [AccessPolicyGroupVO.API_TYPE_ID, AccessPolicyVO.API_TYPE_ID],
-            null,
             RegisterModuleAccessPolicyParamVO.translateCheckAccessParams
         ));
     }

@@ -63,7 +63,6 @@ export default class ModuleTranslation extends Module {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<GetTranslationParamVO, TranslationVO>(
             ModuleTranslation.APINAME_GET_TRANSLATION,
             [TranslationVO.API_TYPE_ID],
-            null,
             GetTranslationParamVO.translateCheckAccessParams,
             GetTranslationParamVO.URL,
             GetTranslationParamVO.translateToURL,

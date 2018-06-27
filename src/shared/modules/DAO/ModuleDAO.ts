@@ -63,25 +63,21 @@ export default class ModuleDAO extends Module {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO<any>, any>(
             ModuleDAO.APINAME_GET_VO_BY_ID,
             null, //FIXME NEED HOOK suivant data
-            null,
             APIDAOParamVO.translateGetVoByIdParams
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVOs<any>, any>(
             ModuleDAO.APINAME_GET_VOS,
             null, //FIXME NEED HOOK suivant data
-            null,
             APIDAOParamVOs.translateGetVosParams
         ));
         // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVOs<any>, any>(
         //     ModuleDAO.APINAME_SELECT_ALL,
         //     null, //FIXME NEED HOOK suivant data
-        //     null,
         //     APIDAOParamVOs.translateSelectAllParams
         // ));
         // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO<any>, any>(
         //     ModuleDAO.APINAME_SELECT_ONE,
         //     null, //FIXME NEED HOOK suivant data
-        //     null,
         //     APIDAOParamVO.translateSelectOneParams
         // ));
     }

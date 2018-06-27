@@ -105,7 +105,7 @@ export default abstract class ModuleServiceBase {
             let server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
-                server_module.registerApis();
+                server_module.registerServerApiHandlers();
                 await server_module.configure();
             }
         }

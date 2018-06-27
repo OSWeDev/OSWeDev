@@ -314,55 +314,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
         this.access_hooks[API_TYPE_ID][access_type] = hook;
     }
 
-    public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
-            ModuleDAO.APINAME_DELETE_VOS,
-            null, //FIXME NEED HOOK suivant data
-            this.deleteVOs.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
-            ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
-            null, //FIXME NEED HOOK suivant data
-            this.insertOrUpdateVOs.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase, any>(
-            ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
-            null, //FIXME NEED HOOK suivant data
-            this.insertOrUpdateVO.bind(this)
-        ));
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS, this.deleteVOs.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, this.insertOrUpdateVOs.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, this.insertOrUpdateVO.bind(this));
 
         //FIXME API en Post car les params ne peuvent être transmis par l'url, mais
         //  on a besoin de gérer le cache comme sur un GET. A voir dans AjaxCache si on peut
         //  faire des POST avec cache.
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO<any>, any>(
-            ModuleDAO.APINAME_GET_VO_BY_ID,
-            null, //FIXME NEED HOOK suivant data
-            this.getVoById.bind(this),
-            APIDAOParamVO.translateGetVoByIdParams
-        ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVOs<any>, any>(
-            ModuleDAO.APINAME_GET_VOS,
-            null, //FIXME NEED HOOK suivant data
-            this.getVos.bind(this),
-            APIDAOParamVOs.translateGetVosParams
-        ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVOs<any>, any>(
-            ModuleDAO.APINAME_SELECT_ALL,
-            null, //FIXME NEED HOOK suivant data
-            this.selectAll.bind(this),
-            APIDAOParamVOs.translateSelectAllParams
-        ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO<any>, any>(
-            ModuleDAO.APINAME_SELECT_ONE,
-            null, //FIXME NEED HOOK suivant data
-            this.selectOne.bind(this),
-            APIDAOParamVO.translateSelectOneParams
-        ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<any, any>(
-            ModuleDAO.APINAME_DB_TX_UPDATE,
-            null, //FIXME NEED HOOK suivant data
-            this.db_tx_update.bind(this)
-        ));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VO_BY_ID, this.getVoById.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ALL, this.selectAll.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ONE, this.selectOne.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DB_TX_UPDATE, this.db_tx_update.bind(this));
     }
 
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<any[]> {

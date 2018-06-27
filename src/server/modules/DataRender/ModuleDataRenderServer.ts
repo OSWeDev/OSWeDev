@@ -38,22 +38,10 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         this.registerExpressApi_renderData(app);
     }
 
-    public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataRendererVO[]>(
-            ModuleDataRender.APINAME_GET_DATA_RENDERERS,
-            [DataRendererVO.API_TYPE_ID],
-            this.getDataRenderers.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, DataRendererVO>(
-            ModuleDataRender.APINAME_GET_DATA_RENDERER,
-            [DataRendererVO.API_TYPE_ID],
-            this.getDataRenderer.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataRenderingLogVO[]>(
-            ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS,
-            [DataRenderingLogVO.API_TYPE_ID],
-            this.getDataRenderingLogs.bind(this)
-        ));
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERERS, this.getDataRenderers.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERER, this.getDataRenderer.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS, this.getDataRenderingLogs.bind(this));
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {

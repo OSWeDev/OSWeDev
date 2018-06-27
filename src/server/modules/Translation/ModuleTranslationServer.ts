@@ -29,41 +29,13 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return ModuleTranslation.getInstance().actif;
     }
 
-    public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, TranslationVO[]>(
-            ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS,
-            [TranslationVO.API_TYPE_ID],
-            this.getAllTranslations.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, LangVO[]>(
-            ModuleTranslation.APINAME_GET_LANGS,
-            [LangVO.API_TYPE_ID],
-            this.getLangs.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, TranslatableTextVO>(
-            ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT,
-            [TranslatableTextVO.API_TYPE_ID],
-            this.getTranslatableText.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, TranslatableTextVO[]>(
-            ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS,
-            [TranslatableTextVO.API_TYPE_ID],
-            this.getTranslatableTexts.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<GetTranslationParamVO, TranslationVO>(
-            ModuleTranslation.APINAME_GET_TRANSLATION,
-            [TranslationVO.API_TYPE_ID],
-            this.getTranslation.bind(this),
-            GetTranslationParamVO.translateCheckAccessParams,
-            GetTranslationParamVO.URL,
-            GetTranslationParamVO.translateToURL,
-            GetTranslationParamVO.translateFromREQ
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, TranslationVO[]>(
-            ModuleTranslation.APINAME_GET_TRANSLATIONS,
-            [TranslationVO.API_TYPE_ID],
-            this.getTranslations.bind(this)
-        ));
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {

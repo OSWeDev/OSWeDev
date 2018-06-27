@@ -33,37 +33,13 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         return ModuleDataImport.getInstance().actif;
     }
 
-    public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportHistoricVO[]>(
-            ModuleDataImport.APINAME_getDataImportHistorics,
-            [DataImportHistoricVO.API_TYPE_ID],
-            this.getDataImportHistorics.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportHistoricVO>(
-            ModuleDataImport.APINAME_getDataImportHistoric,
-            [DataImportHistoricVO.API_TYPE_ID],
-            this.getDataImportHistoric.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportLogVO[]>(
-            ModuleDataImport.APINAME_getDataImportLogs,
-            [DataImportLogVO.API_TYPE_ID],
-            this.getDataImportLogs.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataImportFileVO[]>(
-            ModuleDataImport.APINAME_getDataImportFiles,
-            [DataImportFileVO.API_TYPE_ID],
-            this.getDataImportFiles.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, DataImportFileVO>(
-            ModuleDataImport.APINAME_getDataImportFile,
-            [DataImportFileVO.API_TYPE_ID],
-            this.getDataImportFile.bind(this)
-        ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportColumnVO[]>(
-            ModuleDataImport.APINAME_getDataImportColumnsFromFileId,
-            [DataImportColumnVO.API_TYPE_ID],
-            this.getDataImportColumnsFromFileId.bind(this)
-        ));
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportLogs, this.getDataImportLogs.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFiles, this.getDataImportFiles.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFile, this.getDataImportFile.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFileId, this.getDataImportColumnsFromFileId.bind(this));
     }
 
     public async getDataImportHistorics(data_import_file_id: number): Promise<DataImportHistoricVO[]> {

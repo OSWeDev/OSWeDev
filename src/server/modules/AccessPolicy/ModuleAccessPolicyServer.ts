@@ -50,77 +50,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         await ModuleAccessPolicy.getInstance().registerModuleAccessPolicy(ModuleAccessPolicy.MAIN_ACCESS_GROUP_NAME, ModuleAccessPolicy.ADMIN_ACCESS_NAME);
     }
 
-    public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<CheckAccessParamVO, boolean>(
-            ModuleAccessPolicy.APINAME_CHECK_ACCESS,
-            [AccessPolicyVO.API_TYPE_ID, UserRolesVO.API_TYPE_ID, RolePoliciesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
-            this.checkAccess.bind(this),
-            CheckAccessParamVO.translateCheckAccessParams,
-            CheckAccessParamVO.URL,
-            CheckAccessParamVO.translateToURL,
-            CheckAccessParamVO.translateFromREQ
-        ));
-
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
-            ModuleAccessPolicy.APINAME_IS_ADMIN,
-            [UserRolesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
-            this.isAdmin.bind(this)
-        ));
-
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, boolean>(
-            ModuleAccessPolicy.APINAME_IS_ROLE,
-            [UserRolesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
-            this.isRole.bind(this),
-            null,
-            ":role_translatable_name",
-            null,
-            (req) => req.params.role_translatable_name
-        ));
-
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<string, RoleVO>(
-            ModuleAccessPolicy.APINAME_ADD_ROLE_IF_NOT_EXISTS,
-            [RoleVO.API_TYPE_ID],
-            this.addRoleIfNotExists.bind(this)
-        ));
-
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<AddDefaultRolePolicyIfNotExistsParamVO, void>(
-            ModuleAccessPolicy.APINAME_ADD_DEFAULT_ROLE_POLICY_IF_NOT_EXISTS,
-            [RolePoliciesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AccessPolicyVO.API_TYPE_ID],
-            this.addDefaultRolePolicyIfNotExists.bind(this)
-        ));
-
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, RoleVO[]>(
-            ModuleAccessPolicy.APINAME_GET_MY_ROLES,
-            [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRolesVO.API_TYPE_ID],
-            this.getMyRoles.bind(this)
-        ));
-
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<AddRoleToUserParamVO, void>(
-            ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER,
-            [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
-            this.addRoleToUser.bind(this),
-            AddRoleToUserParamVO.translateCheckAccessParams
-        ));
-
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<string, boolean>(
-            ModuleAccessPolicy.APINAME_BEGIN_RECOVER,
-            [UserVO.API_TYPE_ID],
-            this.beginRecover.bind(this)
-        ));
-
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
-            ModuleAccessPolicy.APINAME_RESET_PWD,
-            [UserVO.API_TYPE_ID],
-            this.resetPwd.bind(this),
-            ResetPwdParamVO.translateCheckAccessParams
-        ));
-
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<RegisterModuleAccessPolicyParamVO, void>(
-            ModuleAccessPolicy.APINAME_registerModuleAccessPolicy,
-            [AccessPolicyGroupVO.API_TYPE_ID, AccessPolicyVO.API_TYPE_ID],
-            this.registerModuleAccessPolicy.bind(this),
-            RegisterModuleAccessPolicyParamVO.translateCheckAccessParams
-        ));
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_CHECK_ACCESS, this.checkAccess.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ADMIN, this.isAdmin.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ROLE, this.isRole.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_ROLE_IF_NOT_EXISTS, this.addRoleIfNotExists.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_DEFAULT_ROLE_POLICY_IF_NOT_EXISTS, this.addDefaultRolePolicyIfNotExists.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_MY_ROLES, this.getMyRoles.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER, this.addRoleToUser.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, this.beginRecover.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_registerModuleAccessPolicy, this.registerModuleAccessPolicy.bind(this));
     }
 
     /**

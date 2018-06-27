@@ -13,10 +13,8 @@ export default class PostAPIDefinition<T, U> extends APIDefinition<T, U> {
         public api_name: string,
         public API_TYPES_IDS_involved: string[],
 
-        public SERVER_HANDLER: (translated_param: T) => Promise<U> = null,
-
         public PARAM_TRANSLATOR: (...params) => Promise<T> = null,
         public api_return_type: number = 0) {
-        super(APIDefinition.API_TYPE_POST, api_name, API_TYPES_IDS_involved, PARAM_TRANSLATOR, null, null, null, SERVER_HANDLER, api_return_type);
+        super(APIDefinition.API_TYPE_POST, api_name, API_TYPES_IDS_involved, PARAM_TRANSLATOR, null, null, null, api_return_type);
     }
 }

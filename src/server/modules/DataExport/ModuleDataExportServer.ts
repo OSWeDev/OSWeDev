@@ -22,14 +22,8 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         return ModuleDataExport.getInstance().actif;
     }
 
-    public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, any>(
-            ModuleDataExport.APINAME_ExportDataToXLSXParamVO,
-            [],
-            this.exportDataToXLSX.bind(this),
-            null,
-            APIDefinition.API_RETURN_TYPE_FILE
-        ));
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
     }
 
     private async exportDataToXLSX(params: ExportDataToXLSXParamVO): Promise<any> {

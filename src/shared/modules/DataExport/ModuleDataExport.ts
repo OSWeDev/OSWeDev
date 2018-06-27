@@ -51,7 +51,6 @@ export default class ModuleDataExport extends Module {
             ModuleDataExport.APINAME_ExportDataToXLSXParamVO,
             [],
             null,
-            null,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
     }
