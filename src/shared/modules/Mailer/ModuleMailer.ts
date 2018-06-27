@@ -24,10 +24,9 @@ export default class ModuleMailer extends Module {
     private constructor() {
 
         super("mailer", "MAILER");
-        this.initialize();
     }
 
-    protected initialize() {
+    public initialize() {
         this.fields = [
             new ModuleTableField(ModuleMailer.PARAM_NAME_HOST, ModuleTableField.FIELD_TYPE_string, 'host', true, true, '127.0.0.1'),
             new ModuleTableField(ModuleMailer.PARAM_NAME_PORT, ModuleTableField.FIELD_TYPE_int, 'port', true, true, 25),

@@ -31,12 +31,6 @@ export default class ModuleDAO extends Module {
     private constructor() {
 
         super("dao", "DAO");
-        this.initialize();
-
-        // Si on est côté serveur l'init des apis se passe dans le module server
-        if (!ModulesManager.getInstance().isServerSide) {
-            this.registerApis();
-        }
     }
 
     public registerApis() {
@@ -132,7 +126,7 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_GET_VOS, API_TYPE_ID);
     }
 
-    protected initialize() {
+    public initialize() {
         this.fields = [];
         this.datatables = [];
     }

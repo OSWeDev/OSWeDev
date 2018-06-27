@@ -22,6 +22,9 @@ export default abstract class DataRenderModuleBase extends ModuleServerBase impl
         ModulesManager.getInstance().registerModule(DataRenderModuleBase.ROLE_NAME, this);
     }
 
+    public registerApis() { }
+    public initialize() { }
+
     public abstract async hook_render_managed_data_in_database(timeSegments: TimeSegment[], log: DataRenderingLogVO, options: IRenderOptions): Promise<boolean>;
     public abstract async hook_configure_renderer();
 }

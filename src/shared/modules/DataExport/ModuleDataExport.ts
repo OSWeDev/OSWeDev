@@ -1,11 +1,8 @@
-import Module from '../Module';
-import ModuleParamChange from '../ModuleParamChange';
-import ModulesManager from '../ModulesManager';
-import { IDatabase } from 'pg-promise';
 import ModuleAPI from '../API/ModuleAPI';
-import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import ExportDataToXLSXParamVO from './vos/apis/ExportDataToXLSXParamVO';
 import APIDefinition from '../API/vos/APIDefinition';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import Module from '../Module';
+import ExportDataToXLSXParamVO from './vos/apis/ExportDataToXLSXParamVO';
 
 export default class ModuleDataExport extends Module {
 
@@ -23,30 +20,18 @@ export default class ModuleDataExport extends Module {
     private constructor() {
 
         super("data_export", "DataExport");
-        this.initialize();
-
-        // Si on est côté serveur l'init des apis se passe dans le module server
-        if (!ModulesManager.getInstance().isServerSide) {
-            this.registerApis();
-        }
-    }
-
-    public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
-    public async hook_module_async_client_admin_initialization() { }
-
-    public async hook_module_async_admin_initialization() {
     }
 
     public async exportDataToXLSX(exportDataToXLSXParamVO: ExportDataToXLSXParamVO): Promise<any> {
         return await ModuleAPI.getInstance().handleAPI<ExportDataToXLSXParamVO, any>(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, exportDataToXLSXParamVO);
     }
 
-    protected initialize() {
+    public initialize() {
         this.fields = [];
         this.datatables = [];
     }
 
-    private registerApis() {
+    public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(
             ModuleDataExport.APINAME_ExportDataToXLSXParamVO,
             [],

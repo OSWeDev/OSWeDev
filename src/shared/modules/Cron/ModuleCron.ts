@@ -17,12 +17,11 @@ export default class ModuleCron extends Module {
     private constructor() {
 
         super("cron", "CRON");
-        this.initialize();
     }
 
     public datatable_cronworkplan: ModuleTable<CronWorkerPlanification>;
 
-    protected initialize() {
+    public initialize() {
         this.fields = [];
         this.datatables = [];
 

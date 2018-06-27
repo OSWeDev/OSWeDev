@@ -25,6 +25,8 @@ export default class ModulesManager {
             this.modules_by_name[module.name] = new ModuleWrapper(module.name);
         }
         this.modules_by_name[module.name].addModuleComponent(role, module);
+        module.initialize();
+        module.registerApis();
     }
     public getModuleByNameAndRole(name: string, role: string) {
         return this.modules_by_name[name] ? this.modules_by_name[name].getModuleComponentByRole(role) : null;

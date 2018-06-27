@@ -35,12 +35,6 @@ export default class ModuleTranslation extends Module {
     private constructor() {
 
         super("translation", "Translation");
-        this.initialize();
-
-        // Si on est côté serveur l'init des apis se passe dans le module server
-        if (!ModulesManager.getInstance().isServerSide) {
-            this.registerApis();
-        }
     }
 
     public registerApis() {
@@ -98,7 +92,7 @@ export default class ModuleTranslation extends Module {
         return await ModuleAPI.getInstance().handleAPI<void, TranslationVO>(ModuleTranslation.APINAME_GET_TRANSLATION, lang_id, text_id);
     }
 
-    protected initialize() {
+    public initialize() {
         this.fields = [];
         this.datatables = [];
 

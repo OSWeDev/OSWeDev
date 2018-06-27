@@ -34,6 +34,9 @@ export default abstract class Module implements IModuleBase {
         return true;
     }
 
+    public registerApis() { }
+    public initialize() { }
+
     // Pour le chargement de données nécessaires à l'application ou la mise en place de caches de données.
     public async hook_module_async_client_admin_initialization(): Promise<any> { }
     public async hook_module_async_client_initialization(): Promise<any> { }

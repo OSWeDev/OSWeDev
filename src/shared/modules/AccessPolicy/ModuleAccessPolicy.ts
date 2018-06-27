@@ -65,12 +65,6 @@ export default class ModuleAccessPolicy extends Module {
     private constructor() {
 
         super("access_policy", "AccessPolicy");
-        this.initialize();
-
-        // Si on est côté serveur l'init des apis se passe dans le module server
-        if (!ModulesManager.getInstance().isServerSide) {
-            this.registerApis();
-        }
     }
 
     public registerApis() {
@@ -235,7 +229,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
 
-    protected initialize() {
+    public initialize() {
         this.fields = [
             new ModuleTableField(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD1_DAYS, ModuleTableField.FIELD_TYPE_int, 'reminder_pwd1_days', true, true, 20),
             new ModuleTableField(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD2_DAYS, ModuleTableField.FIELD_TYPE_int, 'reminder_pwd2_days', true, true, 3),

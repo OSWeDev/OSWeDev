@@ -23,7 +23,6 @@ export default class ModuleFormatDatesNombres extends Module {
     private constructor() {
 
         super("format_dates_nombres", "FormatDatesNombres");
-        this.initialize();
     }
 
     // On peut avoir des Dates ou des strings en entrée des fonctions, on crée un traducteur assez flexible qui renvoie une date
@@ -194,7 +193,7 @@ export default class ModuleFormatDatesNombres extends Module {
         return NaN;
     }
 
-    protected initialize() {
+    public initialize() {
         this.fields = [
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date, 'text', 'Format Date (ex: 31/01)', true, true, 'DD/MM'),
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date, 'text', 'Format Date (ex: 01/2017)', true, true, 'MM/Y'),

@@ -15,6 +15,9 @@ export default abstract class DataImportModuleBase implements IPostTraitementMod
         ModulesManager.getInstance().registerModule(DataImportModuleBase.DataImportRoleName, this);
     }
 
+    public registerApis() { }
+    public initialize() { }
+
     public abstract hook_merge_imported_datas_in_database(datas: IImportData[], import_target_date_index: string, historic: DataImportHistoricVO, options: IImportOptions): Promise<boolean>;
     public abstract async hook_configure_import();
 }

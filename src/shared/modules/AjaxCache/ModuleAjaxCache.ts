@@ -34,11 +34,7 @@ export default class ModuleAjaxCache extends Module {
     private constructor() {
 
         super("ajax_cache", "AjaxCache");
-        this.initialize();
     }
-
-    public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
-    public async hook_module_async_client_admin_initialization() { }
 
     public async get(url: string, api_types_involved: string[]) {
 
@@ -345,7 +341,7 @@ export default class ModuleAjaxCache extends Module {
         return res;
     }
 
-    protected initialize() {
+    public initialize() {
         this.fields = [];
         this.datatables = [];
 

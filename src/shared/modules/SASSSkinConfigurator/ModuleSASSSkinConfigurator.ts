@@ -15,11 +15,9 @@ export default class ModuleSASSSkinConfigurator extends Module {
     private constructor() {
 
         super("sass_resource_planning_skin_configurator", "SASSSkinConfigurator");
-
-        this.initialize();
     }
 
-    protected initialize() {
+    public initialize() {
         this.fields = [
             new ModuleTableField('danger_color', 'text', 'danger_color', true, true, '#b3003c'),
             new ModuleTableField('success_color', 'text', 'success_color', true, true, '#8e961b'),

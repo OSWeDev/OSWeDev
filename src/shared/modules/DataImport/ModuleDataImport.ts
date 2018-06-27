@@ -39,12 +39,6 @@ export default class ModuleDataImport extends Module {
     private constructor() {
 
         super("data_import", "DataImport");
-        this.initialize();
-
-        // Si on est côté serveur l'init des apis se passe dans le module server
-        if (!ModulesManager.getInstance().isServerSide) {
-            this.registerApis();
-        }
     }
 
     public registerApis() {
@@ -137,7 +131,7 @@ export default class ModuleDataImport extends Module {
         return await ModuleAPI.getInstance().handleAPI<number, DataImportColumnVO[]>(ModuleDataImport.APINAME_getDataImportColumnsFromFileId, data_import_file_id);
     }
 
-    protected initialize() {
+    public initialize() {
         this.fields = [];
         this.datatables = [];
 

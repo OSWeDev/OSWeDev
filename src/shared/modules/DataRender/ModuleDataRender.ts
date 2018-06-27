@@ -38,12 +38,6 @@ export default class ModuleDataRender extends Module {
     private constructor() {
 
         super("data_render", "DataRender");
-        this.initialize();
-
-        // Si on est côté serveur l'init des apis se passe dans le module server
-        if (!ModulesManager.getInstance().isServerSide) {
-            this.registerApis();
-        }
     }
 
     public registerApis() {
@@ -569,7 +563,7 @@ export default class ModuleDataRender extends Module {
         return null;
     }
 
-    protected initialize() {
+    public initialize() {
         this.fields = [];
         this.datatables = [];
 
