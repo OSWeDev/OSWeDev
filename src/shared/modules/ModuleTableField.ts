@@ -14,6 +14,9 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_hours_and_minutes_sans_limite: string = 'HourAndMinuteWithoutLimit';
     public static FIELD_TYPE_date: string = 'date';
     public static FIELD_TYPE_hours_and_minutes: string = 'HourAndMinute';
+    public static FIELD_TYPE_daterange: string = 'daterange';
+    public static FIELD_TYPE_tsrange: string = 'tsrange';
+    public static FIELD_TYPE_timestamp: string = 'timestamp';
 
     public field_value: T;
     public field_loaded: boolean;
@@ -87,16 +90,24 @@ export default class ModuleTableField<T> {
         if (this.field_type == ModuleTableField.FIELD_TYPE_date) {
             return "date";
         }
-        if (this.field_type == 'timestamp') {
+        if (this.field_type == ModuleTableField.FIELD_TYPE_timestamp) {
             return "timestamp";
         }
         // Cas spécifique du type heure et minute.
-        if (this.field_type == 'HourAndMinute' || this.field_type == 'ref.hours') {
+        if (this.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes || this.field_type == 'ref.hours') {
             return "ref.hours";
         }
 
-        if (this.field_type == 'HourAndMinuteWithoutLimit') {
+        if (this.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite) {
             return "float8";
+        }
+
+        if (this.field_type == ModuleTableField.FIELD_TYPE_daterange) {
+            return "daterange";
+        }
+
+        if (this.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
+            return "tsrange";
         }
 
         if (this.field_type == 'timewithouttimezone') {

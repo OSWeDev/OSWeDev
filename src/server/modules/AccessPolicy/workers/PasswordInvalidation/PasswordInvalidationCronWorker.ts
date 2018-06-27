@@ -1,6 +1,5 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import ICronWorker from '../../../../../shared/modules/Cron/interfaces/ICronWorker';
 import UserVO from '../../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -12,6 +11,7 @@ import TranslationVO from '../../../../../shared/modules/Translation/vos/Transla
 import invalidation_mail_html_template from './invalidation_mail_html_template.html';
 import reminder1_mail_html_template from './reminder1_mail_html_template.html';
 import reminder2_mail_html_template from './reminder2_mail_html_template.html';
+import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 
 export default class PasswordInvalidationCronWorker implements ICronWorker {
 

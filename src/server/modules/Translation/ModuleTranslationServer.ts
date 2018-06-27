@@ -12,6 +12,7 @@ import GetTranslationParamVO from '../../../shared/modules/Translation/apis/GetT
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import FileHandler from '../../tools/FileHandler';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -70,7 +71,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public async getTranslatableText(code_text: string): Promise<TranslatableTextVO> {
-        return await ModuleDAO.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [code_text]);
+        return await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [code_text]);
     }
 
     public async getLangs(): Promise<LangVO[]> {
@@ -82,11 +83,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public async getTranslations(lang_id: number): Promise<TranslationVO[]> {
-        return await ModuleDAO.getInstance().selectAll<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1', [lang_id]);
+        return await ModuleDAOServer.getInstance().selectAll<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1', [lang_id]);
     }
 
     public async getTranslation(params: GetTranslationParamVO): Promise<TranslationVO> {
-        return await ModuleDAO.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [params.lang_id, params.text_id]);
+        return await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [params.lang_id, params.text_id]);
     }
 
     public async configure(): Promise<void> {

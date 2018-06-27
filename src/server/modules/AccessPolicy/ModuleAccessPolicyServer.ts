@@ -19,6 +19,7 @@ import PasswordReset from './PasswordReset/PasswordReset';
 import ServerBase from '../../ServerBase';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import RegisterModuleAccessPolicyParamVO from '../../../shared/modules/AccessPolicy/vos/apis/RegisterModuleAccessPolicyParamVO';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -135,7 +136,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let apg: AccessPolicyGroupVO = await ModuleDAO.getInstance().selectOne<AccessPolicyGroupVO>(
+        let apg: AccessPolicyGroupVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyGroupVO>(
             AccessPolicyGroupVO.API_TYPE_ID,
             'WHERE uniq_id=$1',
             [AccessPolicyGroupVO.getUniqID(group_name)]
@@ -154,7 +155,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             apg = AccessPolicyGroupVO.forceNumeric(apg);
         }
 
-        let ap: AccessPolicyVO = await ModuleDAO.getInstance().selectOne<AccessPolicyVO>(
+        let ap: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(
             AccessPolicyVO.API_TYPE_ID,
             'WHERE uniq_id=$1', [AccessPolicyVO.getUniqID(group_name, policy_name)]);
 
@@ -176,7 +177,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        return await ModuleDAO.getInstance().selectAll<RoleVO>(
+        return await ModuleDAOServer.getInstance().selectAll<RoleVO>(
             RoleVO.API_TYPE_ID,
             " join " + ModuleAccessPolicy.getInstance().userroles_datatable.full_name + " ur on ur.role_id = t.id " +
             " where ur.user_id = $1",
@@ -192,7 +193,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let userRoles: UserRolesVO = await ModuleDAO.getInstance().selectOne<UserRolesVO>(
+        let userRoles: UserRolesVO = await ModuleDAOServer.getInstance().selectOne<UserRolesVO>(
             UserRolesVO.API_TYPE_ID,
             " join " + ModuleAccessPolicy.getInstance().role_datatable.full_name + " r on r.id = t.role_id " +
             " where t.user_id = $1 and r.translatable_name = $2",
@@ -214,7 +215,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let userRoles: UserRolesVO = await ModuleDAO.getInstance().selectOne<UserRolesVO>(
+        let userRoles: UserRolesVO = await ModuleDAOServer.getInstance().selectOne<UserRolesVO>(
             UserRolesVO.API_TYPE_ID,
             " join " + ModuleAccessPolicy.getInstance().role_datatable.full_name + " r on r.id = t.role_id " +
             " where t.user_id = $1 and r.translatable_name = $2",
@@ -270,7 +271,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             'JOIN ref.user u ON u.id = ur.user_id ' +
             'WHERE u.id = ' + uid + ' and ap.uniq_id = \'' + AccessPolicyVO.getUniqID(group_name, policy_name) + '\'');
 
-        let rolePolicies: RolePoliciesVO[] = await ModuleDAO.getInstance().selectAll<RolePoliciesVO>(
+        let rolePolicies: RolePoliciesVO[] = await ModuleDAOServer.getInstance().selectAll<RolePoliciesVO>(
             RolePoliciesVO.API_TYPE_ID,
             'JOIN ' + ModuleAccessPolicy.getInstance().accesspolicy_datatable.full_name + " ap ON ap.id = t.accpol_id " +
             'JOIN ' + ModuleAccessPolicy.getInstance().role_datatable.full_name + " r ON t.role_id = r.id " +
@@ -304,7 +305,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let role: RoleVO = await ModuleDAO.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, " WHERE t.translatable_name = $1", [translatable_name]);
+        let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, " WHERE t.translatable_name = $1", [translatable_name]);
 
         if (!role) {
             role = new RoleVO();
@@ -327,7 +328,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let rolePolicy: RolePoliciesVO = await ModuleDAO.getInstance().selectOne<RolePoliciesVO>(RolePoliciesVO.API_TYPE_ID, " WHERE t.accpol_id = $1 and t.role_id = $2", [params.policy.id, params.role.id]);
+        let rolePolicy: RolePoliciesVO = await ModuleDAOServer.getInstance().selectOne<RolePoliciesVO>(RolePoliciesVO.API_TYPE_ID, " WHERE t.accpol_id = $1 and t.role_id = $2", [params.policy.id, params.role.id]);
 
         if (!rolePolicy) {
             rolePolicy = new RolePoliciesVO();
@@ -344,7 +345,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let userRole: UserRolesVO = await ModuleDAO.getInstance().selectOne<UserRolesVO>(UserRolesVO.API_TYPE_ID, " WHERE t.user_id = $1 and t.role_id = $2", [params.user_id, params.role_id]);
+        let userRole: UserRolesVO = await ModuleDAOServer.getInstance().selectOne<UserRolesVO>(UserRolesVO.API_TYPE_ID, " WHERE t.user_id = $1 and t.role_id = $2", [params.user_id, params.role_id]);
 
         if (!userRole) {
             userRole = new UserRolesVO();

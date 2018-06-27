@@ -9,6 +9,7 @@ import TranslatableTextVO from '../../../../shared/modules/Translation/vos/Trans
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
 
 import recovery_mail_html_template from './recovery_mail_html_template.html';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 
 export default class PasswordRecovery {
 
@@ -28,7 +29,7 @@ export default class PasswordRecovery {
 
     public async beginRecovery(email: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAO.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " WHERE t.email = $1", [email]);
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " WHERE t.email = $1", [email]);
 
         if (!user) {
             return false;

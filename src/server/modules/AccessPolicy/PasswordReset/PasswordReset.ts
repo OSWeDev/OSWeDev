@@ -2,6 +2,7 @@ import * as moment from 'moment';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 
 export default class PasswordReset {
 
@@ -19,7 +20,7 @@ export default class PasswordReset {
 
     public async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAO.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " WHERE t.email = $1", [email]);
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " WHERE t.email = $1", [email]);
 
         if (!user) {
             return false;

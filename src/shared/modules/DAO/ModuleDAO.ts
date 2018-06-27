@@ -72,18 +72,18 @@ export default class ModuleDAO extends Module {
             null,
             APIDAOParamVOs.translateGetVosParams
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVOs<any>, any>(
-            ModuleDAO.APINAME_SELECT_ALL,
-            null, //FIXME NEED HOOK suivant data
-            null,
-            APIDAOParamVOs.translateSelectAllParams
-        ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO<any>, any>(
-            ModuleDAO.APINAME_SELECT_ONE,
-            null, //FIXME NEED HOOK suivant data
-            null,
-            APIDAOParamVO.translateSelectOneParams
-        ));
+        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVOs<any>, any>(
+        //     ModuleDAO.APINAME_SELECT_ALL,
+        //     null, //FIXME NEED HOOK suivant data
+        //     null,
+        //     APIDAOParamVOs.translateSelectAllParams
+        // ));
+        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO<any>, any>(
+        //     ModuleDAO.APINAME_SELECT_ONE,
+        //     null, //FIXME NEED HOOK suivant data
+        //     null,
+        //     APIDAOParamVO.translateSelectOneParams
+        // ));
     }
 
     public async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {
@@ -111,9 +111,9 @@ export default class ModuleDAO extends Module {
      * @param depends_on_api_type_ids La liste des autres API_TYPE_ID (en dehors du principal déjà cité en premier arguement) concernés
      * Par cette requête
      */
-    public async selectAll<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T[]> {
-        return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_SELECT_ALL, API_TYPE_ID, query, queryParams, depends_on_api_type_ids);
-    }
+    // public async selectAll<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T[]> {
+    //     return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_SELECT_ALL, API_TYPE_ID, query, queryParams, depends_on_api_type_ids);
+    // }
 
     /**
      * @param API_TYPE_ID L'API_TYPE_ID principal qui est concerné par la requête. On en déduit la table à mettre dans le FROM
@@ -124,9 +124,9 @@ export default class ModuleDAO extends Module {
      * @param depends_on_api_type_ids La liste des autres API_TYPE_ID (en dehors du principal déjà cité en premier arguement) concernés
      * Par cette requête
      */
-    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T> {
-        return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_SELECT_ONE, API_TYPE_ID, query, queryParams, depends_on_api_type_ids);
-    }
+    // public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T> {
+    //     return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_SELECT_ONE, API_TYPE_ID, query, queryParams, depends_on_api_type_ids);
+    // }
 
     public async getVoById<T extends IDistantVOBase>(API_TYPE_ID: string, id: number): Promise<T> {
         return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_GET_VO_BY_ID, API_TYPE_ID, id);

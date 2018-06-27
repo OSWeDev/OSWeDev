@@ -26,6 +26,7 @@ import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulesManager from '../shared/modules/ModulesManager';
+import ModuleCronServer from './modules/Cron/ModuleCronServer';
 
 export default abstract class ServerBase {
 
@@ -543,7 +544,7 @@ export default abstract class ServerBase {
             // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
             httpContext.set('IS_CLIENT', false);
 
-            return ServerBase.getInstance().handleError(ModuleCron.getInstance().executeWorkers().then(() => {
+            return ServerBase.getInstance().handleError(ModuleCronServer.getInstance().executeWorkers().then(() => {
                 res.json();
             }), res);
         });

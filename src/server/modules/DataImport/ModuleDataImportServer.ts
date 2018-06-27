@@ -16,6 +16,7 @@ import DataImportHistoricVO from '../../../shared/modules/DataImport/vos/DataImp
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import GetAPIDefinition from '../../../shared/modules/API/vos/GetAPIDefinition';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -67,19 +68,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     public async getDataImportHistorics(data_import_file_id: number): Promise<DataImportHistoricVO[]> {
 
-        return await ModuleDAO.getInstance().selectAll<DataImportHistoricVO>(
+        return await ModuleDAOServer.getInstance().selectAll<DataImportHistoricVO>(
             DataImportHistoricVO.API_TYPE_ID, 'WHERE t.data_import_file_id = $1 LIMIT 50;', [data_import_file_id]);
     }
 
     public async getDataImportHistoric(historic_id: number): Promise<DataImportHistoricVO> {
 
-        return await ModuleDAO.getInstance().selectOne<DataImportHistoricVO>(
+        return await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(
             DataImportHistoricVO.API_TYPE_ID, 'WHERE t.id = $1;', [historic_id]);
     }
 
     public async getDataImportLogs(data_import_file_id: number): Promise<DataImportLogVO[]> {
 
-        return await ModuleDAO.getInstance().selectAll<DataImportLogVO>(
+        return await ModuleDAOServer.getInstance().selectAll<DataImportLogVO>(
             DataImportLogVO.API_TYPE_ID, 'WHERE t.data_import_file_id = $1 LIMIT 50;', [data_import_file_id]);
     }
 
@@ -90,13 +91,13 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     public async getDataImportFile(import_name: string): Promise<DataImportFileVO> {
 
-        return await ModuleDAO.getInstance().selectOne<DataImportFileVO>(
+        return await ModuleDAOServer.getInstance().selectOne<DataImportFileVO>(
             DataImportFileVO.API_TYPE_ID, 'WHERE t.import_name = $1', [import_name]);
     }
 
     public async getDataImportColumnsFromFileId(data_import_file_id: number): Promise<DataImportColumnVO[]> {
 
-        return await ModuleDAO.getInstance().selectAll<DataImportColumnVO>(
+        return await ModuleDAOServer.getInstance().selectAll<DataImportColumnVO>(
             DataImportColumnVO.API_TYPE_ID, 'WHERE t.data_import_file_id = $1', [data_import_file_id]);
     }
 

@@ -61,7 +61,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     public async getDataRenderer(renderer_name: string): Promise<DataRendererVO> {
-        return await ModuleDAO.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [renderer_name]);
+        return await ModuleDAOServer.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [renderer_name]);
     }
 
     /**
@@ -90,7 +90,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
                 timeSegments_in += ", \'" + timeSegment.dateIndex + "\'";
             }
         }
-        return await ModuleDAO.getInstance().selectAll<T>(datatable.vo_type, ' where data_dateindex in (' + timeSegments_in + ')') as T[];
+        return await ModuleDAOServer.getInstance().selectAll<T>(datatable.vo_type, ' where data_dateindex in (' + timeSegments_in + ')') as T[];
     }
 
     public async clearDataSegments(bdd_full_name: string, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {

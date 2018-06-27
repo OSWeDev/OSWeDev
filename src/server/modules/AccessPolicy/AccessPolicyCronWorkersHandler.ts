@@ -3,6 +3,7 @@ import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
 import PasswordInvalidationCronWorker from './workers/PasswordInvalidation/PasswordInvalidationCronWorker';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import DateHandler from '../../../shared/tools/DateHandler';
+import ModuleCronServer from '../Cron/ModuleCronServer';
 
 export default class AccessPolicyCronWorkersHandler {
 
@@ -16,7 +17,7 @@ export default class AccessPolicyCronWorkersHandler {
     private static instance: AccessPolicyCronWorkersHandler = null;
 
     private constructor() {
-        ModuleCron.getInstance().registerCronWorker(PasswordInvalidationCronWorker.getInstance());
+        ModuleCronServer.getInstance().registerCronWorker(PasswordInvalidationCronWorker.getInstance());
 
         let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
 
@@ -26,6 +27,6 @@ export default class AccessPolicyCronWorkersHandler {
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_JOURS;
         planCronWorker.worker_uid = PasswordInvalidationCronWorker.getInstance().worker_uid;
         // Pas besoin d'être dans un contexte synchrone
-        ModuleCron.getInstance().planCronWorker(planCronWorker);
+        ModuleCronServer.getInstance().planCronWorker(planCronWorker);
     }
 }
