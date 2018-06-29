@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.0.36",
+    "version": "0.0.37",
     "description": "",
     "scripts": {
         "test": "nyc mocha",
