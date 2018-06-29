@@ -12,6 +12,7 @@ import IRenderedData from './interfaces/IRenderedData';
 import DataRendererVO from './vos/DataRendererVO';
 import DataRenderingLogVO from './vos/DataRenderingLogVO';
 import TimeSegment from './vos/TimeSegment';
+import StringParamVO from '../API/vos/apis/StringParamVO';
 
 export default class ModuleDataRender extends Module {
 
@@ -46,9 +47,13 @@ export default class ModuleDataRender extends Module {
             ModuleDataRender.APINAME_GET_DATA_RENDERERS,
             [DataRendererVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, DataRendererVO>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataRendererVO>(
             ModuleDataRender.APINAME_GET_DATA_RENDERER,
-            [DataRendererVO.API_TYPE_ID]
+            [DataRendererVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams,
+            StringParamVO.URL,
+            StringParamVO.translateToURL,
+            StringParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataRenderingLogVO[]>(
             ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS,

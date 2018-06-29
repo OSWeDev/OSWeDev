@@ -9,6 +9,8 @@ import VOsTypesManager from '../VOsTypesManager';
 import ModuleAPI from '../API/ModuleAPI';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import GetTranslationParamVO from './apis/GetTranslationParamVO';
+import StringParamVO from '../API/vos/apis/StringParamVO';
+import NumberParamVO from '../API/vos/apis/NumberParamVO';
 
 export default class ModuleTranslation extends Module {
 
@@ -46,9 +48,13 @@ export default class ModuleTranslation extends Module {
             ModuleTranslation.APINAME_GET_LANGS,
             [LangVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, TranslatableTextVO>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, TranslatableTextVO>(
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT,
-            [TranslatableTextVO.API_TYPE_ID]
+            [TranslatableTextVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams,
+            StringParamVO.URL,
+            StringParamVO.translateToURL,
+            StringParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, TranslatableTextVO[]>(
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS,
@@ -62,9 +68,13 @@ export default class ModuleTranslation extends Module {
             GetTranslationParamVO.translateToURL,
             GetTranslationParamVO.translateFromREQ
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, TranslationVO[]>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, TranslationVO[]>(
             ModuleTranslation.APINAME_GET_TRANSLATIONS,
-            [TranslationVO.API_TYPE_ID]
+            [TranslationVO.API_TYPE_ID],
+            NumberParamVO.translateCheckAccessParams,
+            NumberParamVO.URL,
+            NumberParamVO.translateToURL,
+            NumberParamVO.translateFromREQ
         ));
     }
 

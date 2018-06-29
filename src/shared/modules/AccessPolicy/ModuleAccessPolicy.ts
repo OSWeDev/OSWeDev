@@ -20,6 +20,7 @@ import RoleVO from './vos/RoleVO';
 import UserRolesVO from './vos/UserRolesVO';
 import UserVO from './vos/UserVO';
 import ModuleTranslation from '../Translation/ModuleTranslation';
+import StringParamVO from '../API/vos/apis/StringParamVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -82,13 +83,13 @@ export default class ModuleAccessPolicy extends Module {
             [UserRolesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, boolean>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             ModuleAccessPolicy.APINAME_IS_ROLE,
             [UserRolesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
-            null,
-            ":role_translatable_name",
-            null,
-            (req) => req.params.role_translatable_name
+            StringParamVO.translateCheckAccessParams,
+            StringParamVO.URL,
+            StringParamVO.translateToURL,
+            StringParamVO.translateFromREQ
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<string, RoleVO>(

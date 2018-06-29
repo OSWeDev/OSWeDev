@@ -9,6 +9,8 @@ import DataImportColumnVO from './vos/DataImportColumnVO';
 import DataImportFileVO from './vos/DataImportFileVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
 import DataImportLogVO from './vos/DataImportLogVO';
+import StringParamVO from '../API/vos/apis/StringParamVO';
+import NumberParamVO from '../API/vos/apis/NumberParamVO';
 
 export default class ModuleDataImport extends Module {
 
@@ -42,29 +44,49 @@ export default class ModuleDataImport extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportHistoricVO[]>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO[]>(
             ModuleDataImport.APINAME_getDataImportHistorics,
-            [DataImportHistoricVO.API_TYPE_ID]
+            [DataImportHistoricVO.API_TYPE_ID],
+            NumberParamVO.translateCheckAccessParams,
+            NumberParamVO.URL,
+            NumberParamVO.translateToURL,
+            NumberParamVO.translateFromREQ
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportHistoricVO>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO>(
             ModuleDataImport.APINAME_getDataImportHistoric,
-            [DataImportHistoricVO.API_TYPE_ID]
+            [DataImportHistoricVO.API_TYPE_ID],
+            NumberParamVO.translateCheckAccessParams,
+            NumberParamVO.URL,
+            NumberParamVO.translateToURL,
+            NumberParamVO.translateFromREQ
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportLogVO[]>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportLogVO[]>(
             ModuleDataImport.APINAME_getDataImportLogs,
-            [DataImportLogVO.API_TYPE_ID]
+            [DataImportLogVO.API_TYPE_ID],
+            NumberParamVO.translateCheckAccessParams,
+            NumberParamVO.URL,
+            NumberParamVO.translateToURL,
+            NumberParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataImportFileVO[]>(
             ModuleDataImport.APINAME_getDataImportFiles,
             [DataImportFileVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<string, DataImportFileVO>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataImportFileVO>(
             ModuleDataImport.APINAME_getDataImportFile,
-            [DataImportFileVO.API_TYPE_ID]
+            [DataImportFileVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams,
+            StringParamVO.URL,
+            StringParamVO.translateToURL,
+            StringParamVO.translateFromREQ
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<number, DataImportColumnVO[]>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportColumnVO[]>(
             ModuleDataImport.APINAME_getDataImportColumnsFromFileId,
-            [DataImportColumnVO.API_TYPE_ID]
+            [DataImportColumnVO.API_TYPE_ID],
+            NumberParamVO.translateCheckAccessParams,
+            NumberParamVO.URL,
+            NumberParamVO.translateToURL,
+            NumberParamVO.translateFromREQ
         ));
     }
 
