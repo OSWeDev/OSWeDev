@@ -324,8 +324,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         //  faire des POST avec cache.
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VO_BY_ID, this.getVoById.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ALL, this.selectAll.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ONE, this.selectOne.bind(this));
+        // ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ALL, this.selectAll.bind(this));
+        // ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ONE, this.selectOne.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DB_TX_UPDATE, this.db_tx_update.bind(this));
     }
 
