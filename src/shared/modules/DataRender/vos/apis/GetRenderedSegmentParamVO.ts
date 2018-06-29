@@ -2,7 +2,7 @@ import TimeSegment from '../TimeSegment';
 
 export default class GetRenderedSegmentParamVO {
 
-    public static URL: string = ':dateIndex/:type';
+    public static URL: string = ':date_index/:type';
 
     public static async translateCheckAccessParams(
         timeSegment: TimeSegment): Promise<GetRenderedSegmentParamVO> {
@@ -19,7 +19,7 @@ export default class GetRenderedSegmentParamVO {
         if (!(req && req.params)) {
             return null;
         }
-        return new GetRenderedSegmentParamVO(TimeSegment.fromDateAndType(req.params.dateIndex, req.params.type));
+        return new GetRenderedSegmentParamVO(TimeSegment.fromDateAndType(req.params.date_index, req.params.type));
     }
 
     public constructor(
