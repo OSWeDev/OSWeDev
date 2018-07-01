@@ -47,7 +47,12 @@ export default class ModuleAPIServer extends ModuleServerBase {
             }
 
             if (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) {
-                res.json(await api.SERVER_HANDLER(param));
+                let returnvalue = await api.SERVER_HANDLER(param);
+
+                if (!returnvalue) {
+                    returnvalue = {} as any;
+                }
+                res.json(returnvalue);
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_RES) {
                 res.end(await api.SERVER_HANDLER(param));
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
