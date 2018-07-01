@@ -15,8 +15,8 @@ import * as sessionFileStore from 'session-file-store';
 import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleCron from '../shared/modules/Cron/ModuleCron';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../shared/modules/Translation/vos/TranslatableTextVO';
@@ -24,9 +24,8 @@ import TranslationVO from '../shared/modules/Translation/vos/TranslationVO';
 import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
-import ModuleServiceBase from './modules/ModuleServiceBase';
-import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleCronServer from './modules/Cron/ModuleCronServer';
+import ModuleServiceBase from './modules/ModuleServiceBase';
 
 export default abstract class ServerBase {
 
@@ -37,7 +36,7 @@ export default abstract class ServerBase {
     protected static instance: ServerBase = null;
 
     protected db: IDatabase<any>;
-    protected run_postgrest_apis: boolean = true;
+    protected run_postgrest_apis: boolean = false;
     protected spawn;
     protected app;
     protected port;
@@ -561,19 +560,21 @@ export default abstract class ServerBase {
 
         console.log('listening on port', ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')
-            .then(() => {
+            .then(async () => {
                 console.log('connection to db successful');
 
                 // On lance un deuxième postgres, sur le schéma ref et pour le front
                 if (ServerBase.getInstance().run_postgrest_apis) {
-                    ServerBase.getInstance().runPostgrestAPI('admin', ServerBase.getInstance().envParam.ADMIN_PROXY_PORT).then(() => {
+                    await ServerBase.getInstance().runPostgrestAPI('admin', ServerBase.getInstance().envParam.ADMIN_PROXY_PORT);
+                    console.log('PostgrestAPI Admin OK');
 
-                        ServerBase.getInstance().runPostgrestAPI('ref', ServerBase.getInstance().envParam.REF_PROXY_PORT).then(() => {
-
-                            ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
-                        });
-                    });
+                    await ServerBase.getInstance().runPostgrestAPI('ref', ServerBase.getInstance().envParam.REF_PROXY_PORT);
+                    console.log('PostgrestAPI Ref OK');
                 }
+
+                ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
+                await ServerBase.getInstance().hook_on_ready();
+                console.log('Server ready to go !');
             })
             .catch((err) => {
                 console.log('error while connecting to db:', err.message || err);
@@ -581,6 +582,8 @@ export default abstract class ServerBase {
 
         // pgp.end();
     }
+
+    protected async hook_on_ready() { }
 
     protected runPostgrestAPI(schema, port) {
         return new Promise((resolve, reject) => {

@@ -149,7 +149,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     public async addRoleToUser(user_id: number, role_id: number): Promise<boolean> {
-        return await ModuleAPI.getInstance().handleAPI<void, boolean>(ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER, user_id, role_id);
+        return await ModuleAPI.getInstance().handleAPI<AddRoleToUserParamVO, boolean>(ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER, user_id, role_id);
     }
 
     public async isAdmin(): Promise<boolean> {
@@ -157,7 +157,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     public async isRole(role_translatable_name: string): Promise<boolean> {
-        return await ModuleAPI.getInstance().handleAPI<void, boolean>(ModuleAccessPolicy.APINAME_IS_ROLE, role_translatable_name);
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, boolean>(ModuleAccessPolicy.APINAME_IS_ROLE, role_translatable_name);
     }
 
     public async getMyRoles(): Promise<RoleVO[]> {

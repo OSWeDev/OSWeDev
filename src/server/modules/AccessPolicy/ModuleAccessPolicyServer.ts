@@ -20,6 +20,7 @@ import ServerBase from '../../ServerBase';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import RegisterModuleAccessPolicyParamVO from '../../../shared/modules/AccessPolicy/vos/apis/RegisterModuleAccessPolicyParamVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -125,7 +126,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             [UserRolesVO.API_TYPE_ID, UserVO.API_TYPE_ID]);
     }
 
-    private async isRole(role_translatable_name: string): Promise<boolean> {
+    private async isRole(param: StringParamVO): Promise<boolean> {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let uid: number = httpContext ? httpContext.get('UID') : null;
 
@@ -137,7 +138,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             UserRolesVO.API_TYPE_ID,
             " join " + ModuleAccessPolicy.getInstance().role_datatable.full_name + " r on r.id = t.role_id " +
             " where t.user_id = $1 and r.translatable_name = $2",
-            [uid, role_translatable_name],
+            [uid, param.text],
             [UserVO.API_TYPE_ID, RoleVO.API_TYPE_ID]);
 
         if (userRoles) {
@@ -239,17 +240,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return false;
     }
 
-    private async addRoleIfNotExists(translatable_name: string): Promise<RoleVO> {
+    private async addRoleIfNotExists(rolename: string): Promise<RoleVO> {
 
         if (!ModuleAccessPolicy.getInstance().actif) {
             return null;
         }
 
-        let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, " WHERE t.translatable_name = $1", [translatable_name]);
+        let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, " WHERE t.translatable_name = $1", [rolename]);
 
         if (!role) {
             role = new RoleVO();
-            role.translatable_name = translatable_name;
+            role.translatable_name = rolename;
             let insertres = await ModuleDAO.getInstance().insertOrUpdateVO(role);
 
             if ((!insertres) || (!insertres.id)) {

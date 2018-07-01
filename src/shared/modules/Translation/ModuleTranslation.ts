@@ -83,7 +83,7 @@ export default class ModuleTranslation extends Module {
     }
 
     public async getTranslatableText(code_text: string): Promise<TranslatableTextVO> {
-        return await ModuleAPI.getInstance().handleAPI<void, TranslatableTextVO>(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, code_text);
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, TranslatableTextVO>(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, code_text);
     }
 
     public async getLangs(): Promise<LangVO[]> {
@@ -95,11 +95,11 @@ export default class ModuleTranslation extends Module {
     }
 
     public async getTranslations(lang_id: number): Promise<TranslationVO[]> {
-        return await ModuleAPI.getInstance().handleAPI<void, TranslationVO[]>(ModuleTranslation.APINAME_GET_TRANSLATIONS, lang_id);
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, TranslationVO[]>(ModuleTranslation.APINAME_GET_TRANSLATIONS, lang_id);
     }
 
     public async getTranslation(lang_id: number, text_id: number): Promise<TranslationVO> {
-        return await ModuleAPI.getInstance().handleAPI<void, TranslationVO>(ModuleTranslation.APINAME_GET_TRANSLATION, lang_id, text_id);
+        return await ModuleAPI.getInstance().handleAPI<GetTranslationParamVO, TranslationVO>(ModuleTranslation.APINAME_GET_TRANSLATION, lang_id, text_id);
     }
 
     public initialize() {
