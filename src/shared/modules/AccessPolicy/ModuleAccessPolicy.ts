@@ -92,7 +92,7 @@ export default class ModuleAccessPolicy extends Module {
             StringParamVO.translateFromREQ
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<string, RoleVO>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, RoleVO>(
             ModuleAccessPolicy.APINAME_ADD_ROLE_IF_NOT_EXISTS,
             [RoleVO.API_TYPE_ID]
         ));
@@ -113,7 +113,7 @@ export default class ModuleAccessPolicy extends Module {
             AddRoleToUserParamVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<string, boolean>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER,
             [UserVO.API_TYPE_ID]
         ));
@@ -141,7 +141,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     public async beginRecover(email: string): Promise<boolean> {
-        return await ModuleAPI.getInstance().handleAPI<string, boolean>(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, email);
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, boolean>(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, email);
     }
 
     public async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {

@@ -296,13 +296,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    private async beginRecover(email: string): Promise<boolean> {
+    private async beginRecover(param: StringParamVO): Promise<boolean> {
 
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!email)) {
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!param.text)) {
             return false;
         }
 
-        return PasswordRecovery.getInstance().beginRecovery(email);
+        return PasswordRecovery.getInstance().beginRecovery(param.text);
     }
 
     private async resetPwd(params: ResetPwdParamVO): Promise<boolean> {
