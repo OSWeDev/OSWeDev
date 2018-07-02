@@ -1,18 +1,16 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
-import ModuleServerBase from '../ModuleServerBase';
-import { Express, Request, Response } from 'express';
-import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import GetAPIDefinition from '../../../shared/modules/API/vos/GetAPIDefinition';
-import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
+import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
+import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import GetTranslationParamVO from '../../../shared/modules/Translation/apis/GetTranslationParamVO';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
-import GetTranslationParamVO from '../../../shared/modules/Translation/apis/GetTranslationParamVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import FileHandler from '../../tools/FileHandler';
+import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import FileHandler from '../../tools/FileHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -42,8 +40,8 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
     }
 
-    public async getTranslatableText(code_text: string): Promise<TranslatableTextVO> {
-        return await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [code_text]);
+    public async getTranslatableText(param: StringParamVO): Promise<TranslatableTextVO> {
+        return await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [param.text]);
     }
 
     public async getLangs(): Promise<LangVO[]> {
@@ -54,8 +52,8 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<TranslationVO>(TranslationVO.API_TYPE_ID);
     }
 
-    public async getTranslations(lang_id: number): Promise<TranslationVO[]> {
-        return await ModuleDAOServer.getInstance().selectAll<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1', [lang_id]);
+    public async getTranslations(param: NumberParamVO): Promise<TranslationVO[]> {
+        return await ModuleDAOServer.getInstance().selectAll<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1', [param.num]);
     }
 
     public async getTranslation(params: GetTranslationParamVO): Promise<TranslationVO> {
@@ -78,7 +76,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         for (let i in langs) {
 
             let lang: LangVO = langs[i];
-            let translations: TranslationVO[] = await this.getTranslations(lang.id);
+            let translations: TranslationVO[] = await ModuleTranslation.getInstance().getTranslations(lang.id);
             let langFileContent: string = this.getLangFileContent(lang, translations, VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts));
 
             if (!await FileHandler.getInstance().dirExists('./src/client/locales/' + lang.code_lang.toLowerCase())) {

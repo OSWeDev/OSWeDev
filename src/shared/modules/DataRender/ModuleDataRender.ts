@@ -135,7 +135,7 @@ export default class ModuleDataRender extends Module {
     }
 
     public async getDataRenderer(renderer_name: string): Promise<DataRendererVO> {
-        return await ModuleAPI.getInstance().handleAPI<string, DataRendererVO>(ModuleDataRender.APINAME_GET_DATA_RENDERER, renderer_name);
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, DataRendererVO>(ModuleDataRender.APINAME_GET_DATA_RENDERER, renderer_name);
     }
 
     /**

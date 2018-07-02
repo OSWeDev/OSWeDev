@@ -240,17 +240,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return false;
     }
 
-    private async addRoleIfNotExists(rolename: string): Promise<RoleVO> {
+    private async addRoleIfNotExists(param: StringParamVO): Promise<RoleVO> {
 
         if (!ModuleAccessPolicy.getInstance().actif) {
             return null;
         }
 
-        let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, " WHERE t.translatable_name = $1", [rolename]);
+        let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, " WHERE t.translatable_name = $1", [param.text]);
 
         if (!role) {
             role = new RoleVO();
-            role.translatable_name = rolename;
+            role.translatable_name = param.text;
             let insertres = await ModuleDAO.getInstance().insertOrUpdateVO(role);
 
             if ((!insertres) || (!insertres.id)) {

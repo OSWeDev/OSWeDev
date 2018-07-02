@@ -18,6 +18,7 @@ import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import GetAPIDefinition from '../../../shared/modules/API/vos/GetAPIDefinition';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
+import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -48,8 +49,8 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         return await ModuleDAO.getInstance().getVos<DataRendererVO>(DataRendererVO.API_TYPE_ID);
     }
 
-    public async getDataRenderer(renderer_name: string): Promise<DataRendererVO> {
-        return await ModuleDAOServer.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [renderer_name]);
+    public async getDataRenderer(param: StringParamVO): Promise<DataRendererVO> {
+        return await ModuleDAOServer.getInstance().selectOne<DataRendererVO>(DataRendererVO.API_TYPE_ID, 'WHERE t.renderer_name = $1', [param.text]);
     }
 
     /**
@@ -178,6 +179,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         // A la limite, le await on s'en fout ici... pour les logs on prend le temps qu'on veut et on bloque pas l'exécution
         ModuleDAO.getInstance().insertOrUpdateVOs([log]);
 
+        console.error("handleApiError_importFile :" + log.message);
         res.statusCode = DataRenderingLogVO.FAILED_HTML_STATUS;
         res.send(log.message);
     }

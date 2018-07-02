@@ -126,19 +126,19 @@ export default class ModuleDataImport extends Module {
     public async getDataImportHistorics(data_import_file_id: number): Promise<DataImportHistoricVO[]> {
         // On s'assure de recharger toujours une version fraîche sur cette api.
         ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
-        return await ModuleAPI.getInstance().handleAPI<number, DataImportHistoricVO[]>(ModuleDataImport.APINAME_getDataImportHistorics, data_import_file_id);
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportHistoricVO[]>(ModuleDataImport.APINAME_getDataImportHistorics, data_import_file_id);
     }
 
     public async getDataImportHistoric(historic_id: number): Promise<DataImportHistoricVO> {
         // On s'assure de recharger toujours une version fraîche sur cette api.
         ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
-        return await ModuleAPI.getInstance().handleAPI<number, DataImportHistoricVO>(ModuleDataImport.APINAME_getDataImportHistoric, historic_id);
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportHistoricVO>(ModuleDataImport.APINAME_getDataImportHistoric, historic_id);
     }
 
     public async getDataImportLogs(data_import_file_id: number): Promise<DataImportLogVO[]> {
         // On s'assure de recharger toujours une version fraîche sur cette api.
         ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportLogVO.API_TYPE_ID]);
-        return await ModuleAPI.getInstance().handleAPI<number, DataImportLogVO[]>(ModuleDataImport.APINAME_getDataImportLogs, data_import_file_id);
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportLogVO[]>(ModuleDataImport.APINAME_getDataImportLogs, data_import_file_id);
     }
 
     public async getDataImportFiles(): Promise<DataImportFileVO[]> {
@@ -146,11 +146,11 @@ export default class ModuleDataImport extends Module {
     }
 
     public async getDataImportFile(import_name: string): Promise<DataImportFileVO> {
-        return await ModuleAPI.getInstance().handleAPI<string, DataImportFileVO>(ModuleDataImport.APINAME_getDataImportFile, import_name);
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, DataImportFileVO>(ModuleDataImport.APINAME_getDataImportFile, import_name);
     }
 
     public async getDataImportColumnsFromFileId(data_import_file_id: number): Promise<DataImportColumnVO[]> {
-        return await ModuleAPI.getInstance().handleAPI<number, DataImportColumnVO[]>(ModuleDataImport.APINAME_getDataImportColumnsFromFileId, data_import_file_id);
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportColumnVO[]>(ModuleDataImport.APINAME_getDataImportColumnsFromFileId, data_import_file_id);
     }
 
     public initialize() {

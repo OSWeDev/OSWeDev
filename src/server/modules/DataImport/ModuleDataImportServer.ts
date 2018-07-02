@@ -182,6 +182,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // res.send(historic);
     }
     private handleApiError_importFile(res: Response) {
+        console.error("handleApiError_importFile");
         res.statusCode = DataImportHistoricVO.FAILED_HTML_STATUS;
         res.send(null);
     }

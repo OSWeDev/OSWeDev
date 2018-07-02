@@ -165,7 +165,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     public async addRoleIfNotExists(translatable_name: string): Promise<RoleVO> {
-        return await ModuleAPI.getInstance().handleAPI<string, RoleVO>(ModuleAccessPolicy.APINAME_ADD_ROLE_IF_NOT_EXISTS, translatable_name);
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, RoleVO>(ModuleAccessPolicy.APINAME_ADD_ROLE_IF_NOT_EXISTS, translatable_name);
     }
 
     public async addDefaultRolePolicyIfNotExists(
