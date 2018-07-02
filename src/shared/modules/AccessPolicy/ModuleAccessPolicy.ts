@@ -94,12 +94,14 @@ export default class ModuleAccessPolicy extends Module {
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, RoleVO>(
             ModuleAccessPolicy.APINAME_ADD_ROLE_IF_NOT_EXISTS,
-            [RoleVO.API_TYPE_ID]
+            [RoleVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<AddDefaultRolePolicyIfNotExistsParamVO, void>(
             ModuleAccessPolicy.APINAME_ADD_DEFAULT_ROLE_POLICY_IF_NOT_EXISTS,
-            [RolePoliciesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AccessPolicyVO.API_TYPE_ID]
+            [RolePoliciesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, AccessPolicyVO.API_TYPE_ID],
+            AddDefaultRolePolicyIfNotExistsParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, RoleVO[]>(
@@ -115,7 +117,8 @@ export default class ModuleAccessPolicy extends Module {
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER,
-            [UserVO.API_TYPE_ID]
+            [UserVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
