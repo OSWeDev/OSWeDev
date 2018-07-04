@@ -45,6 +45,10 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
         }
     };
 
+    public async configure() {
+        await this.generatesass();
+    }
+
     public async generatesass() {
 
         // On veut recharger le Sass dans 2 cas :
