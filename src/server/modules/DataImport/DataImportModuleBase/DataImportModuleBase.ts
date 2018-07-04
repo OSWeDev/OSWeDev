@@ -17,8 +17,6 @@ export default abstract class DataImportModuleBase extends ModuleServerBase impl
         ModulesManager.getInstance().registerModule(DataImportModuleBase.DataImportRoleName, this);
     }
 
-    An_accessor_cannot_be_declared_in_an_ambient_context_1086
-
     public registerApis() { }
     public initialize() { }
 
