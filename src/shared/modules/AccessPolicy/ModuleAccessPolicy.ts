@@ -267,7 +267,7 @@ export default class ModuleAccessPolicy extends Module {
 
         this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, UserVO.forceNumeric, UserVO.forceNumerics, datatable_fields, UserVO.API_TYPE_ID);
         field_lang_id.addManyToOneRelation(this.user_datatable, ModuleTranslation.getInstance().datatable_lang);
-        this.datatables.push(this.user_datatable);
+        this.user_datatable.set_bdd_ref('ref', 'user');
     }
 
     private initializeRole() {
