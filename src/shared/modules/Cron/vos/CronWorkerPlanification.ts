@@ -18,9 +18,9 @@ export default class CronWorkerPlanification implements IDistantVOBase {
             return null;
         }
 
-        e.type_recurrence = ConversionHandler.forceNumber(e.type_recurrence);
-        e.intervale_recurrence = ConversionHandler.forceNumber(e.intervale_recurrence);
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.type_recurrence = ConversionHandler.getInstance().forceNumber(e.type_recurrence);
+        e.intervale_recurrence = ConversionHandler.getInstance().forceNumber(e.intervale_recurrence);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         e._type = CronWorkerPlanification.API_TYPE_ID;
 

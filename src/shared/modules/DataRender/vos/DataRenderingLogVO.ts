@@ -18,8 +18,8 @@ export default class DataRenderingLogVO implements IDistantVOBase {
             return null;
         }
 
-        e.state = ConversionHandler.forceNumber(e.state);
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.state = ConversionHandler.getInstance().forceNumber(e.state);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         e._type = DataRenderingLogVO.API_TYPE_ID;
 

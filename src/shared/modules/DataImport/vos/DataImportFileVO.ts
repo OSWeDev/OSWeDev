@@ -14,9 +14,9 @@ export default class DataImportFileVO implements IDistantVOBase {
             return null;
         }
 
-        e.first_row_index = ConversionHandler.forceNumber(e.first_row_index);
-        e.sheet_index = ConversionHandler.forceNumber(e.sheet_index);
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.first_row_index = ConversionHandler.getInstance().forceNumber(e.first_row_index);
+        e.sheet_index = ConversionHandler.getInstance().forceNumber(e.sheet_index);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         e._type = DataImportFileVO.API_TYPE_ID;
 

@@ -9,9 +9,9 @@ export default class UserVO {
             return null;
         }
 
-        e.id = ConversionHandler.forceNumber(e.id);
-        e.lang_id = ConversionHandler.forceNumber(e.lang_id);
-        e.recovery_expiration = ConversionHandler.forceNumber(e.recovery_expiration);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
+        e.lang_id = ConversionHandler.getInstance().forceNumber(e.lang_id);
+        e.recovery_expiration = ConversionHandler.getInstance().forceNumber(e.recovery_expiration);
 
         e._type = UserVO.API_TYPE_ID;
 

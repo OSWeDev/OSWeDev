@@ -20,9 +20,9 @@ export default class DataImportHistoricVO implements IDistantVOBase {
             return null;
         }
 
-        e.data_import_file_id = ConversionHandler.forceNumber(e.data_import_file_id);
-        e.state = ConversionHandler.forceNumber(e.state);
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.data_import_file_id = ConversionHandler.getInstance().forceNumber(e.data_import_file_id);
+        e.state = ConversionHandler.getInstance().forceNumber(e.state);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         e._type = DataImportHistoricVO.API_TYPE_ID;
 

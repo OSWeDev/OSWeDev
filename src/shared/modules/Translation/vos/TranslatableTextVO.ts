@@ -12,7 +12,7 @@ export default class TranslatableTextVO implements IDistantVOBase {
             return null;
         }
 
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         e._type = TranslatableTextVO.API_TYPE_ID;
 

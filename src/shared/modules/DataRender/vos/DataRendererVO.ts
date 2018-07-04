@@ -10,7 +10,7 @@ export default class DataRendererVO implements IDistantVOBase {
             return null;
         }
 
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         e._type = DataRendererVO.API_TYPE_ID;
 
