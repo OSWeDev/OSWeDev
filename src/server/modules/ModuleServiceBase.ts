@@ -23,6 +23,8 @@ import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
 import { IDatabase } from 'pg-promise';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
+import ModuleCronServer from './Cron/ModuleCronServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -276,11 +278,13 @@ export default abstract class ModuleServiceBase {
             ModuleAPIServer.getInstance(),
             ModuleDAOServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
+            ModuleCronServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModuleMailerServer.getInstance(),
             ModuleDataImportServer.getInstance(),
             ModuleDataExportServer.getInstance(),
-            ModuleDataRenderServer.getInstance()
+            ModuleDataRenderServer.getInstance(),
+            ModuleSASSSkinConfiguratorServer.getInstance()
         ];
     }
 
