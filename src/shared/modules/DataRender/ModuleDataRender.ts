@@ -20,6 +20,7 @@ export default class ModuleDataRender extends Module {
     public static APINAME_GET_DATA_RENDERER = "GET_DATA_RENDERER";
     public static APINAME_CLEAR_DATA_SEGMENTS = "CLEAR_DATA_SEGMENTS";
     public static APINAME_GET_DATA_RENDERING_LOGS = "GET_DATA_RENDERING_LOGS";
+    public static APINAME_getLatestAvailableSegment = "getLatestAvailableSegment";
 
     public static getInstance(): ModuleDataRender {
         if (!ModuleDataRender.instance) {
@@ -59,6 +60,14 @@ export default class ModuleDataRender extends Module {
             ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS,
             [DataRenderingLogVO.API_TYPE_ID]
         ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, TimeSegment>(
+            ModuleDataRender.APINAME_getLatestAvailableSegment,
+            [DataRendererVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams,
+            StringParamVO.URL,
+            StringParamVO.translateToURL,
+            StringParamVO.translateFromREQ
+        ));
     }
 
     public async hook_module_async_admin_initialization() {
@@ -71,6 +80,10 @@ export default class ModuleDataRender extends Module {
             this.dataRenderers_by_name[dataRenderer.renderer_name] = dataRenderer;
             this.dataRenderers_by_id[dataRenderer.id] = dataRenderer;
         }
+    }
+
+    public async getLatestAvailableSegment(api_name: string): Promise<TimeSegment> {
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, TimeSegment>(ModuleDataRender.APINAME_getLatestAvailableSegment, api_name);
     }
 
     /**
