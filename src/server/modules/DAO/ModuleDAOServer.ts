@@ -12,6 +12,7 @@ import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -322,13 +323,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async configure() {
         // this.pre_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_READ_TRIGGER);
         this.pre_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.pre_update_trigger_hook);
         this.pre_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.pre_create_trigger_hook);
         this.pre_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.pre_delete_trigger_hook);
 
         // this.post_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_READ_TRIGGER);
         this.post_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.post_update_trigger_hook);
         this.post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.post_create_trigger_hook);
         this.post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.post_delete_trigger_hook);
     }
 
     public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {
