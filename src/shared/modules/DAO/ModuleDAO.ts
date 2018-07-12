@@ -1,10 +1,10 @@
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import Module from '../Module';
 import ModuleAPI from '../API/ModuleAPI';
+import StringParamVO from '../API/vos/apis/StringParamVO';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import Module from '../Module';
 import APIDAOParamVO from './vos/APIDAOParamVO';
-import APIDAOParamVOs from './vos/APIDAOParamVOs';
-import ModulesManager from '../ModulesManager';
 
 export default class ModuleDAO extends Module {
 
@@ -36,44 +36,89 @@ export default class ModuleDAO extends Module {
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
             ModuleDAO.APINAME_DELETE_VOS,
-            null //FIXME NEED HOOK suivant data
+            (params: IDistantVOBase[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
-            null //FIXME NEED HOOK suivant data
+            (params: IDistantVOBase[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase, any>(
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
-            null //FIXME NEED HOOK suivant data
+            (param: IDistantVOBase) => [param._type]
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<any, any>(
             ModuleDAO.APINAME_DB_TX_UPDATE,
-            null //FIXME NEED HOOK suivant data
+            (params: any) => {
+
+                let res: string[] = [];
+
+                if (!params) {
+                    return res;
+                }
+
+                if (params.deletes) {
+                    for (let i in params.deletes) {
+                        let param = params.deletes[i];
+
+                        if (res.indexOf(param._type) < 0) {
+                            res.push(param._type);
+                        }
+                    }
+                }
+                if (params.updates) {
+                    for (let i in params.updates) {
+                        let param = params.updates[i];
+
+                        if (res.indexOf(param._type) < 0) {
+                            res.push(param._type);
+                        }
+                    }
+                }
+
+                return res;
+            }
         ));
 
-        //FIXME API en Post car les params ne peuvent être transmis par l'url, mais
-        //  on a besoin de gérer le cache comme sur un GET. A voir dans AjaxCache si on peut
-        //  faire des POST avec cache.
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO<any>, any>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamVO, any>(
             ModuleDAO.APINAME_GET_VO_BY_ID,
-            null, //FIXME NEED HOOK suivant data
-            APIDAOParamVO.translateGetVoByIdParams
+            (param: APIDAOParamVO) => [param.API_TYPE_ID],
+            APIDAOParamVO.translateCheckAccessParams,
+            APIDAOParamVO.URL,
+            APIDAOParamVO.translateToURL,
+            APIDAOParamVO.translateFromREQ
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVOs<any>, any>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, any>(
             ModuleDAO.APINAME_GET_VOS,
-            null, //FIXME NEED HOOK suivant data
-            APIDAOParamVOs.translateGetVosParams
+            (API_TYPE_ID: StringParamVO) => [API_TYPE_ID.text],
+            StringParamVO.translateCheckAccessParams,
+            StringParamVO.URL,
+            StringParamVO.translateToURL,
+            StringParamVO.translateFromREQ
         ));
-        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVOs<any>, any>(
-        //     ModuleDAO.APINAME_SELECT_ALL,
-        //     null, //FIXME NEED HOOK suivant data
-        //     APIDAOParamVOs.translateSelectAllParams
-        // ));
-        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamVO<any>, any>(
-        //     ModuleDAO.APINAME_SELECT_ONE,
-        //     null, //FIXME NEED HOOK suivant data
-        //     APIDAOParamVO.translateSelectOneParams
-        // ));
     }
 
     public async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {

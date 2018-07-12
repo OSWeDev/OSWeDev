@@ -1,20 +1,17 @@
-import ModuleServerBase from '../ModuleServerBase';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import ModuleServiceBase from '../ModuleServiceBase';
+import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import PostAPIDefinition from '../../../shared/modules/API/vos/PostAPIDefinition';
-import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
-import APIDAOParamVOs from '../../../shared/modules/DAO/vos/APIDAOParamVOs';
-import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ServerBase from '../../ServerBase';
-import TriggerHook from '../../../shared/modules/Trigger/TriggerHook';
-import DAOTriggerHook from './triggers/DAOTriggerHook';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
-import { accessSync } from 'fs';
+import ServerBase from '../../ServerBase';
+import ModuleServerBase from '../ModuleServerBase';
+import ModuleServiceBase from '../ModuleServiceBase';
+import DAOTriggerHook from './triggers/DAOTriggerHook';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -766,7 +763,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
     }
 
-    private async getVoById<T extends IDistantVOBase>(apiDAOParamVO: APIDAOParamVO<T>): Promise<T> {
+    private async getVoById<T extends IDistantVOBase>(apiDAOParamVO: APIDAOParamVO): Promise<T> {
 
         let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
 
@@ -781,10 +778,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
     }
 
-    private async getVos<T extends IDistantVOBase>(apiDAOParamVOs: APIDAOParamVOs<T>): Promise<T[]> {
+    private async getVos<T extends IDistantVOBase>(API_TYPE_ID: StringParamVO): Promise<T[]> {
 
         // On filtre les res suivant les droits d'accès
         // return await this.selectAll(apiDAOParamVOs);
-        return await this.selectAll<T>(apiDAOParamVOs.API_TYPE_ID, apiDAOParamVOs.query, apiDAOParamVOs.queryParams, apiDAOParamVOs.depends_on_api_type_ids);
+        return await this.selectAll<T>(API_TYPE_ID.text);
     }
 }
