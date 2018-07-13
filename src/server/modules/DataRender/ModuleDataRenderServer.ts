@@ -52,7 +52,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         // Pour ça on se base sur les logs (c'est pas le top mais on a pas la connaissance pour le moment de la table cible du renderer...)
         let logs: DataRenderingLogVO[] = await ModuleDAOServer.getInstance().selectAll<DataRenderingLogVO>(
             DataRenderingLogVO.API_TYPE_ID,
-            "where renderer_name=$1 and state=$2",
+            "where rendered_api_type_id=$1 and state=$2",
             [renderer_name, DataRenderingLogVO.RENDERING_STATE_OK]);
 
         let res: TimeSegment = null;
