@@ -595,23 +595,24 @@ export default class ModuleDataRender extends Module {
         this.datatables = [];
 
         let datatable_fields = [
-            new ModuleTableField('rendered_api_type_id', ModuleTableField.FIELD_TYPE_string, 'rendered_api_type_id', false),
-            new ModuleTableField('data_time_segment_json', ModuleTableField.FIELD_TYPE_string, 'data_time_segment_json', false),
-            new ModuleTableField('date', ModuleTableField.FIELD_TYPE_string, 'date', false),
-            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_string, 'state', false),
-            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'message', false),
-        ];
-
-        this.datatable_log = new ModuleTable(this, DataRenderingLogVO.API_TYPE_ID, DataRenderingLogVO.forceNumeric, DataRenderingLogVO.forceNumerics, datatable_fields, 'log');
-        this.datatables.push(this.datatable_log);
-
-
-        datatable_fields = [
             new ModuleTableField('renderer_name', ModuleTableField.FIELD_TYPE_string, 'renderer_name', false),
             new ModuleTableField('render_handler_module', ModuleTableField.FIELD_TYPE_string, 'render_handler_module', false),
         ];
 
         this.datatable_renderer = new ModuleTable(this, DataRendererVO.API_TYPE_ID, DataRendererVO.forceNumeric, DataRendererVO.forceNumerics, datatable_fields, 'renderer');
         this.datatables.push(this.datatable_renderer);
+
+        let rendered_api_type_id = new ModuleTableField('rendered_api_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'rendered_api_type_id', false);
+        datatable_fields = [
+            rendered_api_type_id,
+            new ModuleTableField('data_time_segment_json', ModuleTableField.FIELD_TYPE_string, 'data_time_segment_json', false),
+            new ModuleTableField('date', ModuleTableField.FIELD_TYPE_string, 'date', false),
+            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_int, 'state', false),
+            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'message', false),
+        ];
+
+        this.datatable_log = new ModuleTable(this, DataRenderingLogVO.API_TYPE_ID, DataRenderingLogVO.forceNumeric, DataRenderingLogVO.forceNumerics, datatable_fields, 'log');
+        rendered_api_type_id.addManyToOneRelation(this.datatable_log, this.datatable_renderer);
+        this.datatables.push(this.datatable_log);
     }
 }

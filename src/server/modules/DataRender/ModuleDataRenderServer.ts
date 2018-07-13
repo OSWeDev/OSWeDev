@@ -170,7 +170,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         log.date = DateHandler.getInstance().formatDateTimeForBDD(moment());
         log.state = DataRenderingLogVO.RENDERING_STATE_STARTED;
         log.data_time_segment_json = render_time_segments_json;
-        log.renderer_name = renderer_name;
+        log.rendered_api_type_id = ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name] ? ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name].id : null;
 
         // On charge les informations de ce type d'import
         let dataRender: DataRendererVO = null;
