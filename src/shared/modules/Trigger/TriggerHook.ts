@@ -20,7 +20,8 @@ export default abstract class TriggerHook<Conditions, Params, Out>{
 
     public async trigger(conditions: Conditions, params: Params): Promise<Out[]> {
         let noconditionHandlers: [(params: Params) => Promise<Out>] = this.registered_handlers[TriggerHook.NO_CONDITION_UID];
-        let conditionalHandlers: [(params: Params) => Promise<Out>] = this.registered_handlers[TriggerHook.NO_CONDITION_UID];
+        let conditionUID: string = this.getConditionUID_from_Conditions(conditions);
+        let conditionalHandlers: [(params: Params) => Promise<Out>] = conditionUID ? this.registered_handlers[conditionUID] : null;
 
         let res: Out[] = [];
 

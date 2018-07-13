@@ -43,9 +43,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private pre_delete_trigger_hook: DAOTriggerHook;
 
     // private post_read_trigger_hook: DAOTriggerHook;
-    private post_update_trigger_hook: DAOTriggerHook;
-    private post_create_trigger_hook: DAOTriggerHook;
-    private post_delete_trigger_hook: DAOTriggerHook;
+    // private post_update_trigger_hook: DAOTriggerHook;
+    // private post_create_trigger_hook: DAOTriggerHook;
+    // private post_delete_trigger_hook: DAOTriggerHook;
 
 
     // A supprimer asap, surtout sur la version OS 
@@ -330,12 +330,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleTrigger.getInstance().registerTriggerHook(this.pre_delete_trigger_hook);
 
         // this.post_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_READ_TRIGGER);
-        this.post_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(this.post_update_trigger_hook);
-        this.post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(this.post_create_trigger_hook);
-        this.post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(this.post_delete_trigger_hook);
+
+        // this.post_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        // ModuleTrigger.getInstance().registerTriggerHook(this.post_update_trigger_hook);
+        // this.post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        // ModuleTrigger.getInstance().registerTriggerHook(this.post_create_trigger_hook);
+        // this.post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
+        // ModuleTrigger.getInstance().registerTriggerHook(this.post_delete_trigger_hook);
     }
 
     public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {
@@ -376,13 +377,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                queries.push(t.oneOrNone(sql, vo).then(async (data) => {
+                queries.push(t.oneOrNone(sql, vo)/*posttrigger pas si simple : .then(async (data) => {
                     if (isUpdate) {
                         await this.post_update_trigger_hook.trigger(vo._type, vo);
                     } else {
                         await this.post_create_trigger_hook.trigger(vo._type, vo);
                     }
-                }));
+                })*/);
             }
 
             return t.batch(queries);
@@ -400,13 +401,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        return await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo).then(async (data) => {
+        return await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo)/*posttrigger pas si simple : .then(async (data) => {
             if (isUpdate) {
                 await this.post_update_trigger_hook.trigger(vo._type, vo);
             } else {
                 await this.post_create_trigger_hook.trigger(vo._type, vo);
             }
-        });
+        })*/;
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {
@@ -438,9 +439,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 const sql = "DELETE FROM " + datatable.full_name + " where id = ${id} RETURNING id";
-                queries.push(t.oneOrNone(sql, vo).then(async (data) => {
+                queries.push(t.oneOrNone(sql, vo)/*posttrigger pas si simple : .then(async (data) => {
                     await this.post_delete_trigger_hook.trigger(vo._type, vo);
-                }));
+                })*/);
             }
 
             return t.batch(queries);
@@ -469,9 +470,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 const sql = "DELETE FROM ref." + d.table + " where id = ${" + d.id + "} RETURNING id";
 
                 // console.log(sql);
-                const query = t.oneOrNone(sql, delete_).then(async (data) => {
+                const query = t.oneOrNone(sql, delete_);/*posttrigger pas si simple : .then(async (data) => {
                     await this.post_delete_trigger_hook.trigger(delete_._type, delete_);
-                });
+                });*/
 
                 // console.log(query);
 
@@ -513,9 +514,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
 
                     sql = "UPDATE ref." + d.table + " SET " + setters.join(', ') + " WHERE id = ${" + d.id + "} RETURNING ID";
-                    query = t.oneOrNone(sql, update).then(async (data) => {
+                    query = t.oneOrNone(sql, update)/*posttrigger pas si simple : .then(async (data) => {
                         await this.post_update_trigger_hook.trigger(update._type, update);
-                    });
+                    });*/
                 } else {
                     // Ajout des triggers, avant et après modification.
                     //  Attention si un des output est false avant modification, on annule la modification
@@ -532,9 +533,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
 
                     sql = "INSERT INTO ref." + d.table + " (" + tableFields.join(', ') + ") VALUES (" + placeHolders.join(', ') + ") RETURNING id";
-                    query = t.oneOrNone(sql, update).then(async (data) => {
+                    query = t.oneOrNone(sql, update)/*posttrigger pas si simple : .then(async (data) => {
                         await this.post_create_trigger_hook.trigger(update._type, update);
-                    });
+                    });*/
                 }
 
                 query.catch((error) => {
