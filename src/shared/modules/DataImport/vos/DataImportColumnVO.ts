@@ -14,9 +14,9 @@ export default class DataImportColumnVO implements IDistantVOBase {
             return null;
         }
 
-        e.column_index = ConversionHandler.forceNumber(e.column_index);
-        e.id = ConversionHandler.forceNumber(e.id);
-        e.data_import_file_id = ConversionHandler.forceNumber(e.data_import_file_id);
+        e.column_index = ConversionHandler.getInstance().forceNumber(e.column_index);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
+        e.data_import_file_id = ConversionHandler.getInstance().forceNumber(e.data_import_file_id);
 
         e._type = DataImportColumnVO.API_TYPE_ID;
 

@@ -1,16 +1,18 @@
-import ModuleServerBase from '../ModuleServerBase';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import ModuleServiceBase from '../ModuleServiceBase';
+import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import PostAPIDefinition from '../../../shared/modules/API/vos/PostAPIDefinition';
-import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
-import APIDAOParamVOs from '../../../shared/modules/DAO/vos/APIDAOParamVOs';
-import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ServerBase from '../../ServerBase';
+import ModuleServerBase from '../ModuleServerBase';
+import ModuleServiceBase from '../ModuleServiceBase';
+import DAOTriggerHook from './triggers/DAOTriggerHook';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -34,6 +36,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
     private access_hooks: { [api_type_id: string]: { [access_type: string]: IHookFilterVos<IDistantVOBase> } } = {};
+
+    // private pre_read_trigger_hook: DAOTriggerHook;
+    private pre_update_trigger_hook: DAOTriggerHook;
+    private pre_create_trigger_hook: DAOTriggerHook;
+    private pre_delete_trigger_hook: DAOTriggerHook;
+
+    // private post_read_trigger_hook: DAOTriggerHook;
+    private post_update_trigger_hook: DAOTriggerHook;
+    private post_create_trigger_hook: DAOTriggerHook;
+    private post_delete_trigger_hook: DAOTriggerHook;
+
 
     // A supprimer asap, surtout sur la version OS 
     private descriptors = {
@@ -307,6 +320,24 @@ export default class ModuleDAOServer extends ModuleServerBase {
         },
     };
 
+    public async configure() {
+        // this.pre_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_READ_TRIGGER);
+        this.pre_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.pre_update_trigger_hook);
+        this.pre_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.pre_create_trigger_hook);
+        this.pre_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.pre_delete_trigger_hook);
+
+        // this.post_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_READ_TRIGGER);
+        this.post_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.post_update_trigger_hook);
+        this.post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.post_create_trigger_hook);
+        this.post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.post_delete_trigger_hook);
+    }
+
     public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {
         if (!this.access_hooks[API_TYPE_ID]) {
             this.access_hooks[API_TYPE_ID] = {};
@@ -331,15 +362,27 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<any[]> {
 
-        let results: any[] = await ModuleServiceBase.getInstance().db.tx((t) => {
+        let results: any[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
             let queries: any[] = [];
 
             for (let i in vos) {
                 let vo: IDistantVOBase = vos[i];
 
-                let sql: string = this.getqueryfor_insertOrUpdateVO(vo);
-                queries.push(t.oneOrNone(sql, vo));
+                let isUpdate: boolean = vo.id ? true : false;
+                let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+
+                if (!sql) {
+                    continue;
+                }
+
+                queries.push(t.oneOrNone(sql, vo).then(async (data) => {
+                    if (isUpdate) {
+                        await this.post_update_trigger_hook.trigger(vo._type, vo);
+                    } else {
+                        await this.post_create_trigger_hook.trigger(vo._type, vo);
+                    }
+                }));
             }
 
             return t.batch(queries);
@@ -350,13 +393,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<any> {
 
-        let sql: string = this.getqueryfor_insertOrUpdateVO(vo);
-        return await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo);
+        let isUpdate: boolean = vo.id ? true : false;
+        let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+
+        if (!sql) {
+            return null;
+        }
+
+        return await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo).then(async (data) => {
+            if (isUpdate) {
+                await this.post_update_trigger_hook.trigger(vo._type, vo);
+            } else {
+                await this.post_create_trigger_hook.trigger(vo._type, vo);
+            }
+        });
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {
 
-        let results: any[] = await ModuleServiceBase.getInstance().db.tx((t) => {
+        let results: any[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
             let queries: any[] = [];
 
@@ -375,8 +430,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
+                // Ajout des triggers, avant et après suppression.
+                //  Attention si un des output est false avant suppression, on annule la suppression
+                let res: boolean[] = await this.pre_delete_trigger_hook.trigger(vo._type, vo);
+                if (!BooleanHandler.getInstance().AND(res, true)) {
+                    continue;
+                }
+
                 const sql = "DELETE FROM " + datatable.full_name + " where id = ${id} RETURNING id";
-                queries.push(t.oneOrNone(sql, vo));
+                queries.push(t.oneOrNone(sql, vo).then(async (data) => {
+                    await this.post_delete_trigger_hook.trigger(vo._type, vo);
+                }));
             }
 
             return t.batch(queries);
@@ -388,17 +452,26 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private db_tx_update(data): Promise<any> {
         let self = this;
 
-        return ModuleServiceBase.getInstance().db.tx((t) => {
+        return ModuleServiceBase.getInstance().db.tx(async (t) => {
             let queries: any[] = [];
 
             for (const i in data.deletes) {
                 const delete_ = data.deletes[i];
                 const d = this.descriptors[delete_._type];
 
+                // Ajout des triggers, avant et après suppression.
+                //  Attention si un des output est false avant suppression, on annule la suppression
+                let res: boolean[] = await this.pre_delete_trigger_hook.trigger(delete_._type, delete_);
+                if (!BooleanHandler.getInstance().AND(res, true)) {
+                    continue;
+                }
+
                 const sql = "DELETE FROM ref." + d.table + " where id = ${" + d.id + "} RETURNING id";
 
                 // console.log(sql);
-                const query = t.oneOrNone(sql, delete_);
+                const query = t.oneOrNone(sql, delete_).then(async (data) => {
+                    await this.post_delete_trigger_hook.trigger(delete_._type, delete_);
+                });
 
                 // console.log(query);
 
@@ -424,16 +497,33 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 let update_id = update[d.id];
                 let sql;
+                let query;
 
                 if (update_id) {
+                    // Ajout des triggers, avant et après modification.
+                    //  Attention si un des output est false avant modification, on annule la modification
+                    let res: boolean[] = await this.pre_update_trigger_hook.trigger(update._type, update);
+                    if (!BooleanHandler.getInstance().AND(res, true)) {
+                        continue;
+                    }
+
                     const setters = [];
                     for (const f in d.fields) {
                         setters.push(f + ' = ' + d.fields[f]);
                     }
 
                     sql = "UPDATE ref." + d.table + " SET " + setters.join(', ') + " WHERE id = ${" + d.id + "} RETURNING ID";
-
+                    query = t.oneOrNone(sql, update).then(async (data) => {
+                        await this.post_update_trigger_hook.trigger(update._type, update);
+                    });
                 } else {
+                    // Ajout des triggers, avant et après modification.
+                    //  Attention si un des output est false avant modification, on annule la modification
+                    let res: boolean[] = await this.pre_create_trigger_hook.trigger(update._type, update);
+                    if (!BooleanHandler.getInstance().AND(res, true)) {
+                        continue;
+                    }
+
                     const tableFields = [];
                     const placeHolders = [];
                     for (const f in d.fields) {
@@ -442,10 +532,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     }
 
                     sql = "INSERT INTO ref." + d.table + " (" + tableFields.join(', ') + ") VALUES (" + placeHolders.join(', ') + ") RETURNING id";
+                    query = t.oneOrNone(sql, update).then(async (data) => {
+                        await this.post_create_trigger_hook.trigger(update._type, update);
+                    });
                 }
 
-                // console.log(sql);
-                const query = t.oneOrNone(sql, update);
                 query.catch((error) => {
                     console.error(error);
                 });
@@ -475,7 +566,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             });
     }
 
-    private getqueryfor_insertOrUpdateVO(vo: IDistantVOBase): string {
+    private async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase): Promise<string> {
 
         if (!vo._type) {
             console.error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
@@ -492,6 +583,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let sql: string = null;
 
         if (vo.id) {
+
+            // Ajout des triggers, avant et après modification.
+            //  Attention si un des output est false avant modification, on annule la modification
+            let res: boolean[] = await this.pre_update_trigger_hook.trigger(vo._type, vo);
+            if (!BooleanHandler.getInstance().AND(res, true)) {
+                return null;
+            }
+
             const setters = [];
             for (const f in datatable.fields) {
 
@@ -505,6 +604,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             sql = "UPDATE " + datatable.full_name + " SET " + setters.join(', ') + " WHERE id = ${id} RETURNING ID";
 
         } else {
+
+            // Ajout des triggers, avant et après modification.
+            //  Attention si un des output est false avant modification, on annule la modification
+            let res: boolean[] = await this.pre_create_trigger_hook.trigger(vo._type, vo);
+            if (!BooleanHandler.getInstance().AND(res, true)) {
+                return null;
+            }
+
             const tableFields = [];
             const placeHolders = [];
             for (const f in datatable.fields) {
@@ -663,7 +770,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
     }
 
-    private async getVoById<T extends IDistantVOBase>(apiDAOParamVO: APIDAOParamVO<T>): Promise<T> {
+    private async getVoById<T extends IDistantVOBase>(apiDAOParamVO: APIDAOParamVO): Promise<T> {
 
         let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
 
@@ -678,10 +785,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
     }
 
-    private async getVos<T extends IDistantVOBase>(apiDAOParamVOs: APIDAOParamVOs<T>): Promise<T[]> {
+    private async getVos<T extends IDistantVOBase>(API_TYPE_ID: StringParamVO): Promise<T[]> {
 
         // On filtre les res suivant les droits d'accès
         // return await this.selectAll(apiDAOParamVOs);
-        return await this.selectAll<T>(apiDAOParamVOs.API_TYPE_ID, apiDAOParamVOs.query, apiDAOParamVOs.queryParams, apiDAOParamVOs.depends_on_api_type_ids);
+        return await this.selectAll<T>(API_TYPE_ID.text);
     }
 }

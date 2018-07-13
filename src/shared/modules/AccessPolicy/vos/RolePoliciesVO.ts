@@ -11,10 +11,10 @@ export default class RolePoliciesVO implements IDistantVOBase {
             return null;
         }
 
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
-        e.accpol_id = ConversionHandler.forceNumber(e.accpol_id);
-        e.role_id = ConversionHandler.forceNumber(e.role_id);
+        e.accpol_id = ConversionHandler.getInstance().forceNumber(e.accpol_id);
+        e.role_id = ConversionHandler.getInstance().forceNumber(e.role_id);
 
         e._type = RolePoliciesVO.API_TYPE_ID;
 

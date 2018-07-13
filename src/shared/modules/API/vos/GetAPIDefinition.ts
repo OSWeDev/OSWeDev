@@ -5,7 +5,7 @@ export default class GetAPIDefinition<T, U> extends APIDefinition<T, U> {
     /**
      *
      * @param api_name UID de l'api attention à l'unicité intermodules
-     * @param API_TYPES_IDS_involved Le tableau des API_TYPE_IDs concernés par l'API
+     * @param API_TYPES_IDS_involved Le tableau des API_TYPE_IDs concernés par l'API. On peut aussi utiliser une fonction qui prend en param T.
      * @param PARAM_TRANSLATOR La fonction qui passe d'une liste de params à un param de type T unique (si besoin)
      * @param PARAM_TRANSLATE_TO_URL La fonction qui dans le cas d'un get renvoie la part paramétrée de l'url à partir de T
      * @param PARAM_TRANSLATE_FROM_REQ La fonction qui dans le cas d'un get renvoie le vrai paramètre à partir de la requête à l'api
@@ -13,7 +13,7 @@ export default class GetAPIDefinition<T, U> extends APIDefinition<T, U> {
      */
     public constructor(
         public api_name: string,
-        public API_TYPES_IDS_involved: string[],
+        public API_TYPES_IDS_involved: (string[]) | ((value: T) => string[]),
 
         public PARAM_TRANSLATOR: (...params) => Promise<T> = null,
 

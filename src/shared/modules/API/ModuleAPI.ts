@@ -74,21 +74,27 @@ export default class ModuleAPI extends Module {
             return await apiDefinition.SERVER_HANDLER(translated_param);
         } else {
 
+            let API_TYPES_IDS_involved = apiDefinition.API_TYPES_IDS_involved;
+            if (!isArray(API_TYPES_IDS_involved)) {
+                API_TYPES_IDS_involved = API_TYPES_IDS_involved(translated_param);
+            }
+
             if (apiDefinition.api_type == APIDefinition.API_TYPE_GET) {
 
                 let url_param: string =
                     apiDefinition.PARAM_TRANSLATE_TO_URL ? await apiDefinition.PARAM_TRANSLATE_TO_URL(translated_param) :
                         (translated_param ? translated_param.toString() : "");
+
                 return await ModuleAjaxCache.getInstance().get(
                     (ModuleAPI.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
-                    apiDefinition.API_TYPES_IDS_involved) as U;
+                    API_TYPES_IDS_involved) as U;
             } else {
 
                 if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
 
                     let filePath: string = await ModuleAjaxCache.getInstance().post(
                         (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
-                        apiDefinition.API_TYPES_IDS_involved,
+                        API_TYPES_IDS_involved,
                         JSON.stringify(translated_param),
                         null) as string;
 
@@ -145,7 +151,7 @@ export default class ModuleAPI extends Module {
                 } else {
                     return await ModuleAjaxCache.getInstance().post(
                         (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
-                        apiDefinition.API_TYPES_IDS_involved,
+                        API_TYPES_IDS_involved,
                         JSON.stringify(translated_param),
                         null) as U;
                 }

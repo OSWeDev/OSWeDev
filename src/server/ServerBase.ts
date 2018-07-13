@@ -67,7 +67,7 @@ export default abstract class ServerBase {
 
         this.connectionString = this.envParam.CONNECTION_STRING;
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
-        this.port = this.envParam.PORT;
+        this.port = process.env.PORT ? process.env.PORT : this.envParam.PORT;
 
         this.jwtSecret = 'This is the jwt secret for the rest part';
 

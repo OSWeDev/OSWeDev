@@ -1,9 +1,5 @@
-import AccessPolicyVO from '../AccessPolicyVO';
-import RoleVO from '../RoleVO';
 
 export default class AddRoleToUserParamVO {
-
-    public static URL: string = ':group_name/:policy_name';
 
     public static async translateCheckAccessParams(
         user_id: number,

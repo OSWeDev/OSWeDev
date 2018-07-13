@@ -43,6 +43,41 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERERS, this.getDataRenderers.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERER, this.getDataRenderer.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS, this.getDataRenderingLogs.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataRender.APINAME_getLatestAvailableSegment, this.getLatestAvailableSegment.bind(this));
+    }
+
+    public async getLatestAvailableSegment(renderer_name: StringParamVO): Promise<TimeSegment> {
+
+        // On veut trouver la data rendu de ce type dont la date est la plus récente.
+        // Pour ça on se base sur les logs (c'est pas le top mais on a pas la connaissance pour le moment de la table cible du renderer...)
+        let logs: DataRenderingLogVO[] = await ModuleDAOServer.getInstance().selectAll<DataRenderingLogVO>(
+            DataRenderingLogVO.API_TYPE_ID,
+            "where renderer_name=$1 and state=$2",
+            [renderer_name, DataRenderingLogVO.RENDERING_STATE_OK]);
+
+        let res: TimeSegment = null;
+
+        if ((!logs) || (logs.length <= 0)) {
+            return res;
+        }
+
+        for (let i in logs) {
+            let log = logs[i];
+
+            let render_time_segments: TimeSegment[] = JSON.parse(log.data_time_segment_json);
+            if (!render_time_segments) {
+                continue;
+            }
+
+            for (let j in render_time_segments) {
+                let render_time_segment = render_time_segments[j];
+
+                if ((!res) || moment(res.dateIndex).isBefore(moment(render_time_segment.dateIndex))) {
+                    res = render_time_segment;
+                }
+            }
+        }
+        return res;
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {

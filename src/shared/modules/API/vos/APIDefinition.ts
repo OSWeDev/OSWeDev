@@ -19,7 +19,7 @@ export default abstract class APIDefinition<T, U> {
     public constructor(
         public api_type: number,
         public api_name: string,
-        public API_TYPES_IDS_involved: string[],
+        public API_TYPES_IDS_involved: (string[]) | ((value: T) => string[]),
 
         public PARAM_TRANSLATOR: (...params) => Promise<T> = null,
 

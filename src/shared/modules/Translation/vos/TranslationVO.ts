@@ -10,9 +10,9 @@ export default class TranslationVO implements IDistantVOBase {
             return null;
         }
 
-        e.lang_id = ConversionHandler.forceNumber(e.lang_id);
-        e.text_id = ConversionHandler.forceNumber(e.text_id);
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.lang_id = ConversionHandler.getInstance().forceNumber(e.lang_id);
+        e.text_id = ConversionHandler.getInstance().forceNumber(e.text_id);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         e._type = TranslationVO.API_TYPE_ID;
 

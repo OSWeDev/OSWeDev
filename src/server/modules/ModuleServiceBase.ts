@@ -25,6 +25,7 @@ import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurato
 import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
+import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
 
 export default abstract class ModuleServiceBase {
 
@@ -262,6 +263,7 @@ export default abstract class ModuleServiceBase {
             ModuleAPI.getInstance(),
             ModuleDAO.getInstance(),
             ModuleAccessPolicy.getInstance(),
+            ModuleTrigger.getInstance(),
             ModuleCron.getInstance(),
             ModuleTranslation.getInstance(),
             ModuleFormatDatesNombres.getInstance(),

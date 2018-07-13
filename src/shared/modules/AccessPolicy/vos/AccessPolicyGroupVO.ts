@@ -10,7 +10,7 @@ export default class AccessPolicyGroupVO {
             return null;
         }
 
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         e._type = AccessPolicyGroupVO.API_TYPE_ID;
 

@@ -12,9 +12,9 @@ export default class AccessPolicyVO implements IDistantVOBase {
             return null;
         }
 
-        e.id = ConversionHandler.forceNumber(e.id);
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
 
-        e.group_id = ConversionHandler.forceNumber(e.group_id);
+        e.group_id = ConversionHandler.getInstance().forceNumber(e.group_id);
 
         e._type = AccessPolicyVO.API_TYPE_ID;
 
