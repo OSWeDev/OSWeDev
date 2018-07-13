@@ -50,10 +50,14 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
         // On veut trouver la data rendu de ce type dont la date est la plus récente.
         // Pour ça on se base sur les logs (c'est pas le top mais on a pas la connaissance pour le moment de la table cible du renderer...)
+        if (!ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name.text]) {
+            return null;
+        }
+
         let logs: DataRenderingLogVO[] = await ModuleDAOServer.getInstance().selectAll<DataRenderingLogVO>(
             DataRenderingLogVO.API_TYPE_ID,
             "where rendered_api_type_id=$1 and state=$2",
-            [renderer_name, DataRenderingLogVO.RENDERING_STATE_OK]);
+            [ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name.text].id, DataRenderingLogVO.RENDERING_STATE_OK]);
 
         let res: TimeSegment = null;
 
