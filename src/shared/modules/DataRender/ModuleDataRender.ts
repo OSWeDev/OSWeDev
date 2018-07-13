@@ -70,7 +70,7 @@ export default class ModuleDataRender extends Module {
         ));
     }
 
-    public async hook_module_async_admin_initialization() {
+    public async hook_module_async_client_admin_initialization() {
         // On précharge les DataImportFile pour être synchrone sur l'admin sur ce sujet et pouvoir créer les menus adaptés
         let dataRenderers: DataRendererVO[] = await this.getDataRenderers();
 
