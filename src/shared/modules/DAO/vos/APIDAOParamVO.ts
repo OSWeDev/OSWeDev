@@ -1,6 +1,6 @@
 export default class APIDAOParamVO {
 
-    public static URL: string = ':API_TYPE_ID/:id';
+    public static URL: string = ':api_type_id/:id';
 
     public static async translateCheckAccessParams(
         API_TYPE_ID: string,
@@ -18,7 +18,7 @@ export default class APIDAOParamVO {
         if (!(req && req.params)) {
             return null;
         }
-        return new APIDAOParamVO(req.params.API_TYPE_ID, parseInt(req.params.id));
+        return new APIDAOParamVO(req.params.api_type_id, parseInt(req.params.id));
     }
 
     public constructor(
