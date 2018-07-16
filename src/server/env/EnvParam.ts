@@ -11,5 +11,6 @@ export default class EnvParam {
     public COMPRESS: boolean;
     public URL_RECOVERY_CHALLENGE: string;
     public URL_RECOVERY: string;
+    public BASE_URL: string;
     public BLOCK_MAIL_DELIVERY: boolean;
 }
