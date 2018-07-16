@@ -33,8 +33,8 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
     private static instance: ModuleDataRenderServer = null;
 
-    get actif(): boolean {
-        return ModuleDataRender.getInstance().actif;
+    private constructor() {
+        super(ModuleDataRender.getInstance().name, ModuleDataRender.getInstance().actif);
     }
 
     public registerExpressApis(app: Express): void {
@@ -56,7 +56,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             return null;
         }
 
-        let rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, Module.SharedModuleRoleName) as DataRenderModuleBase;
+        let rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, ModuleServerBase.SERVER_MODULE_ROLE_NAME) as DataRenderModuleBase;
 
         let latest_data: IDistantVOBase & IRenderedData = await ModuleDAOServer.getInstance().selectOne<IDistantVOBase & IRenderedData>(
             rendererModule.database.vo_type,

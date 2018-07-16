@@ -20,8 +20,8 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public registered_cronWorkers: { [worker_uid: string]: ICronWorker } = {};
 
-    get actif(): boolean {
-        return ModuleCron.getInstance().actif;
+    private constructor() {
+        super(ModuleCron.getInstance().name, ModuleCron.getInstance().actif);
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {

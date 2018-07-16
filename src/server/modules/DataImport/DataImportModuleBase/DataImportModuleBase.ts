@@ -11,8 +11,8 @@ export default abstract class DataImportModuleBase extends ModuleServerBase impl
 
     public static DataImportRoleName: string = "DataImportRoleName";
 
-    protected constructor(public name: string) {
-        super();
+    protected constructor(public name: string, public actif: boolean) {
+        super(name, actif);
         this.name = name;
         ModulesManager.getInstance().registerModule(DataImportModuleBase.DataImportRoleName, this);
     }
@@ -22,8 +22,4 @@ export default abstract class DataImportModuleBase extends ModuleServerBase impl
 
     public abstract hook_merge_imported_datas_in_database(datas: IImportData[], import_target_date_index: string, historic: DataImportHistoricVO, options: IImportOptions): Promise<boolean>;
     public abstract async hook_configure_import();
-
-    get actif(): boolean {
-        return (ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module).actif;
-    }
 }

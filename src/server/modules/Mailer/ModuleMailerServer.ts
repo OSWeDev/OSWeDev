@@ -27,7 +27,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
     }
 
     private constructor() {
-        super();
+        super(ModuleMailer.getInstance().name, ModuleMailer.getInstance().actif);
 
         let user: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_USER);
         let pass: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_AUTH_PASS);

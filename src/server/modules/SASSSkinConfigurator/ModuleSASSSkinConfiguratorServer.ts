@@ -13,8 +13,8 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     private static instance: ModuleSASSSkinConfiguratorServer = null;
 
-    get actif(): boolean {
-        return ModuleSASSSkinConfigurator.getInstance().actif;
+    private constructor() {
+        super(ModuleSASSSkinConfigurator.getInstance().name, ModuleSASSSkinConfigurator.getInstance().actif);
     }
 
     private fileName;

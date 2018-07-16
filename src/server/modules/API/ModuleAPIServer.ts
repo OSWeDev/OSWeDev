@@ -14,8 +14,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
     private static instance: ModuleAPIServer = null;
 
-    get actif(): boolean {
-        return ModuleAPI.getInstance().actif;
+    private constructor() {
+        super(ModuleAPI.getInstance().name, ModuleAPI.getInstance().actif);
     }
 
     public registerExpressApis(app: Express): void {

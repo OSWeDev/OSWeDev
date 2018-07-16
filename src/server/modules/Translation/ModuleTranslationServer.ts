@@ -23,8 +23,8 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private static instance: ModuleTranslationServer = null;
 
-    get actif(): boolean {
-        return ModuleTranslation.getInstance().actif;
+    private constructor() {
+        super(ModuleTranslation.getInstance().name, ModuleTranslation.getInstance().actif);
     }
 
     public registerServerApiHandlers() {

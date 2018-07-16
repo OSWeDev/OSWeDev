@@ -17,9 +17,8 @@ export default abstract class DataRenderModuleBase extends ModuleServerBase impl
 
     public static ROLE_NAME: string = "DataRenderRoleName";
 
-    protected constructor(public name: string) {
-        super();
-        this.name = name;
+    protected constructor(public name: string, public actif: boolean) {
+        super(name, actif);
         ModulesManager.getInstance().registerModule(DataRenderModuleBase.ROLE_NAME, this);
     }
 
