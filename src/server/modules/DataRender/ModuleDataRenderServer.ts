@@ -19,6 +19,8 @@ import GetAPIDefinition from '../../../shared/modules/API/vos/GetAPIDefinition';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import IRenderedData from '../../../shared/modules/DataRender/interfaces/IRenderedData';
+import Module from '../../../shared/modules/Module';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -49,39 +51,25 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     public async getLatestAvailableSegment(renderer_name: StringParamVO): Promise<TimeSegment> {
 
         // On veut trouver la data rendu de ce type dont la date est la plus récente.
-        // Pour ça on se base sur les logs (c'est pas le top mais on a pas la connaissance pour le moment de la table cible du renderer...)
-        if (!ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name.text]) {
+        let dataRenderer: DataRendererVO = ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name.text];
+        if (!dataRenderer) {
             return null;
         }
 
-        let logs: DataRenderingLogVO[] = await ModuleDAOServer.getInstance().selectAll<DataRenderingLogVO>(
-            DataRenderingLogVO.API_TYPE_ID,
-            "where rendered_api_type_id=$1 and state=$2",
-            [ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name.text].id, DataRenderingLogVO.RENDERING_STATE_OK]);
+        let rendererModule: DataRenderModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataRenderer.render_handler_module, Module.SharedModuleRoleName) as DataRenderModuleBase;
+
+        let latest_data: IDistantVOBase & IRenderedData = await ModuleDAOServer.getInstance().selectOne<IDistantVOBase & IRenderedData>(
+            rendererModule.database.vo_type,
+            "order by data_dateindex desc limit 1"
+        );
 
         let res: TimeSegment = null;
 
-        if ((!logs) || (logs.length <= 0)) {
-            return res;
+        if ((!latest_data) || (!rendererModule.data_timesegment_type)) {
+            return null;
         }
 
-        for (let i in logs) {
-            let log = logs[i];
-
-            let render_time_segments: TimeSegment[] = JSON.parse(log.data_time_segment_json);
-            if (!render_time_segments) {
-                continue;
-            }
-
-            for (let j in render_time_segments) {
-                let render_time_segment = render_time_segments[j];
-
-                if ((!res) || moment(res.dateIndex).isBefore(moment(render_time_segment.dateIndex))) {
-                    res = render_time_segment;
-                }
-            }
-        }
-        return res;
+        return ModuleDataRender.getInstance().getCorrespondingTimeSegment(moment(latest_data.data_dateindex), rendererModule.data_timesegment_type);
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {

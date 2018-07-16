@@ -11,6 +11,7 @@ import DataRenderingLogVO from '../../../../shared/modules/DataRender/vos/DataRe
 import IRenderOptions from '../../../../shared/modules/DataRender/interfaces/IRenderOptions';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleServerBase from '../../ModuleServerBase';
+import ModuleTable from '../../../../shared/modules/ModuleTable';
 
 export default abstract class DataRenderModuleBase extends ModuleServerBase implements IRenderDataModule, IModuleBase {
 
@@ -27,4 +28,7 @@ export default abstract class DataRenderModuleBase extends ModuleServerBase impl
 
     public abstract async hook_render_managed_data_in_database(timeSegments: TimeSegment[], log: DataRenderingLogVO, options: IRenderOptions): Promise<boolean>;
     public abstract async hook_configure_renderer();
+
+    abstract database: ModuleTable<IDistantVOBase & IRenderedData>;
+    abstract data_timesegment_type: string;
 }
