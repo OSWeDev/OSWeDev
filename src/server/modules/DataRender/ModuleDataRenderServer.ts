@@ -34,7 +34,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     private static instance: ModuleDataRenderServer = null;
 
     private constructor() {
-        super(ModuleDataRender.getInstance().name, ModuleDataRender.getInstance().actif);
+        super(ModuleDataRender.getInstance().name);
     }
 
     public registerExpressApis(app: Express): void {

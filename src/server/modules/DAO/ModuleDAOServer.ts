@@ -31,7 +31,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private static instance: ModuleDAOServer = null;
 
     private constructor() {
-        super(ModuleDAO.getInstance().name, ModuleDAO.getInstance().actif);
+        super(ModuleDAO.getInstance().name);
     }
 
     // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté

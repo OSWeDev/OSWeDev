@@ -31,7 +31,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     private static instance: ModuleDataImportServer = null;
 
     private constructor() {
-        super(ModuleDataImport.getInstance().name, ModuleDataImport.getInstance().actif);
+        super(ModuleDataImport.getInstance().name);
     }
 
     public registerServerApiHandlers() {

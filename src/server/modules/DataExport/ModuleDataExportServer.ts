@@ -19,7 +19,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     private static instance: ModuleDataExportServer = null;
 
     private constructor() {
-        super(ModuleDataExport.getInstance().name, ModuleDataExport.getInstance().actif);
+        super(ModuleDataExport.getInstance().name);
     }
 
     public registerServerApiHandlers() {

@@ -21,7 +21,7 @@ export default class ModuleCronServer extends ModuleServerBase {
     public registered_cronWorkers: { [worker_uid: string]: ICronWorker } = {};
 
     private constructor() {
-        super(ModuleCron.getInstance().name, ModuleCron.getInstance().actif);
+        super(ModuleCron.getInstance().name);
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {

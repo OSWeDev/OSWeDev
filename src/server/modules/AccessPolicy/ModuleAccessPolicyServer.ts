@@ -36,7 +36,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private debug_check_access: boolean = true;
 
     private constructor() {
-        super(ModuleAccessPolicy.getInstance().name, ModuleAccessPolicy.getInstance().actif);
+        super(ModuleAccessPolicy.getInstance().name);
     }
 
     public registerCrons(): void {
