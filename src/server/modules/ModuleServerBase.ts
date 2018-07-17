@@ -5,13 +5,6 @@ import Module from '../../shared/modules/Module';
 
 export default abstract class ModuleServerBase implements IModuleBase {
 
-    registerApis() {
-        throw new Error("Method not implemented.");
-    }
-    initialize() {
-        throw new Error("Method not implemented.");
-    }
-
     public static SERVER_MODULE_ROLE_NAME: string = "SERVER_MODULE_ROLE_NAME";
 
     constructor(public name: string) {
@@ -22,6 +15,9 @@ export default abstract class ModuleServerBase implements IModuleBase {
         return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) ? ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName).actif : false;
     }
 
+    public registerApis() { }
+
+    public initialize() { }
     public registerExpressApis(app: Express): void { }
     public registerCrons(): void { }
     public registerAccessHooks(): void { }
