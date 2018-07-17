@@ -11,8 +11,8 @@ export default abstract class DataImportModuleBase extends ModuleServerBase impl
 
     public static DataImportRoleName: string = "DataImportRoleName";
 
-    protected constructor(public name: string, public actif: boolean) {
-        super(name, actif);
+    protected constructor(public name: string) {
+        super(name);
         this.name = name;
         ModulesManager.getInstance().registerModule(DataImportModuleBase.DataImportRoleName, this);
     }
