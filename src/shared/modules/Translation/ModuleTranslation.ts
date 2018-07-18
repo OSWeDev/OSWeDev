@@ -20,6 +20,7 @@ export default class ModuleTranslation extends Module {
     public static APINAME_GET_ALL_TRANSLATIONS: string = "getAllTranslations";
     public static APINAME_GET_TRANSLATIONS: string = "getTranslations";
     public static APINAME_GET_TRANSLATION: string = "getTranslation";
+    public static APINAME_getALL_LOCALES: string = "getALL_LOCALES";
 
     public static getInstance(): ModuleTranslation {
         if (!ModuleTranslation.instance) {
@@ -76,6 +77,14 @@ export default class ModuleTranslation extends Module {
             NumberParamVO.translateToURL,
             NumberParamVO.translateFromREQ
         ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, any>(
+            ModuleTranslation.APINAME_getALL_LOCALES,
+            [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, TranslationVO.API_TYPE_ID]
+        ));
+    }
+
+    public async getALL_LOCALES(): Promise<any> {
+        return await ModuleAPI.getInstance().handleAPI<void, any>(ModuleTranslation.APINAME_getALL_LOCALES);
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {

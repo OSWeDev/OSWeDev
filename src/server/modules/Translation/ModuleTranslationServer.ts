@@ -34,6 +34,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {
@@ -84,6 +85,27 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             }
             await FileHandler.getInstance().writeFile('./src/client/locales/' + lang.code_lang.toLowerCase() + '/translation.ts', langFileContent);
         }
+    }
+
+    private async getALL_LOCALES(): Promise<any> {
+        let langs: LangVO[] = await this.getLangs();
+        let translatableTexts: TranslatableTextVO[] = await this.getTranslatableTexts();
+        let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
+        let res: any = {};
+
+        for (let i in langs) {
+            let lang: LangVO = langs[i];
+            let translations: TranslationVO[] = await ModuleTranslation.getInstance().getTranslations(lang.id);
+            let lang_locales: any = {};
+
+            for (let i in translations) {
+                let translation: TranslationVO = translations[i];
+                lang_locales[translatableTexts_by_id[translation.text_id].code_text] = translation.translated;//.replace('"', '\"');
+            }
+
+            res[lang.code_lang.toLowerCase()] = lang_locales;
+        }
+        return res;
     }
 
     private getLangsFileContent(langs: LangVO[]): string {
