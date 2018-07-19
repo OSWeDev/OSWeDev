@@ -5,6 +5,7 @@ import { IDatabase } from 'pg-promise';
 import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModulesManager from '../shared/modules/ModulesManager';
+import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 
 export default abstract class GeneratorBase {
 
@@ -36,9 +37,11 @@ export default abstract class GeneratorBase {
 
         await this.modulesService.register_all_modules(db);
 
-        console.log("handleBuildClientAdminModulesConfs - STARTING.");
+        console.log("ModulesClientInitializationDatasGenerator.getInstance().generate()");
         await ModulesClientInitializationDatasGenerator.getInstance().generate();
-        console.log("handleBuildClientAdminModulesConfs - DONE. Exiting ...");
+        console.log("ModuleSASSSkinConfiguratorServer.getInstance().generate()");
+        await ModuleSASSSkinConfiguratorServer.getInstance().generate();
+        console.log("Code Generation DONE. Exiting ...");
         process.exit(0);
     }
 }

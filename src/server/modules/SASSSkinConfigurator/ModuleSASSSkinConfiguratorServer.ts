@@ -1,7 +1,9 @@
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleSASSSkinConfigurator from '../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
-import * as sass from 'node-sass';
 import * as fs from 'fs';
+import FileHandler from '../../tools/FileHandler';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
+
 export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
     public static getInstance() {
@@ -17,120 +19,47 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
         super(ModuleSASSSkinConfigurator.getInstance().name);
     }
 
-    private fileName;
+    public async generate() {
 
-    private sassDir;
-    private dynSassFile;
+        return new Promise(async (resolve, reject) => {
 
-    private cssDir;
-    private dynCssFile;
+            let fileContent = this.getFileContent();
+            try {
 
-    private sassOptionsDefaults = {};
-
-    private sassGenerator = {
-
-        sassVariable: function (name, value) {
-            return "$" + name + ": " + value + ";";
-        },
-
-        sassVariables: function (variablesObj) {
-            let self = this;
-            return Object.keys(variablesObj).map(function (name) {
-                return self.sassVariable(name, variablesObj[name]);
-            }).join('\n');
-        },
-
-        sassImport: function (path) {
-            return "@import '" + path + "';";
-        }
-    };
-
-    public async configure() {
-        await this.generatesass();
-    }
-
-    public async generatesass() {
-
-        // On veut recharger le Sass dans 2 cas :
-        //	- les fichiers SCSS changent
-        //	- les paramètres du module sont mis à jour
-        this.fileName = 'resource-planning-skin';
-
-        this.sassDir = './src/client/scss/';
-        this.dynSassFile = this.sassDir + this.fileName + '.scss';
-
-        this.cssDir = './src/client/public/css/';
-        this.dynCssFile = this.cssDir + this.fileName + '.css';
-
-        let self = this;
-        fs.watch(this.sassDir, function (event, filename) {
-
-            self.load_dyn_sass();
-        });
-
-        return await this.load_dyn_sass();
-    }
-
-    private async dynamicSass(scssEntry, variables, handleSuccess, handleError): Promise<any> {
-
-        return new Promise((resolve, reject) => {
-
-            var dataString =
-                this.sassGenerator.sassVariables(variables) +
-                this.sassGenerator.sassImport(scssEntry);
-
-            this.sassOptionsDefaults['data'] = dataString;
-
-            let self = this;
-
-            sass.render(this.sassOptionsDefaults, function (err, result) {
-
-                if (!result) {
-                    console.log(self.fileName + '.css ERROR :result null:' + err);
-                    return;
+                if (!await FileHandler.getInstance().dirExists('./src/vuejsclient/scss/generated/')) {
+                    await FileHandler.getInstance().dirCreate('./src/vuejsclient/scss/generated/');
                 }
-
-                fs.writeFile(self.dynCssFile, result.css, function (err) {
-                    if (!err) {
-                        console.log(self.fileName + '.css writen successfuly');
-                    } else {
-                        console.log(self.fileName + '.css ERROR :' + err);
-                    }
-                });
-
-                if (err) {
-                    handleError(err);
-                } else {
-                    handleSuccess(result.css.toString());
-                }
+                await FileHandler.getInstance().writeFile('./src/vuejsclient/scss/generated/skin-variables.scss', fileContent);
+            } catch (error) {
+                reject(error);
+            } finally {
                 resolve();
-            });
+            }
         });
     }
 
-    private async load_dyn_sass(handleSuccess = null, handleError = null) {
+    private getFileContent() {
+        let fileContent = "";
 
-        // On configure les fichiers sass et on surcharge avec les datas configurées en admin
-        let SkinOptions = {};
+        fileContent += this.getSassVariablesDefinition(ModuleSASSSkinConfigurator.getInstance().fields);
 
-        for (let i in ModuleSASSSkinConfigurator.getInstance().fields) {
-            let field = ModuleSASSSkinConfigurator.getInstance().fields[i];
+        return fileContent;
+    }
 
-            SkinOptions[field.field_id] = field.field_value;
+    private getSassVariablesDefinition(variables: ModuleTableField<string>[]): string {
+
+        let res = '';
+
+        for (let i in variables) {
+            let variable: ModuleTableField<string> = variables[i];
+
+            res = res + this.getSassVariableDefinition(variable.field_id, variable.field_value) + '\n';
         }
+        return res;
+    }
 
-        await this.dynamicSass(this.dynSassFile, SkinOptions, function () {
-            console.log('SASS OK');
-            if (handleSuccess) {
-                handleSuccess();
-            }
-        }, function (e) {
-            console.log('SASS LOADING FAILED !' + e);
-            if (handleError) {
-                handleError();
-            }
-        });
 
-        return true;
+    private getSassVariableDefinition(name: string, value: string): string {
+        return "$" + name + ": " + value + ";";
     }
 }
