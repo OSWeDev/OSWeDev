@@ -67,6 +67,11 @@ export default class ModuleSASSSkinConfigurator extends Module {
             new ModuleTableField('picto_equipe_url', 'text', 'picto_equipe_url', true, true, '"/public/img/picto_equipe.png"'),
             new ModuleTableField('main_link_color', 'text', 'main_link_color', true, true, '#b3003c'),
             new ModuleTableField('header_text_color', 'text', 'header_text_color', true, true, '#563c22'),
+
+            new ModuleTableField('light_warning', 'text', 'light_warning', true, true, '#b3003c'),
+            new ModuleTableField('light_low', 'text', 'light_low', true, true, '#339ec1'),
+            new ModuleTableField('gris_clair', 'text', 'gris_clair', true, true, '#999'),
+            new ModuleTableField('vert_clair', 'text', 'vert_clair', true, true, '#8d951e'),
         ];
         this.datatables = [];
     }
