@@ -198,15 +198,12 @@ export default abstract class ModuleServiceBase {
             "ALTER FUNCTION admin.trigger_modules() OWNER TO rocher;\n"
         );
 
-        try {
-            await this.db.query(
-                "CREATE TRIGGER trigger_modules" +
-                " INSTEAD OF INSERT OR UPDATE OR DELETE ON admin.view_modules" +
-                " FOR EACH ROW EXECUTE PROCEDURE admin.trigger_modules();"
-            );
-        } catch (error) {
-            // On ignore les erreurs sur cette requetes pour éviter les messages systématiques à chaque démarrage...
-        }
+        await this.db.query('DROP TRIGGER IF EXISTS trigger_modules ON admin.view_modules;');
+        await this.db.query(
+            "CREATE TRIGGER trigger_modules" +
+            " INSTEAD OF INSERT OR UPDATE OR DELETE ON admin.view_modules" +
+            " FOR EACH ROW EXECUTE PROCEDURE admin.trigger_modules();"
+        );
     }
 
     private async install_modules() {
