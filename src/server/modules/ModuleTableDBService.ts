@@ -188,14 +188,11 @@ export default class ModuleTableDBService {
         await this.db.query(query);
         // await this.db.query('ALTER FUNCTION ' + moduleTable.admin_trigger_full_name + '() OWNER TO rocher;\n');
 
-        try {
+        await this.db.query('DROP TRIGGER IF EXISTS ' + moduleTable.admin_trigger_name + ' on ' + moduleTable.admin_view_full_name + ';');
+        await this.db.query('CREATE TRIGGER ' + moduleTable.admin_trigger_name +
+            ' INSTEAD OF INSERT OR UPDATE OR DELETE ON ' + moduleTable.admin_view_full_name +
+            ' FOR EACH ROW EXECUTE PROCEDURE ' + moduleTable.admin_trigger_full_name + '();');
 
-            await this.db.query('CREATE TRIGGER ' + moduleTable.admin_trigger_name +
-                ' INSTEAD OF INSERT OR UPDATE OR DELETE ON ' + moduleTable.admin_view_full_name +
-                ' FOR EACH ROW EXECUTE PROCEDURE ' + moduleTable.admin_trigger_full_name + '();');
-        } catch (error) {
-            // On ignore les erreurs sur cette requetes pour éviter les messages systématiques à chaque démarrage...
-        }
         // On appelle le hook de fin d'installation
         await this.datatable_install_end(moduleTable);
     }
