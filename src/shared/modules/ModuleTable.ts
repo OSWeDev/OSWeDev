@@ -138,6 +138,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
         }
         this.label = label;
-        this.label.code_text = "fields.labels." + this.full_name;
+        this.label.code_text = "fields.labels." + this.full_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 }
