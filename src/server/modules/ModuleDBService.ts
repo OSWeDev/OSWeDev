@@ -199,13 +199,10 @@ export default class ModuleDBService {
             console.log(error);
         }
 
-        try {
-            await this.db.query('CREATE TRIGGER trigger_module_' + module.name +
-                ' INSTEAD OF INSERT OR UPDATE OR DELETE ON admin.view_module_' + module.name +
-                ' FOR EACH ROW EXECUTE PROCEDURE admin.trigger_module_' + module.name + '();');
-        } catch (error) {
-            // On ignore les erreurs sur cette requetes pour éviter les messages systématiques à chaque démarrage...
-        }
+        await this.db.query('DROP TRIGGER IF EXISTS trigger_module_' + module.name + ' ON admin.view_module_' + module.name + ';');
+        await this.db.query('CREATE TRIGGER trigger_module_' + module.name +
+            ' INSTEAD OF INSERT OR UPDATE OR DELETE ON admin.view_module_' + module.name +
+            ' FOR EACH ROW EXECUTE PROCEDURE admin.trigger_module_' + module.name + '();');
 
         await this.add_module_to_modules_table(module);
     }
