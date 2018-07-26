@@ -25,4 +25,6 @@ export default class LocaleManager {
     public getDefaultLocale() {
         return this.defaultLocale;
     }
+
+
 }

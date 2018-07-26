@@ -1,5 +1,6 @@
 import Module from '../../shared/modules/Module';
 import ModuleTable from '../../shared/modules/ModuleTable';
+import ModuleTableDefaultTranslationsHandler from './ModuleInitialization/ModuleTableDefaultTranslationsHandler';
 
 export default class ModuleTableDBService {
 
@@ -21,6 +22,7 @@ export default class ModuleTableDBService {
         // console.log('Installation de la table "' + moduleTable.full_name + '" du module :"' + moduleTable.module.name + '"');
 
         await this.create_datatable(moduleTable);
+        await ModuleTableDefaultTranslationsHandler.getInstance().registerDefaultTableTranslations(moduleTable);
 
         // Si il y a un problème pendant cette étape, on renvoie autre chose que true pour l'indiquer
         return true;

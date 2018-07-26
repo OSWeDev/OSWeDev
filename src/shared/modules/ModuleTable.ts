@@ -119,5 +119,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         this.admin_trigger_name = 'trigger_' + this.database + '_' + this.name;
         this.admin_trigger_full_name = 'admin.' + this.admin_trigger_name;
+
+        for (let i in this.fields) {
+            this.fields[i].setTargetDatatable(this);
+        }
     }
 }

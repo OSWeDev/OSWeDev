@@ -1,8 +1,13 @@
-import ModuleTable from './ModuleTable';
-import { isNumber, isNull, isBoolean } from 'util';
+import { isBoolean, isNull, isNumber } from 'util';
 import IDistantVOBase from './IDistantVOBase';
+import ModuleTable from './ModuleTable';
+import DefaultTranslation from './Translation/vos/DefaultTranslation';
+import TranslatableTextVO from './Translation/vos/TranslatableTextVO';
+import ModuleDAO from './DAO/ModuleDAO';
 
 export default class ModuleTableField<T> {
+
+    public static DEFAULT_LANG_DEFAULT_TRANSLATION: string = "fr";
 
     public static FIELD_TYPE_boolean: string = 'boolean';
     public static FIELD_TYPE_string: string = 'text';
@@ -26,22 +31,43 @@ export default class ModuleTableField<T> {
     public target_database: string = null;
     public target_table: string = null;
     public target_field: string = null;
+    public module_table: ModuleTable<any> = null;
+    public field_label: DefaultTranslation;
 
     constructor(
         public field_id: string,
         public field_type: string,
-        public field_label: string,
+        field_label: string | DefaultTranslation,
         public field_required: boolean = false,
         public has_default: boolean = false,
         public field_default: T = null) {
         this.field_value = this.field_default;
         this.field_loaded = false;
 
+        if (!field_label) {
+            field_label = new DefaultTranslation({ [ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.field_id });
+        }
+
+        if (typeof field_label === "string") {
+            field_label = new DefaultTranslation({ [ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION]: field_label });
+        } else {
+            if ((!field_label.default_translations) || (!field_label.default_translations[ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
+                field_label.default_translations[ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION] = this.field_id;
+            }
+        }
+
+        this.field_label = field_label;
         this.has_relation = false;
         this.datatable_uid = null;
         this.target_database = null;
         this.target_table = null;
         this.target_field = null;
+    }
+
+    public setTargetDatatable(module_table: ModuleTable<any>) {
+        this.module_table = module_table;
+
+        this.field_label.code_text = "fields.labels." + this.module_table.name + this.field_id;
     }
 
     public getPGSqlFieldDescription() {
