@@ -65,7 +65,7 @@ export default class ModuleTableField<T> {
     public setTargetDatatable(module_table: ModuleTable<any>) {
         this.module_table = module_table;
 
-        this.field_label.code_text = "fields.labels." + this.module_table.full_name + this.field_id;
+        this.field_label.code_text = "fields.labels." + this.module_table.full_name + "." + this.field_id;
     }
 
     public getPGSqlFieldDescription() {
