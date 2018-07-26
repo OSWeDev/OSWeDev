@@ -27,6 +27,11 @@ export default class ModuleDBService {
     public async module_configure(module: Module) {
         // Cette fonction a pour vocation de configurer le module pour ce lancement (chargement d'infos depuis la BDD, ...)
 
+        // On lance aussi la configuration des tables
+        for (let i in module.datatables) {
+            await ModuleTableDBService.getInstance(this.db).datatable_configure(module.datatables[i]);
+        }
+
         // On appelle le hook
         if (!await module.hook_module_configure(this.db)) {
             return false;

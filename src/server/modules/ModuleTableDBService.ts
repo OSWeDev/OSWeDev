@@ -22,9 +22,16 @@ export default class ModuleTableDBService {
         // console.log('Installation de la table "' + moduleTable.full_name + '" du module :"' + moduleTable.module.name + '"');
 
         await this.create_datatable(moduleTable);
-        await ModuleTableDefaultTranslationsHandler.getInstance().registerDefaultTableTranslations(moduleTable);
 
         // Si il y a un problème pendant cette étape, on renvoie autre chose que true pour l'indiquer
+        return true;
+    }
+
+    // Après installation de tous les modules
+    public async datatable_configure(moduleTable: ModuleTable<any>) {
+
+        await ModuleTableDefaultTranslationsHandler.getInstance().registerDefaultTableTranslations(moduleTable);
+
         return true;
     }
 

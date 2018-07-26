@@ -27,27 +27,39 @@ export default class ModuleTableDefaultTranslationsHandler {
         for (let i in moduleTable.fields) {
             await this.registerDefaultFieldTranslations(moduleTable.fields[i]);
         }
+
+        await this.registerDefaultTranslations(moduleTable.label);
     }
 
     private async registerDefaultFieldTranslations(moduleTableField: ModuleTableField<any>) {
 
-        if ((!moduleTableField) || (!moduleTableField.field_label) || (!moduleTableField.field_label.code_text)) {
+        if ((!moduleTableField) || (!moduleTableField.field_label)) {
+            return;
+        }
+
+        await this.registerDefaultTranslations(moduleTableField.field_label);
+    }
+
+
+    private async registerDefaultTranslations(default_translation: DefaultTranslation) {
+
+        if ((!default_translation) || (!default_translation.code_text)) {
             return;
         }
 
         // On cherche le translatable : si il existe pas on le crée
-        let translatable: TranslatableTextVO = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, "where code_text=$1", [moduleTableField.field_label.code_text]);
+        let translatable: TranslatableTextVO = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, "where code_text=$1", [default_translation.code_text]);
 
         if (!translatable) {
             translatable = new TranslatableTextVO();
-            translatable.code_text = moduleTableField.field_label.code_text;
+            translatable.code_text = default_translation.code_text;
             await ModuleDAO.getInstance().insertOrUpdateVO(translatable);
             console.error("Ajout de translatable : " + JSON.stringify(translatable));
-            translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, "where code_text=$1", [moduleTableField.field_label.code_text]);
+            translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, "where code_text=$1", [default_translation.code_text]);
         }
 
         if (!translatable) {
-            console.error("Impossible de créer le translatable : " + moduleTableField.field_label.code_text);
+            console.error("Impossible de créer le translatable : " + default_translation.code_text);
             return;
         }
 
@@ -57,16 +69,16 @@ export default class ModuleTableDefaultTranslationsHandler {
         for (let i in langs) {
             let lang: LangVO = langs[i];
 
-            let default_translation: string = moduleTableField.field_label.default_translations[lang.code_lang];
+            let translation_str: string = default_translation.default_translations[lang.code_lang];
 
-            if (!default_translation) {
+            if (!translation_str) {
                 // On en crée artificiellement une à partir de la langue par défaut
-                if (!moduleTableField.field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]) {
-                    console.error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(moduleTableField.field_label));
+                if (!default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]) {
+                    console.error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(default_translation));
                     continue;
                 }
 
-                default_translation = moduleTableField.field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
+                translation_str = default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
             }
 
             let translation: TranslationVO = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, "where lang_id=$1 and text_id=$2", [lang.id, translatable.id]);
@@ -75,13 +87,13 @@ export default class ModuleTableDefaultTranslationsHandler {
                 translation = new TranslationVO();
                 translation.lang_id = lang.id;
                 translation.text_id = translatable.id;
-                translation.translated = default_translation;
+                translation.translated = translation_str;
                 await ModuleDAO.getInstance().insertOrUpdateVO(translation);
                 translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, "where lang_id=$1 and text_id=$2", [lang.id, translatable.id]);
             }
 
             if (!translation) {
-                console.error("Impossible de créer le translation : " + lang.id + ":" + translatable.id + ":" + default_translation);
+                console.error("Impossible de créer le translation : " + lang.id + ":" + translatable.id + ":" + translation_str);
                 return;
             }
         }
