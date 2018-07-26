@@ -3,6 +3,7 @@ import ModuleDBField from './ModuleTableField';
 import EnumerableProperty from '../tools/annotations/EnumerableProperty';
 import VOsTypesManager from './VOsTypesManager';
 import IDistantVOBase from './IDistantVOBase';
+import ModuleTableField from './ModuleTableField';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -78,6 +79,22 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
 
         this.datatable_uid = "";//TODO FIXME : pas de nombre ici, mais est-ce bien utile surtout ce uid (qui du coup n'en est pas)ModuleTable.getNextUID().toString();
+    }
+
+    public getFieldFromId(field_id: string): ModuleTableField<any> {
+        if (!field_id) {
+            return null;
+        }
+
+        for (let i in this.fields) {
+            let field: ModuleTableField<any> = this.fields[i];
+
+            if (field && field.field_id == field_id) {
+                return field;
+            }
+        }
+
+        return null;
     }
 
     public set_bdd_ref(
