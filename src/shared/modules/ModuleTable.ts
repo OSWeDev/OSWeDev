@@ -4,6 +4,7 @@ import EnumerableProperty from '../tools/annotations/EnumerableProperty';
 import VOsTypesManager from './VOsTypesManager';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTableField from './ModuleTableField';
+import DefaultTranslation from './Translation/vos/DefaultTranslation';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -41,6 +42,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public database: string;
     public vo_type: string;
     public datatable_uid: string;
+    public label: DefaultTranslation = null;
 
     constructor(
 
@@ -68,7 +70,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.module = tmp_module;
         this.fields = tmp_fields;
 
-        this.set_bdd_ref(tmp_database, this.module.name, tmp_suffix, tmp_prefix);
+        this.set_bdd_ref(tmp_database, this.module.name, null, tmp_suffix, tmp_prefix);
 
         this.nga_view_order_by = "ORDER BY v.id DESC";
         this.nga_join = "";
@@ -100,6 +102,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public set_bdd_ref(
         database_name: string,
         table_name: string,
+        label: string | DefaultTranslation = null,
         table_name_suffix: string = "",
         table_name_prefix: string = "") {
         if ((!database_name) || (!table_name)) {
@@ -123,5 +126,18 @@ export default class ModuleTable<T extends IDistantVOBase> {
         for (let i in this.fields) {
             this.fields[i].setTargetDatatable(this);
         }
+
+        if (!label) {
+            label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.name });
+        }
+        if (typeof label === "string") {
+            label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: label });
+        } else {
+            if ((!label.default_translations) || (!label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
+                label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] = this.name;
+            }
+        }
+        this.label = label;
+        this.label.code_text = "fields.labels." + this.full_name;
     }
 }

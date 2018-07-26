@@ -7,8 +7,6 @@ import ModuleDAO from './DAO/ModuleDAO';
 
 export default class ModuleTableField<T> {
 
-    public static DEFAULT_LANG_DEFAULT_TRANSLATION: string = "fr";
-
     public static FIELD_TYPE_boolean: string = 'boolean';
     public static FIELD_TYPE_string: string = 'text';
     public static FIELD_TYPE_int: string = 'number';
@@ -45,14 +43,14 @@ export default class ModuleTableField<T> {
         this.field_loaded = false;
 
         if (!field_label) {
-            field_label = new DefaultTranslation({ [ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.field_id });
+            field_label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.field_id });
         }
 
         if (typeof field_label === "string") {
-            field_label = new DefaultTranslation({ [ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION]: field_label });
+            field_label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: field_label });
         } else {
-            if ((!field_label.default_translations) || (!field_label.default_translations[ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
-                field_label.default_translations[ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION] = this.field_id;
+            if ((!field_label.default_translations) || (!field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
+                field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] = this.field_id;
             }
         }
 
@@ -67,7 +65,7 @@ export default class ModuleTableField<T> {
     public setTargetDatatable(module_table: ModuleTable<any>) {
         this.module_table = module_table;
 
-        this.field_label.code_text = "fields.labels." + this.module_table.name + this.field_id;
+        this.field_label.code_text = "fields.labels." + this.module_table.full_name + this.field_id;
     }
 
     public getPGSqlFieldDescription() {

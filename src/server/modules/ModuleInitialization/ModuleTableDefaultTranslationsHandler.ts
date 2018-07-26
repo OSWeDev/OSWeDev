@@ -5,6 +5,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 
 export default class ModuleTableDefaultTranslationsHandler {
 
@@ -60,12 +61,12 @@ export default class ModuleTableDefaultTranslationsHandler {
 
             if (!default_translation) {
                 // On en crée artificiellement une à partir de la langue par défaut
-                if (!moduleTableField.field_label.default_translations[ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION]) {
+                if (!moduleTableField.field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]) {
                     console.error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(moduleTableField.field_label));
                     continue;
                 }
 
-                default_translation = moduleTableField.field_label.default_translations[ModuleTableField.DEFAULT_LANG_DEFAULT_TRANSLATION];
+                default_translation = moduleTableField.field_label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
             }
 
             let translation: TranslationVO = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, "where lang_id=$1 and text_id=$2", [lang.id, translatable.id]);

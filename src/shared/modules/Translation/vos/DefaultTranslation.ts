@@ -1,5 +1,7 @@
 export default class DefaultTranslation {
 
+    public static DEFAULT_LANG_DEFAULT_TRANSLATION: string = "fr";
+
     /**
      * 
      * @param default_translations 
