@@ -103,7 +103,7 @@ export default class ModuleDAO extends Module {
             }
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamVO, any>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
             ModuleDAO.APINAME_GET_VO_BY_ID,
             (param: APIDAOParamVO) => [param.API_TYPE_ID],
             APIDAOParamVO.translateCheckAccessParams,
@@ -111,7 +111,7 @@ export default class ModuleDAO extends Module {
             APIDAOParamVO.translateToURL,
             APIDAOParamVO.translateFromREQ
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, any>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_GET_VOS,
             (API_TYPE_ID: StringParamVO) => [API_TYPE_ID.text],
             StringParamVO.translateCheckAccessParams,
@@ -164,11 +164,11 @@ export default class ModuleDAO extends Module {
     // }
 
     public async getVoById<T extends IDistantVOBase>(API_TYPE_ID: string, id: number): Promise<T> {
-        return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_GET_VO_BY_ID, API_TYPE_ID, id);
+        return await ModuleAPI.getInstance().handleAPI<string, T>(ModuleDAO.APINAME_GET_VO_BY_ID, API_TYPE_ID, id);
     }
 
     public async getVos<T extends IDistantVOBase>(API_TYPE_ID: string): Promise<T[]> {
-        return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_GET_VOS, API_TYPE_ID);
+        return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS, API_TYPE_ID);
     }
 
     public initialize() {
