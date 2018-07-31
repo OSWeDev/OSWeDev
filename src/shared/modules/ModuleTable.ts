@@ -69,7 +69,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.module = tmp_module;
         this.fields = tmp_fields;
 
-        this.set_bdd_ref(tmp_database, this.module.name, null, tmp_suffix, tmp_prefix);
+        this.set_bdd_ref(tmp_database, this.module ? this.module.name : null, null, tmp_suffix, tmp_prefix);
 
         this.nga_view_order_by = "ORDER BY v.id DESC";
         this.nga_join = "";
