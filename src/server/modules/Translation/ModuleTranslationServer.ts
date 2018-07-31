@@ -100,6 +100,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
             for (let i in translations) {
                 let translation: TranslationVO = translations[i];
+
+                if (!translation.text_id) {
+                    continue;
+                }
                 lang_locales[translatableTexts_by_id[translation.text_id].code_text] = translation.translated;//.replace('"', '\"');
             }
 
@@ -139,6 +143,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         let translationsObj = {};
         for (let i in translations) {
             let translation: TranslationVO = translations[i];
+            if (!translation.text_id) {
+                continue;
+            }
+            if (!translation.translated) {
+                continue;
+            }
             this.index(translationsObj, translatableTexts_by_id[translation.text_id].code_text, translation.translated.replace('"', '\"'));
         }
 
