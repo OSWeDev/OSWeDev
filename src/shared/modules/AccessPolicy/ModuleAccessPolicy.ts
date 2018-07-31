@@ -266,7 +266,7 @@ export default class ModuleAccessPolicy extends Module {
         ];
 
         this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, UserVO.forceNumeric, UserVO.forceNumerics, datatable_fields, UserVO.API_TYPE_ID);
-        field_lang_id.addManyToOneRelation(this.user_datatable, ModuleTranslation.getInstance().datatable_lang);
+        field_lang_id.addManyToOneRelation(this.user_datatable, ModuleTranslation.getInstance().datatable_lang, 'code_lang');
         this.user_datatable.set_bdd_ref('ref', 'user');
     }
 
@@ -289,8 +289,8 @@ export default class ModuleAccessPolicy extends Module {
 
         this.userroles_datatable = new ModuleTable(this, UserRolesVO.API_TYPE_ID, UserRolesVO.forceNumeric, UserRolesVO.forceNumerics, datatable_fields, UserRolesVO.API_TYPE_ID);
 
-        field_user_id.addManyToOneRelation(this.userroles_datatable, this.user_datatable);
-        field_role_id.addManyToOneRelation(this.userroles_datatable, this.role_datatable);
+        field_user_id.addManyToOneRelation(this.userroles_datatable, this.user_datatable, 'name');
+        field_role_id.addManyToOneRelation(this.userroles_datatable, this.role_datatable, 'translatable_name');
 
         this.datatables.push(this.userroles_datatable);
     }
@@ -317,7 +317,7 @@ export default class ModuleAccessPolicy extends Module {
 
         this.accesspolicy_datatable = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, AccessPolicyVO.forceNumeric, AccessPolicyVO.forceNumerics, datatable_fields, AccessPolicyVO.API_TYPE_ID);
 
-        field_accpolgroup_id.addManyToOneRelation(this.accesspolicy_datatable, this.accesspolicygroup_datatable);
+        field_accpolgroup_id.addManyToOneRelation(this.accesspolicy_datatable, this.accesspolicygroup_datatable, 'translatable_name');
 
         this.datatables.push(this.accesspolicy_datatable);
     }
@@ -333,8 +333,8 @@ export default class ModuleAccessPolicy extends Module {
 
         this.rolepolicies_datatable = new ModuleTable(this, RolePoliciesVO.API_TYPE_ID, RolePoliciesVO.forceNumeric, RolePoliciesVO.forceNumerics, datatable_fields, RolePoliciesVO.API_TYPE_ID);
 
-        field_accpol_id.addManyToOneRelation(this.rolepolicies_datatable, this.accesspolicy_datatable);
-        field_role_id.addManyToOneRelation(this.rolepolicies_datatable, this.role_datatable);
+        field_accpol_id.addManyToOneRelation(this.rolepolicies_datatable, this.accesspolicy_datatable, 'translatable_name');
+        field_role_id.addManyToOneRelation(this.rolepolicies_datatable, this.role_datatable, 'translatable_name');
 
         this.datatables.push(this.rolepolicies_datatable);
     }

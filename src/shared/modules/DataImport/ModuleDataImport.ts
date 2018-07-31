@@ -183,7 +183,7 @@ export default class ModuleDataImport extends Module {
         ];
 
         this.datatable_column = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, DataImportColumnVO.forceNumeric, DataImportColumnVO.forceNumerics, datatable_fields, 'column');
-        field_data_import_file_id.addManyToOneRelation(this.datatable_column, this.datatable_file);
+        field_data_import_file_id.addManyToOneRelation(this.datatable_column, this.datatable_file, 'import_name');
         this.datatables.push(this.datatable_column);
 
         // Création de la table dataimportlog
@@ -201,7 +201,7 @@ export default class ModuleDataImport extends Module {
         ];
 
         this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, DataImportHistoricVO.forceNumeric, DataImportHistoricVO.forceNumerics, datatable_fields, 'historic');
-        field_data_import_file_id.addManyToOneRelation(this.datatable_historic, this.datatable_file);
+        field_data_import_file_id.addManyToOneRelation(this.datatable_historic, this.datatable_file, 'import_name');
         this.datatables.push(this.datatable_historic);
 
 
@@ -218,8 +218,8 @@ export default class ModuleDataImport extends Module {
         ];
 
         this.datatable_log = new ModuleTable(this, DataImportLogVO.API_TYPE_ID, DataImportLogVO.forceNumeric, DataImportLogVO.forceNumerics, datatable_fields, 'log');
-        field_data_import_file_id.addManyToOneRelation(this.datatable_log, this.datatable_file);
-        field_data_import_historic_id.addManyToOneRelation(this.datatable_log, this.datatable_historic);
+        field_data_import_file_id.addManyToOneRelation(this.datatable_log, this.datatable_file, 'import_name');
+        field_data_import_historic_id.addManyToOneRelation(this.datatable_log, this.datatable_historic, 'start_date');
         this.datatables.push(this.datatable_log);
     }
 }

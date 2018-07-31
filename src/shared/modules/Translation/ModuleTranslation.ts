@@ -141,8 +141,8 @@ export default class ModuleTranslation extends Module {
         ];
 
         this.datatable_translation = new ModuleTable(this, TranslationVO.API_TYPE_ID, TranslationVO.forceNumeric, TranslationVO.forceNumerics, datatable_fields, TranslationVO.API_TYPE_ID);
-        field_lang_id.addManyToOneRelation(this.datatable_translation, this.datatable_lang);
-        field_text_id.addManyToOneRelation(this.datatable_translation, this.datatable_translatabletext);
+        field_lang_id.addManyToOneRelation(this.datatable_translation, this.datatable_lang, 'code_lang');
+        field_text_id.addManyToOneRelation(this.datatable_translation, this.datatable_translatabletext, 'code_text');
         this.datatables.push(this.datatable_translation);
     }
 }
