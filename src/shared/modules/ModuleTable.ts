@@ -5,6 +5,7 @@ import VOsTypesManager from './VOsTypesManager';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTableField from './ModuleTableField';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
+import ModuleTableManager from './ModuleTableManager';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -139,5 +140,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
         this.label = label;
         this.label.code_text = "fields.labels." + this.full_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+
+        ModuleTableManager.getInstance().registerModuleTable(this);
     }
 }
