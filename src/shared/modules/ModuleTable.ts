@@ -47,8 +47,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         tmp_module: Module,
         tmp_vo_type: string,
-        public forceNumeric: (e: T) => T,
-        public forceNumerics: (es: T[]) => T[],
+        public forceNumeric: (e: T, API_TYPE_ID: string) => T,
+        public forceNumerics: (es: T[], API_TYPE_ID: string) => T[],
         tmp_fields: Array<ModuleDBField<any>>,
         tmp_suffix: string = "",
         tmp_prefix: string = "module",

@@ -152,7 +152,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             try {
 
                 // PostTraitement des données avec les hooks pour générer les questions et intégrer ce qui peut l'être
-                let postTraitementModule: DataImportModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(dataImportFile.post_traitement_module, DataImportModuleBase.DataImportRoleName) as DataImportModuleBase;
+                let postTraitementModule: DataImportModuleBase = (ModulesManager.getInstance().getModuleByNameAndRole(dataImportFile.post_traitement_module, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase;
 
                 if (await postTraitementModule.hook_merge_imported_datas_in_database(datas, import_target_date, historic, options)) {
 
