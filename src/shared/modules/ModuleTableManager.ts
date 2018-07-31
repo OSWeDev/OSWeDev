@@ -10,24 +10,14 @@ export default class ModuleTableManager {
         return ModuleTableManager.instance;
     }
 
-    public registered_moduleTables: { [fullname: string]: ModuleTable<any> } = {};
+    public registered_moduleTables: { [API_TYPE_ID: string]: ModuleTable<any> } = {};
 
     private constructor() { }
 
     public register_moduletable(moduleTable: ModuleTable<any>) {
-        let index = this.getIndex(moduleTable);
-
-        if (!index) {
+        if (!moduleTable) {
             return;
         }
-        this.registered_moduleTables[index] = moduleTable;
-    }
-
-    private getIndex(moduleTable: ModuleTable<any>): string {
-        if ((!moduleTable) || (!moduleTable.full_name)) {
-            return null;
-        }
-
-        return moduleTable.full_name;
+        this.registered_moduleTables[moduleTable.vo_type] = moduleTable;
     }
 }
