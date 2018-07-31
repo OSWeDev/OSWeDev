@@ -23,7 +23,7 @@ export default class ModulesManager {
     private static instance: ModulesManager = null;
 
     public isServerSide: boolean = false;
-    private modules_by_name: { [key: string]: ModuleWrapper } = {};
+    public modules_by_name: { [key: string]: ModuleWrapper } = {};
 
     private constructor() {
 
