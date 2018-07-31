@@ -1,11 +1,9 @@
-import Module from './Module';
-import ModuleDBField from './ModuleTableField';
 import EnumerableProperty from '../tools/annotations/EnumerableProperty';
-import VOsTypesManager from './VOsTypesManager';
 import IDistantVOBase from './IDistantVOBase';
-import ModuleTableField from './ModuleTableField';
+import Module from './Module';
+import { default as ModuleDBField, default as ModuleTableField } from './ModuleTableField';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
-import ModuleTableManager from './ModuleTableManager';
+import VOsTypesManager from './VOsTypesManager';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -140,7 +138,5 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
         this.label = label;
         this.label.code_text = "fields.labels." + this.full_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-
-        ModuleTableManager.getInstance().registerModuleTable(this);
     }
 }
