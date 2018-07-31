@@ -31,6 +31,7 @@ export default class ModuleTableField<T> {
     public target_field: string = null;
     public module_table: ModuleTable<any> = null;
     public field_label: DefaultTranslation;
+    public manyToOne_target_moduletable: ModuleTable<any> = null;
 
     constructor(
         public field_id: string,
@@ -89,6 +90,7 @@ export default class ModuleTableField<T> {
 
     public addManyToOneRelation<T extends IDistantVOBase, U extends IDistantVOBase>(datatable: ModuleTable<T>, target_database: ModuleTable<U>) {
         this.datatable_uid = datatable.datatable_uid;
+        this.manyToOne_target_moduletable = target_database;
         this.target_database = target_database.database;
         this.target_table = target_database.name;
         this.target_field = 'id';
