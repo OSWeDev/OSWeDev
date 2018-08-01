@@ -33,7 +33,7 @@ export default class ModuleCron extends Module {
             new ModuleTableField('intervale_recurrence', ModuleTableField.FIELD_TYPE_float, 'intervale_recurrence', true),
         ];
 
-        this.datatable_cronworkplan = new ModuleTable(this, CronWorkerPlanification.API_TYPE_ID, datatable_fields, CronWorkerPlanification.API_TYPE_ID);
+        this.datatable_cronworkplan = new ModuleTable(this, CronWorkerPlanification.API_TYPE_ID, datatable_fields);
         this.datatables.push(this.datatable_cronworkplan);
     }
 }

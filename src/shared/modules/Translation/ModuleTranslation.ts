@@ -120,7 +120,7 @@ export default class ModuleTranslation extends Module {
             new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true),
         ];
 
-        this.datatable_lang = new ModuleTable(this, LangVO.API_TYPE_ID, datatable_fields, LangVO.API_TYPE_ID);
+        this.datatable_lang = new ModuleTable(this, LangVO.API_TYPE_ID, datatable_fields);
         this.datatables.push(this.datatable_lang);
 
         // Création de la table translatableText
@@ -128,7 +128,7 @@ export default class ModuleTranslation extends Module {
             new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Id du text', true),
         ];
 
-        this.datatable_translatabletext = new ModuleTable(this, TranslatableTextVO.API_TYPE_ID, datatable_fields, TranslatableTextVO.API_TYPE_ID);
+        this.datatable_translatabletext = new ModuleTable(this, TranslatableTextVO.API_TYPE_ID, datatable_fields);
         this.datatables.push(this.datatable_translatabletext);
 
         // Création de la table translation
@@ -140,7 +140,7 @@ export default class ModuleTranslation extends Module {
             new ModuleTableField('translated', ModuleTableField.FIELD_TYPE_string, 'Texte traduit', true),
         ];
 
-        this.datatable_translation = new ModuleTable(this, TranslationVO.API_TYPE_ID, datatable_fields, TranslationVO.API_TYPE_ID);
+        this.datatable_translation = new ModuleTable(this, TranslationVO.API_TYPE_ID, datatable_fields);
         field_lang_id.addManyToOneRelation(this.datatable_translation, this.datatable_lang, 'code_lang');
         field_text_id.addManyToOneRelation(this.datatable_translation, this.datatable_translatabletext, 'code_text');
         this.datatables.push(this.datatable_translation);

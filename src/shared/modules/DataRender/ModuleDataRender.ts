@@ -599,7 +599,7 @@ export default class ModuleDataRender extends Module {
             new ModuleTableField('render_handler_module', ModuleTableField.FIELD_TYPE_string, 'render_handler_module', false),
         ];
 
-        this.datatable_renderer = new ModuleTable(this, DataRendererVO.API_TYPE_ID, datatable_fields, 'renderer');
+        this.datatable_renderer = new ModuleTable(this, DataRendererVO.API_TYPE_ID, datatable_fields);
         this.datatables.push(this.datatable_renderer);
 
         let rendered_api_type_id = new ModuleTableField('rendered_api_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'rendered_api_type_id', false);
@@ -611,7 +611,7 @@ export default class ModuleDataRender extends Module {
             new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'message', false),
         ];
 
-        this.datatable_log = new ModuleTable(this, DataRenderingLogVO.API_TYPE_ID, datatable_fields, 'log');
+        this.datatable_log = new ModuleTable(this, DataRenderingLogVO.API_TYPE_ID, datatable_fields);
         rendered_api_type_id.addManyToOneRelation(this.datatable_log, this.datatable_renderer, 'renderer_name');
         this.datatables.push(this.datatable_log);
     }

@@ -4,7 +4,7 @@ import DateHandler from '../../../tools/DateHandler';
 import * as moment from 'moment';
 
 export default class DataRenderingLogVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "module_data_rendering_log";
+    public static API_TYPE_ID: string = "data_rendering_log";
 
     public static RENDERING_STATE_STARTED: number = 0;
     public static RENDERING_STATE_OK: number = 1;

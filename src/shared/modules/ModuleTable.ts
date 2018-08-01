@@ -46,14 +46,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public forceNumeric: (e: T) => T = null;
     public forceNumerics: (es: T[]) => T[] = null;
 
-    constructor(
-
-        tmp_module: Module,
-        tmp_vo_type: string,
-        tmp_fields: Array<ModuleDBField<any>> = [],
-        tmp_suffix: string = "",
-        tmp_prefix: string = "module",
-        tmp_database: string = "ref") {
+    constructor(tmp_module: Module, tmp_vo_type: string, tmp_fields: Array<ModuleDBField<any>> = []) {
 
         this.forceNumeric = this.defaultforceNumeric;
         this.forceNumerics = this.defaultforceNumerics;
@@ -73,7 +66,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.module = tmp_module;
         this.fields = tmp_fields;
 
-        this.set_bdd_ref(tmp_database, this.module ? this.module.name : null, null, tmp_suffix, tmp_prefix);
+        this.set_bdd_ref("ref", this.module ? this.module.name : null, null, this.vo_type, "module");
 
         this.nga_view_order_by = "ORDER BY v.id DESC";
         this.nga_join = "";

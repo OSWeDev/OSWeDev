@@ -2,7 +2,7 @@ import IDistantVOBase from '../../IDistantVOBase';
 import ConversionHandler from '../../../tools/ConversionHandler';
 
 export default class DataImportFileVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "module_data_import_file";
+    public static API_TYPE_ID: string = "data_import_file";
 
     public static TYPE_XLS: string = "XLS";
     public static TYPE_XLSX: string = "XLSX";
