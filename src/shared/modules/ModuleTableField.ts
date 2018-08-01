@@ -89,7 +89,7 @@ export default class ModuleTableField<T> {
             'ON UPDATE NO ACTION ON DELETE CASCADE';
     }
 
-    public addManyToOneRelation<T extends IDistantVOBase, U extends IDistantVOBase>(datatable: ModuleTable<T>, target_database: ModuleTable<U>, default_target_label_field_id: string = null) {
+    public addManyToOneRelation<T extends IDistantVOBase, U extends IDistantVOBase>(datatable: ModuleTable<T>, target_database: ModuleTable<U>, default_target_label_field_id: string) {
         this.datatable_uid = datatable.datatable_uid;
         this.manyToOne_target_moduletable = target_database;
         this.target_database = target_database.database;
