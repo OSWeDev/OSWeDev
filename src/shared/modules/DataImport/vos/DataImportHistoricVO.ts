@@ -14,28 +14,6 @@ export default class DataImportHistoricVO implements IDistantVOBase {
 
     public static FAILED_HTML_STATUS: number = 500;
 
-    // Pour forcer les numériques à court terme
-    public static forceNumeric(e: DataImportHistoricVO): DataImportHistoricVO {
-        if (!e) {
-            return null;
-        }
-
-        e.data_import_file_id = ConversionHandler.getInstance().forceNumber(e.data_import_file_id);
-        e.state = ConversionHandler.getInstance().forceNumber(e.state);
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-
-        e._type = DataImportHistoricVO.API_TYPE_ID;
-
-        return e;
-    }
-
-    public static forceNumerics(es: DataImportHistoricVO[]): DataImportHistoricVO[] {
-        for (let i in es) {
-            es[i] = DataImportHistoricVO.forceNumeric(es[i]);
-        }
-        return es;
-    }
-
     public id: number;
     public _type: string = DataImportHistoricVO.API_TYPE_ID;
 

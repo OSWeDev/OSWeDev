@@ -3,28 +3,6 @@ import ConversionHandler from '../../../tools/ConversionHandler';
 export default class UserVO {
     public static API_TYPE_ID: string = "user";
 
-    // Pour forcer les numériques à court terme
-    public static forceNumeric(e: UserVO): UserVO {
-        if (!e) {
-            return null;
-        }
-
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-        e.lang_id = ConversionHandler.getInstance().forceNumber(e.lang_id);
-        e.recovery_expiration = ConversionHandler.getInstance().forceNumber(e.recovery_expiration);
-
-        e._type = UserVO.API_TYPE_ID;
-
-        return e;
-    }
-
-    public static forceNumerics(es: UserVO[]): UserVO[] {
-        for (let i in es) {
-            es[i] = UserVO.forceNumeric(es[i]);
-        }
-        return es;
-    }
-
     public id: number;
     public _type: string = UserVO.API_TYPE_ID;
 

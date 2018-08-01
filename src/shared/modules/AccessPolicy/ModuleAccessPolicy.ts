@@ -265,7 +265,7 @@ export default class ModuleAccessPolicy extends Module {
             new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_int, 'recovery_expiration', true),
         ];
 
-        this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, UserVO.forceNumeric, UserVO.forceNumerics, datatable_fields, UserVO.API_TYPE_ID);
+        this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, datatable_fields, UserVO.API_TYPE_ID);
         field_lang_id.addManyToOneRelation(this.user_datatable, ModuleTranslation.getInstance().datatable_lang, 'code_lang');
         this.user_datatable.set_bdd_ref('ref', 'user');
     }
@@ -275,7 +275,7 @@ export default class ModuleAccessPolicy extends Module {
             new ModuleTableField('translatable_name', 'text', 'Nom', true),
         ];
 
-        this.role_datatable = new ModuleTable(this, RoleVO.API_TYPE_ID, RoleVO.forceNumeric, RoleVO.forceNumerics, datatable_fields, RoleVO.API_TYPE_ID);
+        this.role_datatable = new ModuleTable(this, RoleVO.API_TYPE_ID, datatable_fields, RoleVO.API_TYPE_ID);
         this.datatables.push(this.role_datatable);
     }
 
@@ -287,7 +287,7 @@ export default class ModuleAccessPolicy extends Module {
             field_role_id,
         ];
 
-        this.userroles_datatable = new ModuleTable(this, UserRolesVO.API_TYPE_ID, UserRolesVO.forceNumeric, UserRolesVO.forceNumerics, datatable_fields, UserRolesVO.API_TYPE_ID);
+        this.userroles_datatable = new ModuleTable(this, UserRolesVO.API_TYPE_ID, datatable_fields, UserRolesVO.API_TYPE_ID);
 
         field_user_id.addManyToOneRelation(this.userroles_datatable, this.user_datatable, 'name');
         field_role_id.addManyToOneRelation(this.userroles_datatable, this.role_datatable, 'translatable_name');
@@ -302,7 +302,7 @@ export default class ModuleAccessPolicy extends Module {
             new ModuleTableField('uniq_id', 'text', 'UniqID', true),
         ];
 
-        this.accesspolicygroup_datatable = new ModuleTable(this, AccessPolicyGroupVO.API_TYPE_ID, AccessPolicyGroupVO.forceNumeric, AccessPolicyGroupVO.forceNumerics, datatable_fields, AccessPolicyGroupVO.API_TYPE_ID);
+        this.accesspolicygroup_datatable = new ModuleTable(this, AccessPolicyGroupVO.API_TYPE_ID, datatable_fields, AccessPolicyGroupVO.API_TYPE_ID);
 
         this.datatables.push(this.accesspolicygroup_datatable);
     }
@@ -315,7 +315,7 @@ export default class ModuleAccessPolicy extends Module {
             field_accpolgroup_id
         ];
 
-        this.accesspolicy_datatable = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, AccessPolicyVO.forceNumeric, AccessPolicyVO.forceNumerics, datatable_fields, AccessPolicyVO.API_TYPE_ID);
+        this.accesspolicy_datatable = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, datatable_fields, AccessPolicyVO.API_TYPE_ID);
 
         field_accpolgroup_id.addManyToOneRelation(this.accesspolicy_datatable, this.accesspolicygroup_datatable, 'translatable_name');
 
@@ -331,7 +331,7 @@ export default class ModuleAccessPolicy extends Module {
             new ModuleTableField('granted', ModuleTableField.FIELD_TYPE_boolean, 'Granted', true, true, false),
         ];
 
-        this.rolepolicies_datatable = new ModuleTable(this, RolePoliciesVO.API_TYPE_ID, RolePoliciesVO.forceNumeric, RolePoliciesVO.forceNumerics, datatable_fields, RolePoliciesVO.API_TYPE_ID);
+        this.rolepolicies_datatable = new ModuleTable(this, RolePoliciesVO.API_TYPE_ID, datatable_fields, RolePoliciesVO.API_TYPE_ID);
 
         field_accpol_id.addManyToOneRelation(this.rolepolicies_datatable, this.accesspolicy_datatable, 'translatable_name');
         field_role_id.addManyToOneRelation(this.rolepolicies_datatable, this.role_datatable, 'translatable_name');

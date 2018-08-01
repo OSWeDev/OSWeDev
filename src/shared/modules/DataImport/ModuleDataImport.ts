@@ -169,7 +169,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('post_traitement_module', ModuleTableField.FIELD_TYPE_string, 'Nom du module qui gère l\'intégration', true),
         ];
 
-        this.datatable_file = new ModuleTable(this, DataImportFileVO.API_TYPE_ID, DataImportFileVO.forceNumeric, DataImportFileVO.forceNumerics, datatable_fields, 'file');
+        this.datatable_file = new ModuleTable(this, DataImportFileVO.API_TYPE_ID, datatable_fields, 'file');
         this.datatables.push(this.datatable_file);
 
         // Création de la table dataimportcolumn
@@ -182,7 +182,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'Type de donnée', true)
         ];
 
-        this.datatable_column = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, DataImportColumnVO.forceNumeric, DataImportColumnVO.forceNumerics, datatable_fields, 'column');
+        this.datatable_column = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, datatable_fields, 'column');
         field_data_import_file_id.addManyToOneRelation(this.datatable_column, this.datatable_file, 'import_name');
         this.datatables.push(this.datatable_column);
 
@@ -200,7 +200,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('last_up_date', 'timestamp', 'last_up_date', false)
         ];
 
-        this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, DataImportHistoricVO.forceNumeric, DataImportHistoricVO.forceNumerics, datatable_fields, 'historic');
+        this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, datatable_fields, 'historic');
         field_data_import_file_id.addManyToOneRelation(this.datatable_historic, this.datatable_file, 'import_name');
         this.datatables.push(this.datatable_historic);
 
@@ -217,7 +217,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('date', 'timestamp', 'start_date', false, true, '01/01/2001 09:00')
         ];
 
-        this.datatable_log = new ModuleTable(this, DataImportLogVO.API_TYPE_ID, DataImportLogVO.forceNumeric, DataImportLogVO.forceNumerics, datatable_fields, 'log');
+        this.datatable_log = new ModuleTable(this, DataImportLogVO.API_TYPE_ID, datatable_fields, 'log');
         field_data_import_file_id.addManyToOneRelation(this.datatable_log, this.datatable_file, 'import_name');
         field_data_import_historic_id.addManyToOneRelation(this.datatable_log, this.datatable_historic, 'start_date');
         this.datatables.push(this.datatable_log);

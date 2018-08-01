@@ -12,28 +12,6 @@ export default class DataRenderingLogVO implements IDistantVOBase {
 
     public static FAILED_HTML_STATUS: number = 500;
 
-    // Pour forcer les numériques à court terme
-    public static forceNumeric(e: DataRenderingLogVO): DataRenderingLogVO {
-        if (!e) {
-            return null;
-        }
-
-        e.state = ConversionHandler.getInstance().forceNumber(e.state);
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-        e.rendered_api_type_id = ConversionHandler.getInstance().forceNumber(e.rendered_api_type_id);
-
-        e._type = DataRenderingLogVO.API_TYPE_ID;
-
-        return e;
-    }
-
-    public static forceNumerics(es: DataRenderingLogVO[]): DataRenderingLogVO[] {
-        for (let i in es) {
-            es[i] = DataRenderingLogVO.forceNumeric(es[i]);
-        }
-        return es;
-    }
-
     public id: number;
     public _type: string = DataRenderingLogVO.API_TYPE_ID;
 

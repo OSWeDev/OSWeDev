@@ -21,6 +21,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import RegisterModuleAccessPolicyParamVO from '../../../shared/modules/AccessPolicy/vos/apis/RegisterModuleAccessPolicyParamVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -93,7 +94,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return;
             }
             apg.id = parseInt(insertres.id.toString());
-            apg = AccessPolicyGroupVO.forceNumeric(apg);
+            apg = VOsTypesManager.getInstance().moduleTables_by_voType[apg._type].forceNumeric(apg);
         }
 
         let ap: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(
@@ -257,7 +258,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return;
             }
             role.id = parseInt(insertres.id.toString());
-            role = RoleVO.forceNumeric(role);
+            role = VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID].forceNumeric(role);
         }
 
         return role;

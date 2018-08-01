@@ -6,28 +6,6 @@ export default class AccessPolicyVO implements IDistantVOBase {
 
     public static API_TYPE_ID: string = "accpol";
 
-    // Pour forcer les numériques à court terme
-    public static forceNumeric(e: AccessPolicyVO): AccessPolicyVO {
-        if (!e) {
-            return null;
-        }
-
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-
-        e.group_id = ConversionHandler.getInstance().forceNumber(e.group_id);
-
-        e._type = AccessPolicyVO.API_TYPE_ID;
-
-        return e;
-    }
-
-    public static forceNumerics(es: AccessPolicyVO[]): AccessPolicyVO[] {
-        for (let i in es) {
-            es[i] = AccessPolicyVO.forceNumeric(es[i]);
-        }
-        return es;
-    }
-
     /**
      * Renvoie le code permettant de retrouver les trads d'une accesspolicy
      * @param group_name Nom du groupe

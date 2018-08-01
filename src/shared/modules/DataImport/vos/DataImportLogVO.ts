@@ -12,28 +12,6 @@ export default class DataImportLogVO implements IDistantVOBase {
     public static LOG_LEVEL_50_ERROR: string = "ERROR";
     public static LOG_LEVEL_100_FATAL: string = "FATAL";
 
-    // Pour forcer les numériques à court terme
-    public static forceNumeric(e: DataImportLogVO): DataImportLogVO {
-        if (!e) {
-            return null;
-        }
-
-        e.data_import_file_id = ConversionHandler.getInstance().forceNumber(e.data_import_file_id);
-        e.data_import_historic_id = ConversionHandler.getInstance().forceNumber(e.data_import_historic_id);
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-
-        e._type = DataImportLogVO.API_TYPE_ID;
-
-        return e;
-    }
-
-    public static forceNumerics(es: DataImportLogVO[]): DataImportLogVO[] {
-        for (let i in es) {
-            es[i] = DataImportLogVO.forceNumeric(es[i]);
-        }
-        return es;
-    }
-
     public id: number;
     public _type: string = DataImportLogVO.API_TYPE_ID;
 

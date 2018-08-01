@@ -4,26 +4,6 @@ import TextHandler from '../../../tools/TextHandler';
 export default class AccessPolicyGroupVO {
     public static API_TYPE_ID: string = "accpolgrp";
 
-    // Pour forcer les numériques à court terme
-    public static forceNumeric(e: AccessPolicyGroupVO): AccessPolicyGroupVO {
-        if (!e) {
-            return null;
-        }
-
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-
-        e._type = AccessPolicyGroupVO.API_TYPE_ID;
-
-        return e;
-    }
-
-    public static forceNumerics(es: AccessPolicyGroupVO[]): AccessPolicyGroupVO[] {
-        for (let i in es) {
-            es[i] = AccessPolicyGroupVO.forceNumeric(es[i]);
-        }
-        return es;
-    }
-
     /**
      * Renvoie le code permettant de retrouver les trads d'une accesspolicygroup
      * @param group_name Nom du groupe

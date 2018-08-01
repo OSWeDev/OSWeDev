@@ -12,28 +12,6 @@ export default class CronWorkerPlanification implements IDistantVOBase {
     public static TYPE_RECURRENCE_HEURES: number = 50;
     public static TYPE_RECURRENCE_MINUTES: number = 60;
 
-    // Pour forcer les numériques à court terme
-    public static forceNumeric(e: CronWorkerPlanification): CronWorkerPlanification {
-        if (!e) {
-            return null;
-        }
-
-        e.type_recurrence = ConversionHandler.getInstance().forceNumber(e.type_recurrence);
-        e.intervale_recurrence = ConversionHandler.getInstance().forceNumber(e.intervale_recurrence);
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-
-        e._type = CronWorkerPlanification.API_TYPE_ID;
-
-        return e;
-    }
-
-    public static forceNumerics(es: CronWorkerPlanification[]): CronWorkerPlanification[] {
-        for (let i in es) {
-            es[i] = CronWorkerPlanification.forceNumeric(es[i]);
-        }
-        return es;
-    }
-
     public id: number;
     public _type: string = CronWorkerPlanification.API_TYPE_ID;
 

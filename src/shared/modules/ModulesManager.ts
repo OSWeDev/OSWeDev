@@ -32,7 +32,7 @@ export default class ModulesManager {
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr': 'Nom' }), true),
             new ModuleTableField('actif', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr': 'Actif' }), true),
         ];
-        let moduleTable: ModuleTable<ModuleVO> = new ModuleTable<ModuleVO>(null, ModuleVO.API_TYPE_ID, ModuleVO.forceNumeric, ModuleVO.forceNumerics, fields);
+        let moduleTable: ModuleTable<ModuleVO> = new ModuleTable<ModuleVO>(null, ModuleVO.API_TYPE_ID, fields);
         moduleTable.set_bdd_ref('admin', 'modules', new DefaultTranslation({ 'fr': 'Modules' }));
     }
 
@@ -50,7 +50,7 @@ export default class ModulesManager {
         // Et il faut register une moduleTable pour les parametres du module si on est sur un SharedModule
         if (role == Module.SharedModuleRoleName) {
             if ((module as Module).fields) {
-                let moduleParamsTable: ModuleTable<IDistantVOBase> = new ModuleTable<IDistantVOBase>(null, ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name, ModulesManager.getInstance().defaultforceNumeric, ModulesManager.getInstance().defaultforceNumerics, (module as Module).fields);
+                let moduleParamsTable: ModuleTable<IDistantVOBase> = new ModuleTable<IDistantVOBase>(null, ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name, (module as Module).fields);
                 moduleParamsTable.set_bdd_ref('admin', ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name, new DefaultTranslation({ 'fr': module.name }));
             }
         }
@@ -64,40 +64,4 @@ export default class ModulesManager {
     public getModuleWrappersByName() {
         return this.modules_by_name;
     }
-
-    public defaultforceNumeric(e: IDistantVOBase, API_TYPE_ID: string): IDistantVOBase {
-        if (!e) {
-            return null;
-        }
-
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-        e._type = API_TYPE_ID;
-
-        if ((!VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID]) || (!VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID].fields)) {
-            return e;
-        }
-        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID].fields) {
-            let field = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID].fields[i];
-
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_float) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_foreign_key) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_int) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_prct) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_timestamp)) {
-                e[field.field_id] = ConversionHandler.getInstance().forceNumber(e[field.field_id]);
-            }
-        }
-
-        return e;
-    }
-
-    public defaultforceNumerics(es: IDistantVOBase[], API_TYPE_ID: string): IDistantVOBase[] {
-        for (let i in es) {
-            es[i] = this.defaultforceNumeric(es[i], API_TYPE_ID);
-        }
-        return es;
-    }
-
 }

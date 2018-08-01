@@ -4,6 +4,7 @@ import Module from './Module';
 import { default as ModuleDBField, default as ModuleTableField } from './ModuleTableField';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
+import ConversionHandler from '../tools/ConversionHandler';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -42,17 +43,20 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public vo_type: string;
     public datatable_uid: string;
     public label: DefaultTranslation = null;
+    public forceNumeric: (e: T) => T = null;
+    public forceNumerics: (es: T[]) => T[] = null;
 
     constructor(
 
         tmp_module: Module,
         tmp_vo_type: string,
-        public forceNumeric: (e: T, API_TYPE_ID: string) => T,
-        public forceNumerics: (es: T[], API_TYPE_ID: string) => T[],
-        tmp_fields: Array<ModuleDBField<any>>,
+        tmp_fields: Array<ModuleDBField<any>> = [],
         tmp_suffix: string = "",
         tmp_prefix: string = "module",
         tmp_database: string = "ref") {
+
+        this.forceNumeric = this.defaultforceNumeric;
+        this.forceNumerics = this.defaultforceNumerics;
 
         // Delete property.
         // if (delete this["module"]) {
@@ -138,5 +142,39 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
         this.label = label;
         this.label.code_text = "fields.labels." + this.full_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    }
+
+    private defaultforceNumeric(e: T): T {
+        if (!e) {
+            return null;
+        }
+
+        e.id = ConversionHandler.getInstance().forceNumber(e.id);
+        e._type = this.vo_type;
+
+        if (this.fields) {
+            return e;
+        }
+        for (let i in this.fields) {
+            let field = this.fields[i];
+
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_float) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_foreign_key) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_int) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_prct)) {
+                e[field.field_id] = ConversionHandler.getInstance().forceNumber(e[field.field_id]);
+            }
+        }
+
+        return e;
+    }
+
+    private defaultforceNumerics(es: T[]): T[] {
+        for (let i in es) {
+            es[i] = this.defaultforceNumeric(es[i]);
+        }
+        return es;
     }
 }
