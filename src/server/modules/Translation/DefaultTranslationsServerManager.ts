@@ -1,47 +1,30 @@
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 
-export default class ModuleTableDefaultTranslationsHandler {
+export default class DefaultTranslationsServerManager {
 
-    public static getInstance(): ModuleTableDefaultTranslationsHandler {
-        if (!ModuleTableDefaultTranslationsHandler.instance) {
-            ModuleTableDefaultTranslationsHandler.instance = new ModuleTableDefaultTranslationsHandler();
+    public static getInstance(): DefaultTranslationsServerManager {
+        if (!DefaultTranslationsServerManager.instance) {
+            DefaultTranslationsServerManager.instance = new DefaultTranslationsServerManager();
         }
-        return ModuleTableDefaultTranslationsHandler.instance;
+        return DefaultTranslationsServerManager.instance;
     }
-    private static instance: ModuleTableDefaultTranslationsHandler = null;
+    private static instance: DefaultTranslationsServerManager = null;
     private constructor() { }
 
-    public async registerDefaultTableTranslations(moduleTable: ModuleTable<any>) {
+    public async saveDefaultTranslations() {
 
-        if (!moduleTable) {
-            return;
+        for (let i in DefaultTranslationManager.getInstance().registered_default_translations) {
+            await this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]);
         }
-
-        for (let i in moduleTable.fields) {
-            await this.registerDefaultFieldTranslations(moduleTable.fields[i]);
-        }
-
-        await this.registerDefaultTranslations(moduleTable.label);
     }
 
-    private async registerDefaultFieldTranslations(moduleTableField: ModuleTableField<any>) {
-
-        if ((!moduleTableField) || (!moduleTableField.field_label)) {
-            return;
-        }
-
-        await this.registerDefaultTranslations(moduleTableField.field_label);
-    }
-
-
-    private async registerDefaultTranslations(default_translation: DefaultTranslation) {
+    private async saveDefaultTranslation(default_translation: DefaultTranslation) {
 
         if ((!default_translation) || (!default_translation.code_text)) {
             return;

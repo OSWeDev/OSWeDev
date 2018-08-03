@@ -21,6 +21,7 @@ import UserRolesVO from './vos/UserRolesVO';
 import UserVO from './vos/UserVO';
 import ModuleTranslation from '../Translation/ModuleTranslation';
 import StringParamVO from '../API/vos/apis/StringParamVO';
+import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -251,21 +252,21 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUser() {
-        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'lang_id', false);
+        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ fr: 'Langue' }), false);
         let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'name', true),
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'email', true),
-            new ModuleTableField('password', ModuleTableField.FIELD_TYPE_string, 'password', true),
-            new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_string, 'password_change_date', true),
-            new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, 'reminded_pwd_1', true),
-            new ModuleTableField('reminded_pwd_2', ModuleTableField.FIELD_TYPE_boolean, 'reminded_pwd_2', true),
-            new ModuleTableField('invalidated', ModuleTableField.FIELD_TYPE_boolean, 'invalidated', true),
+            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Nom' }), true),
+            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'E-mail' }), true),
+            new ModuleTableField('password', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Mot de passe' }), true),
+            new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Date de changement du mot de passe' }), true),
+            new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Premier rappel envoyé' }), true),
+            new ModuleTableField('reminded_pwd_2', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Second rappel envoyé' }), true),
+            new ModuleTableField('invalidated', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Compte désactivé' }), true),
             field_lang_id,
-            new ModuleTableField('recovery_challenge', ModuleTableField.FIELD_TYPE_string, 'recovery_challenge', true),
-            new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_int, 'recovery_expiration', true),
+            new ModuleTableField('recovery_challenge', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Challenge de récupération' }), true),
+            new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_int, new DefaultTranslation({ fr: 'Expiration du challenge' }), true),
         ];
 
-        this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, datatable_fields);
+        this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Utilisateur" }));
         field_lang_id.addManyToOneRelation(this.user_datatable, ModuleTranslation.getInstance().datatable_lang, 'code_lang');
         this.user_datatable.set_bdd_ref('ref', 'user');
     }

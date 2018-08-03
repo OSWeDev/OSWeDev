@@ -1,6 +1,5 @@
-import Module from '../../shared/modules/Module';
 import ModuleTable from '../../shared/modules/ModuleTable';
-import ModuleTableDefaultTranslationsHandler from './ModuleInitialization/ModuleTableDefaultTranslationsHandler';
+import DefaultTranslationsServerManager from './Translation/DefaultTranslationsServerManager';
 
 export default class ModuleTableDBService {
 
@@ -30,7 +29,7 @@ export default class ModuleTableDBService {
     // Après installation de tous les modules
     public async datatable_configure(moduleTable: ModuleTable<any>) {
 
-        await ModuleTableDefaultTranslationsHandler.getInstance().registerDefaultTableTranslations(moduleTable);
+        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
 
         return true;
     }

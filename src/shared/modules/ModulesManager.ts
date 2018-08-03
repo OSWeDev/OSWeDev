@@ -32,8 +32,8 @@ export default class ModulesManager {
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr': 'Nom' }), true),
             new ModuleTableField('actif', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr': 'Actif' }), true),
         ];
-        let moduleTable: ModuleTable<ModuleVO> = new ModuleTable<ModuleVO>(null, ModuleVO.API_TYPE_ID, fields);
-        moduleTable.set_bdd_ref('admin', 'modules', new DefaultTranslation({ 'fr': 'Modules' }));
+        let moduleTable: ModuleTable<ModuleVO> = new ModuleTable<ModuleVO>(null, ModuleVO.API_TYPE_ID, fields, new DefaultTranslation({ 'fr': 'Modules' }));
+        moduleTable.set_bdd_ref('admin', 'modules');
     }
 
     public registerModule(role: string, module: IModuleBase) {
@@ -50,8 +50,12 @@ export default class ModulesManager {
         // Et il faut register une moduleTable pour les parametres du module si on est sur un SharedModule
         if (role == Module.SharedModuleRoleName) {
             if ((module as Module).fields) {
-                let moduleParamsTable: ModuleTable<IDistantVOBase> = new ModuleTable<IDistantVOBase>(null, ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name, (module as Module).fields);
-                moduleParamsTable.set_bdd_ref('admin', ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name, new DefaultTranslation({ 'fr': module.name }));
+                let moduleParamsTable: ModuleTable<IDistantVOBase> = new ModuleTable<IDistantVOBase>(
+                    null,
+                    ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name,
+                    (module as Module).fields,
+                    new DefaultTranslation({ 'fr': module.name }));
+                moduleParamsTable.set_bdd_ref('admin', ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name);
             }
         }
     }

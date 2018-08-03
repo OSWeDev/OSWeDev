@@ -1,3 +1,5 @@
+import DefaultTranslationManager from '../DefaultTranslationManager';
+
 export default class DefaultTranslation {
 
     public static DEFAULT_LANG_DEFAULT_TRANSLATION: string = "fr";

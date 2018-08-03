@@ -68,6 +68,8 @@ export default class ModuleDBService {
             for (let i = 0; i < module.fields.length; i++) {
                 let field = module.fields[i];
 
+                field.setLabelCodeText(module.name);
+
                 pgSQL += ', ' + field.getPGSqlFieldDescription();
             }
             pgSQL += ', CONSTRAINT module_' + module.name + '_pkey PRIMARY KEY (id)';

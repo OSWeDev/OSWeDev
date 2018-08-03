@@ -5,6 +5,7 @@ import { default as ModuleDBField, default as ModuleTableField } from './ModuleT
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
 import ConversionHandler from '../tools/ConversionHandler';
+import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -46,27 +47,35 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public forceNumeric: (e: T) => T = null;
     public forceNumerics: (es: T[]) => T[] = null;
 
-    constructor(tmp_module: Module, tmp_vo_type: string, tmp_fields: Array<ModuleDBField<any>> = []) {
+    constructor(
+        tmp_module: Module,
+        tmp_vo_type: string,
+        tmp_fields: Array<ModuleDBField<any>>,
+        label: string | DefaultTranslation = null
+    ) {
 
         this.forceNumeric = this.defaultforceNumeric;
         this.forceNumerics = this.defaultforceNumerics;
 
-        // Delete property.
-        // if (delete this["module"]) {
-
-        //     // Create new property with getter and setter
-        //     Object.defineProperty(this, "module", {
-        //         writable: true,
-        //         enumerable: false,
-        //         configurable: true
-        //     });
-        // }
+        if (!label) {
+            label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.name });
+        }
+        if (typeof label === "string") {
+            label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: label });
+        } else {
+            if ((!label.default_translations) || (!label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
+                label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] = this.name;
+            }
+        }
+        this.label = label;
 
         this.vo_type = tmp_vo_type;
         this.module = tmp_module;
         this.fields = tmp_fields;
 
-        this.set_bdd_ref("ref", this.module ? this.module.name : null, null, this.vo_type, "module");
+        if (this.module && this.module.name) {
+            this.set_bdd_ref("ref", this.module.name, this.vo_type, "module");
+        }
 
         this.nga_view_order_by = "ORDER BY v.id DESC";
         this.nga_join = "";
@@ -98,7 +107,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public set_bdd_ref(
         database_name: string,
         table_name: string,
-        label: string | DefaultTranslation = null,
         table_name_suffix: string = "",
         table_name_prefix: string = "") {
         if ((!database_name) || (!table_name)) {
@@ -123,18 +131,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
             this.fields[i].setTargetDatatable(this);
         }
 
-        if (!label) {
-            label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.name });
-        }
-        if (typeof label === "string") {
-            label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: label });
-        } else {
-            if ((!label.default_translations) || (!label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION])) {
-                label.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] = this.name;
-            }
-        }
-        this.label = label;
         this.label.code_text = "fields.labels." + this.full_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(this.label);
     }
 
     private defaultforceNumeric(e: T): T {

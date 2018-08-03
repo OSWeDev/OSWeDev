@@ -4,6 +4,7 @@ import ModuleTable from './ModuleTable';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import TranslatableTextVO from './Translation/vos/TranslatableTextVO';
 import ModuleDAO from './DAO/ModuleDAO';
+import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 
 export default class ModuleTableField<T> {
 
@@ -67,7 +68,20 @@ export default class ModuleTableField<T> {
     public setTargetDatatable(module_table: ModuleTable<any>) {
         this.module_table = module_table;
 
-        this.field_label.code_text = "fields.labels." + this.module_table.full_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        this.setLabelCodeText();
+    }
+
+    public setLabelCodeText(module_name: string = null) {
+        if (this.module_table) {
+            this.field_label.code_text = "fields.labels." + this.module_table.full_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        } else {
+            if (!module_name) {
+                return;
+            }
+            this.field_label.code_text = "fields.labels." + module_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        }
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(this.field_label);
     }
 
     public getPGSqlFieldDescription() {
