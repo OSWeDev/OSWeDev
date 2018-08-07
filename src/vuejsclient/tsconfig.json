@@ -1,0 +1,41 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "sourceMap": true,
+        "module": "commonjs",
+        "importHelpers": true,
+        "allowJs": true,
+        "outDir": "../../dist/client",
+        "lib": [
+            "es5",
+            "es6",
+            "dom"
+        ],
+        "moduleResolution": "node",
+        "types": [
+            "node"
+        ],
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
+        // "target": "es5",
+        // "sourceMap": true,
+        // "strict": false,
+        // "module": "commonjs",
+        // "importHelpers": true,
+        // "outDir": "../../dist/client",
+        // "lib": [
+        //     "es2015",
+        //     "dom"
+        // ],
+        // "moduleResolution": "node",
+        // "emitDecoratorMetadata": true,
+        // "experimentalDecorators": true
+    },
+    "files": [
+        "./ClientApp.ts"
+    ],
+    "exclude": [
+        "../../src/client/public/bower",
+        "../../node_modules"
+    ]
+}

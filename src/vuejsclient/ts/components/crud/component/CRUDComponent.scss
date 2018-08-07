@@ -1,0 +1,17 @@
+.crud-wrapper {
+
+    .select2-container .select2-selection--single {
+        height: inherit;
+        min-height: calc(1em + 20px);
+    }
+
+    .select2-container {
+        display: block;
+    }
+
+    @media (min-width: 820px) {
+        .modal-dialog {
+            max-width: 800px;
+        }
+    }
+}

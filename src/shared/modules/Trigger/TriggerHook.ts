@@ -12,7 +12,7 @@ export default abstract class TriggerHook<Conditions, Params, Out>{
         let conditionUID: string = conditions ? this.getConditionUID_from_Conditions(conditions) : TriggerHook.NO_CONDITION_UID;
 
         if (!this.registered_handlers[conditionUID]) {
-            this.registered_handlers[conditionUID] = [] as [(params: Params) => Promise<Out>];
+            this.registered_handlers[conditionUID] = [] as any;
         }
 
         this.registered_handlers[conditionUID].push(handler);

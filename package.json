@@ -7,7 +7,7 @@
         "test-jenkins": "mocha -R xunit > test-reports.xml",
         "clean": "rimraf dist",
         "build": "npm run-script clean && tsc --project ./",
-        "watch": "npm run-script clean && tsc -pproject -w ./",
+        "watch": "npm run-script clean && tsc -w --project ./",
         "version": "echo $npm_package_version"
     },
     "nyc": {
@@ -54,12 +54,26 @@
         "express-locale": "1.0.5",
         "tslib": "1.9.2",
         "express-session": "1.15.6",
+        "screenfull": "^3.3.2",
         "session-file-store": "1.2.0",
         "jsonwebtoken": "5.7.0",
         "winston": "2.4.1",
         "winston-daily-rotate-file": "1.7.2",
         "xlsx": "0.12.2",
-        "vue-i18n": "7.4.0"
+        "v-tooltip": "2.0.0-rc.33",
+        "vue": "2.5.16",
+        "vue-property-decorator": "7.0.0",
+        "vue-resource": "1.2.0",
+        "vue-router": "3.0.1",
+        "vue-select": "2.4.0",
+        "vue-tables-2": "1.4.0",
+        "vue-multiselect": "^2.1.0",
+        "vue-snotify": "3.2.0",
+        "vue-i18n": "7.4.0",
+        "vuex": "3.0.1",
+        "vuex-class": "0.3.0",
+        "vuex-typescript": "3.0.2",
+        "rimraf": "2.6.2"
     },
     "devDependencies": {},
     "_dependencies": {
