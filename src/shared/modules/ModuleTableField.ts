@@ -21,6 +21,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_daterange: string = 'daterange';
     public static FIELD_TYPE_tsrange: string = 'tsrange';
     public static FIELD_TYPE_timestamp: string = 'timestamp';
+    public static FIELD_TYPE_day: string = 'day';
 
     public field_value: T;
     public field_loaded: boolean;
@@ -130,6 +131,9 @@ export default class ModuleTableField<T> {
             return "bool";
         }
         if (this.field_type == ModuleTableField.FIELD_TYPE_date) {
+            return "date";
+        }
+        if (this.field_type == ModuleTableField.FIELD_TYPE_day) {
             return "date";
         }
         if (this.field_type == ModuleTableField.FIELD_TYPE_timestamp) {

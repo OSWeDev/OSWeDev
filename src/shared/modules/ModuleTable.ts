@@ -1,11 +1,13 @@
 import EnumerableProperty from '../tools/annotations/EnumerableProperty';
 import IDistantVOBase from './IDistantVOBase';
 import Module from './Module';
+import * as moment from 'moment';
 import { default as ModuleDBField, default as ModuleTableField } from './ModuleTableField';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
 import ConversionHandler from '../tools/ConversionHandler';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
+import DateHandler from '../tools/DateHandler';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -156,6 +158,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 (field.field_type == ModuleTableField.FIELD_TYPE_int) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_prct)) {
                 e[field.field_id] = ConversionHandler.getInstance().forceNumber(e[field.field_id]);
+            }
+
+            if (field.field_type == ModuleTableField.FIELD_TYPE_day) {
+                e[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(e[field.field_id]));
             }
         }
 
