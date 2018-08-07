@@ -45,13 +45,11 @@ export default abstract class ServerBase {
     private connectionString: string;
     private jwtSecret: string;
     private modulesService: ModuleServiceBase;
-    private ALL_LOCALES;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
-    protected constructor(modulesService: ModuleServiceBase, ALL_LOCALES, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+    protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
         ServerBase.instance = this;
         this.modulesService = modulesService;
-        this.ALL_LOCALES = ALL_LOCALES;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ModulesManager.getInstance().isServerSide = true;
     }
@@ -207,7 +205,7 @@ export default abstract class ServerBase {
         //     next();
         // });
 
-        let i18nextInit = I18nextInit.getInstance(this.ALL_LOCALES);
+        let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
         this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
             ignoreRoutes: ["/public"]
         }));

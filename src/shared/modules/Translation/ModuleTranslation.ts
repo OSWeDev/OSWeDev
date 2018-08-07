@@ -77,14 +77,14 @@ export default class ModuleTranslation extends Module {
             NumberParamVO.translateToURL,
             NumberParamVO.translateFromREQ
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, any>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, { [code_lang: string]: { [code_text: string]: string } }>(
             ModuleTranslation.APINAME_getALL_LOCALES,
             [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, TranslationVO.API_TYPE_ID]
         ));
     }
 
-    public async getALL_LOCALES(): Promise<any> {
-        return await ModuleAPI.getInstance().handleAPI<void, any>(ModuleTranslation.APINAME_getALL_LOCALES);
+    public async getALL_LOCALES(): Promise<{ [code_lang: string]: { [code_text: string]: string } }> {
+        return await ModuleAPI.getInstance().handleAPI<void, { [code_lang: string]: { [code_text: string]: string } }>(ModuleTranslation.APINAME_getALL_LOCALES);
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {

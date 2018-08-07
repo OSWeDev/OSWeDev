@@ -87,11 +87,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }
     }
 
-    private async getALL_LOCALES(): Promise<any> {
+    private async getALL_LOCALES(): Promise<{ [code_lang: string]: { [code_text: string]: string } }> {
         let langs: LangVO[] = await this.getLangs();
         let translatableTexts: TranslatableTextVO[] = await this.getTranslatableTexts();
         let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
-        let res: any = {};
+        let res: { [code_lang: string]: { [code_text: string]: string } } = {};
 
         for (let i in langs) {
             let lang: LangVO = langs[i];
