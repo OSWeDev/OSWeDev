@@ -1,5 +1,6 @@
 import ModuleTable from '../../shared/modules/ModuleTable';
 import DefaultTranslationsServerManager from './Translation/DefaultTranslationsServerManager';
+import ConfigurationService from '../env/ConfigurationService';
 
 export default class ModuleTableDBService {
 
@@ -61,10 +62,7 @@ export default class ModuleTableDBService {
             }
             pgSQL += ');';
 
-            // console.log("DataTable pour le module " + moduleTable.module.name + " : " + pgSQL);
             await this.db.none(pgSQL);
-            // await this.db.none('GRANT ALL ON TABLE ' + moduleTable.full_name + ' TO rocher;');
-            await this.db.none('GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE ' + moduleTable.full_name + ' TO app_users;');
             await this.create_datatable_view_for_nga(moduleTable);
         } else {
             this.datatable_install_end(moduleTable);
@@ -73,8 +71,6 @@ export default class ModuleTableDBService {
 
     // ETAPE 2 de l'installation
     private async create_datatable_view_for_nga(moduleTable: ModuleTable<any>) {
-        // console.log(moduleTable.full_name + " - install - ETAPE 2");
-
 
         // On crée ensuite la vue pour NGA
         let request = 'CREATE OR REPLACE VIEW ' + moduleTable.admin_view_full_name + ' AS SELECT v.id';
@@ -107,26 +103,6 @@ export default class ModuleTableDBService {
 
         // console.log('Création de la vue NGA pour la table ' + moduleTable.full_name);
         await this.db.query(request);
-
-        // console.log('Droits de la vue NGA pour ' + moduleTable.full_name + ' 1/3');
-        // await this.db.query('ALTER TABLE ' + moduleTable.admin_view_full_name + ' OWNER TO rocher;');
-
-        // console.log('Droits de la vue NGA pour ' + moduleTable.full_name + ' 2/3');
-        // await this.db.query('GRANT ALL ON TABLE ' + moduleTable.admin_view_full_name + ' TO rocher;');
-
-        try {
-            // console.log('Droits de la vue NGA pour ' + moduleTable.full_name + ' 3/3-');
-            await this.db.query('GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE ' + moduleTable.admin_view_full_name + ' TO app_users;');
-        } catch (error) {
-            console.log(error);
-        }
-
-        // console.log('Droits sur la séquence _id_seq ' + moduleTable.full_name + ' 1/2 ');
-        //await this.db.none('GRANT ALL ON SEQUENCE ' + moduleTable.full_name + '_id_seq TO rocher;');
-
-        // console.log('Droits sur la séquence _id_seq ' + moduleTable.full_name + ' 2/2 ');
-        await this.db.none('GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE ' + moduleTable.database + "." +
-            this.get_limited_seq_label(moduleTable.name) + ' TO app_users;');
 
         let simplefieldlist = '';
         let newfieldlist = '';
@@ -185,7 +161,6 @@ export default class ModuleTableDBService {
             'COST 100;';
 
         await this.db.query(query);
-        // await this.db.query('ALTER FUNCTION ' + moduleTable.admin_trigger_full_name + '() OWNER TO rocher;\n');
 
         await this.db.query('DROP TRIGGER IF EXISTS ' + moduleTable.admin_trigger_name + ' on ' + moduleTable.admin_view_full_name + ';');
         await this.db.query('CREATE TRIGGER ' + moduleTable.admin_trigger_name +

@@ -36,7 +36,6 @@ export default abstract class ServerBase {
     protected static instance: ServerBase = null;
 
     protected db: IDatabase<any>;
-    protected run_postgrest_apis: boolean = false;
     protected spawn;
     protected app;
     protected port;
@@ -284,55 +283,17 @@ export default abstract class ServerBase {
             const publicPrefix = "/public/";
             const isPublic = req.path.substring(0, publicPrefix.length) == publicPrefix;
             if (req.method == "OPTIONS" || req.path == "/login" || req.path == "/recover" || req.path == "/cron" || req.path == "/reset" || req.path == "/logout" || isPublic || session.user) {
-                // console.log('next()', isPublic, req.path, req.url);
                 next();
             } else {
                 if (req.path.indexOf("/api") == 0) {
                     return res.sendStatus(401);
                 } else {
-                    // console.log('req.path', isPublic, req.path, req.url);
                     res.redirect('/login?url=' + encodeURIComponent(req.originalUrl));
                 }
             }
         });
 
-        // admin
-        // FIXME:JNE:MODIF:FLK test sans le proxy dans nodejs mais dans IIS directement
-        let proxy = proxyMiddleware('/admin/api/**', {
-            target: 'http://localhost:' + ServerBase.getInstance().envParam.ADMIN_PROXY_PORT, // target host
-            pathRewrite: {
-                '^/admin/api/': '/' // rewrite paths
-            },
-            onProxyReq: (proxyReq, req, res, options) => {
-                const session = req.session;
-                proxyReq.setHeader('Authorization', 'Bearer ' + session.jwtToken);
-            },
-        });
-
-        this.app.use(proxy);
-        proxy = proxyMiddleware('/ref/api/**', {
-            target: 'http://localhost:' + ServerBase.getInstance().envParam.REF_PROXY_PORT, // target host
-            pathRewrite: {
-                '^/ref/api/': '/' // rewrite paths
-            },
-            onProxyReq: (proxyReq, req, res, options) => {
-                const session = req.session;
-                proxyReq.setHeader('Authorization', 'Bearer ' + session.jwtToken);
-            },
-        });
-
-        this.app.use(proxy);
-
         this.app.use('/admin/js', express.static('src/admin/public/js'));
-
-        // // La position semble très importante pour ce bodyParser
-        // this.app.use(bodyParser.urlencoded({
-        //     limit: '150mb',
-        //     extended: true
-        // }));
-        // this.app.use(bodyParser.json({
-        //     limit: '150mb'
-        // }));
 
         this.app.use(express.json({ limit: '150mb' }));
         this.app.use(express.urlencoded({ extended: true, limit: '150mb' }));
@@ -517,7 +478,6 @@ export default abstract class ServerBase {
                     data_node_env: process.env.NODE_ENV,
                     data_user: user_infos,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
-                    data_base_api_url: "/admin/api/",
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
                     data_is_dev: ServerBase.getInstance().envParam.ISDEV
                 }
@@ -563,15 +523,6 @@ export default abstract class ServerBase {
             .then(async () => {
                 console.log('connection to db successful');
 
-                // On lance un deuxième postgres, sur le schéma ref et pour le front
-                if (ServerBase.getInstance().run_postgrest_apis) {
-                    await ServerBase.getInstance().runPostgrestAPI('admin', ServerBase.getInstance().envParam.ADMIN_PROXY_PORT);
-                    console.log('PostgrestAPI Admin OK');
-
-                    await ServerBase.getInstance().runPostgrestAPI('ref', ServerBase.getInstance().envParam.REF_PROXY_PORT);
-                    console.log('PostgrestAPI Ref OK');
-                }
-
                 ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
                 await ServerBase.getInstance().hook_on_ready();
                 console.log('Server ready to go !');
@@ -584,73 +535,6 @@ export default abstract class ServerBase {
     }
 
     protected async hook_on_ready() { }
-
-    protected runPostgrestAPI(schema, port) {
-        return new Promise((resolve, reject) => {
-            const version = '0.4.2.0'; // JNE modif version'0.3.2.0';
-            const executable = path.join('.', 'admin', 'postgrest', version, 'postgrest');
-            const args = [ServerBase.getInstance().connectionString, '-a', 'rocher', '--schema', schema, '--jwt-secret', ServerBase.getInstance().jwtSecret, '-p', port];
-
-            let postgrest;
-            if (version == '0.4.2.0') {
-                // Changement de la gestion des paramètres, on doit passer par un fichier de conf
-                const postgrestconf = path.join('.', 'admin', 'postgrest', version, 'postgrest.' + schema + '.conf');
-
-                fs.writeFile(postgrestconf,
-                    'db-uri       = "' + ServerBase.getInstance().connectionString + '"\n' +
-                    'db-schema    = "' + schema + '"\n' +
-                    'jwt-secret   = "' + ServerBase.getInstance().jwtSecret + '"\n' +
-                    'server-port  = "' + port + '"\n' +
-                    'db-anon-role  = "rocher"\n'
-                    //# send logs where the collector can access them
-                    //# log every kind of SQL statement
-                    // 'log_statement = "all"\n' +
-                    // 'log_destination = "stderr"\n'
-                    ,
-                    (err) => {
-                        if (err) {
-                            reject(err);
-                            // return console.log('postgrest.conf : ' + err);
-                        }
-
-                        // console.log('postgrest.conf saved!');
-                        postgrest = ServerBase.getInstance().spawn(executable, [postgrestconf]);
-
-                        postgrest.stdout.on('data', (data) => {
-                            // console.log('postgrest ' + schema + ' stdout: ' + data);
-                        });
-
-                        postgrest.stderr.on('data', (data) => {
-                            console.log('postgrest ' + schema + ' stderr: ' + data);
-                        });
-
-                        postgrest.on('close', (code) => {
-                            // console.log('child process exited with code :' + schema + ':' + code);
-                        });
-
-                        resolve();
-                    });
-
-            } else {
-                postgrest = ServerBase.getInstance().spawn(executable, args);
-
-                postgrest.stdout.on('data', (data) => {
-                    console.log('postgrest ' + schema + ' stdout: ' + data);
-                });
-
-                postgrest.stderr.on('data', (data) => {
-                    console.log('postgrest ' + schema + ' stderr: ' + data);
-                });
-
-                postgrest.on('close', (code) => {
-                    // console.log('child process exited with code :' + schema + ':' + code);
-                });
-
-                resolve();
-            }
-
-        });
-    }
 
     protected handleError(promise, res) {
         promise.catch((err) => {

@@ -26,6 +26,7 @@ import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/Mo
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
+import ConfigurationService from '../env/ConfigurationService';
 
 export default abstract class ModuleServiceBase {
 
@@ -43,9 +44,11 @@ export default abstract class ModuleServiceBase {
     protected registered_child_modules: Module[] = [];
     protected server_child_modules: ModuleServerBase[] = [];
     public db: IDatabase<any>;
+    private bdd_owner: string;
 
     protected constructor() {
         ModuleServiceBase.instance = this;
+        this.bdd_owner = ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER;
     }
 
     get sharedModules(): Module[] {
@@ -133,13 +136,8 @@ export default abstract class ModuleServiceBase {
     }
     private async create_modules_base_structure_in_db() {
         // On vérifie que la table des modules est disponible, sinon on la crée
-        await this.db.none(
-            "CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));"
-        );
-        await this.db.none("GRANT ALL ON TABLE admin.modules TO rocher;");
-        await this.db.none(
-            "GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE admin.modules TO app_users;"
-        );
+        await this.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
+        await this.db.none('GRANT ALL ON TABLE admin.modules TO ' + this.bdd_owner + ';');
 
         // On crée ensuite la vue pour NGA
         // console.log('Création de la vue NGA pour modules');
@@ -147,16 +145,9 @@ export default abstract class ModuleServiceBase {
             "CREATE OR REPLACE VIEW admin.view_modules AS \n SELECT v.id, v.name, v.actif FROM admin.modules v;"
         );
 
-        // console.log('Droits de la vue NGA pour modules 1/3');
-        await this.db.query("ALTER TABLE admin.view_modules OWNER TO rocher;");
+        await this.db.query('ALTER TABLE admin.view_modules OWNER TO ' + this.bdd_owner + ';');
 
-        // console.log('Droits de la vue NGA pour modules 2/3');
-        await this.db.query("GRANT ALL ON TABLE admin.view_modules TO rocher;");
-
-        // console.log('Droits de la vue NGA pour modules 3/3');
-        await this.db.query(
-            "GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE admin.view_modules TO app_users;"
-        );
+        await this.db.query('GRANT ALL ON TABLE admin.view_modules TO ' + this.bdd_owner + ';');
 
         let query =
             "CREATE OR REPLACE FUNCTION admin.trigger_modules() RETURNS trigger AS \n" +
@@ -194,9 +185,7 @@ export default abstract class ModuleServiceBase {
             "COST 100;";
 
         await this.db.query(query);
-        await this.db.query(
-            "ALTER FUNCTION admin.trigger_modules() OWNER TO rocher;\n"
-        );
+        await this.db.query('ALTER FUNCTION admin.trigger_modules() OWNER TO ' + this.bdd_owner + ';\n');
 
         await this.db.query('DROP TRIGGER IF EXISTS trigger_modules ON admin.view_modules;');
         await this.db.query(

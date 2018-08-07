@@ -3,6 +3,7 @@ import ModuleDBTable from '../../shared/modules/ModuleTable';
 import ModuleParamChange from '../../shared/modules/ModuleParamChange';
 import Module from '../../shared/modules/Module';
 import ModuleTableDBService from './ModuleTableDBService';
+import ConfigurationService from '../env/ConfigurationService';
 
 export default class ModuleDBService {
 
@@ -18,9 +19,11 @@ export default class ModuleDBService {
     public hook_after_registered_all_modules: (modules: Module[]) => {};
 
     private registered_modules: Module[] = [];
+    private bdd_owner: string;
 
     private constructor(private db) {
         ModuleDBService.instance = this;
+        this.bdd_owner = ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER;
     }
 
     // Dernière étape : Configure
@@ -75,34 +78,25 @@ export default class ModuleDBService {
             pgSQL += ', CONSTRAINT module_' + module.name + '_pkey PRIMARY KEY (id)';
             pgSQL += ');';
 
-            // console.log(module.name + " - install - ETAPE 1.1");
             await this.db.none(pgSQL);
 
-            // console.log(module.name + " - install - ETAPE 1.15");
-            await this.db.none('GRANT ALL ON TABLE admin.module_' + module.name + ' TO rocher;');
-
-            // console.log(module.name + " - install - ETAPE 1.2");
-            await this.db.none('GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE admin.module_' + module.name + ' TO app_users;');
+            await this.db.none('GRANT ALL ON TABLE admin.module_' + module.name + ' TO ' + this.bdd_owner + ';');
 
             // Ajouter une ligne avec les valeurs par défaut (donc un simple insert puisque normalement on a déjà pris en compte les valeurs par défaut avant)
             //  Si la ligne existe pas encore, sinon on charge les fields.
             let rows = await this.db.query('select * from admin.module_' + module.name + ';');
 
-            // console.log(module.name + " - install - ETAPE 1.3");
             if ((!rows) || (!rows[0])) {
                 // La ligne n'existe pas encore, on la crée
                 first_install = true;
                 await this.db.query('INSERT INTO admin.module_' + module.name + ' DEFAULT VALUES;');
 
-                // console.log(module.name + " - install - ETAPE 1.3a");
                 await this.loadParams(module);
 
-                // console.log("Ajout des params du module en base (valeurs par défaut)");
                 await this.create_params_view_for_nga(module);
                 return true;
             }
 
-            // console.log(module.name + " - install - ETAPE 1.3b");
             await this.readParams(module, rows[0]);
             await this.create_params_view_for_nga(module);
         } else {
@@ -112,7 +106,6 @@ export default class ModuleDBService {
 
     // ETAPE 2 de l'installation
     private async create_params_view_for_nga(module: Module) {
-        // console.log(module.name + " - install - ETAPE 2");
 
         // On crée ensuite la vue pour NGA
         let request = 'CREATE OR REPLACE VIEW admin.view_module_' + module.name + ' AS SELECT v.id';
@@ -123,21 +116,11 @@ export default class ModuleDBService {
         }
         request += ' FROM admin.module_' + module.name + ' v;';
 
-        // console.log('Création de la vue NGA pour module_' + module.name);
         await this.db.query(request);
 
-        // console.log('Droits de la vue NGA pour module_' + module.name + ' 1/3-');
-        await this.db.query('ALTER TABLE admin.view_module_' + module.name + ' OWNER TO rocher;');
+        await this.db.query('ALTER TABLE admin.view_module_' + module.name + ' OWNER TO ' + this.bdd_owner + ';');
 
-        // console.log('Droits de la vue NGA pour module_' + module.name + ' 2/3-');
-        await this.db.query('GRANT ALL ON TABLE admin.view_module_' + module.name + ' TO rocher;');
-
-        // console.log('Droits de la vue NGA pour module_' + module.name + ' 3/3-');
-        try {
-
-            await this.db.query('GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE admin.view_module_' + module.name + ' TO app_users;');
-        } catch (error) { console.log(error); }
-
+        await this.db.query('GRANT ALL ON TABLE admin.view_module_' + module.name + ' TO ' + this.bdd_owner + ';');
 
         let simplefieldlist = '';
         let newfieldlist = '';
@@ -196,7 +179,7 @@ export default class ModuleDBService {
         }
 
         try {
-            await this.db.query('ALTER FUNCTION admin.trigger_module_' + module.name + '() OWNER TO rocher;\n');
+            await this.db.query('ALTER FUNCTION admin.trigger_module_' + module.name + '() OWNER TO ' + this.bdd_owner + ';\n');
         } catch (error) {
             console.log(error);
         }
