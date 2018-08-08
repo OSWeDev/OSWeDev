@@ -11,6 +11,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_boolean: string = 'boolean';
     public static FIELD_TYPE_string: string = 'text';
     public static FIELD_TYPE_int: string = 'number';
+    public static FIELD_TYPE_geopoint: string = 'point';
     public static FIELD_TYPE_float: string = 'float';
     public static FIELD_TYPE_foreign_key: string = 'fkey';
     public static FIELD_TYPE_int_array: string = 'number[]';
@@ -135,6 +136,9 @@ export default class ModuleTableField<T> {
         }
         if (this.field_type == ModuleTableField.FIELD_TYPE_day) {
             return "date";
+        }
+        if (this.field_type == ModuleTableField.FIELD_TYPE_geopoint) {
+            return "point";
         }
         if (this.field_type == ModuleTableField.FIELD_TYPE_timestamp) {
             return "timestamp";
