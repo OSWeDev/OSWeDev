@@ -1,0 +1,8 @@
+.action-form
+    .actions(v-if='!importing')
+        a.btn.btn-default(@click="send()") Upload
+        a.btn.btn-default(@click="refreshlogs()") Refresh Logs
+            i.fa.fa-refresh.hidden-print(aria-hidden="true")
+
+    .actions(v-else)
+        i.fa.fa-spinner.fa-spin.hidden-print(aria-hidden="true")

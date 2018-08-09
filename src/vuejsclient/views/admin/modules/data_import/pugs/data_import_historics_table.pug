@@ -1,0 +1,13 @@
+table.import_historics.grid.table.table-condensed.table-hover.table-striped
+    thead
+        tr
+            th {{ t('admin.import.historics_table.start_date_th') }}
+            th {{ t('admin.import.historics_table.update_date_th') }}
+            th {{ t('admin.import.historics_table.end_date_th') }}
+            th {{ t('admin.import.historics_table.status_th') }}
+    tbody
+        tr(v-for="historic in import_historics", class="import_historic {{ historic.state }}")
+            td {{ humanize_duration_to(historic.start_date) }}
+            td {{ humanize_duration_to(historic.last_up_date) }}
+            td {{ historic.end_date ? humanize_duration_to(historic.end_date) : "" }}
+            td {{ historic.state }}

@@ -1,0 +1,15 @@
+.data-renderer
+    +loading()
+        .row
+            .col-lg-12
+                ma-view-actions
+                    ma-back-button
+                .page-header
+                    h1 Compiler les données ({{ renderer_name }})
+        .row
+            .col-lg-3
+                input.form-control(type="date", size="10", v-model="segment_start_date", placeholder="Date de début (INCLUSE)")
+            .col-lg-3
+                input.form-control(type="date", size="10", v-model="segment_end_date", placeholder="Date de fin (INCLUSE)")
+            .col-lg-2
+                a.btn.btn-default(@click="send()") (re)Générer
