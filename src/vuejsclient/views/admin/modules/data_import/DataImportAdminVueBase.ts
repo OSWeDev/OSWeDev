@@ -13,7 +13,7 @@ import * as $ from 'jquery';
 
 
 @Component({
-    template: require('./DataImportAdminVueBase.pug'),
+    template: require('oswedev/src/vuejsclient/views/admin/modules/data_render/DataImportAdminVueBase.pug'),
     components: {}
 })
 export default class DataImportAdminVueBase extends VueComponentBase {

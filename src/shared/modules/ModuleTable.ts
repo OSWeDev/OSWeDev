@@ -16,7 +16,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return ModuleTable.UID++;
     }
 
-    public name: string;
+    public table_name: string;
     public full_name: string;
     public uid: string;
 
@@ -59,6 +59,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.forceNumeric = this.defaultforceNumeric;
         this.forceNumerics = this.defaultforceNumerics;
 
+        this.vo_type = tmp_vo_type;
+        this.module = tmp_module;
+
+        if (this.module && this.module.name) {
+            this.set_bdd_suffix_prefix_table_name(this.module.name, this.vo_type, "module");
+        }
+
         if (!label) {
             label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.name });
         }
@@ -71,8 +78,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
         this.label = label;
 
-        this.vo_type = tmp_vo_type;
-        this.module = tmp_module;
         this.fields = tmp_fields;
 
         if (this.module && this.module.name) {
@@ -106,6 +111,19 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return null;
     }
 
+    get name(): string {
+        return (this.prefix ? this.prefix + "_" : "") + this.table_name + ((this.suffix != "") ? "_" + this.suffix : "");
+    }
+
+    public set_bdd_suffix_prefix_table_name(
+        table_name: string,
+        table_name_suffix: string = "",
+        table_name_prefix: string = "") {
+        this.table_name = table_name;
+        this.suffix = table_name_suffix;
+        this.prefix = table_name_prefix;
+    }
+
     public set_bdd_ref(
         database_name: string,
         table_name: string,
@@ -115,11 +133,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
             return;
         }
 
-        this.suffix = table_name_suffix;
-        this.prefix = table_name_prefix;
+        this.set_bdd_suffix_prefix_table_name(table_name, table_name_suffix, table_name_prefix);
         this.database = database_name;
 
-        this.name = (this.prefix ? this.prefix + "_" : "") + table_name + ((this.suffix != "") ? "_" + this.suffix : "");
         this.full_name = this.database + '.' + this.name;
         this.uid = this.database + '_' + this.name;
 

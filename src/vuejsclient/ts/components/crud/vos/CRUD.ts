@@ -12,15 +12,11 @@ export default class CRUD<T extends IDistantVOBase> {
     /**
      * Fonction pour créer un datatable à iso du moduletable sans plus de paramétrage
      */
+    public static getNewCRUD<T extends IDistantVOBase>(API_TYPE_ID: string): CRUD<T> {
 
-    public static getNewCRUD_from_API_TYPE_ID<T extends IDistantVOBase>(API_TYPE_ID: string): CRUD<T> {
-        return CRUD.getNewCRUD_from_moduleTable(VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID]);
-    }
-
-    public static getNewCRUD_from_moduleTable<T extends IDistantVOBase>(moduleTable: ModuleTable<T>): CRUD<T> {
-
-        let readDatatable: Datatable<T> = new Datatable(moduleTable);
+        let readDatatable: Datatable<T> = new Datatable(API_TYPE_ID);
         let crud: CRUD<T> = new CRUD(readDatatable);
+        let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
         for (let i in moduleTable.fields) {
             let field: ModuleTableField<any> = moduleTable.fields[i];

@@ -51,6 +51,7 @@ export default abstract class ServerBase {
         ServerBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
+        ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
         ModulesManager.getInstance().isServerSide = true;
     }
 
@@ -58,7 +59,6 @@ export default abstract class ServerBase {
 
     public async initializeNodeServer() {
 
-        ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
         this.version = this.getVersion();
 

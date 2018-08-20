@@ -727,9 +727,9 @@ export default abstract class VueComponentBase extends Vue
             (async () => {
                 let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
                     IDistantVOBase
-                    >(datatable.moduleTable.vo_type);
+                    >(datatable.API_TYPE_ID);
                 self.storeDatas({
-                    API_TYPE_ID: datatable.moduleTable.vo_type,
+                    API_TYPE_ID: datatable.API_TYPE_ID,
                     vos: vos
                 });
             })()

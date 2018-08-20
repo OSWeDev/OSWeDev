@@ -6,7 +6,7 @@ import DatatableComponent from '../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../VueComponentBase';
 import CRUD from '../vos/CRUD';
 import select2 from '../../../directives/select2/select2';
-import "./CRUDComponent.scss";
+import "oswedev/src/vuejsclient/ts/components/crud/component/CRUDComponent.scss";
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import { create } from 'domain';
 import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
@@ -15,9 +15,10 @@ import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField
 import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
 import * as $ from 'jquery';
+import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 
 @Component({
-    template: require('./CRUDComponent.pug'),
+    template: require('oswedev/src/vuejsclient/ts/components/crud/component/CRUDComponent.pug'),
     components: {
         datatable: DatatableComponent
     },
@@ -90,7 +91,7 @@ export default class CRUDComponent extends VueComponentBase {
     private prepareNewVO() {
 
         let obj = {
-            _type: this.crud.readDatatable.moduleTable.vo_type,
+            _type: this.crud.readDatatable.API_TYPE_ID,
             id: null
         };
 
@@ -171,7 +172,10 @@ export default class CRUDComponent extends VueComponentBase {
             return null;
         }
 
-        return this.label('crud.read.title', { datatable_title: this.t(this.crud.readDatatable.moduleTable.label.code_text) });
+        return this.label('crud.read.title', {
+            datatable_title:
+                this.t(VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].label.code_text)
+        });
     }
 
     get selectedVO(): IDistantVOBase {
@@ -192,7 +196,7 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     private async createVO() {
-        if ((!this.newVO) || (this.newVO.id) || (this.newVO._type !== this.crud.readDatatable.moduleTable.vo_type)) {
+        if ((!this.newVO) || (this.newVO.id) || (this.newVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
             this.snotify.error(this.label('crud.create.errors.newvo_failure'));
             return;
         }
@@ -207,8 +211,8 @@ export default class CRUDComponent extends VueComponentBase {
 
             res.id = parseInt(res.id.toString());
 
-            let createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.moduleTable.vo_type, res.id);
-            if ((!createdVO) || (createdVO.id !== res.id) || (createdVO._type !== this.crud.readDatatable.moduleTable.vo_type)) {
+            let createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, res.id);
+            if ((!createdVO) || (createdVO.id !== res.id) || (createdVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
                 this.snotify.error(this.label('crud.create.errors.create_failure'));
                 return;
             }

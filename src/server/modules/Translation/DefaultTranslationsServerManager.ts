@@ -5,6 +5,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class DefaultTranslationsServerManager {
 
@@ -18,6 +19,11 @@ export default class DefaultTranslationsServerManager {
     private constructor() { }
 
     public async saveDefaultTranslations() {
+
+        // Il faut utiliser la var d'en NODE_INSTALL = true pour lancer ce process (très long potentiellement)
+        if (!ConfigurationService.getInstance().nodeInstall) {
+            return;
+        }
 
         for (let i in DefaultTranslationManager.getInstance().registered_default_translations) {
             await this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]);

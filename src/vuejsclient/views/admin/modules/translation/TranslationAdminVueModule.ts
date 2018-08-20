@@ -58,7 +58,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
     }
 
     protected getTranslationCRUD(): CRUD<TranslationVO> {
-        let crud: CRUD<TranslationVO> = new CRUD<TranslationVO>(new Datatable<TranslationVO>(ModuleTranslation.getInstance().datatable_translation));
+        let crud: CRUD<TranslationVO> = new CRUD<TranslationVO>(new Datatable<TranslationVO>(TranslationVO.API_TYPE_ID));
 
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
             "lang_id",

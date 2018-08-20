@@ -76,7 +76,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     }
 
     protected getUserRolesCRUD(): CRUD<UserRolesVO> {
-        let crud: CRUD<UserRolesVO> = new CRUD<UserRolesVO>(new Datatable<UserRolesVO>(ModuleAccessPolicy.getInstance().userroles_datatable));
+        let crud: CRUD<UserRolesVO> = new CRUD<UserRolesVO>(new Datatable<UserRolesVO>(UserRolesVO.API_TYPE_ID));
 
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "role_id",
@@ -93,7 +93,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     }
 
     protected getRolePoliciesCRUD(): CRUD<RolePoliciesVO> {
-        let crud: CRUD<RolePoliciesVO> = new CRUD<RolePoliciesVO>(new Datatable<RolePoliciesVO>(ModuleAccessPolicy.getInstance().rolepolicies_datatable));
+        let crud: CRUD<RolePoliciesVO> = new CRUD<RolePoliciesVO>(new Datatable<RolePoliciesVO>(RolePoliciesVO.API_TYPE_ID));
 
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "role_id",
@@ -111,7 +111,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
     }
 
     protected getAccessPolicyCRUD(): CRUD<RoleVO> {
-        let crud: CRUD<AccessPolicyVO> = new CRUD<AccessPolicyVO>(new Datatable<AccessPolicyVO>(ModuleAccessPolicy.getInstance().accesspolicy_datatable));
+        let crud: CRUD<AccessPolicyVO> = new CRUD<AccessPolicyVO>(new Datatable<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID));
 
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "group_id",

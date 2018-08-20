@@ -43,7 +43,7 @@ export default class CRUDComponentManager {
         let route_name: string = 'Manage ' + API_TYPE_ID;
 
         if (!crud) {
-            crud = CRUD.getNewCRUD_from_API_TYPE_ID(API_TYPE_ID);
+            crud = CRUD.getNewCRUD(API_TYPE_ID);
         }
 
         routes.push({

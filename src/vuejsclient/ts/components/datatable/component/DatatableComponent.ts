@@ -13,7 +13,7 @@ import OneToManyReferenceDatatableField from '../vos/OneToManyReferenceDatatable
 import SimpleDatatableField from '../vos/SimpleDatatableField';
 
 @Component({
-    template: require('./DatatableComponent.pug'),
+    template: require('oswedev/src/vuejsclient/ts/components/datatable/component/DatatableComponent.pug'),
     components: {}
 })
 export default class DatatableComponent extends VueComponentBase {
@@ -125,7 +125,7 @@ export default class DatatableComponent extends VueComponentBase {
 
         // On commence par charger la liste des données concernées
         // Un getter du store qui renvoie les datas de base, version distant vo et on va chercher ensuite tous les fields utiles, et les refs
-        let baseDatas_byid: { [id: number]: IDistantVOBase } = this.getStoredDatas[this.datatable.moduleTable.vo_type]; //TODO chargement depuis le store
+        let baseDatas_byid: { [id: number]: IDistantVOBase } = this.getStoredDatas[this.datatable.API_TYPE_ID]; //TODO chargement depuis le store
         this.datatable_data = [];
 
         for (let j in baseDatas_byid) {
@@ -281,6 +281,6 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private selectVO(id: number) {
-        this.setSelectedVOs([this.getStoredDatas[this.datatable.moduleTable.vo_type][id]]);
+        this.setSelectedVOs([this.getStoredDatas[this.datatable.API_TYPE_ID][id]]);
     }
 }

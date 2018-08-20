@@ -44,11 +44,13 @@ export default abstract class ModuleServiceBase {
     protected registered_child_modules: Module[] = [];
     protected server_child_modules: ModuleServerBase[] = [];
     public db: IDatabase<any>;
-    private bdd_owner: string;
 
     protected constructor() {
         ModuleServiceBase.instance = this;
-        this.bdd_owner = ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER;
+    }
+
+    get bdd_owner(): string {
+        return ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER;;
     }
 
     get sharedModules(): Module[] {
