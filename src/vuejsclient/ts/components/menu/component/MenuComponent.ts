@@ -2,10 +2,10 @@ import { Component } from 'vue-property-decorator';
 import VueComponentBase from '../../VueComponentBase';
 import { ModuleMenuGetter } from '../store/MenuStore';
 import MenuElementBase from '../vos/MenuElementBase';
-import 'oswedev/src/vuejsclient/ts/components/menu/component/MenuComponent.scss';
+import '../../../../../../src/vuejsclient/ts/components/menu/component/MenuComponent.scss';
 
 @Component({
-    template: require('oswedev/src/vuejsclient/ts/components/menu/component/MenuComponent.pug'),
+    template: require('../../../../../../src/vuejsclient/ts/components/menu/component/MenuComponent.pug'),
     components: {}
 })
 export default class MenuComponent extends VueComponentBase {

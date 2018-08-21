@@ -664,8 +664,9 @@ export function FiltersHandler() {
     };
 }
 
-export default abstract class VueComponentBase extends Vue
+export default class VueComponentBase extends Vue
     implements IDeclareVueComponent {
+
     public $snotify: any;
 
     @ModuleDAOAction

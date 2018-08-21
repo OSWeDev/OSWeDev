@@ -9,7 +9,7 @@ import * as $ from 'jquery';
 
 
 @Component({
-    template: require('oswedev/src/vuejsclient/views/admin/modules/data_render/DataRendererAdminVueBase.pug'),
+    template: require('../../../../../../src/vuejsclient/views/admin/modules/data_render/DataRendererAdminVueBase.pug'),
     components: {}
 })
 export default class DataRendererAdminVueBase extends VueComponentBase {

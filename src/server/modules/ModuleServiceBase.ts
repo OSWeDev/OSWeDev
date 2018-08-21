@@ -50,7 +50,7 @@ export default abstract class ModuleServiceBase {
     }
 
     get bdd_owner(): string {
-        return ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER;;
+        return ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER;
     }
 
     get sharedModules(): Module[] {

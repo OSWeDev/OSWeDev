@@ -1,5 +1,5 @@
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import { RouteConfig } from '../../../../../node_modules/vue-router';
+import { RouteConfig } from 'vue-router';
 import CRUDComponent from '../../components/crud/component/CRUDComponent';
 import MenuBranch from '../../components/menu/vos/MenuBranch';
 import MenuElementBase from '../../components/menu/vos/MenuElementBase';

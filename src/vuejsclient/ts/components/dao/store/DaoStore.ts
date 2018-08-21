@@ -2,7 +2,7 @@ import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors, GetterHandler } from "vuex-typescript";
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import Vue from '../../../../../../node_modules/vue';
+import Vue from 'vue';
 import IStoreModule from '../../../../../vuejsclient/ts/store/IStoreModule';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 

@@ -13,7 +13,7 @@ import OneToManyReferenceDatatableField from '../vos/OneToManyReferenceDatatable
 import SimpleDatatableField from '../vos/SimpleDatatableField';
 
 @Component({
-    template: require('oswedev/src/vuejsclient/ts/components/datatable/component/DatatableComponent.pug'),
+    template: require('../../../../../../src/vuejsclient/ts/components/datatable/component/DatatableComponent.pug'),
     components: {}
 })
 export default class DatatableComponent extends VueComponentBase {

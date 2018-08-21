@@ -30,11 +30,7 @@ import ModulesAdminVueModule from './views/modules/ModulesAdminVueModule';
 
 export default abstract class VueAppBase {
 
-    public static getInstance(): VueAppBase {
-        return VueAppBase.instance_;
-    }
-
-    private static instance_: VueAppBase;
+    public static instance_: VueAppBase;
 
     public vueInstance: VueComponentBase;
     protected vueRouter: VueRouter;

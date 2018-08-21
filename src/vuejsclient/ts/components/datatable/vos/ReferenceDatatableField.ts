@@ -32,7 +32,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             return null;
         }
 
-        let vos = VueAppBase.getInstance().vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let data: Target = vos[this.targetModuleTable.vo_type][id];
         return this.dataToHumanReadable(data);
     }

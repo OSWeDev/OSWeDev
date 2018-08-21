@@ -6,7 +6,7 @@ import DatatableComponent from '../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../VueComponentBase';
 import CRUD from '../vos/CRUD';
 import select2 from '../../../directives/select2/select2';
-import "oswedev/src/vuejsclient/ts/components/crud/component/CRUDComponent.scss";
+import "../../../../../../src/vuejsclient/ts/components/crud/component/CRUDComponent.scss";
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import { create } from 'domain';
 import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
@@ -18,7 +18,7 @@ import * as $ from 'jquery';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 
 @Component({
-    template: require('oswedev/src/vuejsclient/ts/components/crud/component/CRUDComponent.pug'),
+    template: require('../../../../../../src/vuejsclient/ts/components/crud/component/CRUDComponent.pug'),
     components: {
         datatable: DatatableComponent
     },

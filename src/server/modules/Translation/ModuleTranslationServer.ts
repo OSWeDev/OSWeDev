@@ -60,16 +60,15 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [params.lang_id, params.text_id]);
     }
 
-    private async getALL_LOCALES(): Promise<{ [code_lang: string]: { [code_text: string]: string } }> {
+    private async getALL_LOCALES(): Promise<{ [code_lang: string]: any }> {
         let langs: LangVO[] = await this.getLangs();
         let translatableTexts: TranslatableTextVO[] = await this.getTranslatableTexts();
         let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
-        let res: { [code_lang: string]: { [code_text: string]: string } } = {};
+        let res: { [code_lang: string]: any } = {};
 
         for (let i in langs) {
             let lang: LangVO = langs[i];
             let translations: TranslationVO[] = await ModuleTranslation.getInstance().getTranslations(lang.id);
-            let lang_locales: any = {};
 
             for (let i in translations) {
                 let translation: TranslationVO = translations[i];
@@ -77,11 +76,57 @@ export default class ModuleTranslationServer extends ModuleServerBase {
                 if (!translation.text_id) {
                     continue;
                 }
-                lang_locales[translatableTexts_by_id[translation.text_id].code_text] = translation.translated;//.replace('"', '\"');
-            }
 
-            res[lang.code_lang.toLowerCase()] = lang_locales;
+                res = this.addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
+            }
         }
         return res;
+    }
+
+    public addCodeToLocales(ALL_LOCALES: { [code_lang: string]: any }, code_lang: string, code_text: string, translated: string): { [code_lang: string]: any } {
+
+        if (!ALL_LOCALES) {
+            ALL_LOCALES = {};
+        }
+
+        if ((!code_lang) || (!code_text)) {
+            return ALL_LOCALES;
+        }
+
+        if (!translated) {
+            translated = "";
+        }
+
+        let tmp_code_text_segs: string[] = code_text.split('.');
+        let code_text_segs: string[] = [];
+
+        for (let i in tmp_code_text_segs) {
+            if (tmp_code_text_segs[i] && (tmp_code_text_segs[i] != "")) {
+                code_text_segs.push(tmp_code_text_segs[i]);
+            }
+        }
+
+        if (!ALL_LOCALES[code_lang]) {
+            ALL_LOCALES[code_lang] = {};
+        }
+
+        let locale_pointer = ALL_LOCALES[code_lang];
+        for (let i in code_text_segs) {
+            let code_text_seg = code_text_segs[i];
+
+            if (parseInt(i.toString()) == (code_text_segs.length - 1)) {
+
+                locale_pointer[code_text_seg] = translated;
+                break;
+            }
+
+            if (!locale_pointer[code_text_seg]) {
+                locale_pointer[code_text_seg] = {};
+            }
+
+            locale_pointer = locale_pointer[code_text_seg];
+        }
+
+        return ALL_LOCALES;
     }
 }
