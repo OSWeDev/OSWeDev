@@ -161,13 +161,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
         e.id = ConversionHandler.getInstance().forceNumber(e.id);
         e._type = this.vo_type;
 
-        if (this.fields) {
+        if (!this.fields) {
             return e;
         }
         for (let i in this.fields) {
             let field = this.fields[i];
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_float) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_amount) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_foreign_key) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite) ||
@@ -176,7 +177,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 e[field.field_id] = ConversionHandler.getInstance().forceNumber(e[field.field_id]);
             }
 
-            if (field.field_type == ModuleTableField.FIELD_TYPE_day) {
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_date)) {
                 e[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(e[field.field_id]));
             }
         }

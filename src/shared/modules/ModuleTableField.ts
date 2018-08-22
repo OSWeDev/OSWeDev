@@ -13,6 +13,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_int: string = 'number';
     public static FIELD_TYPE_geopoint: string = 'point';
     public static FIELD_TYPE_float: string = 'float';
+    public static FIELD_TYPE_amount: string = 'amount';
     public static FIELD_TYPE_foreign_key: string = 'fkey';
     public static FIELD_TYPE_int_array: string = 'number[]';
     public static FIELD_TYPE_prct: string = 'pct';
@@ -125,7 +126,7 @@ export default class ModuleTableField<T> {
         if (this.field_type == ModuleTableField.FIELD_TYPE_int_array) {
             return "bigint[]";
         }
-        if (this.field_type == ModuleTableField.FIELD_TYPE_float) {
+        if ((this.field_type == ModuleTableField.FIELD_TYPE_float) || (this.field_type == ModuleTableField.FIELD_TYPE_amount)) {
             return "float8";
         }
         if (this.field_type == ModuleTableField.FIELD_TYPE_boolean) {
@@ -164,11 +165,11 @@ export default class ModuleTableField<T> {
             return "time without time zone";
         }
 
-        if (this.field_type == 'amount') {
-            return "ref.amount";
-        }
+        // if (this.field_type == 'amount') {
+        //     return "ref.amount";
+        // }
 
-        if (this.field_type == 'pct') {
+        if (this.field_type == ModuleTableField.FIELD_TYPE_prct) {
             return "ref.pct";
         }
 

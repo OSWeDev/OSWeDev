@@ -129,7 +129,7 @@ export default class ModuleFormatDatesNombres extends Module {
             }
 
             // On sépare les milliers
-            while (isNumber(number) && (number > 1000)) {
+            while (isNumber(number) && (number >= 1000)) {
 
                 let thispart = (number % 1000);
                 let thisparttxt = ((thispart < 100) ? "0" + ((thispart < 10) ? "0" + thispart : thispart) : "" + thispart);
@@ -198,7 +198,7 @@ export default class ModuleFormatDatesNombres extends Module {
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date, 'text', 'Format Date (ex: 31/01)', true, true, 'DD/MM'),
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date, 'text', 'Format Date (ex: 01/2017)', true, true, 'MM/Y'),
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date, 'text', 'Format Date (ex: 31/01/2017)', true, true, 'DD/MM/Y'),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_1000, 'text', 'Séparateur 10^3', false, true, ' '),
+            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_1000, 'text', 'Séparateur 10^3', false, true, ' '),
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal, 'text', 'Séparateur décimal', true, true, ',')
         ];
         this.datatables = [];
