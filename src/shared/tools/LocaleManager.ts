@@ -1,5 +1,3 @@
-import VueI18n from 'vue-i18n';
-
 export default class LocaleManager {
 
     public static getInstance() {
@@ -12,7 +10,7 @@ export default class LocaleManager {
 
     private static instance: LocaleManager = null;
 
-    public i18n: VueI18n;
+    public i18n: any;
     private defaultLocale: string;
 
     private constructor() {
@@ -25,6 +23,4 @@ export default class LocaleManager {
     public getDefaultLocale() {
         return this.defaultLocale;
     }
-
-
 }
