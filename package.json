@@ -104,7 +104,6 @@
         "not ie <= 8"
     ],
     "files": [
-        "src/vuejsclient/scss/**/*.scss",
-        "src/vuejsclient/**/*.pug"
+        "dist"
     ]
 }
