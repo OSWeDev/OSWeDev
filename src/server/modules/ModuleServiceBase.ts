@@ -143,58 +143,58 @@ export default abstract class ModuleServiceBase {
 
         // On crée ensuite la vue pour NGA
         // console.log('Création de la vue NGA pour modules');
-        await this.db.query(
-            "CREATE OR REPLACE VIEW admin.view_modules AS \n SELECT v.id, v.name, v.actif FROM admin.modules v;"
-        );
+        // await this.db.query(
+        //     "CREATE OR REPLACE VIEW admin.view_modules AS \n SELECT v.id, v.name, v.actif FROM admin.modules v;"
+        // );
 
-        await this.db.query('ALTER TABLE admin.view_modules OWNER TO ' + this.bdd_owner + ';');
+        // await this.db.query('ALTER TABLE admin.view_modules OWNER TO ' + this.bdd_owner + ';');
 
-        await this.db.query('GRANT ALL ON TABLE admin.view_modules TO ' + this.bdd_owner + ';');
+        // await this.db.query('GRANT ALL ON TABLE admin.view_modules TO ' + this.bdd_owner + ';');
 
-        let query =
-            "CREATE OR REPLACE FUNCTION admin.trigger_modules() RETURNS trigger AS \n" +
-            "$BODY$\n" +
-            "DECLARE\n" +
-            "BEGIN\n" +
-            "IF TG_OP = 'INSERT'\n" +
-            "THEN\n" +
-            "INSERT INTO admin.modules (name, actif)\n" +
-            "VALUES\n" +
-            "(\n" +
-            "new.name, new.actif" +
-            ")\n" +
-            "RETURNING id\n" +
-            "INTO new.id;\n" +
-            "RETURN new;\n" +
-            "ELSIF TG_OP = 'UPDATE'\n" +
-            "THEN\n" +
-            "UPDATE admin.modules\n" +
-            "SET\n" +
-            "id   = new.id, " +
-            "name = new.name, actif = new.actif\n" +
-            "WHERE id = old.id;\n" +
-            "RETURN new;\n" +
-            "ELSIF TG_OP = 'DELETE'\n" +
-            "THEN\n" +
-            "DELETE FROM admin.modules\n" +
-            "WHERE id = old.id;\n" +
-            "RETURN old;\n" +
-            "END IF;\n" +
-            "RETURN NULL;\n" +
-            "END;\n" +
-            "$BODY$\n" +
-            "LANGUAGE plpgsql VOLATILE\n" +
-            "COST 100;";
+        // let query =
+        //     "CREATE OR REPLACE FUNCTION admin.trigger_modules() RETURNS trigger AS \n" +
+        //     "$BODY$\n" +
+        //     "DECLARE\n" +
+        //     "BEGIN\n" +
+        //     "IF TG_OP = 'INSERT'\n" +
+        //     "THEN\n" +
+        //     "INSERT INTO admin.modules (name, actif)\n" +
+        //     "VALUES\n" +
+        //     "(\n" +
+        //     "new.name, new.actif" +
+        //     ")\n" +
+        //     "RETURNING id\n" +
+        //     "INTO new.id;\n" +
+        //     "RETURN new;\n" +
+        //     "ELSIF TG_OP = 'UPDATE'\n" +
+        //     "THEN\n" +
+        //     "UPDATE admin.modules\n" +
+        //     "SET\n" +
+        //     "id   = new.id, " +
+        //     "name = new.name, actif = new.actif\n" +
+        //     "WHERE id = old.id;\n" +
+        //     "RETURN new;\n" +
+        //     "ELSIF TG_OP = 'DELETE'\n" +
+        //     "THEN\n" +
+        //     "DELETE FROM admin.modules\n" +
+        //     "WHERE id = old.id;\n" +
+        //     "RETURN old;\n" +
+        //     "END IF;\n" +
+        //     "RETURN NULL;\n" +
+        //     "END;\n" +
+        //     "$BODY$\n" +
+        //     "LANGUAGE plpgsql VOLATILE\n" +
+        //     "COST 100;";
 
-        await this.db.query(query);
-        await this.db.query('ALTER FUNCTION admin.trigger_modules() OWNER TO ' + this.bdd_owner + ';\n');
+        // await this.db.query(query);
+        // await this.db.query('ALTER FUNCTION admin.trigger_modules() OWNER TO ' + this.bdd_owner + ';\n');
 
-        await this.db.query('DROP TRIGGER IF EXISTS trigger_modules ON admin.view_modules;');
-        await this.db.query(
-            "CREATE TRIGGER trigger_modules" +
-            " INSTEAD OF INSERT OR UPDATE OR DELETE ON admin.view_modules" +
-            " FOR EACH ROW EXECUTE PROCEDURE admin.trigger_modules();"
-        );
+        // await this.db.query('DROP TRIGGER IF EXISTS trigger_modules ON admin.view_modules;');
+        // await this.db.query(
+        //     "CREATE TRIGGER trigger_modules" +
+        //     " INSTEAD OF INSERT OR UPDATE OR DELETE ON admin.view_modules" +
+        //     " FOR EACH ROW EXECUTE PROCEDURE admin.trigger_modules();"
+        // );
     }
 
     private async install_modules() {

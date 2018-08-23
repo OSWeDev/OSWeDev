@@ -72,100 +72,100 @@ export default class ModuleTableDBService {
     // ETAPE 2 de l'installation
     private async create_datatable_view_for_nga(moduleTable: ModuleTable<any>) {
 
-        // On crée ensuite la vue pour NGA
-        let request = 'CREATE OR REPLACE VIEW ' + moduleTable.admin_view_full_name + ' AS SELECT v.id';
-        for (let i = 0; i < moduleTable.fields.length; i++) {
-            let field = moduleTable.fields[i];
+        // // On crée ensuite la vue pour NGA
+        // let request = 'CREATE OR REPLACE VIEW ' + moduleTable.admin_view_full_name + ' AS SELECT v.id';
+        // for (let i = 0; i < moduleTable.fields.length; i++) {
+        //     let field = moduleTable.fields[i];
 
-            let field_id = "v." + field.field_id;
+        //     let field_id = "v." + field.field_id;
 
-            if (field.field_type == "pct") {
-                field_id = "admin.format_percent(v." + field.field_id + "::numeric) AS " + field.field_id;
-            }
+        //     if (field.field_type == "pct") {
+        //         field_id = "admin.format_percent(v." + field.field_id + "::numeric) AS " + field.field_id;
+        //     }
 
-            request += ', ' + field_id;
-        }
-        if (moduleTable.nga_view_select_addon && (moduleTable.nga_view_select_addon != "")) {
-            request += ', ' + moduleTable.nga_view_select_addon;
-        }
+        //     request += ', ' + field_id;
+        // }
+        // if (moduleTable.nga_view_select_addon && (moduleTable.nga_view_select_addon != "")) {
+        //     request += ', ' + moduleTable.nga_view_select_addon;
+        // }
 
-        request += ' FROM ' + moduleTable.full_name + ' v';
+        // request += ' FROM ' + moduleTable.full_name + ' v';
 
-        if (moduleTable.nga_join) {
-            request += ' ' + moduleTable.nga_join;
-        }
+        // if (moduleTable.nga_join) {
+        //     request += ' ' + moduleTable.nga_join;
+        // }
 
-        if (moduleTable.nga_view_order_by) {
-            request += ' ' + moduleTable.nga_view_order_by;
-        }
+        // if (moduleTable.nga_view_order_by) {
+        //     request += ' ' + moduleTable.nga_view_order_by;
+        // }
 
-        request += ';';
+        // request += ';';
 
-        // console.log('Création de la vue NGA pour la table ' + moduleTable.full_name);
-        await this.db.query(request);
+        // // console.log('Création de la vue NGA pour la table ' + moduleTable.full_name);
+        // await this.db.query(request);
 
-        let simplefieldlist = '';
-        let newfieldlist = '';
-        let newfieldlistaffectation = '';
-        for (let i = 0; i < moduleTable.fields.length; i++) {
-            let field = moduleTable.fields[i];
+        // let simplefieldlist = '';
+        // let newfieldlist = '';
+        // let newfieldlistaffectation = '';
+        // for (let i = 0; i < moduleTable.fields.length; i++) {
+        //     let field = moduleTable.fields[i];
 
-            if (i > 0) {
-                simplefieldlist += ', ';
-                newfieldlist += ', ';
-                newfieldlistaffectation += ', ';
-            }
-            simplefieldlist += field.field_id;
+        //     if (i > 0) {
+        //         simplefieldlist += ', ';
+        //         newfieldlist += ', ';
+        //         newfieldlistaffectation += ', ';
+        //     }
+        //     simplefieldlist += field.field_id;
 
-            let fieldIdTmp = 'new.' + field.field_id;
-            if (field.field_type == "pct") {
-                fieldIdTmp = "admin.parse_percent(new." + field.field_id + ")";
-            }
+        //     let fieldIdTmp = 'new.' + field.field_id;
+        //     if (field.field_type == "pct") {
+        //         fieldIdTmp = "admin.parse_percent(new." + field.field_id + ")";
+        //     }
 
-            newfieldlist += fieldIdTmp;
-            newfieldlistaffectation += field.field_id + ' = ' + fieldIdTmp;
-        }
+        //     newfieldlist += fieldIdTmp;
+        //     newfieldlistaffectation += field.field_id + ' = ' + fieldIdTmp;
+        // }
 
-        let query = 'CREATE OR REPLACE FUNCTION ' + moduleTable.admin_trigger_full_name + '() RETURNS trigger AS \n' +
-            '$BODY$\n' +
-            'DECLARE\n' +
-            'BEGIN\n' +
-            'IF TG_OP = \'INSERT\'\n' +
-            'THEN\n' +
-            'INSERT INTO ' + moduleTable.full_name + ' (' + simplefieldlist + ')\n' +
-            'VALUES\n' +
-            '(\n' +
-            newfieldlist +
-            ')\n' +
-            'RETURNING id\n' +
-            'INTO new.id;\n' +
-            'RETURN new;\n' +
-            'ELSIF TG_OP = \'UPDATE\'\n' +
-            'THEN\n' +
-            'UPDATE ' + moduleTable.full_name + '\n' +
-            'SET\n' +
-            'id   = new.id, ' +
-            newfieldlistaffectation + '\n' +
-            'WHERE id = old.id;\n' +
-            'RETURN new;\n' +
-            'ELSIF TG_OP = \'DELETE\'\n' +
-            'THEN\n' +
-            'DELETE FROM ' + moduleTable.full_name + '\n' +
-            'WHERE id = old.id;\n' +
-            'RETURN old;\n' +
-            'END IF;\n' +
-            'RETURN NULL;\n' +
-            'END;\n' +
-            '$BODY$\n' +
-            'LANGUAGE plpgsql VOLATILE\n' +
-            'COST 100;';
+        // let query = 'CREATE OR REPLACE FUNCTION ' + moduleTable.admin_trigger_full_name + '() RETURNS trigger AS \n' +
+        //     '$BODY$\n' +
+        //     'DECLARE\n' +
+        //     'BEGIN\n' +
+        //     'IF TG_OP = \'INSERT\'\n' +
+        //     'THEN\n' +
+        //     'INSERT INTO ' + moduleTable.full_name + ' (' + simplefieldlist + ')\n' +
+        //     'VALUES\n' +
+        //     '(\n' +
+        //     newfieldlist +
+        //     ')\n' +
+        //     'RETURNING id\n' +
+        //     'INTO new.id;\n' +
+        //     'RETURN new;\n' +
+        //     'ELSIF TG_OP = \'UPDATE\'\n' +
+        //     'THEN\n' +
+        //     'UPDATE ' + moduleTable.full_name + '\n' +
+        //     'SET\n' +
+        //     'id   = new.id, ' +
+        //     newfieldlistaffectation + '\n' +
+        //     'WHERE id = old.id;\n' +
+        //     'RETURN new;\n' +
+        //     'ELSIF TG_OP = \'DELETE\'\n' +
+        //     'THEN\n' +
+        //     'DELETE FROM ' + moduleTable.full_name + '\n' +
+        //     'WHERE id = old.id;\n' +
+        //     'RETURN old;\n' +
+        //     'END IF;\n' +
+        //     'RETURN NULL;\n' +
+        //     'END;\n' +
+        //     '$BODY$\n' +
+        //     'LANGUAGE plpgsql VOLATILE\n' +
+        //     'COST 100;';
 
-        await this.db.query(query);
+        // await this.db.query(query);
 
-        await this.db.query('DROP TRIGGER IF EXISTS ' + moduleTable.admin_trigger_name + ' on ' + moduleTable.admin_view_full_name + ';');
-        await this.db.query('CREATE TRIGGER ' + moduleTable.admin_trigger_name +
-            ' INSTEAD OF INSERT OR UPDATE OR DELETE ON ' + moduleTable.admin_view_full_name +
-            ' FOR EACH ROW EXECUTE PROCEDURE ' + moduleTable.admin_trigger_full_name + '();');
+        // await this.db.query('DROP TRIGGER IF EXISTS ' + moduleTable.admin_trigger_name + ' on ' + moduleTable.admin_view_full_name + ';');
+        // await this.db.query('CREATE TRIGGER ' + moduleTable.admin_trigger_name +
+        //     ' INSTEAD OF INSERT OR UPDATE OR DELETE ON ' + moduleTable.admin_view_full_name +
+        //     ' FOR EACH ROW EXECUTE PROCEDURE ' + moduleTable.admin_trigger_full_name + '();');
 
         // On appelle le hook de fin d'installation
         await this.datatable_install_end(moduleTable);
