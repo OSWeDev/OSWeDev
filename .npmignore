@@ -4,9 +4,9 @@ tslint.json
 
 # ignore src
 
-src/**/*
+# src/**/*
 
 # override above and include ts files
 
-!src/**/*.scss
-!src/**/*.pug
+# !src/**/*.scss
+# !src/**/*.pug
