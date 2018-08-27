@@ -173,6 +173,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_int) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_enum) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_prct)) {
                 e[field.field_id] = ConversionHandler.getInstance().forceNumber(e[field.field_id]);
             }

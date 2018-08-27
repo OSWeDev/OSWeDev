@@ -10,6 +10,7 @@ export default class ModuleTableField<T> {
 
     public static FIELD_TYPE_boolean: string = 'boolean';
     public static FIELD_TYPE_string: string = 'text';
+    public static FIELD_TYPE_enum: string = 'enum';
     public static FIELD_TYPE_int: string = 'number';
     public static FIELD_TYPE_geopoint: string = 'point';
     public static FIELD_TYPE_float: string = 'float';
@@ -37,6 +38,8 @@ export default class ModuleTableField<T> {
     public field_label: DefaultTranslation;
     public manyToOne_target_moduletable: ModuleTable<any> = null;
     public default_target_label_field_id: string = null;
+
+    public enum_values: { [value: number]: string } = {};
 
     constructor(
         public field_id: string,
@@ -66,6 +69,16 @@ export default class ModuleTableField<T> {
         this.target_database = null;
         this.target_table = null;
         this.target_field = null;
+    }
+
+    /**
+     * @param enum_values An obj which for each key has as a value the code_text used for translation
+     */
+    public setEnumValues(enum_values: { [value: number]: string }): ModuleTableField<T> {
+        this.field_type = ModuleTableField.FIELD_TYPE_enum;
+        this.enum_values = enum_values;
+
+        return this;
     }
 
     public setTargetDatatable(module_table: ModuleTable<any>) {
@@ -118,6 +131,9 @@ export default class ModuleTableField<T> {
 
     private getPGSqlFieldType() {
         if (this.field_type == ModuleTableField.FIELD_TYPE_int) {
+            return "int8";
+        }
+        if (this.field_type == ModuleTableField.FIELD_TYPE_enum) {
             return "int8";
         }
         if (this.field_type == ModuleTableField.FIELD_TYPE_foreign_key) {

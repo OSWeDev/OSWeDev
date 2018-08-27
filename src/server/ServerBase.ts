@@ -431,6 +431,7 @@ export default abstract class ServerBase {
         this.app.use('/js', express.static('client/js'));
         this.app.use('/css', express.static('client/css'));
         this.app.use('/temp', express.static('temp'));
+        this.app.use('/admin/temp', express.static('temp'));
 
         // reflect_headers
         this.app.get('/api/reflect_headers', (req, res) => {
@@ -503,12 +504,6 @@ export default abstract class ServerBase {
 
             return ServerBase.getInstance().handleError(ModuleCronServer.getInstance().executeWorkers().then(() => {
                 res.json();
-            }), res);
-        });
-
-        this.app.post('/api/save', (req, res) => {
-            return ServerBase.getInstance().handleError(ModuleDAO.getInstance().db_tx_update(req.body).then((data) => {
-                res.json(data);
             }), res);
         });
 

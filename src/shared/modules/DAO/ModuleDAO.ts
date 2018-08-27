@@ -13,7 +13,6 @@ export default class ModuleDAO extends Module {
     public static APINAME_DELETE_VOS = "DAO_DELETE_VOS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
     public static APINAME_INSERT_OR_UPDATE_VO = "DAO_INSERT_OR_UPDATE_VO";
-    public static APINAME_DB_TX_UPDATE = "APINAME_DB_TX_UPDATE";
     public static APINAME_SELECT_ALL = "SELECT_ALL";
     public static APINAME_SELECT_ONE = "SELECT_ONE";
     public static APINAME_GET_VO_BY_ID = "GET_VO_BY_ID";
@@ -70,38 +69,6 @@ export default class ModuleDAO extends Module {
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
             (param: IDistantVOBase) => [param._type]
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<any, any>(
-            ModuleDAO.APINAME_DB_TX_UPDATE,
-            (params: any) => {
-
-                let res: string[] = [];
-
-                if (!params) {
-                    return res;
-                }
-
-                if (params.deletes) {
-                    for (let i in params.deletes) {
-                        let param = params.deletes[i];
-
-                        if (res.indexOf(param._type) < 0) {
-                            res.push(param._type);
-                        }
-                    }
-                }
-                if (params.updates) {
-                    for (let i in params.updates) {
-                        let param = params.updates[i];
-
-                        if (res.indexOf(param._type) < 0) {
-                            res.push(param._type);
-                        }
-                    }
-                }
-
-                return res;
-            }
-        ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
             ModuleDAO.APINAME_GET_VO_BY_ID,
@@ -131,10 +98,6 @@ export default class ModuleDAO extends Module {
 
     public async insertOrUpdateVO(vo: IDistantVOBase): Promise<any> {
         return await ModuleAPI.getInstance().handleAPI<IDistantVOBase, any>(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, vo);
-    }
-
-    public async db_tx_update(data: any): Promise<any> {
-        return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_DB_TX_UPDATE, data);
     }
 
     /**
