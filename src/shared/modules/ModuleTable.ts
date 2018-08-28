@@ -49,6 +49,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public forceNumeric: (e: T) => T = null;
     public forceNumerics: (es: T[]) => T[] = null;
 
+    public isModuleParamTable: boolean = false;
+
     constructor(
         tmp_module: Module,
         tmp_vo_type: string,
@@ -93,6 +95,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
 
         this.datatable_uid = "";//TODO FIXME : pas de nombre ici, mais est-ce bien utile surtout ce uid (qui du coup n'en est pas)ModuleTable.getNextUID().toString();
+    }
+
+    public defineAsModuleParamTable(): ModuleTable<any> {
+        this.isModuleParamTable = true;
+        return this;
     }
 
     public getFieldFromId(field_id: string): ModuleTableField<any> {

@@ -56,6 +56,7 @@ export default class ModulesManager {
                     (module as Module).fields,
                     new DefaultTranslation({ 'fr': module.name }));
                 moduleParamsTable.set_bdd_ref('admin', ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name);
+                moduleParamsTable.defineAsModuleParamTable();
             }
         }
     }
