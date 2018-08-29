@@ -195,11 +195,11 @@ export default class ModuleFormatDatesNombres extends Module {
 
     public initialize() {
         this.fields = [
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date, 'text', 'Format Date (ex: 31/01)', true, true, 'DD/MM'),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date, 'text', 'Format Date (ex: 01/2017)', true, true, 'MM/Y'),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date, 'text', 'Format Date (ex: 31/01/2017)', true, true, 'DD/MM/Y'),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_1000, 'text', 'Séparateur 10^3', false, true, ' '),
-            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal, 'text', 'Séparateur décimal', true, true, ',')
+            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 31/01)', true, true, 'DD/MM'),
+            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 01/2017)', true, true, 'MM/Y'),
+            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 31/01/2017)', true, true, 'DD/MM/Y'),
+            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_1000, ModuleTableField.FIELD_TYPE_string, 'Séparateur 10^3', false, true, ' '),
+            new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal, ModuleTableField.FIELD_TYPE_string, 'Séparateur décimal', true, true, ',')
         ];
         this.datatables = [];
     }

@@ -3,6 +3,7 @@ import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 
 export default class PasswordReset {
 
@@ -36,14 +37,17 @@ export default class PasswordReset {
 
         try {
 
-            if (!ModuleAccessPolicy.getInstance().passwordIsValidProposition(new_pwd1)) {
-                return false;
+            let msg = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId('password').validate(new_pwd1);
+            if ((!msg) || (msg == "")) {
+                return true;
             }
+            return false;
         } catch (error) {
             return false;
         }
 
-        await ModuleAccessPolicy.getInstance().changePwd(user, new_pwd1);
+        await ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
+        await ModuleDAO.getInstance().insertOrUpdateVO(user);
         return true;
     }
 }

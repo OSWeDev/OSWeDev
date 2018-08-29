@@ -1,14 +1,21 @@
 import { isBoolean, isNull, isNumber } from 'util';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
-import DefaultTranslation from './Translation/vos/DefaultTranslation';
-import TranslatableTextVO from './Translation/vos/TranslatableTextVO';
-import ModuleDAO from './DAO/ModuleDAO';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
+import DefaultTranslation from './Translation/vos/DefaultTranslation';
 
 export default class ModuleTableField<T> {
 
+    public static VALIDATION_CODE_TEXT_BASE: string = "validation.ko.";
+    public static VALIDATION_CODE_TEXT_required: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "required";
+    public static VALIDATION_CODE_TEXT_length_min_8: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "length_min_8";
+    public static VALIDATION_CODE_TEXT_need_number: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_number";
+    public static VALIDATION_CODE_TEXT_need_lowercase: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_lowercase";
+    public static VALIDATION_CODE_TEXT_need_uppercase: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_uppercase";
+    public static VALIDATION_CODE_TEXT_need_h: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_h";
+
     public static FIELD_TYPE_boolean: string = 'boolean';
+    public static FIELD_TYPE_password: string = 'password';
     public static FIELD_TYPE_string: string = 'text';
     public static FIELD_TYPE_enum: string = 'enum';
     public static FIELD_TYPE_int: string = 'number';
@@ -41,6 +48,11 @@ export default class ModuleTableField<T> {
 
     public enum_values: { [value: number]: string } = {};
 
+    /**
+     * Renvoie null ou "" si ok, sinon le code_text traduisible de l'erreur
+     */
+    public validate: (data: any) => string;
+
     constructor(
         public field_id: string,
         public field_type: string,
@@ -63,12 +75,26 @@ export default class ModuleTableField<T> {
             }
         }
 
+        this.validate = this.defaultValidator;
         this.field_label = field_label;
         this.has_relation = false;
         this.datatable_uid = null;
         this.target_database = null;
         this.target_table = null;
         this.target_field = null;
+    }
+
+    /**
+     * @param validator Renvoie null ou "" si ok, sinon le code_text traduisible de l'erreur
+     */
+    public setValidator(validator: (data: any) => string): ModuleTableField<T> {
+        this.validate = validator;
+
+        return this;
+    }
+
+    public getValidationTextCodeBase(): string {
+        return "validation.ko." + this.module_table.full_name + "." + this.field_id + ".";
     }
 
     /**
@@ -130,69 +156,124 @@ export default class ModuleTableField<T> {
     }
 
     private getPGSqlFieldType() {
-        if (this.field_type == ModuleTableField.FIELD_TYPE_int) {
-            return "int8";
+        switch (this.field_type) {
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_enum:
+                return "int8";
+
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_float:
+                return "float8";
+
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+                return "bigint";
+
+
+            case ModuleTableField.FIELD_TYPE_int_array:
+                return "bigint[]";
+
+            case ModuleTableField.FIELD_TYPE_boolean:
+                return "bool";
+
+            case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_date:
+                return "date";
+
+            case ModuleTableField.FIELD_TYPE_geopoint:
+                return "point";
+
+            case ModuleTableField.FIELD_TYPE_timestamp:
+                return "timestamp";
+
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+            case "ref.hours":
+                return "ref.hours";
+
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                return "float8";
+
+            case ModuleTableField.FIELD_TYPE_daterange:
+                return "daterange";
+
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                return "tsrange";
+
+            case 'timewithouttimezone':
+                return "time without time zone";
+
+            case ModuleTableField.FIELD_TYPE_prct:
+                return "ref.pct";
+
+            case 'real':
+                return "real";
+
+            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_password:
+            default:
+                return 'text';
         }
-        if (this.field_type == ModuleTableField.FIELD_TYPE_enum) {
-            return "int8";
+    }
+
+
+    private defaultValidator(data: any): string {
+        switch (this.field_type) {
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                if (data == null || data == "") {
+                    return null;
+                }
+                if (data.toLowerCase().indexOf("h") < 0) {
+                    return ModuleTableField.VALIDATION_CODE_TEXT_need_h;
+                }
+                return null;
+
+            case ModuleTableField.FIELD_TYPE_password:
+                return this.passwordIsValidProposition(data);
+
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_boolean:
+            case ModuleTableField.FIELD_TYPE_date:
+            case ModuleTableField.FIELD_TYPE_daterange:
+            case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+            case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_timestamp:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+            default:
+                return null;
         }
-        if (this.field_type == ModuleTableField.FIELD_TYPE_foreign_key) {
-            return "bigint";
-        }
-        if (this.field_type == ModuleTableField.FIELD_TYPE_int_array) {
-            return "bigint[]";
-        }
-        if ((this.field_type == ModuleTableField.FIELD_TYPE_float) || (this.field_type == ModuleTableField.FIELD_TYPE_amount)) {
-            return "float8";
-        }
-        if (this.field_type == ModuleTableField.FIELD_TYPE_boolean) {
-            return "bool";
-        }
-        if (this.field_type == ModuleTableField.FIELD_TYPE_date) {
-            return "date";
-        }
-        if (this.field_type == ModuleTableField.FIELD_TYPE_day) {
-            return "date";
-        }
-        if (this.field_type == ModuleTableField.FIELD_TYPE_geopoint) {
-            return "point";
-        }
-        if (this.field_type == ModuleTableField.FIELD_TYPE_timestamp) {
-            return "timestamp";
-        }
-        // Cas spécifique du type heure et minute.
-        if (this.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes || this.field_type == 'ref.hours') {
-            return "ref.hours";
+    }
+
+    private passwordIsValidProposition(pwd_proposition: string): string {
+        if (!pwd_proposition) {
+            return ModuleTableField.VALIDATION_CODE_TEXT_required;
         }
 
-        if (this.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite) {
-            return "float8";
+        if (pwd_proposition.length < 8) {
+            return ModuleTableField.VALIDATION_CODE_TEXT_length_min_8;
         }
 
-        if (this.field_type == ModuleTableField.FIELD_TYPE_daterange) {
-            return "daterange";
+        // Doit contenir un chiffre
+        if (!/[0-9]/.test(pwd_proposition)) {
+            return ModuleTableField.VALIDATION_CODE_TEXT_need_number;
         }
 
-        if (this.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
-            return "tsrange";
+        // Doit contenir une minuscule
+        if (!/[a-z]/.test(pwd_proposition)) {
+            return ModuleTableField.VALIDATION_CODE_TEXT_need_lowercase;
         }
 
-        if (this.field_type == 'timewithouttimezone') {
-            return "time without time zone";
+        // Doit contenir une majuscule
+        if (!/[A-Z]/.test(pwd_proposition)) {
+            return ModuleTableField.VALIDATION_CODE_TEXT_need_uppercase;
         }
 
-        // if (this.field_type == 'amount') {
-        //     return "ref.amount";
-        // }
-
-        if (this.field_type == ModuleTableField.FIELD_TYPE_prct) {
-            return "ref.pct";
-        }
-
-        if (this.field_type == 'real') {
-            return "real";
-        }
-
-        return "text";
+        return null;
     }
 }

@@ -22,6 +22,8 @@ import RegisterModuleAccessPolicyParamVO from '../../../shared/modules/AccessPol
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -50,6 +52,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         // Register Policies
         await ModuleAccessPolicy.getInstance().registerModuleAccessPolicy(ModuleAccessPolicy.MAIN_ACCESS_GROUP_NAME, ModuleAccessPolicy.ADMIN_ACCESS_NAME);
+
+        // On ajoute un trigger pour la création du compte
+        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOCreate.bind(this));
+
+        // On ajoute un trigger pour la modification du mot de passe
+        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOUpdate.bind(this));
     }
 
     public registerServerApiHandlers() {
@@ -313,5 +323,35 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await PasswordReset.getInstance().resetPwd(params.email, params.challenge, params.new_pwd1);
+    }
+
+    private async handleTriggerUserVOUpdate(vo: UserVO): Promise<boolean> {
+
+
+        if ((!vo) || (!vo.password) || (!vo.id)) {
+            return true;
+        }
+
+        let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, vo.id);
+
+        if ((!user) || (user.password == vo.password)) {
+            return true;
+        }
+
+        await ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
+
+        return true;
+    }
+
+    private async handleTriggerUserVOCreate(vo: UserVO): Promise<boolean> {
+
+
+        if ((!vo) || (!vo.password)) {
+            return true;
+        }
+
+        await ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
+
+        return true;
     }
 }

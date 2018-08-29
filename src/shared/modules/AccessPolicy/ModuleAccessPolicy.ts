@@ -179,30 +179,7 @@ export default class ModuleAccessPolicy extends Module {
         return await ModuleAPI.getInstance().handleAPI<AddDefaultRolePolicyIfNotExistsParamVO, void>(ModuleAccessPolicy.APINAME_ADD_DEFAULT_ROLE_POLICY_IF_NOT_EXISTS, role, policy, granted);
     }
 
-    public passwordIsValidProposition(pwd_proposition: string): boolean {
-        if ((!pwd_proposition) || (pwd_proposition.length < 8)) {
-            return false;
-        }
-
-        // Doit contenir un chiffre
-        if (!/[0-9]/.test(pwd_proposition)) {
-            return false;
-        }
-
-        // Doit contenir une minuscule
-        if (!/[a-z]/.test(pwd_proposition)) {
-            return false;
-        }
-
-        // Doit contenir une majuscule
-        if (!/[A-Z]/.test(pwd_proposition)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public async changePwd(user: UserVO, new_pwd1: string): Promise<void> {
+    public async prepareForInsertOrUpdateAfterPwdChange(user: UserVO, new_pwd1: string): Promise<void> {
 
         user.password = new_pwd1;
         user.password_change_date = DateHandler.getInstance().formatDayForIndex(moment());
@@ -210,18 +187,6 @@ export default class ModuleAccessPolicy extends Module {
         user.recovery_expiration = null;
         user.reminded_pwd_1 = false;
         user.reminded_pwd_2 = false;
-        await ModuleDAO.getInstance().insertOrUpdateVO(user);
-    }
-
-    public async updatePwdChangedInfos(user_id: number): Promise<void> {
-
-        let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user_id);
-        user.password_change_date = DateHandler.getInstance().formatDayForIndex(moment());
-        user.invalidated = false;
-        user.recovery_expiration = null;
-        user.reminded_pwd_1 = false;
-        user.reminded_pwd_2 = false;
-        await ModuleDAO.getInstance().insertOrUpdateVO(user);
     }
 
     /**
@@ -252,18 +217,18 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUser() {
-        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ fr: 'Langue' }), false);
+        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ fr: 'Langue' }), true);
         let datatable_fields = [
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Nom' }), true),
             new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'E-mail' }), true),
-            new ModuleTableField('password', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Mot de passe' }), true),
-            new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Date de changement du mot de passe' }), true),
-            new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Premier rappel envoyé' }), true),
-            new ModuleTableField('reminded_pwd_2', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Second rappel envoyé' }), true),
-            new ModuleTableField('invalidated', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Compte désactivé' }), true),
+            new ModuleTableField('password', ModuleTableField.FIELD_TYPE_password, new DefaultTranslation({ fr: 'Mot de passe' }), true),
+            new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Date de changement du mot de passe' }), false),
+            new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Premier rappel envoyé' }), false, true, false),
+            new ModuleTableField('reminded_pwd_2', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Second rappel envoyé' }), false, true, false),
+            new ModuleTableField('invalidated', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Compte désactivé' }), false, true, false),
             field_lang_id,
-            new ModuleTableField('recovery_challenge', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Challenge de récupération' }), true),
-            new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_int, new DefaultTranslation({ fr: 'Expiration du challenge' }), true),
+            new ModuleTableField('recovery_challenge', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Challenge de récupération' }), false, true, ""),
+            new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_int, new DefaultTranslation({ fr: 'Expiration du challenge' }), false, true, 0),
         ];
 
         this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Utilisateurs" }));
@@ -273,7 +238,7 @@ export default class ModuleAccessPolicy extends Module {
 
     private initializeRole() {
         let datatable_fields = [
-            new ModuleTableField('translatable_name', 'text', 'Nom', true),
+            new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
         ];
 
         this.role_datatable = new ModuleTable(this, RoleVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Rôles" }));
@@ -281,8 +246,8 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUserRoles() {
-        let field_user_id = new ModuleTableField('user_id', 'fkey', 'User', true, true, 0);
-        let field_role_id = new ModuleTableField('role_id', 'fkey', 'Rôle', true, true, 0);
+        let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, true, 0);
+        let field_role_id = new ModuleTableField('role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
         let datatable_fields = [
             field_user_id,
             field_role_id,
@@ -299,8 +264,8 @@ export default class ModuleAccessPolicy extends Module {
     private initializeModuleAccessPolicyGroup() {
 
         let datatable_fields = [
-            new ModuleTableField('translatable_name', 'text', 'Nom', true),
-            new ModuleTableField('uniq_id', 'text', 'UniqID', true),
+            new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
+            new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'UniqID', true),
         ];
 
         this.accesspolicygroup_datatable = new ModuleTable(this, AccessPolicyGroupVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Groupe de droits" }));
@@ -311,8 +276,8 @@ export default class ModuleAccessPolicy extends Module {
     private initializeModuleAccessPolicy() {
         let field_accpolgroup_id = new ModuleTableField('group_id', 'fkey', 'Group', true, true, 0);
         let datatable_fields = [
-            new ModuleTableField('translatable_name', 'text', 'Nom', true),
-            new ModuleTableField('uniq_id', 'text', 'UniqID', true),
+            new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
+            new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'UniqID', true),
             field_accpolgroup_id
         ];
 
@@ -324,8 +289,8 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeRolesPolicies() {
-        let field_accpol_id = new ModuleTableField('accpol_id', 'fkey', 'User', true, true, 0);
-        let field_role_id = new ModuleTableField('role_id', 'fkey', 'Rôle', true, true, 0);
+        let field_accpol_id = new ModuleTableField('accpol_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, true, 0);
+        let field_role_id = new ModuleTableField('role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
         let datatable_fields = [
             field_accpol_id,
             field_role_id,
