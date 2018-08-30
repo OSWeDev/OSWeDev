@@ -75,7 +75,7 @@ export default class ModuleTableField<T> {
             }
         }
 
-        this.validate = this.defaultValidator;
+        this.validate = this.defaultValidator.bind(this);
         this.field_label = field_label;
         this.has_relation = false;
         this.datatable_uid = null;

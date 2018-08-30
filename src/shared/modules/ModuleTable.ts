@@ -118,6 +118,26 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return null;
     }
 
+    /**
+     * On part du principe que les refs on en trouve une par type sur une table, en tout cas on renvoie la premiere
+     * @param vo_type 
+     */
+    public getRefFieldFromTargetVoType(vo_type: string): ModuleTableField<any> {
+        if (!vo_type) {
+            return null;
+        }
+
+        for (let i in this.fields) {
+            let field: ModuleTableField<any> = this.fields[i];
+
+            if (field && field.has_relation && field.manyToOne_target_moduletable && field.manyToOne_target_moduletable.vo_type == vo_type) {
+                return field;
+            }
+        }
+
+        return null;
+    }
+
     get name(): string {
         return (this.prefix ? this.prefix + "_" : "") + this.table_name + ((this.suffix != "") ? "_" + this.suffix : "");
     }

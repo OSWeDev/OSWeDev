@@ -5,6 +5,7 @@ import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import APIDAOParamVO from './vos/APIDAOParamVO';
+import APIDAOParamsVO from './vos/APIDAOParamsVO';
 
 export default class ModuleDAO extends Module {
 
@@ -16,6 +17,7 @@ export default class ModuleDAO extends Module {
     public static APINAME_SELECT_ALL = "SELECT_ALL";
     public static APINAME_SELECT_ONE = "SELECT_ONE";
     public static APINAME_GET_VO_BY_ID = "GET_VO_BY_ID";
+    public static APINAME_GET_VOS_BY_IDS = "GET_VOS_BY_IDS";
     public static APINAME_GET_VOS = "GET_VOS";
 
     public static getInstance() {
@@ -70,6 +72,15 @@ export default class ModuleDAO extends Module {
             (param: IDistantVOBase) => [param._type]
         ));
 
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamsVO, IDistantVOBase[]>(
+            ModuleDAO.APINAME_GET_VOS_BY_IDS,
+            (param: APIDAOParamsVO) => [param.API_TYPE_ID],
+            APIDAOParamsVO.translateCheckAccessParams,
+            APIDAOParamsVO.URL,
+            APIDAOParamsVO.translateToURL,
+            APIDAOParamsVO.translateFromREQ
+        ));
+
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
             ModuleDAO.APINAME_GET_VO_BY_ID,
             (param: APIDAOParamVO) => [param.API_TYPE_ID],
@@ -100,34 +111,12 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<IDistantVOBase, any>(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, vo);
     }
 
-    /**
-     * @param API_TYPE_ID L'API_TYPE_ID principal qui est concerné par la requête. On en déduit la table à mettre dans le FROM
-     * @param forceNumerics
-     * @param query La suite de la query après la requête générée (c'est à dire "SELECT t.* from [API_TYPE_ID].fullname t " + query).
-     * Donc La table principale s'appelle t
-     * @param queryParams Les paramètres qui sont utilisés dans la query
-     * @param depends_on_api_type_ids La liste des autres API_TYPE_ID (en dehors du principal déjà cité en premier arguement) concernés
-     * Par cette requête
-     */
-    // public async selectAll<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T[]> {
-    //     return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_SELECT_ALL, API_TYPE_ID, query, queryParams, depends_on_api_type_ids);
-    // }
-
-    /**
-     * @param API_TYPE_ID L'API_TYPE_ID principal qui est concerné par la requête. On en déduit la table à mettre dans le FROM
-     * @param forceNumeric
-     * @param query La suite de la query après la requête générée (c'est à dire "SELECT t.* from [API_TYPE_ID].fullname t " + query).
-     * Donc La table principale s'appelle t
-     * @param queryParams Les paramètres qui sont utilisés dans la query
-     * @param depends_on_api_type_ids La liste des autres API_TYPE_ID (en dehors du principal déjà cité en premier arguement) concernés
-     * Par cette requête
-     */
-    // public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T> {
-    //     return await ModuleAPI.getInstance().handleAPI<any, any>(ModuleDAO.APINAME_SELECT_ONE, API_TYPE_ID, query, queryParams, depends_on_api_type_ids);
-    // }
-
     public async getVoById<T extends IDistantVOBase>(API_TYPE_ID: string, id: number): Promise<T> {
         return await ModuleAPI.getInstance().handleAPI<string, T>(ModuleDAO.APINAME_GET_VO_BY_ID, API_TYPE_ID, id);
+    }
+
+    public async getVosByIds<T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]): Promise<T[]> {
+        return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS_BY_IDS, API_TYPE_ID, ids);
     }
 
     public async getVos<T extends IDistantVOBase>(API_TYPE_ID: string): Promise<T[]> {
