@@ -392,6 +392,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t WHERE id=" + apiDAOParamVO.id + ";") as T);
 
+        if (!vo) {
+            return vo;
+        }
+
         // On filtre suivant les droits d'accès
         return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
     }
