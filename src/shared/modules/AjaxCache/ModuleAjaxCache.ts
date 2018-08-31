@@ -1,9 +1,10 @@
 import Module from '../Module';
 import ModuleParamChange from '../ModuleParamChange';
 import * as moment from 'moment';
-/// #if false
+// if false
+// FIXME RIEN A FAIRE ICI
 import * as $ from 'jquery';
-/// #endif
+// endif
 import RequestsCacheVO from './vos/RequestsCacheVO';
 import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
 import CacheInvalidationRegexpRuleVO from './vos/CacheInvalidationRegexpRuleVO';

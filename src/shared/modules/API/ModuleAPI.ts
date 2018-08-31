@@ -1,7 +1,8 @@
 import Module from '../Module';
-/// #if false
+// if false
+// FIXME RIEN A FAIRE ICI
 import * as $ from 'jquery';
-/// #endif
+// endif
 import ModulesManager from '../ModulesManager';
 import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import APIDefinition from './vos/APIDefinition';
