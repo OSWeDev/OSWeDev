@@ -5,7 +5,6 @@ export default class EnvParam {
     public ISDEV: boolean;
     public DEFAULT_LOCALE: string;
     public CODE_PAYS: string;
-    public URL_IMPORT: string;
     public COMPRESS: boolean;
     public URL_RECOVERY_CHALLENGE: string;
     public URL_RECOVERY: string;

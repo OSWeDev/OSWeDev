@@ -1,29 +1,24 @@
 import * as $ from 'jquery';
 import * as moment from 'moment';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
-import "./CRUDComponent.scss";
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import DateHandler from '../../../../../shared/tools/DateHandler';
 import select2 from '../../../directives/select2/select2';
-import { ModuleCRUDGetter, ModuleCRUDAction } from '../../crud/store/CRUDStore';
+import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DatatableComponent from '../../datatable/component/DatatableComponent';
+import Datatable from '../../datatable/vos/Datatable';
 import DatatableField from '../../datatable/vos/DatatableField';
 import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
-import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
-import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
+import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../VueComponentBase';
 import CRUD from '../vos/CRUD';
-import AppVuexStoreManager from '../../../store/AppVuexStoreManager';
-import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
-import Datatable from '../../datatable/vos/Datatable';
-import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
-import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import DateHandler from '../../../../../shared/tools/DateHandler';
-import CRUDComponentManager from '../CRUDComponentManager';
+import "./CRUDComponent.scss";
 
 @Component({
     template: require('./CRUDComponent.pug'),

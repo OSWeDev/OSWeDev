@@ -108,86 +108,86 @@ export default class ModuleDBService {
     private async create_params_view_for_nga(module: Module) {
 
         // On crée ensuite la vue pour NGA
-        let request = 'CREATE OR REPLACE VIEW admin.view_module_' + module.name + ' AS SELECT v.id';
-        for (let i = 0; i < module.fields.length; i++) {
-            let field = module.fields[i];
+        // let request = 'CREATE OR REPLACE VIEW admin.view_module_' + module.name + ' AS SELECT v.id';
+        // for (let i = 0; i < module.fields.length; i++) {
+        //     let field = module.fields[i];
 
-            request += ', v.' + field.field_id;
-        }
-        request += ' FROM admin.module_' + module.name + ' v;';
+        //     request += ', v.' + field.field_id;
+        // }
+        // request += ' FROM admin.module_' + module.name + ' v;';
 
-        await this.db.query(request);
+        // await this.db.query(request);
 
-        await this.db.query('ALTER TABLE admin.view_module_' + module.name + ' OWNER TO ' + this.bdd_owner + ';');
+        // await this.db.query('ALTER TABLE admin.view_module_' + module.name + ' OWNER TO ' + this.bdd_owner + ';');
 
-        await this.db.query('GRANT ALL ON TABLE admin.view_module_' + module.name + ' TO ' + this.bdd_owner + ';');
+        // await this.db.query('GRANT ALL ON TABLE admin.view_module_' + module.name + ' TO ' + this.bdd_owner + ';');
 
-        let simplefieldlist = '';
-        let newfieldlist = '';
-        let newfieldlistaffectation = '';
-        for (let i = 0; i < module.fields.length; i++) {
-            let field = module.fields[i];
+        // let simplefieldlist = '';
+        // let newfieldlist = '';
+        // let newfieldlistaffectation = '';
+        // for (let i = 0; i < module.fields.length; i++) {
+        //     let field = module.fields[i];
 
-            if (i > 0) {
-                simplefieldlist += ', ';
-                newfieldlist += ', ';
-                newfieldlistaffectation += ', ';
-            }
-            simplefieldlist += field.field_id;
-            newfieldlist += 'new.' + field.field_id;
-            newfieldlistaffectation += field.field_id + ' = new.' + field.field_id;
-        }
+        //     if (i > 0) {
+        //         simplefieldlist += ', ';
+        //         newfieldlist += ', ';
+        //         newfieldlistaffectation += ', ';
+        //     }
+        //     simplefieldlist += field.field_id;
+        //     newfieldlist += 'new.' + field.field_id;
+        //     newfieldlistaffectation += field.field_id + ' = new.' + field.field_id;
+        // }
 
-        let query = 'CREATE OR REPLACE FUNCTION admin.trigger_module_' + module.name + '() RETURNS trigger AS \n' +
-            '$BODY$\n' +
-            'DECLARE\n' +
-            'BEGIN\n' +
-            'IF TG_OP = \'INSERT\'\n' +
-            'THEN\n' +
-            'INSERT INTO admin.module_' + module.name + ' (' + simplefieldlist + ')\n' +
-            'VALUES\n' +
-            '(\n' +
-            newfieldlist +
-            ')\n' +
-            'RETURNING id\n' +
-            'INTO new.id;\n' +
-            'RETURN new;\n' +
-            'ELSIF TG_OP = \'UPDATE\'\n' +
-            'THEN\n' +
-            'UPDATE admin.module_' + module.name + '\n' +
-            'SET\n' +
-            'id   = new.id, ' +
-            newfieldlistaffectation + '\n' +
-            'WHERE id = old.id;\n' +
-            'RETURN new;\n' +
-            'ELSIF TG_OP = \'DELETE\'\n' +
-            'THEN\n' +
-            'DELETE FROM admin.module_' + module.name + '\n' +
-            'WHERE id = old.id;\n' +
-            'RETURN old;\n' +
-            'END IF;\n' +
-            'RETURN NULL;\n' +
-            'END;\n' +
-            '$BODY$\n' +
-            'LANGUAGE plpgsql VOLATILE\n' +
-            'COST 100;';
+        // let query = 'CREATE OR REPLACE FUNCTION admin.trigger_module_' + module.name + '() RETURNS trigger AS \n' +
+        //     '$BODY$\n' +
+        //     'DECLARE\n' +
+        //     'BEGIN\n' +
+        //     'IF TG_OP = \'INSERT\'\n' +
+        //     'THEN\n' +
+        //     'INSERT INTO admin.module_' + module.name + ' (' + simplefieldlist + ')\n' +
+        //     'VALUES\n' +
+        //     '(\n' +
+        //     newfieldlist +
+        //     ')\n' +
+        //     'RETURNING id\n' +
+        //     'INTO new.id;\n' +
+        //     'RETURN new;\n' +
+        //     'ELSIF TG_OP = \'UPDATE\'\n' +
+        //     'THEN\n' +
+        //     'UPDATE admin.module_' + module.name + '\n' +
+        //     'SET\n' +
+        //     'id   = new.id, ' +
+        //     newfieldlistaffectation + '\n' +
+        //     'WHERE id = old.id;\n' +
+        //     'RETURN new;\n' +
+        //     'ELSIF TG_OP = \'DELETE\'\n' +
+        //     'THEN\n' +
+        //     'DELETE FROM admin.module_' + module.name + '\n' +
+        //     'WHERE id = old.id;\n' +
+        //     'RETURN old;\n' +
+        //     'END IF;\n' +
+        //     'RETURN NULL;\n' +
+        //     'END;\n' +
+        //     '$BODY$\n' +
+        //     'LANGUAGE plpgsql VOLATILE\n' +
+        //     'COST 100;';
 
-        try {
-            await this.db.query(query);
-        } catch (error) {
-            console.log(error);
-        }
+        // try {
+        //     await this.db.query(query);
+        // } catch (error) {
+        //     console.log(error);
+        // }
 
-        try {
-            await this.db.query('ALTER FUNCTION admin.trigger_module_' + module.name + '() OWNER TO ' + this.bdd_owner + ';\n');
-        } catch (error) {
-            console.log(error);
-        }
+        // try {
+        //     await this.db.query('ALTER FUNCTION admin.trigger_module_' + module.name + '() OWNER TO ' + this.bdd_owner + ';\n');
+        // } catch (error) {
+        //     console.log(error);
+        // }
 
-        await this.db.query('DROP TRIGGER IF EXISTS trigger_module_' + module.name + ' ON admin.view_module_' + module.name + ';');
-        await this.db.query('CREATE TRIGGER trigger_module_' + module.name +
-            ' INSTEAD OF INSERT OR UPDATE OR DELETE ON admin.view_module_' + module.name +
-            ' FOR EACH ROW EXECUTE PROCEDURE admin.trigger_module_' + module.name + '();');
+        // await this.db.query('DROP TRIGGER IF EXISTS trigger_module_' + module.name + ' ON admin.view_module_' + module.name + ';');
+        // await this.db.query('CREATE TRIGGER trigger_module_' + module.name +
+        //     ' INSTEAD OF INSERT OR UPDATE OR DELETE ON admin.view_module_' + module.name +
+        //     ' FOR EACH ROW EXECUTE PROCEDURE admin.trigger_module_' + module.name + '();');
 
         await this.add_module_to_modules_table(module);
     }

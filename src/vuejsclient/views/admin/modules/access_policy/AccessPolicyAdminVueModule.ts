@@ -50,7 +50,8 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         if ((
             VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) ||
-            (ModulesManager.getInstance().getModuleByNameAndRole('toyota', Module.SharedModuleRoleName).actif &&
+            (ModulesManager.getInstance().getModuleByNameAndRole('toyota', Module.SharedModuleRoleName) &&
+                ModulesManager.getInstance().getModuleByNameAndRole('toyota', Module.SharedModuleRoleName).actif &&
                 VueAppController.getInstance().hasRole('acces.toyota.roles.admin_central.label') ||
                 VueAppController.getInstance().hasRole('acces.toyota.roles.fac_coventeam.label'))
         ) && (
@@ -131,7 +132,8 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password"));
 
         // TODO FIXME ne doit pas avoir besoin de ça ici.... à remplacer ASAP
-        if (ModulesManager.getInstance().getModuleByNameAndRole('gr', Module.SharedModuleRoleName).actif) {
+        if (ModulesManager.getInstance().getModuleByNameAndRole('gr', Module.SharedModuleRoleName) &&
+            ModulesManager.getInstance().getModuleByNameAndRole('gr', Module.SharedModuleRoleName).actif) {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("admin"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("super_admin"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("admin_central"));

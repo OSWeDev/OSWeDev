@@ -473,7 +473,6 @@ export default abstract class ServerBase {
                 {
                     data_version: ServerBase.getInstance().version,
                     data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
-                    data_url_import: ServerBase.getInstance().envParam.URL_IMPORT,
                     data_node_env: process.env.NODE_ENV,
                     data_user: user_infos,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
