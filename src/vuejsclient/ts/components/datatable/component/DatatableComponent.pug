@@ -1,0 +1,56 @@
+v-client-table(
+        :data="datatable_data",
+        :columns="datatable_columns",
+        :options="datatable_options"
+    )
+
+    div(slot="filter____multiselect_column__")
+        input.d-print-none.form-control(type="checkbox" v-model="allselected_chck" @click.prevent="selectAll()")
+    
+    div(slot="__multiselect_column__" slot-scope="props")
+        input.d-print-none.form-control(type="checkbox" v-model="selected_datas[props.row.id]")
+
+    div(slot="__actions_column__" slot-scope="props")
+        .btn-group.d-print-none
+            router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(api_type_id, props.row.id)")
+                i.fa.fa-pencil
+            router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
+                i.fa.fa-trash
+
+    template(v-for="field in date_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable')
+        input.form-control.d-print-none(v-if="custom_filters_values[field.datatable_field_uid]" type="date" v-model="custom_filters_values[field.datatable_field_uid].start" :max="custom_filters_values[field.datatable_field_uid].end" @change="onChangeFilterValue()")
+        input.form-control.d-print-none(v-if="custom_filters_values[field.datatable_field_uid]" type="date" v-model="custom_filters_values[field.datatable_field_uid].end" :min="custom_filters_values[field.datatable_field_uid].start" @change="onChangeFilterValue()")
+
+    template(v-for="field in text_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable')
+        input.form-control.d-print-none(type="text" v-model="custom_filters_values[field.datatable_field_uid]")
+
+    template(v-for="field in multiselect_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable')
+        v-select.v-select-multiple.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", multiple, :options="custom_filters_options[field.datatable_field_uid]")
+
+    template(v-for="field in boolean_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable')
+        v-select.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", :options="custom_filters_options[field.datatable_field_uid]")
+
+    template(v-for="field in datatable.fields" :slot="field.datatable_field_uid" slot-scope="props")
+        template(v-if="field.type == 'Simple'")
+            template(v-if="field.moduleTableField.field_type == 'boolean'")
+                template(v-if="props.row[field.datatable_field_uid]")
+                    i.fa.fa-check
+            template(v-else-if="field.moduleTableField.field_type == 'password'")
+                i.fa.fa-lock
+            template(v-else)
+                span {{ props.row[field.datatable_field_uid] }}
+        template(v-else-if="field.type == 'ManyToOne'")
+            template(v-if="props.row[field.datatable_field_uid]")
+                template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, props.row[field.datatable_field_uid + '___id___']))")
+                    router-link.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, props.row[field.datatable_field_uid + '___id___'])" target='_blank') {{ props.row[field.datatable_field_uid] }}
+                template(v-else)
+                    span {{ props.row[field.datatable_field_uid] }}
+        template(v-else-if="field.type == 'ManyToMany'")
+            template(v-if="props.row[field.datatable_field_uid]")
+                template(v-for="e in props.row[field.datatable_field_uid]")
+                    template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id))")
+                        router-link.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id)" target='_blank') {{ e.label }}
+                    template(v-else)
+                        span {{ e.label }}
+        template(v-else)
+            span {{ props.row[field.datatable_field_uid] }}

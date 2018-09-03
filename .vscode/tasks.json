@@ -4,13 +4,9 @@
         {
             "label": "tsc watch",
             "type": "shell",
-            "command": "tsc",
+            "command": "npm run-script tsc-watch",
             "isBackground": true,
-            "args": [
-                "--watch",
-                "--project",
-                "./"
-            ],
+            "args": [],
             "group": {
                 "kind": "build",
                 "isDefault": true

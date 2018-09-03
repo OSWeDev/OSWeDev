@@ -1,0 +1,11 @@
+table.import_logs.grid.table.table-condensed.table-hover.table-striped
+    thead
+        tr
+            th {{ t('admin.import.logs_table.date_th') }}
+            th {{ t('admin.import.logs_table.log_level_th') }}
+            th {{ t('admin.import.logs_table.message_th') }}
+    tbody
+        tr(v-for="log in import_logs", class="import_logs {{ log.log_level }}")
+            td {{ humanizeDurationTo(log.date) }}
+            td {{ log.log_level }}
+            td {{ log.message }}

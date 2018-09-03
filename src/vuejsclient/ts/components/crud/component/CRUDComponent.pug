@@ -1,0 +1,171 @@
+include ../../../../views/mixins/loading.pug
+
+mixin simple_input_types(vo, field_type)
+    .form-group(:class=field_type)
+        label {{ t(field.translatable_title) }}
+            template(v-if="field.is_required")
+                i.fa.fa-asterisk.mandatory
+        template(v-if=field_type+" == 'password'")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-if=field_type+" == 'text'")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'boolean'")
+            input.form-control(type="checkbox" v-model=vo+"[field.datatable_field_uid]" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'number'")
+            input.form-control(type="number" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'amount'")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'float'")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'pct'")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'HourAndMinuteWithoutLimit'")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'HourAndMinute'")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if="("+field_type+" == 'date') || ("+field_type+" == 'day')")
+            input.form-control(type="date" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'daterange'")
+            input.form-control(type="date" v-model=vo+"[field.datatable_field_uid + '_start']" :disabled="field.is_readonly" @change="updateDateRange("+vo+", field)" @input="validateInput($event.target, field)")
+            input.form-control(type="date" v-model=vo+"[field.datatable_field_uid + '_end']" :disabled="field.is_readonly" @change="updateDateRange("+vo+", field)" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'tsrange'")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'timestamp'")
+            input.form-control(type="number" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+        template(v-else-if=field_type+" == 'enum'")
+            multiselect(
+                v-model=vo+"[field.datatable_field_uid]" 
+                :custom-label="field.enumIdToHumanReadable",
+                :options="select_options[field.datatable_field_uid]",
+                :loading="isLoadingOptions[field.datatable_field_uid]",
+                :id="field.datatable_field_uid",
+                :searchable="true",
+                :internal-search="false",
+                :allow-empty="!field.is_required",
+                :disabled="field.is_readonly",
+                :preselectFirst="field.is_required",
+                @search-change="asyncLoadEnumOptions",
+                @input="onChangeField("+vo+", field)")
+
+
+mixin manytoone_input(vo)
+    .form-group
+        label {{ t(field.translatable_title) }}
+            template(v-if="field.is_required")
+                i.fa.fa-asterisk.mandatory
+        .btn-group.link_ref
+            template(v-if=vo+"[field.datatable_field_uid]")
+                router-link.btn.btn-sm.btn-primary(:to="getCRUDUpdateLink(field.targetModuleTable.vo_type, "+vo+"[field.datatable_field_uid])" target='_blank')
+                    i.fa.fa-pencil
+            router-link.btn.btn-sm.btn-success(:to="getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
+                i.fa.fa-plus-circle 
+        multiselect(
+            v-model=vo+"[field.datatable_field_uid]", 
+            :custom-label="field.voIdToHumanReadable",
+            :options="select_options[field.datatable_field_uid]",
+            :placeholder="t(field.translatable_place_holder)",
+            :loading="isLoadingOptions[field.datatable_field_uid]",
+            :id="field.datatable_field_uid",
+            :searchable="true",
+            :internal-search="false",
+            :allow-empty="!field.is_required",
+            :preselectFirst="field.is_required",
+            @search-change="asyncLoadOptions",
+            @input="onChangeField("+vo+", field)")
+
+.crud-wrapper
+    +loading()
+        .crud-table-wrapper
+            .table-title
+                h5 {{ CRUDTitle }}
+                .btn-group.d-print-none
+                    button.btn.btn-sm.btn-outline-dark.m-1(v-if="isExportableToXLSX", href="#", @click="export_to_xlsx()")
+                        i.fa.fa-download
+                        span {{ label('crud.actions.export') }}
+                    router-link.btn.btn-sm.btn-success.m-1(:to="getCRUDCreateLink(api_type_id)", v-if='!isModuleParamTable')
+                        i.fa.fa-plus-circle 
+                        span {{ label('crud.actions.create') }}
+                    //- a.btn.btn-danger(role="button" href="#deleteData" data-toggle="modal" v-if="select_options && (select_options.length > 1)")
+                    //-     i.fa.fa-trash
+                    //-     span {{ label('crud.actions.delete') }}
+            datatable.crud_datatable(
+                :key="'datatable_' + crud.readDatatable.API_TYPE_ID"
+                :datatable="crud.readDatatable", 
+                :update_button="true", 
+                :delete_button="true", 
+                :multiselectable="false",
+                :load_datas="false")
+
+        <!-- Edit Modal HTML -->
+        #createData.modal.fade(v-if='!isModuleParamTable')
+            .modal-dialog
+                .modal-content
+                    form(v-on:submit.prevent="createVO")
+                        .modal-header
+                            h4.modal-title {{ label('crud.create.modal.title') }}
+                            router-link.btn.close(:to="getCRUDLink(api_type_id)") &times;
+                        .modal-body
+                            template(v-if="newVO")
+                                template(v-for="field in crud.createDatatable.fields")
+                                    template(v-if="((field.type == 'INPUT') || (field.datatable_field_uid == field.module_table_field_id)) && (field.isVisibleUpdateOrCreate(newVO))")
+                                        template(v-if="field.type == 'Simple'")
+                                            +simple_input_types('newVO', 'field.moduleTableField.field_type')
+
+                                        template(v-else-if="field.type == 'INPUT'")
+                                            +simple_input_types('newVO', 'field.field_type')
+
+                                        template(v-else-if="field.type == 'ManyToOne'")
+                                            +manytoone_input('newVO')
+
+                            template(v-else)
+                                p {{ label('crud.create.modal.content.newvo_failure') }}
+                        .modal-footer
+                            router-link.btn.btn-default(:to="getCRUDLink(api_type_id)") {{ label('crud.create.modal.cancel') }}
+                            template(v-if="newVO")
+                                input.btn.btn-primary(type="submit" :value="label('crud.create.modal.add')")
+        <!-- Edit Modal HTML -->
+        #updateData.modal.fade
+            .modal-dialog
+                .modal-content
+                    form(v-on:submit.prevent="updateVO")
+                        .modal-header
+                            h4.modal-title {{ label('crud.update.modal.title') }}
+                            router-link.btn.close(:to="getCRUDLink(api_type_id)") &times;
+                        .modal-body
+                            template(v-if="selectedVO && editableVO")
+                                template(v-for="field in crud.updateDatatable.fields")
+                                    template(v-if="((field.type == 'INPUT') || (field.datatable_field_uid == field.module_table_field_id)) && (field.isVisibleUpdateOrCreate(editableVO))")
+                                        template(v-if="field.type == 'Simple'")
+                                            +simple_input_types('editableVO', 'field.moduleTableField.field_type')
+
+                                        template(v-else-if="field.type == 'INPUT'")
+                                            +simple_input_types('editableVO', 'field.field_type')
+
+                                        template(v-else-if="field.type == 'ManyToOne'")
+                                            +manytoone_input('editableVO')
+
+                            template(v-else)
+                                p {{ label('crud.update.modal.content.selection_failure') }}
+                        .modal-footer
+                            router-link.btn.btn-default(:to="getCRUDLink(api_type_id)") {{ label('crud.update.modal.cancel') }}
+                            template(v-if="selectedVO && editableVO")
+                                input.btn.btn-primary(type="submit" :value="label('crud.update.modal.save')")
+
+        #deleteData.modal.fade(v-if='!isModuleParamTable')
+            .modal-dialog
+                .modal-content
+                    form(v-on:submit.prevent="deleteVO")
+                        .modal-header
+                            h4.modal-title {{ label('crud.delete.modal.title') }}
+                            router-link.btn.close(:to="getCRUDLink(api_type_id)") &times;
+                        .modal-body
+                            template(v-if="selectedVO")
+                                p {{ label('crud.delete.modal.content') }}
+                                    .text-warning
+                                        small {{ label('crud.delete.modal.content.warning') }}
+                            template(v-else)
+                                p {{ label('crud.delete.modal.content.selection_failure') }}
+                        .modal-footer
+                            router-link.btn.btn-default(:to="getCRUDLink(api_type_id)") {{ label('crud.delete.modal.cancel') }}
+                            template(v-if="selectedVO")
+                                input.btn.btn-danger(type="submit" :value="label('crud.delete.modal.delete')")
