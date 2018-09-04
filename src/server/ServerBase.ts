@@ -26,6 +26,12 @@ import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
 import ModuleCronServer from './modules/Cron/ModuleCronServer';
 import ModuleServiceBase from './modules/ModuleServiceBase';
+// import * as webpush from 'web-push';
+import * as socketIO from 'socket.io';
+import * as sharedsession from 'express-socket.io-session';
+import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
+import SocketWrapper from './modules/PushData/vos/SocketWrapper';
+import NotificationVO from '../shared/modules/PushData/vos/NotificationVO';
 
 export default abstract class ServerBase {
 
@@ -46,6 +52,10 @@ export default abstract class ServerBase {
     private jwtSecret: string;
     private modulesService: ModuleServiceBase;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
+
+    private session;
+
+    // private subscription;
 
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
         ServerBase.instance = this;
@@ -216,6 +226,11 @@ export default abstract class ServerBase {
         this.app.use('/public', express.static('src/client/public'));
         this.app.use('/admin/public', express.static('src/admin/public'));
 
+        // Le service de push
+        this.app.get('/sw_push.js', (req, res, next) => {
+            res.sendFile(path.resolve('./src/vuejsclient/public/sw_push.js'));
+        });
+
         // this.app.use(
         //     expressSession({
         //         secret: 'vk4s8dq2j4',
@@ -265,16 +280,16 @@ export default abstract class ServerBase {
         });
 
 
-        this.app.use(
-            expressSession({
-                secret: 'vk4s8dq2j4',
-                name: 'sid',
-                proxy: true,
-                resave: false,
-                saveUninitialized: false,
-                store: new FileStore()
-            })
-        );
+        this.session = expressSession({
+            secret: 'vk4s8dq2j4',
+            name: 'sid',
+            proxy: true,
+            resave: false,
+            saveUninitialized: false,
+            store: new FileStore()
+        })
+        this.app.use(this.session);
+
 
         this.app.use((req, res, next) => {
             const session = req.session;
@@ -496,8 +511,7 @@ export default abstract class ServerBase {
         // !JNE : Savoir si on est en DEV depuis la Vue.js client
 
         // Déclenchement du cron
-        this.app.get('/cron', (req, res) => {
-
+        this.app.get('/cron', (req: Request, res) => {
             // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
             httpContext.set('IS_CLIENT', false);
 
@@ -506,6 +520,8 @@ export default abstract class ServerBase {
             }), res);
         });
 
+        // this.initializePush();
+        // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
         this.modulesService.configure_server_modules(this.app);
@@ -515,7 +531,34 @@ export default abstract class ServerBase {
             .then(async () => {
                 console.log('connection to db successful');
 
-                ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
+                let server = require('http').Server(ServerBase.getInstance().app);
+                let io = require('socket.io')(server);
+                io.use(sharedsession(ServerBase.getInstance().session));
+
+                server.listen(ServerBase.getInstance().port);
+                // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
+
+                // SocketIO 
+                // let io = socketIO.listen(ServerBase.getInstance().app);
+                //turn off debug
+                // io.set('log level', 1);
+                // define interactions with client
+                io.on('connection', function (socket: socketIO.Socket) {
+                    let session: Express.Session = socket.handshake['session'];
+
+                    if (!session) {
+                        console.error('Impossible de charger la session dans SocketIO');
+                        return;
+                    }
+
+                    ModulePushDataServer.getInstance().registerSocket(session.user ? session.user.id : null, session.id, socket);
+                    socket.on('my other event', function (data) {
+                        console.log(data);
+                    });
+                }.bind(ServerBase.getInstance()));
+
+                // ServerBase.getInstance().testNotifs();
+
                 await ServerBase.getInstance().hook_on_ready();
                 console.log('Server ready to go !');
             })
@@ -600,4 +643,66 @@ export default abstract class ServerBase {
 
     protected registerApis(app) {
     }
+
+    // private initializePushApis(app) {
+    //     let self = this;
+
+    //     app.post('/subscribepush', (req, res) => {
+    //         self.subscription = req.body;
+    //         res.status(201).json({});
+    //         const payload = JSON.stringify({ title: 'test' });
+    //         webpush.sendNotification(self.subscription, payload);
+
+    //         setTimeout(self.testNotifs.bind(self), 1000);
+    //     });
+    // }
+
+    // private async testNotifs() {
+
+    //     try {
+
+    //         let allSockets: SocketWrapper[] = ModulePushDataServer.getInstance().getAllSockets();
+    //         let allUsersIds: number[] = [];
+    //         for (let i in allSockets) {
+    //             let socketWrapper: SocketWrapper = allSockets[i];
+    //             if (allUsersIds.indexOf(socketWrapper.userId) < 0) {
+    //                 allUsersIds.push(socketWrapper.userId);
+    //             }
+    //         }
+
+    //         for (let i in allUsersIds) {
+    //             let userId: number = allUsersIds[i];
+
+    //             let notification: NotificationVO = new NotificationVO();
+    //             notification.notification_type = NotificationVO.TYPE_NOTIF_SIMPLE;
+    //             let index = Math.floor(Math.random() * 4);
+    //             notification.simple_notif_type = [NotificationVO.SIMPLE_SUCCESS, NotificationVO.SIMPLE_INFO, NotificationVO.SIMPLE_WARN, NotificationVO.SIMPLE_ERROR][index];
+    //             notification.simple_notif_label = 'notifsimple.' + index;
+
+    //             await ModulePushDataServer.getInstance().notify(userId, notification);
+    //         }
+
+    //         setTimeout(this.testNotifs.bind(this), 5000);
+    //     } catch (e) {
+    //         console.error(e);
+    //     }
+    // }
+
+    // private async testNotifs() {
+    //     const payload = JSON.stringify({ title: 'test' });
+
+    //     try {
+    //         await webpush.sendNotification(this.subscription, payload);
+    //         setTimeout(this.testNotifs.bind(this), 10000);
+    //     } catch (e) {
+    //         console.error(e);
+    //     }
+    // }
+
+    // private initializePush() {
+    //     const publicVapidKey = this.envParam.PUBLIC_VAPID_KEY;
+    //     const privateVapidKey = this.envParam.PRIVATE_VAPID_KEY;
+
+    //     webpush.setVapidDetails('mailto:contact@wedev.fr', publicVapidKey, privateVapidKey);
+    // }
 }
