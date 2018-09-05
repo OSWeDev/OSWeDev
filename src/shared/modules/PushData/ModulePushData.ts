@@ -2,6 +2,8 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import NotificationVO from './vos/NotificationVO';
+import VOsTypesManager from '../VOsTypesManager';
+import UserVO from '../AccessPolicy/vos/UserVO';
 
 export default class ModulePushData extends Module {
 
@@ -43,6 +45,7 @@ export default class ModulePushData extends Module {
         ];
 
         let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, datatable_fields, "Notifications");
+        user_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], "name");
         this.datatables.push(datatable);
     }
 }

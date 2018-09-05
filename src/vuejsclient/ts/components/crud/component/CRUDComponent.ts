@@ -19,11 +19,14 @@ import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../VueComponentBase';
 import CRUD from '../vos/CRUD';
 import "./CRUDComponent.scss";
+import FileAdminVueBase from '../../../../views/admin/modules/file/FileAdminVueBase';
+import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 
 @Component({
     template: require('./CRUDComponent.pug'),
     components: {
-        datatable: DatatableComponent
+        datatable: DatatableComponent,
+        fileinput: FileAdminVueBase
     },
     directives: {
         select2: select2
@@ -657,5 +660,12 @@ export default class CRUDComponent extends VueComponentBase {
             return;
         }
         field.onChange(vo);
+    }
+
+    private uploadedFile(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
+        if ((!fileVo) || (!fileVo.id)) {
+            return;
+        }
+        vo[field.datatable_field_uid] = fileVo.id;
     }
 }

@@ -252,6 +252,7 @@ export default class DatatableComponent extends VueComponentBase {
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum)) {
                     continue;
                 }
@@ -577,22 +578,12 @@ export default class DatatableComponent extends VueComponentBase {
             if (field.type == DatatableField.INPUT_FIELD_TYPE) {
                 continue;
             }
+            if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+                let simpleField: SimpleDatatableField<any, any> = this.datatable.fields[i] as SimpleDatatableField<any, any>;
 
-            res.push(field.datatable_field_uid);
-        }
-
-        return res;
-    }
-
-    get filterable_columns(): string[] {
-        let res: string[] = [];
-
-        for (let i in this.datatable.fields) {
-            let field: DatatableField<any, any> = this.datatable.fields[i];
-
-            if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-                ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
-                continue;
+                if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
+                    continue;
+                }
             }
 
             res.push(field.datatable_field_uid);
@@ -720,7 +711,7 @@ export default class DatatableComponent extends VueComponentBase {
 
         return {
             filterByColumn: true,
-            filterable: [], //this.filterable_columns,
+            filterable: [],
             perPage: 15,
             perPageValues: [],
             // initFilters: this.preloadFilter,

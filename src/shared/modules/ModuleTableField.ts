@@ -14,6 +14,8 @@ export default class ModuleTableField<T> {
     public static VALIDATION_CODE_TEXT_need_uppercase: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_uppercase";
     public static VALIDATION_CODE_TEXT_need_h: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_h";
 
+    public static FIELD_TYPE_file: string = 'file';
+    public static FIELD_TYPE_html: string = 'html';
     public static FIELD_TYPE_boolean: string = 'boolean';
     public static FIELD_TYPE_password: string = 'password';
     public static FIELD_TYPE_string: string = 'text';
@@ -207,6 +209,8 @@ export default class ModuleTableField<T> {
             case 'real':
                 return "real";
 
+            case ModuleTableField.FIELD_TYPE_file:
+            case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_password:
             default:
@@ -230,6 +234,8 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_password:
                 return this.passwordIsValidProposition(data);
 
+            case ModuleTableField.FIELD_TYPE_file:
+            case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_amount:

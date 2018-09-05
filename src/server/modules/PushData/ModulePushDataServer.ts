@@ -1,11 +1,9 @@
-import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
-import ModuleServerBase from '../ModuleServerBase';
 import * as socketIO from 'socket.io';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
-import SocketWrapper from './vos/SocketWrapper';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
+import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
+import ModuleServerBase from '../ModuleServerBase';
+import SocketWrapper from './vos/SocketWrapper';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
