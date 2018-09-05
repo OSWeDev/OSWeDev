@@ -277,7 +277,7 @@ export default abstract class VueAppBase {
 
     protected abstract createVueMain(): VueComponentBase;
     protected abstract async initializeVueAppModulesDatas();
-    protected abstract getVAPIDPublicKey(): Uint8Array;
+    // protected abstract getVAPIDPublicKey(): Uint8Array;
 
     // private async registerPushWorker() {
     //     const publicVapidKey = this.getVAPIDPublicKey();
