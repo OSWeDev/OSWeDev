@@ -11,6 +11,6 @@ export default class EnvParam {
     public BASE_URL: string;
     public BLOCK_MAIL_DELIVERY: boolean;
     public BDD_OWNER: string;
-    public PUBLIC_VAPID_KEY: string;
-    public PRIVATE_VAPID_KEY: string;
+    // public PUBLIC_VAPID_KEY: string;
+    // public PRIVATE_VAPID_KEY: string;
 }
