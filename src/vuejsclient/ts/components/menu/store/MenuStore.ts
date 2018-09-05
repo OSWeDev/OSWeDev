@@ -47,7 +47,7 @@ export default class MenuStore implements IStoreModule<IMenuState, MenuContext> 
 
                 let menuElements = infos.menuElements;
                 if (!menuElements) {
-                    menuElements = this.state.menuElements;
+                    menuElements = state.menuElements;
                 }
 
                 return MenuController.getInstance().getMenuElementInStoreElements(infos.UID, menuElements);

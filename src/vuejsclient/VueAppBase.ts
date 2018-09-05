@@ -1,43 +1,46 @@
 import 'bootstrap';
 import 'jquery';
 import * as moment from 'moment';
+import 'select2';
+import VTooltip from 'v-tooltip';
+import Vue from 'vue';
+import VueI18n from 'vue-i18n';
+import Multiselect from 'vue-multiselect';
+import 'vue-multiselect/dist/vue-multiselect.min.css';
+import * as VueResource from 'vue-resource';
+import VueRouter, { RouterOptions } from 'vue-router';
+import { RouteConfig } from 'vue-router/types/router';
+import vSelect from 'vue-select';
+import Snotify from 'vue-snotify';
+import { ClientTable } from "vue-tables-2";
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import LocaleManager from '../shared/tools/LocaleManager';
-import 'select2';
-import VTooltip from 'v-tooltip';
-import Vue from 'vue';
-import VueI18n from 'vue-i18n';
-import * as VueResource from 'vue-resource';
-import VueRouter, { RouterOptions } from 'vue-router';
-import { RouteConfig } from 'vue-router/types/router';
-import Snotify from 'vue-snotify';
-import vSelect from 'vue-select';
-import { ClientTable } from "vue-tables-2";
 import IVueModule from '../vuejsclient/ts/modules/IVueModule';
 import VueModuleBase from '../vuejsclient/ts/modules/VueModuleBase';
-import VueComponentBase from './ts/components/VueComponentBase';
-import VueAppController from './VueAppController';
-import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
-import Multiselect from 'vue-multiselect';
-import 'vue-multiselect/dist/vue-multiselect.min.css';
-import ModulesAdminVueModule from './views/modules/ModulesAdminVueModule';
-import Error404Component from './ts/components/Error404/component/Error404Component';
 import DefaultHomeComponent from './ts/components/DefaultHome/component/DefaultHomeComponent';
-
+import Error404Component from './ts/components/Error404/component/Error404Component';
+import VueComponentBase from './ts/components/VueComponentBase';
+import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
+import VueAppController from './VueAppController';
+import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 
 export default abstract class VueAppBase {
 
     public static instance_: VueAppBase;
 
+    public static getInstance(): VueAppBase {
+        return this.instance_;
+    }
+
     public vueInstance: VueComponentBase;
     protected vueRouter: VueRouter;
 
     protected constructor(
-        private appController: VueAppController,
+        public appController: VueAppController,
         private initializeModulesDatas: () => {}
     ) {
         VueAppBase.instance_ = this;
@@ -57,6 +60,9 @@ export default abstract class VueAppBase {
 
         // Chargement des données des modules.
         await this.initializeModulesDatas();
+
+        PushDataVueModule.getInstance().initialize();
+
         await this.initializeVueAppModulesDatas();
 
         var baseApiUrl = this.appController.data_base_api_url || '';
@@ -241,6 +247,8 @@ export default abstract class VueAppBase {
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
 
+        // this.registerPushWorker();
+
         window.onbeforeunload = function (e) {
             var e = e || window.event;
 
@@ -269,4 +277,35 @@ export default abstract class VueAppBase {
 
     protected abstract createVueMain(): VueComponentBase;
     protected abstract async initializeVueAppModulesDatas();
+    protected abstract getVAPIDPublicKey(): Uint8Array;
+
+    // private async registerPushWorker() {
+    //     const publicVapidKey = this.getVAPIDPublicKey();
+
+    //     if ('serviceWorker' in navigator) {
+
+    //         console.log('Registering service worker');
+    //         const registration = await navigator.serviceWorker.
+    //             register('sw_push.js', { scope: '/' });
+    //         console.log('Registered service worker');
+
+    //         console.log('Registering push');
+    //         const subscription = await registration.pushManager.
+    //             subscribe({
+    //                 userVisibleOnly: true,
+    //                 applicationServerKey: publicVapidKey
+    //             });
+    //         console.log('Registered push');
+
+    //         console.log('Sending push');
+    //         await fetch('/subscribepush', {
+    //             method: 'POST',
+    //             body: JSON.stringify(subscription),
+    //             headers: {
+    //                 'content-type': 'application/json'
+    //             }
+    //         });
+    //         console.log('Sent push');
+    //     }
+    // }
 }

@@ -27,6 +27,8 @@ import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSS
 import ModuleCronServer from './Cron/ModuleCronServer';
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
 import ConfigurationService from '../env/ConfigurationService';
+import ModulePushDataServer from './PushData/ModulePushDataServer';
+import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 
 export default abstract class ModuleServiceBase {
 
@@ -254,6 +256,7 @@ export default abstract class ModuleServiceBase {
             ModuleTrigger.getInstance(),
             ModuleCron.getInstance(),
             ModuleTranslation.getInstance(),
+            ModulePushData.getInstance(),
             ModuleFormatDatesNombres.getInstance(),
             ModuleMailer.getInstance(),
             ModuleDataImport.getInstance(),
@@ -270,6 +273,7 @@ export default abstract class ModuleServiceBase {
             ModuleAccessPolicyServer.getInstance(),
             ModuleCronServer.getInstance(),
             ModuleTranslationServer.getInstance(),
+            ModulePushDataServer.getInstance(),
             ModuleMailerServer.getInstance(),
             ModuleDataImportServer.getInstance(),
             ModuleDataExportServer.getInstance(),
