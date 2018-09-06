@@ -117,6 +117,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         importHistoric.state = ModuleDataImport.IMPORTATION_STATE_FORMATTED;
         await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
         await ModulePushDataServer.getInstance().notifyDAOGetVoById(importHistoric.user_id, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
+        await ModulePushDataServer.getInstance().notifySimpleSUCCESS(importHistoric.user_id, "import.success.formatted");
     }
 
     private async importDatas(importHistoric: DataImportHistoricVO): Promise<void> {
@@ -128,6 +129,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         importHistoric.state = ModuleDataImport.IMPORTATION_STATE_IMPORTED;
         await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
         await ModulePushDataServer.getInstance().notifyDAOGetVoById(importHistoric.user_id, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
+        await ModulePushDataServer.getInstance().notifySimpleSUCCESS(importHistoric.user_id, "import.success.imported");
     }
 
     private async posttreatDatas(importHistoric: DataImportHistoricVO): Promise<void> {
@@ -139,6 +141,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         importHistoric.state = ModuleDataImport.IMPORTATION_STATE_POSTTREATED;
         await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
         await ModulePushDataServer.getInstance().notifyDAOGetVoById(importHistoric.user_id, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
+        await ModulePushDataServer.getInstance().notifySimpleSUCCESS(importHistoric.user_id, "import.success.imported");
     }
 
     public registerServerApiHandlers() {
