@@ -525,10 +525,10 @@ export default class CRUDComponent extends VueComponentBase {
                 return;
             }
 
-            res.id = parseInt(res.id.toString());
+            let id = res.id ? parseInt(res.id.toString()) : null;
 
-            let createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, res.id);
-            if ((!createdVO) || (createdVO.id !== res.id) || (createdVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
+            let createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, id);
+            if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
                 this.snotify.error(this.label('crud.create.errors.create_failure'));
                 return;
             }
@@ -564,7 +564,9 @@ export default class CRUDComponent extends VueComponentBase {
             }
 
             let res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
-            if ((!res) || (!res.id) || (res.id != this.selectedVO.id)) {
+            let id = res.id ? parseInt(res.id.toString()) : null;
+
+            if ((!res) || (!id) || (id != this.selectedVO.id)) {
                 this.snotify.error(this.label('crud.update.errors.update_failure'));
                 return;
             }

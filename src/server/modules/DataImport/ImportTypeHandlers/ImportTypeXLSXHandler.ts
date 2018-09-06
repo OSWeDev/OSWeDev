@@ -26,11 +26,11 @@ export default class ImportTypeXLSXHandler {
 
     public async importFile(
         dataImportFile: DataImportFileVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO,
-        import_name: string, import_file: File, imported_data_target_date: Moment): Promise<IImportData[]> {
+        import_uid: string, import_file: File, imported_data_target_date: Moment): Promise<IImportData[]> {
 
-        let workbook: WorkBook = this.loadWorkbook(historic, import_name, import_file);
+        let workbook: WorkBook = this.loadWorkbook(historic, import_uid, import_file);
         if (!workbook) {
-            ImportLogger.getInstance().log(historic, 'Impossible de charger le workbook', DataImportLogVO.LOG_LEVEL_50_ERROR);
+            ImportLogger.getInstance().log(historic, 'Impossible de charger le workbook', DataImportLogVO.LOG_LEVEL_ERROR);
             return null;
         }
 
@@ -39,9 +39,9 @@ export default class ImportTypeXLSXHandler {
          *   On stocke tout dans un objet de base, et on met le _type qui correspond à la définition de table créée
          *      artificiellement pour ce type d'import.
          */
-        let worksheet: WorkSheet = this.loadWorksheet(historic, import_name, dataImportFile, workbook);
+        let worksheet: WorkSheet = this.loadWorksheet(historic, import_uid, dataImportFile, workbook);
         if (!worksheet) {
-            ImportLogger.getInstance().log(historic, 'Impossible de charger le worksheet', DataImportLogVO.LOG_LEVEL_50_ERROR);
+            ImportLogger.getInstance().log(historic, 'Impossible de charger le worksheet', DataImportLogVO.LOG_LEVEL_ERROR);
             return null;
         }
 
@@ -75,25 +75,25 @@ export default class ImportTypeXLSXHandler {
                                 epoch = moment('1904-01-01');
                             }
                             epoch.add(column_data_string.v, 'days');
-                            rowData[dataImportColumn.name] = DateHandler.getInstance().formatDayForIndex(epoch);
+                            rowData[dataImportColumn.title] = DateHandler.getInstance().formatDayForIndex(epoch);
                             break;
                         case DataImportColumnVO.TYPE_NUMBER:
                             if (column_data_string.h && column_data_string.h != "") {
-                                rowData[dataImportColumn.name] = column_data_string.h.toString().replace(" ", "").replace(",", ".");
+                                rowData[dataImportColumn.title] = column_data_string.h.toString().replace(" ", "").replace(",", ".");
                             } else if (column_data_string.v && column_data_string.v != "") {
-                                rowData[dataImportColumn.name] = column_data_string.v.toString().replace(" ", "").replace(",", ".");
+                                rowData[dataImportColumn.title] = column_data_string.v.toString().replace(" ", "").replace(",", ".");
                             } else if (column_data_string.w && column_data_string.w != "") {
-                                rowData[dataImportColumn.name] = column_data_string.w.toString().replace(" ", "").replace(",", ".");
+                                rowData[dataImportColumn.title] = column_data_string.w.toString().replace(" ", "").replace(",", ".");
                             }
                             break;
                         case DataImportColumnVO.TYPE_STRING:
                         default:
                             if (column_data_string.h && column_data_string.h != "") {
-                                rowData[dataImportColumn.name] = column_data_string.h;
+                                rowData[dataImportColumn.title] = column_data_string.h;
                             } else if (column_data_string.w && column_data_string.w != "") {
-                                rowData[dataImportColumn.name] = column_data_string.w;
+                                rowData[dataImportColumn.title] = column_data_string.w;
                             } else if (column_data_string.v && column_data_string.v != "") {
-                                rowData[dataImportColumn.name] = column_data_string.v;
+                                rowData[dataImportColumn.title] = column_data_string.v;
                             }
                     }
                 }
@@ -107,9 +107,9 @@ export default class ImportTypeXLSXHandler {
         }
 
         try {
-            await this.insertImportedDatasInDb(datas, dataImportFile, dataImportColumns, historic, import_name, import_file);
+            await this.insertImportedDatasInDb(datas, dataImportFile, dataImportColumns, historic, import_uid, import_file);
         } catch (error) {
-            ImportLogger.getInstance().log(historic, error, DataImportLogVO.LOG_LEVEL_50_ERROR);
+            ImportLogger.getInstance().log(historic, error, DataImportLogVO.LOG_LEVEL_ERROR);
             return null;
         }
         return datas;
@@ -117,7 +117,7 @@ export default class ImportTypeXLSXHandler {
 
     private async insertImportedDatasInDb(
         vos: IImportData[], dataImportFile: DataImportFileVO, dataImportColumns: DataImportColumnVO[],
-        historic: DataImportHistoricVO, import_name: string, import_file: File): Promise<any[]> {
+        historic: DataImportHistoricVO, import_uid: string, import_file: File): Promise<any[]> {
 
         // Avant de remplir la base, on la vide.
         await ModuleServiceBase.getInstance().db.none("TRUNCATE " + dataImportFile.datatable_fullname + ";");
@@ -135,11 +135,11 @@ export default class ImportTypeXLSXHandler {
                 let hasFields: boolean = false;
                 for (const f in dataImportColumns) {
 
-                    if (typeof vo[dataImportColumns[f].name] != "undefined") {
+                    if (typeof vo[dataImportColumns[f].title] != "undefined") {
 
                         hasFields = true;
-                        tableFields.push(dataImportColumns[f].name);
-                        placeHolders.push('${' + dataImportColumns[f].name + '}');
+                        tableFields.push(dataImportColumns[f].title);
+                        placeHolders.push('${' + dataImportColumns[f].title + '}');
                     }
                 }
 
@@ -165,20 +165,20 @@ export default class ImportTypeXLSXHandler {
         return results;
     }
 
-    private loadWorkbook(historic: DataImportHistoricVO, import_name: string, import_file: File): WorkBook {
+    private loadWorkbook(historic: DataImportHistoricVO, import_uid: string, import_file: File): WorkBook {
         let workbook: WorkBook = null;
 
         try {
             workbook = XLSX.readFile(import_file.path);
         } catch (error) {
             console.error(error);
-            ImportLogger.getInstance().log(historic, error, DataImportLogVO.LOG_LEVEL_50_ERROR);
+            ImportLogger.getInstance().log(historic, error, DataImportLogVO.LOG_LEVEL_ERROR);
         }
 
         return workbook;
     }
 
-    private loadWorksheet(historic: DataImportHistoricVO, import_name: string, dataImportFile: DataImportFileVO, workbook: WorkBook): WorkSheet {
+    private loadWorksheet(historic: DataImportHistoricVO, import_uid: string, dataImportFile: DataImportFileVO, workbook: WorkBook): WorkSheet {
 
         let worksheet: WorkSheet = null;
 
@@ -190,7 +190,7 @@ export default class ImportTypeXLSXHandler {
             worksheet = workbook.Sheets[sheet_name];
         } catch (error) {
             console.error(error);
-            ImportLogger.getInstance().log(historic, error, DataImportLogVO.LOG_LEVEL_50_ERROR);
+            ImportLogger.getInstance().log(historic, error, DataImportLogVO.LOG_LEVEL_ERROR);
         }
 
         return worksheet;

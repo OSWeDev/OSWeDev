@@ -25,15 +25,16 @@ export default class ModuleCron extends Module {
         this.fields = [];
         this.datatables = [];
 
+        let label_field = new ModuleTableField('planification_uid', ModuleTableField.FIELD_TYPE_string, 'planification_uid', true);
         let datatable_fields = [
-            new ModuleTableField('planification_uid', ModuleTableField.FIELD_TYPE_string, 'planification_uid', true),
+            label_field,
             new ModuleTableField('worker_uid', ModuleTableField.FIELD_TYPE_string, 'worker_uid', true),
             new ModuleTableField('date_heure_planifiee', ModuleTableField.FIELD_TYPE_string, 'date_heure_planifiee', true),
             new ModuleTableField('type_recurrence', ModuleTableField.FIELD_TYPE_int, 'type_recurrence', true),
             new ModuleTableField('intervale_recurrence', ModuleTableField.FIELD_TYPE_float, 'intervale_recurrence', true),
         ];
 
-        this.datatable_cronworkplan = new ModuleTable(this, CronWorkerPlanification.API_TYPE_ID, datatable_fields, "Tâches planifiées");
+        this.datatable_cronworkplan = new ModuleTable(this, CronWorkerPlanification.API_TYPE_ID, datatable_fields, label_field, "Tâches planifiées");
         this.datatables.push(this.datatable_cronworkplan);
     }
 }

@@ -14,6 +14,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import APIDAOParamsVO from '../../../shared/modules/DAO/vos/APIDAOParamsVO';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -44,8 +45,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private pre_delete_trigger_hook: DAOTriggerHook;
 
     // private post_read_trigger_hook: DAOTriggerHook;
-    // private post_update_trigger_hook: DAOTriggerHook;
-    // private post_create_trigger_hook: DAOTriggerHook;
+    private post_update_trigger_hook: DAOTriggerHook;
+    private post_create_trigger_hook: DAOTriggerHook;
     // private post_delete_trigger_hook: DAOTriggerHook;
 
     public async configure() {
@@ -59,10 +60,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // this.post_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_READ_TRIGGER);
 
-        // this.post_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        // ModuleTrigger.getInstance().registerTriggerHook(this.post_update_trigger_hook);
-        // this.post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
-        // ModuleTrigger.getInstance().registerTriggerHook(this.post_create_trigger_hook);
+        this.post_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.post_update_trigger_hook);
+        this.post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(this.post_create_trigger_hook);
         // this.post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
         // ModuleTrigger.getInstance().registerTriggerHook(this.post_delete_trigger_hook);
     }
@@ -88,38 +89,45 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ONE, this.selectOne.bind(this));
     }
 
-    private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<any[]> {
+    private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
 
-        let results: any[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
+        let isUpdates: boolean[] = [];
+        let results: InsertOrDeleteQueryResult[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
             let queries: any[] = [];
 
             for (let i in vos) {
                 let vo: IDistantVOBase = vos[i];
 
-                let isUpdate: boolean = vo.id ? true : false;
+                isUpdates[i] = vo.id ? true : false;
                 let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
 
                 if (!sql) {
                     continue;
                 }
 
-                queries.push(t.oneOrNone(sql, vo)/*posttrigger pas si simple : .then(async (data) => {
-                    if (isUpdate) {
-                        await this.post_update_trigger_hook.trigger(vo._type, vo);
-                    } else {
-                        await this.post_create_trigger_hook.trigger(vo._type, vo);
-                    }
-                })*/);
+                queries.push(t.oneOrNone(sql, vo));
             }
 
             return t.batch(queries);
         });
 
+        if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
+            for (let i in results) {
+
+                if (isUpdates[i]) {
+                    await this.post_update_trigger_hook.trigger(vos[i]._type, vos[i]);
+                } else {
+                    vos[i].id = parseInt(results[i].id.toString());
+                    await this.post_create_trigger_hook.trigger(vos[i]._type, vos[i]);
+                }
+            }
+        }
+
         return results;
     }
 
-    private async insertOrUpdateVO(vo: IDistantVOBase): Promise<any> {
+    private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 
         let isUpdate: boolean = vo.id ? true : false;
         let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
@@ -128,13 +136,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        return await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo)/*posttrigger pas si simple : .then(async (data) => {
+        let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo);
+
+        if (result && isUpdate && vo) {
             if (isUpdate) {
                 await this.post_update_trigger_hook.trigger(vo._type, vo);
             } else {
+                vo.id = parseInt(result.id.toString());
                 await this.post_create_trigger_hook.trigger(vo._type, vo);
             }
-        })*/;
+        }
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {

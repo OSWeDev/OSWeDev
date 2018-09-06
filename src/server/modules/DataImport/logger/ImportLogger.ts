@@ -75,7 +75,7 @@ export default class ImportLogger {
      * @param updateHistoric Facultatif : par défaut true. Si true on update aussi l'historique (mais sans changement de state). Mettre false si un changement d'état
      * est réalisé en parralèle pour éviter les updates inutiles en base
      */
-    public async log(historique: DataImportHistoricVO, message: string, log_level: string = DataImportLogVO.LOG_LEVEL_10_INFO, updateHistoric: boolean = true) {
+    public async log(historique: DataImportHistoricVO, message: string, log_level: string = DataImportLogVO.LOG_LEVEL_INFO, updateHistoric: boolean = true) {
 
         let log: DataImportLogVO = new DataImportLogVO();
 

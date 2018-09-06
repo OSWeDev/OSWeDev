@@ -49,15 +49,19 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public forceNumeric: (e: T) => T = null;
     public forceNumerics: (es: T[]) => T[] = null;
 
+    public default_label_field: ModuleTableField<any> = null;
+    public importable: boolean = false;
     public isModuleParamTable: boolean = false;
 
     constructor(
         tmp_module: Module,
         tmp_vo_type: string,
         tmp_fields: Array<ModuleDBField<any>>,
+        default_label_field: ModuleTableField<any>,
         label: string | DefaultTranslation = null
     ) {
 
+        this.default_label_field = default_label_field;
         this.forceNumeric = this.defaultforceNumeric;
         this.forceNumerics = this.defaultforceNumerics;
 

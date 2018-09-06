@@ -110,16 +110,17 @@ export default class ModulePushDataServer extends ModuleServerBase {
         return res;
     }
 
-    public async notify(user_id: number, notification: NotificationVO) {
+    private async notify(notification: NotificationVO) {
 
         try {
 
-            // Broadcast to user's sessions or save in DB if no session available
-            let socketWrappers: SocketWrapper[] = this.getUserSockets(user_id);
-            notification.read = false;
-            notification.user_id = user_id;
-            notification.notification_type = notification.notification_type ? notification.notification_type : NotificationVO.TYPE_NOTIF_SIMPLE;
+            if ((!notification.user_id) || (!notification.notification_type)) {
+                return;
+            }
 
+            // Broadcast to user's sessions or save in DB if no session available
+            let socketWrappers: SocketWrapper[] = this.getUserSockets(notification.user_id);
+            notification.read = false;
             if (socketWrappers && socketWrappers.length) {
                 for (let i in socketWrappers) {
                     let socketWrapper: SocketWrapper = socketWrappers[i];
@@ -129,10 +130,61 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 notification.read = true;
             }
 
+            // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
+            if (notification.notification_type != NotificationVO.TYPE_NOTIF_SIMPLE) {
+                return;
+            }
+
             await ModuleDAO.getInstance().insertOrUpdateVO(notification);
         } catch (error) {
 
-            console.error('notify:' + user_id + ':' + error);
+            console.error('notify:' + notification.user_id + ':' + error);
         }
+    }
+
+    public async notifyDAOGetVoById(user_id: number, api_type_id: string, vo_id: number) {
+
+        if ((!user_id) || (!api_type_id) || (!vo_id)) {
+            return;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.api_type_id = api_type_id;
+        notification.dao_notif_type = NotificationVO.DAO_GET_VO_BY_ID;
+        notification.dao_notif_vo_id = vo_id;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_DAO;
+        notification.read = false;
+        notification.user_id = user_id;
+        await this.notify(notification);
+    }
+
+    public async notifySimpleSUCCESS(user_id: number, code_text: string) {
+        await this.notifySimple(user_id, NotificationVO.SIMPLE_SUCCESS, code_text);
+    }
+    public async notifySimpleINFO(user_id: number, code_text: string) {
+        await this.notifySimple(user_id, NotificationVO.SIMPLE_INFO, code_text);
+    }
+    public async notifySimpleWARN(user_id: number, code_text: string) {
+        await this.notifySimple(user_id, NotificationVO.SIMPLE_WARN, code_text);
+    }
+    public async notifySimpleERROR(user_id: number, code_text: string) {
+        await this.notifySimple(user_id, NotificationVO.SIMPLE_ERROR, code_text);
+    }
+
+    private async notifySimple(user_id: number, msg_type: number, code_text: string) {
+
+        if ((!user_id) || (!msg_type) || (!code_text)) {
+            return;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.simple_notif_label = code_text;
+        notification.simple_notif_type = msg_type;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_SIMPLE;
+        notification.read = false;
+        notification.user_id = user_id;
+        await this.notify(notification);
     }
 }

@@ -46,7 +46,7 @@ export default class ModuleTableField<T> {
     public module_table: ModuleTable<any> = null;
     public field_label: DefaultTranslation;
     public manyToOne_target_moduletable: ModuleTable<any> = null;
-    public default_target_label_field_id: string = null;
+    public default_label_field: ModuleTableField<any> = null;
 
     public enum_values: { [value: number]: string } = {};
 
@@ -147,12 +147,12 @@ export default class ModuleTableField<T> {
             'ON UPDATE NO ACTION ON DELETE CASCADE';
     }
 
-    public addManyToOneRelation<T extends IDistantVOBase, U extends IDistantVOBase>(datatable: ModuleTable<T>, target_database: ModuleTable<U>, default_target_label_field_id: string) {
+    public addManyToOneRelation<T extends IDistantVOBase, U extends IDistantVOBase>(datatable: ModuleTable<T>, target_database: ModuleTable<U>, default_label_field: ModuleTableField<any> = null) {
         this.datatable_uid = datatable.datatable_uid;
         this.manyToOne_target_moduletable = target_database;
         this.target_database = target_database.database;
         this.target_table = target_database.name;
-        this.default_target_label_field_id = default_target_label_field_id;
+        this.default_label_field = default_label_field ? default_label_field : target_database.default_label_field;
         this.target_field = 'id';
         this.has_relation = true;
     }

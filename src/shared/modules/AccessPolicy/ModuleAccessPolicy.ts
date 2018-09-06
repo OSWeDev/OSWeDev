@@ -218,8 +218,9 @@ export default class ModuleAccessPolicy extends Module {
 
     private initializeUser() {
         let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ fr: 'Langue' }), true);
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Nom' }), true);
         let datatable_fields = [
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Nom' }), true),
+            label_field,
             new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'E-mail' }), true),
             new ModuleTableField('password', ModuleTableField.FIELD_TYPE_password, new DefaultTranslation({ fr: 'Mot de passe' }), true),
             new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Date de changement du mot de passe' }), false),
@@ -231,17 +232,17 @@ export default class ModuleAccessPolicy extends Module {
             new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_int, new DefaultTranslation({ fr: 'Expiration du challenge' }), false, true, 0),
         ];
 
-        this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Utilisateurs" }));
-        field_lang_id.addManyToOneRelation(this.user_datatable, ModuleTranslation.getInstance().datatable_lang, 'code_lang');
+        this.user_datatable = new ModuleTable(this, UserVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Utilisateurs" }));
+        field_lang_id.addManyToOneRelation(this.user_datatable, ModuleTranslation.getInstance().datatable_lang);
         this.user_datatable.set_bdd_ref('ref', 'user');
     }
 
     private initializeRole() {
+        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let datatable_fields = [
-            new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
+            label_field
         ];
-
-        this.role_datatable = new ModuleTable(this, RoleVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Rôles" }));
+        this.role_datatable = new ModuleTable(this, RoleVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Rôles" }));
         this.datatables.push(this.role_datatable);
     }
 
@@ -253,37 +254,39 @@ export default class ModuleAccessPolicy extends Module {
             field_role_id,
         ];
 
-        this.userroles_datatable = new ModuleTable(this, UserRolesVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Rôles des utilisateurs" }));
+        this.userroles_datatable = new ModuleTable(this, UserRolesVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Rôles des utilisateurs" }));
 
-        field_user_id.addManyToOneRelation(this.userroles_datatable, this.user_datatable, 'name');
-        field_role_id.addManyToOneRelation(this.userroles_datatable, this.role_datatable, 'translatable_name');
+        field_user_id.addManyToOneRelation(this.userroles_datatable, this.user_datatable);
+        field_role_id.addManyToOneRelation(this.userroles_datatable, this.role_datatable);
 
         this.datatables.push(this.userroles_datatable);
     }
 
     private initializeModuleAccessPolicyGroup() {
 
+        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let datatable_fields = [
-            new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
+            label_field,
             new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'UniqID', true),
         ];
 
-        this.accesspolicygroup_datatable = new ModuleTable(this, AccessPolicyGroupVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Groupe de droits" }));
+        this.accesspolicygroup_datatable = new ModuleTable(this, AccessPolicyGroupVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Groupe de droits" }));
 
         this.datatables.push(this.accesspolicygroup_datatable);
     }
 
     private initializeModuleAccessPolicy() {
+        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let field_accpolgroup_id = new ModuleTableField('group_id', 'fkey', 'Group', true, true, 0);
         let datatable_fields = [
-            new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
+            label_field,
             new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'UniqID', true),
             field_accpolgroup_id
         ];
 
-        this.accesspolicy_datatable = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Droit" }));
+        this.accesspolicy_datatable = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Droit" }));
 
-        field_accpolgroup_id.addManyToOneRelation(this.accesspolicy_datatable, this.accesspolicygroup_datatable, 'translatable_name');
+        field_accpolgroup_id.addManyToOneRelation(this.accesspolicy_datatable, this.accesspolicygroup_datatable);
 
         this.datatables.push(this.accesspolicy_datatable);
     }
@@ -297,10 +300,10 @@ export default class ModuleAccessPolicy extends Module {
             new ModuleTableField('granted', ModuleTableField.FIELD_TYPE_boolean, 'Granted', true, true, false),
         ];
 
-        this.rolepolicies_datatable = new ModuleTable(this, RolePoliciesVO.API_TYPE_ID, datatable_fields, new DefaultTranslation({ fr: "Droits des rôles" }));
+        this.rolepolicies_datatable = new ModuleTable(this, RolePoliciesVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Droits des rôles" }));
 
-        field_accpol_id.addManyToOneRelation(this.rolepolicies_datatable, this.accesspolicy_datatable, 'translatable_name');
-        field_role_id.addManyToOneRelation(this.rolepolicies_datatable, this.role_datatable, 'translatable_name');
+        field_accpol_id.addManyToOneRelation(this.rolepolicies_datatable, this.accesspolicy_datatable);
+        field_role_id.addManyToOneRelation(this.rolepolicies_datatable, this.role_datatable);
 
         this.datatables.push(this.rolepolicies_datatable);
     }

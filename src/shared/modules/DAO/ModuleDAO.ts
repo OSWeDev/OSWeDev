@@ -6,6 +6,7 @@ import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import APIDAOParamVO from './vos/APIDAOParamVO';
 import APIDAOParamsVO from './vos/APIDAOParamsVO';
+import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 
 export default class ModuleDAO extends Module {
 
@@ -51,7 +52,7 @@ export default class ModuleDAO extends Module {
                 return res;
             }
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
             (params: IDistantVOBase[]) => {
                 let res: string[] = [];
@@ -67,7 +68,7 @@ export default class ModuleDAO extends Module {
                 return res;
             }
         ));
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase, any>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase, InsertOrDeleteQueryResult>(
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
             (param: IDistantVOBase) => [param._type]
         ));
@@ -103,12 +104,12 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<IDistantVOBase[], any[]>(ModuleDAO.APINAME_DELETE_VOS, vos);
     }
 
-    public async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<any[]> {
-        return await ModuleAPI.getInstance().handleAPI<IDistantVOBase[], any[]>(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, vos);
+    public async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
+        return await ModuleAPI.getInstance().handleAPI<IDistantVOBase[], InsertOrDeleteQueryResult[]>(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, vos);
     }
 
-    public async insertOrUpdateVO(vo: IDistantVOBase): Promise<any> {
-        return await ModuleAPI.getInstance().handleAPI<IDistantVOBase, any>(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, vo);
+    public async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
+        return await ModuleAPI.getInstance().handleAPI<IDistantVOBase, InsertOrDeleteQueryResult>(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, vo);
     }
 
     public async getVoById<T extends IDistantVOBase>(API_TYPE_ID: string, id: number): Promise<T> {

@@ -28,24 +28,28 @@ export default class ModulePushData extends Module {
         let user_id: ModuleTableField<number> = new ModuleTableField<number>('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, false);
         let datatable_fields = [
             new ModuleTableField('notification_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, NotificationVO.TYPE_NOTIF_SIMPLE).setEnumValues({
-                [NotificationVO.TYPE_NOTIF_SIMPLE]: 'notification.TYPE_NOTIF_SIMPLE',
-                [NotificationVO.TYPE_NOTIF_DAO]: 'notification.TYPE_NOTIF_DAO',
-                [NotificationVO.TYPE_NOTIF_HOOK]: 'notification.TYPE_NOTIF_HOOK'
+                [NotificationVO.TYPE_NOTIF_SIMPLE]: NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE],
+                [NotificationVO.TYPE_NOTIF_DAO]: NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DAO],
+                [NotificationVO.TYPE_NOTIF_HOOK]: NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_HOOK]
             }),
             user_id,
-            new ModuleTableField('simple_notif_type', ModuleTableField.FIELD_TYPE_enum, 'Msg Type', false, true, NotificationVO.SIMPLE_INFO).setEnumValues({
-                [NotificationVO.SIMPLE_SUCCESS]: 'notification.SIMPLE_SUCCESS',
-                [NotificationVO.SIMPLE_INFO]: 'notification.SIMPLE_INFO',
-                [NotificationVO.SIMPLE_WARN]: 'notification.SIMPLE_WARN',
-                [NotificationVO.SIMPLE_ERROR]: 'notification.SIMPLE_ERROR'
+            new ModuleTableField('simple_notif_type', ModuleTableField.FIELD_TYPE_enum, 'Msg Type').setEnumValues({
+                [NotificationVO.SIMPLE_SUCCESS]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_SUCCESS],
+                [NotificationVO.SIMPLE_INFO]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_INFO],
+                [NotificationVO.SIMPLE_WARN]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_WARN],
+                [NotificationVO.SIMPLE_ERROR]: NotificationVO.SIMPLE_NAMES[NotificationVO.SIMPLE_ERROR]
             }),
-            new ModuleTableField('simple_notif_label', ModuleTableField.FIELD_TYPE_string, 'Msg Translatable', false),
-            new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'API Type ID', false),
+            new ModuleTableField('simple_notif_label', ModuleTableField.FIELD_TYPE_string, 'Msg Translatable'),
+            new ModuleTableField('dao_notif_type', ModuleTableField.FIELD_TYPE_enum, 'Dao Type').setEnumValues({
+                [NotificationVO.DAO_GET_VO_BY_ID]: NotificationVO.DAO_NAMES[NotificationVO.DAO_GET_VO_BY_ID],
+                [NotificationVO.DAO_GET_VOS]: NotificationVO.DAO_NAMES[NotificationVO.DAO_GET_VOS]
+            }),
+            new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'API Type ID'),
+            new ModuleTableField('dao_notif_vo_id', ModuleTableField.FIELD_TYPE_int, 'Dao Vo Id'),
             new ModuleTableField('read', ModuleTableField.FIELD_TYPE_boolean, 'Lu', false),
         ];
-
-        let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, datatable_fields, "Notifications");
-        user_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], "name");
+        let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, datatable_fields, null, "Notifications");
+        user_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 }

@@ -23,11 +23,12 @@ export default class ModuleFile extends Module {
         this.fields = [];
         this.datatables = [];
 
+        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_string, 'Chemin du fichier', false);
         let datatable_fields = [
-            new ModuleTableField('path', ModuleTableField.FIELD_TYPE_string, 'Chemin du fichier', false),
+            label_field,
         ];
 
-        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, datatable_fields, "Fichiers");
+        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, datatable_fields, label_field, "Fichiers");
         this.datatables.push(datatable);
     }
 }

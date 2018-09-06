@@ -30,12 +30,15 @@ export default class CRUD<T extends IDistantVOBase> {
 
             if (field.field_type == ModuleTableField.FIELD_TYPE_foreign_key) {
 
-                let default_target_label_field_id = field.default_target_label_field_id ? field.default_target_label_field_id : 'id';
-                crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
-                    field.field_id,
-                    VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
-                        new SimpleDatatableField(default_target_label_field_id)
-                    ]));
+                let default_target_label_field_id = field.default_label_field;
+
+                if (default_target_label_field_id) {
+                    crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+                        field.field_id,
+                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
+                            new SimpleDatatableField(default_target_label_field_id.field_id)
+                        ]));
+                }
             } else {
                 crud.readDatatable.pushField(new SimpleDatatableField(field.field_id));
             }
