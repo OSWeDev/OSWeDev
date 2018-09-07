@@ -130,7 +130,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     /**
-     * Cette API nécessite un paramètre import_uid qui correspond au DataImportFileVO.import_uid
+     * Cette API nécessite un paramètre import_uid qui correspond au DataImportFormatVO.import_uid
      */
     private async resolveExpressApi_renderData(req: Request, res: Response) {
         let renderer_name: string = req.params.renderer_name;

@@ -20,21 +20,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public full_name: string;
     public uid: string;
 
-    public admin_view_name: string;
-    public admin_view_full_name: string;
-
-    public admin_trigger_name: string;
-    public admin_trigger_full_name: string;
-
-
-    // S'inspirer de l'order by par défaut. la vue est 'v', les fields sont ceux définis, et les join sont définis avec la fonction suivante (ex : ORDER BY v.employee_id, v.jour_de_la_semaine DESC;)
-    public nga_view_order_by: string;
-
-    // Pour définir un JOIN (exemple : JOIN ref.store_employee e ON e.id = v.employee_id JOIN admin.current_user_store_list sl ON sl.store_id = e.store_id)
-    public nga_join: string;
-
-    public nga_view_select_addon: string;
-
     public hook_datatable_install: (db) => {} = null;
 
     @EnumerableProperty(false)
@@ -90,10 +75,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
             this.set_bdd_ref("ref", this.module.name, this.vo_type, "module");
         }
 
-        this.nga_view_order_by = "ORDER BY v.id DESC";
-        this.nga_join = "";
-        this.nga_view_select_addon = "";
-
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
@@ -103,6 +84,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public defineAsModuleParamTable(): ModuleTable<any> {
         this.isModuleParamTable = true;
+        return this;
+    }
+
+    public defineAsImportable(): ModuleTable<any> {
+        this.importable = true;
         return this;
     }
 
@@ -169,12 +155,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         this.full_name = this.database + '.' + this.name;
         this.uid = this.database + '_' + this.name;
-
-        this.admin_view_name = 'view_' + this.database + '_' + this.name;
-        this.admin_view_full_name = 'admin.' + this.admin_view_name;
-
-        this.admin_trigger_name = 'trigger_' + this.database + '_' + this.name;
-        this.admin_trigger_full_name = 'admin.' + this.admin_trigger_name;
 
         for (let i in this.fields) {
             this.fields[i].setTargetDatatable(this);

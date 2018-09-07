@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
-import DataImportFileVO from '../../../../../shared/modules/DataImport/vos/DataImportFileVO';
+import DataImportFormatVO from '../../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import DateHandler from '../../../../../shared/tools/DateHandler';
@@ -23,8 +23,8 @@ export default class DataImportAdminVueBase extends VueComponentBase {
 
     protected datatargetdate: Date;
     protected importing: boolean = false;
-    protected dataImportFiles: DataImportFileVO[] = [];
-    protected dataImportFiles_by_name: { [name: string]: DataImportFileVO } = {};
+    protected dataImportFiles: DataImportFormatVO[] = [];
+    protected dataImportFiles_by_name: { [name: string]: DataImportFormatVO } = {};
     protected import_historics: DataImportHistoricVO[] = [];
     protected import_logs: DataImportLogVO[] = [];
 
@@ -64,7 +64,7 @@ export default class DataImportAdminVueBase extends VueComponentBase {
             }
             // On refresh logs et historiques des imports, les uns après les autres pour éviter "la cohue"
             for (let i in this.dataImportFiles_by_name) {
-                let dataImportFile: DataImportFileVO = this.dataImportFiles_by_name[i];
+                let dataImportFile: DataImportFormatVO = this.dataImportFiles_by_name[i];
 
                 await this.updateHistorics(dataImportFile.id);
                 await this.updateLogs(dataImportFile.id);
@@ -169,7 +169,7 @@ export default class DataImportAdminVueBase extends VueComponentBase {
         for (let i in this.import_historics) {
             let import_historic: DataImportHistoricVO = this.import_historics[i];
 
-            if (import_historic.data_import_file_id != dataImportFile_id) {
+            if (import_historic.data_import_format_id != dataImportFile_id) {
                 res.push(import_historic);
             }
         }
@@ -192,7 +192,7 @@ export default class DataImportAdminVueBase extends VueComponentBase {
         for (let i in this.import_logs) {
             let import_log: DataImportLogVO = this.import_logs[i];
 
-            if (import_log.data_import_file_id != dataImportFile_id) {
+            if (import_log.data_import_format_id != dataImportFile_id) {
                 res.push(import_log);
             }
         }

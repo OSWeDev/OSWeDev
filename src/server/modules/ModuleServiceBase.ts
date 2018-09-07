@@ -29,6 +29,8 @@ import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
 import ConfigurationService from '../env/ConfigurationService';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
+import ModuleFileServer from './File/ModuleFileServer';
+import ModuleFile from '../../shared/modules/File/ModuleFile';
 
 export default abstract class ModuleServiceBase {
 
@@ -253,6 +255,7 @@ export default abstract class ModuleServiceBase {
             ModuleAPI.getInstance(),
             ModuleDAO.getInstance(),
             ModuleAccessPolicy.getInstance(),
+            ModuleFile.getInstance(),
             ModuleTrigger.getInstance(),
             ModuleCron.getInstance(),
             ModuleTranslation.getInstance(),
@@ -271,6 +274,7 @@ export default abstract class ModuleServiceBase {
             ModuleAPIServer.getInstance(),
             ModuleDAOServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
+            ModuleFileServer.getInstance(),
             ModuleCronServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModulePushDataServer.getInstance(),

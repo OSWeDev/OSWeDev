@@ -1,18 +1,22 @@
 import IDistantVOBase from '../../IDistantVOBase';
-import ConversionHandler from '../../../tools/ConversionHandler';
-import DateHandler from '../../../tools/DateHandler';
-import * as moment from 'moment';
 
 export default class DataImportHistoricVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "data_import_historic";
+
+    public static IMPORT_TYPE_NAMES: string[] = ['import.historic.types.EDIT', 'import.historic.types.REPLACE'];
+    public static IMPORT_TYPE_EDIT: number = 0;
+    public static IMPORT_TYPE_REPLACE: number = 1;
 
     public static FAILED_HTML_STATUS: number = 500;
 
     public id: number;
     public _type: string = DataImportHistoricVO.API_TYPE_ID;
 
+    // La data que l'on souhaite importer
+    public api_type_id: string;
+
     // On indique le format choisi pour l'import et on peut proposer d'en changer
-    public data_import_file_id: number;
+    public data_import_format_id: number;
 
     // Heure de création de l'historique
     public start_date: string;
@@ -32,4 +36,7 @@ export default class DataImportHistoricVO implements IDistantVOBase {
 
     // Utilisateur à la source de la demande d'import
     public user_id: number;
+
+    // Import de type remplacement ou à comparer avec l'existant (et qui doit alors avoir un target_id)
+    public import_type: number;
 }

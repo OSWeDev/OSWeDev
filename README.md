@@ -1,15 +1,25 @@
 # Modification des imports [<= 0.3.5] -> [*]
 
-## DataImportDescriptorVO
+## SQL
+    CREATE SCHEMA imports;
+
+## DataImportFileVO => DataImportFormatVO
     Suppression du champ copy_folder au profit du champ file_id
     Suppression du champ datatable_fullname au profit du champ api_type_id
     Suppression du champ post_traitement_module au profit de post_exec_module_id
     Renommage du champ import_name en import_uid
+    Modification du type du champ type qui devient un number :
+        XLS => 0
+        XLSX => 1
+        CSV => 2
 
 ## DataImportHistoricVO
     Suppression du champ target_date  au profit de params
     Suppression du champ filepath au profit de file_id
     Ajout d'un lien vers l'initiateur de l'import : user_id
+    Ajout du nom du vo cible : api_type_id
+    Renommage de la colonne data_import_file_id en data_import_format_id
+    Ajout de la colonne import_type
 
     Changement des codes de status des DataImportHistoricVO :
     INFO : IMPORTATION_STATE_UPLOADED => 0 (trigger à la création/modification du champ pour gérer le lancement du formattage)
@@ -23,11 +33,23 @@
 ## DataImportColumnVO
     Renommage de la colonne name en title
     Ajout de la colonne vo_field_name
+    Renommage de la colonne data_import_file_id en data_import_format_id
 
 ## DataImportLogVO
     Ajout de la colonne code_text    
-    Le champ log_level est devenu un enum, donc un nombre en base.
     Le champ message n'est plus not null
+    Renommage de la colonne data_import_file_id en data_import_format_id
+    Ajout de la colonne api_type_id
+
+    Le champ log_level est devenu un enum, donc un nombre en base :
+        TODO : LOG_LEVEL_DEBUG => 0
+        TODO : LOG_LEVEL_INFO => 1
+        
+        INFO : LOG_LEVEL_SUCCESS => 2
+        
+        TODO : LOG_LEVEL_WARN => 3
+        TODO : LOG_LEVEL_ERROR => 4
+        TODO : LOG_LEVEL_FATAL => 5
 
 ## NotificationVO
     Ajout du champ dao_notif_id

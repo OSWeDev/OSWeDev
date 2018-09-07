@@ -159,6 +159,22 @@ export default class ModulePushDataServer extends ModuleServerBase {
         await this.notify(notification);
     }
 
+    public async notifyDAOGetVos(user_id: number, api_type_id: string) {
+
+        if ((!user_id) || (!api_type_id)) {
+            return;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.api_type_id = api_type_id;
+        notification.dao_notif_type = NotificationVO.DAO_GET_VOS;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_DAO;
+        notification.read = false;
+        notification.user_id = user_id;
+        await this.notify(notification);
+    }
+
     public async notifySimpleSUCCESS(user_id: number, code_text: string) {
         await this.notifySimple(user_id, NotificationVO.SIMPLE_SUCCESS, code_text);
     }

@@ -28,6 +28,8 @@ export default class CRUDComponentManager {
 
     private static instance: CRUDComponentManager;
 
+    public cruds_by_api_type_id: { [api_type_id: string]: CRUD<any> } = {};
+
     /**
      *
      * @param API_TYPE_ID
@@ -48,6 +50,8 @@ export default class CRUDComponentManager {
         if (!crud) {
             crud = CRUD.getNewCRUD(API_TYPE_ID);
         }
+
+        CRUDComponentManager.getInstance().cruds_by_api_type_id[API_TYPE_ID] = crud;
 
         routes.push({
             path: url,
@@ -96,6 +100,31 @@ export default class CRUDComponentManager {
                 })
             });
         }
+
+        menuPointer.leaf.target = new MenuLeafRouteTarget(route_name);
+        menuPointer.addToMenu();
+    }
+
+
+
+    public defineMenuRouteToCRUD(
+        API_TYPE_ID: string,
+        menuPointer: MenuPointer,
+        routes: RouteConfig[],
+        read_query: any = null) {
+        let url: string = CRUDHandler.getCRUDLink(API_TYPE_ID);
+        let route_name: string = menuPointer.leaf.UID;
+
+        routes.push({
+            path: url,
+            name: route_name,
+            component: CRUDComponent,
+            props: () => ({
+                crud: CRUDComponentManager.getInstance().cruds_by_api_type_id[API_TYPE_ID],
+                key: '__manage__' + API_TYPE_ID,
+                read_query: read_query
+            })
+        });
 
         menuPointer.leaf.target = new MenuLeafRouteTarget(route_name);
         menuPointer.addToMenu();

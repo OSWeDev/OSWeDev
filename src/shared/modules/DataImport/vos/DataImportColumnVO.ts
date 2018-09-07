@@ -20,7 +20,7 @@ export default class DataImportColumnVO implements IDistantVOBase {
     public vo_field_name: string;
 
     // The format this column appears in
-    public data_import_file_id: number;
+    public data_import_format_id: number;
 
     // Le type de la colonne dans le fichier (pour des cas de conversion entre data en base et data à importer)
     public type: string;

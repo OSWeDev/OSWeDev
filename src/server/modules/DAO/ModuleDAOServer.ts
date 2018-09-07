@@ -89,6 +89,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ONE, this.selectOne.bind(this));
     }
 
+    public async truncate(api_type_id: string) {
+        let datatable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+        if (!datatable) {
+            console.error("Impossible de trouver le datatable ! " + api_type_id);
+            return null;
+        }
+
+        await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.full_name + ";");
+    }
+
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
 
         let isUpdates: boolean[] = [];

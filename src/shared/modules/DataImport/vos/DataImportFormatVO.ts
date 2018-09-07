@@ -1,6 +1,6 @@
 import IDistantVOBase from '../../IDistantVOBase';
 
-export default class DataImportFileVO implements IDistantVOBase {
+export default class DataImportFormatVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "data_import_file";
 
     public static TYPE_LABELS: string[] = ['import.file_types.XLS.name', 'import.file_types.XLSX.name', 'import.file_types.CSV.name'];
@@ -9,10 +9,10 @@ export default class DataImportFileVO implements IDistantVOBase {
     public static TYPE_CSV: number = 2;
 
     public id: number;
-    public _type: string = DataImportFileVO.API_TYPE_ID;
+    public _type: string = DataImportFormatVO.API_TYPE_ID;
 
     public import_uid: string;
-    public type: string;
+    public type: number;
 
     /** sheet_name ou sheet_index au choix, avec une priorité sur le sheet_name si il est rempli */
     public sheet_name: string;
@@ -26,7 +26,6 @@ export default class DataImportFileVO implements IDistantVOBase {
     public file_id: number;
 
     public api_type_id: string;
-    public descriptor_priority: number;
 
     public post_exec_module_id: number;
 }

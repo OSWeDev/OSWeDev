@@ -10,19 +10,21 @@ import ModuleTableField from '../ModuleTableField';
 import ModuleVO from '../ModuleVO';
 import VOsTypesManager from '../VOsTypesManager';
 import DataImportColumnVO from './vos/DataImportColumnVO';
-import DataImportFileVO from './vos/DataImportFileVO';
+import DataImportFormatVO from './vos/DataImportFormatVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
 import DataImportLogVO from './vos/DataImportLogVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 
 export default class ModuleDataImport extends Module {
 
+    public static IMPORT_SCHEMA: string = 'imports';
+
     public static APINAME_getDataImportHistorics: string = 'getDataImportHistorics';
     public static APINAME_getDataImportHistoric: string = 'getDataImportHistoric';
     public static APINAME_getDataImportLogs: string = 'getDataImportLogs';
     public static APINAME_getDataImportFiles: string = 'getDataImportFiles';
     public static APINAME_getDataImportFile: string = 'getDataImportFile';
-    public static APINAME_getDataImportColumnsFromFileId: string = 'getDataImportColumnsFromFileId';
+    public static APINAME_getDataImportColumnsFromFormatId: string = 'getDataImportColumnsFromFormatId';
 
     public static IMPORTATION_STATE_NAMES: string[] = [
         "import.state.uploaded",
@@ -60,7 +62,7 @@ export default class ModuleDataImport extends Module {
 
     private static instance: ModuleDataImport = null;
 
-    public datatable_desc: ModuleTable<DataImportFileVO>;
+    public datatable_desc: ModuleTable<DataImportFormatVO>;
     public datatable_column: ModuleTable<DataImportColumnVO>;
     public datatable_historic: ModuleTable<DataImportHistoricVO>;
     public datatable_log: ModuleTable<DataImportLogVO>;
@@ -95,20 +97,20 @@ export default class ModuleDataImport extends Module {
             NumberParamVO.translateToURL,
             NumberParamVO.translateFromREQ
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataImportFileVO[]>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataImportFormatVO[]>(
             ModuleDataImport.APINAME_getDataImportFiles,
-            [DataImportFileVO.API_TYPE_ID]
+            [DataImportFormatVO.API_TYPE_ID]
         ));
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataImportFileVO>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataImportFormatVO>(
             ModuleDataImport.APINAME_getDataImportFile,
-            [DataImportFileVO.API_TYPE_ID],
+            [DataImportFormatVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
             StringParamVO.URL,
             StringParamVO.translateToURL,
             StringParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportColumnVO[]>(
-            ModuleDataImport.APINAME_getDataImportColumnsFromFileId,
+            ModuleDataImport.APINAME_getDataImportColumnsFromFormatId,
             [DataImportColumnVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
             NumberParamVO.URL,
@@ -117,15 +119,15 @@ export default class ModuleDataImport extends Module {
         ));
     }
 
-    public getTableSuffix(dataImportFile: DataImportFileVO): string {
+    public getTableSuffix(dataImportFile: DataImportFormatVO): string {
 
         return dataImportFile.import_uid.replace(/[^a-zA-Z_]/g, '_');
     }
 
-    public async getDataImportHistorics(data_import_file_id: number): Promise<DataImportHistoricVO[]> {
+    public async getDataImportHistorics(data_import_format_id: number): Promise<DataImportHistoricVO[]> {
         // On s'assure de recharger toujours une version fraîche sur cette api.
         ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
-        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportHistoricVO[]>(ModuleDataImport.APINAME_getDataImportHistorics, data_import_file_id);
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportHistoricVO[]>(ModuleDataImport.APINAME_getDataImportHistorics, data_import_format_id);
     }
 
     public async getDataImportHistoric(historic_id: number): Promise<DataImportHistoricVO> {
@@ -134,22 +136,22 @@ export default class ModuleDataImport extends Module {
         return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportHistoricVO>(ModuleDataImport.APINAME_getDataImportHistoric, historic_id);
     }
 
-    public async getDataImportLogs(data_import_file_id: number): Promise<DataImportLogVO[]> {
+    public async getDataImportLogs(data_import_format_id: number): Promise<DataImportLogVO[]> {
         // On s'assure de recharger toujours une version fraîche sur cette api.
         ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportLogVO.API_TYPE_ID]);
-        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportLogVO[]>(ModuleDataImport.APINAME_getDataImportLogs, data_import_file_id);
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportLogVO[]>(ModuleDataImport.APINAME_getDataImportLogs, data_import_format_id);
     }
 
-    public async getDataImportFiles(): Promise<DataImportFileVO[]> {
-        return await ModuleAPI.getInstance().handleAPI<void, DataImportFileVO[]>(ModuleDataImport.APINAME_getDataImportFiles);
+    public async getDataImportFiles(): Promise<DataImportFormatVO[]> {
+        return await ModuleAPI.getInstance().handleAPI<void, DataImportFormatVO[]>(ModuleDataImport.APINAME_getDataImportFiles);
     }
 
-    public async getDataImportFile(import_uid: string): Promise<DataImportFileVO> {
-        return await ModuleAPI.getInstance().handleAPI<StringParamVO, DataImportFileVO>(ModuleDataImport.APINAME_getDataImportFile, import_uid);
+    public async getDataImportFile(import_uid: string): Promise<DataImportFormatVO> {
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, DataImportFormatVO>(ModuleDataImport.APINAME_getDataImportFile, import_uid);
     }
 
-    public async getDataImportColumnsFromFileId(data_import_file_id: number): Promise<DataImportColumnVO[]> {
-        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportColumnVO[]>(ModuleDataImport.APINAME_getDataImportColumnsFromFileId, data_import_file_id);
+    public async getDataImportColumnsFromFormatId(data_import_format_id: number): Promise<DataImportColumnVO[]> {
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportColumnVO[]>(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, data_import_format_id);
     }
 
     public registerImportableModuleTable(moduleTable: ModuleTable<any>, targetModule: Module) {
@@ -176,18 +178,21 @@ export default class ModuleDataImport extends Module {
             [ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION],
             [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]
         }));
+        fields.push(new ModuleTableField<any>("creation_date", ModuleTableField.FIELD_TYPE_timestamp, "Date de création", false));
         fields.push(new ModuleTableField<any>("not_validated_msg", ModuleTableField.FIELD_TYPE_string, "Msg validation", false));
         fields.push(new ModuleTableField<any>("not_imported_msg", ModuleTableField.FIELD_TYPE_string, "Msg import", false));
         fields.push(new ModuleTableField<any>("not_posttreated_msg", ModuleTableField.FIELD_TYPE_string, "Msg post-traitement", false));
         let importTable: ModuleTable<any> = new ModuleTable<any>(targetModule, ModuleDataImport.IMPORT_TABLE_PREFIX + moduleTable.vo_type, fields, null, "Import " + moduleTable.name);
-
+        importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + moduleTable.vo_type);
         field_target_vo_id.addManyToOneRelation(importTable, moduleTable);
         targetModule.datatables.push(importTable);
         moduleTable.importable = true;
     }
 
 
-
+    public getRawImportedDatasAPI_Type_Id(target_vo_api_type_id: string): string {
+        return ModuleDataImport.IMPORT_TABLE_PREFIX + target_vo_api_type_id;
+    }
 
 
     public initialize() {
@@ -202,43 +207,42 @@ export default class ModuleDataImport extends Module {
             field_file_id,
             label_field,
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'import (XLS, XLSX, CSV)', true).setEnumValues({
-                [DataImportFileVO.TYPE_XLS]: DataImportFileVO.TYPE_LABELS[DataImportFileVO.TYPE_XLS],
-                [DataImportFileVO.TYPE_XLSX]: DataImportFileVO.TYPE_LABELS[DataImportFileVO.TYPE_XLSX],
-                [DataImportFileVO.TYPE_CSV]: DataImportFileVO.TYPE_LABELS[DataImportFileVO.TYPE_CSV]
+                [DataImportFormatVO.TYPE_XLS]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_XLS],
+                [DataImportFormatVO.TYPE_XLSX]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_XLSX],
+                [DataImportFormatVO.TYPE_CSV]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_CSV]
             }),
             new ModuleTableField('sheet_name', ModuleTableField.FIELD_TYPE_string, 'Nom de l\'onglet (XLS, XLSX)', false, true, ""),
             new ModuleTableField('sheet_index', ModuleTableField.FIELD_TYPE_int, 'Index de l\'onglet (XLS, XLSX) si nom indisponible', false, true, 0),
             new ModuleTableField('first_row_index', ModuleTableField.FIELD_TYPE_int, 'Index de la première ligne (1ère ligne = 0)', true),
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID associé', true),
-            new ModuleTableField('descriptor_priority', ModuleTableField.FIELD_TYPE_int, 'Priorisation des descripteurs (poids)', true, true, 0),
             field_post_exec_module_id
         ];
-        this.datatable_desc = new ModuleTable(this, DataImportFileVO.API_TYPE_ID, datatable_fields, label_field, "Fichiers d'import");
+        this.datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, datatable_fields, label_field, "Fichiers d'import");
         field_file_id.addManyToOneRelation(this.datatable_desc, VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
         field_post_exec_module_id.addManyToOneRelation(this.datatable_desc, VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
         this.datatables.push(this.datatable_desc);
 
         // Création de la table dataimportcolumn
         label_field = new ModuleTableField('title', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Fichier)', true);
-        let field_data_import_file_id: ModuleTableField<number> = new ModuleTableField('data_import_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', true, true, 0);
+        let field_data_import_format_id: ModuleTableField<number> = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', true, true, 0);
         datatable_fields = [
-            field_data_import_file_id,
+            field_data_import_format_id,
             new ModuleTableField('column_index', ModuleTableField.FIELD_TYPE_int, 'Index de la colonne (1ère colonne = 0)', true),
             label_field,
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'Type de donnée', true),
             new ModuleTableField('vo_field_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Vo)', true),
         ];
         this.datatable_column = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, datatable_fields, label_field, "Colonnes importées");
-        field_data_import_file_id.addManyToOneRelation(this.datatable_column, this.datatable_desc);
+        field_data_import_format_id.addManyToOneRelation(this.datatable_column, this.datatable_desc);
         this.datatables.push(this.datatable_column);
 
         // Création de la table dataimportlog
         label_field = new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de démarrage', false);
-        field_data_import_file_id = new ModuleTableField('data_import_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
+        field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
         let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
         field_file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier importé', false);
         datatable_fields = [
-            field_data_import_file_id,
+            field_data_import_format_id,
             field_file_id,
             field_user_id,
             new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Etat de l\'import', true).setEnumValues({
@@ -256,34 +260,41 @@ export default class ModuleDataImport extends Module {
             label_field,
             new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_timestamp, 'Modification', false),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de fin', false),
-            new ModuleTableField('params', ModuleTableField.FIELD_TYPE_string, 'Paramètres', false)
+            new ModuleTableField('params', ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),
+            new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'Vo importé', false),
+            new ModuleTableField('import_type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'import', true).setEnumValues({
+                [DataImportHistoricVO.IMPORT_TYPE_EDIT]: DataImportHistoricVO.IMPORT_TYPE_NAMES[DataImportHistoricVO.IMPORT_TYPE_EDIT],
+                [DataImportHistoricVO.IMPORT_TYPE_REPLACE]: DataImportHistoricVO.IMPORT_TYPE_NAMES[DataImportHistoricVO.IMPORT_TYPE_REPLACE],
+            })
         ];
         this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, datatable_fields, label_field, "Historiques d'importation");
-        field_data_import_file_id.addManyToOneRelation(this.datatable_historic, this.datatable_desc);
+        field_data_import_format_id.addManyToOneRelation(this.datatable_historic, this.datatable_desc);
         field_user_id.addManyToOneRelation(this.datatable_historic, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         field_file_id.addManyToOneRelation(this.datatable_historic, VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
         this.datatables.push(this.datatable_historic);
 
 
         label_field = new ModuleTableField('date', ModuleTableField.FIELD_TYPE_timestamp, 'Date', false);
-        field_data_import_file_id = new ModuleTableField('data_import_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
+        field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
         let field_data_import_historic_id = new ModuleTableField('data_import_historic_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Historique', false);
         datatable_fields = [
-            field_data_import_file_id,
+            field_data_import_format_id,
             field_data_import_historic_id,
             label_field,
+            new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'VO cible', false),
             new ModuleTableField('code_text', ModuleTableField.FIELD_TYPE_string, 'Message (traduit)', false),
             new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message (statique)', false),
             new ModuleTableField('log_level', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, DataImportLogVO.LOG_LEVEL_INFO).setEnumValues({
                 [DataImportLogVO.LOG_LEVEL_DEBUG]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_DEBUG],
                 [DataImportLogVO.LOG_LEVEL_INFO]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_INFO],
+                [DataImportLogVO.LOG_LEVEL_SUCCESS]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_SUCCESS],
                 [DataImportLogVO.LOG_LEVEL_WARN]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_WARN],
                 [DataImportLogVO.LOG_LEVEL_ERROR]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_ERROR],
                 [DataImportLogVO.LOG_LEVEL_FATAL]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_FATAL],
             })
         ];
         this.datatable_log = new ModuleTable(this, DataImportLogVO.API_TYPE_ID, datatable_fields, label_field, "Logs d'importation");
-        field_data_import_file_id.addManyToOneRelation(this.datatable_log, this.datatable_desc);
+        field_data_import_format_id.addManyToOneRelation(this.datatable_log, this.datatable_desc);
         field_data_import_historic_id.addManyToOneRelation(this.datatable_log, this.datatable_historic);
         this.datatables.push(this.datatable_log);
     }
