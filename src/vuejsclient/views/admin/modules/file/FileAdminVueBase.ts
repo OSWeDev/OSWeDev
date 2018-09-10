@@ -8,6 +8,7 @@ import VueAppBase from '../../../../VueAppBase';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import { ModuleDAOGetter, ModuleDAOAction } from '../../../../ts/components/dao/store/DaoStore';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import FileController from './FileController';
 
 
 @Component({
@@ -24,6 +25,8 @@ export default class FileAdminVueBase extends VueComponentBase {
 
     @Prop()
     protected filevoid: number;
+    @Prop({ default: false })
+    protected readonly: boolean;
 
     protected uploading: boolean = false;
     protected datafile = null;
@@ -60,43 +63,14 @@ export default class FileAdminVueBase extends VueComponentBase {
 
         this.uploading = true;
 
-        try {
-
-            if (!this.hasFileInputData(selector)) {
-                this.uploading = false;
-                return;
-            }
-            let file: File = $(selector)[0]['files'][0];
-
-            let formData = new FormData();
-            formData.append('file', file);
-
-            let fileVO: FileVO = await ModuleAjaxCache.getInstance().post(
-                '/modules/ModuleFile/UploadFile',
-                [FileVO.API_TYPE_ID],
-                formData,
-                null,
-                null,
-                false,
-                30000) as FileVO;
-
-            if (!fileVO) {
-                this.uploading = false;
-                this.snotify.error('Erreur lors de l\'upload. Merci de recharger la page');
-                return;
-            }
-
-            this.$emit('uploaded', fileVO);
-        } catch (error) {
-            if (error && error.statusText == "timeout") {
-                this.snotify.warning('Upload trop long. Merci de recharger la page');
-            }
+        let fileVO: FileVO = await FileController.uploadFileVO('#file_import_input');
+        if (!fileVO) {
+            this.uploading = false;
+            this.snotify.error('Erreur lors de l\'upload');
+            return;
         }
+        this.$emit('uploaded', fileVO);
         this.uploading = false;
         return;
-    }
-
-    protected hasFileInputData(selector: string): boolean {
-        return $(selector) && $(selector)[0] && $(selector)[0]['files'] && $(selector)[0]['files'][0];
     }
 }

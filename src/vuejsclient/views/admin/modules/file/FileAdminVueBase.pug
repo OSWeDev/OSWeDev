@@ -3,7 +3,5 @@ include ../../../mixins/loading.pug
 .fileinput
     +loading()
         .row
-            .col-lg-3
-                input.form-control(type="file", size="10", v-model="datafile", id="file_import_input")
-            .col-lg-3(v-if="(filevo != null) && filevo.id")
-                span {{ filevo.path }}
+            input.form-control(v-if="!readonly", type="file", size="10", v-model="datafile", id="file_import_input", @input="importFile")
+            span(v-if="(filevo != null) && filevo.id") {{ filevo.path }}

@@ -4,6 +4,8 @@ import NotificationVO from '../../../../shared/modules/PushData/vos/Notification
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import VueAppBase from '../../../VueAppBase';
 import VueModuleBase from '../VueModuleBase';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -44,6 +46,23 @@ export default class PushDataVueModule extends VueModuleBase {
                     case NotificationVO.SIMPLE_INFO:
                     default:
                         VueAppBase.instance_.vueInstance.snotify.info(LocaleManager.getInstance().i18n.t(notification.simple_notif_label));
+                }
+            }
+        });
+
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DAO], async function (notification: NotificationVO) {
+            if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {
+
+                switch (notification.dao_notif_type) {
+                    case NotificationVO.DAO_GET_VO_BY_ID:
+                        let vo: IDistantVOBase = await ModuleDAO.getInstance().getVoById(notification.api_type_id, notification.dao_notif_vo_id);
+                        VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeData', vo);
+                        break;
+                    case NotificationVO.DAO_GET_VOS:
+                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos(notification.api_type_id);
+                        VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
+                        break;
+                    default:
                 }
             }
         });

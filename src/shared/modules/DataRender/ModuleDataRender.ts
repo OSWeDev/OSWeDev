@@ -284,11 +284,11 @@ export default class ModuleDataRender extends Module {
         return res;
     }
 
-    public getPreviousTimeSegments(timeSegments: TimeSegment[], type: string = null): TimeSegment[] {
+    public getPreviousTimeSegments(timeSegments: TimeSegment[], type: string = null, offset: number = 1): TimeSegment[] {
         let res: TimeSegment[] = [];
 
         for (let i in timeSegments) {
-            res.push(this.getPreviousTimeSegment(timeSegments[i], type));
+            res.push(this.getPreviousTimeSegment(timeSegments[i], type, offset));
         }
         return res;
     }
@@ -315,7 +315,7 @@ export default class ModuleDataRender extends Module {
      * @param timeSegment
      * @returns Exclusive upper bound of the timeSegment
      */
-    public getPreviousTimeSegment(timeSegment: TimeSegment, type: string = null): TimeSegment {
+    public getPreviousTimeSegment(timeSegment: TimeSegment, type: string = null, offset: number = 1): TimeSegment {
         let res: TimeSegment = new TimeSegment();
         res.type = timeSegment.type;
         let date_segment: Moment = moment(timeSegment.dateIndex);
@@ -323,14 +323,14 @@ export default class ModuleDataRender extends Module {
 
         switch (type) {
             case TimeSegment.TYPE_YEAR:
-                date_segment = date_segment.add(-1, 'year');
+                date_segment = date_segment.add(-offset, 'year');
                 break;
             case TimeSegment.TYPE_MONTH:
-                date_segment = date_segment.add(-1, 'month');
+                date_segment = date_segment.add(-offset, 'month');
                 break;
             case TimeSegment.TYPE_DAY:
             default:
-                date_segment = date_segment.add(-1, 'day');
+                date_segment = date_segment.add(-offset, 'day');
         }
 
         res.dateIndex = DateHandler.getInstance().formatDayForIndex(date_segment);
