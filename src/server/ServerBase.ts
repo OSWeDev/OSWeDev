@@ -84,7 +84,7 @@ export default abstract class ServerBase {
         let GM = this.modulesService;
         await GM.register_all_modules(this.db);
 
-        this.initializeDataImports();
+        await this.initializeDataImports();
 
         const FileStore = sessionFileStore(expressSession);
         this.spawn = child_process.spawn;

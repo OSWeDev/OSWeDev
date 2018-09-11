@@ -28,4 +28,6 @@ export default class DataImportFormatVO implements IDistantVOBase {
     public api_type_id: string;
 
     public post_exec_module_id: number;
+
+    public copy_folder: string;
 }

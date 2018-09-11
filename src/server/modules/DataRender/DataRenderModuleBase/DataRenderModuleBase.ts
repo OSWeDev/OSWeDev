@@ -1,17 +1,13 @@
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
-import IPostTraitementModule from '../../../../shared/modules/DataImport/interfaces/IPostTraitementModule';
-import ModulesManager from '../../../../shared/modules/ModulesManager';
-import IModuleBase from '../../../../shared/modules/IModuleBase';
-import IImportData from '../../../../shared/modules/DataImport/interfaces/IImportData';
-import IImportOptions from '../../../../shared/modules/DataImport/interfaces/IImportOptions';
 import IRenderDataModule from '../../../../shared/modules/DataRender/interfaces/IRenderDataModule';
 import IRenderedData from '../../../../shared/modules/DataRender/interfaces/IRenderedData';
-import DataRenderingLogVO from '../../../../shared/modules/DataRender/vos/DataRenderingLogVO';
 import IRenderOptions from '../../../../shared/modules/DataRender/interfaces/IRenderOptions';
+import DataRenderingLogVO from '../../../../shared/modules/DataRender/vos/DataRenderingLogVO';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleServerBase from '../../ModuleServerBase';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import IModuleBase from '../../../../shared/modules/IModuleBase';
+import ModulesManager from '../../../../shared/modules/ModulesManager';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
+import ModuleServerBase from '../../ModuleServerBase';
 
 export default abstract class DataRenderModuleBase extends ModuleServerBase implements IRenderDataModule, IModuleBase {
 

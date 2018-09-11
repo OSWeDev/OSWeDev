@@ -13,6 +13,7 @@ import DataRendererVO from './vos/DataRendererVO';
 import DataRenderingLogVO from './vos/DataRenderingLogVO';
 import TimeSegment from './vos/TimeSegment';
 import StringParamVO from '../API/vos/apis/StringParamVO';
+import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 
 export default class ModuleDataRender extends Module {
 
@@ -160,247 +161,6 @@ export default class ModuleDataRender extends Module {
         return await ModuleAPI.getInstance().handleAPI<StringParamVO, DataRendererVO>(ModuleDataRender.APINAME_GET_DATA_RENDERER, renderer_name);
     }
 
-    /**
-     *
-     * @param start
-     * @param end
-     * @param time_segment_type
-     */
-    public getAllDataTimeSegments(start: Moment, end: Moment, time_segment_type: string, exclude_end: boolean = false): TimeSegment[] {
-        let res: TimeSegment[] = [];
-        let date: Moment = moment(start);
-        let stop_at: Moment = moment(end);
-
-        switch (time_segment_type) {
-            case TimeSegment.TYPE_YEAR:
-                date = start.startOf('year');
-                stop_at = end.startOf('year');
-                break;
-            case TimeSegment.TYPE_MONTH:
-                date = start.startOf('month');
-                stop_at = end.startOf('month');
-                break;
-            case TimeSegment.TYPE_DAY:
-            default:
-                date = start.startOf('day');
-                stop_at = end.startOf('day');
-        }
-
-        while (((!exclude_end) && date.isSameOrBefore(stop_at)) || (exclude_end && date.isBefore(stop_at))) {
-
-            let timeSegment: TimeSegment = new TimeSegment();
-            timeSegment.dateIndex = DateHandler.getInstance().formatDayForIndex(date);
-            timeSegment.type = time_segment_type;
-            res.push(timeSegment);
-
-            switch (time_segment_type) {
-                case TimeSegment.TYPE_YEAR:
-                    date = date.add(1, 'year');
-                    break;
-                case TimeSegment.TYPE_MONTH:
-                    date = date.add(1, 'month');
-                    break;
-                case TimeSegment.TYPE_DAY:
-                default:
-                    date = date.add(1, 'day');
-            }
-        }
-
-        return res;
-    }
-
-    /**
-     *
-     * @param timeSegment
-     * @param type_cumul Type > au timesegment.type (YEAR si le segment est MONTH par exemple au minimum)
-     * @returns Corresponding CumulTimeSegment
-     */
-    public getParentTimeSegment(timeSegment: TimeSegment): TimeSegment {
-        let res: TimeSegment = new TimeSegment();
-        let date_segment: Moment = moment(timeSegment.dateIndex);
-
-        switch (timeSegment.type) {
-            case TimeSegment.TYPE_YEAR:
-                // Impossible de gérer ce cas;
-                return null;
-            case TimeSegment.TYPE_MONTH:
-                res.type = TimeSegment.TYPE_YEAR;
-                date_segment = date_segment.startOf('year');
-                break;
-            case TimeSegment.TYPE_DAY:
-            default:
-                res.type = TimeSegment.TYPE_MONTH;
-                date_segment = date_segment.startOf('month');
-        }
-
-        res.dateIndex = DateHandler.getInstance().formatDayForIndex(date_segment);
-        return res;
-    }
-
-    /**
-     *
-     * @param timeSegment
-     * @returns Corresponding CumulTimeSegment
-     */
-    public getCumulTimeSegments(timeSegment: TimeSegment): TimeSegment[] {
-        let res: TimeSegment[] = [];
-        let parentTimeSegment: TimeSegment = this.getParentTimeSegment(timeSegment);
-
-        let start_period = this.getStartTimeSegment(parentTimeSegment);
-        let end_period = this.getEndTimeSegment(timeSegment);
-
-        return this.getAllDataTimeSegments(start_period, end_period, timeSegment.type, true);
-    }
-
-    /**
-     *
-     * @param timeSegment
-     * @returns Inclusive lower bound of the timeSegment
-     */
-    public getStartTimeSegment(timeSegment: TimeSegment): Moment {
-        return moment(timeSegment.dateIndex);
-    }
-
-    /**
-     *
-     * @param timeSegment
-     * @returns Exclusive upper bound of the timeSegment
-     */
-    public getEndTimeSegment(timeSegment: TimeSegment): Moment {
-        let res: Moment = moment(timeSegment.dateIndex);
-
-        switch (timeSegment.type) {
-            case TimeSegment.TYPE_YEAR:
-                res = res.add(1, 'year');
-                break;
-            case TimeSegment.TYPE_MONTH:
-                res = res.add(1, 'month');
-                break;
-            case TimeSegment.TYPE_DAY:
-            default:
-                res = res.add(1, 'day');
-        }
-
-        return res;
-    }
-
-    public getPreviousTimeSegments(timeSegments: TimeSegment[], type: string = null, offset: number = 1): TimeSegment[] {
-        let res: TimeSegment[] = [];
-
-        for (let i in timeSegments) {
-            res.push(this.getPreviousTimeSegment(timeSegments[i], type, offset));
-        }
-        return res;
-    }
-
-    /**
-     * @param monthSegment TimeSegment de type month (sinon renvoie null)
-     * @param date Numéro du jour dans le mois [1,31]
-     * @returns Le moment correspondant
-     */
-    public getDateInMonthSegment(monthSegment: TimeSegment, date: number): Moment {
-
-        if (monthSegment.type != TimeSegment.TYPE_MONTH) {
-            return null;
-        }
-
-        // La dateIndex d'un segment mois est le premier jour du mois.
-        let res: Moment = moment(monthSegment.dateIndex);
-        res.date(date);
-        return res;
-    }
-
-    /**
-     *
-     * @param timeSegment
-     * @returns Exclusive upper bound of the timeSegment
-     */
-    public getPreviousTimeSegment(timeSegment: TimeSegment, type: string = null, offset: number = 1): TimeSegment {
-        let res: TimeSegment = new TimeSegment();
-        res.type = timeSegment.type;
-        let date_segment: Moment = moment(timeSegment.dateIndex);
-        type = type ? type : timeSegment.type;
-
-        switch (type) {
-            case TimeSegment.TYPE_YEAR:
-                date_segment = date_segment.add(-offset, 'year');
-                break;
-            case TimeSegment.TYPE_MONTH:
-                date_segment = date_segment.add(-offset, 'month');
-                break;
-            case TimeSegment.TYPE_DAY:
-            default:
-                date_segment = date_segment.add(-offset, 'day');
-        }
-
-        res.dateIndex = DateHandler.getInstance().formatDayForIndex(date_segment);
-        return res;
-    }
-
-    public getCorrespondingTimeSegment(date: Moment, type: string): TimeSegment {
-        let res: TimeSegment = new TimeSegment();
-        res.type = type;
-        let date_segment: Moment = moment(date);
-
-        switch (type) {
-            case TimeSegment.TYPE_YEAR:
-                date_segment = date_segment.startOf('year');
-                break;
-            case TimeSegment.TYPE_MONTH:
-                date_segment = date_segment.startOf('month');
-                break;
-            case TimeSegment.TYPE_DAY:
-            default:
-                date_segment = date_segment.startOf('day');
-        }
-
-        res.dateIndex = DateHandler.getInstance().formatDayForIndex(date_segment);
-        return res;
-    }
-
-    public isMomentInTimeSegment(date: Moment, time_segment: TimeSegment): boolean {
-        let start: Moment = moment(time_segment.dateIndex);
-        let end: Moment;
-
-        switch (time_segment.type) {
-            case TimeSegment.TYPE_YEAR:
-                end = moment(start).add(1, 'year');
-                break;
-            case TimeSegment.TYPE_MONTH:
-                end = moment(start).add(1, 'month');
-                break;
-            case TimeSegment.TYPE_DAY:
-            default:
-                end = moment(start).add(1, 'day');
-        }
-
-        return date.isSameOrAfter(start) && date.isBefore(end);
-    }
-
-    public isInSameSegmentType(ts1: TimeSegment, ts2: TimeSegment, type: string = TimeSegment.TYPE_YEAR): boolean {
-        let start: Moment = moment(ts1.dateIndex);
-        let end: Moment;
-
-        switch (type) {
-            case TimeSegment.TYPE_YEAR:
-                start = start.startOf('year');
-                end = moment(start).add(1, 'year');
-                break;
-            case TimeSegment.TYPE_MONTH:
-                start = start.startOf('month');
-                end = moment(start).add(1, 'month');
-                break;
-            case TimeSegment.TYPE_DAY:
-            default:
-                start = start.startOf('day');
-                end = moment(start).add(1, 'day');
-        }
-
-        let ts2Moment: Moment = moment(ts2.dateIndex);
-
-        return ts2Moment.isSameOrAfter(start) && ts2Moment.isBefore(end);
-    }
-
     public async getDataRenderingLogs(): Promise<DataRenderingLogVO[]> {
         return await ModuleAPI.getInstance().handleAPI<void, DataRenderingLogVO[]>(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS);
     }
@@ -512,7 +272,7 @@ export default class ModuleDataRender extends Module {
                 continue;
             }
 
-            if (!this.isMomentInTimeSegment(moment(row.data_dateindex), timeSegment)) {
+            if (!TimeSegmentHandler.getInstance().isMomentInTimeSegment(moment(row.data_dateindex), timeSegment)) {
                 continue;
             }
 
@@ -526,14 +286,14 @@ export default class ModuleDataRender extends Module {
         timeSegment: TimeSegment, id: number, field_name: string, field_name_cumul: string, segclient_id: number,
         ventesExtBySegmentAndConcessionId: { [date_index: string]: { [concession_id: number]: { [segclient_id: number]: T } } }): number {
 
-        let timeSegment_prec: TimeSegment = ModuleDataRender.getInstance().getPreviousTimeSegment(timeSegment);
+        let timeSegment_prec: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
 
         let previousCumul: number = this.getValueFromRendererData(timeSegment_prec, id, field_name_cumul, segclient_id, ventesExtBySegmentAndConcessionId);
         let value: number = this.getValueFromRendererData(timeSegment, id, field_name, segclient_id, ventesExtBySegmentAndConcessionId);
 
         let hasPreviousValue: boolean = isNumber(previousCumul);
         let hasValue: boolean = isNumber(value);
-        let isInSameSegmentType: boolean = ModuleDataRender.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
+        let isInSameSegmentType: boolean = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
 
         if (hasValue && hasPreviousValue && isInSameSegmentType) {
             return previousCumul + value;
@@ -554,8 +314,8 @@ export default class ModuleDataRender extends Module {
         timeSegment: TimeSegment, concession_id: number, field_name: string, segclient_id: number,
         ventesExtBySegmentAndConcessionId: { [date_index: string]: { [concession_id: number]: { [segclient_id: number]: T } } }): number {
 
-        let timeSegment_mm1: TimeSegment = ModuleDataRender.getInstance().getPreviousTimeSegment(timeSegment);
-        let timeSegment_mm2: TimeSegment = ModuleDataRender.getInstance().getPreviousTimeSegment(timeSegment);
+        let timeSegment_mm1: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
+        let timeSegment_mm2: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
         let value_m: number = this.getValueFromRendererData(timeSegment, concession_id, field_name, segclient_id, ventesExtBySegmentAndConcessionId);
         let value_mm1: number = this.getValueFromRendererData(timeSegment_mm1, concession_id, field_name, segclient_id, ventesExtBySegmentAndConcessionId);
         let value_mm2: number = this.getValueFromRendererData(timeSegment_mm2, concession_id, field_name, segclient_id, ventesExtBySegmentAndConcessionId);

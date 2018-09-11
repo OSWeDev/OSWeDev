@@ -1,11 +1,12 @@
+import * as $ from 'jquery';
 import * as moment from 'moment';
+import Component from 'vue-class-component';
+import { Prop } from 'vue-property-decorator';
 import ModuleDataRender from '../../../../../shared/modules/DataRender/ModuleDataRender';
 import DataRendererVO from '../../../../../shared/modules/DataRender/vos/DataRendererVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
-import Component from 'vue-class-component';
-import { Prop } from 'vue-property-decorator';
+import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
-import * as $ from 'jquery';
 
 
 @Component({
@@ -30,9 +31,9 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
 
         this.dataRenderer = ModuleDataRender.getInstance().dataRenderers_by_name[this.renderer_name];
 
-        let segment_correspondant: TimeSegment = ModuleDataRender.getInstance().getCorrespondingTimeSegment(moment(), this.time_segment_type);
+        let segment_correspondant: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(), this.time_segment_type);
         this.segment_start_date =
-            moment(ModuleDataRender.getInstance().getPreviousTimeSegment(segment_correspondant).dateIndex).toDate();
+            moment(TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment_correspondant).dateIndex).toDate();
         this.segment_start_date = moment().startOf('month').add(-1, 'month').toDate();
         this.segment_end_date = moment(segment_correspondant.dateIndex).toDate();
 
@@ -43,7 +44,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
         try {
 
             var formData = new FormData();
-            formData.append('render_time_segments_json', JSON.stringify(ModuleDataRender.getInstance().getAllDataTimeSegments(moment(this.segment_start_date), moment(this.segment_end_date), this.time_segment_type)));
+            formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment(this.segment_start_date), moment(this.segment_end_date), this.time_segment_type)));
 
             await $.ajax({
                 url: '/modules/ModuleDataRender/renderData/' + this.renderer_name,

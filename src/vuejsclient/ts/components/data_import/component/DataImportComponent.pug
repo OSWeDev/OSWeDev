@@ -1,4 +1,4 @@
-include ../../../mixins/loading.pug
+include ../../../../views/mixins/loading.pug
 
 .data-import
     +loading()
@@ -13,25 +13,24 @@ include ../../../mixins/loading.pug
             .col-md-12
                 component(:is="import_param_component")
 
-        .row
+        .row.justify-content-between
             .col-md-2.justify-content-start
                 button.btn.btn-sm.btn-primary(@click="previous_segments")
                     i.fa.fa-arrow-left(aria-hidden="true")
-            .col-md-8
             .col-md-2.justify-content-end
                 button.btn.btn-sm.btn-primary(@click="next_segments")
                     i.fa.fa-arrow-left(aria-hidden="true")
-        .row
+        .row.justify-content-between
             template(v-for='segment in segments')
-                .col-md-1.bg-success(v-if='segment_states[segment.dateIndex] == "ok"')
-                    input.form-control(v-if="!readonly", type="file", size="10", v-model="datafile", :id="'file_import_input' + segment.dateIndex", @input="uploadFile('file_import_input' + segment.dateIndex)")
-                    i.fa.fa-upload(aria-hidden="true")
-                .col-md-1.bg-danger(v-if='segment_states[segment.dateIndex] == "ko"')
-                    i.fa.fa-upload(aria-hidden="true")
-                .col-md-1.bg-warning(v-if='segment_states[segment.dateIndex] == "warn"')
-                    i.fa.fa-upload(aria-hidden="true")
-                
-                (:segment_type='segment.type', :segment_date_index='segment.dateIndex')
+                .col-md-1
+                    .segment_date_index(v-if='segment_type == "year"') {{ formatDate_Fullyear(segment.dateIndex) }}
+                    .segment_date_index(v-if='segment_type == "month"') {{ formatDate_FullyearMonth(segment.dateIndex) }}
+                    .segment_date_index(v-if='segment_type == "day"') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
+        .row.justify-content-between
+            template(v-for='segment in segments')
+                .col-md-1.bg-secondary(v-if='segment_states[segment.dateIndex] == segment_state_unavail')
+                .col-md-1.bg-success(v-else, :class='{bg-success: segment_states[segment.dateIndex] == segment_state_ok, bg-danger: segment_states[segment.dateIndex] == segment_state_ko, bg-warning: segment_states[segment.dateIndex] == segment_state_warn}')
+                    vueDropzone(:ref="'myVueDropzone'+selected_segment.dateIndex" :id="'dropzone'+selected_segment.dateIndex" :options="dropzoneOptions(api_type_id)")
 
         #import_modal.modal.fade
             .modal-dialog
@@ -44,7 +43,7 @@ include ../../../mixins/loading.pug
                             fileinput(:readonly="true" filevoid='filevo')
                         .row(v-for='api_type_id in api_type_ids')
                             jumbotron
-                                p.lead.import_title {{ labels[api_type_id] }}
+                                p.lead.import_title {{ selected_segment_labels[api_type_id] }}
                                 hr
                                 p.justify-content-between.align-items-left
                                     p {{ label('import.format.modal.title') }}

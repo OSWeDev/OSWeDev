@@ -23,6 +23,12 @@ import Module from '../../../../../shared/modules/Module';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
+    public static DEFAULT_MENU_BRANCH: MenuBranch = new MenuBranch(
+        "AccessPolicyAdminVueModule",
+        0,
+        "fa-shield",
+        []
+    );
 
     public static getInstance(): AccessPolicyAdminVueModule {
         if (!AccessPolicyAdminVueModule.instance) {
@@ -41,7 +47,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
     public initialize() {
 
-        let accessPolicyMenuBranch: MenuBranch = new MenuBranch("AccessPolicyAdminVueModule", 0, "fa-shield", []);
+        let accessPolicyMenuBranch: MenuBranch = AccessPolicyAdminVueModule.DEFAULT_MENU_BRANCH;
 
         // TODO FIXME : TEMPorary right managment for old project compliance. Update ASAP
         // if (VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) &&

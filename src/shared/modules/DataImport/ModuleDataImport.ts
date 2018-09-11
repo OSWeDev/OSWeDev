@@ -194,7 +194,6 @@ export default class ModuleDataImport extends Module {
         return ModuleDataImport.IMPORT_TABLE_PREFIX + target_vo_api_type_id;
     }
 
-
     public initialize() {
         this.fields = [];
         this.datatables = [];
@@ -215,6 +214,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('sheet_index', ModuleTableField.FIELD_TYPE_int, 'Index de l\'onglet (XLS, XLSX) si nom indisponible', false, true, 0),
             new ModuleTableField('first_row_index', ModuleTableField.FIELD_TYPE_int, 'Index de la première ligne (1ère ligne = 0)', true),
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID associé', true),
+            new ModuleTableField('copy_folder', ModuleTableField.FIELD_TYPE_string, 'Répertoire d\'archivage', true),
             field_post_exec_module_id
         ];
         this.datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, datatable_fields, label_field, "Fichiers d'import");
@@ -258,6 +258,7 @@ export default class ModuleDataImport extends Module {
                 [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]
             }),
             label_field,
+            new ModuleTableField('segment_date_index', ModuleTableField.FIELD_TYPE_string, 'Segment cible', false),
             new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_timestamp, 'Modification', false),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de fin', false),
             new ModuleTableField('params', ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),

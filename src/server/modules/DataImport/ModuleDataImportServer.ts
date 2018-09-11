@@ -23,6 +23,8 @@ import ModulePushDataServer from '../PushData/ModulePushDataServer';
 import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
+import ModuleFileServer from '../File/ModuleFileServer';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -69,6 +71,20 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     private async handleImportHistoricDateCreation(importHistoric: DataImportHistoricVO): Promise<boolean> {
+        // On fait une copie du fichier importé et on change la liaison
+        let importFormat: DataImportFormatVO = await ModuleDAO.getInstance().getVoById<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID, importHistoric.data_import_format_id);
+        let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
+        if (!importFormat.copy_folder.endsWith('/')) {
+            importFormat.copy_folder += '/';
+        }
+        if (!importFormat.copy_folder.startsWith('./imports_archive/')) {
+            if (!importFormat.copy_folder.startsWith('/')) {
+                importFormat.copy_folder = '/' + importFormat.copy_folder;
+            }
+            importFormat.copy_folder = './imports_archive' + importFormat.copy_folder;
+        }
+        await ModuleFileServer.getInstance().moveFile(fileVo, './imports_archive/' + importFormat.copy_folder);
+
         importHistoric.start_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
         return true;
     }

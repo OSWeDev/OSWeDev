@@ -25,8 +25,11 @@ export default class DataImportHistoricVO implements IDistantVOBase {
     // Heure de modification de l'historique vers un status de fin d'import (en erreur ou non)
     public end_date: string;
 
-    // JSON des params (date cible, site, boutique, ...)
+    // JSON des params (site, boutique, ...)
     public params: string;
+
+    // Le segment_cible. A priori le type est pas nécessaire ici, on importe pas pour le moment pour des segments différents
+    public segment_date_index: string;
 
     // La liste des états est la même que pour les lignes de la table d'import (ModuleDataImport.IMPORTATION_STATE_*)
     public state: number;

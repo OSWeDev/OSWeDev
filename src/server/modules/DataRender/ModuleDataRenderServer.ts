@@ -1,26 +1,25 @@
+import { Express, Request, Response } from 'express';
 import * as formidable from 'express-formidable';
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import ModuleServerBase from '../ModuleServerBase';
-import { Express, Request, Response } from 'express';
-import DataRenderingLogVO from '../../../shared/modules/DataRender/vos/DataRenderingLogVO';
-import DateHandler from '../../../shared/tools/DateHandler';
-import ModulesManager from '../../../shared/modules/ModulesManager';
-import ModuleDataRender from '../../../shared/modules/DataRender/ModuleDataRender';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import IRenderOptions from '../../../shared/modules/DataRender/interfaces/IRenderOptions';
-import DataRendererVO from '../../../shared/modules/DataRender/vos/DataRendererVO';
-import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ModuleServiceBase from '../ModuleServiceBase';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import GetAPIDefinition from '../../../shared/modules/API/vos/GetAPIDefinition';
-import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../shared/modules/ModuleTable';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IRenderedData from '../../../shared/modules/DataRender/interfaces/IRenderedData';
-import Module from '../../../shared/modules/Module';
+import IRenderOptions from '../../../shared/modules/DataRender/interfaces/IRenderOptions';
+import ModuleDataRender from '../../../shared/modules/DataRender/ModuleDataRender';
+import DataRendererVO from '../../../shared/modules/DataRender/vos/DataRendererVO';
+import DataRenderingLogVO from '../../../shared/modules/DataRender/vos/DataRenderingLogVO';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import ModulesManager from '../../../shared/modules/ModulesManager';
+import ModuleTable from '../../../shared/modules/ModuleTable';
+import DateHandler from '../../../shared/tools/DateHandler';
+import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleServerBase from '../ModuleServerBase';
+import ModuleServiceBase from '../ModuleServiceBase';
+import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -69,7 +68,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             return null;
         }
 
-        return ModuleDataRender.getInstance().getCorrespondingTimeSegment(moment(latest_data.data_dateindex), rendererModule.data_timesegment_type);
+        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(latest_data.data_dateindex), rendererModule.data_timesegment_type);
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {
@@ -90,9 +89,9 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         timeSegment: TimeSegment,
         rendered_data_time_segment_type: string): Promise<T[]> {
 
-        let timeSegments: TimeSegment[] = ModuleDataRender.getInstance().getAllDataTimeSegments(
-            ModuleDataRender.getInstance().getStartTimeSegment(timeSegment),
-            ModuleDataRender.getInstance().getEndTimeSegment(timeSegment),
+        let timeSegments: TimeSegment[] = TimeSegmentHandler.getInstance().getAllDataTimeSegments(
+            TimeSegmentHandler.getInstance().getStartTimeSegment(timeSegment),
+            TimeSegmentHandler.getInstance().getEndTimeSegment(timeSegment),
             rendered_data_time_segment_type
         );
         let timeSegments_in: string = null;

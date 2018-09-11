@@ -1,9 +1,9 @@
 import * as $ from 'jquery';
-import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
-import FileVO from '../../../../../shared/modules/File/vos/FileVO';
+import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import FileVO from '../../../../shared/modules/File/vos/FileVO';
 
 
-export default class FileController {
+export default class FileComponentManager {
 
     /**
      * On lance l'upload
@@ -14,7 +14,7 @@ export default class FileController {
 
         try {
 
-            if (!FileController.hasFileInputData(selector)) {
+            if (!FileComponentManager.hasFileInputData(selector)) {
                 return fileVO;
             }
             let file: File = $(selector)[0]['files'][0];

@@ -4,7 +4,7 @@
     CREATE SCHEMA imports;
 
 ## DataImportFileVO => DataImportFormatVO
-    Suppression du champ copy_folder au profit du champ file_id
+    Ajout du champ file_id
     Suppression du champ datatable_fullname au profit du champ api_type_id
     Suppression du champ post_traitement_module au profit de post_exec_module_id
     Renommage du champ import_name en import_uid
@@ -14,13 +14,13 @@
         CSV => 2
 
 ## DataImportHistoricVO
-    Suppression du champ target_date  au profit de params
+    Suppression du champ target_date au profit de params et segment_date_index
     Suppression du champ filepath au profit de file_id
     Ajout d'un lien vers l'initiateur de l'import : user_id
     Ajout du nom du vo cible : api_type_id
     Renommage de la colonne data_import_file_id en data_import_format_id
     Ajout de la colonne import_type
-
+    
     Changement des codes de status des DataImportHistoricVO :
     INFO : IMPORTATION_STATE_UPLOADED => 0 (trigger à la création/modification du champ pour gérer le lancement du formattage)
 

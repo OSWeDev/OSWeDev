@@ -19,14 +19,14 @@ import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../VueComponentBase';
 import CRUD from '../vos/CRUD';
 import "./CRUDComponent.scss";
-import FileAdminVueBase from '../../../../views/admin/modules/file/FileAdminVueBase';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
+import FileComponent from '../../file/FileComponent';
 
 @Component({
     template: require('./CRUDComponent.pug'),
     components: {
         datatable: DatatableComponent,
-        fileinput: FileAdminVueBase
+        fileinput: FileComponent
     },
     directives: {
         select2: select2

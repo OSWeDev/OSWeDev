@@ -1,21 +1,21 @@
 import * as $ from 'jquery';
 import Component from 'vue-class-component';
-import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
-import FileVO from '../../../../../shared/modules/File/vos/FileVO';
-import VueComponentBase from '../../../../ts/components/VueComponentBase';
+import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import FileVO from '../../../../shared/modules/File/vos/FileVO';
+import VueComponentBase from '../../../ts/components/VueComponentBase';
 import { Prop, Watch } from 'vue-property-decorator';
-import VueAppBase from '../../../../VueAppBase';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import { ModuleDAOGetter, ModuleDAOAction } from '../../../../ts/components/dao/store/DaoStore';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import FileController from './FileController';
+import VueAppBase from '../../../VueAppBase';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import { ModuleDAOGetter, ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import FileComponentManager from './FileComponentManager';
 
 
 @Component({
-    template: require('./FileAdminVueBase.pug'),
+    template: require('./FileComponent.pug'),
     components: {}
 })
-export default class FileAdminVueBase extends VueComponentBase {
+export default class FileComponent extends VueComponentBase {
 
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
@@ -63,7 +63,7 @@ export default class FileAdminVueBase extends VueComponentBase {
 
         this.uploading = true;
 
-        let fileVO: FileVO = await FileController.uploadFileVO('#file_import_input');
+        let fileVO: FileVO = await FileComponentManager.uploadFileVO('#file_import_input');
         if (!fileVO) {
             this.uploading = false;
             this.snotify.error('Erreur lors de l\'upload');
