@@ -17,6 +17,7 @@ export default class ModuleFile extends Module {
     private constructor() {
 
         super("file", "File");
+        this.forceActivationOnInstallation();
     }
 
     public initialize() {

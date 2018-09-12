@@ -157,6 +157,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 await this.post_create_trigger_hook.trigger(vo._type, vo);
             }
         }
+
+        return result;
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {

@@ -24,6 +24,7 @@ export default class ModuleMailer extends Module {
     private constructor() {
 
         super("mailer", "MAILER");
+        this.forceActivationOnInstallation();
     }
 
     public initialize() {

@@ -202,25 +202,18 @@ export default class ModuleDBService {
         let rows = await this.db.query('SELECT "actif" FROM admin.modules WHERE name = \'' + module.name + '\';');
 
         if ((!rows) || (!rows[0]) || (rows[0].actif === undefined)) {
-            // La ligne n'existe pas, on l'ajoute, en inactivant le module par défaut
-            module.actif = false;
+            // La ligne n'existe pas, on l'ajoute
+            module.actif = module.activate_on_installation;
             await this.db.query('INSERT INTO admin.modules (name, actif) VALUES (\'' + module.name + '\', \'' + module.actif + '\')');
-
-            // TODO : FIXME : MODIF : JNE : On ne crée les tables que si on est actif. await this.create_datas_tables(module);
-            // il faut pouvoir activer les modules à la volée et changer des params sans avoir à recharger toute l'appli.
-            // à creuser
-
-            // console.log("Ajout du module dans la liste des modules");
-            return true;
         } else {
             module.actif = rows[0].actif;
+        }
 
-            // TODO : FIXME : MODIF : JNE : On ne crée les tables que si on est actif. await this.create_datas_tables(module);
-            // il faut pouvoir activer les modules à la volée et changer des params sans avoir à recharger toute l'appli.
-            // à creuser
-            if (module.actif) {
-                await this.create_datas_tables(module);
-            }
+        // TODO : FIXME : MODIF : JNE : On ne crée les tables que si on est actif. await this.create_datas_tables(module);
+        // il faut pouvoir activer les modules à la volée et changer des params sans avoir à recharger toute l'appli.
+        // à creuser
+        if (module.actif) {
+            await this.create_datas_tables(module);
         }
 
         return true;

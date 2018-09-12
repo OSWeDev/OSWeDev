@@ -56,11 +56,11 @@ include ../../../../views/mixins/loading.pug
                                 ul.list-group(v-if="has_formatted_datas[api_type_id]")
                                     i.fa.fa-spinner.fa-spin(v-if="!nb_validated_format_elements")
                                     li.list-group-item.d-flex.justify-content-between.align-items-center(v-if="nb_validated_format_elements")
-                                        {{ label('import.format.modal.nb_validated_format_elements') }}
+                                        span {{ label('import.format.modal.nb_validated_format_elements') }}
                                         span.badge.badge-success.badge-spill {{ nb_validated_format_elements[api_type_id] }}
                                     i.fa.fa-spinner.fa-spin(v-if="!nb_unvalidated_format_elements")
                                     li.list-group-item.d-flex.justify-content-between.align-items-center(v-if="nb_unvalidated_format_elements")
-                                        {{ label('import.format.modal.nb_unvalidated_format_elements') }}
+                                        span {{ label('import.format.modal.nb_unvalidated_format_elements') }}
                                         span.badge.badge-danger.badge-spill {{ nb_unvalidated_format_elements[api_type_id] }}
                                 template(v-if='needs_format_validation[api_type_id]')
                                     button.btn.btn-primary(@click="continue_importation(api_type_id)")

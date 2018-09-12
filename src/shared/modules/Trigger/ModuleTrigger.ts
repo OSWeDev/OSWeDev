@@ -17,6 +17,7 @@ export default class ModuleTrigger extends Module {
     private constructor() {
 
         super("trigger", "TRIGGER");
+        this.forceActivationOnInstallation();
     }
 
     public registerTriggerHook(hook: TriggerHook<any, any, any>) {

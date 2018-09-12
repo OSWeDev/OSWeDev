@@ -26,6 +26,7 @@ export default class ModuleAPI extends Module {
     private constructor() {
 
         super("api", "API");
+        this.forceActivationOnInstallation();
     }
 
     public registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {

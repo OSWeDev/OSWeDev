@@ -67,6 +67,7 @@ export default class ModuleAccessPolicy extends Module {
     private constructor() {
 
         super("access_policy", "AccessPolicy");
+        this.forceActivationOnInstallation();
     }
 
     public registerApis() {
@@ -267,7 +268,7 @@ export default class ModuleAccessPolicy extends Module {
         let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let datatable_fields = [
             label_field,
-            new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'UniqID', true),
+            new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'ID unique', true),
         ];
 
         this.accesspolicygroup_datatable = new ModuleTable(this, AccessPolicyGroupVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Groupe de droits" }));
@@ -280,7 +281,7 @@ export default class ModuleAccessPolicy extends Module {
         let field_accpolgroup_id = new ModuleTableField('group_id', 'fkey', 'Group', true, true, 0);
         let datatable_fields = [
             label_field,
-            new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'UniqID', true),
+            new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'ID unique', true),
             field_accpolgroup_id
         ];
 
@@ -292,11 +293,11 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeRolesPolicies() {
-        let field_accpol_id = new ModuleTableField('accpol_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true, true, 0);
+        let field_accpol_id = new ModuleTableField('accpol_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Droit', true, true, 0);
         let field_role_id = new ModuleTableField('role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle', true, true, 0);
         let datatable_fields = [
-            field_accpol_id,
             field_role_id,
+            field_accpol_id,
             new ModuleTableField('granted', ModuleTableField.FIELD_TYPE_boolean, 'Granted', true, true, false),
         ];
 

@@ -88,6 +88,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
     }
 
     public defineAsImportable(): ModuleTable<any> {
+
+        // Il faut créer le moduleTable des datas raws.
+        // this.registerImportableModuleTable();
+
         this.importable = true;
         return this;
     }

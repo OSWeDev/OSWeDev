@@ -16,6 +16,8 @@ export default abstract class Module implements IModuleBase {
     public reflexiveClassName: string;
     public specificImportPath: string;
 
+    public activate_on_installation: boolean = false;
+
     constructor(
         name: string,
         reflexiveClassName: string,
@@ -25,6 +27,10 @@ export default abstract class Module implements IModuleBase {
         this.reflexiveClassName = reflexiveClassName;
         this.specificImportPath = specificImportPath;
         ModulesManager.getInstance().registerModule(Module.SharedModuleRoleName, this);
+    }
+
+    protected forceActivationOnInstallation(): void {
+        this.activate_on_installation = true;
     }
 
     public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }

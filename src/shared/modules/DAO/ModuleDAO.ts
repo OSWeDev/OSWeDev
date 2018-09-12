@@ -33,6 +33,7 @@ export default class ModuleDAO extends Module {
     private constructor() {
 
         super("dao", "DAO");
+        this.forceActivationOnInstallation();
     }
 
     public registerApis() {

@@ -81,7 +81,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
             storeDatas(state: IDAOState, infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) {
 
-                if ((!infos.vos) || (infos.vos.length <= 0) || (!infos.vos[0]._type)) {
+                if ((!infos.vos) || (!(infos.vos.length > 0)) || (!infos.vos[0]._type)) {
                     return;
                 }
 

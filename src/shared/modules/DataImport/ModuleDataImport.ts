@@ -154,15 +154,17 @@ export default class ModuleDataImport extends Module {
         return await ModuleAPI.getInstance().handleAPI<NumberParamVO, DataImportColumnVO[]>(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, data_import_format_id);
     }
 
-    public registerImportableModuleTable(moduleTable: ModuleTable<any>, targetModule: Module) {
+    public registerImportableModuleTable(targetModuleTable: ModuleTable<any>) {
+
+        targetModuleTable.defineAsImportable();
 
         // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable 
         let fields: Array<ModuleTableField<any>> = [];
 
-        for (let i in moduleTable.fields) {
-            let vofield = moduleTable.fields[i];
+        for (let i in targetModuleTable.fields) {
+            let vofield = targetModuleTable.fields[i];
 
-            fields.push(Object.assign({}, vofield));
+            fields.push(Object.assign(new ModuleTableField<any>(vofield.field_id, vofield.field_type, vofield.field_label, vofield.field_required, vofield.has_default, vofield.field_default), vofield));
         }
 
         let field_target_vo_id = new ModuleTableField<any>("target_vo_id", ModuleTableField.FIELD_TYPE_foreign_key, "Objet cible de l'import", false);
@@ -182,13 +184,12 @@ export default class ModuleDataImport extends Module {
         fields.push(new ModuleTableField<any>("not_validated_msg", ModuleTableField.FIELD_TYPE_string, "Msg validation", false));
         fields.push(new ModuleTableField<any>("not_imported_msg", ModuleTableField.FIELD_TYPE_string, "Msg import", false));
         fields.push(new ModuleTableField<any>("not_posttreated_msg", ModuleTableField.FIELD_TYPE_string, "Msg post-traitement", false));
-        let importTable: ModuleTable<any> = new ModuleTable<any>(targetModule, ModuleDataImport.IMPORT_TABLE_PREFIX + moduleTable.vo_type, fields, null, "Import " + moduleTable.name);
-        importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + moduleTable.vo_type);
-        field_target_vo_id.addManyToOneRelation(importTable, moduleTable);
-        targetModule.datatables.push(importTable);
-        moduleTable.importable = true;
+        let importTable: ModuleTable<any> = new ModuleTable<any>(targetModuleTable.module, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type, fields, null, "Import " + targetModuleTable.name);
+        importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type);
+        field_target_vo_id.addManyToOneRelation(importTable, targetModuleTable);
+        targetModuleTable.module.datatables.push(importTable);
+        targetModuleTable.importable = true;
     }
-
 
     public getRawImportedDatasAPI_Type_Id(target_vo_api_type_id: string): string {
         return ModuleDataImport.IMPORT_TABLE_PREFIX + target_vo_api_type_id;

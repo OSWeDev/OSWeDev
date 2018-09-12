@@ -1,7 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class DataImportFormatVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "data_import_file";
+    public static API_TYPE_ID: string = "dif";
 
     public static TYPE_LABELS: string[] = ['import.file_types.XLS.name', 'import.file_types.XLSX.name', 'import.file_types.CSV.name'];
     public static TYPE_XLS: number = 0;

@@ -19,6 +19,7 @@ export default class ModulePushData extends Module {
     private constructor() {
 
         super("pushdata", "PushData");
+        this.forceActivationOnInstallation();
     }
 
     public initialize() {

@@ -23,6 +23,7 @@ export default class ModuleFormatDatesNombres extends Module {
     private constructor() {
 
         super("format_dates_nombres", "FormatDatesNombres");
+        this.forceActivationOnInstallation();
     }
 
     // On peut avoir des Dates ou des strings en entrée des fonctions, on crée un traducteur assez flexible qui renvoie une date

@@ -38,6 +38,7 @@ export default class ModuleTranslation extends Module {
     private constructor() {
 
         super("translation", "Translation");
+        this.forceActivationOnInstallation();
     }
 
     public registerApis() {

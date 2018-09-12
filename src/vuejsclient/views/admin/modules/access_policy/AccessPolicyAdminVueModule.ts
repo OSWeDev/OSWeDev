@@ -89,7 +89,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         )) {
             CRUDComponentManager.getInstance().registerCRUD(
                 UserRolesVO.API_TYPE_ID,
-                this.getUserRolesCRUD(),
+                null,
                 new MenuPointer(
                     new MenuLeaf("UserRolesVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-shield"),
                     accessPolicyMenuBranch),
@@ -97,7 +97,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
             CRUDComponentManager.getInstance().registerCRUD(
                 RolePoliciesVO.API_TYPE_ID,
-                this.getRolePoliciesCRUD(),
+                null,
                 new MenuPointer(
                     new MenuLeaf("RolePoliciesVO", MenuElementBase.PRIORITY_HIGH, "fa-shield"),
                     accessPolicyMenuBranch),
@@ -105,7 +105,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
             CRUDComponentManager.getInstance().registerCRUD(
                 AccessPolicyVO.API_TYPE_ID,
-                this.getAccessPolicyCRUD(),
+                null,
                 new MenuPointer(
                     new MenuLeaf("AccessPolicyVO", MenuElementBase.PRIORITY_MEDIUM, "fa-shield"),
                     accessPolicyMenuBranch),
@@ -158,55 +158,6 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_challenge"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_expiration"));
         }
-
-        return crud;
-    }
-
-    protected getUserRolesCRUD(): CRUD<UserRolesVO> {
-        let crud: CRUD<UserRolesVO> = new CRUD<UserRolesVO>(new Datatable<UserRolesVO>(UserRolesVO.API_TYPE_ID));
-
-        crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
-            "role_id",
-            ModuleAccessPolicy.getInstance().role_datatable, [
-                new SimpleDatatableField("translatable_name")
-            ]));
-        crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
-            "user_id",
-            ModuleAccessPolicy.getInstance().user_datatable, [
-                new SimpleDatatableField("name")
-            ]));
-
-        return crud;
-    }
-
-    protected getRolePoliciesCRUD(): CRUD<RolePoliciesVO> {
-        let crud: CRUD<RolePoliciesVO> = new CRUD<RolePoliciesVO>(new Datatable<RolePoliciesVO>(RolePoliciesVO.API_TYPE_ID));
-
-        crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
-            "role_id",
-            ModuleAccessPolicy.getInstance().role_datatable, [
-                new SimpleDatatableField("translatable_name")
-            ]));
-        crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
-            "accpol_id",
-            ModuleAccessPolicy.getInstance().role_datatable, [
-                new SimpleDatatableField("translatable_name")
-            ]));
-        crud.readDatatable.pushField(new SimpleDatatableField("granted"));
-
-        return crud;
-    }
-
-    protected getAccessPolicyCRUD(): CRUD<RoleVO> {
-        let crud: CRUD<AccessPolicyVO> = new CRUD<AccessPolicyVO>(new Datatable<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID));
-
-        crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
-            "group_id",
-            ModuleAccessPolicy.getInstance().accesspolicygroup_datatable, [
-                new SimpleDatatableField("translatable_name")
-            ]));
-        crud.readDatatable.pushField(new SimpleDatatableField("uniq_id"));
-        crud.readDatatable.pushField(new SimpleDatatableField("translatable_name"));
 
         return crud;
     }

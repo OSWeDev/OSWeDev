@@ -1,7 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class DataImportLogVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "data_import_log";
+    public static API_TYPE_ID: string = "dil";
 
     public static LOG_LEVEL_LABELS: string[] = [
         "import.logs.lvl.DEBUG",

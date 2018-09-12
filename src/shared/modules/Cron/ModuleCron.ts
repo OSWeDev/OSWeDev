@@ -17,6 +17,7 @@ export default class ModuleCron extends Module {
     private constructor() {
 
         super("cron", "CRON");
+        this.forceActivationOnInstallation();
     }
 
     public datatable_cronworkplan: ModuleTable<CronWorkerPlanification>;

@@ -1,7 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class DataImportColumnVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "data_import_column";
+    public static API_TYPE_ID: string = "difc";
 
     public static TYPE_STRING: string = "string";
     public static TYPE_DATE: string = "date";

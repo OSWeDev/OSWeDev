@@ -1,7 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class DataImportHistoricVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "data_import_historic";
+    public static API_TYPE_ID: string = "dih";
 
     public static IMPORT_TYPE_NAMES: string[] = ['import.historic.types.EDIT', 'import.historic.types.REPLACE'];
     public static IMPORT_TYPE_EDIT: number = 0;

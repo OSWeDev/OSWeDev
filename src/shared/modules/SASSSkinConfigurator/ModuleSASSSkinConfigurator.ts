@@ -15,6 +15,7 @@ export default class ModuleSASSSkinConfigurator extends Module {
     private constructor() {
 
         super("sass_resource_planning_skin_configurator", "SASSSkinConfigurator");
+        this.forceActivationOnInstallation();
     }
 
     public initialize() {

@@ -35,6 +35,7 @@ export default class ModuleAjaxCache extends Module {
     private constructor() {
 
         super("ajax_cache", "AjaxCache");
+        this.forceActivationOnInstallation();
     }
 
     public async get(url: string, api_types_involved: string[]) {
