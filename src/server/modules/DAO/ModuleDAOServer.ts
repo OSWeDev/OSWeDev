@@ -102,63 +102,73 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
 
-        let isUpdates: boolean[] = [];
-        let results: InsertOrDeleteQueryResult[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
+        return new Promise<InsertOrDeleteQueryResult[]>(async (resolve, reject) => {
 
-            let queries: any[] = [];
+            let isUpdates: boolean[] = [];
+            let results: InsertOrDeleteQueryResult[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
-            for (let i in vos) {
-                let vo: IDistantVOBase = vos[i];
+                let queries: any[] = [];
 
-                isUpdates[i] = vo.id ? true : false;
-                let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+                for (let i in vos) {
+                    let vo: IDistantVOBase = vos[i];
 
-                if (!sql) {
-                    continue;
+                    isUpdates[i] = vo.id ? true : false;
+                    let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+
+                    if (!sql) {
+                        continue;
+                    }
+
+                    queries.push(t.oneOrNone(sql, vo));
                 }
 
-                queries.push(t.oneOrNone(sql, vo));
+                return t.batch(queries);
+            }).catch((reason) => {
+                reject(reason);
+            });
+
+            if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
+                for (let i in results) {
+
+                    if (isUpdates[i]) {
+                        await this.post_update_trigger_hook.trigger(vos[i]._type, vos[i]);
+                    } else {
+                        vos[i].id = parseInt(results[i].id.toString());
+                        await this.post_create_trigger_hook.trigger(vos[i]._type, vos[i]);
+                    }
+                }
             }
 
-            return t.batch(queries);
+            resolve(results);
         });
-
-        if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
-            for (let i in results) {
-
-                if (isUpdates[i]) {
-                    await this.post_update_trigger_hook.trigger(vos[i]._type, vos[i]);
-                } else {
-                    vos[i].id = parseInt(results[i].id.toString());
-                    await this.post_create_trigger_hook.trigger(vos[i]._type, vos[i]);
-                }
-            }
-        }
-
-        return results;
     }
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 
-        let isUpdate: boolean = vo.id ? true : false;
-        let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+        return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
 
-        if (!sql) {
-            return null;
-        }
+            let isUpdate: boolean = vo.id ? true : false;
+            let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
 
-        let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo);
-
-        if (result && isUpdate && vo) {
-            if (isUpdate) {
-                await this.post_update_trigger_hook.trigger(vo._type, vo);
-            } else {
-                vo.id = parseInt(result.id.toString());
-                await this.post_create_trigger_hook.trigger(vo._type, vo);
+            if (!sql) {
+                resolve(null);
             }
-        }
 
-        return result;
+            let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo).catch((reason) => {
+                reject(reason);
+            });
+
+            if (result && isUpdate && vo) {
+                if (isUpdate) {
+                    await this.post_update_trigger_hook.trigger(vo._type, vo);
+                } else {
+                    vo.id = parseInt(result.id.toString());
+                    await this.post_create_trigger_hook.trigger(vo._type, vo);
+                }
+            }
+
+            resolve(result);
+        });
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {

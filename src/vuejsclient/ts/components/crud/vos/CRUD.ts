@@ -28,7 +28,7 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            if (field.field_type == ModuleTableField.FIELD_TYPE_foreign_key) {
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_foreign_key) || (field.field_type == ModuleTableField.FIELD_TYPE_file_ref)) {
 
                 let default_target_label_field_id = field.default_label_field;
 

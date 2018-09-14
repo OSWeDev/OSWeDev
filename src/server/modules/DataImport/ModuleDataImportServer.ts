@@ -25,6 +25,7 @@ import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ModuleFileServer from '../File/ModuleFileServer';
+import ModuleFile from '../../../shared/modules/File/ModuleFile';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -71,20 +72,6 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     private async handleImportHistoricDateCreation(importHistoric: DataImportHistoricVO): Promise<boolean> {
-        // On fait une copie du fichier importé et on change la liaison
-        let importFormat: DataImportFormatVO = await ModuleDAO.getInstance().getVoById<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID, importHistoric.data_import_format_id);
-        let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
-        if (!importFormat.copy_folder.endsWith('/')) {
-            importFormat.copy_folder += '/';
-        }
-        if (!importFormat.copy_folder.startsWith('./imports_archive/')) {
-            if (!importFormat.copy_folder.startsWith('/')) {
-                importFormat.copy_folder = '/' + importFormat.copy_folder;
-            }
-            importFormat.copy_folder = './imports_archive' + importFormat.copy_folder;
-        }
-        await ModuleFileServer.getInstance().moveFile(fileVo, './imports_archive/' + importFormat.copy_folder);
-
         importHistoric.start_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
         return true;
     }
@@ -176,7 +163,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         }
 
         importHistoric.data_import_format_id = max_validated_datas_and_columns_format_id;
-        await this.insertImportedDatasInDb(all_formats_datas[importHistoric.data_import_format_id], importHistoric.api_type_id, moduleTable);
+        await this.insertImportedDatasInDb(all_formats_datas[importHistoric.data_import_format_id], ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(importHistoric.api_type_id), moduleTable);
 
         // 4
         importHistoric.state = ModuleDataImport.IMPORTATION_STATE_FORMATTED;
@@ -426,39 +413,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let insertVos: IImportedData[] = [];
 
         for (let i in vos) {
-            let vo: any = vos[i];
-            let insertVo: IImportedData = {
-                id: undefined,
-                _type: api_type_id,
-                importation_state: ModuleDataImport.IMPORTATION_STATE_FORMATTED,
-                not_validated_msg: null,
-                not_imported_msg: null,
-                not_posttreated_msg: null,
-                target_vo_id: null,
-                creation_date: DateHandler.getInstance().formatDateTimeForBDD(moment())
-            };
+            let vo: IImportedData = vos[i];
 
-            let hasFields: boolean = false;
-            let hasIncompatibleData: boolean = false;
-            for (const f in moduleTable.fields) {
+            // let hasIncompatibleData: boolean = false;
+            // for (const f in moduleTable.fields) {
 
-                if (typeof vo[moduleTable.fields[f].field_id] != "undefined") {
+            //     if (typeof vo[moduleTable.fields[f].field_id] != "undefined") {
 
-                    hasFields = true;
+            //         // On peut tester le format des datas suivant le type source et le type dest pour voir si c'est cohérent
+            //         //  et mettre à jour hasIncompatibleData
+            //     }
+            // }
 
-                    // On peut tester le format des datas suivant le type source et le type dest pour voir si c'est cohérent
-                    //  et mettre à jour hasIncompatibleData
-                    insertVo[moduleTable.fields[f].field_id] = vo[moduleTable.fields[f].field_id];
-                }
-            }
-
-            if (!hasFields) {
-
-                // On stocke quand même la ligne, en indiquant qu'elle semble invalide puisque vide
-                insertVo.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-                insertVo.not_validated_msg = "import.formatting.errors.no_data";
-            }
-            insertVos.push(insertVo);
+            insertVos.push(vo);
         }
 
         return ModuleDAO.getInstance().insertOrUpdateVOs(insertVos);

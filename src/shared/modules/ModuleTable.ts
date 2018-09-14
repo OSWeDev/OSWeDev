@@ -184,6 +184,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_float) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_amount) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_file_ref) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_foreign_key) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite) ||

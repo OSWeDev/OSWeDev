@@ -1,6 +1,6 @@
 include ../../../../views/mixins/loading.pug
 
-.data-import
+.data-import.col-md-12
     +loading()
         .row
             .col-md-12
@@ -14,12 +14,12 @@ include ../../../../views/mixins/loading.pug
                 component(:is="import_param_component")
 
         .row.justify-content-between
-            .col-md-2.justify-content-start
-                button.btn.btn-sm.btn-primary(@click="previous_segments")
+            .col-md-1
+                button.btn.btn-sm.btn-primary.pull-left(@click="previous_segments")
                     i.fa.fa-arrow-left(aria-hidden="true")
-            .col-md-2.justify-content-end
-                button.btn.btn-sm.btn-primary(@click="next_segments")
-                    i.fa.fa-arrow-left(aria-hidden="true")
+            .col-md-1
+                button.btn.btn-sm.btn-primary.pull-right(@click="next_segments")
+                    i.fa.fa-arrow-right(aria-hidden="true")
         .row.justify-content-between
             template(v-for='segment in segments')
                 .col-md-1
@@ -28,62 +28,74 @@ include ../../../../views/mixins/loading.pug
                     .segment_date_index(v-if='segment_type == "day"') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
         .row.justify-content-between
             template(v-for='segment in segments')
-                .col-md-1.bg-secondary(v-if='segment_states[segment.dateIndex] == segment_state_unavail')
-                .col-md-1.bg-success(v-else, :class='{bg-success: segment_states[segment.dateIndex] == segment_state_ok, bg-danger: segment_states[segment.dateIndex] == segment_state_ko, bg-warning: segment_states[segment.dateIndex] == segment_state_warn}')
-                    vueDropzone(:ref="'myVueDropzone'+selected_segment.dateIndex" :id="'dropzone'+selected_segment.dateIndex" :options="dropzoneOptions(api_type_id)")
+                template(v-if="segment_states && segment && segment_states[segment.dateIndex]")
+                    .col-md-1.bg-secondary(v-if='segment_states[segment.dateIndex] == segment_state_unavail')
+                    .col-md-1(v-else, 
+                        :class='{"bg-success": segment_states[segment.dateIndex] == segment_state_ok, "bg-danger": segment_states[segment.dateIndex] == segment_state_ko, "bg-warning": segment_states[segment.dateIndex] == segment_state_warn}',
+                        @click='openModal(segment)')
+                        i.fa.fa-info-circle.fa-3x(aria-hidden="true")
+        .row.justify-content-between
+            template(v-for='segment in segments')
+                template(v-if="segment_states && segment && segment_states[segment.dateIndex]")
+                    .col-md-1.bg-secondary(v-if='segment_states[segment.dateIndex] == segment_state_unavail')
+                    .col-md-1(v-else)
+                        //- fileinput(v-if="import_files && import_files[segment.dateIndex]" :filevo='import_files[segment.dateIndex]' @uploaded="uploadedFile(segment.dateIndex, ...arguments)")
+                        fileinput(:muted="true" :options="dropzoneOptions[segment.dateIndex]" @uploaded="uploadedFile(segment.dateIndex, ...arguments)")
+                        //- vue-dropzone(:ref="'myVueDropzone'+segment.dateIndex" :id="'dropzone'+segment.dateIndex" :options="dropzoneOptions(segment.dateIndex)")
 
         #import_modal.modal.fade
             .modal-dialog
                 .modal-content
-                    .modal-header
+                    .modal-header(v-if="selected_segment")
                         h4.modal-title {{ selected_segment.dateIndex }}
                         router-link.btn.close(:to="route_path") &times;
-                    .modal-body
+                    .modal-body(v-if="selected_segment && (!import_historics[selected_segment.dateIndex])")
+                        span {{ label('import.modal.no_hisotoric') }}
+                    .modal-body(v-if="selected_segment && import_historics[selected_segment.dateIndex]")
                         .row 
-                            fileinput(:readonly="true" filevoid='filevo')
+                            .col-md-12
+                                fileinput(:readonly="true" filevoid='filevo')
                         .row(v-for='api_type_id in api_type_ids')
-                            jumbotron
+                            .jumbotron.col-md-12
                                 p.lead.import_title {{ selected_segment_labels[api_type_id] }}
+                                router-link.btn.btn-sm.btn-primary(:to="logs_path[selected_segment.dateIndex][api_type_id]" target="_blank")
+                                    i.fa.fa-info-circle(aria-hidden="true")
+                                    span {{ label('import.modal.see_logs') }}
                                 hr
                                 p.justify-content-between.align-items-left
-                                    p {{ label('import.format.modal.title') }}
-                                    span.badge.badge-success.badge-spill(v-if='format_validated[api_type_id]')
+                                    span.badge.badge-success.badge-spill.pull-right(v-if='selected_segment_format_validated[api_type_id]')
                                         i.fa.fa-check(aria-hidden="true")
-                                    span.badge.badge-secondary.badge-spill(v-if='!has_formatted_datas[api_type_id]')
-                                        i.fa.fa-arrow-up(aria-hidden="true")
-                                    span.badge.badge-danger.badge-spill(v-if='format_invalidated[api_type_id]')
+                                    span.badge.badge-danger.badge-spill.pull-right(v-if='selected_segment_format_invalidated[api_type_id]')
                                         i.fa.fa-times(aria-hidden="true")
-                                ul.list-group(v-if="has_formatted_datas[api_type_id]")
-                                    i.fa.fa-spinner.fa-spin(v-if="!nb_validated_format_elements")
-                                    li.list-group-item.d-flex.justify-content-between.align-items-center(v-if="nb_validated_format_elements")
-                                        span {{ label('import.format.modal.nb_validated_format_elements') }}
-                                        span.badge.badge-success.badge-spill {{ nb_validated_format_elements[api_type_id] }}
-                                    i.fa.fa-spinner.fa-spin(v-if="!nb_unvalidated_format_elements")
-                                    li.list-group-item.d-flex.justify-content-between.align-items-center(v-if="nb_unvalidated_format_elements")
-                                        span {{ label('import.format.modal.nb_unvalidated_format_elements') }}
-                                        span.badge.badge-danger.badge-spill {{ nb_unvalidated_format_elements[api_type_id] }}
-                                template(v-if='needs_format_validation[api_type_id]')
-                                    button.btn.btn-primary(@click="continue_importation(api_type_id)")
+                                    p {{ label('import.format.modal.title') }}
+                                ul.list-group(v-if="selected_segment_has_formatted_datas[api_type_id]")
+                                    i.fa.fa-spinner.fa-spin(v-if="!selected_segment_nb_validated_format_elements")
+                                    li.list-group-item.d-flex.justify-content-between.align-items-center(v-if="selected_segment_nb_validated_format_elements")
+                                        span {{ label('import.format.modal.selected_segment_nb_validated_format_elements') }}
+                                        span.badge.badge-success.badge-spill {{ selected_segment_nb_validated_format_elements[api_type_id] }}
+                                    i.fa.fa-spinner.fa-spin(v-if="!selected_segment_nb_unvalidated_format_elements")
+                                    li.list-group-item.d-flex.justify-content-between.align-items-center(v-if="selected_segment_nb_unvalidated_format_elements")
+                                        span {{ label('import.format.modal.selected_segment_nb_unvalidated_format_elements') }}
+                                        span.badge.badge-danger.badge-spill {{ selected_segment_nb_unvalidated_format_elements[api_type_id] }}
+                                template(v-if='selected_segment_needs_format_validation[api_type_id]')
+                                    button.btn.btn-primary(@click="selected_segment_continue_importation(api_type_id)")
                                         i.fa.fa-check(aria-hidden="true") {{ label('import.format.modal.continue') }}
-                                    button.btn.btn-secondary(@click="cancel_importation(api_type_id)")
+                                    button.btn.btn-secondary(@click="selected_segment_cancel_importation(api_type_id)")
                                         i.fa.fa-check(aria-hidden="true") {{ label('import.format.modal.cancel') }}
 
                                 hr
                                 p.justify-content-between.align-items-left
-                                    p {{ label('import.import.modal.title') }}
-                                    span.badge.badge-success.badge-spill(v-if='imported[api_type_id]')
-                                        i.fa.fa-check(aria-hidden="true")
-                                    span.badge.badge-secondary.badge-spill(v-if='!(format_validated[api_type_id] || format_invalidated[api_type_id])')
-                                        i.fa.fa-arrow-up(aria-hidden="true")
-                                    span.badge.badge-danger.badge-spill(v-if='import_failed[api_type_id]')
+                                    span.badge.badge-danger.badge-spill.pull-right(v-if='selected_segment_import_failed[api_type_id]')
                                         i.fa.fa-times(aria-hidden="true")
-
+                                    span.badge.badge-success.badge-spill.pull-right(v-if='selected_segment_imported[api_type_id]')
+                                        i.fa.fa-check(aria-hidden="true")
+                                    p {{ label('import.import.modal.title') }}
+                                    
                                 hr
                                 p.justify-content-between.align-items-left
-                                    p {{ label('import.posttreat.modal.title') }}
-                                    span.badge.badge-success.badge-spill(v-if='posttreated[api_type_id]')
+                                    span.badge.badge-success.badge-spill.pull-right(v-if='selected_segment_posttreated[api_type_id]')
                                         i.fa.fa-check(aria-hidden="true")
-                                    span.badge.badge-secondary.badge-spill(v-if='!(imported[api_type_id] || import_failed[api_type_id])')
-                                        i.fa.fa-arrow-up(aria-hidden="true")
-                                    span.badge.badge-danger.badge-spill(v-if='posttreat_failed[api_type_id]')
+                                    span.badge.badge-danger.badge-spill.pull-right(v-if='selected_segment_posttreat_failed[api_type_id]')
                                         i.fa.fa-times(aria-hidden="true")
+                                    p {{ label('import.posttreat.modal.title') }}
+                                    

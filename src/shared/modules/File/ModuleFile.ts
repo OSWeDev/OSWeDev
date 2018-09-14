@@ -5,6 +5,8 @@ import FileVO from './vos/FileVO';
 
 export default class ModuleFile extends Module {
 
+    public static FILES_ROOT: string = './files/';
+
     public static getInstance(): ModuleFile {
         if (!ModuleFile.instance) {
             ModuleFile.instance = new ModuleFile();
@@ -24,7 +26,7 @@ export default class ModuleFile extends Module {
         this.fields = [];
         this.datatables = [];
 
-        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_string, 'Chemin du fichier', false);
+        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_file_field, 'Chemin du fichier', false);
         let datatable_fields = [
             label_field,
         ];

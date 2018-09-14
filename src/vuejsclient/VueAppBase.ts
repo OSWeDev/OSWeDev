@@ -27,6 +27,8 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
+import * as vueDropzone from "vue2-dropzone";
+import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 
 export default abstract class VueAppBase {
 
@@ -244,6 +246,7 @@ export default abstract class VueAppBase {
         Vue.use(VueRouter);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
+        Vue.component('vue-dropzone', vueDropzone);
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
 

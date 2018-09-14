@@ -63,15 +63,14 @@ export default class ImportTypeXLSXHandler {
             last_row_has_data = false;
 
             let rowData: IImportedData = {
-                id: undefined,
-                _type: dataImportFormat.api_type_id,
+                _type: ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(dataImportFormat.api_type_id),
                 importation_state: ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
                 not_validated_msg: null,
                 not_imported_msg: null,
                 not_posttreated_msg: null,
                 creation_date: DateHandler.getInstance().formatDateTimeForBDD(moment()),
                 target_vo_id: null
-            };
+            } as any;
 
             for (let i in dataImportColumns) {
                 let dataImportColumn: DataImportColumnVO = dataImportColumns[i];

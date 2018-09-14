@@ -360,6 +360,12 @@ export default class DatatableComponent extends VueComponentBase {
             this.custom_filters_values[datatable_field_uid] ? (this.custom_filters_values[datatable_field_uid].value ? "VRAI" : "FAUX") : false);
     }
 
+    @Watch('$route')
+    private onRouteChange() {
+        AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_ENABLE');
+        AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.get_export_params_for_xlsx);
+    }
+
     @Watch('custom_filters_values', { deep: true })
     private onChangeFilterValue() {
 
@@ -393,8 +399,7 @@ export default class DatatableComponent extends VueComponentBase {
         this.selected_datas = {};
         this.loaded = false;
 
-        AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_ENABLE');
-        AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.get_export_params_for_xlsx);
+        this.onRouteChange();
 
         this.loaded = true;
 

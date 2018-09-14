@@ -1,6 +1,6 @@
 import ModuleServiceBase from "./ModuleServiceBase";
 import Module from "../../shared/modules/Module";
-import FileHandler from '../tools/FileHandler';
+import ModuleFileServer from './File/ModuleFileServer';
 
 export default class ModulesClientInitializationDatasGenerator {
 
@@ -28,14 +28,10 @@ export default class ModulesClientInitializationDatasGenerator {
             // 'export default ModulesClientInitializationDatas = ' + JSON.stringify(this.GM.get_modules_infos(req.params.env)) + ';';
             try {
 
-                if (!await FileHandler.getInstance().dirExists('./src/client/ts/generated/')) {
-                    await FileHandler.getInstance().dirCreate('./src/client/ts/generated/');
-                }
-                if (!await FileHandler.getInstance().dirExists('./src/admin/ts/generated/')) {
-                    await FileHandler.getInstance().dirCreate('./src/admin/ts/generated/');
-                }
-                await FileHandler.getInstance().writeFile('./src/client/ts/generated/InitializeClientModulesDatas.ts', fileContent_client);
-                await FileHandler.getInstance().writeFile('./src/admin/ts/generated/InitializeAdminModulesDatas.ts', fileContent_admin);
+                await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/client/ts/generated/');
+                await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/admin/ts/generated/');
+                await ModuleFileServer.getInstance().writeFile('./src/client/ts/generated/InitializeClientModulesDatas.ts', fileContent_client);
+                await ModuleFileServer.getInstance().writeFile('./src/admin/ts/generated/InitializeAdminModulesDatas.ts', fileContent_admin);
             } catch (error) {
                 reject(error);
             } finally {

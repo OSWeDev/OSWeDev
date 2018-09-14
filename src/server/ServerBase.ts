@@ -32,6 +32,7 @@ import * as sharedsession from 'express-socket.io-session';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import SocketWrapper from './modules/PushData/vos/SocketWrapper';
 import NotificationVO from '../shared/modules/PushData/vos/NotificationVO';
+import ModuleFile from '../shared/modules/File/ModuleFile';
 
 export default abstract class ServerBase {
 
@@ -222,6 +223,8 @@ export default abstract class ServerBase {
 
         // Pour activation auto let's encrypt
         this.app.use('/.well-known', express.static('.well-known'));
+
+        this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
 
         this.app.use('/public', express.static('src/client/public'));
         this.app.use('/admin/public', express.static('src/admin/public'));

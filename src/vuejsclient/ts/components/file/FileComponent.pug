@@ -1,7 +1,7 @@
-include ../../../views/mixins/loading.pug
-
 .fileinput
-    +loading()
-        .row
-            input.form-control(v-if="!readonly", type="file", size="10", v-model="datafile", id="file_import_input", @input="importFile")
-            span(v-if="(filevo != null) && filevo.id") {{ filevo.path }}
+    .row
+        .col-md-12        
+            vue-dropzone(:ref="'filedropzone' + uid" :id="'filedropzone' + uid" :options="dropzoneOptions")
+                .dz-message
+                    i.fa.fa-upload.fa-3x
+            span(v-if="(!!filevo) && filevo.id") {{ filevo.path }}

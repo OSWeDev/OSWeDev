@@ -278,7 +278,7 @@ export default class ModuleAccessPolicy extends Module {
 
     private initializeModuleAccessPolicy() {
         let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let field_accpolgroup_id = new ModuleTableField('group_id', 'fkey', 'Group', true, true, 0);
+        let field_accpolgroup_id = new ModuleTableField('group_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Group', true, true, 0);
         let datatable_fields = [
             label_field,
             new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'ID unique', true),

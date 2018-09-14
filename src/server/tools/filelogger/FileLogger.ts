@@ -1,6 +1,6 @@
-import FileHandler from '../FileHandler';
 import { WriteStream } from 'fs';
 import * as moment from 'moment';
+import ModuleFileServer from '../../modules/File/ModuleFileServer';
 
 export default class FileLogger {
 
@@ -70,13 +70,11 @@ export default class FileLogger {
     private async initialize() {
         this.has_been_initialized = false;
 
-        if (!await FileHandler.getInstance().dirExists(this.log_path)) {
-            await FileHandler.getInstance().dirCreate(this.log_path);
-        }
+        await ModuleFileServer.getInstance().makeSureThisFolderExists(this.log_path);
 
         this.compiled_file_name = this.compileFileName();
 
-        this.writeStream = FileHandler.getInstance().getWriteStream(this.log_path + '/' + this.compiled_file_name, 'a');
+        this.writeStream = ModuleFileServer.getInstance().getWriteStream(this.log_path + '/' + this.compiled_file_name, 'a');
 
         this.has_been_initialized = true;
     }

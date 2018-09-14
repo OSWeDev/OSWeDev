@@ -21,6 +21,7 @@ import CRUD from '../vos/CRUD';
 import "./CRUDComponent.scss";
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import FileComponent from '../../file/FileComponent';
+import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -72,6 +73,8 @@ export default class CRUDComponent extends VueComponentBase {
 
     private select_options: { [field_id: string]: IDistantVOBase[] } = {};
     private isLoadingOptions: { [field_id: string]: boolean } = {};
+
+    private api_types_involved: string[] = [];
 
     get isModuleParamTable() {
         return VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID] ?
@@ -161,22 +164,26 @@ export default class CRUDComponent extends VueComponentBase {
         let res: Array<Promise<any>> = [];
         let self = this;
 
-        res.push(
-            (async () => {
-                let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
-                    IDistantVOBase
-                    >(datatable.API_TYPE_ID);
-                self.storeDatas({
-                    API_TYPE_ID: datatable.API_TYPE_ID,
-                    vos: vos
-                });
-            })()
-        );
+        if (self.api_types_involved.indexOf(datatable.API_TYPE_ID) < 0) {
+            self.api_types_involved.push(datatable.API_TYPE_ID);
 
-        for (let i in datatable.fields) {
-            let field = datatable.fields[i];
+            res.push(
+                (async () => {
+                    let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
+                        IDistantVOBase
+                        >(datatable.API_TYPE_ID);
+                    self.storeDatas({
+                        API_TYPE_ID: datatable.API_TYPE_ID,
+                        vos: vos
+                    });
+                })()
+            );
 
-            res = res.concat(this.loadDatasFromDatatableField(field));
+            for (let i in datatable.fields) {
+                let field = datatable.fields[i];
+
+                res = res.concat(this.loadDatasFromDatatableField(field));
+            }
         }
 
         return res;
@@ -194,35 +201,42 @@ export default class CRUDComponent extends VueComponentBase {
             (load_from_datatable_field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (load_from_datatable_field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
             let reference: ReferenceDatatableField<any> = load_from_datatable_field as ReferenceDatatableField<any>;
-            res.push(
-                (async () => {
-                    let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.targetModuleTable.vo_type);
-                    self.storeDatas({
-                        API_TYPE_ID: reference.targetModuleTable.vo_type,
-                        vos: vos
-                    });
-                })()
-            );
-
-            for (let i in reference.sortedTargetFields) {
-                res = res.concat(
-                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i])
+            if (self.api_types_involved.indexOf(reference.targetModuleTable.vo_type) < 0) {
+                self.api_types_involved.push(reference.targetModuleTable.vo_type);
+                res.push(
+                    (async () => {
+                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.targetModuleTable.vo_type);
+                        self.storeDatas({
+                            API_TYPE_ID: reference.targetModuleTable.vo_type,
+                            vos: vos
+                        });
+                    })()
                 );
+
+                for (let i in reference.sortedTargetFields) {
+                    res = res.concat(
+                        this.loadDatasFromDatatableField(reference.sortedTargetFields[i])
+                    );
+                }
             }
         }
 
         if (load_from_datatable_field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
             let reference: ManyToManyReferenceDatatableField<any, any> = load_from_datatable_field as ManyToManyReferenceDatatableField<any, any>;
 
-            res.push(
-                (async () => {
-                    let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.interModuleTable.vo_type);
-                    self.storeDatas({
-                        API_TYPE_ID: reference.targetModuleTable.vo_type,
-                        vos: vos
-                    });
-                })()
-            );
+            if (self.api_types_involved.indexOf(reference.targetModuleTable.vo_type) < 0) {
+                self.api_types_involved.push(reference.targetModuleTable.vo_type);
+
+                res.push(
+                    (async () => {
+                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.interModuleTable.vo_type);
+                        self.storeDatas({
+                            API_TYPE_ID: reference.targetModuleTable.vo_type,
+                            vos: vos
+                        });
+                    })()
+                );
+            }
         }
 
         return res;
@@ -664,10 +678,40 @@ export default class CRUDComponent extends VueComponentBase {
         field.onChange(vo);
     }
 
-    private uploadedFile(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
+    /**
+     * Cas spécifique du FileVo sur lequel on a un champ fichier qui crée l'objet que l'on souhaite update ou create.
+     * Si on est en cours d'update, il faut conserver l'ancien vo (pour maintenir les liaisons vers son id)
+     *  et lui mettre en path le nouveau fichier. On garde aussi le nouveau file, pour archive de l'ancien fichier
+     * @param vo 
+     * @param field 
+     * @param fileVo 
+     */
+    private async uploadedFile(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
         if ((!fileVo) || (!fileVo.id)) {
             return;
         }
-        vo[field.datatable_field_uid] = fileVo.id;
+        if (this.api_type_id != FileVO.API_TYPE_ID) {
+            return;
+        }
+
+
+        if (vo && vo.id) {
+            let tmp = this.editableVO[field.datatable_field_uid];
+            this.editableVO[field.datatable_field_uid] = fileVo[field.datatable_field_uid];
+            fileVo[field.datatable_field_uid] = tmp;
+
+            await ModuleDAO.getInstance().insertOrUpdateVOs([this.editableVO, fileVo]);
+            this.updateData(this.editableVO);
+            this.updateData(fileVo);
+        }
+
+        // On ferme la modal, devenue inutile
+        this.$router.push(this.getCRUDLink(this.api_type_id));
+    }
+
+    private async reload_datas() {
+        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved(this.api_types_involved);
+        this.api_types_involved = [];
+        await this.loaddatas();
     }
 }

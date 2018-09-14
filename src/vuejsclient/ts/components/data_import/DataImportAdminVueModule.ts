@@ -16,6 +16,7 @@ import DataImportComponent from './component/DataImportComponent';
 
 export default class DataImportAdminVueModule extends VueModuleBase {
 
+    public static IMPORT_SEGMENT_MODAL: string = 'segment';
     public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
         "DataImportAdminVueModule",
         MenuElementBase.PRIORITY_HIGH,
@@ -64,7 +65,7 @@ export default class DataImportAdminVueModule extends VueModuleBase {
             DataImportHistoricVO.API_TYPE_ID,
             null,
             new MenuPointer(
-                new MenuLeaf("DataImportHistoricVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-history"),
+                new MenuLeaf("DataImportHistoricVO", MenuElementBase.PRIORITY_HIGH, "fa-history"),
                 importsMenuBranch),
             this.routes);
         CRUDComponentManager.getInstance().registerCRUD(

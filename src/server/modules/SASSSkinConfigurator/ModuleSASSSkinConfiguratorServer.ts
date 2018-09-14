@@ -1,8 +1,7 @@
-import ModuleServerBase from '../ModuleServerBase';
-import ModuleSASSSkinConfigurator from '../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
-import * as fs from 'fs';
-import FileHandler from '../../tools/FileHandler';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleSASSSkinConfigurator from '../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import ModuleFileServer from '../File/ModuleFileServer';
+import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
@@ -26,19 +25,8 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
             let fileContent = this.getFileContent();
             try {
 
-                if (!await FileHandler.getInstance().dirExists('./src/')) {
-                    await FileHandler.getInstance().dirCreate('./src/');
-                }
-                if (!await FileHandler.getInstance().dirExists('./src/vuejsclient/')) {
-                    await FileHandler.getInstance().dirCreate('./src/vuejsclient/');
-                }
-                if (!await FileHandler.getInstance().dirExists('./src/vuejsclient/scss/')) {
-                    await FileHandler.getInstance().dirCreate('./src/vuejsclient/scss/');
-                }
-                if (!await FileHandler.getInstance().dirExists('./src/vuejsclient/scss/generated/')) {
-                    await FileHandler.getInstance().dirCreate('./src/vuejsclient/scss/generated/');
-                }
-                await FileHandler.getInstance().writeFile('./src/vuejsclient/scss/generated/skin-variables.scss', fileContent);
+                await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/vuejsclient/scss/generated/');
+                await ModuleFileServer.getInstance().writeFile('./src/vuejsclient/scss/generated/skin-variables.scss', fileContent);
             } catch (error) {
                 reject(error);
             } finally {
