@@ -35,6 +35,7 @@ export default class ImportLogger {
         log.date = DateHandler.getInstance().formatDateTimeForBDD(moment());
         log.log_level = log_level;
         log.message = message;
+        log.api_type_id = historique.api_type_id;
 
         let promises: Array<Promise<any>> = [];
         promises.push(ModuleDAO.getInstance().insertOrUpdateVOs([log]));

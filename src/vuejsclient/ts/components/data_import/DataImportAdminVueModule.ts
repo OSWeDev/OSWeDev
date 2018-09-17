@@ -13,6 +13,12 @@ import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
 import DataImportComponent from './component/DataImportComponent';
+import CRUD from '../crud/vos/CRUD';
+import Datatable from '../datatable/vos/Datatable';
+import ManyToOneReferenceDatatableField from '../datatable/vos/ManyToOneReferenceDatatableField';
+import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
+import FileVO from '../../../../shared/modules/File/vos/FileVO';
+import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class DataImportAdminVueModule extends VueModuleBase {
 
@@ -157,4 +163,70 @@ export default class DataImportAdminVueModule extends VueModuleBase {
                 });
         }
     }
+
+    // protected getDataImportHistoricVOCRUD(): CRUD<DataImportHistoricVO> {
+    //     let crud: CRUD<DataImportHistoricVO> = new CRUD<DataImportHistoricVO>(new Datatable<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID));
+
+    //     crud.readDatatable.pushField(new SimpleDatatableField("api_type_id"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("segment_date_index"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("state"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("import_type"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("params"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("start_date"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("last_up_date"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("end_date"));
+
+    //     crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
+    //         "file_id",
+    //         VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID],
+    //         [
+    //             new SimpleDatatableField("path")
+    //         ]));
+
+    //     crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
+    //         "user_id",
+    //         VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID],
+    //         [
+    //             new SimpleDatatableField("name")
+    //         ]));
+
+    //     return crud;
+    // }
+
+    // protected getDataImportLogVOCRUD(): CRUD<DataImportLogVO> {
+    //     let crud: CRUD<DataImportLogVO> = new CRUD<DataImportLogVO>(new Datatable<DataImportLogVO>(DataImportLogVO.API_TYPE_ID));
+
+
+    //     public: number;
+    //     public: number;
+
+    //     public: string;
+    //     public: number;
+
+    //     // Uses code_text if defined or message if not
+    //     public: string;
+    //     public: string;
+
+    //     crud.readDatatable.pushField(new SimpleDatatableField("api_type_id"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("date"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("log_level"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("code_text"));
+    //     crud.readDatatable.pushField(new SimpleDatatableField("message"));
+
+    //     crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
+    //         "data_import_format_id",
+    //         VOsTypesManager.getInstance().moduleTables_by_voType[DataImportFormatVO.API_TYPE_ID],
+    //         [
+    //             new SimpleDatatableField("import_uid")
+    //         ]));
+
+    //     crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
+    //         "data_import_historic_id",
+    //         VOsTypesManager.getInstance().moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID],
+    //         [
+    //             new SimpleDatatableField("name")
+    //         ]));
+
+    //     return crud;
+    // }
 }

@@ -36,10 +36,15 @@ export default class ModuleFileServer extends ModuleServerBase {
      * @param toFolder 
      * @returns the new path
      */
-    public async moveFile(old_path: string, toFolder: string): Promise<string> {
+    public async moveFile(old_path: string, toFolder: string, file_name: string = null): Promise<string> {
 
         await this.makeSureThisFolderExists(toFolder);
-        let new_path = toFolder + path.basename(old_path);
+        file_name = (file_name ? file_name : path.basename(old_path));
+        let new_path = toFolder + file_name;
+        while (await fs.exists(new_path)) {
+            file_name = '_' + file_name;
+            new_path = toFolder + file_name;
+        }
         await fs.rename(old_path, new_path);
         return new_path;
     }
@@ -75,7 +80,8 @@ export default class ModuleFileServer extends ModuleServerBase {
         ModulePushDataServer.getInstance().notifySimpleSUCCESS(uid, 'file.upload.success');
 
         let path: string = import_file.path;
-        path = await ModuleFileServer.getInstance().moveFile(path, ModuleFile.FILES_ROOT + 'upload/');
+        let name: string = import_file.name;
+        path = await ModuleFileServer.getInstance().moveFile(path, ModuleFile.FILES_ROOT + 'upload/', name);
 
         let filevo: FileVO = new FileVO();
         filevo.path = path;

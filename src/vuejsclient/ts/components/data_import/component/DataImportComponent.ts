@@ -20,6 +20,7 @@ import VueAppController from '../../../../VueAppController';
 import './DataImportComponent.scss';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import DataImportLogVO from '../../../../../shared/modules/DataImport/vos/DataImportLogVO';
+import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 @Component({
     template: require('./DataImportComponent.pug'),
@@ -33,6 +34,8 @@ export default class DataImportComponent extends VueComponentBase {
 
     @ModuleDAOAction
     public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
+    @ModuleDAOAction
+    public storeData: (vo: IDistantVOBase) => void;
 
     @Prop()
     public title: string;
@@ -73,10 +76,57 @@ export default class DataImportComponent extends VueComponentBase {
     private segment_state_ko: string = "ko";
     private segment_state_warn: string = "warn";
     private segment_state_unavail: string = "unavail";
+    private segment_state_info: string = "info";
 
     private segments: TimeSegment[] = [];
 
     private selected_segment: TimeSegment = null;
+
+    private previous_import_historics: { [segment_date_index: string]: { [api_type_id: string]: DataImportHistoricVO } } = {};
+
+    private check_change_import_historics(): boolean {
+        if (!this.import_historics) {
+            return !!this.previous_import_historics;
+        }
+
+        for (let segment_date_index in this.import_historics) {
+            if (!this.import_historics[segment_date_index]) {
+
+                if (this.previous_import_historics[segment_date_index]) {
+                    return true;
+                }
+                continue;
+            }
+
+            if (!this.previous_import_historics[segment_date_index]) {
+                return true;
+            }
+
+            for (let j in this.import_historics[segment_date_index]) {
+                if (!this.import_historics[segment_date_index][j]) {
+
+                    if (this.previous_import_historics[segment_date_index][j]) {
+                        return true;
+                    }
+                    continue;
+                }
+
+                if (!this.previous_import_historics[segment_date_index][j]) {
+                    return true;
+                }
+
+                if (this.previous_import_historics[segment_date_index][j].id != this.import_historics[segment_date_index][j].id) {
+                    return true;
+                }
+
+                if (this.previous_import_historics[segment_date_index][j].state != this.import_historics[segment_date_index][j].state) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     private previous_segments() {
         if ((!this.segments) || (this.segments.length != this.segment_number)) {
@@ -118,11 +168,12 @@ export default class DataImportComponent extends VueComponentBase {
         this.nextLoadingStep();
 
         this.init_segments();
-        setTimeout(this.handle_modal_show_hide, 100);
-
-        $("#import_modal").on("hidden.bs.modal", function () {
-            self.$router.push(self.route_path);
-        });
+        setTimeout(() => {
+            this.handle_modal_show_hide();
+            $("#import_modal").on("hidden.bs.modal", function () {
+                self.$router.push(self.route_path);
+            });
+        }, 100);
 
         this.stopLoading();
     }
@@ -171,9 +222,12 @@ export default class DataImportComponent extends VueComponentBase {
             // Un segment est ok si tous les api_types_ids sont ok
             //  Un api_type est ok si il y a un historique et 
             //      que celui-ci est en statut posttreated
+            // Un segment est info si un api_type est en info
+            //  Un api_type est info si il est est en attente de validation du formattage
             // Un segment est warn dans tous les autres cas
             let all_ok: boolean = true;
             let all_ko: boolean = true;
+            let has_info: boolean = false;
             for (let j in this.api_types_ids_states[segment.dateIndex]) {
                 if (this.api_types_ids_states[segment.dateIndex][j] != this.segment_state_ok) {
                     all_ok = false;
@@ -181,8 +235,23 @@ export default class DataImportComponent extends VueComponentBase {
                 if (this.api_types_ids_states[segment.dateIndex][j] != this.segment_state_ko) {
                     all_ko = false;
                 }
+                if (this.api_types_ids_states[segment.dateIndex][j] == this.segment_state_info) {
+                    has_info = true;
+                }
             }
-            res[segment.dateIndex] = (all_ko ? this.segment_state_ko : (all_ok ? this.segment_state_ok : this.segment_state_warn));
+            if (all_ko) {
+                res[segment.dateIndex] = this.segment_state_ko;
+                continue;
+            }
+            if (all_ok && !has_info) {
+                res[segment.dateIndex] = this.segment_state_ok;
+                continue;
+            }
+            if (has_info) {
+                res[segment.dateIndex] = this.segment_state_info;
+                continue;
+            }
+            res[segment.dateIndex] = this.segment_state_warn;
         }
 
         return res;
@@ -227,6 +296,15 @@ export default class DataImportComponent extends VueComponentBase {
                     case ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED:
                         res[segment.dateIndex][api_type_id] = this.segment_state_ko;
                         break;
+                    case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
+                        res[segment.dateIndex][api_type_id] = this.segment_state_info;
+                        break;
+                    case ModuleDataImport.IMPORTATION_STATE_FORMATTING:
+                    case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
+                    case ModuleDataImport.IMPORTATION_STATE_IMPORTING:
+                    case ModuleDataImport.IMPORTATION_STATE_POSTTREATING:
+                    case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
+                    case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
                     default:
                         res[segment.dateIndex][api_type_id] = this.segment_state_warn;
                 }
@@ -282,52 +360,76 @@ export default class DataImportComponent extends VueComponentBase {
     }
 
     @Watch('import_historics')
+    private async loadRawImportedDatasSelected_segment(timeSegment: TimeSegment) {
+        if (!this.check_change_import_historics()) {
+            return;
+        }
+        this.previous_import_historics = Object.assign({}, this.import_historics);
+        await this.loadRawImportedDatas(this.selected_segment);
+    }
+
     private async loadRawImportedDatas(timeSegment: TimeSegment) {
         let promises: Array<Promise<any>> = [];
         let self = this;
+        let files_ids: number[] = [];
 
         if ((!this.import_historics) || (!timeSegment) || (!this.import_historics[timeSegment.dateIndex])) {
             return;
         }
 
+        console.log('loadRawImportedDatas:' + timeSegment.dateIndex);
+
         for (let i in this.import_historics[timeSegment.dateIndex]) {
 
             let historic: DataImportHistoricVO = this.import_historics[timeSegment.dateIndex][i];
             let raw_api_type_id = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id);
+            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([raw_api_type_id]);
             promises.push((async () => {
                 self.storeDatas({
                     API_TYPE_ID: raw_api_type_id,
                     vos: await ModuleDAO.getInstance().getVos(raw_api_type_id)
                 });
             })());
+
+            // On va chercher le fichier aussi du coup
+            if ((!historic.file_id) || (this.getStoredDatas[FileVO.API_TYPE_ID] && this.getStoredDatas[FileVO.API_TYPE_ID][historic.file_id]) ||
+                (files_ids.indexOf(historic.file_id) >= 0)) {
+                continue;
+            }
+            files_ids.push(historic.file_id);
+            promises.push((async () => {
+                self.storeData(await ModuleDAO.getInstance().getVoById(FileVO.API_TYPE_ID, historic.file_id));
+            })());
+
         }
+
         await Promise.all(promises);
     }
 
-    // get import_files(): { [segment_date_index: string]: FileVO } {
-    //     let res: { [segment_date_index: string]: FileVO } = {};
+    get imported_files(): { [segment_date_index: string]: FileVO } {
+        let res: { [segment_date_index: string]: FileVO } = {};
 
-    //     if ((!this.getStoredDatas) || (!this.getStoredDatas[FileVO.API_TYPE_ID]) || (!this.import_historics)) {
-    //         return res;
-    //     }
+        if ((!this.getStoredDatas) || (!this.getStoredDatas[FileVO.API_TYPE_ID]) || (!this.import_historics)) {
+            return res;
+        }
 
-    //     for (let date_index in this.import_historics) {
-    //         res[date_index] = null;
+        for (let date_index in this.import_historics) {
+            res[date_index] = null;
 
-    //         for (let api_type_id in this.import_historics[date_index]) {
-    //             let historic = this.import_historics[date_index][api_type_id];
+            for (let api_type_id in this.import_historics[date_index]) {
+                let historic = this.import_historics[date_index][api_type_id];
 
-    //             if (!historic) {
-    //                 continue;
-    //             }
+                if (!historic) {
+                    continue;
+                }
 
-    //             res[date_index] = this.getStoredDatas[FileVO.API_TYPE_ID][historic.file_id] as FileVO;
-    //             break;
-    //         }
-    //     }
+                res[date_index] = this.getStoredDatas[FileVO.API_TYPE_ID][historic.file_id] as FileVO;
+                break;
+            }
+        }
 
-    //     return res;
-    // }
+        return res;
+    }
 
     get api_types_ids_formats(): { [api_type_id: string]: DataImportFormatVO[] } {
         let res: { [api_type_id: string]: DataImportFormatVO[] } = {};
@@ -363,15 +465,11 @@ export default class DataImportComponent extends VueComponentBase {
         for (let i in this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID]) {
             let historic: DataImportHistoricVO = this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID][i] as DataImportHistoricVO;
 
-            if ((!historic) || (!this.getStoredDatas[DataImportFormatVO.API_TYPE_ID][historic.data_import_format_id])) {
+            if (!historic) {
                 continue;
             }
 
-            let format: DataImportFormatVO = this.getStoredDatas[DataImportFormatVO.API_TYPE_ID][historic.data_import_format_id] as DataImportFormatVO;
-
-            if ((!format) || (this.api_type_ids.indexOf(format.api_type_id) < 0)) {
-                continue;
-            }
+            let api_type_id = historic.api_type_id;
 
             for (let j in this.segments) {
                 let segment: TimeSegment = this.segments[j];
@@ -384,19 +482,19 @@ export default class DataImportComponent extends VueComponentBase {
                     res[segment.dateIndex] = {};
                 }
 
-                if (res[segment.dateIndex][format.api_type_id] && moment(res[segment.dateIndex][format.api_type_id].start_date).isAfter(historic.start_date)) {
+                if (res[segment.dateIndex][api_type_id] && moment(res[segment.dateIndex][api_type_id].start_date).isAfter(historic.start_date)) {
                     continue;
                 }
 
-                res[segment.dateIndex][format.api_type_id] = historic;
+                res[segment.dateIndex][api_type_id] = historic;
             }
         }
 
         return res;
     }
 
-    get selected_segment_labels(): string[] {
-        let res: string[] = [];
+    get selected_segment_labels(): { [api_type_id: string]: string } {
+        let res: { [api_type_id: string]: string } = {};
 
         if ((!this.import_historics) || (!this.selected_segment) || (!this.import_historics[this.selected_segment.dateIndex])) {
             return res;
@@ -408,8 +506,15 @@ export default class DataImportComponent extends VueComponentBase {
                 continue;
             }
 
-            let format: DataImportFormatVO = this.getStoredDatas[DataImportFormatVO.API_TYPE_ID][this.import_historics[this.selected_segment.dateIndex][i].data_import_format_id] as DataImportFormatVO;
-            res.push(this.label(format.import_uid));
+            let historic: DataImportHistoricVO = this.import_historics[this.selected_segment.dateIndex][i];
+            let format: DataImportFormatVO = this.getStoredDatas[DataImportFormatVO.API_TYPE_ID][historic.data_import_format_id] as DataImportFormatVO;
+
+            if (!format) {
+                res[historic.api_type_id] = this.label('import.api_type_ids.' + historic.api_type_id);
+                continue;
+            }
+
+            res[historic.api_type_id] = this.label(format.import_uid);
         }
 
         return res;
@@ -861,6 +966,39 @@ export default class DataImportComponent extends VueComponentBase {
                     continue;
                 }
                 res[segment.dateIndex][api_type_id] = this.getCRUDLink(DataImportLogVO.API_TYPE_ID) + "?FILTER__data_import_historic_id=" + this.import_historics[segment.dateIndex][api_type_id].id;
+            }
+        }
+
+        return res;
+    }
+
+    get raw_datas_path(): { [segment_date_index: string]: { [api_type_id: string]: string } } {
+        return this.getRaw_datas_path(null);//'import.state.ready_to_import');
+    }
+
+    private getRaw_datas_path(import_state: string): { [segment_date_index: string]: { [api_type_id: string]: string } } {
+        let res: { [segment_date_index: string]: { [api_type_id: string]: string } } = {};
+
+        if (!this.import_historics) {
+            return res;
+        }
+
+        for (let i in this.segments) {
+            let segment = this.segments[i];
+
+            res[segment.dateIndex] = {};
+
+            if (!this.import_historics[segment.dateIndex]) {
+                continue;
+            }
+
+            for (let j in this.api_type_ids) {
+                let api_type_id = this.api_type_ids[j];
+
+                if ((!this.import_historics[segment.dateIndex][api_type_id]) || (!this.import_historics[segment.dateIndex][api_type_id].id)) {
+                    continue;
+                }
+                res[segment.dateIndex][api_type_id] = this.getCRUDLink(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(api_type_id)) + (import_state ? "?FILTER__importation_state=" + import_state : '');
             }
         }
 

@@ -39,6 +39,10 @@ export default class FileComponent extends VueComponentBase {
     @Watch('filevo')
     public async updateFileVo() {
         let dropzone = (this.$refs['filedropzone' + this.uid] as any);
+
+        if (!dropzone) {
+            return;
+        }
         dropzone.removeAllFiles();
         if (!this.filevo) {
             return;

@@ -168,7 +168,7 @@ export default class ModuleDataImport extends Module {
         }
 
         let field_target_vo_id = new ModuleTableField<any>("target_vo_id", ModuleTableField.FIELD_TYPE_foreign_key, "Objet cible de l'import", false);
-        fields.push(new ModuleTableField<any>("importation_state", ModuleTableField.FIELD_TYPE_enum, "Status", true, true, 0).setEnumValues({
+        fields.unshift(new ModuleTableField<any>("importation_state", ModuleTableField.FIELD_TYPE_enum, "Status", true, true, 0).setEnumValues({
             [ModuleDataImport.IMPORTATION_STATE_UPLOADED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_UPLOADED],
             [ModuleDataImport.IMPORTATION_STATE_FORMATTING]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTING],
             [ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT],
@@ -181,7 +181,7 @@ export default class ModuleDataImport extends Module {
             [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]
         }));
         fields.push(new ModuleTableField<any>("creation_date", ModuleTableField.FIELD_TYPE_timestamp, "Date de création", false));
-        fields.push(new ModuleTableField<any>("not_validated_msg", ModuleTableField.FIELD_TYPE_string, "Msg validation", false));
+        fields.unshift(new ModuleTableField<any>("not_validated_msg", ModuleTableField.FIELD_TYPE_string, "Msg validation", false));
         fields.push(new ModuleTableField<any>("not_imported_msg", ModuleTableField.FIELD_TYPE_string, "Msg import", false));
         fields.push(new ModuleTableField<any>("not_posttreated_msg", ModuleTableField.FIELD_TYPE_string, "Msg post-traitement", false));
         let importTable: ModuleTable<any> = new ModuleTable<any>(targetModuleTable.module, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type, fields, null, "Import " + targetModuleTable.name);
@@ -238,7 +238,7 @@ export default class ModuleDataImport extends Module {
         this.datatables.push(this.datatable_column);
 
         // Création de la table dataimportlog
-        label_field = new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de démarrage', false);
+        label_field = new ModuleTableField('historic_uid', ModuleTableField.FIELD_TYPE_string, 'ID unique', false);
         field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
         let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
         field_file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_file_ref, 'Fichier importé', false);
@@ -259,6 +259,7 @@ export default class ModuleDataImport extends Module {
                 [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]
             }),
             label_field,
+            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de démarrage', false),
             new ModuleTableField('segment_date_index', ModuleTableField.FIELD_TYPE_string, 'Segment cible', false),
             new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_timestamp, 'Modification', false),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de fin', false),

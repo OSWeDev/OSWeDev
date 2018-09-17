@@ -54,7 +54,13 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let postUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
         let postCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
         postUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricProgression.bind(this));
+        postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID.bind(this));
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricProgression.bind(this));
+    }
+
+    private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {
+        importHistoric.historic_uid = importHistoric.id.toString();
+        await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
     }
 
     private async handleImportHistoricDateUpdate(importHistoric: DataImportHistoricVO): Promise<boolean> {
@@ -116,6 +122,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
      */
     private async formatDatas(importHistoric: DataImportHistoricVO): Promise<void> {
 
+        await ImportLogger.getInstance().log(importHistoric, 'Début de l\'importation', DataImportLogVO.LOG_LEVEL_INFO);
 
         // 1
         let formats: DataImportFormatVO[] = await this.getImportFormatsForApiTypeId(importHistoric.api_type_id);
@@ -166,9 +173,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         await this.insertImportedDatasInDb(all_formats_datas[importHistoric.data_import_format_id], ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(importHistoric.api_type_id), moduleTable);
 
         // 4
-        importHistoric.state = ModuleDataImport.IMPORTATION_STATE_FORMATTED;
-        await this.updateImportHistoric(importHistoric);
-        await ModulePushDataServer.getInstance().notifySimpleSUCCESS(importHistoric.user_id, "import.success.formatted");
+        await this.logAndUpdateHistoric(importHistoric, ModuleDataImport.IMPORTATION_STATE_FORMATTED, 'Formattage terminé', "import.success.formatted", DataImportLogVO.LOG_LEVEL_SUCCESS);
     }
 
     private countValidatedDataAndColumns(vos: IImportedData[], moduleTable: ModuleTable<any>): number {
@@ -205,7 +210,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         //  1 - Récupérer le format validé, et les données importées ()
         let format: DataImportFormatVO = await ModuleDAO.getInstance().getVoById<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID, importHistoric.data_import_format_id);
-        let raw_imported_datas: IImportedData[] = await ModuleDAO.getInstance().getVos<IImportedData>(format.api_type_id);
+        let raw_imported_datas: IImportedData[] = await ModuleDAO.getInstance().getVos<IImportedData>(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id));
 
         if ((!format) || (!format.post_exec_module_id) || (!raw_imported_datas) || (!raw_imported_datas.length)) {
             await this.logAndUpdateHistoric(importHistoric, ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION, "Aucune data formattée ou pas de module configuré", "import.errors.failed_importation_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
@@ -263,7 +268,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         //  1 - Récupérer le format validé, et les données importées ()
         let format: DataImportFormatVO = await ModuleDAO.getInstance().getVoById<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID, importHistoric.data_import_format_id);
-        let raw_imported_datas: IImportedData[] = await ModuleDAO.getInstance().getVos<IImportedData>(format.api_type_id);
+        let raw_imported_datas: IImportedData[] = await ModuleDAO.getInstance().getVos<IImportedData>(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id));
 
         if ((!format) || (!format.post_exec_module_id) || (!raw_imported_datas) || (!raw_imported_datas.length)) {
             await this.logAndUpdateHistoric(importHistoric, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Aucune data formattée ou pas de module configuré", "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);

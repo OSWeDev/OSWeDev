@@ -12,6 +12,9 @@ export default class DataImportHistoricVO implements IDistantVOBase {
     public id: number;
     public _type: string = DataImportHistoricVO.API_TYPE_ID;
 
+    // On stocke un uid puisque le champ id ne doit pas être utilisé directement
+    public historic_uid: string;
+
     // La data que l'on souhaite importer
     public api_type_id: string;
 
