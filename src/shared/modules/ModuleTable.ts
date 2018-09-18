@@ -182,6 +182,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
         for (let i in this.fields) {
             let field = this.fields[i];
 
+            if (field.field_type == ModuleTableField.FIELD_TYPE_timestamp) {
+                e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:ss') + 'Z' : e[field.field_id];
+            }
+
             if ((field.field_type == ModuleTableField.FIELD_TYPE_float) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_amount) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_file_ref) ||

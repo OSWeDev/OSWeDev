@@ -6,6 +6,7 @@ import VueAppBase from '../../../VueAppBase';
 import VueModuleBase from '../VueModuleBase';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -55,11 +56,13 @@ export default class PushDataVueModule extends VueModuleBase {
 
                 switch (notification.dao_notif_type) {
                     case NotificationVO.DAO_GET_VO_BY_ID:
+                        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
                         let vo: IDistantVOBase = await ModuleDAO.getInstance().getVoById(notification.api_type_id, notification.dao_notif_vo_id);
                         VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeData', vo);
                         console.debug("NotificationVO.DAO_GET_VO_BY_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
                         break;
                     case NotificationVO.DAO_GET_VOS:
+                        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
                         let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos(notification.api_type_id);
                         VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
                         console.debug("NotificationVO.DAO_GET_VOS:" + notification.api_type_id);

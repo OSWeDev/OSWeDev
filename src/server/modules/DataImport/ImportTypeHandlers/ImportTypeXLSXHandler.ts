@@ -69,7 +69,8 @@ export default class ImportTypeXLSXHandler {
                 not_imported_msg: null,
                 not_posttreated_msg: null,
                 creation_date: DateHandler.getInstance().formatDateTimeForBDD(moment()),
-                target_vo_id: null
+                target_vo_id: null,
+                historic_id: historic.id
             } as any;
 
             for (let i in dataImportColumns) {

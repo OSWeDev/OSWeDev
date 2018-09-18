@@ -42,16 +42,6 @@ export default class MenuStore implements IStoreModule<IMenuState, MenuContext> 
 
 
         this.getters = {
-            getMenuElement(state: IMenuState, infos: { UID: string, menuElements: MenuElementBase[] }): MenuElementBase {
-
-
-                let menuElements = infos.menuElements;
-                if (!menuElements) {
-                    menuElements = state.menuElements;
-                }
-
-                return MenuController.getInstance().getMenuElementInStoreElements(infos.UID, menuElements);
-            },
             getMenuElements(state: IMenuState): MenuElementBase[] {
                 return state.menuElements;
             }

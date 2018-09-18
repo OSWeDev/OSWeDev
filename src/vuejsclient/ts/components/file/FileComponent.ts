@@ -149,6 +149,7 @@ export default class FileComponent extends VueComponentBase {
                     if (!!onSuccess) {
                         onSuccess(infos, res);
                     }
+                    (self.$refs['filedropzone' + this.uid] as any).removeAllFiles();
                 } catch (error) {
                     self.snotify.error(self.label('import.server_response_error'));
                     return;

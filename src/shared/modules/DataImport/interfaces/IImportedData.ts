@@ -10,5 +10,6 @@ export default interface IImportedData extends IDistantVOBase {
 
     creation_date: string;
 
+    historic_id: number;
     target_vo_id: number;
 }

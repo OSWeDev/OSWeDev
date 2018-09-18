@@ -2,10 +2,13 @@ import * as socketIO from 'socket.io';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ModuleServerBase from '../ModuleServerBase';
 import SocketWrapper from './vos/SocketWrapper';
 
 export default class ModulePushDataServer extends ModuleServerBase {
+
+    public static NOTIF_INTERVAL_MS: number = 1000;
 
     public static getInstance(): ModulePushDataServer {
         if (!ModulePushDataServer.instance) {
@@ -157,6 +160,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         notification.read = false;
         notification.user_id = user_id;
         await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
 
     public async notifyDAOGetVos(user_id: number, api_type_id: string) {
@@ -173,6 +177,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         notification.read = false;
         notification.user_id = user_id;
         await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
 
     public async notifySimpleSUCCESS(user_id: number, code_text: string) {
@@ -202,5 +207,6 @@ export default class ModulePushDataServer extends ModuleServerBase {
         notification.read = false;
         notification.user_id = user_id;
         await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
 }

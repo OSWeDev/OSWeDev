@@ -22,7 +22,7 @@ import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class DataImportAdminVueModule extends VueModuleBase {
 
-    public static IMPORT_SEGMENT_MODAL: string = 'segment';
+    public static IMPORT_MODAL: string = 'modal';
     public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
         "DataImportAdminVueModule",
         MenuElementBase.PRIORITY_HIGH,

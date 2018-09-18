@@ -124,6 +124,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         await ImportLogger.getInstance().log(importHistoric, 'Début de l\'importation', DataImportLogVO.LOG_LEVEL_INFO);
 
+        // On commence par nettoyer la table, quelle que soit l'issue
+        await ModuleDAOServer.getInstance().truncate(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(importHistoric.api_type_id));
+
         // 1
         let formats: DataImportFormatVO[] = await this.getImportFormatsForApiTypeId(importHistoric.api_type_id);
         if ((!formats) || (!formats.length)) {
@@ -155,7 +158,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     datas = await ImportTypeXLSXHandler.getInstance().importFile(format, columns, importHistoric);
             }
 
-            has_datas = has_datas || (datas.length > 0);
+            has_datas = has_datas || (datas && (datas.length > 0));
             all_formats_datas[format.id] = datas;
 
             let validated_datas_and_columns_num: number = this.countValidatedDataAndColumns(datas, moduleTable);
@@ -234,7 +237,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // 2 - Importer dans le vo cible, suivant le mode d'importation (remplacement ou mise à jour)
         switch (importHistoric.import_type) {
             case DataImportHistoricVO.IMPORT_TYPE_REPLACE:
-                await ModuleDAOServer.getInstance().truncate(ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(format.api_type_id));
+                await ModuleDAOServer.getInstance().truncate(format.api_type_id);
 
                 // a priori on a juste à virer les ids et modifier les _type, on peut insérer dans le vo cible
                 for (let i in validated_imported_datas) {
@@ -319,10 +322,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // Pour l'instant on informe que l'auteur, mais en fait à terme ce qui serait top (mais à réfléchir par ce que très gourmand potentiellement)
         //  ça serait d'informer tout le monde, directement en post creat et post update, et post delete, de toutes les modifs de DAO...
         //  comme ça la data se mettrait à jour en temps réel dans l'appli, même si c'est un autre utilisateur qui fait un import
-        let api_type_ids: string[] = postTraitementModule.get_merged_api_type_ids();
-        for (let i in api_type_ids) {
-            await ModulePushDataServer.getInstance().notifyDAOGetVos(importHistoric.user_id, api_type_ids[i]);
-        }
+
+        // Alors c'est tellement gourmand que même pour un user on le fait pour l'instant...
+        // let api_type_ids: string[] = postTraitementModule.get_merged_api_type_ids();
+        // for (let i in api_type_ids) {
+        //     await ModulePushDataServer.getInstance().notifyDAOGetVos(importHistoric.user_id, api_type_ids[i]);
+        // }
 
         await this.logAndUpdateHistoric(importHistoric, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + moment().format("Y-MM-DD HH:mm"), "import.success.imported", DataImportLogVO.LOG_LEVEL_SUCCESS);
     }

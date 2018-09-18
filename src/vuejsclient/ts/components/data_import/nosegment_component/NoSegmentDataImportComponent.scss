@@ -29,7 +29,7 @@
         }
     }
 
-    .data_import_segment_overview{
+    .data_import_overview{
         text-align: CENTER;
         border-width: 10px !important;
         /* margin: 10px; */
@@ -46,18 +46,9 @@
         i.fa.fa-info-circle.fa-5x:hover {
             opacity: 0.8;
         }
-
-        .segment_date_index {
-            font-size: 1.4em;
-            font-weight: 700;
-            text-align: center;
-            line-height: 2em;
-            margin-top: 10px;
-            opacity: 0.8;
-        }
     }
 
-    .segments_overviews {
+    .import_overviews {
 
         margin: 20px;
     }
