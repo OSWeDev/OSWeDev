@@ -527,7 +527,7 @@ export default abstract class ServerBase {
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
-        this.modulesService.configure_server_modules(this.app);
+        await this.modulesService.configure_server_modules(this.app);
 
         console.log('listening on port', ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')

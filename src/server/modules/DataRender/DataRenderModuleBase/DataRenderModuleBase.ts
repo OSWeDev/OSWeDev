@@ -25,5 +25,5 @@ export default abstract class DataRenderModuleBase extends ModuleServerBase impl
     public abstract async hook_configure_renderer();
 
     abstract database: ModuleTable<IDistantVOBase & IRenderedData>;
-    abstract data_timesegment_type: string;
+    abstract data_timesegment_type: number;
 }

@@ -16,7 +16,7 @@ include ../../../../views/mixins/loading.pug
             .col-sm
                 component(:is="import_param_component")
 
-        template(v-if="hasValidOptions && segment_type")
+        template(v-if="hasValidOptions")
             .row.justify-content-between
                 .col-md-1
                     button.btn.btn-primary.pull-left(@click="previous_segments")
@@ -27,18 +27,18 @@ include ../../../../views/mixins/loading.pug
             .row.justify-content-between.segments_overviews
                 template(v-for='segment in segments')
                     template(v-if="segment_states && segment && segment_states[segment.dateIndex]")
-                        .col-sm.border-top.rounded-top.border-secondary.data_import_segment_overview(v-if='segment_states[segment.dateIndex] == segment_state_unavail')
+                        .col-sm.border-top.rounded-top.border-secondary.data_import_segment_overview(v-if='segment_states[segment.dateIndex] == state_unavail')
 
-                            .segment_date_index(v-if='segment_type == "year"') {{ formatDate_Fullyear(segment.dateIndex) }}
-                            .segment_date_index(v-if='segment_type == "month"') {{ formatDate_FullyearMonth(segment.dateIndex) }}
-                            .segment_date_index(v-if='segment_type == "day"') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
+                            .segment_date_index(v-if='segment_type == segment_type_year') {{ formatDate_Fullyear(segment.dateIndex) }}
+                            .segment_date_index(v-if='segment_type == segment_type_month') {{ formatDate_FullyearMonth(segment.dateIndex) }}
+                            .segment_date_index(v-if='segment_type == segment_type_day') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
 
                         .col-sm.border-top.rounded-top.data_import_segment_overview(v-else, 
-                            :class='{"border-success": segment_states[segment.dateIndex] == segment_state_ok, "border-danger": segment_states[segment.dateIndex] == segment_state_ko, "border-warning": segment_states[segment.dateIndex] == segment_state_warn, "border-primary": segment_states[segment.dateIndex] == segment_state_info}')
+                            :class='{"border-success": segment_states[segment.dateIndex] == state_ok, "border-danger": segment_states[segment.dateIndex] == state_ko, "border-warning": segment_states[segment.dateIndex] == state_warn, "border-primary": segment_states[segment.dateIndex] == state_info}')
 
-                            .segment_date_index(v-if='segment_type == "year"') {{ formatDate_Fullyear(segment.dateIndex) }}
-                            .segment_date_index(v-if='segment_type == "month"') {{ formatDate_FullyearMonth(segment.dateIndex) }}
-                            .segment_date_index(v-if='segment_type == "day"') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
+                            .segment_date_index(v-if='segment_type == segment_type_year') {{ formatDate_Fullyear(segment.dateIndex) }}
+                            .segment_date_index(v-if='segment_type == segment_type_month') {{ formatDate_FullyearMonth(segment.dateIndex) }}
+                            .segment_date_index(v-if='segment_type == segment_type_day') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
 
                             i.fa.fa-info-circle.fa-5x(aria-hidden="true" @click='openModal(segment)')
                             fileinput(:muted="true" :options="dropzoneOptions[segment.dateIndex]" @uploaded="uploadedFile(segment.dateIndex, ...arguments)")

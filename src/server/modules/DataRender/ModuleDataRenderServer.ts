@@ -87,7 +87,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     public async getDataSegment_needs_force_numerics<T extends IDistantVOBase>(
         datatable: ModuleTable<T>,
         timeSegment: TimeSegment,
-        rendered_data_time_segment_type: string): Promise<T[]> {
+        rendered_data_time_segment_type: number): Promise<T[]> {
 
         let timeSegments: TimeSegment[] = TimeSegmentHandler.getInstance().getAllDataTimeSegments(
             TimeSegmentHandler.getInstance().getStartTimeSegment(timeSegment),

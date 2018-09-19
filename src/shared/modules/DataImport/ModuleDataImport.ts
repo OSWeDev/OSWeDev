@@ -14,6 +14,8 @@ import DataImportFormatVO from './vos/DataImportFormatVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
 import DataImportLogVO from './vos/DataImportLogVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
+import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 
 export default class ModuleDataImport extends Module {
 
@@ -168,7 +170,6 @@ export default class ModuleDataImport extends Module {
         }
 
         let field_historic_id = new ModuleTableField<any>("historic_id", ModuleTableField.FIELD_TYPE_foreign_key, "Historique", false);
-        let field_target_vo_id = new ModuleTableField<any>("target_vo_id", ModuleTableField.FIELD_TYPE_foreign_key, "Objet cible de l'import", false);
         fields.unshift(new ModuleTableField<any>("not_validated_msg", ModuleTableField.FIELD_TYPE_string, "Msg validation", false));
         fields.unshift(new ModuleTableField<any>("importation_state", ModuleTableField.FIELD_TYPE_enum, "Status", true, true, 0).setEnumValues({
             [ModuleDataImport.IMPORTATION_STATE_UPLOADED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_UPLOADED],
@@ -187,10 +188,8 @@ export default class ModuleDataImport extends Module {
         fields.push(new ModuleTableField<any>("not_imported_msg", ModuleTableField.FIELD_TYPE_string, "Msg import", false));
         fields.push(new ModuleTableField<any>("not_posttreated_msg", ModuleTableField.FIELD_TYPE_string, "Msg post-traitement", false));
         fields.unshift(field_historic_id);
-        fields.push(field_target_vo_id);
         let importTable: ModuleTable<any> = new ModuleTable<any>(targetModuleTable.module, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type, fields, null, "Import " + targetModuleTable.name);
         importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type);
-        field_target_vo_id.addManyToOneRelation(importTable, targetModuleTable);
         field_historic_id.addManyToOneRelation(importTable, VOsTypesManager.getInstance().moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID]);
         targetModuleTable.module.datatables.push(importTable);
         targetModuleTable.importable = true;
@@ -267,6 +266,11 @@ export default class ModuleDataImport extends Module {
             label_field,
             new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de démarrage', false),
             new ModuleTableField('segment_date_index', ModuleTableField.FIELD_TYPE_string, 'Segment cible', false),
+            new ModuleTableField('segment_type', ModuleTableField.FIELD_TYPE_enum, 'Type de segment', false).setEnumValues({
+                [TimeSegment.TYPE_YEAR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_YEAR],
+                [TimeSegment.TYPE_MONTH]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MONTH],
+                [TimeSegment.TYPE_DAY]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_DAY]
+            }),
             new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_timestamp, 'Modification', false),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de fin', false),
             new ModuleTableField('params', ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),

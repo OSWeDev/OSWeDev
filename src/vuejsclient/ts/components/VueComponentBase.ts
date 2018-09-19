@@ -16,6 +16,7 @@ import AppVuexStoreManager from "../store/AppVuexStoreManager";
 import IDeclareVueComponent from "./IDeclareVueComponent";
 import DateHandler from '../../../shared/tools/DateHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 
 // MONTHS MIXIN
 let months = [
@@ -274,6 +275,10 @@ export default class VueComponentBase extends Vue
         alerteCheck: alerteCheckFilter,
         hourAndMinutes: hourAndMinutesFilter
     };
+
+    public segment_type_year: number = TimeSegment.TYPE_YEAR;
+    public segment_type_month: number = TimeSegment.TYPE_MONTH;
+    public segment_type_day: number = TimeSegment.TYPE_DAY;
 
     // LOADING MIXIN
     protected isLoading = true;

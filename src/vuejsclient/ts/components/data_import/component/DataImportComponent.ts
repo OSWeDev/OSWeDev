@@ -22,6 +22,7 @@ import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import DataImportLogVO from '../../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import { ModuleDataImportGetter, ModuleDataImportAction } from '../store/DataImportStore';
+import DataImportComponentBase from '../DataImportComponentBase';
 
 @Component({
     template: require('./DataImportComponent.pug'),
@@ -29,7 +30,7 @@ import { ModuleDataImportGetter, ModuleDataImportAction } from '../store/DataImp
         fileinput: FileComponent
     }
 })
-export default class DataImportComponent extends VueComponentBase {
+export default class DataImportComponent extends DataImportComponentBase {
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
@@ -62,7 +63,7 @@ export default class DataImportComponent extends VueComponentBase {
     public import_param_component: VueComponentBase;
 
     @Prop({ default: null })
-    public segment_type: string;
+    public segment_type: number;
 
     @Prop({ default: 9 })
     public segment_offset: number;
@@ -88,19 +89,13 @@ export default class DataImportComponent extends VueComponentBase {
     @Prop({ default: false })
     public modal_show: boolean;
 
-    private segment_state_ok: string = "ok";
-    private segment_state_ko: string = "ko";
-    private segment_state_warn: string = "warn";
-    private segment_state_unavail: string = "unavail";
-    private segment_state_info: string = "info";
-
     private segments: TimeSegment[] = [];
 
     private selected_segment: TimeSegment = null;
 
     private previous_import_historics: { [segment_date_index: string]: { [api_type_id: string]: DataImportHistoricVO } } = {};
 
-    private hasSelectedOptions(historic: DataImportHistoricVO): boolean {
+    public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
         return this.getHistoricOptionsTester(historic, this.getOptions);
     }
 
@@ -123,23 +118,7 @@ export default class DataImportComponent extends VueComponentBase {
             }
 
             for (let j in this.import_historics[segment_date_index]) {
-                if (!this.import_historics[segment_date_index][j]) {
-
-                    if (this.previous_import_historics[segment_date_index][j]) {
-                        return true;
-                    }
-                    continue;
-                }
-
-                if (!this.previous_import_historics[segment_date_index][j]) {
-                    return true;
-                }
-
-                if (this.previous_import_historics[segment_date_index][j].id != this.import_historics[segment_date_index][j].id) {
-                    return true;
-                }
-
-                if (this.previous_import_historics[segment_date_index][j].state != this.import_historics[segment_date_index][j].state) {
+                if (this.check_change_import_historic(this.import_historics[segment_date_index][j], this.previous_import_historics[segment_date_index][j])) {
                     return true;
                 }
             }
@@ -164,55 +143,26 @@ export default class DataImportComponent extends VueComponentBase {
         this.segments = TimeSegmentHandler.getInstance().getPreviousTimeSegments(this.segments, this.segment_type, -this.segment_offset);
     }
 
-    private async mounted() {
-        this.startLoading();
-        this.nbLoadingSteps = 2;
+    protected async mounted() {
+        await this.on_mount();
+    }
 
-        let promises: Array<Promise<any>> = [];
-        let self = this;
-
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: DataImportFormatVO.API_TYPE_ID,
-                vos: await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID)
-            });
-        })());
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID,
-                vos: await ModuleDAO.getInstance().getVos<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID)
-            });
-        })());
-        await Promise.all(promises);
-
-        this.nextLoadingStep();
+    public async initialize_on_mount() {
 
         this.init_segments();
-        setTimeout(() => {
-            this.handle_modal_show_hide();
-            $("#import_modal").on("hidden.bs.modal", function () {
-                self.$router.push(self.route_path);
-            });
-        }, 100);
-
-        this.stopLoading();
     }
 
     @Watch("$route")
-    private async handle_modal_show_hide() {
-        if (!this.modal_show) {
-            $('#import_modal').modal('hide');
-        }
-        if (this.modal_show) {
-            this.selected_segment = null;
-            for (let i in this.segments) {
-                if (this.segments[i].dateIndex == this.initial_selected_segment) {
-                    await this.select_segment(this.segments[i]);
-                    break;
-                }
+    public async onrouteChange() {
+        this.handle_modal_show_hide();
+    }
+    public async on_show_modal() {
+        this.selected_segment = null;
+        for (let i in this.segments) {
+            if (this.segments[i].dateIndex == this.initial_selected_segment) {
+                await this.select_segment(this.segments[i]);
+                break;
             }
-            $('#import_modal').modal('show');
-            return;
         }
     }
 
@@ -244,7 +194,7 @@ export default class DataImportComponent extends VueComponentBase {
             let segment: TimeSegment = this.segments[i];
 
             if (!this.is_valid_segments[segment.dateIndex]) {
-                res[segment.dateIndex] = this.segment_state_unavail;
+                res[segment.dateIndex] = this.state_unavail;
                 continue;
             }
 
@@ -261,29 +211,29 @@ export default class DataImportComponent extends VueComponentBase {
             let all_ko: boolean = true;
             let has_info: boolean = false;
             for (let j in this.api_types_ids_states[segment.dateIndex]) {
-                if (this.api_types_ids_states[segment.dateIndex][j] != this.segment_state_ok) {
+                if (this.api_types_ids_states[segment.dateIndex][j] != this.state_ok) {
                     all_ok = false;
                 }
-                if (this.api_types_ids_states[segment.dateIndex][j] != this.segment_state_ko) {
+                if (this.api_types_ids_states[segment.dateIndex][j] != this.state_ko) {
                     all_ko = false;
                 }
-                if (this.api_types_ids_states[segment.dateIndex][j] == this.segment_state_info) {
+                if (this.api_types_ids_states[segment.dateIndex][j] == this.state_info) {
                     has_info = true;
                 }
             }
             if (all_ko) {
-                res[segment.dateIndex] = this.segment_state_ko;
+                res[segment.dateIndex] = this.state_ko;
                 continue;
             }
             if (all_ok && !has_info) {
-                res[segment.dateIndex] = this.segment_state_ok;
+                res[segment.dateIndex] = this.state_ok;
                 continue;
             }
             if (has_info) {
-                res[segment.dateIndex] = this.segment_state_info;
+                res[segment.dateIndex] = this.state_info;
                 continue;
             }
-            res[segment.dateIndex] = this.segment_state_warn;
+            res[segment.dateIndex] = this.state_warn;
         }
 
         return res;
@@ -310,26 +260,26 @@ export default class DataImportComponent extends VueComponentBase {
                 let historic: DataImportHistoricVO = this.import_historics[segment.dateIndex][api_type_id];
 
                 if (!this.is_valid_segments[segment.dateIndex]) {
-                    res[segment.dateIndex][api_type_id] = this.segment_state_unavail;
+                    res[segment.dateIndex][api_type_id] = this.state_unavail;
                     continue;
                 }
 
                 if (!historic) {
-                    res[segment.dateIndex][api_type_id] = this.segment_state_ko;
+                    res[segment.dateIndex][api_type_id] = this.state_ko;
                     continue;
                 }
 
                 switch (historic.state) {
                     case ModuleDataImport.IMPORTATION_STATE_POSTTREATED:
-                        res[segment.dateIndex][api_type_id] = this.segment_state_ok;
+                        res[segment.dateIndex][api_type_id] = this.state_ok;
                         break;
                     case ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION:
                     case ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT:
                     case ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED:
-                        res[segment.dateIndex][api_type_id] = this.segment_state_ko;
+                        res[segment.dateIndex][api_type_id] = this.state_ko;
                         break;
                     case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
-                        res[segment.dateIndex][api_type_id] = this.segment_state_info;
+                        res[segment.dateIndex][api_type_id] = this.state_info;
                         break;
                     case ModuleDataImport.IMPORTATION_STATE_FORMATTING:
                     case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
@@ -338,7 +288,7 @@ export default class DataImportComponent extends VueComponentBase {
                     case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
                     case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
                     default:
-                        res[segment.dateIndex][api_type_id] = this.segment_state_warn;
+                        res[segment.dateIndex][api_type_id] = this.state_warn;
                 }
             }
         }
@@ -364,10 +314,6 @@ export default class DataImportComponent extends VueComponentBase {
     }
 
     private init_segments() {
-
-        if (!this.segment_type) {
-            return;
-        }
 
         this.segments = [];
         let medium_segment_i: number = Math.floor(this.segment_number / 2);
@@ -493,10 +439,6 @@ export default class DataImportComponent extends VueComponentBase {
 
     get import_historics(): { [segment_date_index: string]: { [api_type_id: string]: DataImportHistoricVO } } {
         let res: { [segment_date_index: string]: { [api_type_id: string]: DataImportHistoricVO } } = {};
-
-        if (!this.segment_type) {
-            return res;
-        }
 
         if ((!this.getStoredDatas) || (!this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID])) {
             return res;
@@ -1119,9 +1061,10 @@ export default class DataImportComponent extends VueComponentBase {
             let importHistoric: DataImportHistoricVO = new DataImportHistoricVO();
             importHistoric.api_type_id = api_type_id;
             importHistoric.file_id = fileVo.id;
+            importHistoric.segment_type = this.segment_type;
             importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
             importHistoric.params = this.getOptions;
-            importHistoric.segment_date_index = this.segment_type ? segment_date_index : null;
+            importHistoric.segment_date_index = segment_date_index;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
             importHistoric.user_id = VueAppController.getInstance().data_user.id;
 
@@ -1129,21 +1072,13 @@ export default class DataImportComponent extends VueComponentBase {
         }
         await ModuleDAO.getInstance().insertOrUpdateVOs(importHistorics);
 
-        if (this.segment_type) {
-            this.$router.push(this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
-        } else {
-            this.$router.push(this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL);
-        }
+        this.$router.push(this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
 
         this.openModalDateIndex(segment_date_index);
     }
 
     private openModalDateIndex(segment_date_index: string) {
-        if (this.segment_type) {
-            this.$router.push(this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
-        } else {
-            this.$router.push(this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL);
-        }
+        this.$router.push(this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
     }
 
     private openModal(segment: TimeSegment) {

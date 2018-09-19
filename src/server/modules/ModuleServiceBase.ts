@@ -123,11 +123,12 @@ export default abstract class ModuleServiceBase {
         }
     }
 
-    public configure_server_modules(app: Express) {
+    public async configure_server_modules(app: Express) {
         for (let i in this.server_modules) {
             let server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
+                await server_module.registerImport();
                 server_module.registerCrons();
                 server_module.registerAccessHooks();
                 server_module.registerExpressApis(app);

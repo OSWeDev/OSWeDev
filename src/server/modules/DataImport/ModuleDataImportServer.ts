@@ -158,6 +158,22 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                     datas = await ImportTypeXLSXHandler.getInstance().importFile(format, columns, importHistoric);
             }
 
+            // Ensuite on demande au module responsable de l'import si on a des filtrages à appliquer
+            let postTreatementModuleVO: ModuleVO = await ModuleDAO.getInstance().getVoById<ModuleVO>(ModuleVO.API_TYPE_ID, format.post_exec_module_id);
+
+            if ((!postTreatementModuleVO) || (!postTreatementModuleVO.name)) {
+                await ImportLogger.getInstance().log(importHistoric, "Impossible de retrouver le module pour tester le format", DataImportLogVO.LOG_LEVEL_ERROR);
+                continue;
+            }
+
+            let postTraitementModule: DataImportModuleBase = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase;
+            if (!postTraitementModule) {
+                await ImportLogger.getInstance().log(importHistoric, "Impossible de retrouver le module pour tester le format", DataImportLogVO.LOG_LEVEL_ERROR);
+                continue;
+            }
+
+            datas = await postTraitementModule.validate_formatted_data(datas, importHistoric);
+
             has_datas = has_datas || (datas && (datas.length > 0));
             all_formats_datas[format.id] = datas;
 
@@ -186,7 +202,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             let vo = vos[i];
 
             if ((!vo) || (vo.importation_state != ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT)) {
-                return;
+                continue;
             }
 
             res++;

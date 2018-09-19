@@ -18,6 +18,7 @@ import FileComponent from '../../file/FileComponent';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import { ModuleDataImportAction, ModuleDataImportGetter } from '../store/DataImportStore';
 import './NoSegmentDataImportComponent.scss';
+import DataImportComponentBase from '../DataImportComponentBase';
 
 @Component({
     template: require('./NoSegmentDataImportComponent.pug'),
@@ -25,7 +26,7 @@ import './NoSegmentDataImportComponent.scss';
         fileinput: FileComponent
     }
 })
-export default class NoSegmentDataImportComponent extends VueComponentBase {
+export default class NoSegmentDataImportComponent extends DataImportComponentBase {
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
@@ -66,15 +67,9 @@ export default class NoSegmentDataImportComponent extends VueComponentBase {
     @Prop({ default: false })
     public modal_show: boolean;
 
-    private state_ok: string = "ok";
-    private state_ko: string = "ko";
-    private state_warn: string = "warn";
-    private state_unavail: string = "unavail";
-    private state_info: string = "info";
-
     private previous_import_historics: { [api_type_id: string]: DataImportHistoricVO } = {};
 
-    private hasSelectedOptions(historic: DataImportHistoricVO): boolean {
+    public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
         return this.getHistoricOptionsTester(historic, this.getOptions);
     }
 
@@ -84,23 +79,7 @@ export default class NoSegmentDataImportComponent extends VueComponentBase {
         }
 
         for (let j in this.import_historics) {
-            if (!this.import_historics[j]) {
-
-                if (this.previous_import_historics[j]) {
-                    return true;
-                }
-                continue;
-            }
-
-            if (!this.previous_import_historics[j]) {
-                return true;
-            }
-
-            if (this.previous_import_historics[j].id != this.import_historics[j].id) {
-                return true;
-            }
-
-            if (this.previous_import_historics[j].state != this.import_historics[j].state) {
+            if (this.check_change_import_historic(this.import_historics[j], this.previous_import_historics[j])) {
                 return true;
             }
         }
@@ -108,49 +87,19 @@ export default class NoSegmentDataImportComponent extends VueComponentBase {
         return false;
     }
 
-    private async mounted() {
-        this.startLoading();
-        this.nbLoadingSteps = 2;
+    protected async mounted() {
+        await this.on_mount();
+    }
 
-        let promises: Array<Promise<any>> = [];
-        let self = this;
-
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: DataImportFormatVO.API_TYPE_ID,
-                vos: await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID)
-            });
-        })());
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID,
-                vos: await ModuleDAO.getInstance().getVos<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID)
-            });
-        })());
-        await Promise.all(promises);
-
-        this.nextLoadingStep();
-
-        setTimeout(() => {
-            this.handle_modal_show_hide();
-            $("#import_modal").on("hidden.bs.modal", function () {
-                self.$router.push(self.route_path);
-            });
-        }, 100);
-
-        this.stopLoading();
+    public async initialize_on_mount() {
     }
 
     @Watch("$route")
-    private async handle_modal_show_hide() {
-        if (!this.modal_show) {
-            $('#import_modal').modal('hide');
-        }
-        if (this.modal_show) {
-            await this.loadRawImportedDatas();
-            $('#import_modal').modal('show');
-            return;
-        }
+    public async onrouteChange() {
+        this.handle_modal_show_hide();
+    }
+    public async on_show_modal() {
+        await this.loadRawImportedDatas();
     }
 
     get valid_api_type_ids(): string[] {
@@ -940,6 +889,7 @@ export default class NoSegmentDataImportComponent extends VueComponentBase {
             importHistoric.api_type_id = api_type_id;
             importHistoric.file_id = fileVo.id;
             importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
+            importHistoric.segment_type = null;
             importHistoric.params = this.getOptions;
             importHistoric.segment_date_index = null;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;

@@ -20,6 +20,7 @@
     Ajout du nom du vo cible : api_type_id
     Renommage de la colonne data_import_file_id en data_import_format_id
     Ajout de la colonne import_type
+    Ajout de la colonne segment_type
     
     Changement des codes de status des DataImportHistoricVO :
     INFO : IMPORTATION_STATE_UPLOADED => 0 (trigger à la création/modification du champ pour gérer le lancement du formattage)

@@ -19,7 +19,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
     public renderer_name: string;
 
     @Prop()
-    public time_segment_type: string;
+    public time_segment_type: number;
 
     public dataRenderer: DataRendererVO;
     public segment_start_date: Date;

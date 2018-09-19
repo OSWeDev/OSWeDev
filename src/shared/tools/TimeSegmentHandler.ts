@@ -21,7 +21,7 @@ export default class TimeSegmentHandler {
      * @param end
      * @param time_segment_type
      */
-    public getAllDataTimeSegments(start: Moment, end: Moment, time_segment_type: string, exclude_end: boolean = false): TimeSegment[] {
+    public getAllDataTimeSegments(start: Moment, end: Moment, time_segment_type: number, exclude_end: boolean = false): TimeSegment[] {
         let res: TimeSegment[] = [];
         let date: Moment = moment(start);
         let stop_at: Moment = moment(end);
@@ -139,7 +139,7 @@ export default class TimeSegmentHandler {
         return res;
     }
 
-    public getPreviousTimeSegments(timeSegments: TimeSegment[], type: string = null, offset: number = 1): TimeSegment[] {
+    public getPreviousTimeSegments(timeSegments: TimeSegment[], type: number = null, offset: number = 1): TimeSegment[] {
         let res: TimeSegment[] = [];
 
         for (let i in timeSegments) {
@@ -172,7 +172,7 @@ export default class TimeSegmentHandler {
      * @param offset defaults to 1. Use -1 to get the next segment for example
      * @returns Exclusive upper bound of the timeSegment
      */
-    public getPreviousTimeSegment(timeSegment: TimeSegment, type: string = null, offset: number = 1): TimeSegment {
+    public getPreviousTimeSegment(timeSegment: TimeSegment, type: number = null, offset: number = 1): TimeSegment {
         let res: TimeSegment = new TimeSegment();
         res.type = timeSegment.type;
         let date_segment: Moment = moment(timeSegment.dateIndex);
@@ -194,7 +194,7 @@ export default class TimeSegmentHandler {
         return res;
     }
 
-    public getCorrespondingTimeSegment(date: Moment, type: string, offset: number = 0): TimeSegment {
+    public getCorrespondingTimeSegment(date: Moment, type: number, offset: number = 0): TimeSegment {
         let res: TimeSegment = new TimeSegment();
         res.type = type;
         let date_segment: Moment = moment(date);
@@ -239,7 +239,7 @@ export default class TimeSegmentHandler {
         return date.isSameOrAfter(start) && date.isBefore(end);
     }
 
-    public isInSameSegmentType(ts1: TimeSegment, ts2: TimeSegment, type: string = TimeSegment.TYPE_YEAR): boolean {
+    public isInSameSegmentType(ts1: TimeSegment, ts2: TimeSegment, type: number = TimeSegment.TYPE_YEAR): boolean {
         let start: Moment = moment(ts1.dateIndex);
         let end: Moment;
 
