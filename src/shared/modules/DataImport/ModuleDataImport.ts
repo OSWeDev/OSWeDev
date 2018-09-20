@@ -19,6 +19,9 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 
 export default class ModuleDataImport extends Module {
 
+    public static RIGHTS_GROUP_NAME: string = 'module_data_import';
+    public static RIGHT_ADMIN_GLOBAL: string = 'admin_global';
+
     public static IMPORT_SCHEMA: string = 'imports';
 
     public static APINAME_getDataImportHistorics: string = 'getDataImportHistorics';

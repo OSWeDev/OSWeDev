@@ -12,17 +12,11 @@ import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
-import DataImportComponent from './component/DataImportComponent';
-import CRUD from '../crud/vos/CRUD';
-import Datatable from '../datatable/vos/Datatable';
-import ManyToOneReferenceDatatableField from '../datatable/vos/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
-import FileVO from '../../../../shared/modules/File/vos/FileVO';
-import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class DataImportAdminVueModule extends VueModuleBase {
 
     public static IMPORT_MODAL: string = 'modal';
+    public static IMPORT_PARAMS: string = 'params';
     public static DEFAULT_IMPORT_MENU_BRANCH: MenuBranch = new MenuBranch(
         "DataImportAdminVueModule",
         MenuElementBase.PRIORITY_HIGH,
@@ -51,19 +45,23 @@ export default class DataImportAdminVueModule extends VueModuleBase {
         // TODO FIXME Au fait la gestion des droits, c'est pas comme ça que ça marche :) on devrait avoir des
         //  droits dans ce genre d'endroits, et vérifier si le droit est actif pour ce compte, et pas partir des rôles
         //  qui auraient hypothétiquement accès à cet élément... A changer ASAP
-        if (!
-            (
-                VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) && (
-                    (
-                        (typeof VueAppController.getInstance().data_user.super_admin === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin_central === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin === "undefined")
-                    ) || (
-                        VueAppController.getInstance().data_user.super_admin || VueAppController.getInstance().data_user.admin_central
-                    )
-                ))) {
+
+        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.RIGHTS_GROUP_NAME, ModuleDataImport.RIGHT_ADMIN_GLOBAL)) {
             return;
         }
+        // if (!
+        //     (
+        //         VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) && (
+        //             (
+        //                 (typeof VueAppController.getInstance().data_user.super_admin === "undefined") &&
+        //                 (typeof VueAppController.getInstance().data_user.admin_central === "undefined") &&
+        //                 (typeof VueAppController.getInstance().data_user.admin === "undefined")
+        //             ) || (
+        //                 VueAppController.getInstance().data_user.super_admin || VueAppController.getInstance().data_user.admin_central
+        //             )
+        //         ))) {
+        //     return;
+        // }
 
         let importsMenuBranch: MenuBranch = DataImportAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
 
@@ -120,27 +118,27 @@ export default class DataImportAdminVueModule extends VueModuleBase {
             let importMenuBranch: MenuBranch = new MenuBranch("__i__" + moduleTable.vo_type, MenuElementBase.PRIORITY_MEDIUM, "fa-upload", []);
 
             let raw_api_type_id: string = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(moduleTable.vo_type);
-            CRUDComponentManager.getInstance().defineMenuRouteToCRUD(
-                DataImportHistoricVO.API_TYPE_ID,
-                new MenuPointer(
-                    new MenuLeaf("DataImportHistoricVO_" + moduleTable.vo_type, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-history"),
-                    importsMenuBranch,
-                    importMenuBranch),
-                this.routes,
-                {
-                    FILTER__api_type_id: moduleTable.vo_type,
-                });
+            // CRUDComponentManager.getInstance().defineMenuRouteToCRUD(
+            //     DataImportHistoricVO.API_TYPE_ID,
+            //     new MenuPointer(
+            //         new MenuLeaf("DataImportHistoricVO_" + moduleTable.vo_type, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-history"),
+            //         importsMenuBranch,
+            //         importMenuBranch),
+            //     this.routes,
+            //     {
+            //         FILTER__api_type_id: moduleTable.vo_type,
+            //     });
 
-            CRUDComponentManager.getInstance().defineMenuRouteToCRUD(
-                DataImportLogVO.API_TYPE_ID,
-                new MenuPointer(
-                    new MenuLeaf("DataImportLogVO_" + moduleTable.vo_type, MenuElementBase.PRIORITY_HIGH, "fa-info-circle"),
-                    importsMenuBranch,
-                    importMenuBranch),
-                this.routes,
-                {
-                    FILTER__api_type_id: moduleTable.vo_type,
-                });
+            // CRUDComponentManager.getInstance().defineMenuRouteToCRUD(
+            //     DataImportLogVO.API_TYPE_ID,
+            //     new MenuPointer(
+            //         new MenuLeaf("DataImportLogVO_" + moduleTable.vo_type, MenuElementBase.PRIORITY_HIGH, "fa-info-circle"),
+            //         importsMenuBranch,
+            //         importMenuBranch),
+            //     this.routes,
+            //     {
+            //         FILTER__api_type_id: moduleTable.vo_type,
+            //     });
 
             CRUDComponentManager.getInstance().registerCRUD(
                 raw_api_type_id,
@@ -151,16 +149,16 @@ export default class DataImportAdminVueModule extends VueModuleBase {
                     importMenuBranch),
                 this.routes);
 
-            CRUDComponentManager.getInstance().defineMenuRouteToCRUD(
-                DataImportFormatVO.API_TYPE_ID,
-                new MenuPointer(
-                    new MenuLeaf("DataImportFormatVO_" + moduleTable.vo_type, MenuElementBase.PRIORITY_LOW, "fa-cogs"),
-                    importsMenuBranch,
-                    importMenuBranch),
-                this.routes,
-                {
-                    FILTER__api_type_id: moduleTable.vo_type,
-                });
+            // CRUDComponentManager.getInstance().defineMenuRouteToCRUD(
+            //     DataImportFormatVO.API_TYPE_ID,
+            //     new MenuPointer(
+            //         new MenuLeaf("DataImportFormatVO_" + moduleTable.vo_type, MenuElementBase.PRIORITY_LOW, "fa-cogs"),
+            //         importsMenuBranch,
+            //         importMenuBranch),
+            //     this.routes,
+            //     {
+            //         FILTER__api_type_id: moduleTable.vo_type,
+            //     });
         }
     }
 

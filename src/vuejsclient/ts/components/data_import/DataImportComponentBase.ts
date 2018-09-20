@@ -4,6 +4,10 @@ import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/Data
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
+import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import FileVO from '../../../../shared/modules/File/vos/FileVO';
 
 export default abstract class DataImportComponentBase extends VueComponentBase {
     protected state_ok: string = "ok";
@@ -12,13 +16,17 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
     protected state_unavail: string = "unavail";
     protected state_info: string = "info";
 
+    abstract getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
     abstract storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
+    abstract storeData: (vo: IDistantVOBase) => void;
     abstract route_path: string;
     abstract modal_show: boolean;
 
     abstract async initialize_on_mount();
     abstract async on_show_modal();
     abstract hasSelectedOptions(historic: DataImportHistoricVO): boolean;
+
+    abstract get_url_for_modal: (segment_date_index: string) => string;
 
     protected check_change_import_historic(historic: DataImportHistoricVO, previous_historic: DataImportHistoricVO): boolean {
         if (!historic) {
@@ -72,7 +80,7 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
         setTimeout(() => {
             self.handle_modal_show_hide();
             $("#import_modal").on("hidden.bs.modal", function () {
-                self.$router.push(self.route_path);
+                self.$router.push(self.get_url_for_modal ? self.get_url_for_modal(null) : self.route_path);
             });
         }, 100);
 
@@ -88,5 +96,49 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
             $('#import_modal').modal('show');
             return;
         }
+    }
+
+    protected pushPromisesToLoadDataFromHistoric(
+        historic: DataImportHistoricVO,
+        files_ids: number[],
+        promises: Array<Promise<any>>): void {
+        let self = this;
+        let raw_api_type_id = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id);
+
+        switch (historic.state) {
+            case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
+            case ModuleDataImport.IMPORTATION_STATE_IMPORTING:
+            case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
+            case ModuleDataImport.IMPORTATION_STATE_POSTTREATING:
+            case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
+                break;
+
+            case ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED:
+            case ModuleDataImport.IMPORTATION_STATE_POSTTREATED:
+            case ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION:
+            case ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT:
+            case ModuleDataImport.IMPORTATION_STATE_FORMATTING:
+            case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
+            default:
+                return;
+        }
+
+        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([raw_api_type_id]);
+        promises.push((async () => {
+            self.storeDatas({
+                API_TYPE_ID: raw_api_type_id,
+                vos: await ModuleDAO.getInstance().getVos(raw_api_type_id)
+            });
+        })());
+
+        // On va chercher le fichier aussi du coup
+        if ((!historic.file_id) || (self.getStoredDatas[FileVO.API_TYPE_ID] && self.getStoredDatas[FileVO.API_TYPE_ID][historic.file_id]) ||
+            (files_ids.indexOf(historic.file_id) >= 0)) {
+            return;
+        }
+        files_ids.push(historic.file_id);
+        promises.push((async () => {
+            self.storeData(await ModuleDAO.getInstance().getVoById(FileVO.API_TYPE_ID, historic.file_id));
+        })());
     }
 }

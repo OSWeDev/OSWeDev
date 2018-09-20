@@ -67,6 +67,9 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     @Prop({ default: false })
     public modal_show: boolean;
 
+    @Prop({ default: null })
+    public get_url_for_modal: (segment_date_index: string) => string;
+
     private previous_import_historics: { [api_type_id: string]: DataImportHistoricVO } = {};
 
     public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
@@ -219,25 +222,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         for (let i in this.import_historics) {
 
             let historic: DataImportHistoricVO = this.import_historics[i];
-            let raw_api_type_id = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id);
-            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([raw_api_type_id]);
-            promises.push((async () => {
-                self.storeDatas({
-                    API_TYPE_ID: raw_api_type_id,
-                    vos: await ModuleDAO.getInstance().getVos(raw_api_type_id)
-                });
-            })());
-
-            // On va chercher le fichier aussi du coup
-            if ((!historic.file_id) || (this.getStoredDatas[FileVO.API_TYPE_ID] && this.getStoredDatas[FileVO.API_TYPE_ID][historic.file_id]) ||
-                (files_ids.indexOf(historic.file_id) >= 0)) {
-                continue;
-            }
-            files_ids.push(historic.file_id);
-            promises.push((async () => {
-                self.storeData(await ModuleDAO.getInstance().getVoById(FileVO.API_TYPE_ID, historic.file_id));
-            })());
-
+            this.pushPromisesToLoadDataFromHistoric(historic, files_ids, promises);
         }
 
         await Promise.all(promises);
@@ -289,9 +274,10 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         let res: { [api_type_id: string]: DataImportHistoricVO } = {};
 
         if ((!this.getStoredDatas) || (!this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID])) {
-            return res;
+            return null;
         }
 
+        let has_data: boolean = false;
         for (let i in this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID]) {
             let historic: DataImportHistoricVO = this.getStoredDatas[DataImportHistoricVO.API_TYPE_ID][i] as DataImportHistoricVO;
 
@@ -303,6 +289,10 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
                 continue;
             }
 
+            if ((!this.valid_api_type_ids) || (this.valid_api_type_ids.indexOf(historic.api_type_id) < 0)) {
+                continue;
+            }
+
             let api_type_id = historic.api_type_id;
 
             if (res[api_type_id] && moment(res[api_type_id].start_date).isAfter(historic.start_date)) {
@@ -310,9 +300,10 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
             }
 
             res[api_type_id] = historic;
+            has_data = true;
         }
 
-        return res;
+        return has_data ? res : null;
     }
 
     get labels(): { [api_type_id: string]: string } {
@@ -899,21 +890,17 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         }
         await ModuleDAO.getInstance().insertOrUpdateVOs(importHistorics);
 
-        this.$router.push(this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL);
+        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(null) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL);
 
         this.openModal();
     }
 
     private openModal() {
-        this.$router.push(this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL);
+        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(null) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL);
     }
 
     get logs_path(): { [api_type_id: string]: string } {
         let res: { [api_type_id: string]: string } = {};
-
-        if (!this.import_historics) {
-            return res;
-        }
 
         if (!this.import_historics) {
             return res;
