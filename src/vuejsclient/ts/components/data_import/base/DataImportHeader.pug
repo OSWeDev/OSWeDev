@@ -1,0 +1,15 @@
+.row
+    .col-md-12
+        button.btn.btn-sm.btn-secondary.pull-right(@click='reload_datas()')
+            i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+            | {{ label('crud.actions.refresh') }}
+        bootstrap-toggle.pull-right(v-model="autovalidate" :options="{on: 'Auto', off:'Normal'}" :disabled="false")
+
+        h2.imports_page_title {{ title }}
+.row(v-if='import_overview_component')
+    .col-sm
+        component(:is="import_overview_component")
+
+.row(v-if='import_param_component')
+    .col-sm
+        component(:is="import_param_component")

@@ -281,7 +281,10 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('import_type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'import', true).setEnumValues({
                 [DataImportHistoricVO.IMPORT_TYPE_EDIT]: DataImportHistoricVO.IMPORT_TYPE_NAMES[DataImportHistoricVO.IMPORT_TYPE_EDIT],
                 [DataImportHistoricVO.IMPORT_TYPE_REPLACE]: DataImportHistoricVO.IMPORT_TYPE_NAMES[DataImportHistoricVO.IMPORT_TYPE_REPLACE],
-            })
+            }),
+            new ModuleTableField('nb_row_validated', ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes validées', false),
+            new ModuleTableField('nb_row_unvalidated', ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes invalidées', false),
+            new ModuleTableField('autovalidate', ModuleTableField.FIELD_TYPE_boolean, 'Validation automatique', false, true, false),
         ];
         this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, datatable_fields, label_field, "Historiques d'importation");
         field_data_import_format_id.addManyToOneRelation(this.datatable_historic, this.datatable_desc);

@@ -18,7 +18,7 @@ import FileComponent from '../../file/FileComponent';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import { ModuleDataImportAction, ModuleDataImportGetter } from '../store/DataImportStore';
 import './NoSegmentDataImportComponent.scss';
-import DataImportComponentBase from '../DataImportComponentBase';
+import DataImportComponentBase from '../base/DataImportComponentBase';
 
 @Component({
     template: require('./NoSegmentDataImportComponent.pug'),
@@ -69,6 +69,8 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
 
     @Prop({ default: null })
     public get_url_for_modal: (segment_date_index: string) => string;
+
+    private autovalidate: boolean = false;
 
     private previous_import_historics: { [api_type_id: string]: DataImportHistoricVO } = {};
 
@@ -883,9 +885,10 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
             let importHistoric: DataImportHistoricVO = new DataImportHistoricVO();
             importHistoric.api_type_id = api_type_id;
             importHistoric.file_id = fileVo.id;
+            importHistoric.autovalidate = this.autovalidate;
             importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
             importHistoric.segment_type = null;
-            importHistoric.params = this.getOptions;
+            importHistoric.params = JSON.stringify(this.getOptions);
             importHistoric.segment_date_index = null;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
             importHistoric.user_id = VueAppController.getInstance().data_user.id;

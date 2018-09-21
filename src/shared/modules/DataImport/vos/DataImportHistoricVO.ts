@@ -46,4 +46,10 @@ export default class DataImportHistoricVO implements IDistantVOBase {
 
     // Import de type remplacement ou à comparer avec l'existant (et qui doit alors avoir un target_id)
     public import_type: number;
+
+    // Les stats lors de la prise de décision sur le formattage
+    public nb_row_validated: number;
+    public nb_row_unvalidated: number;
+
+    public autovalidate: boolean;
 }

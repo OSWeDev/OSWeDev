@@ -117,7 +117,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
         try {
 
-            if ((!notification.user_id) || (!notification.notification_type)) {
+            if (!notification.user_id) {
                 return;
             }
 
@@ -195,7 +195,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     private async notifySimple(user_id: number, msg_type: number, code_text: string) {
 
-        if ((!user_id) || (!msg_type) || (!code_text)) {
+        if ((!user_id) || (msg_type == null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;
         }
 

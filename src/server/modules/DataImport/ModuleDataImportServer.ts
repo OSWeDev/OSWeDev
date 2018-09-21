@@ -26,6 +26,7 @@ import ImportLogger from './logger/ImportLogger';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
+import FormattedDatasStats from './FormattedDatasStats';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -97,6 +98,13 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 this.formatDatas(importHistoric);
                 break;
 
+            case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
+                //  Si on est sur une autovalidation, et qu'on a des résultats, on peut passer directement à l'étape suivante
+                if (importHistoric.autovalidate) {
+                    await this.logAndUpdateHistoric(importHistoric, ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT, 'Autovalidation', "import.success.autovalidation", DataImportLogVO.LOG_LEVEL_SUCCESS);
+                }
+                break;
+
             case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
                 importHistoric.state = ModuleDataImport.IMPORTATION_STATE_IMPORTING;
                 await this.updateImportHistoric(importHistoric);
@@ -136,8 +144,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         let all_formats_datas: { [format_id: number]: IImportedData[] } = {};
 
-        let max_validated_datas_and_columns_num: number = 0;
-        let max_validated_datas_and_columns_format_id: number = 0;
+        let max_formattedDatasStats: FormattedDatasStats = new FormattedDatasStats();
         let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[importHistoric.api_type_id];
 
         let has_datas: boolean = false;
@@ -177,41 +184,45 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             has_datas = has_datas || (datas && (datas.length > 0));
             all_formats_datas[format.id] = datas;
 
-            let validated_datas_and_columns_num: number = this.countValidatedDataAndColumns(datas, moduleTable);
-            if (validated_datas_and_columns_num > max_validated_datas_and_columns_num) {
-                max_validated_datas_and_columns_format_id = format.id;
+            let formattedDatasStats: FormattedDatasStats = this.countValidatedDataAndColumns(datas, moduleTable, format.id);
+            if (formattedDatasStats.nb_fields_validated > max_formattedDatasStats.nb_fields_validated) {
+                max_formattedDatasStats = formattedDatasStats;
             }
         }
 
-        if ((!has_datas) || (!max_validated_datas_and_columns_format_id)) {
+        if ((!has_datas) || (!max_formattedDatasStats.format_id) || (max_formattedDatasStats.nb_fields_validated <= 0) || (max_formattedDatasStats.nb_row_validated <= 0)) {
             await this.logAndUpdateHistoric(importHistoric, ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED, "Aucune donnée formattable", "import.errors.failed_formatting_no_data", DataImportLogVO.LOG_LEVEL_FATAL);
             return;
         }
 
-        importHistoric.data_import_format_id = max_validated_datas_and_columns_format_id;
+        importHistoric.data_import_format_id = max_formattedDatasStats.format_id;
+        importHistoric.nb_row_unvalidated = max_formattedDatasStats.nb_row_unvalidated;
+        importHistoric.nb_row_validated = max_formattedDatasStats.nb_row_validated;
         await this.insertImportedDatasInDb(all_formats_datas[importHistoric.data_import_format_id], ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(importHistoric.api_type_id), moduleTable);
 
         // 4
         await this.logAndUpdateHistoric(importHistoric, ModuleDataImport.IMPORTATION_STATE_FORMATTED, 'Formattage terminé', "import.success.formatted", DataImportLogVO.LOG_LEVEL_SUCCESS);
     }
 
-    private countValidatedDataAndColumns(vos: IImportedData[], moduleTable: ModuleTable<any>): number {
-        let res: number = 0;
+    private countValidatedDataAndColumns(vos: IImportedData[], moduleTable: ModuleTable<any>, data_import_format_id: number): FormattedDatasStats {
+        let res: FormattedDatasStats = new FormattedDatasStats();
+        res.format_id = data_import_format_id;
 
         for (let i in vos) {
             let vo = vos[i];
 
             if ((!vo) || (vo.importation_state != ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT)) {
+                res.nb_row_unvalidated++;
                 continue;
             }
 
-            res++;
+            res.nb_row_validated++;
 
             for (let j in moduleTable.fields) {
                 let field = moduleTable.fields[j];
 
                 if (!!vo[field.field_id]) {
-                    res++;
+                    res.nb_fields_validated++;
                 }
             }
         }
@@ -345,7 +356,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         //     await ModulePushDataServer.getInstance().notifyDAOGetVos(importHistoric.user_id, api_type_ids[i]);
         // }
 
-        await this.logAndUpdateHistoric(importHistoric, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + moment().format("Y-MM-DD HH:mm"), "import.success.imported", DataImportLogVO.LOG_LEVEL_SUCCESS);
+        await this.logAndUpdateHistoric(importHistoric, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + moment().format("Y-MM-DD HH:mm"), "import.success.posttreated", DataImportLogVO.LOG_LEVEL_SUCCESS);
     }
 
     private async updateImportHistoric(importHistoric: DataImportHistoricVO) {

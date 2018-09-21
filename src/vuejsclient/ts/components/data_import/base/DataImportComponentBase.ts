@@ -1,13 +1,10 @@
 import * as $ from 'jquery';
-import VueComponentBase from '../VueComponentBase';
-import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
-import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
-import FileVO from '../../../../shared/modules/File/vos/FileVO';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import DataImportFormatVO from '../../../../../shared/modules/DataImport/vos/DataImportFormatVO';
+import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
+import FileVO from '../../../../../shared/modules/File/vos/FileVO';
+import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import VueComponentBase from '../../VueComponentBase';
 
 export default abstract class DataImportComponentBase extends VueComponentBase {
     protected state_ok: string = "ok";
@@ -104,33 +101,6 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
         files_ids: number[],
         promises: Array<Promise<any>>): void {
         let self = this;
-        let raw_api_type_id = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id);
-
-        switch (historic.state) {
-            case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
-            case ModuleDataImport.IMPORTATION_STATE_IMPORTING:
-            case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
-            case ModuleDataImport.IMPORTATION_STATE_POSTTREATING:
-            case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
-                break;
-
-            case ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED:
-            case ModuleDataImport.IMPORTATION_STATE_POSTTREATED:
-            case ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION:
-            case ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT:
-            case ModuleDataImport.IMPORTATION_STATE_FORMATTING:
-            case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
-            default:
-                return;
-        }
-
-        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([raw_api_type_id]);
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: raw_api_type_id,
-                vos: await ModuleDAO.getInstance().getVos(raw_api_type_id)
-            });
-        })());
 
         // On va chercher le fichier aussi du coup
         if ((!historic.file_id) || (self.getStoredDatas[FileVO.API_TYPE_ID] && self.getStoredDatas[FileVO.API_TYPE_ID][historic.file_id]) ||
@@ -141,5 +111,33 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
         promises.push((async () => {
             self.storeData(await ModuleDAO.getInstance().getVoById(FileVO.API_TYPE_ID, historic.file_id));
         })());
+
+
+        // let raw_api_type_id = ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id);
+        // switch (historic.state) {
+        //     case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
+        //     case ModuleDataImport.IMPORTATION_STATE_IMPORTING:
+        //     case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
+        //     case ModuleDataImport.IMPORTATION_STATE_POSTTREATING:
+        //     case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
+        //         break;
+
+        //     case ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED:
+        //     case ModuleDataImport.IMPORTATION_STATE_POSTTREATED:
+        //     case ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION:
+        //     case ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT:
+        //     case ModuleDataImport.IMPORTATION_STATE_FORMATTING:
+        //     case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
+        //     default:
+        //         return;
+        // }
+
+        // ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([raw_api_type_id]);
+        // promises.push((async () => {
+        //     self.storeDatas({
+        //         API_TYPE_ID: raw_api_type_id,
+        //         vos: await ModuleDAO.getInstance().getVos(raw_api_type_id)
+        //     });
+        // })());
     }
 }

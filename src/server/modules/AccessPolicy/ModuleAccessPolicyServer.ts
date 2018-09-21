@@ -36,7 +36,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private static instance: ModuleAccessPolicyServer = null;
 
-    private debug_check_access: boolean = true;
+    private debug_check_access: boolean = false;
 
     private constructor() {
         super(ModuleAccessPolicy.getInstance().name);

@@ -2,6 +2,7 @@ import 'bootstrap';
 import 'jquery';
 import * as moment from 'moment';
 import 'select2';
+import * as BootstrapToggle from 'vue-bootstrap-toggle';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueI18n from 'vue-i18n';
@@ -63,7 +64,7 @@ export default abstract class VueAppBase {
         // Chargement des données des modules.
         await this.initializeModulesDatas();
 
-        PushDataVueModule.getInstance().initialize();
+        PushDataVueModule.getInstance();
 
         await this.initializeVueAppModulesDatas();
 
@@ -244,6 +245,7 @@ export default abstract class VueAppBase {
         Vue.use(VTooltip);
         Vue.use(Snotify);
         Vue.use(VueRouter);
+        Vue.component('bootstrap-toggle', BootstrapToggle);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
         Vue.component('vue-dropzone', vueDropzone);

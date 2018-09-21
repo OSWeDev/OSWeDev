@@ -7,3 +7,17 @@
 .btn_icon {
   margin-right:0.2em;
 }
+
+.toggle{
+    .toggle-group{
+        .toggle-handle.btn{
+            border: solid 1px #AAA;
+            background: white;
+        }
+
+        .btn.btn-default.toggle-off,
+        .btn.btn-default.toggle-on {
+            box-shadow: -2px 2px 20px 0px inset #AAAA;
+        }
+    }
+}
