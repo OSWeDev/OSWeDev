@@ -41,12 +41,37 @@ export default class ModuleFileServer extends ModuleServerBase {
         await this.makeSureThisFolderExists(toFolder);
         file_name = (file_name ? file_name : path.basename(old_path));
         let new_path = toFolder + file_name;
-        while (await fs.exists(new_path)) {
+        while (fs.existsSync(new_path)) {
             file_name = '_' + file_name;
             new_path = toFolder + file_name;
         }
-        await fs.rename(old_path, new_path);
+        fs.renameSync(old_path, new_path);
         return new_path;
+    }
+
+    /**
+      * 
+      * @param srcFile 
+      * @param toFolder 
+      * @returns the new path
+      */
+    public async copyFile(srcFile: string, toFolder: string, file_name: string = null): Promise<string> {
+
+        await this.makeSureThisFolderExists(toFolder);
+        file_name = (file_name ? file_name : path.basename(srcFile));
+        let new_path = toFolder + file_name;
+        while (fs.existsSync(new_path)) {
+            file_name = '_' + file_name;
+            new_path = toFolder + file_name;
+        }
+        fs.copyFileSync(srcFile, new_path);
+        return new_path;
+    }
+
+    public async copyFileVo(fileVo: FileVO, toFolder: string): Promise<string> {
+        fileVo.path = await this.copyFile(fileVo.path, toFolder);
+        await ModuleDAO.getInstance().insertOrUpdateVO(fileVo);
+        return fileVo.path;
     }
 
     /**
@@ -56,8 +81,7 @@ export default class ModuleFileServer extends ModuleServerBase {
      * @returns the new path
      */
     public async moveFileVo(fileVo: FileVO, toFolder: string): Promise<string> {
-        await this.moveFile(fileVo.path, toFolder);
-        fileVo.path = toFolder + path.basename(fileVo.path);
+        fileVo.path = await this.moveFile(fileVo.path, toFolder);
         await ModuleDAO.getInstance().insertOrUpdateVO(fileVo);
         return fileVo.path;
     }
@@ -81,7 +105,7 @@ export default class ModuleFileServer extends ModuleServerBase {
 
         let path: string = import_file.path;
         let name: string = import_file.name;
-        path = await ModuleFileServer.getInstance().moveFile(path, ModuleFile.FILES_ROOT + 'upload/', name);
+        path = await ModuleFileServer.getInstance().copyFile(path, ModuleFile.FILES_ROOT + 'upload/', name);
 
         let filevo: FileVO = new FileVO();
         filevo.path = path;
