@@ -27,14 +27,14 @@ include ../../../../views/mixins/loading.pug
             .row.justify-content-between.segments_overviews
                 template(v-for='segment in getsegments')
                     template(v-if="segment_states && segment && segment_states[segment.dateIndex]")
-                        .col-sm.border-top.rounded-top.border-secondary.data_import_segment_overview(v-if='segment_states[segment.dateIndex] == state_unavail')
+                        .col-sm.border-top.rounded-top.border-dark.data_import_segment_overview(v-if='segment_states[segment.dateIndex] == state_unavail')
 
                             .segment_date_index(v-if='getsegment_type == segment_type_year') {{ formatDate_Fullyear(segment.dateIndex) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_month') {{ formatDate_FullyearMonth(segment.dateIndex) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_day') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
 
                         .col-sm.border-top.rounded-top.data_import_segment_overview(v-else, 
-                            :class='{"border-success": segment_states[segment.dateIndex] == state_ok, "border-danger": segment_states[segment.dateIndex] == state_ko, "border-warning": segment_states[segment.dateIndex] == state_warn, "border-primary": segment_states[segment.dateIndex] == state_info}')
+                            :class='{"border-success": segment_states[segment.dateIndex] == state_ok, "border-danger": segment_states[segment.dateIndex] == state_ko, "border-secondary": segment_states[segment.dateIndex] == state_none, "border-warning": segment_states[segment.dateIndex] == state_warn, "border-primary": segment_states[segment.dateIndex] == state_info}')
 
                             .segment_date_index(v-if='getsegment_type == segment_type_year') {{ formatDate_Fullyear(segment.dateIndex) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_month') {{ formatDate_FullyearMonth(segment.dateIndex) }}

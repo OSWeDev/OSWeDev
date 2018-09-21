@@ -211,13 +211,18 @@ export default class DataImportComponent extends DataImportComponentBase {
             //      que celui-ci est en statut posttreated
             // Un segment est info si un api_type est en info
             //  Un api_type est info si il est est en attente de validation du formattage
+            // Un segment est none si tous les api_type_id sont none
             // Un segment est warn dans tous les autres cas
             let all_ok: boolean = true;
             let all_ko: boolean = true;
+            let all_none: boolean = true;
             let has_info: boolean = false;
             for (let j in this.api_types_ids_states[segment.dateIndex]) {
                 if (this.api_types_ids_states[segment.dateIndex][j] != this.state_ok) {
                     all_ok = false;
+                }
+                if (this.api_types_ids_states[segment.dateIndex][j] != this.state_none) {
+                    all_none = false;
                 }
                 if (this.api_types_ids_states[segment.dateIndex][j] != this.state_ko) {
                     all_ko = false;
@@ -225,6 +230,10 @@ export default class DataImportComponent extends DataImportComponentBase {
                 if (this.api_types_ids_states[segment.dateIndex][j] == this.state_info) {
                     has_info = true;
                 }
+            }
+            if (all_none) {
+                res[segment.dateIndex] = this.state_none;
+                continue;
             }
             if (all_ko) {
                 res[segment.dateIndex] = this.state_ko;
@@ -256,13 +265,9 @@ export default class DataImportComponent extends DataImportComponentBase {
             let segment: TimeSegment = this.getsegments[i];
             res[segment.dateIndex] = {};
 
-            if (!this.import_historics[segment.dateIndex]) {
-                continue;
-            }
-
             for (let j in this.valid_api_type_ids) {
                 let api_type_id: string = this.valid_api_type_ids[j];
-                let historic: DataImportHistoricVO = this.import_historics[segment.dateIndex][api_type_id];
+                let historic: DataImportHistoricVO = this.import_historics[segment.dateIndex] ? this.import_historics[segment.dateIndex][api_type_id] : null;
 
                 if (!this.is_valid_segments[segment.dateIndex]) {
                     res[segment.dateIndex][api_type_id] = this.state_unavail;
@@ -270,7 +275,7 @@ export default class DataImportComponent extends DataImportComponentBase {
                 }
 
                 if (!historic) {
-                    res[segment.dateIndex][api_type_id] = this.state_ko;
+                    res[segment.dateIndex][api_type_id] = this.state_none;
                     continue;
                 }
 

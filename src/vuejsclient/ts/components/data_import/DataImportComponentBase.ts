@@ -12,6 +12,7 @@ import FileVO from '../../../../shared/modules/File/vos/FileVO';
 export default abstract class DataImportComponentBase extends VueComponentBase {
     protected state_ok: string = "ok";
     protected state_ko: string = "ko";
+    protected state_none: string = "none";
     protected state_warn: string = "warn";
     protected state_unavail: string = "unavail";
     protected state_info: string = "info";

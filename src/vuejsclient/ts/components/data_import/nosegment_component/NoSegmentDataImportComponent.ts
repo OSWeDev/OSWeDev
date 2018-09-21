@@ -135,7 +135,12 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         let all_ok: boolean = true;
         let all_ko: boolean = true;
         let has_info: boolean = false;
+        let all_none: boolean = true;
+
         for (let j in this.api_types_ids_states) {
+            if (this.api_types_ids_states[j] != this.state_none) {
+                all_none = false;
+            }
             if (this.api_types_ids_states[j] != this.state_ok) {
                 all_ok = false;
             }
@@ -145,6 +150,9 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
             if (this.api_types_ids_states[j] == this.state_info) {
                 has_info = true;
             }
+        }
+        if (all_none) {
+            return this.state_none;
         }
         if (all_ko) {
             return this.state_ko;
@@ -162,16 +170,12 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     get api_types_ids_states(): { [api_type_id: string]: string } {
         let res: { [api_type_id: string]: string } = {}
 
-        if (!this.import_historics) {
-            return res;
-        }
-
         for (let j in this.valid_api_type_ids) {
             let api_type_id: string = this.valid_api_type_ids[j];
-            let historic: DataImportHistoricVO = this.import_historics[api_type_id];
+            let historic: DataImportHistoricVO = this.import_historics ? this.import_historics[api_type_id] : null;
 
             if (!historic) {
-                res[api_type_id] = this.state_ko;
+                res[api_type_id] = this.state_none;
                 continue;
             }
 
