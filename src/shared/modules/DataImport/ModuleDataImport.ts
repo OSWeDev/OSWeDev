@@ -223,6 +223,12 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('first_row_index', ModuleTableField.FIELD_TYPE_int, 'Index de la première ligne (1ère ligne = 0)', true),
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'API_TYPE_ID associé', true),
             new ModuleTableField('copy_folder', ModuleTableField.FIELD_TYPE_string, 'Répertoire d\'archivage', true),
+            new ModuleTableField('type_column_position', ModuleTableField.FIELD_TYPE_enum, 'Type de positionnement des colonnes', true, true, DataImportFormatVO.TYPE_COLUMN_POSITION_INDEX).setEnumValues({
+                [DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL]: DataImportFormatVO.TYPE_COLUMN_POSITION_LABELS[DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL],
+                [DataImportFormatVO.TYPE_COLUMN_POSITION_INDEX]: DataImportFormatVO.TYPE_COLUMN_POSITION_LABELS[DataImportFormatVO.TYPE_COLUMN_POSITION_INDEX]
+            }),
+            new ModuleTableField('column_labels_row_index', ModuleTableField.FIELD_TYPE_int, 'Index de la ligne des titres de colonne (1ère ligne = 0)', false),
+
             field_post_exec_module_id
         ];
         this.datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, datatable_fields, label_field, "Fichiers d'import");
@@ -235,9 +241,10 @@ export default class ModuleDataImport extends Module {
         let field_data_import_format_id: ModuleTableField<number> = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', true, true, 0);
         datatable_fields = [
             field_data_import_format_id,
-            new ModuleTableField('column_index', ModuleTableField.FIELD_TYPE_int, 'Index de la colonne (1ère colonne = 0)', true),
+            new ModuleTableField('column_index', ModuleTableField.FIELD_TYPE_int, 'Index de la colonne (1ère colonne = 0)', false),
             label_field,
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'Type de donnée', true),
+            new ModuleTableField('mandatory', ModuleTableField.FIELD_TYPE_boolean, 'Obligatoire', true, true, false),
             new ModuleTableField('vo_field_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Vo)', true),
         ];
         this.datatable_column = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, datatable_fields, label_field, "Colonnes importées");

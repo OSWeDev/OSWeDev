@@ -12,6 +12,7 @@
         XLS => 0
         XLSX => 1
         CSV => 2
+    Ajout des colonnes type_column_position, column_labels_row_index
 
 ## DataImportHistoricVO
     Suppression du champ target_date au profit de params et segment_date_index
@@ -36,6 +37,7 @@
     Renommage de la colonne name en title
     Ajout de la colonne vo_field_name
     Renommage de la colonne data_import_file_id en data_import_format_id
+    Ajout de la colonne mandatory
 
 ## DataImportLogVO
     Ajout de la colonne code_text    

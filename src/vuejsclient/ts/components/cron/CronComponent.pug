@@ -1,0 +1,14 @@
+.fileinput
+    .row
+        .col-sm
+            .jumbotron
+                button.btn.btn-sm.btn-primary.pull-right(@click='run_cron()' v-if='!is_running')
+                        i.fa.fa-play.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('cron.run_cron') }}
+                button.btn.btn-sm.btn-secondary.pull-right(v-if='is_running')
+                        i.fa.fa-play.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('cron.run_cron') }}
+                p.lead.import_title {{ label('cron.component.head') }}
+                hr
+                p {{ label('cron.component.body') }}
+            

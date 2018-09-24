@@ -10,6 +10,10 @@ export default class DataImportColumnVO implements IDistantVOBase {
     public id: number;
     public _type: string = DataImportColumnVO.API_TYPE_ID;
 
+    public column_index: number;
+    public vo_field_name: string;
+    public mandatory: boolean;
+
     /**
      * 
      * @param column_index 0 indexed
@@ -19,12 +23,26 @@ export default class DataImportColumnVO implements IDistantVOBase {
      * @param type The column type in the file (in case of data conversions between file and DB)
      */
     public constructor(
-        public column_index: number,
         public title: string,
         public data_import_format_id: number,
-        public type: string = DataImportColumnVO.TYPE_STRING,
-        public vo_field_name: string = null
+        public type: string = DataImportColumnVO.TYPE_STRING
     ) {
         this.vo_field_name = title;
+        this.mandatory = false;
+    }
+
+    public setIndex(column_index: number): DataImportColumnVO {
+        this.column_index = column_index;
+        return this;
+    }
+
+    public setVoFieldName(vo_field_name: string): DataImportColumnVO {
+        this.vo_field_name = vo_field_name;
+        return this;
+    }
+
+    public setMandatory(): DataImportColumnVO {
+        this.mandatory = true;
+        return this;
     }
 }

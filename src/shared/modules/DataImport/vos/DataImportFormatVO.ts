@@ -8,18 +8,26 @@ export default class DataImportFormatVO implements IDistantVOBase {
     public static TYPE_XLSX: number = 1;
     public static TYPE_CSV: number = 2;
 
+    public static TYPE_COLUMN_POSITION_LABELS: string[] = ['import.column_position.label.name', 'import.column_position.index.name'];
+    public static TYPE_COLUMN_POSITION_LABEL: number = 0;
+    public static TYPE_COLUMN_POSITION_INDEX: number = 1;
+
     public id: number;
     public _type: string = DataImportFormatVO.API_TYPE_ID;
 
     public import_uid: string;
     public type: number;
 
+    public type_column_position: number;
+    /** 0 indexed - LABELS */
+    public column_labels_row_index: number;
+
     /** sheet_name ou sheet_index au choix, avec une priorité sur le sheet_name si il est rempli */
     public sheet_name: string;
     /** 0 indexed */
     public sheet_index: number;
 
-    /** 0 indexed */
+    /** 0 indexed - DATAS */
     public first_row_index: number;
 
     // Fichier type de ce format d'import pour exemple

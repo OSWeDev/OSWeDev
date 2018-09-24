@@ -148,6 +148,19 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[importHistoric.api_type_id];
 
         let has_datas: boolean = false;
+
+        // On priorise les formats de type colonnes nommées, car si on arrive à remplir l'un de ces formats, on a pas besoin de tester les autres
+        formats.sort((a: DataImportFormatVO, b: DataImportFormatVO) => {
+            if (a.type_column_position < b.type_column_position) {
+                return -1;
+            }
+            if (a.type_column_position > b.type_column_position) {
+                return 1;
+            }
+
+            return 0;
+        });
+
         for (let i in formats) {
             let format: DataImportFormatVO = formats[i];
             let columns: DataImportColumnVO[] = await ModuleDataImport.getInstance().getDataImportColumnsFromFormatId(format.id);
@@ -185,6 +198,11 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             all_formats_datas[format.id] = datas;
 
             let formattedDatasStats: FormattedDatasStats = this.countValidatedDataAndColumns(datas, moduleTable, format.id);
+            if ((formattedDatasStats.nb_fields_validated > 0) && (format.type_column_position == DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL)) {
+                max_formattedDatasStats = formattedDatasStats;
+                break;
+            }
+
             if (formattedDatasStats.nb_fields_validated > max_formattedDatasStats.nb_fields_validated) {
                 max_formattedDatasStats = formattedDatasStats;
             }

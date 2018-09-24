@@ -6,6 +6,7 @@ import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorker
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import * as moment from 'moment';
 import DateHandler from '../../../shared/tools/DateHandler';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
@@ -22,6 +23,10 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleCron.getInstance().name);
+    }
+
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkers, this.executeWorkers.bind(this));
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {
