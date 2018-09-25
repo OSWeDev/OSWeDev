@@ -7,6 +7,8 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import * as moment from 'moment';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import ModulePushDataServer from '../PushData/ModulePushDataServer';
+import ServerBase from '../../ServerBase';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
@@ -26,7 +28,7 @@ export default class ModuleCronServer extends ModuleServerBase {
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkers, this.executeWorkers.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {
@@ -39,6 +41,20 @@ export default class ModuleCronServer extends ModuleServerBase {
         if (!vo) {
 
             await ModuleDAO.getInstance().insertOrUpdateVO(cronWorkerPlan);
+        }
+    }
+
+    public async executeWorkersManually() {
+
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        let uid: number = httpContext ? httpContext.get('UID') : null;
+        ModulePushDataServer.getInstance().notifySimpleINFO(uid, 'cron.execute_manually.start');
+        try {
+
+            await this.executeWorkers();
+            ModulePushDataServer.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually.success');
+        } catch (error) {
+            ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'cron.execute_manually.failed');
         }
     }
 

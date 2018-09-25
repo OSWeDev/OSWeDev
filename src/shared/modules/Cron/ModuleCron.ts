@@ -4,10 +4,11 @@ import ModuleTableField from '../ModuleTableField';
 import CronWorkerPlanification from './vos/CronWorkerPlanification';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 
 export default class ModuleCron extends Module {
 
-    public static APINAME_executeWorkers: string = "executeWorkers";
+    public static APINAME_executeWorkersManually: string = "executeWorkersManually";
 
     public static getInstance(): ModuleCron {
         if (!ModuleCron.instance) {
@@ -26,13 +27,13 @@ export default class ModuleCron extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
-            ModuleCron.APINAME_executeWorkers,
+            ModuleCron.APINAME_executeWorkersManually,
             [CronWorkerPlanification.API_TYPE_ID]
         ));
     }
 
-    public async executeWorkers() {
-        ModuleAPI.getInstance().handleAPI(ModuleCron.APINAME_executeWorkers);
+    public async executeWorkersManually() {
+        ModuleAPI.getInstance().handleAPI(ModuleCron.APINAME_executeWorkersManually);
     }
 
     public datatable_cronworkplan: ModuleTable<CronWorkerPlanification>;

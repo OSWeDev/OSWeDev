@@ -13,7 +13,7 @@ export default class CronComponent extends VueComponentBase {
     private async run_cron() {
         this.is_running = true;
 
-        await ModuleCron.getInstance().executeWorkers();
+        await ModuleCron.getInstance().executeWorkersManually();
 
         this.is_running = false;
     }

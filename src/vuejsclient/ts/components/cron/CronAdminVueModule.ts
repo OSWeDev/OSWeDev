@@ -61,7 +61,7 @@ export default class CronAdminVueModule extends VueModuleBase {
                 importsMenuBranch),
             this.routes);
 
-        let url: string = "cron/run";
+        let url: string = "/cron/run";
         let main_route_name: string = 'CronRun';
 
         this.routes.push({

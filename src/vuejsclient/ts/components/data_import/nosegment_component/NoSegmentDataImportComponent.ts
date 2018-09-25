@@ -434,24 +434,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         for (let i in this.import_historics) {
             let historic: DataImportHistoricVO = this.import_historics[i];
 
-            res[historic.api_type_id] = 0;
-
-            let raw_imported_datas: { [id: number]: IImportedData } = this.getStoredDatas[ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id)] as { [id: number]: IImportedData };
-            for (let j in raw_imported_datas) {
-                switch (raw_imported_datas[j].importation_state) {
-                    case ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION:
-                    case ModuleDataImport.IMPORTATION_STATE_POSTTREATED:
-                    case ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT:
-                    case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
-                    case ModuleDataImport.IMPORTATION_STATE_IMPORTING:
-                    case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
-                    case ModuleDataImport.IMPORTATION_STATE_POSTTREATING:
-                        res[historic.api_type_id]++;
-                        break;
-
-                    default:
-                }
-            }
+            res[historic.api_type_id] = historic.nb_row_validated;
         }
         return res;
     }
@@ -466,20 +449,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         for (let i in this.import_historics) {
             let historic: DataImportHistoricVO = this.import_historics[i];
 
-            res[historic.api_type_id] = 0;
-
-            let raw_imported_datas: { [id: number]: IImportedData } = this.getStoredDatas[ModuleDataImport.getInstance().getRawImportedDatasAPI_Type_Id(historic.api_type_id)] as { [id: number]: IImportedData };
-            for (let j in raw_imported_datas) {
-                switch (raw_imported_datas[j].importation_state) {
-                    case ModuleDataImport.IMPORTATION_STATE_FORMATTING:
-                    case ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED:
-                    case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
-                    case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
-                        res[historic.api_type_id]++;
-                        break;
-                    default:
-                }
-            }
+            res[historic.api_type_id] = historic.nb_row_unvalidated;
         }
         return res;
     }
@@ -873,7 +843,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         }
     }
 
-    private async uploadedFile(fileVo: FileVO) {
+    private async uploadedFile(empty, fileVo: FileVO) {
         if ((!fileVo) || (!fileVo.id)) {
             return;
         }

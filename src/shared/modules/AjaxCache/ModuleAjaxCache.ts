@@ -94,24 +94,26 @@ export default class ModuleAjaxCache extends Module {
 
             self.invalidateCachesFromApiTypesInvolved(api_types_involved);
 
-            let options = {
+            let options: any = {
                 type: "POST",
-                url: url,
-                data: postdatas
+                url: url
             };
+            if ((typeof postdatas != 'undefined') && (postdatas != null)) {
+                options.data = postdatas;
+            }
             if (contentType == null) {
-                options['contentType'] = false;
+                options.contentType = false;
             } else {
-                options['contentType'] = contentType;
+                options.contentType = contentType;
             }
             if (dataType != null) {
-                options['dataType'] = dataType;
+                options.dataType = dataType;
             }
             if (processData != null) {
-                options['processData'] = processData;
+                options.processData = processData;
             }
             if (timeout != null) {
-                options['timeout'] = timeout;
+                options.timeout = timeout;
             }
             return $.ajax(options)
                 .done((r) => {

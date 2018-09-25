@@ -95,6 +95,11 @@ export default class ImportTypeXLSXHandler {
 
                 for (let i in dataImportColumns) {
                     if ((dataImportColumns[i].column_index == null) && (dataImportColumns[i].mandatory)) {
+
+                        // On est dans un cas bien particulier, a priori on aura pas 50 types d'imports par nom de colonnes sur un type de fichier
+                        //  donc on doit remonter l'info des colonnes obligatoires que l'on ne trouve pas
+                        ImportLogger.getInstance().log(historic, "Format :" + dataImportFormat.import_uid + ": Colonne obligatoire manquante :" + dataImportColumns[i].title + ": Ce format ne sera pas retenu.", DataImportLogVO.LOG_LEVEL_WARN);
+
                         return null;
                     }
                 }

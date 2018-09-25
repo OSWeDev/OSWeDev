@@ -97,7 +97,7 @@ export default class ModuleAPI extends Module {
                     let filePath: string = await ModuleAjaxCache.getInstance().post(
                         (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        JSON.stringify(translated_param),
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
                         null) as string;
 
                     let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
@@ -154,7 +154,7 @@ export default class ModuleAPI extends Module {
                     return await ModuleAjaxCache.getInstance().post(
                         (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        JSON.stringify(translated_param),
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
                         null) as U;
                 }
             }

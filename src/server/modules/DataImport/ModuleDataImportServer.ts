@@ -198,7 +198,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             all_formats_datas[format.id] = datas;
 
             let formattedDatasStats: FormattedDatasStats = this.countValidatedDataAndColumns(datas, moduleTable, format.id);
-            if ((formattedDatasStats.nb_fields_validated > 0) && (format.type_column_position == DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL)) {
+            if ((formattedDatasStats.nb_fields_validated > 0) && (formattedDatasStats.nb_row_validated > 0) && (format.type_column_position == DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL)) {
                 max_formattedDatasStats = formattedDatasStats;
                 break;
             }
