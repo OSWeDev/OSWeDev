@@ -19,7 +19,7 @@ export default class TimeSegmentParamVO {
         if (!(req && req.params)) {
             return null;
         }
-        return new TimeSegmentParamVO(TimeSegment.fromDateAndType(req.params.date_index, req.params.type));
+        return new TimeSegmentParamVO(TimeSegment.fromDateAndType(req.params.date_index, parseInt(req.params.type.toString())));
     }
 
     public constructor(

@@ -1,1 +1,10 @@
 @import '../base/DataImport.scss';
+
+.data-import {
+    .segments_overviews {
+
+        .is_not_selected_segment{
+            opacity:0.7;
+        }
+    }
+}

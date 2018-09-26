@@ -110,6 +110,40 @@ export default class DataImportComponent extends DataImportComponentBase {
 
     private autovalidate: boolean = false;
 
+    private lower_selected_date: Date = null;
+    private upper_selected_date: Date = null;
+
+    private importing_multiple_segments: boolean = false;
+    private importing_multiple_segments_current_segment: TimeSegment = null;
+    private importing_multiple_segments_filevo_id: number = null;
+
+    get lower_selected_segment(): TimeSegment {
+        return this.lower_selected_date ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.lower_selected_date), this.getsegment_type) : null;
+    }
+    get upper_selected_segment(): TimeSegment {
+        return this.upper_selected_date ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.upper_selected_date), this.getsegment_type) : null;
+    }
+
+    get is_selected_segment(): { [date_index: string]: boolean } {
+        let res: { [date_index: string]: boolean } = {};
+        let segment: TimeSegment = this.lower_selected_segment;
+
+        if ((!this.upper_selected_segment) || (!this.lower_selected_segment)) {
+            return res;
+        }
+
+        if (moment(this.upper_selected_segment.dateIndex).isBefore(moment(this.lower_selected_segment.dateIndex))) {
+            return res;
+        }
+
+        while (moment(segment.dateIndex).isSameOrBefore(moment(this.upper_selected_segment.dateIndex))) {
+
+            res[segment.dateIndex] = true;
+            segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment, this.getsegment_type, -1);
+        }
+        return res;
+    }
+
     public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
         return this.getHistoricOptionsTester(historic, this.getOptions);
     }
@@ -149,6 +183,15 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     public async initialize_on_mount() {
+        if (this.getlower_segment) {
+
+            if (!this.lower_selected_date) {
+                this.lower_selected_date = moment(this.getlower_segment.dateIndex).toDate();
+            }
+            if (!this.upper_selected_date) {
+                this.upper_selected_date = moment(TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.getlower_segment, this.getsegment_type, -this.getsegment_number).dateIndex).toDate();
+            }
+        }
     }
 
     @Watch("$route")
@@ -916,6 +959,21 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res;
     }
 
+    get dropzoneOptions_multiple(): any {
+        let self = this;
+        return {
+            createImageThumbnails: false,
+            acceptedFiles: self.acceptedFiles,
+            error: (infos, error_message) => {
+                self.snotify.error(error_message);
+            },
+            accept: (file, done) => {
+
+                this.checkUnfinishedImportsAndReplacement(null, done);
+            }
+        };
+    }
+
     get dropzoneOptions(): { [segment_date_index: string]: any } {
 
         let res: { [segment_date_index: string]: any } = {};
@@ -982,10 +1040,23 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
     }
 
+    get has_imports_on_selected_segments(): boolean {
+        let segment: TimeSegment = this.lower_selected_segment;
+        while (moment(segment.dateIndex).isSameOrBefore(moment(this.upper_selected_segment.dateIndex))) {
+
+            if ((!!this.import_historics) && (!!this.import_historics[segment.dateIndex])) {
+                return true;
+            }
+            segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment, this.getsegment_type, -1);
+        }
+        return false;
+    }
+
     private async checkReplaceExistingImport(segment_date_index: string, done) {
         let self = this;
 
-        if (self.import_historics && self.import_historics[segment_date_index]) {
+        if (((!!segment_date_index) && ((!!this.import_historics) && (!!this.import_historics[segment_date_index]))) ||
+            ((!segment_date_index) && this.has_imports_on_selected_segments)) {
             self.snotify.confirm(self.label('import.new_historic_confirmation.body'), self.label('import.new_historic_confirmation.title'), {
                 timeout: 10000,
                 showProgressBar: true,
@@ -1016,18 +1087,68 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
     }
 
+    get selected_import_is_finished(): boolean {
+
+        if ((!this.selected_segment) || (!this.valid_api_type_ids) || (!this.posttreated)) {
+            return false;
+        }
+
+        for (let i in this.valid_api_type_ids) {
+            if (!this.posttreated[this.valid_api_type_ids[i]]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Watch('selected_import_is_finished')
+    private async onselected_import_is_finished() {
+        if (!this.importing_multiple_segments) {
+            return;
+        }
+
+        if (!this.selected_import_is_finished) {
+            return;
+        }
+
+        // On est en import multiple, soit on passe au suivant, soit c'est terminé
+        this.importing_multiple_segments_current_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.importing_multiple_segments_current_segment, this.getsegment_type, -1);
+        if (moment(this.upper_selected_segment.dateIndex).isBefore(moment(this.importing_multiple_segments_current_segment.dateIndex))) {
+            this.importing_multiple_segments = false;
+            return;
+        }
+        await this.importSegment(this.importing_multiple_segments_current_segment.dateIndex, this.importing_multiple_segments_filevo_id);
+    }
+
     private async uploadedFile(segment_date_index: string, fileVo: FileVO) {
         if ((!fileVo) || (!fileVo.id)) {
             return;
         }
 
+        // Si on ne fournit pas le segment, c'est qu'on veut faire un import sur les segments sélectionnés
+        if (!segment_date_index) {
+            if ((!this.lower_selected_segment) || (!this.upper_selected_segment) || (moment(this.upper_selected_segment.dateIndex).isBefore(moment(this.lower_selected_segment.dateIndex)))) {
+                return;
+            }
+            segment_date_index = this.lower_selected_segment.dateIndex;
+            this.importing_multiple_segments_current_segment = this.lower_selected_segment;
+            this.importing_multiple_segments_filevo_id = fileVo.id;
+            this.importing_multiple_segments = true;
+        } else {
+            this.importing_multiple_segments = false;
+        }
+
+        await this.importSegment(segment_date_index, fileVo.id);
+    }
+
+    private async importSegment(segment_date_index: string, filevo_id: number) {
         let importHistorics: DataImportHistoricVO[] = [];
         for (let i in this.valid_api_type_ids) {
             let api_type_id: string = this.valid_api_type_ids[i];
 
             let importHistoric: DataImportHistoricVO = new DataImportHistoricVO();
             importHistoric.api_type_id = api_type_id;
-            importHistoric.file_id = fileVo.id;
+            importHistoric.file_id = filevo_id;
             importHistoric.autovalidate = this.autovalidate;
             importHistoric.segment_type = this.getsegment_type;
             importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
