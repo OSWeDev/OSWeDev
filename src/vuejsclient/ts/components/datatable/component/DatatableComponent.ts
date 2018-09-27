@@ -342,7 +342,7 @@ export default class DatatableComponent extends VueComponentBase {
 
         for (let i in field_values) {
             this.custom_filters_options[datatable_field_uid].push({
-                label: field_values[i],
+                label: (field_values[i] && field_values[i] != '') ? field_values[i] : '-',
                 value: field_values[i],
                 datatable_field_uid: datatable_field_uid
             });

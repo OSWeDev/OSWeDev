@@ -308,7 +308,7 @@ export default class CRUDComponent extends VueComponentBase {
                     let newOptions = [];
 
                     for (let j in simpleField.moduleTableField.enum_values) {
-                        newOptions.push(j);
+                        newOptions.push(parseInt(j.toString()));
                     }
                     this.isLoadingOptions[field.datatable_field_uid] = false;
                     Vue.set(this.select_options, field.datatable_field_uid, newOptions);
@@ -634,7 +634,7 @@ export default class CRUDComponent extends VueComponentBase {
         // - @input="(value, id) => validateInput({value:value, id:id}, field)",
 
         if (field.required) {
-            if (!input.value) {
+            if ((input.value == null) || (typeof input.value == "undefined")) {
 
                 switch (field.type) {
                     case DatatableField.SIMPLE_FIELD_TYPE:

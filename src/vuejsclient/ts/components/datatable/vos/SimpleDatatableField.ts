@@ -12,7 +12,7 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
     public static defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if (!field_value) {
+        if ((field_value == null) || (typeof field_value == "undefined")) {
             return field_value;
         }
 
@@ -70,7 +70,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public static defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if (!field_value) {
+        if ((field_value == null) || (typeof field_value == "undefined")) {
             return field_value;
         }
 
@@ -94,7 +94,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public static defaultReadIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if (!value) {
+        if ((value == null) || (typeof value == "undefined")) {
             return value;
         }
 
@@ -167,7 +167,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public static defaultUpdateIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if (!value) {
+        if ((value == null) || (typeof value == "undefined")) {
             return value;
         }
 

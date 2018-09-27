@@ -12,11 +12,18 @@ export default class DataImportFormatVO implements IDistantVOBase {
     public static TYPE_COLUMN_POSITION_LABEL: number = 0;
     public static TYPE_COLUMN_POSITION_INDEX: number = 1;
 
+    public static TYPE_SHEET_POSITION_LABELS: string[] = ['import.sheet_position.label.name', 'import.sheet_position.index.name', 'import.sheet_position.scan.name'];
+    public static TYPE_SHEET_POSITION_LABEL: number = 0;
+    public static TYPE_SHEET_POSITION_INDEX: number = 1;
+    public static TYPE_SHEET_POSITION_SCAN: number = 2;
+
     public id: number;
     public _type: string = DataImportFormatVO.API_TYPE_ID;
 
     public import_uid: string;
     public type: number;
+
+    public type_sheet_position: number;
 
     public type_column_position: number;
     /** 0 indexed - LABELS */

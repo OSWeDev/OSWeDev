@@ -28,20 +28,28 @@ include ../../../../views/mixins/loading.pug
                             .segment_date_index(v-if='getsegment_type == segment_type_month') {{ formatDate_FullyearMonth(segment.dateIndex) }}
                             .segment_date_index(v-if='getsegment_type == segment_type_day') {{ formatDate_FullyearMonthDay(segment.dateIndex) }}
 
-                            i.fa.fa-info-circle.fa-5x(aria-hidden="true" @click='openModal(segment)')
+                            .row
+                                .col-sm
+                                    i.fa.fa-info-circle.fa-5x(aria-hidden="true" @click='openModal(segment)')
+                                .col-sm
+                                    .row
+                                        .col-sm
+                                            i.fa.fa-step-backward.fa-2x(aria-hidden="true" @click='is_valid_lower[segment.dateIndex] ? define_lower_selection(segment) : {}' :class='{"invalid_selection": !is_valid_lower[segment.dateIndex], "valid_selection": is_valid_lower[segment.dateIndex]}')
+                                        .col-sm
+                                            i.fa.fa-step-forward.fa-2x(aria-hidden="true" @click='is_valid_upper[segment.dateIndex] ? define_upper_selection(segment) : {}' :class='{"invalid_selection": !is_valid_upper[segment.dateIndex], "valid_selection": is_valid_upper[segment.dateIndex]}')
+
                             fileinput(:key="'fileinput_'+segment.dateIndex" :muted="true" :options="dropzoneOptions[segment.dateIndex]" @uploaded="uploadedFile(segment.dateIndex, ...arguments)")
-            .row.justify-content-between.segments_overviews
-                .col-md-3
+            .row.justify-content-between.multiple_segments
+                .col-md-4.multiple_segments_block
                     .row
-                        .col-sm {{ label('import.multiple_segments') }}
+                        .col-sm.multiple_segments_header {{ label('import.multiple_segments') }}
                     .row
-                        .col-sm
-                            input(type='date' v-model='lower_selected_date')
+                        .col-sm.multiple_segments_input_lower
+                            input(type='date' v-model='lower_selected_date_index')
+                        .col-sm.multiple_segments_input_upper
+                            input(type='date' v-model='upper_selected_date_index')
                     .row
-                        .col-sm
-                            input(type='date' v-model='upper_selected_date')
-                    .row
-                        .col-sm
+                        .col-sm.multiple_segments_input_file
                             fileinput(key="fileinput_multiple" :muted="true" :options="dropzoneOptions_multiple" @uploaded="uploadedFile(null, ...arguments)")
         
         #import_modal.modal.fade

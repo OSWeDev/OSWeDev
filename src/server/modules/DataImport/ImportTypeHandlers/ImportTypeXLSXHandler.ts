@@ -12,6 +12,7 @@ import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImpor
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ImportLogger from '../logger/ImportLogger';
+import { isString } from 'util';
 
 export default class ImportTypeXLSXHandler {
     public static getInstance() {
@@ -34,10 +35,10 @@ export default class ImportTypeXLSXHandler {
      */
     public async importFile(dataImportFormat: DataImportFormatVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO, muted: boolean = true): Promise<IImportedData[]> {
 
-        let workbook: WorkBook = await this.loadWorkbook(historic, muted);
+        let workbook: WorkBook = await this.loadWorkbook(historic, dataImportFormat, muted);
         if (!workbook) {
             if (!muted) {
-                ImportLogger.getInstance().log(historic, 'Impossible de charger le workbook', DataImportLogVO.LOG_LEVEL_ERROR);
+                ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger le document.', DataImportLogVO.LOG_LEVEL_ERROR);
             }
             return null;
         }
@@ -47,70 +48,143 @@ export default class ImportTypeXLSXHandler {
          *   On stocke tout dans un objet de base, et on met le _type qui correspond à la définition de table créée
          *      artificiellement pour ce type d'import.
          */
-        let worksheet: WorkSheet = this.loadWorksheet(historic, dataImportFormat, workbook);
-        if (!worksheet) {
+        // Suivant le type de positionnement de l'onglet, on teste un onglet, ou on les teste tous
+        let worksheet: WorkSheet;
+        let scan_index: number = 0;
+        switch (dataImportFormat.type_sheet_position) {
+            case DataImportFormatVO.TYPE_SHEET_POSITION_SCAN:
+                worksheet = this.loadWorksheet_Index(historic, dataImportFormat, workbook, scan_index);
+                break;
+            case DataImportFormatVO.TYPE_SHEET_POSITION_LABEL:
+                worksheet = this.loadWorksheet_Label(historic, dataImportFormat, workbook);
+                break;
+            case DataImportFormatVO.TYPE_SHEET_POSITION_INDEX:
+            default:
+                worksheet = this.loadWorksheet_Index(historic, dataImportFormat, workbook, dataImportFormat.sheet_index);
+                break;
+        }
+
+        if ((dataImportFormat.type_sheet_position != DataImportFormatVO.TYPE_SHEET_POSITION_SCAN) && (!worksheet)) {
             if (!muted) {
-                ImportLogger.getInstance().log(historic, 'Impossible de charger le worksheet', DataImportLogVO.LOG_LEVEL_ERROR);
+                if ((!dataImportFormat.sheet_name) || (dataImportFormat.sheet_name == '')) {
+                    ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger l\'onglet numéro ' + (dataImportFormat.sheet_index + 1) + '.', DataImportLogVO.LOG_LEVEL_ERROR);
+                } else {
+                    ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de charger l\'onglet nommé "' + dataImportFormat.sheet_name + '".', DataImportLogVO.LOG_LEVEL_ERROR);
+                }
+            }
+            return null;
+        }
+        if ((dataImportFormat.type_sheet_position == DataImportFormatVO.TYPE_SHEET_POSITION_SCAN) && (!worksheet)) {
+            if (!muted) {
+                ImportLogger.getInstance().log(historic, dataImportFormat, 'Impossible de scanner les onglets. Aucun onglet trouvé dans le fichier.', DataImportLogVO.LOG_LEVEL_ERROR);
             }
             return null;
         }
 
-        // Suivant le type de positionnement des colonnes on fait l'imort des datas
-        switch (dataImportFormat.type_column_position) {
-            case DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL:
+        let worsheet_datas: IImportedData[] = null;
+        while (!!worksheet) {
 
-                // On cherche à retrouver les colonnes par le nom sur la ligne des titres de colonnes
-                let row_index: number = dataImportFormat.column_labels_row_index;
-                let column_index: number = 0;
-
-                for (let i in dataImportColumns) {
-                    dataImportColumns[i].column_index = null;
+            worsheet_datas = null;
+            if (dataImportFormat.type_sheet_position == DataImportFormatVO.TYPE_SHEET_POSITION_SCAN) {
+                if (!muted) {
+                    ImportLogger.getInstance().log(historic, dataImportFormat, 'SCAN:Scan de l\'onglet numéro ' + (scan_index + 1) + '.', DataImportLogVO.LOG_LEVEL_INFO);
                 }
+            }
 
-                // on arrête si on voit qu'il y a 10 cases vides de suite.
-                // a voir comment améliorer ce système...
-                let empty_columns: number = 0;
-                while (empty_columns < 10) {
+            // Suivant le type de positionnement des colonnes on fait l'import des datas
+            switch (dataImportFormat.type_column_position) {
+                case DataImportFormatVO.TYPE_COLUMN_POSITION_LABEL:
 
-                    let cell_address: CellAddress = { c: column_index, r: row_index };
-                    let column_data_string: any = worksheet[XLSX.utils.encode_cell(cell_address)];
+                    // On cherche à retrouver les colonnes par le nom sur la ligne des titres de colonnes
+                    let row_index: number = dataImportFormat.column_labels_row_index;
+                    let column_index: number = 0;
 
-                    if (column_data_string) {
-                        let titre: string = this.getStringfromColumnDataString(column_data_string);
+                    for (let i in dataImportColumns) {
+                        dataImportColumns[i].column_index = null;
+                    }
 
-                        if (titre) {
-                            for (let i in dataImportColumns) {
-                                if (dataImportColumns[i].title && (dataImportColumns[i].title.toLowerCase() == titre.toLowerCase())) {
-                                    dataImportColumns[i].column_index = column_index;
-                                    break;
+                    // on arrête si on voit qu'il y a 10 cases vides de suite.
+                    // a voir comment améliorer ce système...
+                    let empty_columns: number = 0;
+                    while (empty_columns < 10) {
+
+                        let cell_address: CellAddress = { c: column_index, r: row_index };
+                        let column_data_string: any = worksheet[XLSX.utils.encode_cell(cell_address)];
+
+                        if (!!column_data_string) {
+                            let titre: string = this.getStringfromColumnDataString(column_data_string);
+
+                            if ((!!titre) && (isString(titre))) {
+                                titre = titre.trim();
+                                for (let i in dataImportColumns) {
+                                    if (dataImportColumns[i].title && (dataImportColumns[i].title.toLowerCase() == titre.toLowerCase())) {
+                                        dataImportColumns[i].column_index = column_index;
+                                        break;
+                                    }
                                 }
                             }
                         }
+
+                        column_index++;
+
+                        empty_columns = column_data_string ? 0 : (empty_columns + 1);
                     }
 
-                    column_index++;
+                    let misses_mandatory_columns: boolean = false;
+                    for (let i in dataImportColumns) {
+                        if ((dataImportColumns[i].column_index == null) && (dataImportColumns[i].mandatory)) {
 
-                    empty_columns = column_data_string ? 0 : (empty_columns + 1);
-                }
+                            // On est dans un cas bien particulier, a priori on aura pas 50 types d'imports par nom de colonnes sur un type de fichier
+                            //  donc on doit remonter l'info des colonnes obligatoires que l'on ne trouve pas
+                            ImportLogger.getInstance().log(historic, dataImportFormat, "Format :" + dataImportFormat.import_uid + ": Colonne obligatoire manquante :" + dataImportColumns[i].title + ": Ce format ne sera pas retenu.", DataImportLogVO.LOG_LEVEL_WARN);
 
-                for (let i in dataImportColumns) {
-                    if ((dataImportColumns[i].column_index == null) && (dataImportColumns[i].mandatory)) {
+                            misses_mandatory_columns = true;
+                            break;
+                        }
+                    }
 
-                        // On est dans un cas bien particulier, a priori on aura pas 50 types d'imports par nom de colonnes sur un type de fichier
-                        //  donc on doit remonter l'info des colonnes obligatoires que l'on ne trouve pas
-                        ImportLogger.getInstance().log(historic, "Format :" + dataImportFormat.import_uid + ": Colonne obligatoire manquante :" + dataImportColumns[i].title + ": Ce format ne sera pas retenu.", DataImportLogVO.LOG_LEVEL_WARN);
+                    if (misses_mandatory_columns) {
+                        worsheet_datas = null;
+                    } else {
+                        worsheet_datas = this.importRawsData(dataImportFormat, dataImportColumns, historic, workbook, worksheet);
+                    }
+                    break;
+                case DataImportFormatVO.TYPE_COLUMN_POSITION_INDEX:
+                default:
+                    worsheet_datas = this.importRawsData(dataImportFormat, dataImportColumns, historic, workbook, worksheet);
+            }
 
-                        return null;
+            if ((!!worsheet_datas) && (worsheet_datas.length > 0)) {
+
+                if (dataImportFormat.type_sheet_position == DataImportFormatVO.TYPE_SHEET_POSITION_SCAN) {
+                    if (!muted) {
+                        ImportLogger.getInstance().log(historic, dataImportFormat, 'SCAN:Datas trouvées dans l\'onglet numéro ' + (scan_index + 1) + '.', DataImportLogVO.LOG_LEVEL_INFO);
                     }
                 }
 
-                return this.importRawsData(dataImportFormat, dataImportColumns, historic, workbook, worksheet);
-                break;
-            case DataImportFormatVO.TYPE_COLUMN_POSITION_INDEX:
-            default:
-                return this.importRawsData(dataImportFormat, dataImportColumns, historic, workbook, worksheet);
+                return worsheet_datas;
+            }
+
+            if (dataImportFormat.type_sheet_position == DataImportFormatVO.TYPE_SHEET_POSITION_SCAN) {
+                if (!muted) {
+                    ImportLogger.getInstance().log(historic, dataImportFormat, 'SCAN:Aucune data trouvée dans l\'onglet numéro ' + (scan_index + 1) + '.', DataImportLogVO.LOG_LEVEL_WARN);
+                }
+            }
+
+            switch (dataImportFormat.type_sheet_position) {
+                case DataImportFormatVO.TYPE_SHEET_POSITION_SCAN:
+                    scan_index++;
+                    worksheet = this.loadWorksheet_Index(historic, dataImportFormat, workbook, scan_index);
+                    break;
+                case DataImportFormatVO.TYPE_SHEET_POSITION_LABEL:
+                case DataImportFormatVO.TYPE_SHEET_POSITION_INDEX:
+                default:
+                    worksheet = null;
+                    break;
+            }
         }
 
+        return worsheet_datas;
     }
 
     private getStringfromColumnDataString(column_data_string: any): string {
@@ -203,13 +277,13 @@ export default class ImportTypeXLSXHandler {
         return datas;
     }
 
-    private async loadWorkbook(importHistoric: DataImportHistoricVO, muted: boolean = true): Promise<WorkBook> {
+    private async loadWorkbook(importHistoric: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, muted: boolean = true): Promise<WorkBook> {
         let workbook: WorkBook = null;
         let fileVO: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, importHistoric.file_id);
 
         if ((!fileVO) || (!fileVO.path)) {
             if (!muted) {
-                await ImportLogger.getInstance().log(importHistoric, "Aucun fichier à importer", DataImportLogVO.LOG_LEVEL_FATAL);
+                await ImportLogger.getInstance().log(importHistoric, dataImportFormat, "Aucun fichier à importer", DataImportLogVO.LOG_LEVEL_FATAL);
             }
             return null;
         }
@@ -219,7 +293,7 @@ export default class ImportTypeXLSXHandler {
         } catch (error) {
             if (!muted) {
                 console.error(error);
-                ImportLogger.getInstance().log(importHistoric, error, DataImportLogVO.LOG_LEVEL_ERROR);
+                ImportLogger.getInstance().log(importHistoric, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
             }
             return null;
         }
@@ -227,19 +301,31 @@ export default class ImportTypeXLSXHandler {
         return workbook;
     }
 
-    private loadWorksheet(historic: DataImportHistoricVO, dataImportFile: DataImportFormatVO, workbook: WorkBook): WorkSheet {
+    private loadWorksheet_Index(historic: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, workbook: WorkBook, index: number): WorkSheet {
 
         let worksheet: WorkSheet = null;
 
         try {
-            let sheet_name: string = dataImportFile.sheet_name;
-            if ((!sheet_name) || (sheet_name == '')) {
-                sheet_name = workbook.SheetNames[dataImportFile.sheet_index];
-            }
+            let sheet_name: string = workbook.SheetNames[index];
             worksheet = workbook.Sheets[sheet_name];
         } catch (error) {
             console.error(error);
-            ImportLogger.getInstance().log(historic, error, DataImportLogVO.LOG_LEVEL_ERROR);
+            ImportLogger.getInstance().log(historic, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
+        }
+
+        return worksheet;
+    }
+
+    private loadWorksheet_Label(historic: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, workbook: WorkBook): WorkSheet {
+
+        let worksheet: WorkSheet = null;
+
+        try {
+            let sheet_name: string = dataImportFormat.sheet_name;
+            worksheet = workbook.Sheets[sheet_name];
+        } catch (error) {
+            console.error(error);
+            ImportLogger.getInstance().log(historic, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
         }
 
         return worksheet;

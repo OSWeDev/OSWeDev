@@ -25,19 +25,20 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         let res: string = "";
 
         if (!id) {
-            return null;
+            return '';
         }
 
         let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let data: Target = vos[this.targetModuleTable.vo_type][id];
-        return this.dataToHumanReadable(data);
+        res = this.dataToHumanReadable(data);
+        return res ? res : '';
     }
 
     public dataToHumanReadable: (e: Target) => string = (e: Target) => {
         let res: string = "";
 
         if (!e) {
-            return null;
+            return '';
         }
 
         for (let i in this.sortedTargetFields) {
@@ -48,7 +49,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             res = ((res != "") ? res + " " + field_value : field_value);
         }
 
-        return res as any;
+        return res ? res as any : '';
     }
 
 }

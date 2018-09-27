@@ -35,6 +35,9 @@ export default class DataImportComponent extends DataImportComponentBase {
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @ModuleDAOAction
+    public updateData: (vo: IDistantVOBase) => void;
+
+    @ModuleDAOAction
     public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
     @ModuleDAOAction
     public storeData: (vo: IDistantVOBase) => void;
@@ -110,18 +113,18 @@ export default class DataImportComponent extends DataImportComponentBase {
 
     private autovalidate: boolean = false;
 
-    private lower_selected_date: Date = null;
-    private upper_selected_date: Date = null;
+    private lower_selected_date_index: string = null;
+    private upper_selected_date_index: string = null;
 
     private importing_multiple_segments: boolean = false;
     private importing_multiple_segments_current_segment: TimeSegment = null;
     private importing_multiple_segments_filevo_id: number = null;
 
     get lower_selected_segment(): TimeSegment {
-        return this.lower_selected_date ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.lower_selected_date), this.getsegment_type) : null;
+        return this.lower_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.lower_selected_date_index), this.getsegment_type) : null;
     }
     get upper_selected_segment(): TimeSegment {
-        return this.upper_selected_date ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.upper_selected_date), this.getsegment_type) : null;
+        return this.upper_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.upper_selected_date_index), this.getsegment_type) : null;
     }
 
     get is_selected_segment(): { [date_index: string]: boolean } {
@@ -176,7 +179,37 @@ export default class DataImportComponent extends DataImportComponentBase {
         return false;
     }
 
+    private define_lower_selection(segment: TimeSegment) {
+        this.lower_selected_date_index = segment.dateIndex;
+    }
 
+    private define_upper_selection(segment: TimeSegment) {
+        this.upper_selected_date_index = segment.dateIndex;
+    }
+
+    get is_valid_lower(): { [date_index: string]: boolean } {
+        let res: { [date_index: string]: boolean } = {};
+
+        for (let i in this.getsegments) {
+            let segment: TimeSegment = this.getsegments[i];
+
+            res[segment.dateIndex] = !moment(this.upper_selected_segment.dateIndex).isBefore(moment(segment.dateIndex));
+        }
+
+        return res;
+    }
+
+    get is_valid_upper(): { [date_index: string]: boolean } {
+        let res: { [date_index: string]: boolean } = {};
+
+        for (let i in this.getsegments) {
+            let segment: TimeSegment = this.getsegments[i];
+
+            res[segment.dateIndex] = !moment(this.lower_selected_segment.dateIndex).isAfter(moment(segment.dateIndex));
+        }
+
+        return res;
+    }
 
     protected async mounted() {
         await this.on_mount();
@@ -185,11 +218,11 @@ export default class DataImportComponent extends DataImportComponentBase {
     public async initialize_on_mount() {
         if (this.getlower_segment) {
 
-            if (!this.lower_selected_date) {
-                this.lower_selected_date = moment(this.getlower_segment.dateIndex).toDate();
+            if (!this.lower_selected_date_index) {
+                this.lower_selected_date_index = this.getlower_segment.dateIndex;
             }
-            if (!this.upper_selected_date) {
-                this.upper_selected_date = moment(TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.getlower_segment, this.getsegment_type, -this.getsegment_number).dateIndex).toDate();
+            if (!this.upper_selected_date_index) {
+                this.upper_selected_date_index = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.getlower_segment, this.getsegment_type, -this.getsegment_number + 1).dateIndex;
             }
         }
     }
@@ -694,6 +727,7 @@ export default class DataImportComponent extends DataImportComponentBase {
 
         this.import_historics[this.selected_segment.dateIndex][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT;
         await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.dateIndex][api_type_id]);
+        this.updateData(this.import_historics[this.selected_segment.dateIndex][api_type_id]);
     }
 
     private async cancel_importation(api_type_id: string) {
@@ -707,6 +741,7 @@ export default class DataImportComponent extends DataImportComponentBase {
 
         this.import_historics[this.selected_segment.dateIndex][api_type_id].state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
         await ModuleDAO.getInstance().insertOrUpdateVO(this.import_historics[this.selected_segment.dateIndex][api_type_id]);
+        this.updateData(this.import_historics[this.selected_segment.dateIndex][api_type_id]);
     }
 
     get imported(): { [api_type_id: string]: boolean } {
@@ -1021,6 +1056,10 @@ export default class DataImportComponent extends DataImportComponentBase {
                             }
                             await ModuleDAO.getInstance().insertOrUpdateVOs(unfinished_imports);
 
+                            for (let i in unfinished_imports) {
+                                this.updateData(unfinished_imports[i]);
+                            }
+
                             this.checkReplaceExistingImport(segment_date_index, done);
                         },
                         bold: false
@@ -1111,6 +1150,19 @@ export default class DataImportComponent extends DataImportComponentBase {
             return;
         }
 
+        // On attend un peu pour lancer potentiellement le suivant, il y a des délais de mise à jour des historiques parfois, il faut les prendre en compte
+        setTimeout(this.continue_multiple_importation.bind(this), 1000);
+    }
+
+    private async continue_multiple_importation() {
+        if (!this.importing_multiple_segments) {
+            return;
+        }
+
+        if (!this.selected_import_is_finished) {
+            return;
+        }
+
         // On est en import multiple, soit on passe au suivant, soit c'est terminé
         this.importing_multiple_segments_current_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.importing_multiple_segments_current_segment, this.getsegment_type, -1);
         if (moment(this.upper_selected_segment.dateIndex).isBefore(moment(this.importing_multiple_segments_current_segment.dateIndex))) {
@@ -1160,6 +1212,10 @@ export default class DataImportComponent extends DataImportComponentBase {
             importHistorics.push(importHistoric);
         }
         await ModuleDAO.getInstance().insertOrUpdateVOs(importHistorics);
+
+        for (let i in importHistorics) {
+            this.storeData(importHistorics[i]);
+        }
 
         this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
 
