@@ -118,6 +118,13 @@ export default class ImportTypeXLSXHandler {
                                 titre = titre.trim();
                                 for (let i in dataImportColumns) {
                                     if (dataImportColumns[i].title && (dataImportColumns[i].title.toLowerCase() == titre.toLowerCase())) {
+
+                                        if (dataImportColumns[i].column_index != null) {
+                                            if (!muted) {
+                                                ImportLogger.getInstance().log(historic, dataImportFormat, 'Ce titre de colonne existe en double :' + dataImportColumns[i].title + '.', DataImportLogVO.LOG_LEVEL_WARN);
+                                            }
+                                            break;
+                                        }
                                         dataImportColumns[i].column_index = column_index;
                                         break;
                                     }

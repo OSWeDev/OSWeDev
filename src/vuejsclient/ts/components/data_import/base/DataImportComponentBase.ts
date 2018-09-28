@@ -19,6 +19,7 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
     abstract storeData: (vo: IDistantVOBase) => void;
     abstract route_path: string;
     abstract modal_show: boolean;
+    abstract show_overview: boolean;
 
     abstract async initialize_on_mount();
     abstract async on_show_modal();

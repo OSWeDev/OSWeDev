@@ -112,6 +112,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     private previous_import_historics: { [segment_date_index: string]: { [api_type_id: string]: DataImportHistoricVO } } = {};
 
     private autovalidate: boolean = false;
+    public show_overview: boolean = false;
 
     private lower_selected_date_index: string = null;
     private upper_selected_date_index: string = null;
@@ -119,6 +120,38 @@ export default class DataImportComponent extends DataImportComponentBase {
     private importing_multiple_segments: boolean = false;
     private importing_multiple_segments_current_segment: TimeSegment = null;
     private importing_multiple_segments_filevo_id: number = null;
+
+    @Watch('getOptions')
+    private onChangeOptions() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('autovalidate')
+    private onChangeAutovalidate() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('lower_selected_date_index')
+    private onChangeLowerSelectedDateIndex() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
+
+    @Watch('upper_selected_date_index')
+    private onChangeUpperSelectedDateIndex() {
+        if (this.importing_multiple_segments) {
+            this.snotify.info(this.label('imports.stop_imports_multiples'));
+            this.importing_multiple_segments = false;
+        }
+    }
 
     get lower_selected_segment(): TimeSegment {
         return this.lower_selected_date_index ? TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.lower_selected_date_index), this.getsegment_type) : null;

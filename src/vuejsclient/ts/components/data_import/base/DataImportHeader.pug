@@ -4,9 +4,10 @@
             i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
             | {{ label('crud.actions.refresh') }}
         bootstrap-toggle.pull-right(v-model="autovalidate" :options="{on: 'Auto', off:'Normal'}" :disabled="false")
+        bootstrap-toggle.pull-right(v-model="show_overview" :options="{on: 'Vue complète', off:'Allégé'}" :disabled="false" v-if='import_overview_component')
 
         h2.imports_page_title {{ title }}
-.row(v-if='import_overview_component')
+.row(v-if='import_overview_component && show_overview')
     .col-sm
         component(:is="import_overview_component")
 

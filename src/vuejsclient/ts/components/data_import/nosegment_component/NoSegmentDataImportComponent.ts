@@ -71,6 +71,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     public get_url_for_modal: (segment_date_index: string) => string;
 
     private autovalidate: boolean = false;
+    public show_overview: boolean = false;
 
     private previous_import_historics: { [api_type_id: string]: DataImportHistoricVO } = {};
 
