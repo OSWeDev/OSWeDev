@@ -31,12 +31,14 @@ include ../../../../views/mixins/loading.pug
                             .row
                                 .col-sm
                                     i.fa.fa-info-circle.fa-5x(aria-hidden="true" @click='openModal(segment)')
+                            .row
                                 .col-sm
-                                    .row
-                                        .col-sm
-                                            i.fa.fa-step-backward.fa-2x(aria-hidden="true" @click='is_valid_lower[segment.dateIndex] ? define_lower_selection(segment) : {}' :class='{"invalid_selection": !is_valid_lower[segment.dateIndex], "valid_selection": is_valid_lower[segment.dateIndex]}')
-                                        .col-sm
-                                            i.fa.fa-step-forward.fa-2x(aria-hidden="true" @click='is_valid_upper[segment.dateIndex] ? define_upper_selection(segment) : {}' :class='{"invalid_selection": !is_valid_upper[segment.dateIndex], "valid_selection": is_valid_upper[segment.dateIndex]}')
+                                    i.fa.fa-step-backward.fa-2x(aria-hidden="true" @click='is_valid_lower[segment.dateIndex] ? define_lower_selection(segment) : {}' :class='{"invalid_selection": !is_valid_lower[segment.dateIndex], "valid_selection": is_valid_lower[segment.dateIndex]}')
+                                .col-sm
+                                    i.fa.fa-step-forward.fa-2x(aria-hidden="true" @click='is_valid_upper[segment.dateIndex] ? define_upper_selection(segment) : {}' :class='{"invalid_selection": !is_valid_upper[segment.dateIndex], "valid_selection": is_valid_upper[segment.dateIndex]}')
+                            .row
+                                .col-sm
+                                    i.fa.fa-refresh(aria-hidden="true" @click='planif_reimport(segment)' class="valid_selection")
 
                             fileinput(:key="'fileinput_'+segment.dateIndex" :muted="true" :options="dropzoneOptions[segment.dateIndex]" @uploaded="uploadedFile(segment.dateIndex, ...arguments)")
             .row.justify-content-between.multiple_segments

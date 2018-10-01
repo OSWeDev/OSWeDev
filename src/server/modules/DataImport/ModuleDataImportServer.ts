@@ -20,14 +20,11 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulePushDataServer from '../PushData/ModulePushDataServer';
+import DataImportCronWorkersHandler from './DataImportCronWorkersHandler';
 import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
+import FormattedDatasStats from './FormattedDatasStats';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
-import FileVO from '../../../shared/modules/File/vos/FileVO';
-import ModuleFileServer from '../File/ModuleFileServer';
-import ModuleFile from '../../../shared/modules/File/ModuleFile';
-import FormattedDatasStats from './FormattedDatasStats';
-import IRenderedData from '../../../shared/modules/DataRender/interfaces/IRenderedData';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -42,6 +39,10 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleDataImport.getInstance().name);
+    }
+
+    public registerCrons(): void {
+        DataImportCronWorkersHandler.getInstance();
     }
 
     public async configure() {

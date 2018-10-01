@@ -42,7 +42,8 @@ export default class ModuleDataImport extends Module {
         "import.state.posttreated",
         "import.state.importation_not_allowed",
         "import.state.failed_importation",
-        "import.state.failed_posttreatment"];
+        "import.state.failed_posttreatment",
+        "import.state.needs_reimport"];
     public static IMPORTATION_STATE_UPLOADED: number = 0;
     public static IMPORTATION_STATE_FORMATTING: number = 1;
     public static IMPORTATION_STATE_FORMATTED: number = 2;
@@ -54,6 +55,7 @@ export default class ModuleDataImport extends Module {
     public static IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED: number = 8;
     public static IMPORTATION_STATE_FAILED_IMPORTATION: number = 9;
     public static IMPORTATION_STATE_FAILED_POSTTREATMENT: number = 10;
+    public static IMPORTATION_STATE_NEEDS_REIMPORT: number = 11;
 
 
     public static IMPORT_TABLE_PREFIX: string = '_i_';
@@ -185,7 +187,8 @@ export default class ModuleDataImport extends Module {
             [ModuleDataImport.IMPORTATION_STATE_POSTTREATED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_POSTTREATED],
             [ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED],
             [ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION],
-            [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]
+            [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT],
+            [ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT],
         }));
         fields.push(new ModuleTableField<any>("creation_date", ModuleTableField.FIELD_TYPE_timestamp, "Date de création", false));
         fields.push(new ModuleTableField<any>("not_imported_msg", ModuleTableField.FIELD_TYPE_string, "Msg import", false));
@@ -276,7 +279,8 @@ export default class ModuleDataImport extends Module {
                 [ModuleDataImport.IMPORTATION_STATE_POSTTREATED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_POSTTREATED],
                 [ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED],
                 [ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION],
-                [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]
+                [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT],
+                [ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]
             }),
             label_field,
             new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de démarrage', false),

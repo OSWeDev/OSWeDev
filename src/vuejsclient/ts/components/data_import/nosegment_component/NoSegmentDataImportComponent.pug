@@ -9,6 +9,11 @@ include ../../../../views/mixins/loading.pug
                 .col-sm.border-top.rounded-top.data_import_overview(:class='{"border-success": import_state == state_ok, "border-danger": import_state == state_ko, "border-secondary": import_state == state_none, "border-warning": import_state == state_warn, "border-primary": import_state == state_info}')
 
                     i.fa.fa-info-circle.fa-5x(aria-hidden="true" @click='openModal()')
+
+                    .row
+                        .col-sm
+                            i.fa.fa-refresh(aria-hidden="true" @click='planif_reimport(segment)' class="valid_selection")
+
                     fileinput(:muted="true" :options="dropzoneOptions" @uploaded="uploadedFile(null, ...arguments)")
 
         #import_modal.modal.fade

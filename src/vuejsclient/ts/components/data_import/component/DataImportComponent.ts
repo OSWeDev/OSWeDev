@@ -1226,6 +1226,20 @@ export default class DataImportComponent extends DataImportComponentBase {
         await this.importSegment(segment_date_index, fileVo.id);
     }
 
+    private async planif_reimport(segment: TimeSegment) {
+        if ((!this.import_historics) || (!this.import_historics[segment.dateIndex])) {
+            return;
+        }
+
+        for (let i in this.import_historics[segment.dateIndex]) {
+            let historic: DataImportHistoricVO = this.import_historics[segment.dateIndex][i];
+            historic.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
+            await ModuleDAO.getInstance().insertOrUpdateVO(historic);
+        }
+
+        this.snotify.info(this.label('imports.reimport.planified'));
+    }
+
     private async importSegment(segment_date_index: string, filevo_id: number) {
         let importHistorics: DataImportHistoricVO[] = [];
         for (let i in this.valid_api_type_ids) {

@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import * as socketIO from 'socket.io';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
@@ -5,6 +6,10 @@ import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO'
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import ModuleServerBase from '../ModuleServerBase';
 import SocketWrapper from './vos/SocketWrapper';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import DateHandler from '../../../shared/tools/DateHandler';
+import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -23,6 +28,36 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     private constructor() {
         super(ModulePushData.getInstance().name);
+    }
+
+
+    public registerCrons(): void {
+        PushDataCronWorkersHandler.getInstance();
+    }
+
+    public async configure() {
+
+        // Triggers pour mettre à jour les dates
+        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationCreation.bind(this));
+
+        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate.bind(this));
+    }
+
+    private async handleNotificationCreation(notif: NotificationVO): Promise<boolean> {
+        notif.creation_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        return true;
+    }
+
+    private async handleNotificationUpdate(notif: NotificationVO): Promise<boolean> {
+
+        let enbase: NotificationVO = await ModuleDAO.getInstance().getVoById<NotificationVO>(NotificationVO.API_TYPE_ID, notif.id);
+
+        if ((!enbase.read) && notif.read) {
+            notif.read_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        }
+        return true;
     }
 
     public registerSocket(userId: number, sessId: string, socket: socketIO.Socket) {

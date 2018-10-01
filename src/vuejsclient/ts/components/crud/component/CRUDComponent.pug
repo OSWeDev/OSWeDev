@@ -127,8 +127,8 @@ mixin manytoone_input(vo)
                             template(v-else)
                                 p {{ label('crud.create.modal.content.newvo_failure') }}
                         .modal-footer
-                            router-link.btn.btn-default(:to="getCRUDLink(api_type_id)") {{ label('crud.create.modal.cancel') }}
-                            template(v-if="newVO")
+                            router-link.btn.btn-default(:to="getCRUDLink(api_type_id)" v-if="!creating_vo") {{ label('crud.create.modal.cancel') }}
+                            template(v-if="newVO && !creating_vo")
                                 input.btn.btn-primary(type="submit" :value="label('crud.create.modal.add')")
         <!-- Edit Modal HTML -->
         #updateData.modal.fade
@@ -154,8 +154,8 @@ mixin manytoone_input(vo)
                             template(v-else)
                                 p {{ label('crud.update.modal.content.selection_failure') }}
                         .modal-footer
-                            router-link.btn.btn-default(:to="getCRUDLink(api_type_id)") {{ label('crud.update.modal.cancel') }}
-                            template(v-if="selectedVO && editableVO")
+                            router-link.btn.btn-default(:to="getCRUDLink(api_type_id)" v-if="!updating_vo") {{ label('crud.update.modal.cancel') }}
+                            template(v-if="selectedVO && editableVO && !updating_vo")
                                 input.btn.btn-primary(type="submit" :value="label('crud.update.modal.save')")
 
         #deleteData.modal.fade(v-if='!isModuleParamTable')
@@ -173,6 +173,6 @@ mixin manytoone_input(vo)
                             template(v-else)
                                 p {{ label('crud.delete.modal.content.selection_failure') }}
                         .modal-footer
-                            router-link.btn.btn-default(:to="getCRUDLink(api_type_id)") {{ label('crud.delete.modal.cancel') }}
-                            template(v-if="selectedVO")
+                            router-link.btn.btn-default(:to="getCRUDLink(api_type_id)" v-if="!deleting_vo") {{ label('crud.delete.modal.cancel') }}
+                            template(v-if="selectedVO && !deleting_vo")
                                 input.btn.btn-danger(type="submit" :value="label('crud.delete.modal.delete')")

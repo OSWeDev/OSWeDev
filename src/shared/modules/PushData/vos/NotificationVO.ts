@@ -35,4 +35,7 @@ export default class NotificationVO implements IDistantVOBase {
     public api_type_id: string;
     public dao_notif_vo_id: number;
     public dao_notif_type: number;
+
+    public creation_date: string;
+    public read_date: string;
 }

@@ -169,6 +169,19 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         return this.state_warn;
     }
 
+    private async planif_reimport() {
+        if (!this.import_historics) {
+            return;
+        }
+
+        for (let i in this.import_historics) {
+            let historic: DataImportHistoricVO = this.import_historics[i];
+            historic.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
+            await ModuleDAO.getInstance().insertOrUpdateVO(historic);
+        }
+
+        this.snotify.info(this.label('imports.reimport.planified'));
+    }
 
     get api_types_ids_states(): { [api_type_id: string]: string } {
         let res: { [api_type_id: string]: string } = {}

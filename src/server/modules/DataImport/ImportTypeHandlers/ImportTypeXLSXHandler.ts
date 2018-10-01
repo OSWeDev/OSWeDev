@@ -205,6 +205,20 @@ export default class ImportTypeXLSXHandler {
         return null;
     }
 
+    public getMomentFromXLSDateString(column_data_string: any): Moment {
+        if (!column_data_string) {
+            return null;
+        }
+        if (moment(column_data_string).isValid()) {
+            return moment(column_data_string);
+        }
+        if (moment(column_data_string, 'MM/DD/YY').isValid()) {
+            return moment(column_data_string, 'MM/DD/YY');
+        }
+
+        return null;
+    }
+
     private importRawsData(
         dataImportFormat: DataImportFormatVO,
         dataImportColumns: DataImportColumnVO[],
@@ -247,12 +261,13 @@ export default class ImportTypeXLSXHandler {
 
                         switch (dataImportColumn.type) {
                             case DataImportColumnVO.TYPE_DATE:
-                                let epoch: Moment = moment('1900-01-01');
-                                if (!!(((workbook.Workbook || {}).WBProps || {}).date1904)) {
-                                    epoch = moment('1904-01-01');
-                                }
-                                epoch.add(column_data_string.v, 'days');
-                                rowData[dataImportColumn.vo_field_name] = DateHandler.getInstance().formatDayForIndex(epoch);
+                                // let epoch: Moment = moment('1900-01-01');
+                                // if (!!(((workbook.Workbook || {}).WBProps || {}).date1904)) {
+                                //     epoch = moment('1904-01-01');
+                                // }
+                                // epoch.add(column_data_string.v, 'days');
+                                // rowData[dataImportColumn.vo_field_name] = DateHandler.getInstance().formatDayForIndex(epoch);
+                                rowData[dataImportColumn.vo_field_name] = DateHandler.getInstance().formatDayForIndex(this.parseExcelDate(column_data_string.v, (workbook.Workbook || {}).WBProps));
                                 break;
                             case DataImportColumnVO.TYPE_NUMBER:
                                 if (column_data_string.h && column_data_string.h != "") {
@@ -282,6 +297,26 @@ export default class ImportTypeXLSXHandler {
         }
 
         return datas;
+    }
+
+    private parseExcelDate(dateValue, wbProps): Moment {
+        if (dateValue) {
+            // it is a string, but it really represents a number and not a date
+            if (typeof dateValue === 'string' && /^\d+$/.test(dateValue)) {
+                dateValue = parseFloat(dateValue);
+            }
+            if (typeof dateValue === 'number') {
+                var dt = XLSX.SSF.parse_date_code(dateValue, { date1904: wbProps.date1904 === '1' });
+                // new Date(2015, 9, 18);  // 18th October(!) 2015 in @JavaScript
+                var monthToJs = dt.m - 1;
+                return moment(new Date(dt.y, monthToJs, dt.d));
+            }
+            // else assume a string representing a date
+            // we use few allowed formats, but explicitly parse not strictly
+            var formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'MM/DD/YYYY'];
+            return moment(dateValue, formats, false);
+        }
+        return null;
     }
 
     private async loadWorkbook(importHistoric: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, muted: boolean = true): Promise<WorkBook> {

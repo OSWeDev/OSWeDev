@@ -76,6 +76,10 @@ export default class CRUDComponent extends VueComponentBase {
 
     private api_types_involved: string[] = [];
 
+    private creating_vo: boolean = false;
+    private updating_vo: boolean = false;
+    private deleting_vo: boolean = false;
+
     get isModuleParamTable() {
         return VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID] ?
             VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
@@ -85,7 +89,7 @@ export default class CRUDComponent extends VueComponentBase {
         if (this.read_query) {
             this.$router.replace({ query: this.read_query });
         }
-        await this.loaddatas();
+        await this.reload_datas();
         this.handle_modal_show_hide();
         let self = this;
         $("#updateData,#createData,#deleteData").on("hidden.bs.modal", function () {
@@ -244,7 +248,7 @@ export default class CRUDComponent extends VueComponentBase {
 
     @Watch("crud")
     private async updatedCRUD() {
-        await this.loaddatas();
+        await this.reload_datas();
     }
 
     private prepareNewVO() {
@@ -523,8 +527,12 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     private async createVO() {
+        this.snotify.info(this.label('crud.create.starting'));
+        this.creating_vo = true;
+
         if ((!this.newVO) || (this.newVO.id) || (this.newVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
             this.snotify.error(this.label('crud.create.errors.newvo_failure'));
+            this.creating_vo = false;
             return;
         }
 
@@ -536,6 +544,7 @@ export default class CRUDComponent extends VueComponentBase {
             let res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
             if ((!res) || (!res.id)) {
                 this.snotify.error(this.label('crud.create.errors.create_failure'));
+                this.creating_vo = false;
                 return;
             }
 
@@ -544,22 +553,29 @@ export default class CRUDComponent extends VueComponentBase {
             let createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, id);
             if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
                 this.snotify.error(this.label('crud.create.errors.create_failure'));
+                this.creating_vo = false;
                 return;
             }
 
             this.storeData(createdVO);
         } catch (error) {
             this.snotify.error(this.label('crud.create.errors.create_failure') + ": " + error);
+            this.creating_vo = false;
             return;
         }
 
         this.snotify.success(this.label('crud.create.success'));
         this.$router.push(this.getCRUDLink(this.api_type_id));
+        this.creating_vo = false;
     }
 
     private async updateVO() {
+        this.snotify.info(this.label('crud.update.starting'));
+        this.updating_vo = true;
+
         if ((!this.selectedVO) || (!this.editableVO) || (this.editableVO.id !== this.selectedVO.id) || (this.editableVO._type !== this.selectedVO._type)) {
             this.snotify.error(this.label('crud.update.errors.selection_failure'));
+            this.updating_vo = false;
             return;
         }
 
@@ -573,6 +589,7 @@ export default class CRUDComponent extends VueComponentBase {
                 let errorMsg = await this.crud.preUpdate(apiokVo, this.editableVO);
                 if (errorMsg) {
                     this.snotify.error(this.label(errorMsg));
+                    this.updating_vo = false;
                     return;
                 }
             }
@@ -582,28 +599,36 @@ export default class CRUDComponent extends VueComponentBase {
 
             if ((!res) || (!id) || (id != this.selectedVO.id)) {
                 this.snotify.error(this.label('crud.update.errors.update_failure'));
+                this.updating_vo = false;
                 return;
             }
 
             let updatedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
             if ((!updatedVO) || (updatedVO.id !== this.selectedVO.id) || (updatedVO._type !== this.selectedVO._type)) {
                 this.snotify.error(this.label('crud.update.errors.update_failure'));
+                this.updating_vo = false;
                 return;
             }
 
             this.updateData(updatedVO);
         } catch (error) {
             this.snotify.error(this.label('crud.update.errors.update_failure') + ": " + error);
+            this.updating_vo = false;
             return;
         }
 
         this.snotify.success(this.label('crud.update.success'));
         this.$router.push(this.getCRUDLink(this.api_type_id));
+        this.updating_vo = false;
     }
 
     private async deleteVO() {
+        this.snotify.info(this.label('crud.delete.starting'));
+        this.deleting_vo = true;
+
         if (!this.selectedVO) {
             this.snotify.error(this.label('crud.delete.errors.selection_failure'));
+            this.deleting_vo = false;
             return;
         }
 
@@ -614,6 +639,7 @@ export default class CRUDComponent extends VueComponentBase {
             let deletedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
             if (deletedVO && deletedVO.id) {
                 this.snotify.error(this.label('crud.delete.errors.delete_failure'));
+                this.deleting_vo = false;
                 return;
             }
 
@@ -623,11 +649,13 @@ export default class CRUDComponent extends VueComponentBase {
             });
         } catch (error) {
             this.snotify.error(this.label('crud.delete.errors.delete_failure') + ": " + error);
+            this.deleting_vo = false;
             return;
         }
 
         this.snotify.success(this.label('crud.delete.success'));
         this.$router.push(this.getCRUDLink(this.api_type_id));
+        this.deleting_vo = false;
     }
 
     private validateInput(input, field: DatatableField<any, any>) {

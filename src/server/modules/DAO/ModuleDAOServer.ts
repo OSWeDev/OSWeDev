@@ -158,7 +158,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 reject(reason);
             });
 
-            if (result && isUpdate && vo) {
+            if (result && vo) {
                 if (isUpdate) {
                     await this.post_update_trigger_hook.trigger(vo._type, vo);
                 } else {
