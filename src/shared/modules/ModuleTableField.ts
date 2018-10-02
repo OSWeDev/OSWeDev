@@ -16,6 +16,8 @@ export default class ModuleTableField<T> {
 
     public static FIELD_TYPE_file_field: string = 'file';
     public static FIELD_TYPE_file_ref: string = 'file_ref';
+    public static FIELD_TYPE_image_field: string = 'image';
+    public static FIELD_TYPE_image_ref: string = 'image_ref';
     public static FIELD_TYPE_html: string = 'html';
     public static FIELD_TYPE_boolean: string = 'boolean';
     public static FIELD_TYPE_password: string = 'password';
@@ -169,6 +171,7 @@ export default class ModuleTableField<T> {
                 return "float8";
 
             case ModuleTableField.FIELD_TYPE_file_ref:
+            case ModuleTableField.FIELD_TYPE_image_ref:
             case ModuleTableField.FIELD_TYPE_foreign_key:
                 return "bigint";
 
@@ -215,6 +218,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_file_field:
+            case ModuleTableField.FIELD_TYPE_image_field:
             default:
                 return 'text';
         }
@@ -236,6 +240,8 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_password:
                 return this.passwordIsValidProposition(data);
 
+            case ModuleTableField.FIELD_TYPE_image_field:
+            case ModuleTableField.FIELD_TYPE_image_ref:
             case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_html:

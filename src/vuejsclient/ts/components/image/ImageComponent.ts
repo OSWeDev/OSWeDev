@@ -1,20 +1,17 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import FileVO from '../../../../shared/modules/File/vos/FileVO';
+import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 
 @Component({
-    template: require('./FileComponent.pug'),
+    template: require('./ImageComponent.pug'),
     components: {}
 })
-export default class FileComponent extends VueComponentBase {
+export default class ImageComponent extends VueComponentBase {
 
     private static __UID: number = 1;
-
-    // @ModuleDAOGetter
-    // public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @ModuleDAOAction
     public storeData: (vo: IDistantVOBase) => void;
@@ -23,7 +20,7 @@ export default class FileComponent extends VueComponentBase {
     protected readonly: boolean;
 
     @Prop({ default: null })
-    protected filevo: FileVO;
+    protected imagevo: ImageVO;
 
     @Prop({ default: null })
     protected options: any;
@@ -31,27 +28,24 @@ export default class FileComponent extends VueComponentBase {
     @Prop({ default: false })
     protected muted: boolean;
 
-    // protected uploading: boolean = false;
-    // protected datafile = null;
-
     protected uid: number = null;
 
-    @Watch('filevo')
-    public async updateFileVo() {
+    @Watch('imagevo')
+    public async updateImageVO() {
         let dropzone = (this.$refs['filedropzone' + this.uid] as any);
 
         if (!dropzone) {
             return;
         }
         dropzone.removeAllFiles();
-        if (!this.filevo) {
+        if (!this.imagevo) {
             return;
         }
 
         var mock = {
             accepted: true,
-            name: this.filevo.path.replace(/^.*[\\/]([^\\/]+)$/, '$1'),
-            url: this.filevo.path
+            name: this.imagevo.path.replace(/^.*[\\/]([^\\/]+)$/, '$1'),
+            url: this.imagevo.path
         };
 
         mock.accepted = true;
@@ -63,7 +57,7 @@ export default class FileComponent extends VueComponentBase {
     }
 
     public async mounted() {
-        this.uid = FileComponent.__UID++;
+        this.uid = ImageComponent.__UID++;
     }
 
     get dropzoneOptions() {
@@ -73,7 +67,7 @@ export default class FileComponent extends VueComponentBase {
         let onInit = (!!this.options) ? this.options.init : null;
         let onSuccess = (!!this.options) ? this.options.success : null;
         let dropoptions = {
-            url: '/ModuleFileServer/upload',
+            url: '/ModuleImageServer/upload',
             createImageThumbnails: true,
             maxFiles: 1,
             clickable: true,

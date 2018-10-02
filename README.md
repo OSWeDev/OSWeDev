@@ -66,6 +66,44 @@ OpenSource WeDev
 Visual Studio Code
 ### Configuration conseillée 
     * DEPRECATED : Semble ne pas convenir de lancer toutes les taches en meme temps, il faut creuser. Et pour le moment lancer les taches individuellement, et avec une visibilité (donc on commente une ligne) : Installer le plugin    yukidoi.blade-runner
+    * Souvent utile pour initialiser une nouvelle base depuis une base existante et en changer le propriétaire : 
+        ---- Pour les tables ------------------------------------------------------------------------------------
+        DO $$DECLARE r record;
+        BEGIN
+            FOR r IN SELECT schemaname, tablename 
+                FROM pg_tables WHERE NOT schemaname IN ('pg_catalog', 'information_schema')
+            LOOP
+                EXECUTE 'ALTER TABLE ' || quote_ident(r.schemaname) || '.' || quote_ident(r.tablename) || ' OWNER TO my_new_user;';
+            END LOOP;
+        END;$$ 
+        ---- Pour les sequences -------------------------------------------------------------------------------
+        DO $$DECLARE r record;
+        BEGIN
+            FOR r IN SELECT sequence_schema, sequence_name 
+                FROM information_schema.sequences WHERE NOT sequence_schema IN ('pg_catalog', 'information_schema')
+            LOOP
+                EXECUTE 'ALTER SEQUENCE '|| quote_ident(r.sequence_schema) || '.' || quote_ident(r.sequence_name) ||' OWNER TO my_new_user;';
+            END LOOP;
+        END;$$
+        --- Pour les vues ----------------------------------------------------------------------------------
+        DO $$DECLARE r record;
+        BEGIN
+            FOR r IN SELECT table_schema, table_name 
+                FROM information_schema.views WHERE NOT table_schema IN ('pg_catalog', 'information_schema')
+            LOOP
+                EXECUTE 'ALTER VIEW '|| quote_ident(r.table_schema) || '.' || quote_ident(r.table_name) ||' OWNER TO my_new_user;';
+            END LOOP;
+        END;$$
+        --------------------------------------------------------------------------------------------------------
+        DO $$DECLARE r record;
+        BEGIN
+        FOR r IN SELECT table_schema, table_name 
+        FROM information_schema.views WHERE NOT table_schema IN ('pg_catalog', 'information_schema')
+        LOOP
+        EXECUTE 'ALTER SCHEMA '|| quote_ident(r.table_schema) ||' OWNER TO my_new_user;';
+        END LOOP;
+        END;$$
+
     * Configurer les tâches (/.vscode/.tasks.json) pour une compilation en watch du typescript de chaque sous-partie. 
 Exemple de fichier tasks.json :
 {

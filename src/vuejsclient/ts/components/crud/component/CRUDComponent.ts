@@ -22,12 +22,14 @@ import "./CRUDComponent.scss";
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import FileComponent from '../../file/FileComponent';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import ImageComponent from '../../image/ImageComponent';
 
 @Component({
     template: require('./CRUDComponent.pug'),
     components: {
         datatable: DatatableComponent,
-        fileinput: FileComponent
+        fileinput: FileComponent,
+        imageinput: ImageComponent
     },
     directives: {
         select2: select2

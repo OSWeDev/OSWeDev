@@ -31,6 +31,8 @@ import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 import ModuleFileServer from './File/ModuleFileServer';
 import ModuleFile from '../../shared/modules/File/ModuleFile';
+import ModuleImageServer from './Image/ModuleImageServer';
+import ModuleImage from '../../shared/modules/Image/ModuleImage';
 
 export default abstract class ModuleServiceBase {
 
@@ -257,6 +259,7 @@ export default abstract class ModuleServiceBase {
             ModuleDAO.getInstance(),
             ModuleAccessPolicy.getInstance(),
             ModuleFile.getInstance(),
+            ModuleImage.getInstance(),
             ModuleTrigger.getInstance(),
             ModuleCron.getInstance(),
             ModuleTranslation.getInstance(),
@@ -276,6 +279,7 @@ export default abstract class ModuleServiceBase {
             ModuleDAOServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
             ModuleFileServer.getInstance(),
+            ModuleImageServer.getInstance(),
             ModuleCronServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModulePushDataServer.getInstance(),

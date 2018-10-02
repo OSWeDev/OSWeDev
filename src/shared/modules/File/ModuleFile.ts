@@ -26,7 +26,7 @@ export default class ModuleFile extends Module {
         this.fields = [];
         this.datatables = [];
 
-        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_file_field, 'Chemin du fichier', false);
+        let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_file_field, 'Fichier', false);
         let datatable_fields = [
             label_field,
         ];
