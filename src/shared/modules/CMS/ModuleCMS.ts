@@ -11,8 +11,13 @@ import ContentTypeVO from './vos/ContentTypeVO';
 import PageAliasVO from './vos/PageAliasVO';
 import PageComponentVO from './vos/PageComponentVO';
 import PageVO from './vos/PageVO';
+import TemplateComponentVO from './vos/TemplateComponentVO';
+import ImageVO from '../Image/vos/ImageVO';
 
 export default class ModuleCMS extends Module {
+
+    public static ACCESS_GROUP_NAME = "CMS_ACCESS";
+    public static ACCESS_RULE_NAME = "ADMIN_CONF";
 
     public static getInstance(): ModuleCMS {
         if (!ModuleCMS.instance) {
@@ -36,6 +41,7 @@ export default class ModuleCMS extends Module {
         this.initializePageVO();
         this.initializePageComponentVO();
         this.initializePageAliasVO();
+        this.initializeTemplateComponentVO();
 
         this.initializeHTML_ComponentVO();
         this.initializeHTML_HTML_ComponentVO();
@@ -98,6 +104,25 @@ export default class ModuleCMS extends Module {
 
         let datatable = new ModuleTable(this, PageAliasVO.API_TYPE_ID, datatable_fields, label_field, "Alias des pages");
         page_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        this.datatables.push(datatable);
+    }
+
+    private initializeTemplateComponentVO() {
+        let label_field = new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'UID du composant', true);
+        let translatable_name_id = new ModuleTableField('translatable_title_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Nom', true);
+        let translatable_desc_id = new ModuleTableField('translatable_desc_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Description', true);
+        let thumbnail_id = new ModuleTableField('thumbnail_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Miniature', true);
+        let datatable_fields = [
+            label_field,
+            translatable_name_id,
+            translatable_desc_id,
+            thumbnail_id
+        ];
+
+        let datatable = new ModuleTable(this, TemplateComponentVO.API_TYPE_ID, datatable_fields, label_field, "Alias des pages");
+        translatable_name_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        translatable_desc_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        thumbnail_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
