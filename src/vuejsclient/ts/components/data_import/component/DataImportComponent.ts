@@ -542,7 +542,7 @@ export default class DataImportComponent extends DataImportComponentBase {
                     res[segment.dateIndex] = {};
                 }
 
-                if (res[segment.dateIndex][api_type_id] && moment(res[segment.dateIndex][api_type_id].start_date).isAfter(historic.start_date)) {
+                if (res[segment.dateIndex][api_type_id] && moment(res[segment.dateIndex][api_type_id].start_date).isAfter(moment(historic.start_date))) {
                     continue;
                 }
 

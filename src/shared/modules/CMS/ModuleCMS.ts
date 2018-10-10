@@ -17,7 +17,8 @@ import ImageVO from '../Image/vos/ImageVO';
 export default class ModuleCMS extends Module {
 
     public static ACCESS_GROUP_NAME = "CMS_ACCESS";
-    public static ACCESS_RULE_NAME = "ADMIN_CONF";
+    public static ADMIN_ACCESS_RULE_NAME = "ADMIN_CONF";
+    public static FRONT_ACCESS_RULE_NAME = "FRONT_ACCESS";
 
     public static getInstance(): ModuleCMS {
         if (!ModuleCMS.instance) {

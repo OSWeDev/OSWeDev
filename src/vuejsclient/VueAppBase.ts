@@ -31,6 +31,11 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import * as vueDropzone from "vue2-dropzone";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 
+import FullCalendar from 'vue-full-calendar';
+import "fullcalendar-scheduler";
+import "fullcalendar/dist/fullcalendar.min.css";
+import "fullcalendar-scheduler/dist/scheduler.min.css";
+
 export default abstract class VueAppBase {
 
     public static instance_: VueAppBase;
@@ -245,6 +250,7 @@ export default abstract class VueAppBase {
         Vue.use(VTooltip);
         Vue.use(Snotify);
         Vue.use(VueRouter);
+        Vue.use(FullCalendar);
         Vue.component('bootstrap-toggle', BootstrapToggle);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);

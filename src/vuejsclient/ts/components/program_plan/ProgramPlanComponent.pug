@@ -1,0 +1,29 @@
+include ../../../../mixins/save-refresh.pug
+
+.rootElt#planning-store-visits-root
+    +save-refresh()
+  
+    .modals.hidden-print(v-for='(rdv, i) in animation_rdvs')
+      ba-modal(
+        @closebamodal="onCloseBAModal",
+        v-if='selected_event && (rdv.id == selected_event.id)', 
+        :key="selected_event.id",
+        :ba="boutiques_animees[selected_event.ba_id]",
+        :animateurname="getResourceName(animateurs[selected_event.resourceId].prenom, animateurs[selected_event.resourceId].nom)",
+        :managername="(managers[animateurs[selected_event.resourceId].manager_id] ? getResourceName(managers[animateurs[selected_event.resourceId].manager_id].prenom, managers[animateurs[selected_event.resourceId].manager_id].nom) : null)",
+        :selected_event="selected_event",
+        :caneditplanning="canEditPlanning",
+        :animation_rdvs="animation_rdvs",
+        :user="user",
+        :animation_crs="animation_crs")
+
+    module-impression-rdvs(:enseignes="enseignes", :boutiques_animees="boutiques_animees", :animateurs="animateurs", :animation_rdvs="animation_rdvs")
+
+    planning-store-visits-ba-listing.hidden-print(:bas="bas", v-if="canEditPlanning", :enseignes="enseignes")
+    full-calendar(
+        :events="fcEvents" 
+        :view-render='onFCViewRender' 
+        :config="config"
+        :event-drop="onFCEventDrop"
+        :event-resize="onFCEventResize"
+    )
