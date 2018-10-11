@@ -19,22 +19,25 @@ import ProgramPlanControllerBase from './ProgramPlanControllerBase';
 import IPlanManager from '../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
 import IPlanProgramManager from '../../../../shared/modules/ProgramPlan/interfaces/IPlanProgramManager';
 import IPlanRDVCR from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
-import { View, EventObjectInput, OptionsInput } from 'fullcalendar';
+import { View, EventObjectInput, OptionsInput, Calendar } from 'fullcalendar';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
+import ProgramPlanComponentModal from './Modal/ProgramPlanComponentModal';
+import ProgramPlanComponentImpression from './Impression/ProgramPlanComponentImpression';
+import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanComponentTargetListing';
 
 
 @Component({
     template: require('./planning_rdv_animateurs_boutique.pug'),
     components: {
-        "ba-modal": VuePlanningRDVAnimateursBoutiqueBaModalComponent,
-        "module-impression-rdvs": VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsComponent,
-        "planning-store-visits-ba-listing": VuePlanningRDVAnimateursBoutiqueBaListingComponent
+        "program-plan-component-modal": ProgramPlanComponentModal,
+        "program-plan-component-impression": ProgramPlanComponentImpression,
+        "program-plan-component-target-listing": ProgramPlanComponentTargetListing
     }
 })
-export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueComponentBase {
+export default class ProgramPlanComponent extends VueComponentBase {
 
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
@@ -48,136 +51,71 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
     public storeData: (vo: IDistantVOBase) => void;
 
     @Prop()
+    public route_path: string;
+
+    @Prop({ default: false })
+    public modal_show: boolean;
+
+    @Prop({ default: null })
+    public selected_rdv_id: number;
+
+    @Prop()
     public program_id: number;
 
-    public selected_event = null;
-
-    public addedEvents = [];
-    public updatedEvents = [];
-    public deletedEvents = [];
-
-    public needSaving = false;
-
-    // [boutiques_animee.id] . animation_rdvs = []
+    public selected_rdv: IPlanRDV = null;
 
     public fcSegment: TimeSegment = null;
 
-
-    // [animation_rdv.id] . animation_crs = []
-
     private user = VueAppController.getInstance().data_user;
 
-    private canEditPlanning: boolean = false;
+    private can_edit_planning: boolean = false;
 
-    public cloneEvent(event) {
-        let clonedEvent: any = {};
-
-        clonedEvent.end = moment(event.end);
-        clonedEvent.resourceId = event.resourceId;
-        clonedEvent.start = moment(event.start);
-        clonedEvent.id = event.id;
-        clonedEvent._id = event._id;
-        clonedEvent.ba_id = event.ba_id;
-        clonedEvent.rdvpris = event.rdvpris;
-
-        return clonedEvent;
-    }
-
-    // public getCalendarEventFromRDV(rdv: IPlanRDV) {
-    //     let calendarEvent: any = {};
-
-    //     calendarEvent.end = moment(rdv.start_time);
-    //     calendarEvent.resourceId = rdv.facilitator_id;
-    //     calendarEvent.start = moment(rdv.end_time);
-    //     calendarEvent.id = rdv.id;
-    //     return calendarEvent;
-    // }
-
-
-    get bas() {
-        return this.etablissements;
-    }
 
     private async mounted() {
         let self = this;
-        this.$nextTick(function () {
+        this.$nextTick(async () => {
 
-            self.reloadAsyncData();
+            await self.reloadAsyncData();
+            setTimeout(() => {
+                self.handle_modal_show_hide();
+                $("#rdv_modal").on("hidden.bs.modal", function () {
+                    self.$router.push(self.route_path);
+                });
+            }, 100);
         });
+        this.targets[this.selected_rdv.target_id].name
     }
 
-    private registerUpdatedEvent(updatedEvent) {
-
-        // On risque pas d'enregistrer plusieurs fois l'ajout, mais on risque de stocker ajout + modif ou modif + modif sur le même event.
-        // Le but de la fonction est d'éviter ces cas.
-
-        for (let i in this.addedEvents) {
-            if (this.addedEvents[i]._id == updatedEvent._id) {
-                this.addedEvents.splice(parseInt(i.toString()), 1);
-                break;
-            }
-        }
-
-        for (let i in this.updatedEvents) {
-            if (this.updatedEvents[i]._id == updatedEvent._id) {
-                this.updatedEvents.splice(parseInt(i.toString()), 1);
-            }
-        }
-
-        if (!this.updatedEvents) {
-            this.updatedEvents = [];
-        }
-
-        this.updatedEvents.push(this.cloneEvent(updatedEvent));
-        this.prepareEventForSave(updatedEvent);
-        this.updateBascpts();
-        this.needSaving = true;
+    @Watch("$route")
+    public async onrouteChange() {
+        this.handle_modal_show_hide();
     }
 
-    private async registerAddedEvent(addedEvent) {
-
-        this.snotify.info(this.label('programplan.notify.save.start'));
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = null;
-        try {
-
-            insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.cloneEvent(addedEvent));
-            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                throw new Error('Réponse serveur erronnée:' + (insertOrDeleteQueryResult ? JSON.stringify(insertOrDeleteQueryResult) : insertOrDeleteQueryResult));
+    protected async handle_modal_show_hide() {
+        if (!this.modal_show) {
+            $('#import_modal').modal('hide');
+        }
+        if (this.modal_show) {
+            if ((!this.selected_rdv_id) || (!this.rdvs[this.selected_rdv_id])) {
+                $('#import_modal').modal('hide');
+                return;
             }
-        } catch (error) {
-
-            console.error(error);
-            this.snotify.error(this.label('programplan.notify.save.error'));
+            this.selected_rdv = this.rdvs[this.selected_rdv_id];
+            $('#import_modal').modal('show');
             return;
         }
-
-
-        this.snotify.success(this.label('programplan.notify.save.ok'));
-
-        this.addedEvents.push();
-        this.prepareEventForSave(addedEvent);
-        this.needSaving = true;
-        // On a besoin d'un ID unique, or en BDD on peut pas générer de lettres
-        this.rdvs[addedEvent._id] = addedEvent;
-
-        if (!this.etablissements[addedEvent.boutique_animee_id].animation_rdvs) {
-            this.etablissements[addedEvent.boutique_animee_id].animation_rdvs = [];
-        }
-        this.etablissements[addedEvent.boutique_animee_id].animation_rdvs.push(addedEvent);
-
-        this.updateBascpts();
     }
 
-    private reloadAsyncData() {
+    private async reloadAsyncData() {
         let self = this;
 
-        this.nbLoadingSteps = 3;
+        this.nbLoadingSteps = 4;
         this.startLoading();
 
         let promises = [];
 
         promises.push((async () => {
-            self.canEditPlanning = await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlan.ACCESS_GROUP_NAME, ModuleProgramPlan.FRONT_EDIT_RULE_NAME);
+            self.can_edit_planning = await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlan.ACCESS_GROUP_NAME, ModuleProgramPlan.FRONT_EDIT_RULE_NAME);
         })());
 
         // On va charger par étape pour alléger au max les chargements et réduire au max la taille des données téléchargées
@@ -252,8 +190,6 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
         self.nextLoadingStep();
         promises = [];
 
-
-
         // enseignes
         promises.push((async () => {
             let ids: number[] = [];
@@ -267,231 +203,15 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
 
 
         self.stopLoading();
-
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().enseigne_type_id,
-                vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlan.getInstance().enseigne_type_id)
-            });
-        })());
-        //         promises_needed.push((async () => {
-        // ModuleAjaxCache.getInstance().get('/ref/api/' + this.region_datatable.name, [this.region_datatable.name]).then(function (data: any[]) {
-        // tmp_regions = data;
-        // })());        
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().target_type_id,
-                vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlan.getInstance().target_type_id)
-            });
-        })());
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().facilitator_type_id,
-                vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlan.getInstance().facilitator_type_id)
-            });
-        })());
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().manager_type_id,
-                vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlan.getInstance().manager_type_id)
-            });
-        })());
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().program_facilitator_type_id,
-                vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlan.getInstance().program_facilitator_type_id)
-            });
-        })());
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().program_manager_type_id,
-                vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlan.getInstance().program_manager_type_id)
-            });
-        })());
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().program_target_type_id,
-                vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlan.getInstance().program_target_type_id)
-            });
-        })());
-        promises.push((async () => {
-            self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().enseigne_type_id,
-                vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlan.getInstance().enseigne_type_id)
-            });
-        })());
-        promises.push((async () => {
-            ModuleAjaxCache.getInstance().get('/ref/api/' + this.manager_datatable.name, [this.manager_datatable.name]).then(function (data: any[]) {
-                tmp_managers = data;
-            })());
-        promises.push((async () => {
-            ModuleAjaxCache.getInstance().get('/ref/api/' + this.boutique_animee_datatable.name, [this.boutique_animee_datatable.name]).then(function (data: any[]) {
-                tmp_boutiques_animees = data;
-            })());
-        promises.push((async () => {
-            ModuleAjaxCache.getInstance().get('/ref/api/' + this.boutique_animee_month_datatable.name, [this.boutique_animee_month_datatable.name]).then(function (data: any[]) {
-                tmp_boutiques_animees_mois = data;
-            })());
-        promises.push((async () => {
-            ModuleAjaxCache.getInstance().get('/ref/api/' + this.animateur_datatable.name, [this.animateur_datatable.name]).then(function (data: any[]) {
-                tmp_animateurs = data;
-            })());
-        promises.push((async () => {
-            tmp_animation_rdvs = await $.get('/ref/api/' + self.animation_rdv_datatable.name + "?date_fin=gt." + min_date.format('Y-MM-DD'));
-
-            // needs new api
-            let animation_rdv_id_min = 0;
-            for (let i in tmp_animation_rdvs) {
-                let tmp_animation_rdv = tmp_animation_rdvs[i];
-
-                if (animation_rdv_id_min == 0) {
-                    animation_rdv_id_min = tmp_animation_rdv.id;
-                } else if (animation_rdv_id_min > tmp_animation_rdv.id) {
-                    animation_rdv_id_min = tmp_animation_rdv.id;
-                }
-            }
-
-            tmp_animation_crs = await $.get('/ref/api/' + self.animation_cr_datatable.name + "?animation_rdv_id=gt." + animation_rdv_id_min);
-        })());
-        //promises_needed.push($.get('/ref/api/' + this.animation_cr_datatable.datatable_name, function(data) {
-        //  tmp_animation_crs = data;
-        //}));
-
-        Promise.all(promises).then(() => {
-
-            // Tout est en synchrone après, on passe sur les vrais datas :
-            this.enseignes = tmp_enseignes;
-            this.managers = tmp_managers;
-            this.etablissements = tmp_boutiques_animees;
-            this.boutiques_animees_mois = tmp_boutiques_animees_mois;
-            this.facilitators = tmp_animateurs;
-            this.rdvs = tmp_animation_rdvs;
-            this.animation_crs = tmp_animation_crs;
-            this.regions = tmp_regions;
-
-            // On va filtrer en fonction du rôle
-            if (this.user.admin || this.user.super_admin || this.user.admin_central) {
-                this.user_role = this.role_admin;
-                // Aucun filtrage
-            } else {
-                // On cherche un manager en premier lieu
-                this.user_manager_obj = null;
-                this.user_animateur_obj = null;
-
-                for (let i in this.managers) {
-                    let manager = this.managers[i];
-
-                    if (manager.user_id == this.user.id) {
-                        this.user_role = this.role_manager;
-                        this.user_manager_obj = manager;
-
-                        break;
-                    }
-                }
-
-                if (this.user_manager_obj) {
-                    // Filtrage en fonction du manager
-
-                    // Managers
-                    this.managers = [this.user_manager_obj];
-
-                    // Animateurs
-                    let filtered_animateurs = [];
-                    for (let i in this.facilitators) {
-                        let animateur = this.facilitators[i];
-
-                        if (animateur.manager_id == this.user_manager_obj.id) {
-                            filtered_animateurs.push(animateur);
-                        }
-                    }
-                    this.facilitators = filtered_animateurs;
-
-                    this.updateFilteredDatas();
-                } else {
-
-                    // On cherche un animateur
-                    for (let i in this.facilitators) {
-                        let animateur = this.facilitators[i];
-
-                        if (animateur.user_id == this.user.id) {
-                            this.user_role = this.role_animateur;
-                            this.user_animateur_obj = animateur;
-
-                            break;
-                        }
-                    }
-
-                    if (this.user_animateur_obj) {
-                        // Filtrage en fonction de l'animateur
-
-                        if (!this.user_animateur_obj.region_id) {
-                            // Filtrage par le manager et affichage que de l'animateur
-                            this.facilitators = [this.user_animateur_obj];
-
-                            for (let i in this.managers) {
-                                let manager = this.managers[i];
-
-                                if (manager.id == this.user_animateur_obj.manager_id) {
-                                    this.managers = [manager];
-                                    break;
-                                }
-                            }
-                        } else {
-
-                            // Filtrage par région et visu sur les plannings des commerciaux de la région
-
-                            // Le premier est celui connecté pour plus de clarté
-                            let new_animateurs = [this.user_animateur_obj];
-
-                            for (let i in this.facilitators) {
-                                if ((this.facilitators[i].region_id == this.user_animateur_obj.region_id) && (this.facilitators[i].id != this.user_animateur_obj.id)) {
-                                    new_animateurs.push(this.facilitators[i]);
-                                }
-                            }
-                            this.facilitators = new_animateurs;
-                        }
-
-                        this.updateFilteredDatas();
-                    } else {
-                        // Ni admin, ni animateur, ni manager...
-
-                        // Réinitialiser les datas
-                        this.enseignes = [];
-                        this.managers = [];
-                        this.etablissements = [];
-                        this.boutiques_animees_mois = [];
-                        this.facilitators = [];
-                        this.rdvs = [];
-                        this.animation_crs = [];
-
-                        // this.stopLoading();
-                        return;
-                    }
-                }
-            }
-
-            $('#calendar-planning-store-visits').fullCalendar('destroy');
-
-        });
     }
 
-    private onCloseBAModal(event_id, rdvpris) {
+    private onEventSelected(calEvent: EventObjectInput, jsEvent, view: View) {
 
-        for (let i in this.rdvs) {
-            let animation_rdv = this.rdvs[i];
-
-            if (animation_rdv.id == event_id) {
-                animation_rdv.rdvpris = rdvpris;
-                break;
-            }
+        if ((!calEvent) || (!calEvent.id) || (!this.rdvs) || (!this.rdvs[calEvent.id])) {
+            this.selected_rdv = null;
+            return;
         }
-
-        $('#calendar-planning-store-visits').fullCalendar('rerenderEvents');
-    }
-
-    private selectEvent(calEvent, domObj) {
-
-        this.selected_event = this.cloneEvent(calEvent);
+        this.selected_rdv = this.rdvs[calEvent.id];
     }
 
     private getResourceName(first_name, name) {
@@ -521,31 +241,7 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
         return res;
     }
 
-    private getPlanningEvents() {
-        // On veut un tableau avec des éléments de ce type:
-        // {
-        //   id: '1',
-        //   resourceId: 'b',
-        //   start: '2017-05-07T02:00:00',
-        //   end: '2017-05-07T07:00:00',
-        //   title: 'event 1'
-        // }
-
-        let res = [];
-
-        for (let i in this.rdvs) {
-
-            let e = this.getPlanningEventFromRDV(this.rdvs[i]);
-
-            if (e) {
-                res.push(e);
-            }
-        }
-
-        return res;
-    }
-
-    private getPlanningEventFromRDV(rdv: IPlanRDV) {
+    private getPlanningEventFromRDV(rdv: IPlanRDV): EventObjectInput {
         // exemple :
         // {
         //   id: '1',
@@ -562,8 +258,8 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
 
         let etablissement: IPlanTarget = null;
 
-        for (let i in this.etablissements) {
-            let _etablissement: IPlanTarget = this.etablissements[i];
+        for (let i in this.targets) {
+            let _etablissement: IPlanTarget = this.targets[i];
 
             if (_etablissement.id == rdv.target_id) {
                 etablissement = _etablissement;
@@ -590,7 +286,7 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
             return null;
         }
 
-        let res = {
+        let res: EventObjectInput = {
             // TODO reporter dans le projet / adapter backgroundColor: enseigne.bgcolor,
             // textColor: enseigne.color,
             id: rdv.id,
@@ -687,7 +383,7 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
         return this.getStoredDatas[ModuleProgramPlan.getInstance().program_type_id][this.program_id] as IPlanProgram;
     }
 
-    get etablissements(): { [id: number]: IPlanTarget } {
+    get targets(): { [id: number]: IPlanTarget } {
         let res: { [id: number]: IPlanTarget } = {};
 
         for (let i in this.getStoredDatas[ModuleProgramPlan.getInstance().program_target_type_id]) {
@@ -771,7 +467,7 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
     get rdvs(): { [id: number]: IPlanRDV } {
         let res: { [id: number]: IPlanRDV } = {};
 
-        if ((!this.start_date) || (!this.end_date)) {
+        if (!this.fcSegment) {
             return res;
         }
 
@@ -781,7 +477,8 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
             let rdv: IPlanRDV = this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][i] as IPlanRDV;
 
             if ((!rdv) || (!rdv.start_time) || (!rdv.end_time) || (rdv.program_id != this.program_id) ||
-                (moment(rdv.start_time).isSameOrAfter(this.end_date)) || (moment(rdv.end_time).isSameOrBefore(this.start_date))) {
+                (moment(rdv.start_time).isSameOrAfter(TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment))) ||
+                (moment(rdv.end_time).isSameOrBefore(TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment)))) {
                 continue;
             }
 
@@ -812,8 +509,19 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
     /**
      * Génère les évènements pour FullCalendar en fonction des évènements issus de la base
      */
-    get fcEvents() {
+    get fcEvents(): EventObjectInput[] {
+        let res: EventObjectInput[] = [];
 
+        for (let i in this.rdvs) {
+
+            let e = this.getPlanningEventFromRDV(this.rdvs[i]);
+
+            if (e) {
+                res.push(e);
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -851,7 +559,7 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
     private async updateEvent(event: EventObjectInput, revertFunc, view: View) {
         // Il faut modifier le vo source, mettre à jour côté serveur et notifier en cas d'échec et annuler la modif (remettre la resource et les dates précédentes)
 
-        this.snotify.info('programplan.fc.update.error');
+        this.snotify.info('programplan.fc.update.start');
         if ((!event) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id]) || (!event.id) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][event.id])) {
             this.snotify.error('programplan.fc.update.error');
             return;
@@ -887,17 +595,18 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
             return;
         }
 
+        this.updateData(rdv);
         this.snotify.error('programplan.fc.update.ok');
     }
 
-    get fcConfig(): OptionsInput {
+    get fcConfig() {
         return {
             locale: 'fr',
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
             now: moment().format('Y-MM-DD'),
             schedulerLicenseKey: '0801712196-fcs-1461229306',
-            editable: this.canEditPlanning,
-            droppable: this.canEditPlanning,
+            editable: this.can_edit_planning,
+            droppable: this.can_edit_planning,
             aspectRatio: 3,
             forceEventDuration: true, // Pour forcer la création du end.
             scrollTime: '00:00',
@@ -937,78 +646,16 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
                 'ddd D/M',
                 'a'
             ],
+            // slotLabelFormat: 'ddd D/M',
             resourceColumns: [{
-                labelText: 'Commercial',
+                labelText: this.label('programplan.fc.facilitator.name'),
                 field: 'title'
             }, {
-                labelText: 'Manager',
+                labelText: this.label('programplan.fc.manager.name'),
                 field: 'manager_title',
                 group: true
             }],
             resources: this.getPlanningResources(),
-            events: this.getPlanningEvents(),
-            eventRender: function (event, element) {
-
-                // Définir l'état et donc l'icone
-                let icon = null;
-
-                //  rechercher le rdv qui a généré l'event
-                for (let a in self.rdvs) {
-                    let animation_rdv = self.rdvs[a];
-
-                    if (animation_rdv.id == event.id) {
-                        // remettre le rdv à jour
-                        event.rdvpris = animation_rdv.rdvpris;
-                    }
-                }
-
-                if (event.rdvpris) {
-                    icon = "fa-battery-empty";
-
-                    // On essaie de trouver un cr associé
-                    let cr = null;
-
-                    for (let i in self.animation_crs) {
-                        let animation_cr_list = self.animation_crs[i];
-
-                        for (let j in animation_cr_list) {
-                            let animation_cr = animation_cr_list[j];
-
-                            if (animation_cr.animation_rdv_id == event.id) {
-                                cr = animation_cr;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (cr) {
-                        if ((cr.pointschiffres) && (cr.pointschiffres != "") && (cr.objectif) && (cr.objectif != "")) {
-                            icon = "fa-battery-half";
-
-                            if ((cr.actions) && (cr.actions != "") && (cr.plan_action) && (cr.plan_action != "") && (cr.resultats) && (cr.resultats != "")) {
-                                icon = "fa-battery-full";
-                            }
-                        }
-                    }
-                }
-
-                if (icon) {
-                    var i = $('<i class="fa ' + icon + '" aria-hidden="true"/>');
-                    element.find('div.fc-content').prepend(i);
-                }
-            },
-            eventReceive: function (event) { // called when a proper external event is dropped
-                // console.log('eventReceive', event);
-
-                // C'est donc un ajout à gérer
-                self.registerAddedEvent(event);
-            },
-            eventClick: function (calEvent, jsEvent, view) {
-                // console.log('eventClick', calEvent);
-
-                // On sélectionne un élément pour pouvoir le supprimer facilement ou le copier
-                self.selectEvent(calEvent, $(this));
-            },
         };
     }
 
@@ -1036,5 +683,135 @@ export default class VuePlanningRDVAnimateursBoutiqueComponent extends VueCompon
         })());
 
         await Promise.all(promises);
+    }
+
+    /**
+     * Called when a valid external jQuery UI draggable, containing event data, has been dropped onto the calendar.
+     * @param event 
+     */
+    private async onFCEventReceive(event: EventObjectInput) {
+        this.snotify.info('programplan.fc.create.start');
+
+        let rdv: IPlanRDV;
+
+        try {
+            rdv = ProgramPlanControllerBase.getInstance().getRDVFromCalendarEvent(event);
+        } catch (error) {
+            console.error(error);
+        }
+
+        if ((!event) || (!rdv)) {
+            this.snotify.error('programplan.fc.create.error');
+            return;
+        }
+
+        try {
+
+            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+
+            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                throw new Error('Erreur côté serveur');
+            }
+
+            rdv.id = parseInt(insertOrDeleteQueryResult.id);
+        } catch (error) {
+            console.error(error);
+            this.snotify.error('programplan.fc.create.error');
+            return;
+        }
+
+        this.storeData(rdv);
+        this.snotify.error('programplan.fc.create.ok');
+    }
+
+    private deleteSelectedEvent() {
+        if (!this.selected_rdv) {
+            return;
+        }
+
+        let self = this;
+
+        // On demande confirmation avant toute chose.
+        // si on valide, on lance la suppression des CRs en premier lieu puis du rdv
+        self.snotify.confirm(self.label('programplan.delete.confirmation.body'), self.label('programplan.delete.confirmation.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.info(self.label('programplan.delete.start'));
+
+                        let toDeleteVos: IPlanRDVCR[] = [];
+                        for (let i in self.crs) {
+                            let cr: IPlanRDVCR = self.crs[i];
+
+                            if (cr.rdv_id != self.selected_rdv.id) {
+                                continue;
+                            }
+
+                            toDeleteVos.push(cr);
+                            self.removeData({ API_TYPE_ID: ModuleProgramPlan.getInstance().rdv_cr_type_id, id: cr.id });
+                        }
+
+                        try {
+
+                            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(toDeleteVos);
+                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != toDeleteVos.length)) {
+                                throw new Error('Erreur serveur');
+                            }
+                            insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([self.selected_rdv]);
+                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != toDeleteVos.length)) {
+                                throw new Error('Erreur serveur');
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            self.snotify.error(self.label('programplan.delete.error'));
+                            return;
+                        }
+                        self.removeData({ API_TYPE_ID: ModuleProgramPlan.getInstance().rdv_type_id, id: self.selected_rdv.id });
+                        self.selected_rdv = null;
+                        self.snotify.success(self.label('programplan.delete.ok'));
+                        self.$router.push(self.route_path);
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
+
+    private onEventRender(event: EventObjectInput, element, view: View) {
+        // Définir l'état et donc l'icone
+        let icon = null;
+
+        if ((!event) || (!event.id) || (!this.rdvs[event.id])) {
+            return;
+        }
+
+        let rdv: IPlanRDV = this.rdvs[event.id];
+
+        switch (rdv.state) {
+            case ModuleProgramPlan.RDV_STATE_CONFIRMED:
+                icon = "fa-square";
+                break;
+            case ModuleProgramPlan.RDV_STATE_CR_OK:
+                icon = "fa-envelope-square";
+                break;
+            case ModuleProgramPlan.RDV_STATE_CREATED:
+            default:
+                icon = "fa-square-o";
+        }
+
+        var i = $('<i class="fa ' + icon + '" aria-hidden="true"/>');
+        element.find('div.fc-content').prepend(i);
     }
 }

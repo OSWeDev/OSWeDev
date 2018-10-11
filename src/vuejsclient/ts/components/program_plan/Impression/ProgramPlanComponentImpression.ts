@@ -1,24 +1,30 @@
+import * as $ from 'jquery';
 import * as moment from 'moment';
+import select2 from '../../../directives/select2/select2';
 import { Component, Prop } from 'vue-property-decorator';
-import select2 from 'oswedev/dist/vuejsclient/ts/directives/select2/select2';
-import MixedinVue from '../../../../../ts/mixins/MixedinVue';
+import VueComponentBase from '../../VueComponentBase';
+import IPlanFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
+import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
+import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
+import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
 
 @Component({
-    template: require('./planning_rdv_animateurs_boutique_module_impression_rdvs.pug'),
+    template: require('./ProgramPlanComponentImpression.pug'),
     directives: {
         select2: select2
     }
 })
-export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsComponent extends MixedinVue {
+export default class ProgramPlanComponentImpression extends VueComponentBase {
 
     @Prop()
-    private enseignes;
+    private enseignes: IPlanEnseigne[];
     @Prop()
-    private boutiques_animees;
+    private targets: IPlanTarget[];
     @Prop()
-    private animateurs;
+    private facilitators: IPlanFacilitator[];
     @Prop()
-    private animation_rdvs;
+    private rdvs: IPlanRDV[];
 
     private printform_filter_date_debut = moment().day(1).format("Y-MM-DD");
     private printform_filter_date_fin = moment().day(1).add(6, 'days').format("Y-MM-DD");
@@ -86,9 +92,9 @@ export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsCompone
     private get_printable_table_rows(date_debut, date_fin) {
         let res = [];
 
-        for (let i in this.animateurs) {
+        for (let i in this.facilitators) {
             let datas_animateur = [];
-            let animateur = this.animateurs[i];
+            let facilitator = this.facilitators[i];
 
             // Remplir le tableau en fonction des dates, à vide.
             /*let date_debut = moment(this.printform_filter_date_debut).day() == 1 ? moment(this.printform_filter_date_debut) : moment(this.printform_filter_date_debut).day(1);
@@ -115,22 +121,22 @@ export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsCompone
             }
 
             // Positionner les évènements
-            for (let j in this.animation_rdvs) {
-                let animation_rdv = this.animation_rdvs[j];
+            for (let j in this.rdvs) {
+                let rdv = this.rdvs[j];
 
-                if (animation_rdv.animateur_id == animateur.id) {
+                if (rdv.facilitator_id == facilitator.id) {
 
-                    if (((moment(animation_rdv.date_debut) < moment(this.printform_filter_date_fin).add(1, 'days')) &&
-                        (moment(animation_rdv.date_debut) >= moment(this.printform_filter_date_debut))) ||
-                        ((moment(animation_rdv.date_fin) <= moment(this.printform_filter_date_fin).add(1, 'days')) &&
-                            (moment(animation_rdv.date_fin) > moment(this.printform_filter_date_debut)))) {
+                    if (((moment(rdv.start_time) < moment(this.printform_filter_date_fin).add(1, 'days')) &&
+                        (moment(rdv.start_time) >= moment(this.printform_filter_date_debut))) ||
+                        ((moment(rdv.end_time) <= moment(this.printform_filter_date_fin).add(1, 'days')) &&
+                            (moment(rdv.end_time) > moment(this.printform_filter_date_debut)))) {
 
                         if (this.printform_filter_enseignes && this.printform_filter_enseignes.length > 0) {
                             let is_enseigne_ok = false;
                             for (let ei in this.printform_filter_enseignes) {
                                 let printform_filter_enseigne = this.printform_filter_enseignes[ei];
 
-                                if (printform_filter_enseigne == this.boutiques_animees[animation_rdv.boutique_animee_id].enseigne_id) {
+                                if (printform_filter_enseigne == this.targets[rdv.target_id].enseigne_id) {
                                     is_enseigne_ok = true;
                                 }
                             }
@@ -140,14 +146,14 @@ export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsCompone
                         }
 
                         // Calculer l'index
-                        let offset_start = moment(animation_rdv.date_debut).diff(moment(date_debut), 'hours');
+                        let offset_start = moment(rdv.start_time).diff(moment(date_debut), 'hours');
                         let offset_start_halfdays = Math.round(offset_start / 12);
 
                         if (offset_start_halfdays < 0) {
                             offset_start_halfdays = 0;
                         }
 
-                        let offset_end = moment(animation_rdv.date_fin).diff(moment(date_debut), 'hours');
+                        let offset_end = moment(rdv.end_time).diff(moment(date_debut), 'hours');
                         let offset_end_halfdays = Math.round(offset_end / 12);
 
                         if (offset_end_halfdays >= nb_offsets) {
@@ -161,10 +167,10 @@ export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsCompone
                         datas_animateur[offset_start_halfdays] = {
                             isrdv: true,
                             nb_slots: (offset_end_halfdays - offset_start_halfdays),
-                            color: this.enseignes[this.boutiques_animees[animation_rdv.boutique_animee_id].enseigne_id].color,
-                            bgcolor: this.enseignes[this.boutiques_animees[animation_rdv.boutique_animee_id].enseigne_id].bgcolor,
-                            short_name: this.boutiques_animees[animation_rdv.boutique_animee_id].nom
+                            short_name: this.targets[rdv.target_id].name
                         };
+
+                        ProgramPlanControllerBase.getInstance().populateCalendarEvent(datas_animateur[offset_start_halfdays]);
                     }
                 }
             }
@@ -222,24 +228,24 @@ export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsCompone
         let res;
 
         let rows_number = 20;
-        let unplacedEvents = null;
+        let unplacedEvents: IPlanRDV[] = null;
         let hasUnplacedEvents = true;
 
-        let events = jQuery.extend({}, this.animation_rdvs);
+        let events: IPlanRDV[] = $.extend({}, this.rdvs);
 
         for (let j in events) {
-            let animation_rdv = events[j];
+            let rdv: IPlanRDV = events[j];
 
-            if (!(((moment(animation_rdv.date_debut) < moment(this.printform_filter_date_fin).add(1, 'days')) &&
-                (moment(animation_rdv.date_debut) >= moment(this.printform_filter_date_debut))) ||
-                ((moment(animation_rdv.date_fin) <= moment(this.printform_filter_date_fin).add(1, 'days')) &&
-                    (moment(animation_rdv.date_fin) > moment(this.printform_filter_date_debut))))) {
-                delete events[animation_rdv.id];
+            if (!(((moment(rdv.start_time) < moment(this.printform_filter_date_fin).add(1, 'days')) &&
+                (moment(rdv.start_time) >= moment(this.printform_filter_date_debut))) ||
+                ((moment(rdv.end_time) <= moment(this.printform_filter_date_fin).add(1, 'days')) &&
+                    (moment(rdv.end_time) > moment(this.printform_filter_date_debut))))) {
+                delete events[rdv.id];
                 continue;
             }
 
-            if ((!this.boutiques_animees[animation_rdv.boutique_animee_id]) || (!this.enseignes[this.boutiques_animees[animation_rdv.boutique_animee_id].enseigne_id])) {
-                delete events[animation_rdv.id];
+            if ((!this.targets[rdv.target_id]) || (!this.enseignes[this.targets[rdv.target_id].enseigne_id])) {
+                delete events[rdv.id];
                 continue;
             }
 
@@ -248,12 +254,12 @@ export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsCompone
                 for (let ei in this.printform_filter_enseignes) {
                     let printform_filter_enseigne = this.printform_filter_enseignes[ei];
 
-                    if (printform_filter_enseigne == this.boutiques_animees[animation_rdv.boutique_animee_id].enseigne_id) {
+                    if (printform_filter_enseigne == this.targets[rdv.target_id].enseigne_id) {
                         is_enseigne_ok = true;
                     }
                 }
                 if (!is_enseigne_ok) {
-                    delete events[animation_rdv.id];
+                    delete events[rdv.id];
                     continue;
                 }
             }
@@ -263,7 +269,7 @@ export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsCompone
             rows_number++;
             res = [];
 
-            unplacedEvents = jQuery.extend({}, events);
+            unplacedEvents = $.extend({}, events);
 
             for (let i = 0; i < rows_number; i++) {
                 let datas_row = [];
@@ -292,20 +298,20 @@ export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsCompone
                 }
 
                 // Positionner les évènements
-                let events = jQuery.extend({}, unplacedEvents);
+                let events: IPlanRDV[] = $.extend({}, unplacedEvents);
                 hasUnplacedEvents = false;
                 for (let j in events) {
                     let animation_rdv = events[j];
 
                     // Calculer l'index
-                    let offset_start = moment(animation_rdv.date_debut).diff(moment(date_debut), 'hours');
+                    let offset_start = moment(animation_rdv.start_time).diff(moment(date_debut), 'hours');
                     let offset_start_halfdays = Math.floor(offset_start / (this.printform_filter_slotsize ? 12 : 24));
 
                     if (offset_start_halfdays < 0) {
                         offset_start_halfdays = 0;
                     }
 
-                    let offset_end = moment(animation_rdv.date_fin).diff(moment(date_debut), 'hours');
+                    let offset_end = moment(animation_rdv.end_time).diff(moment(date_debut), 'hours');
                     let offset_end_halfdays = Math.ceil(offset_end / (this.printform_filter_slotsize ? 12 : 24));
 
                     if (offset_end_halfdays >= nb_offsets) {
@@ -352,10 +358,9 @@ export default class VuePlanningRDVAnimateursBoutiqueModuleImpressionRdvsCompone
                     datas_row[offset_start_halfdays] = {
                         isrdv: true,
                         nb_slots: (this.printform_filter_slotsize ? (offset_end_halfdays - offset_start_halfdays) : ((offset_end_halfdays - offset_start_halfdays) * 2)),
-                        color: this.enseignes[this.boutiques_animees[animation_rdv.boutique_animee_id].enseigne_id].color,
-                        bgcolor: this.enseignes[this.boutiques_animees[animation_rdv.boutique_animee_id].enseigne_id].bgcolor,
-                        short_name: this.boutiques_animees[animation_rdv.boutique_animee_id].nom
+                        short_name: this.targets[animation_rdv.target_id].name
                     };
+                    ProgramPlanControllerBase.getInstance().populateCalendarEvent(datas_row[offset_start_halfdays]);
                 }
 
                 // Regrouper les evenements et les cases vides

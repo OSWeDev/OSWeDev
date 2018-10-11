@@ -6,5 +6,5 @@
       div.filter(v-show="isOpen")
         i(class="fa fa-filter" aria-hidden="true" onclick="$('#filtre_boutiques').focus()")
         input(id="filtre_boutiques" v-model="filtre_boutiques" placeholder="Filtrer")        
-      div(v-for="(ba, i) in filtered_ordered_boutiques", v-show="isOpen")
-        draggable-planning-store-visits-ba(:ba="ba", :bam="getBamForBa(ba)", :bacpt="getBaCptForBa(ba)", :enseigne="getEnseigneForBa(ba)", :key="ba.id")
+      div(v-for="(target, i) in filtered_ordered_targets", v-show="isOpen")
+        program-plan-component-rdv(:target="target", :enseigne="getEnseigneForTarget(target)", :key="target.id")

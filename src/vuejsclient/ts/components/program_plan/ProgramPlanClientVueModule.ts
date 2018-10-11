@@ -11,6 +11,8 @@ import VueAppController from '../../../VueAppController';
 import ModuleProgramPlan from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IPlanProgram from '../../../../shared/modules/ProgramPlan/interfaces/IPlanProgram';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
+import ProgramPlanComponent from './ProgramPlanComponent';
+import ProgramsOverviewComponent from './ProgramsOverview/ProgramsOverviewComponent';
 
 export default class ProgramPlanClientVueModule extends VueModuleBase {
 
@@ -48,7 +50,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: PlanProgramComponent
+            component: ProgramsOverviewComponent
         });
         let menuPointer = new MenuPointer(
             new MenuLeaf('PlanProgramComponent', MenuElementBase.PRIORITY_ULTRAHIGH, "fa-calendar"),
@@ -57,16 +59,31 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
         menuPointer.addToMenu();
 
-        url = "/plan/rdvs/program_id";
-        main_route_name = 'PlanRDVsComponent';
+        url = "/plan/program/:program_id";
+        main_route_name = 'ProgramPlan';
 
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: PlanRDVsComponent,
+            component: ProgramPlanComponent,
             props: (route) => ({
-                key: 'PlanRDVsComponent_' + parseInt(route.params.program_id),
+                key: 'ProgramPlan_' + parseInt(route.params.program_id),
                 program_id: parseInt(route.params.program_id)
+            })
+        });
+
+        url = "/plan/program/:program_id/rdv/:selected_rdv_id";
+        main_route_name = 'ProgramPlanRDV';
+
+        this.routes.push({
+            path: url,
+            name: main_route_name,
+            component: ProgramPlanComponent,
+            props: (route) => ({
+                key: 'ProgramPlanRDV_' + parseInt(route.params.selected_rdv_id),
+                program_id: parseInt(route.params.program_id),
+                modal_show: true,
+                selected_rdv_id: parseInt(route.params.selected_rdv_id)
             })
         });
     }

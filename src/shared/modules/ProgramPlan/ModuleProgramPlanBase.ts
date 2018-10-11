@@ -9,6 +9,7 @@ import IPlanRDV from './interfaces/IPlanRDV';
 import ProgramSegmentParamVO from './vos/ProgramSegmentParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import IPlanRDVCR from './interfaces/IPlanRDVCR';
+import UserVO from '../AccessPolicy/vos/UserVO';
 
 export default abstract class ModuleProgramPlan extends Module {
 
@@ -159,7 +160,20 @@ export default abstract class ModuleProgramPlan extends Module {
 
         additional_fields.unshift(
             label_field,
-            enseigne_id
+            enseigne_id,
+
+            new ModuleTableField('address', ModuleTableField.FIELD_TYPE_string, 'Adresse', false),
+            new ModuleTableField('cp', ModuleTableField.FIELD_TYPE_string, 'Code Postal', false),
+            new ModuleTableField('city', ModuleTableField.FIELD_TYPE_string, 'Ville', false),
+            new ModuleTableField('country', ModuleTableField.FIELD_TYPE_string, 'Pays', false),
+
+            new ModuleTableField('contact_firstname', ModuleTableField.FIELD_TYPE_string, 'Contact - Prénom', false),
+            new ModuleTableField('contact_lastname', ModuleTableField.FIELD_TYPE_string, 'Contact - Nom', false),
+            new ModuleTableField('contact_mail', ModuleTableField.FIELD_TYPE_string, 'Contact - eMail', false),
+            new ModuleTableField('contact_mobile', ModuleTableField.FIELD_TYPE_string, 'Contact - Mobile', false),
+            new ModuleTableField('contact_infos', ModuleTableField.FIELD_TYPE_string, 'Contact - Infos', false),
+
+            new ModuleTableField('infos_horaires', ModuleTableField.FIELD_TYPE_string, 'Infos horaires', false),
         );
 
         let datatable = new ModuleTable(this, this.target_type_id, additional_fields, label_field, "Etablissements");
@@ -171,14 +185,16 @@ export default abstract class ModuleProgramPlan extends Module {
     protected initializePlanRDVCR(additional_fields: ModuleTableField<any>[]) {
         let rdv_id = new ModuleTableField('rdv_id', ModuleTableField.FIELD_TYPE_foreign_key, 'RDV', false);
         let cr_file_id = new ModuleTableField('cr_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier CR', false);
-
+        let author_id = new ModuleTableField('author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
         additional_fields.unshift(
             rdv_id,
+            author_id,
             cr_file_id
         );
 
         let datatable = new ModuleTable(this, this.rdv_cr_type_id, additional_fields, null, "Compte-rendus");
         rdv_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.rdv_type_id]);
+        author_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         cr_file_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
