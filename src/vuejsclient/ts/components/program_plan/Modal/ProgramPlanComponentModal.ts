@@ -20,10 +20,7 @@ import ProgramPlanComponentTargetInfos from '../TargetInfos/ProgramPlanComponent
     template: require('./ProgramPlanComponentModal.pug'),
     components: {
         "field": VueFieldComponent,
-        "target-infos": ProgramPlanComponentTargetInfos,
-        "custom-cr-create-component": ProgramPlanControllerBase.getInstance().customCRCreateComponent,
-        "custom-cr-read-component": ProgramPlanControllerBase.getInstance().customCRReadComponent,
-        "custom-cr-update-component": ProgramPlanControllerBase.getInstance().customCRUpdateComponent
+        "target-infos": ProgramPlanComponentTargetInfos
     }
 })
 export default class ProgramPlanComponentModal extends VueComponentBase {
@@ -57,6 +54,10 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
     private edited_cr: IPlanRDVCR = null;
 
     private rdv_confirmed: boolean = false;
+
+    private custom_cr_create_component = ProgramPlanControllerBase.getInstance().customCRCreateComponent;
+    private custom_cr_read_component = ProgramPlanControllerBase.getInstance().customCRReadComponent;
+    private custom_cr_update_component = ProgramPlanControllerBase.getInstance().customCRUpdateComponent;
 
     @Watch('selected_rdv')
     private onChangeSelectedRDV() {
@@ -247,7 +248,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
 
     /**
      * Called when creating a new CR. Confirmation, and if confirmed, creation.
-     * @param cr 
+     * @param cr
      */
     private async create_cr(cr: IPlanRDVCR) {
         if ((!this.selected_rdv) || (!cr)) {
@@ -298,7 +299,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
 
     /**
      * Called when updating a CR. Confirmation, and if confirmed, update.
-     * @param cr 
+     * @param cr
      */
     private async update_cr(cr: IPlanRDVCR) {
         if ((!this.selected_rdv) || (!cr)) {
@@ -348,7 +349,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
 
     /**
      * Called when deleting a CR. Confirmation, and if confirmed, deletion.
-     * @param cr 
+     * @param cr
      */
     private async delete_cr(cr: IPlanRDVCR) {
         if ((!this.selected_rdv) || (!cr)) {

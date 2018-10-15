@@ -48,7 +48,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         }
 
         let url: string = ProgramPlanClientVueModule.ROUTE_BASE_PLAN_PROGRAMS;
-        let main_route_name: string = 'PlanProgramComponent';
+        let main_route_name: string = 'plan-program-component';
 
         this.routes.push({
             path: url,
@@ -63,7 +63,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         menuPointer.addToMenu();
 
         url = ProgramPlanClientVueModule.ROUTE_BASE_PLAN_PROGRAM + ":program_id";
-        main_route_name = 'ProgramPlan';
+        main_route_name = 'program-plan';
 
         this.routes.push({
             path: url,

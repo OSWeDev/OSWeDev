@@ -22,7 +22,7 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
         let event: any = {};
 
         event.title = this.target.name;
-        event.ba_id = this.target.id;
+        event.target_id = this.target.id;
 
         event.allDay = false;
         event.editable = true;

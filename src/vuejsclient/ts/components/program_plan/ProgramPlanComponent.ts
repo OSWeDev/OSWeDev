@@ -30,7 +30,7 @@ import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanCompon
 
 
 @Component({
-    template: require('./planning_rdv_animateurs_boutique.pug'),
+    template: require('./ProgramPlanComponent.pug'),
     components: {
         "program-plan-component-modal": ProgramPlanComponentModal,
         "program-plan-component-impression": ProgramPlanComponentImpression,
@@ -71,7 +71,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private can_edit_planning: boolean = false;
 
 
-    private async mounted() {
+    public async mounted() {
         let self = this;
         this.$nextTick(async () => {
 
@@ -83,7 +83,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 });
             }, 100);
         });
-        this.targets[this.selected_rdv.target_id].name
     }
 
     @Watch("$route")
@@ -313,7 +312,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     //     // }
 
     //     event.animateur_id = event.resourceId;
-    //     event.boutique_animee_id = event.ba_id;
+    //     event.boutique_animee_id = event.target_id;
     //     event.date_debut = event.start;
     //     event.date_fin = event.end;
     // }
@@ -471,7 +470,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return res;
         }
 
-        // TODO: c'est typiquement là qu'on GarbageCollector serait utile pour vider les RDVs les plus anciennement chargés pour limiter la taille 
+        // TODO: c'est typiquement là qu'on GarbageCollector serait utile pour vider les RDVs les plus anciennement chargés pour limiter la taille
         //  si on se balade beaucoup sur le calendrier.
         for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id]) {
             let rdv: IPlanRDV = this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][i] as IPlanRDV;
@@ -529,7 +528,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * @param view https://fullcalendar.io/docs/view-object
      * @param element is a jQuery element for the container of the new view.
      */
-    public onFCViewRender(view: View, element) {
+    private onFCViewRender(view: View, element) {
         if ((!view) || (!view.start) || (!view.end)) {
             return;
         }
@@ -544,7 +543,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * Triggered when dragging stops and the event has moved to a different day/time.
      * @param event https://fullcalendar.io/docs/event-object
      */
-    public async onFCEventDrop(event: EventObjectInput, delta, revertFunc, jsEvent, ui, view: View) {
+    private async onFCEventDrop(event: EventObjectInput, delta, revertFunc, jsEvent, ui, view: View) {
         await this.updateEvent(event, revertFunc, view);
     }
 
@@ -552,7 +551,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * Triggered when resizing stops and the event has changed in duration.
      * @param event https://fullcalendar.io/docs/event-object
      */
-    public async onFCEventResize(event: EventObjectInput, delta, revertFunc, jsEvent, ui, view: View) {
+    private async onFCEventResize(event: EventObjectInput, delta, revertFunc, jsEvent, ui, view: View) {
         await this.updateEvent(event, revertFunc, view);
     }
 
@@ -662,7 +661,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     @Watch('fcSegment')
     private async onChangeFCSegment() {
 
-        let promises: Promise<any>[] = [];
+        let promises: Array<Promise<any>> = [];
         let self = this;
 
         // RDVs
@@ -687,7 +686,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     /**
      * Called when a valid external jQuery UI draggable, containing event data, has been dropped onto the calendar.
-     * @param event 
+     * @param event
      */
     private async onFCEventReceive(event: EventObjectInput) {
         this.snotify.info('programplan.fc.create.start');
@@ -695,7 +694,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let rdv: IPlanRDV;
 
         try {
-            rdv = ProgramPlanControllerBase.getInstance().getRDVFromCalendarEvent(event);
+            rdv = ProgramPlanControllerBase.getInstance().getRDVNewInstance();
+            rdv.start_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.start));
+            rdv.end_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.end));
+            rdv.facilitator_id = event.resourceId;
+            rdv.program_id = this.program_id;
+            rdv.state = ModuleProgramPlanBase.RDV_STATE_CREATED;
+            rdv.target_id = event.target_id;
         } catch (error) {
             console.error(error);
         }

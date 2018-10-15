@@ -39,29 +39,61 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
     private static instance: ModuleProgramPlanBase = null;
 
+    public program_category_type_id: string;
+    public program_type_id: string;
+    public manager_type_id: string;
+    public enseigne_type_id: string;
+    public target_type_id: string;
+    public rdv_cr_type_id: string;
+    public rdv_type_id: string;
+    public facilitator_type_id: string;
+    public program_facilitator_type_id: string;
+    public program_manager_type_id: string;
+    public program_target_type_id: string;
+
     protected constructor(
         name: string,
         reflexiveClassName: string,
 
-        public program_category_type_id: string,
-        public program_type_id: string,
-        public manager_type_id: string,
-        public enseigne_type_id: string,
-        public target_type_id: string,
-        public rdv_cr_type_id: string,
-        public rdv_type_id: string,
-        public facilitator_type_id: string,
-        public program_facilitator_type_id: string,
-        public program_manager_type_id: string,
-        public program_target_type_id: string,
+        program_category_type_id,
+        program_type_id,
+        manager_type_id,
+        enseigne_type_id,
+        target_type_id,
+        rdv_cr_type_id,
+        rdv_type_id,
+        facilitator_type_id,
+        program_facilitator_type_id,
+        program_manager_type_id,
+        program_target_type_id,
 
         specificImportPath: string = null) {
 
         super(name, reflexiveClassName, specificImportPath);
+
+        this.program_category_type_id = program_category_type_id;
+        this.program_type_id = program_type_id;
+        this.manager_type_id = manager_type_id;
+        this.enseigne_type_id = enseigne_type_id;
+        this.target_type_id = target_type_id;
+        this.rdv_cr_type_id = rdv_cr_type_id;
+        this.rdv_type_id = rdv_type_id;
+        this.facilitator_type_id = facilitator_type_id;
+        this.program_facilitator_type_id = program_facilitator_type_id;
+        this.program_manager_type_id = program_manager_type_id;
+        this.program_target_type_id = program_target_type_id;
+
         ModuleProgramPlanBase.instance = this;
+
+        this.initialize_later();
     }
 
     public initialize() {
+        this.fields = [];
+        this.datatables = [];
+    }
+
+    public initialize_later() {
         this.fields = [];
         this.datatables = [];
 

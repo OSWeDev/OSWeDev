@@ -35,7 +35,7 @@
         "no-shadowed-variable": true, // TODO A reactiver
         "object-literal-shorthand": false, // A reactiver ?
         "prefer-const": false, // A reactiver ?
-        "variable-name": true, // A reactiver
+        "variable-name": false, // A reactiver
         "triple-equals": false,
         "radix": false,
         "no-empty-interface": false,

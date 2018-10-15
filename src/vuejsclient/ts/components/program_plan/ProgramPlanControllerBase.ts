@@ -121,7 +121,7 @@ export default abstract class ProgramPlanControllerBase {
 
     private static instance: ProgramPlanControllerBase = null;
 
-    private constructor(
+    protected constructor(
         public customCRCreateComponent,
         public customCRReadComponent,
         public customCRUpdateComponent,
@@ -157,9 +157,9 @@ export default abstract class ProgramPlanControllerBase {
     }
 
     /**
-     * Renvoie une instance de RDV sur la base du calendar event en param.
+     * Renvoie une instance de RDV
      */
-    public abstract getRDVFromCalendarEvent(event: EventObjectInput): IPlanRDV;
+    public abstract getRDVNewInstance(): IPlanRDV;
 
     public getAddressHTMLFromTarget(target: IPlanTarget): string {
         let res: string;
