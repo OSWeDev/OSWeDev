@@ -9,7 +9,7 @@ import IPlanManager from '../../../../../shared/modules/ProgramPlan/interfaces/I
 import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanRDVCR from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
-import ModuleProgramPlan from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import VueFieldComponent from '../../field/field';
 import VueComponentBase from '../../VueComponentBase';
@@ -61,7 +61,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
     @Watch('selected_rdv')
     private onChangeSelectedRDV() {
         // Vérifier le statut et mettre à jour le flag RDV_confirmed
-        this.rdv_confirmed = (this.selected_rdv && (this.selected_rdv.state != ModuleProgramPlan.RDV_STATE_CREATED));
+        this.rdv_confirmed = (this.selected_rdv && (this.selected_rdv.state != ModuleProgramPlanBase.RDV_STATE_CREATED));
     }
 
     @Watch('rdv_confirmed')
@@ -71,15 +71,15 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
             return;
         }
 
-        if (this.rdv_confirmed && (this.selected_rdv.state != ModuleProgramPlan.RDV_STATE_CREATED)) {
+        if (this.rdv_confirmed && (this.selected_rdv.state != ModuleProgramPlanBase.RDV_STATE_CREATED)) {
             return;
         }
 
-        if ((!this.rdv_confirmed) && (this.selected_rdv.state == ModuleProgramPlan.RDV_STATE_CREATED)) {
+        if ((!this.rdv_confirmed) && (this.selected_rdv.state == ModuleProgramPlanBase.RDV_STATE_CREATED)) {
             return;
         }
 
-        this.selected_rdv.state = (this.rdv_confirmed ? (this.selected_rdv_cr ? ModuleProgramPlan.RDV_STATE_CR_OK : ModuleProgramPlan.RDV_STATE_CONFIRMED) : ModuleProgramPlan.RDV_STATE_CREATED);
+        this.selected_rdv.state = (this.rdv_confirmed ? (this.selected_rdv_cr ? ModuleProgramPlanBase.RDV_STATE_CR_OK : ModuleProgramPlanBase.RDV_STATE_CONFIRMED) : ModuleProgramPlanBase.RDV_STATE_CREATED);
         this.snotify.info(this.label('programplan.rdv_modal.update_rdv.start'));
         try {
 
@@ -100,7 +100,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
             return null;
         }
 
-        return this.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id][this.selected_rdv.target_id] as IPlanTarget;
+        return this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][this.selected_rdv.target_id] as IPlanTarget;
     }
 
     get selected_rdv_cr(): IPlanRDVCR {
@@ -108,8 +108,8 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
             return null;
         }
 
-        for (let i in this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_cr_type_id]) {
-            let cr: IPlanRDVCR = this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_cr_type_id][i] as IPlanRDVCR;
+        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_cr_type_id]) {
+            let cr: IPlanRDVCR = this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_cr_type_id][i] as IPlanRDVCR;
 
             if (cr.rdv_id == this.selected_rdv.id) {
                 return cr;
@@ -129,14 +129,14 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
             return res;
         }
 
-        for (let i in this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_cr_type_id]) {
-            let cr: IPlanRDVCR = this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_cr_type_id][i] as IPlanRDVCR;
+        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_cr_type_id]) {
+            let cr: IPlanRDVCR = this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_cr_type_id][i] as IPlanRDVCR;
 
-            if (!this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][cr.rdv_id]) {
+            if (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][cr.rdv_id]) {
                 continue;
             }
 
-            let rdv: IPlanRDV = this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][cr.rdv_id] as IPlanRDV;
+            let rdv: IPlanRDV = this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][cr.rdv_id] as IPlanRDV;
 
             if (rdv.target_id != this.selected_rdv.target_id) {
                 continue;
@@ -148,8 +148,8 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
         let self = this;
 
         res.sort(function (a: IPlanRDVCR, b: IPlanRDVCR) {
-            let rdva: IPlanRDV = self.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][a.rdv_id] as IPlanRDV;
-            let rdvb: IPlanRDV = self.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][b.rdv_id] as IPlanRDV;
+            let rdva: IPlanRDV = self.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][a.rdv_id] as IPlanRDV;
+            let rdvb: IPlanRDV = self.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][b.rdv_id] as IPlanRDV;
 
             return moment(rdvb.start_time).diff(moment(rdva.start_time));
         });
@@ -166,7 +166,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getStoredDatas[ModuleProgramPlan.getInstance().facilitator_type_id][this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        let facilitator: IPlanFacilitator = this.getStoredDatas[ModuleProgramPlanBase.getInstance().facilitator_type_id][this.selected_rdv.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
@@ -179,12 +179,12 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getStoredDatas[ModuleProgramPlan.getInstance().facilitator_type_id][this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        let facilitator: IPlanFacilitator = this.getStoredDatas[ModuleProgramPlanBase.getInstance().facilitator_type_id][this.selected_rdv.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
 
-        let manager: IPlanManager = this.getStoredDatas[ModuleProgramPlan.getInstance().manager_type_id][facilitator.manager_id] as IPlanManager;
+        let manager: IPlanManager = this.getStoredDatas[ModuleProgramPlanBase.getInstance().manager_type_id][facilitator.manager_id] as IPlanManager;
         if (!manager) {
             return null;
         }
@@ -207,7 +207,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
             return null;
         }
 
-        let target: IPlanTarget = this.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id][this.selected_rdv.target_id] as IPlanTarget;
+        let target: IPlanTarget = this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][this.selected_rdv.target_id] as IPlanTarget;
         let address: string = ProgramPlanControllerBase.getInstance().getAddressHTMLFromTarget(target);
         return address;
     }
@@ -217,7 +217,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
             return null;
         }
 
-        let target: IPlanTarget = this.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id][this.selected_rdv.target_id] as IPlanTarget;
+        let target: IPlanTarget = this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][this.selected_rdv.target_id] as IPlanTarget;
         let contactInfos: string = ProgramPlanControllerBase.getInstance().getContactInfosHTMLFromTarget(target);
         return contactInfos;
     }
@@ -375,7 +375,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
                             if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1) || (parseInt(insertOrDeleteQueryResult[0].id) != cr.id)) {
                                 throw new Error('Erreur serveur');
                             }
-                            self.removeData({ API_TYPE_ID: ModuleProgramPlan.getInstance().rdv_cr_type_id, id: cr.id });
+                            self.removeData({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().rdv_cr_type_id, id: cr.id });
                         } catch (error) {
                             console.error(error);
                             self.snotify.error(self.label('programplan.delete.error'));

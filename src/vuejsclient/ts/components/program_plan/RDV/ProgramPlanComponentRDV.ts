@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import 'jqueryui';
 import { Component, Prop } from 'vue-property-decorator';
 import VueComponentBase from '../../VueComponentBase';
 import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';

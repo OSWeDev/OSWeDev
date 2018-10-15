@@ -9,7 +9,7 @@ import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV
 import { ModuleDAOGetter, ModuleDAOAction } from '../dao/store/DaoStore';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
-import ModuleProgramPlan from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import IPlanProgramTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanProgramTarget';
 import IPlanProgram from '../../../../shared/modules/ProgramPlan/interfaces/IPlanProgram';
@@ -115,7 +115,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let promises = [];
 
         promises.push((async () => {
-            self.can_edit_planning = await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlan.ACCESS_GROUP_NAME, ModuleProgramPlan.FRONT_EDIT_RULE_NAME);
+            self.can_edit_planning = await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.ACCESS_GROUP_NAME, ModuleProgramPlanBase.FRONT_EDIT_RULE_NAME);
         })());
 
         // On va charger par étape pour alléger au max les chargements et réduire au max la taille des données téléchargées
@@ -123,7 +123,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         // program
         promises.push((async () => {
-            let program: IPlanProgram = await ModuleDAO.getInstance().getVoById<IPlanProgram>(ModuleProgramPlan.getInstance().program_type_id, self.program_id);
+            let program: IPlanProgram = await ModuleDAO.getInstance().getVoById<IPlanProgram>(ModuleProgramPlanBase.getInstance().program_type_id, self.program_id);
             self.storeData(program);
         })());
 
@@ -133,20 +133,20 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         // managers du programme
         promises.push((async () => {
-            let program_managers: IPlanProgramManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramManager>(ModuleProgramPlan.getInstance().program_manager_type_id, 'program_id', [this.program_id]);
-            self.storeDatas({ API_TYPE_ID: ModuleProgramPlan.getInstance().program_manager_type_id, vos: program_managers });
+            let program_managers: IPlanProgramManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramManager>(ModuleProgramPlanBase.getInstance().program_manager_type_id, 'program_id', [this.program_id]);
+            self.storeDatas({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().program_manager_type_id, vos: program_managers });
         })());
 
         // animateurs du programme
         promises.push((async () => {
-            let program_facilitators: IPlanProgramFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramFacilitator>(ModuleProgramPlan.getInstance().program_facilitator_type_id, 'program_id', [self.program_id]);
-            self.storeDatas({ API_TYPE_ID: ModuleProgramPlan.getInstance().program_facilitator_type_id, vos: program_facilitators });
+            let program_facilitators: IPlanProgramFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramFacilitator>(ModuleProgramPlanBase.getInstance().program_facilitator_type_id, 'program_id', [self.program_id]);
+            self.storeDatas({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().program_facilitator_type_id, vos: program_facilitators });
         })());
 
         // établissements du programme
         promises.push((async () => {
-            let program_targets: IPlanProgramTarget[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramTarget>(ModuleProgramPlan.getInstance().program_target_type_id, 'program_id', [self.program_id]);
-            self.storeDatas({ API_TYPE_ID: ModuleProgramPlan.getInstance().program_target_type_id, vos: program_targets });
+            let program_targets: IPlanProgramTarget[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramTarget>(ModuleProgramPlanBase.getInstance().program_target_type_id, 'program_id', [self.program_id]);
+            self.storeDatas({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().program_target_type_id, vos: program_targets });
         })());
 
         await Promise.all(promises);
@@ -156,34 +156,34 @@ export default class ProgramPlanComponent extends VueComponentBase {
         // managers
         promises.push((async () => {
             let ids: number[] = [];
-            for (let i in self.getStoredDatas[ModuleProgramPlan.getInstance().program_manager_type_id]) {
-                let program_manager: IPlanProgramManager = self.getStoredDatas[ModuleProgramPlan.getInstance().program_manager_type_id][i] as IPlanProgramManager;
+            for (let i in self.getStoredDatas[ModuleProgramPlanBase.getInstance().program_manager_type_id]) {
+                let program_manager: IPlanProgramManager = self.getStoredDatas[ModuleProgramPlanBase.getInstance().program_manager_type_id][i] as IPlanProgramManager;
                 ids.push(program_manager.manager_id);
             }
-            let managers: IPlanManager[] = await ModuleDAO.getInstance().getVosByIds<IPlanManager>(ModuleProgramPlan.getInstance().manager_type_id, ids);
-            self.storeDatas({ API_TYPE_ID: ModuleProgramPlan.getInstance().manager_type_id, vos: managers });
+            let managers: IPlanManager[] = await ModuleDAO.getInstance().getVosByIds<IPlanManager>(ModuleProgramPlanBase.getInstance().manager_type_id, ids);
+            self.storeDatas({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().manager_type_id, vos: managers });
         })());
 
         // animateurs
         promises.push((async () => {
             let ids: number[] = [];
-            for (let i in self.getStoredDatas[ModuleProgramPlan.getInstance().program_facilitator_type_id]) {
-                let program_facilitator: IPlanProgramFacilitator = self.getStoredDatas[ModuleProgramPlan.getInstance().program_facilitator_type_id][i] as IPlanProgramFacilitator;
+            for (let i in self.getStoredDatas[ModuleProgramPlanBase.getInstance().program_facilitator_type_id]) {
+                let program_facilitator: IPlanProgramFacilitator = self.getStoredDatas[ModuleProgramPlanBase.getInstance().program_facilitator_type_id][i] as IPlanProgramFacilitator;
                 ids.push(program_facilitator.facilitator_id);
             }
-            let facilitators: IPlanFacilitator[] = await ModuleDAO.getInstance().getVosByIds<IPlanFacilitator>(ModuleProgramPlan.getInstance().facilitator_type_id, ids);
-            self.storeDatas({ API_TYPE_ID: ModuleProgramPlan.getInstance().facilitator_type_id, vos: facilitators });
+            let facilitators: IPlanFacilitator[] = await ModuleDAO.getInstance().getVosByIds<IPlanFacilitator>(ModuleProgramPlanBase.getInstance().facilitator_type_id, ids);
+            self.storeDatas({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().facilitator_type_id, vos: facilitators });
         })());
 
         // établissements
         promises.push((async () => {
             let ids: number[] = [];
-            for (let i in self.getStoredDatas[ModuleProgramPlan.getInstance().program_target_type_id]) {
-                let program_target: IPlanProgramTarget = self.getStoredDatas[ModuleProgramPlan.getInstance().program_target_type_id][i] as IPlanProgramTarget;
+            for (let i in self.getStoredDatas[ModuleProgramPlanBase.getInstance().program_target_type_id]) {
+                let program_target: IPlanProgramTarget = self.getStoredDatas[ModuleProgramPlanBase.getInstance().program_target_type_id][i] as IPlanProgramTarget;
                 ids.push(program_target.target_id);
             }
-            let targets: IPlanTarget[] = await ModuleDAO.getInstance().getVosByIds<IPlanTarget>(ModuleProgramPlan.getInstance().target_type_id, ids);
-            self.storeDatas({ API_TYPE_ID: ModuleProgramPlan.getInstance().target_type_id, vos: targets });
+            let targets: IPlanTarget[] = await ModuleDAO.getInstance().getVosByIds<IPlanTarget>(ModuleProgramPlanBase.getInstance().target_type_id, ids);
+            self.storeDatas({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().target_type_id, vos: targets });
         })());
 
         await Promise.all(promises);
@@ -193,12 +193,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
         // enseignes
         promises.push((async () => {
             let ids: number[] = [];
-            for (let i in self.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id]) {
-                let target: IPlanTarget = self.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id][i] as IPlanTarget;
+            for (let i in self.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id]) {
+                let target: IPlanTarget = self.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][i] as IPlanTarget;
                 ids.push(target.enseigne_id);
             }
-            let enseignes: IPlanEnseigne[] = await ModuleDAO.getInstance().getVosByIds<IPlanEnseigne>(ModuleProgramPlan.getInstance().enseigne_type_id, ids);
-            self.storeDatas({ API_TYPE_ID: ModuleProgramPlan.getInstance().enseigne_type_id, vos: enseignes });
+            let enseignes: IPlanEnseigne[] = await ModuleDAO.getInstance().getVosByIds<IPlanEnseigne>(ModuleProgramPlanBase.getInstance().enseigne_type_id, ids);
+            self.storeDatas({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().enseigne_type_id, vos: enseignes });
         })());
 
 
@@ -377,27 +377,27 @@ export default class ProgramPlanComponent extends VueComponentBase {
     // }
 
     get program(): IPlanProgram {
-        if ((!this.getStoredDatas[ModuleProgramPlan.getInstance().program_type_id]) || (!this.program_id)) {
+        if ((!this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_type_id]) || (!this.program_id)) {
             return null;
         }
-        return this.getStoredDatas[ModuleProgramPlan.getInstance().program_type_id][this.program_id] as IPlanProgram;
+        return this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_type_id][this.program_id] as IPlanProgram;
     }
 
     get targets(): { [id: number]: IPlanTarget } {
         let res: { [id: number]: IPlanTarget } = {};
 
-        for (let i in this.getStoredDatas[ModuleProgramPlan.getInstance().program_target_type_id]) {
-            let pt: IPlanProgramTarget = this.getStoredDatas[ModuleProgramPlan.getInstance().program_target_type_id][i] as IPlanProgramTarget;
+        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_target_type_id]) {
+            let pt: IPlanProgramTarget = this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_target_type_id][i] as IPlanProgramTarget;
 
             if ((!pt) || (!pt.target_id) || (pt.program_id != this.program_id)) {
                 continue;
             }
 
-            if ((!this.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id]) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id][pt.target_id])) {
+            if ((!this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id]) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][pt.target_id])) {
                 continue;
             }
 
-            res[pt.target_id] = this.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id][pt.target_id] as IPlanTarget;
+            res[pt.target_id] = this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][pt.target_id] as IPlanTarget;
         }
         return res;
     }
@@ -405,18 +405,18 @@ export default class ProgramPlanComponent extends VueComponentBase {
     get facilitators(): { [id: number]: IPlanFacilitator } {
         let res: { [id: number]: IPlanFacilitator } = {};
 
-        for (let i in this.getStoredDatas[ModuleProgramPlan.getInstance().program_facilitator_type_id]) {
-            let pf: IPlanProgramFacilitator = this.getStoredDatas[ModuleProgramPlan.getInstance().program_facilitator_type_id][i] as IPlanProgramFacilitator;
+        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_facilitator_type_id]) {
+            let pf: IPlanProgramFacilitator = this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_facilitator_type_id][i] as IPlanProgramFacilitator;
 
             if ((!pf) || (!pf.facilitator_id) || (pf.program_id != this.program_id)) {
                 continue;
             }
 
-            if ((!this.getStoredDatas[ModuleProgramPlan.getInstance().facilitator_type_id]) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().facilitator_type_id][pf.facilitator_id])) {
+            if ((!this.getStoredDatas[ModuleProgramPlanBase.getInstance().facilitator_type_id]) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().facilitator_type_id][pf.facilitator_id])) {
                 continue;
             }
 
-            res[pf.facilitator_id] = this.getStoredDatas[ModuleProgramPlan.getInstance().facilitator_type_id][pf.facilitator_id] as IPlanFacilitator;
+            res[pf.facilitator_id] = this.getStoredDatas[ModuleProgramPlanBase.getInstance().facilitator_type_id][pf.facilitator_id] as IPlanFacilitator;
         }
         return res;
     }
@@ -424,23 +424,23 @@ export default class ProgramPlanComponent extends VueComponentBase {
     get enseignes(): { [id: number]: IPlanEnseigne } {
         let res: { [id: number]: IPlanEnseigne } = {};
 
-        for (let i in this.getStoredDatas[ModuleProgramPlan.getInstance().program_target_type_id]) {
-            let pt: IPlanProgramTarget = this.getStoredDatas[ModuleProgramPlan.getInstance().program_target_type_id][i] as IPlanProgramTarget;
+        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_target_type_id]) {
+            let pt: IPlanProgramTarget = this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_target_type_id][i] as IPlanProgramTarget;
 
             if ((!pt) || (!pt.target_id) || (pt.program_id != this.program_id)) {
                 continue;
             }
 
-            if ((!this.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id]) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id][pt.target_id])) {
+            if ((!this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id]) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][pt.target_id])) {
                 continue;
             }
 
-            let target: IPlanTarget = this.getStoredDatas[ModuleProgramPlan.getInstance().target_type_id][pt.target_id] as IPlanTarget;
-            if ((!target) || (!target.enseigne_id) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().enseigne_type_id]) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().enseigne_type_id][target.enseigne_id])) {
+            let target: IPlanTarget = this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][pt.target_id] as IPlanTarget;
+            if ((!target) || (!target.enseigne_id) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().enseigne_type_id]) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().enseigne_type_id][target.enseigne_id])) {
                 continue;
             }
 
-            res[target.enseigne_id] = this.getStoredDatas[ModuleProgramPlan.getInstance().enseigne_type_id][target.enseigne_id] as IPlanEnseigne;
+            res[target.enseigne_id] = this.getStoredDatas[ModuleProgramPlanBase.getInstance().enseigne_type_id][target.enseigne_id] as IPlanEnseigne;
         }
         return res;
     }
@@ -448,18 +448,18 @@ export default class ProgramPlanComponent extends VueComponentBase {
     get managers(): { [id: number]: IPlanManager } {
         let res: { [id: number]: IPlanManager } = {};
 
-        for (let i in this.getStoredDatas[ModuleProgramPlan.getInstance().program_manager_type_id]) {
-            let pm: IPlanProgramManager = this.getStoredDatas[ModuleProgramPlan.getInstance().program_manager_type_id][i] as IPlanProgramManager;
+        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_manager_type_id]) {
+            let pm: IPlanProgramManager = this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_manager_type_id][i] as IPlanProgramManager;
 
             if ((!pm) || (!pm.manager_id) || (pm.program_id != this.program_id)) {
                 continue;
             }
 
-            if ((!this.getStoredDatas[ModuleProgramPlan.getInstance().manager_type_id]) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().manager_type_id][pm.manager_id])) {
+            if ((!this.getStoredDatas[ModuleProgramPlanBase.getInstance().manager_type_id]) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().manager_type_id][pm.manager_id])) {
                 continue;
             }
 
-            res[pm.manager_id] = this.getStoredDatas[ModuleProgramPlan.getInstance().manager_type_id][pm.manager_id] as IPlanManager;
+            res[pm.manager_id] = this.getStoredDatas[ModuleProgramPlanBase.getInstance().manager_type_id][pm.manager_id] as IPlanManager;
         }
         return res;
     }
@@ -473,8 +473,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         // TODO: c'est typiquement là qu'on GarbageCollector serait utile pour vider les RDVs les plus anciennement chargés pour limiter la taille 
         //  si on se balade beaucoup sur le calendrier.
-        for (let i in this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id]) {
-            let rdv: IPlanRDV = this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][i] as IPlanRDV;
+        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id]) {
+            let rdv: IPlanRDV = this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][i] as IPlanRDV;
 
             if ((!rdv) || (!rdv.start_time) || (!rdv.end_time) || (rdv.program_id != this.program_id) ||
                 (moment(rdv.start_time).isSameOrAfter(TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment))) ||
@@ -482,7 +482,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 continue;
             }
 
-            res[rdv.id] = this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][rdv.id] as IPlanRDV;
+            res[rdv.id] = this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][rdv.id] as IPlanRDV;
         }
         return res;
     }
@@ -494,8 +494,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return res;
         }
 
-        for (let i in this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_cr_type_id]) {
-            let cr: IPlanRDVCR = this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_cr_type_id][i] as IPlanRDVCR;
+        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_cr_type_id]) {
+            let cr: IPlanRDVCR = this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_cr_type_id][i] as IPlanRDVCR;
 
             if ((!cr) || (!cr.rdv_id) || (!this.rdvs[cr.rdv_id])) {
                 continue;
@@ -560,11 +560,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
         // Il faut modifier le vo source, mettre à jour côté serveur et notifier en cas d'échec et annuler la modif (remettre la resource et les dates précédentes)
 
         this.snotify.info('programplan.fc.update.start');
-        if ((!event) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id]) || (!event.id) || (!this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][event.id])) {
+        if ((!event) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id]) || (!event.id) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][event.id])) {
             this.snotify.error('programplan.fc.update.error');
             return;
         }
-        let rdv: IPlanRDV = this.getStoredDatas[ModuleProgramPlan.getInstance().rdv_type_id][event.id] as IPlanRDV;
+        let rdv: IPlanRDV = this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][event.id] as IPlanRDV;
 
         let tmp_start: string = rdv.start_time;
         let tmp_end: string = rdv.end_time;
@@ -669,16 +669,16 @@ export default class ProgramPlanComponent extends VueComponentBase {
         // Sont chargés lors du changement de segment consulté
         promises.push((async () => {
             self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().rdv_type_id,
-                vos: await ModuleProgramPlan.getInstance().getRDVsOfProgramSegment(self.program_id, self.fcSegment)
+                API_TYPE_ID: ModuleProgramPlanBase.getInstance().rdv_type_id,
+                vos: await ModuleProgramPlanBase.getInstance().getRDVsOfProgramSegment(self.program_id, self.fcSegment)
             });
         })());
 
         // CRs
         promises.push((async () => {
             self.storeDatas({
-                API_TYPE_ID: ModuleProgramPlan.getInstance().rdv_cr_type_id,
-                vos: await ModuleProgramPlan.getInstance().getCRsOfProgramSegment(self.program_id, self.fcSegment)
+                API_TYPE_ID: ModuleProgramPlanBase.getInstance().rdv_cr_type_id,
+                vos: await ModuleProgramPlanBase.getInstance().getCRsOfProgramSegment(self.program_id, self.fcSegment)
             });
         })());
 
@@ -754,7 +754,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             }
 
                             toDeleteVos.push(cr);
-                            self.removeData({ API_TYPE_ID: ModuleProgramPlan.getInstance().rdv_cr_type_id, id: cr.id });
+                            self.removeData({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().rdv_cr_type_id, id: cr.id });
                         }
 
                         try {
@@ -772,7 +772,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             self.snotify.error(self.label('programplan.delete.error'));
                             return;
                         }
-                        self.removeData({ API_TYPE_ID: ModuleProgramPlan.getInstance().rdv_type_id, id: self.selected_rdv.id });
+                        self.removeData({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().rdv_type_id, id: self.selected_rdv.id });
                         self.selected_rdv = null;
                         self.snotify.success(self.label('programplan.delete.ok'));
                         self.$router.push(self.route_path);
@@ -800,13 +800,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let rdv: IPlanRDV = this.rdvs[event.id];
 
         switch (rdv.state) {
-            case ModuleProgramPlan.RDV_STATE_CONFIRMED:
+            case ModuleProgramPlanBase.RDV_STATE_CONFIRMED:
                 icon = "fa-square";
                 break;
-            case ModuleProgramPlan.RDV_STATE_CR_OK:
+            case ModuleProgramPlanBase.RDV_STATE_CR_OK:
                 icon = "fa-envelope-square";
                 break;
-            case ModuleProgramPlan.RDV_STATE_CREATED:
+            case ModuleProgramPlanBase.RDV_STATE_CREATED:
             default:
                 icon = "fa-square-o";
         }

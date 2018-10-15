@@ -5,7 +5,7 @@ import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import ModuleProgramPlan from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 
 export default class ProgramPlanAdminVueModule extends VueModuleBase {
 
@@ -28,12 +28,12 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
 
     private constructor() {
 
-        super(ModuleProgramPlan.getInstance().name);
+        super(ModuleProgramPlanBase.getInstance().name);
     }
 
     public initialize() {
 
-        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlan.ACCESS_GROUP_NAME, ModuleProgramPlan.ADMIN_ACCESS_RULE_NAME)) {
+        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.ACCESS_GROUP_NAME, ModuleProgramPlanBase.ADMIN_ACCESS_RULE_NAME)) {
             return;
         }
 
@@ -42,55 +42,55 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
         let contentsComponentsBranch: MenuBranch = new MenuBranch("ProgramPlanAdminVueModule_ContentsComponents", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-newspaper-o", []);
 
         CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlan.getInstance().program_type_id,
+            ModuleProgramPlanBase.getInstance().program_type_id,
             null,
             new MenuPointer(
-                new MenuLeaf(ModuleProgramPlan.getInstance().program_type_id, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-list"),
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().program_type_id, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-list"),
                 menuBranch,
                 contentsComponentsBranch),
             this.routes);
 
         CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlan.getInstance().target_type_id,
+            ModuleProgramPlanBase.getInstance().target_type_id,
             null,
             new MenuPointer(
-                new MenuLeaf(ModuleProgramPlan.getInstance().target_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().target_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
                 menuBranch,
                 contentsComponentsBranch),
             this.routes);
 
         CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlan.getInstance().manager_type_id,
+            ModuleProgramPlanBase.getInstance().manager_type_id,
             null,
             new MenuPointer(
-                new MenuLeaf(ModuleProgramPlan.getInstance().manager_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-sitemap"),
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().manager_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-sitemap"),
                 menuBranch,
                 contentsComponentsBranch),
             this.routes);
 
         CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlan.getInstance().facilitator_type_id,
+            ModuleProgramPlanBase.getInstance().facilitator_type_id,
             null,
             new MenuPointer(
-                new MenuLeaf(ModuleProgramPlan.getInstance().facilitator_type_id, MenuElementBase.PRIORITY_LOW, "fa-user-circle"),
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().facilitator_type_id, MenuElementBase.PRIORITY_LOW, "fa-user-circle"),
                 menuBranch,
                 contentsComponentsBranch),
             this.routes);
 
         CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlan.getInstance().program_facilitator_type_id,
+            ModuleProgramPlanBase.getInstance().program_facilitator_type_id,
             null,
             new MenuPointer(
-                new MenuLeaf(ModuleProgramPlan.getInstance().program_facilitator_type_id, MenuElementBase.PRIORITY_LOW, "fa-user-circle"),
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().program_facilitator_type_id, MenuElementBase.PRIORITY_LOW, "fa-user-circle"),
                 menuBranch,
                 contentsComponentsBranch),
             this.routes);
 
         CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlan.getInstance().program_manager_type_id,
+            ModuleProgramPlanBase.getInstance().program_manager_type_id,
             null,
             new MenuPointer(
-                new MenuLeaf(ModuleProgramPlan.getInstance().program_manager_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-sitemap"),
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().program_manager_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-sitemap"),
                 menuBranch,
                 contentsComponentsBranch),
             this.routes);

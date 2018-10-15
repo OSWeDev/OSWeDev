@@ -1,5 +1,5 @@
 import 'bootstrap';
-import 'jquery';
+import * as $ from 'jquery';
 import * as moment from 'moment';
 import 'select2';
 import * as BootstrapToggle from 'vue-bootstrap-toggle';

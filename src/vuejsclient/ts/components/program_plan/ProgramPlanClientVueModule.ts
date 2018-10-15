@@ -8,13 +8,16 @@ import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../VueAppController';
-import ModuleProgramPlan from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IPlanProgram from '../../../../shared/modules/ProgramPlan/interfaces/IPlanProgram';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import ProgramPlanComponent from './ProgramPlanComponent';
 import ProgramsOverviewComponent from './ProgramsOverview/ProgramsOverviewComponent';
 
 export default class ProgramPlanClientVueModule extends VueModuleBase {
+
+    public static ROUTE_BASE_PLAN_PROGRAMS: string = "/plan/programs";
+    public static ROUTE_BASE_PLAN_PROGRAM: string = "/plan/program/";
 
     public static DEFAULT_MENU_BRANCH: MenuBranch = new MenuBranch(
         "ProgramPlanClientVueModule",
@@ -40,11 +43,11 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
 
     public initialize() {
 
-        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlan.ACCESS_GROUP_NAME, ModuleProgramPlan.FRONT_ACCESS_RULE_NAME)) {
+        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.ACCESS_GROUP_NAME, ModuleProgramPlanBase.FRONT_ACCESS_RULE_NAME)) {
             return;
         }
 
-        let url: string = "/plan/programs";
+        let url: string = ProgramPlanClientVueModule.ROUTE_BASE_PLAN_PROGRAMS;
         let main_route_name: string = 'PlanProgramComponent';
 
         this.routes.push({
@@ -59,7 +62,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
         menuPointer.addToMenu();
 
-        url = "/plan/program/:program_id";
+        url = ProgramPlanClientVueModule.ROUTE_BASE_PLAN_PROGRAM + ":program_id";
         main_route_name = 'ProgramPlan';
 
         this.routes.push({

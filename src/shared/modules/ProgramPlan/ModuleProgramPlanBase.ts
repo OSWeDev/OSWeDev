@@ -10,8 +10,9 @@ import ProgramSegmentParamVO from './vos/ProgramSegmentParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import IPlanRDVCR from './interfaces/IPlanRDVCR';
 import UserVO from '../AccessPolicy/vos/UserVO';
+import TranslatableTextVO from '../Translation/vos/TranslatableTextVO';
 
-export default abstract class ModuleProgramPlan extends Module {
+export default abstract class ModuleProgramPlanBase extends Module {
 
     public static ACCESS_GROUP_NAME = "ProgramPlan_ACCESS";
     public static ADMIN_ACCESS_RULE_NAME = "ADMIN_CONF";
@@ -26,16 +27,23 @@ export default abstract class ModuleProgramPlan extends Module {
     public static RDV_STATE_CONFIRMED: number = 1;
     public static RDV_STATE_CR_OK: number = 2;
 
-    public static getInstance(): ModuleProgramPlan {
-        return ModuleProgramPlan.instance;
+    public static PROGRAM_TARGET_STATE_LABELS: string[] = ['programplan.program.target.created', 'programplan.program.target.ongoing', 'programplan.program.target.closed', 'programplan.program.target.late'];
+    public static PROGRAM_TARGET_STATE_CREATED: number = 0;
+    public static PROGRAM_TARGET_STATE_ONGOING: number = 1;
+    public static PROGRAM_TARGET_STATE_CLOSED: number = 2;
+    public static PROGRAM_TARGET_STATE_LATE: number = 3;
+
+    public static getInstance(): ModuleProgramPlanBase {
+        return ModuleProgramPlanBase.instance;
     }
 
-    private static instance: ModuleProgramPlan = null;
+    private static instance: ModuleProgramPlanBase = null;
 
-    private constructor(
+    protected constructor(
         name: string,
         reflexiveClassName: string,
 
+        public program_category_type_id: string,
         public program_type_id: string,
         public manager_type_id: string,
         public enseigne_type_id: string,
@@ -50,13 +58,14 @@ export default abstract class ModuleProgramPlan extends Module {
         specificImportPath: string = null) {
 
         super(name, reflexiveClassName, specificImportPath);
-        ModuleProgramPlan.instance = this;
+        ModuleProgramPlanBase.instance = this;
     }
 
     public initialize() {
         this.fields = [];
         this.datatables = [];
 
+        this.callInitializePlanProgramCategory();
         this.callInitializePlanProgram();
         this.callInitializePlanEnseigne();
         this.callInitializePlanTarget();
@@ -72,7 +81,7 @@ export default abstract class ModuleProgramPlan extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDV[]>(
-            ModuleProgramPlan.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
+            ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
             [this.rdv_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
@@ -81,7 +90,7 @@ export default abstract class ModuleProgramPlan extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDV[]>(
-            ModuleProgramPlan.APINAME_GET_CRS_OF_PROGRAM_SEGMENT,
+            ModuleProgramPlanBase.APINAME_GET_CRS_OF_PROGRAM_SEGMENT,
             [this.rdv_type_id, this.rdv_cr_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
@@ -91,31 +100,67 @@ export default abstract class ModuleProgramPlan extends Module {
     }
 
     public async getRDVsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDV[]> {
-        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDV[]>(ModuleProgramPlan.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
+        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDV[]>(ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
     }
 
     public async getCRsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVCR[]> {
-        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDVCR[]>(ModuleProgramPlan.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
+        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDVCR[]>(ModuleProgramPlanBase.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
+    }
+
+    protected abstract callInitializePlanProgramCategory();
+    protected initializePlanProgramCategory(additional_fields: ModuleTableField<any>[]) {
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+
+        additional_fields.unshift(
+            label_field,
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
+            new ModuleTableField('nb_targets', ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
+            new ModuleTableField('total_days', ModuleTableField.FIELD_TYPE_int, 'Nb total de jours des programmes', true, true, 0),
+
+            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_date, 'Début', false),
+            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_date, 'Fin', false),
+
+            new ModuleTableField('nb_created_targets', ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),
+            new ModuleTableField('nb_late_targets', ModuleTableField.FIELD_TYPE_int, 'En retard', true, true, 0),
+            new ModuleTableField('nb_ongoing_targets', ModuleTableField.FIELD_TYPE_int, 'En cours', true, true, 0),
+            new ModuleTableField('nb_closed_targets', ModuleTableField.FIELD_TYPE_int, 'Terminés', true, true, 0),
+        );
+
+        let datatable = new ModuleTable(this, this.program_category_type_id, additional_fields, label_field, "Catégories de programmes");
+        this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanProgram();
     protected initializePlanProgram(additional_fields: ModuleTableField<any>[]) {
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let category_id = new ModuleTableField('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', false);
 
         additional_fields.unshift(
             label_field,
+            category_id,
             new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_date, 'Début', false),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_date, 'Fin', false),
+            new ModuleTableField('days_by_target', ModuleTableField.FIELD_TYPE_float, 'Nb. de jours par établissement', true, true, 1),
+            new ModuleTableField('nb_targets', ModuleTableField.FIELD_TYPE_int, 'Nb. établissements', true, true, 0),
+            new ModuleTableField('nb_created_targets', ModuleTableField.FIELD_TYPE_int, 'En attente', true, true, 0),
+            new ModuleTableField('nb_late_targets', ModuleTableField.FIELD_TYPE_int, 'En retard', true, true, 0),
+            new ModuleTableField('nb_ongoing_targets', ModuleTableField.FIELD_TYPE_int, 'En cours', true, true, 0),
+            new ModuleTableField('nb_closed_targets', ModuleTableField.FIELD_TYPE_int, 'Terminés', true, true, 0),
+
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false)
         );
 
         let datatable = new ModuleTable(this, this.program_type_id, additional_fields, label_field, "Programmes");
+        category_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_category_type_id]);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanFacilitator();
     protected initializePlanFacilitator(additional_fields: ModuleTableField<any>[]) {
         let manager_id = new ModuleTableField('manager_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', false);
-        let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
+        let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             manager_id,
@@ -130,7 +175,7 @@ export default abstract class ModuleProgramPlan extends Module {
 
     protected abstract callInitializePlanManager();
     protected initializePlanManager(additional_fields: ModuleTableField<any>[]) {
-        let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
+        let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
@@ -143,7 +188,7 @@ export default abstract class ModuleProgramPlan extends Module {
 
     protected abstract callInitializePlanEnseigne();
     protected initializePlanEnseigne(additional_fields: ModuleTableField<any>[]) {
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             label_field
@@ -155,7 +200,7 @@ export default abstract class ModuleProgramPlan extends Module {
 
     protected abstract callInitializePlanTarget();
     protected initializePlanTarget(additional_fields: ModuleTableField<any>[]) {
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let enseigne_id = new ModuleTableField('enseigne_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Enseigne', false);
 
         additional_fields.unshift(
@@ -213,10 +258,10 @@ export default abstract class ModuleProgramPlan extends Module {
             target_id,
             label_field,
             new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_timestamp, 'Fin', false),
-            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, ' Statut', true, true, ModuleProgramPlan.RDV_STATE_CREATED).setEnumValues({
-                [ModuleProgramPlan.RDV_STATE_CREATED]: ModuleProgramPlan.RDV_STATE_LABELS[ModuleProgramPlan.RDV_STATE_CREATED],
-                [ModuleProgramPlan.RDV_STATE_CONFIRMED]: ModuleProgramPlan.RDV_STATE_LABELS[ModuleProgramPlan.RDV_STATE_CONFIRMED],
-                [ModuleProgramPlan.RDV_STATE_CR_OK]: ModuleProgramPlan.RDV_STATE_LABELS[ModuleProgramPlan.RDV_STATE_CR_OK]
+            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, ' Statut', true, true, ModuleProgramPlanBase.RDV_STATE_CREATED).setEnumValues({
+                [ModuleProgramPlanBase.RDV_STATE_CREATED]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CREATED],
+                [ModuleProgramPlanBase.RDV_STATE_CONFIRMED]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CONFIRMED],
+                [ModuleProgramPlanBase.RDV_STATE_CR_OK]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CR_OK]
             })
         );
 
@@ -229,8 +274,8 @@ export default abstract class ModuleProgramPlan extends Module {
 
     protected abstract callInitializePlanProgramFacilitator();
     protected initializePlanProgramFacilitator(additional_fields: ModuleTableField<any>[]) {
-        let facilitator_id = new ModuleTableField('facilitator_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', false);
-        let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', false);
+        let facilitator_id = new ModuleTableField('facilitator_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', true);
+        let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             facilitator_id,
@@ -245,8 +290,8 @@ export default abstract class ModuleProgramPlan extends Module {
 
     protected abstract callInitializePlanProgramManager();
     protected initializePlanProgramManager(additional_fields: ModuleTableField<any>[]) {
-        let manager_id = new ModuleTableField('manager_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', false);
-        let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', false);
+        let manager_id = new ModuleTableField('manager_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', true);
+        let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             manager_id,
@@ -261,12 +306,18 @@ export default abstract class ModuleProgramPlan extends Module {
 
     protected abstract callInitializePlanProgramTarget();
     protected initializePlanProgramTarget(additional_fields: ModuleTableField<any>[]) {
-        let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', false);
-        let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', false);
+        let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', true);
+        let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
 
         additional_fields.unshift(
             target_id,
-            program_id
+            program_id,
+            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Statut', true, true, ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CREATED).setEnumValues({
+                [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CREATED]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CREATED],
+                [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_ONGOING]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_ONGOING],
+                [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CLOSED]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CLOSED],
+                [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LATE]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LATE]
+            })
         );
 
         let datatable = new ModuleTable(this, this.program_target_type_id, additional_fields, null, "Etablissements par programme");
