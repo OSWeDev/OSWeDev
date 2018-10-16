@@ -15,6 +15,7 @@ import VueFieldComponent from '../../field/field';
 import VueComponentBase from '../../VueComponentBase';
 import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
 import ProgramPlanComponentTargetInfos from '../TargetInfos/ProgramPlanComponentTargetInfos';
+import "./ProgramPlanComponentModal.scss";
 
 @Component({
     template: require('./ProgramPlanComponentModal.pug'),
@@ -48,7 +49,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
 
     // Modal
     private seemore: boolean = false;
-    private editcr_seemore: boolean = false;
+    private updatecr_seemore: boolean = false;
     private newcr_seemore: boolean = false;
 
     private edited_cr: IPlanRDVCR = null;
@@ -257,7 +258,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
 
         let self = this;
 
-        self.snotify.confirm(self.label('programplan.create.confirmation.body'), self.label('programplan.create.confirmation.title'), {
+        self.snotify.confirm(self.label('programplan.create_cr.confirmation.body'), self.label('programplan.create_cr.confirmation.title'), {
             timeout: 10000,
             showProgressBar: true,
             closeOnClick: false,
@@ -267,7 +268,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
                     text: self.t('YES'),
                     action: async (toast) => {
                         self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.create.start'));
+                        self.snotify.info(self.label('programplan.create_cr.start'));
 
                         try {
 
@@ -279,10 +280,10 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
                             self.storeData(cr);
                         } catch (error) {
                             console.error(error);
-                            self.snotify.error(self.label('programplan.create.error'));
+                            self.snotify.error(self.label('programplan.create_cr.error'));
                             return;
                         }
-                        self.snotify.success(self.label('programplan.create.ok'));
+                        self.snotify.success(self.label('programplan.create_cr.ok'));
                         self.$router.push(self.route_path);
                     },
                     bold: false
@@ -308,7 +309,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
 
         let self = this;
 
-        self.snotify.confirm(self.label('programplan.update.confirmation.body'), self.label('programplan.update.confirmation.title'), {
+        self.snotify.confirm(self.label('programplan.update_cr.confirmation.body'), self.label('programplan.update_cr.confirmation.title'), {
             timeout: 10000,
             showProgressBar: true,
             closeOnClick: false,
@@ -318,7 +319,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
                     text: self.t('YES'),
                     action: async (toast) => {
                         self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.update.start'));
+                        self.snotify.info(self.label('programplan.update_cr.start'));
 
                         try {
 
@@ -329,11 +330,11 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
                             self.updateData(cr);
                         } catch (error) {
                             console.error(error);
-                            self.snotify.error(self.label('programplan.update.error'));
+                            self.snotify.error(self.label('programplan.update_cr.error'));
                             return;
                         }
-                        self.snotify.success(self.label('programplan.update.ok'));
-                        self.$router.push(self.route_path);
+                        self.snotify.success(self.label('programplan.update_cr.ok'));
+                        self.edited_cr = null;
                     },
                     bold: false
                 },
@@ -348,6 +349,16 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
     }
 
     /**
+     * Called when cancelling edition of a cr. Just close the modal
+     * @param cr
+     */
+    private async cancel_edition(cr: IPlanRDVCR) {
+
+        this.snotify.success(this.label('programplan.update_cr.cancel'));
+        this.edited_cr = null;
+    }
+
+    /**
      * Called when deleting a CR. Confirmation, and if confirmed, deletion.
      * @param cr
      */
@@ -358,7 +369,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
 
         let self = this;
 
-        self.snotify.confirm(self.label('programplan.delete.confirmation.body'), self.label('programplan.delete.confirmation.title'), {
+        self.snotify.confirm(self.label('programplan.delete_cr.confirmation.body'), self.label('programplan.delete_cr.confirmation.title'), {
             timeout: 10000,
             showProgressBar: true,
             closeOnClick: false,
@@ -368,7 +379,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
                     text: self.t('YES'),
                     action: async (toast) => {
                         self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.delete.start'));
+                        self.snotify.info(self.label('programplan.delete_cr.start'));
 
                         try {
 
@@ -379,11 +390,11 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
                             self.removeData({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().rdv_cr_type_id, id: cr.id });
                         } catch (error) {
                             console.error(error);
-                            self.snotify.error(self.label('programplan.delete.error'));
+                            self.snotify.error(self.label('programplan.delete_cr.error'));
                             return;
                         }
-                        self.snotify.success(self.label('programplan.delete.ok'));
-                        self.$router.push(self.route_path);
+                        self.snotify.success(self.label('programplan.delete_cr.ok'));
+                        self.edited_cr = null;
                     },
                     bold: false
                 },

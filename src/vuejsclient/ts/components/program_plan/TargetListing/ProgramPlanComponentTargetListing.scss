@@ -1,0 +1,43 @@
+@import '../../../../scss/generated/skin-variables.scss';
+
+#external-events{
+
+    background: $main_box_body_bg_color;
+    color: $button_text_color;
+    border: solid 1px #CCC;
+
+    .droppable_targets {
+        overflow: auto;
+    }
+
+    .filter{
+        margin: 5px 0px;
+
+        .btn {
+            margin-right: 2px;
+        }
+
+        input, .btn {
+            vertical-align: middle;
+        }
+    }
+    
+    #external_events_drag_handle {
+        background: $main_menu_bg_color;
+        color: $main_menu_text_color;
+
+        .btn {
+            margin: 5px -10px 5px 0px;
+        }
+    }
+
+    .fc-event {
+        margin: 1px 0;
+        font-size: 1em;
+        padding: 10px 10px;
+        cursor: pointer;
+        border: none;
+        border-radius: 0;
+        text-align: center;
+    }
+}

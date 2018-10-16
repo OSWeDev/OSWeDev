@@ -27,6 +27,8 @@ import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import ProgramPlanComponentModal from './Modal/ProgramPlanComponentModal';
 import ProgramPlanComponentImpression from './Impression/ProgramPlanComponentImpression';
 import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanComponentTargetListing';
+import ProgramPlanClientVueModule from './ProgramPlanClientVueModule';
+import './ProgramPlanComponent.scss';
 
 
 @Component({
@@ -51,7 +53,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public storeData: (vo: IDistantVOBase) => void;
 
     @Prop()
-    public route_path: string;
+    public global_route_path: string;
 
     @Prop({ default: false })
     public modal_show: boolean;
@@ -70,6 +72,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     private can_edit_planning: boolean = false;
 
+    get route_path(): string {
+        return this.global_route_path + this.program_id;
+    }
 
     public async mounted() {
         let self = this;
@@ -92,15 +97,15 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     protected async handle_modal_show_hide() {
         if (!this.modal_show) {
-            $('#import_modal').modal('hide');
+            $('#rdv_modal').modal('hide');
         }
         if (this.modal_show) {
             if ((!this.selected_rdv_id) || (!this.rdvs[this.selected_rdv_id])) {
-                $('#import_modal').modal('hide');
+                $('#rdv_modal').modal('hide');
                 return;
             }
             this.selected_rdv = this.rdvs[this.selected_rdv_id];
-            $('#import_modal').modal('show');
+            $('#rdv_modal').modal('show');
             return;
         }
     }
@@ -201,16 +206,17 @@ export default class ProgramPlanComponent extends VueComponentBase {
         })());
 
 
+        await Promise.all(promises);
         self.stopLoading();
     }
 
-    private onEventSelected(calEvent: EventObjectInput, jsEvent, view: View) {
+    private onFCEventSelected(calEvent: EventObjectInput, jsEvent, view: View) {
 
         if ((!calEvent) || (!calEvent.id) || (!this.rdvs) || (!this.rdvs[calEvent.id])) {
-            this.selected_rdv = null;
+            this.$router.push(this.route_path);
             return;
         }
-        this.selected_rdv = this.rdvs[calEvent.id];
+        this.$router.push(this.route_path + '/rdv/' + calEvent.id);
     }
 
     private getResourceName(first_name, name) {
@@ -558,9 +564,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private async updateEvent(event: EventObjectInput, revertFunc, view: View) {
         // Il faut modifier le vo source, mettre à jour côté serveur et notifier en cas d'échec et annuler la modif (remettre la resource et les dates précédentes)
 
-        this.snotify.info('programplan.fc.update.start');
+        this.snotify.info(this.label('programplan.fc.update.start'));
         if ((!event) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id]) || (!event.id) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][event.id])) {
-            this.snotify.error('programplan.fc.update.error');
+            this.snotify.error(this.label('programplan.fc.update.error'));
             return;
         }
         let rdv: IPlanRDV = this.getStoredDatas[ModuleProgramPlanBase.getInstance().rdv_type_id][event.id] as IPlanRDV;
@@ -573,7 +579,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             rdv.start_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.start));
             rdv.end_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.end));
-            rdv.facilitator_id = event.resourceIds[0];
+            rdv.facilitator_id = parseInt(event.resourceId);
             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
 
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
@@ -581,7 +587,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
         } catch (error) {
             console.error(error);
-            this.snotify.error('programplan.fc.update.error');
+            this.snotify.error(this.label('programplan.fc.update.error'));
 
             // On tente d'annuler le déplacement initial
             try {
@@ -595,7 +601,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
 
         this.updateData(rdv);
-        this.snotify.error('programplan.fc.update.ok');
+        this.snotify.success(this.label('programplan.fc.update.ok'));
     }
 
     get fcConfig() {
@@ -689,7 +695,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * @param event
      */
     private async onFCEventReceive(event: EventObjectInput) {
-        this.snotify.info('programplan.fc.create.start');
+        this.snotify.info(this.label('programplan.fc.create.start'));
 
         let rdv: IPlanRDV;
 
@@ -697,7 +703,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             rdv = ProgramPlanControllerBase.getInstance().getRDVNewInstance();
             rdv.start_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.start));
             rdv.end_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.end));
-            rdv.facilitator_id = event.resourceId;
+            rdv.facilitator_id = parseInt(event.resourceId);
             rdv.program_id = this.program_id;
             rdv.state = ModuleProgramPlanBase.RDV_STATE_CREATED;
             rdv.target_id = event.target_id;
@@ -706,7 +712,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
 
         if ((!event) || (!rdv)) {
-            this.snotify.error('programplan.fc.create.error');
+            this.snotify.error(this.label('programplan.fc.create.error'));
             return;
         }
 
@@ -721,12 +727,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
             rdv.id = parseInt(insertOrDeleteQueryResult.id);
         } catch (error) {
             console.error(error);
-            this.snotify.error('programplan.fc.create.error');
+            this.snotify.error(this.label('programplan.fc.create.error'));
             return;
         }
 
         this.storeData(rdv);
-        this.snotify.error('programplan.fc.create.ok');
+        this.snotify.success(this.label('programplan.fc.create.ok'));
     }
 
     private deleteSelectedEvent() {
@@ -794,7 +800,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         });
     }
 
-    private onEventRender(event: EventObjectInput, element, view: View) {
+    private onFCEventRender(event: EventObjectInput, element, view: View) {
         // Définir l'état et donc l'icone
         let icon = null;
 

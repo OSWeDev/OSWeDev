@@ -1,0 +1,148 @@
+@import '../../../../scss/generated/skin-variables.scss';
+
+#rdv_modal {
+
+    .infos {
+        padding: 10px;
+        background: $main_menu_bg_color;
+        color: $main_menu_text_color;
+
+        .target-infos-content.form-control {
+            height: auto;
+        }    
+    }
+
+    .crsandnew {
+        margin-top: 10px;
+
+        label input {
+            margin-left: 1em;
+        }
+
+        .cr_previsite {
+            color: #b3003c;
+        }
+
+        .cr_visite {
+            color: #58F;
+        }
+
+        .newcr, .updatecr {
+
+            max-height: auto;
+            overflow: hidden;
+
+            textarea {
+                width: 100%;
+            }
+
+            >h3 {
+                color: $main_menu_bg_color;
+                text-transform: uppercase;
+            }
+
+            >i {
+                padding: 6px 8px;
+                padding-bottom: 5px;
+                background: $main_menu_bg_color;
+                color: $main_menu_text_color;
+            }
+
+            >h3,
+            >i {
+                display: inline-block;
+            }
+
+            >i {
+                margin-right: 10px;
+            }
+
+            .newcr_seeless,
+            .updatecr_seeless {
+                max-height: 55px;
+            }
+         
+            .newcr_seemorl,
+            .updatecr_seemorl {
+                font-size: 2em;
+                display: inline-block;
+                cursor: pointer;
+            }
+        }
+    }
+
+    .cr {
+        padding: 10px;
+        background: $main_sidebar_bg_color;
+        margin-bottom: 12px;
+        text-align: left;
+
+        pre {
+            white-space: pre-wrap;
+            white-space: -moz-pre-wrap;
+            white-space: -pre-wrap;
+            white-space: -o-pre-wrap;
+            word-wrap: break-word;
+        }
+
+        b {
+            display: block;
+            font-size: 1.1em;
+        }
+        
+        span {
+            font-size: 1em;
+        }
+
+        >div {
+            margin-bottom: 10px;
+        }
+
+        i.fa-trash {
+            color: $danger_color;
+            cursor: pointer;
+            float: right;
+            font-size: 1.5em;
+        }
+
+        i.fa-pencil {
+            cursor: pointer;
+            float: right;
+            margin-right: 1em;
+            font-size: 1.5em;
+        }
+    }
+
+    .infosContener {
+        max-height: auto;
+        overflow: hidden;
+    }
+
+    .seeless {
+        max-height: 80px;
+    }
+
+    .ba-infos-content {
+        background-color: white;
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border: solid 1px #d2d6de;
+        color: black;
+        padding-left: 12px;
+        padding-top: 8px;
+        margin-bottom: 15px;
+    }
+
+    .seemorl {
+        font-size: 2em;
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        cursor: pointer;
+    }
+
+    /*.adresse,
+    .contact {
+        max-width: 296px;
+    }*/
+}

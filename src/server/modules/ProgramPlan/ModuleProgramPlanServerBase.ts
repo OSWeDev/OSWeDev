@@ -1,34 +1,27 @@
-import ModuleServerBase from '../ModuleServerBase';
+import { Moment } from 'moment';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import ServerBase from '../../ServerBase';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import ProgramSegmentParamVO from '../../../shared/modules/ProgramPlan/vos/ProgramSegmentParamVO';
-import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
-import { Moment } from 'moment';
 import DateHandler from '../../../shared/tools/DateHandler';
-import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleServerBase from '../ModuleServerBase';
 
-export default class ModuleProgramPlanServer extends ModuleServerBase {
+export default abstract class ModuleProgramPlanServerBase extends ModuleServerBase {
 
     public static getInstance() {
-        if (!ModuleProgramPlanServer.instance) {
-            ModuleProgramPlanServer.instance = new ModuleProgramPlanServer();
-        }
-        return ModuleProgramPlanServer.instance;
+        return ModuleProgramPlanServerBase.instance;
     }
 
-    private static instance: ModuleProgramPlanServer = null;
+    private static instance: ModuleProgramPlanServerBase = null;
 
-    private debug_check_access: boolean = false;
-
-    private constructor() {
-        super(ModuleProgramPlanBase.getInstance().name);
+    protected constructor(name: string) {
+        super(name);
+        ModuleProgramPlanServerBase.instance = this;
     }
 
     public registerServerApiHandlers() {
@@ -46,7 +39,7 @@ export default class ModuleProgramPlanServer extends ModuleServerBase {
         for (let i in rdvs) {
             ids.push(rdvs[i].id);
         }
-        return await ModuleDAO.getInstance().getVosByIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, ids);
+        return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', ids);
     }
 
     public async getRDVsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDV[]> {

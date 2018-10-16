@@ -41,8 +41,19 @@ export default class ProgramsOverviewComponent extends VueComponentBase {
         this.stopLoading();
     }
 
-    get programs_categories(): { [id: number]: IPlanProgramCategory } {
-        return this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_category_type_id] as { [id: number]: IPlanProgramCategory };
+    get programs_categories_ordered_by_weight(): IPlanProgramCategory[] {
+        let res: IPlanProgramCategory[] = [];
+
+        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_category_type_id]) {
+            let program_category: IPlanProgramCategory = this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_category_type_id][i] as IPlanProgramCategory;
+
+            res.push(program_category);
+        }
+
+        res.sort((a: IPlanProgramCategory, b: IPlanProgramCategory) => {
+            return a.weight - b.weight;
+        });
+        return res;
     }
 
     get programs_by_category(): { [category_id: number]: IPlanProgram[] } {

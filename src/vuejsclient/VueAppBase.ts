@@ -35,6 +35,15 @@ import FullCalendar from 'vue-full-calendar';
 import "fullcalendar-scheduler";
 import "fullcalendar/dist/fullcalendar.min.css";
 import "fullcalendar-scheduler/dist/scheduler.min.css";
+import VueQuillEditor from 'vue-quill-editor';
+
+// require styles
+import 'quill/dist/quill.core.css';
+import 'quill/dist/quill.snow.css';
+import 'quill/dist/quill.bubble.css';
+
+import VueDraggableResizable from 'vue-draggable-resizable';
+
 
 export default abstract class VueAppBase {
 
@@ -251,6 +260,8 @@ export default abstract class VueAppBase {
         Vue.use(Snotify);
         Vue.use(VueRouter);
         Vue.use(FullCalendar);
+        Vue.use(VueQuillEditor);
+        Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.component('bootstrap-toggle', BootstrapToggle);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);

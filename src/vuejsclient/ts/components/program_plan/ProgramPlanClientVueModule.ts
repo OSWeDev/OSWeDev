@@ -71,11 +71,12 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
             component: ProgramPlanComponent,
             props: (route) => ({
                 key: 'ProgramPlan_' + parseInt(route.params.program_id),
-                program_id: parseInt(route.params.program_id)
+                program_id: parseInt(route.params.program_id),
+                global_route_path: ProgramPlanClientVueModule.ROUTE_BASE_PLAN_PROGRAM
             })
         });
 
-        url = "/plan/program/:program_id/rdv/:selected_rdv_id";
+        url = ProgramPlanClientVueModule.ROUTE_BASE_PLAN_PROGRAM + ":program_id" + "/rdv/:selected_rdv_id";
         main_route_name = 'ProgramPlanRDV';
 
         this.routes.push({
@@ -86,7 +87,8 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
                 key: 'ProgramPlanRDV_' + parseInt(route.params.selected_rdv_id),
                 program_id: parseInt(route.params.program_id),
                 modal_show: true,
-                selected_rdv_id: parseInt(route.params.selected_rdv_id)
+                selected_rdv_id: parseInt(route.params.selected_rdv_id),
+                global_route_path: ProgramPlanClientVueModule.ROUTE_BASE_PLAN_PROGRAM
             })
         });
     }

@@ -1,10 +1,16 @@
 .rootElt
-    div(id="external-events", :class="isOpen?'opened':''")
-      div.icons
-        i(class="fa fa-chevron-right" aria-hidden="true", v-show="!isOpen", @click="isOpen = true")
-        i(class="fa fa-chevron-left" aria-hidden="true", v-show="isOpen", @click="isOpen = false")
-      div.filter(v-show="isOpen")
-        i(class="fa fa-filter" aria-hidden="true" onclick="$('#filtre_boutiques').focus()")
-        input(id="filtre_boutiques" v-model="filtre_boutiques" placeholder="Filtrer")        
-      div(v-for="(target, i) in filtered_ordered_targets", v-show="isOpen")
-        program-plan-component-rdv(:target="target", :enseigne="getEnseigneForTarget(target)", :key="target.id")
+    vue-draggable-resizable.row#external-events(:w="width" :h="height" :minh="100" :minw="300" :x="20" :y="10" :z="10000" dragHandle="#external_events_drag_handle" v-on:resizing="onResize")
+        .col-md-12
+            .row#external_events_drag_handle
+                .col-md-12  
+                    button.btn.btn-default.pull-right.btn-sm
+                        i.fa.fa-arrows.fa-fw.pull-right(aria-hidden="true")
+            .row.filter
+                .col-md-12
+                    button.btn.btn-default.pull-left.btn-sm(type="button" @click="$refs.filtre_etablissement.$el.focus()")
+                        i.fa.fa-filter.fa-fw.pull-right(aria-hidden="true")
+                    input.form-input#filtre_etablissement(ref="filtre_etablissement" v-model="filtre_etablissement" placeholder="Filtrer")        
+            .droppable_targets(ref="droppable_targets")
+                .row(v-for="(target, i) in filtered_ordered_targets")
+                    .col-md-12
+                        program-plan-component-rdv(:target="target", :enseigne="getEnseigneForTarget(target)", :key="target.id")

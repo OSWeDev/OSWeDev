@@ -2,7 +2,7 @@ include ../../../../views/mixins/loading.pug
 
 .rootElt
     +loading()
-        .panel.panel-default(v-for="programs_category in programs_categories" v-if='programs_category.nb_targets > 0')
+        .panel.panel-default(v-for="programs_category in programs_categories_ordered_by_weight" v-if='programs_category.nb_targets > 0')
             .panel-heading {{ programs_category.name }}
             .panel-body
                 p {{ programs_category.description }}
@@ -10,7 +10,6 @@ include ../../../../views/mixins/loading.pug
             table.table.table-striped.table-hover.table-condensed
                 thead
                     tr
-                        th #
                         th Nom
                         th Durée (Jours)
                         th Périmètre
@@ -27,7 +26,6 @@ include ../../../../views/mixins/loading.pug
                         th.danger %
                 tbody
                     tr.table_total_row
-                        td
                         td Total
                         td
                         td {{ programs_category.nb_targets }}
@@ -44,7 +42,6 @@ include ../../../../views/mixins/loading.pug
                         td {{ const_filters.percent.read(programs_category.nb_late_targets / programs_category.nb_targets, 1) }}
 
                     tr.clickable(v-for="program in programs_by_category[programs_category.id]" v-if='program.nb_targets > 0' @click="open_program(program)")
-                        td {{ program.weight }}
                         td {{ program.name }}
                         td {{ program.days_by_target }}
                         td {{ program.nb_targets }}

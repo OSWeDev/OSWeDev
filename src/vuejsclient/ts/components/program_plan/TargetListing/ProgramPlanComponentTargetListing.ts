@@ -3,6 +3,7 @@ import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IP
 import VueComponentBase from '../../VueComponentBase';
 import ProgramPlanComponentRDV from '../RDV/ProgramPlanComponentRDV';
 import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
+import './ProgramPlanComponentTargetListing.scss';
 
 @Component({
     template: require('./ProgramPlanComponentTargetListing.pug'),
@@ -17,16 +18,23 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
     @Prop()
     private enseignes: IPlanEnseigne[];
 
-    private isOpen = false;
-    private filtre_boutiques = null;
+    private filtre_etablissement = null;
+
+    private width: number = 300;
+    private height: number = 400;
 
     get filtered_ordered_targets(): IPlanTarget[] {
         let res: IPlanTarget[] = [];
-        let tester = (this.filtre_boutiques ? new RegExp('.*' + this.filtre_boutiques + '.*', 'i') : new RegExp('.*', 'i'));
+        let tester = (this.filtre_etablissement ? new RegExp('.*' + this.filtre_etablissement + '.*', 'i') : new RegExp('.*', 'i'));
+        let limit: number = 100;
 
         for (let i in this.targets) {
             if (tester.test(this.targets[i].name)) {
                 res.push(this.targets[i]);
+            }
+
+            if (res.length >= limit) {
+                break;
             }
         }
 
@@ -53,5 +61,12 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
         }
 
         return this.enseignes[target.enseigne_id];
+    }
+
+    private onResize(x, y, width, height) {
+        this.width = width;
+        this.height = height;
+
+        this.$refs.droppable_targets['$el'].attr('max_height', this.height - 100);
     }
 }
