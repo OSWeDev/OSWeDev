@@ -770,12 +770,14 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                         try {
 
-                            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(toDeleteVos);
-                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != toDeleteVos.length)) {
-                                throw new Error('Erreur serveur');
+                            if (toDeleteVos && toDeleteVos.length > 0) {
+                                let insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(toDeleteVos);
+                                if ((!insertOrDeleteQueryResult_) || (insertOrDeleteQueryResult_.length != toDeleteVos.length)) {
+                                    throw new Error('Erreur serveur');
+                                }
                             }
-                            insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([self.selected_rdv]);
-                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != toDeleteVos.length)) {
+                            let insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([self.selected_rdv]);
+                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1)) {
                                 throw new Error('Erreur serveur');
                             }
                         } catch (error) {

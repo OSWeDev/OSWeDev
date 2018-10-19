@@ -1,28 +1,24 @@
-import * as $ from 'jquery';
 import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import IImportedData from '../../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportFormatVO from '../../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
+import DataImportLogVO from '../../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import DateHandler from '../../../../../shared/tools/DateHandler';
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
-import FileComponentManager from '../../file/FileComponentManager';
-import FileComponent from '../../file/FileComponent';
 import VueAppController from '../../../../VueAppController';
-import './DataImportComponent.scss';
-import DataImportAdminVueModule from '../DataImportAdminVueModule';
-import DataImportLogVO from '../../../../../shared/modules/DataImport/vos/DataImportLogVO';
-import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
-import { ModuleDataImportGetter, ModuleDataImportAction } from '../store/DataImportStore';
+import FileComponent from '../../file/FileComponent';
 import DataImportComponentBase from '../base/DataImportComponentBase';
+import DataImportAdminVueModule from '../DataImportAdminVueModule';
+import { ModuleDataImportAction, ModuleDataImportGetter } from '../store/DataImportStore';
+import './DataImportComponent.scss';
 
 @Component({
     template: require('./DataImportComponent.pug'),

@@ -4,7 +4,7 @@ include ../../../../views/mixins/table.pug
 .root
     .printform.hidden-print
         div.col-md-12
-            +box("{{t('client.planning-store-visits.printform.title')}}", 'picto_tool_small', '6px', '5px')
+            +box("{{t('client.planning-store-visits.printform.title')}}", 'fa-filter')
                 .form.row
                     .col-md-6
                         select.form-control(v-model="printform_filter_enseignes", set_value_in="printform_filter_enseignes", multiple, v-select2="", :data-placeholder="t('client.planning-store-visits.printform.filtrer.enseignes')")

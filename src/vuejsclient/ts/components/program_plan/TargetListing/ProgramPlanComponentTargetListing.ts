@@ -67,6 +67,6 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
         this.width = width;
         this.height = height;
 
-        this.$refs.droppable_targets['$el'].attr('max_height', this.height - 100);
+        (this.$refs.droppable_targets as any).style.maxHeight = "" + (this.height - 90) + "px";
     }
 }

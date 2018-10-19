@@ -35,6 +35,10 @@ import FullCalendar from 'vue-full-calendar';
 import "fullcalendar-scheduler";
 import "fullcalendar/dist/fullcalendar.min.css";
 import "fullcalendar-scheduler/dist/scheduler.min.css";
+import "fullcalendar/dist/locale/fr.js";
+import "fullcalendar/dist/locale/de.js";
+import "fullcalendar/dist/locale/es.js";
+
 import VueQuillEditor from 'vue-quill-editor';
 
 // require styles

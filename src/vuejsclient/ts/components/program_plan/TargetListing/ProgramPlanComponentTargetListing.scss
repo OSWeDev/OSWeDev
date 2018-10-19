@@ -1,4 +1,4 @@
-@import '../../../../scss/generated/skin-variables.scss';
+@import 'skin-variables.scss';
 
 #external-events{
 
@@ -7,7 +7,7 @@
     border: solid 1px #CCC;
 
     .droppable_targets {
-        overflow: auto;
+        overflow: hidden;
     }
 
     .filter{

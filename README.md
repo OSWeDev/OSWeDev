@@ -1,3 +1,8 @@
+# 0.4.7 => 0.4.8
+    ALTER TABLE admin.module_sass_resource_planning_skin_configurator ADD COLUMN main_background_header_url text;
+    ALTER TABLE admin.module_sass_resource_planning_skin_configurator ALTER COLUMN main_background_int_url DROP DEFAULT;
+    ALTER TABLE admin.module_sass_resource_planning_skin_configurator ALTER COLUMN main_background_int_url DROP NOT NULL;
+
 # Modification des imports [<= 0.3.5] -> [*]
 
 ## SQL
