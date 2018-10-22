@@ -60,7 +60,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
     private custom_cr_read_component = ProgramPlanControllerBase.getInstance().customCRReadComponent;
     private custom_cr_update_component = ProgramPlanControllerBase.getInstance().customCRUpdateComponent;
 
-    @Watch('selected_rdv')
+    @Watch('selected_rdv', { immediate: true })
     private onChangeSelectedRDV() {
         // Vérifier le statut et mettre à jour le flag RDV_confirmed
         this.rdv_confirmed = (this.selected_rdv && (this.selected_rdv.state != ModuleProgramPlanBase.RDV_STATE_CREATED));
