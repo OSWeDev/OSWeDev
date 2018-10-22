@@ -8,6 +8,8 @@ import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlan
 import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
 import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
+import { ModuleDAOGetter } from '../../dao/store/DaoStore';
+import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./ProgramPlanComponentImpression.pug'),
@@ -16,6 +18,9 @@ import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
     }
 })
 export default class ProgramPlanComponentImpression extends VueComponentBase {
+
+    @ModuleDAOGetter
+    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @Prop()
     private enseignes: IPlanEnseigne[];
@@ -167,10 +172,13 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                         datas_animateur[offset_start_halfdays] = {
                             isrdv: true,
                             nb_slots: (offset_end_halfdays - offset_start_halfdays),
-                            short_name: this.targets[rdv.target_id].name
+                            short_name: this.targets[rdv.target_id].name,
+                            target_id: rdv.target_id,
+                            resourceId: facilitator.id,
+                            title: this.targets[rdv.target_id].name
                         };
 
-                        ProgramPlanControllerBase.getInstance().populateCalendarEvent(datas_animateur[offset_start_halfdays]);
+                        ProgramPlanControllerBase.getInstance().populateCalendarEvent(datas_animateur[offset_start_halfdays], this.getStoredDatas);
                     }
                 }
             }
@@ -358,9 +366,11 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                     datas_row[offset_start_halfdays] = {
                         isrdv: true,
                         nb_slots: (this.printform_filter_slotsize ? (offset_end_halfdays - offset_start_halfdays) : ((offset_end_halfdays - offset_start_halfdays) * 2)),
-                        short_name: this.targets[animation_rdv.target_id].name
+                        short_name: this.targets[animation_rdv.target_id].name,
+                        target_id: animation_rdv.target_id,
+                        title: this.targets[animation_rdv.target_id].name
                     };
-                    ProgramPlanControllerBase.getInstance().populateCalendarEvent(datas_row[offset_start_halfdays]);
+                    ProgramPlanControllerBase.getInstance().populateCalendarEvent(datas_row[offset_start_halfdays], this.getStoredDatas);
                 }
 
                 // Regrouper les evenements et les cases vides

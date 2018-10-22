@@ -4,6 +4,7 @@ import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlan
 import ICustomCRReadComponent from './interfaces/ICustomCRReadComponent';
 import ICustomCRUpdateComponent from './interfaces/ICustomCRUpdateComponent';
 import ICustomCRCreateComponent from './interfaces/ICustomCRCreateComponent';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 
 
 
@@ -137,7 +138,7 @@ export default abstract class ProgramPlanControllerBase {
      * Permet de rajouter/surcharger des paramètres de l'évènement fullcalendar avant ajout au calendrier
      * @param event Evènement en cours de configuration pour ajout sur fullcalendar. Contient déjà :{
      *       id: rdv.id,
-     *       etablissement_id: etablissement.id,
+     *       target_id: etablissement.id,
      *       resourceId: facilitator.id,
      *       start: rdv.start_time,
      *       end: rdv.end_time,
@@ -145,7 +146,7 @@ export default abstract class ProgramPlanControllerBase {
      *       state: rdv.state
      *   }
      */
-    public populateCalendarEvent(event: EventObjectInput) {
+    public populateCalendarEvent(event: EventObjectInput, getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } }) {
     }
 
     /**
@@ -153,7 +154,7 @@ export default abstract class ProgramPlanControllerBase {
      * @param event droppable item infos
      * @param elt jquery elt
      */
-    public populateDroppableItem(event: EventObjectInput, elt) {
+    public populateDroppableItem(event: EventObjectInput, elt, getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } }) {
     }
 
     /**

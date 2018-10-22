@@ -7,7 +7,7 @@ import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/Mod
 import IPlanProgram from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanProgram';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ProgramPlanClientVueModule from '../ProgramPlanClientVueModule';
-
+import './ProgramsOverviewComponent.scss';
 
 @Component({
     template: require('./ProgramsOverviewComponent.pug'),

@@ -295,7 +295,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             // TODO reporter dans le projet / adapter backgroundColor: enseigne.bgcolor,
             // textColor: enseigne.color,
             id: rdv.id,
-            etablissement_id: etablissement.id,
+            target_id: etablissement.id,
             resourceId: facilitator.id,
             start: rdv.start_time,
             end: rdv.end_time,
@@ -303,7 +303,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             state: rdv.state
         };
 
-        ProgramPlanControllerBase.getInstance().populateCalendarEvent(res);
+        ProgramPlanControllerBase.getInstance().populateCalendarEvent(res, this.getStoredDatas);
         return res;
     }
 
