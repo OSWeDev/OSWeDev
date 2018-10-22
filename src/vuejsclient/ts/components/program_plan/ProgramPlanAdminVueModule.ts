@@ -80,6 +80,14 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
             this.routes);
 
         CRUDComponentManager.getInstance().registerCRUD(
+            ModuleProgramPlanBase.getInstance().partner_type_id,
+            null,
+            new MenuPointer(
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().partner_type_id, MenuElementBase.PRIORITY_MEDIUM - 1, "fa-sitemap"),
+                menuBranch),
+            this.routes);
+
+        CRUDComponentManager.getInstance().registerCRUD(
             ModuleProgramPlanBase.getInstance().manager_type_id,
             null,
             new MenuPointer(

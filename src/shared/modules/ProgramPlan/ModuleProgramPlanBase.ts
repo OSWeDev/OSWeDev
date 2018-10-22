@@ -41,6 +41,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
     public program_category_type_id: string;
     public program_type_id: string;
+    public partner_type_id: string;
     public manager_type_id: string;
     public enseigne_type_id: string;
     public target_type_id: string;
@@ -55,17 +56,18 @@ export default abstract class ModuleProgramPlanBase extends Module {
         name: string,
         reflexiveClassName: string,
 
-        program_category_type_id,
-        program_type_id,
-        manager_type_id,
-        enseigne_type_id,
-        target_type_id,
-        rdv_cr_type_id,
-        rdv_type_id,
-        facilitator_type_id,
-        program_facilitator_type_id,
-        program_manager_type_id,
-        program_target_type_id,
+        program_category_type_id: string,
+        program_type_id: string,
+        partner_type_id: string,
+        manager_type_id: string,
+        enseigne_type_id: string,
+        target_type_id: string,
+        rdv_cr_type_id: string,
+        rdv_type_id: string,
+        facilitator_type_id: string,
+        program_facilitator_type_id: string,
+        program_manager_type_id: string,
+        program_target_type_id: string,
 
         specificImportPath: string = null) {
 
@@ -82,6 +84,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.program_facilitator_type_id = program_facilitator_type_id;
         this.program_manager_type_id = program_manager_type_id;
         this.program_target_type_id = program_target_type_id;
+        this.partner_type_id = partner_type_id;
 
         ModuleProgramPlanBase.instance = this;
 
@@ -101,6 +104,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.callInitializePlanProgram();
         this.callInitializePlanEnseigne();
         this.callInitializePlanTarget();
+        this.callInitializePlanPartner();
         this.callInitializePlanManager();
         this.callInitializePlanFacilitator();
         this.callInitializePlanRDV();
@@ -192,29 +196,35 @@ export default abstract class ModuleProgramPlanBase extends Module {
     protected abstract callInitializePlanFacilitator();
     protected initializePlanFacilitator(additional_fields: ModuleTableField<any>[]) {
         let manager_id = new ModuleTableField('manager_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', false);
+        let partner_id = new ModuleTableField('partner_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
         let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
             manager_id,
+            partner_id,
             new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field
         );
 
         let datatable = new ModuleTable(this, this.facilitator_type_id, additional_fields, label_field, "Animateurs");
         manager_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
+        partner_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
         this.datatables.push(datatable);
     }
 
     protected abstract callInitializePlanManager();
     protected initializePlanManager(additional_fields: ModuleTableField<any>[]) {
         let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let partner_id = new ModuleTableField('partner_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
 
         additional_fields.unshift(
+            partner_id,
             new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field
         );
 
         let datatable = new ModuleTable(this, this.manager_type_id, additional_fields, label_field, "Managers");
+        partner_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -355,6 +365,18 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTable(this, this.program_target_type_id, additional_fields, null, "Etablissements par programme");
         target_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
         program_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        this.datatables.push(datatable);
+    }
+
+    protected abstract callInitializePlanPartner();
+    protected initializePlanPartner(additional_fields: ModuleTableField<any>[]) {
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
+
+        additional_fields.unshift(
+            label_field
+        );
+
+        let datatable = new ModuleTable(this, this.partner_type_id, additional_fields, label_field, "Partenaires");
         this.datatables.push(datatable);
     }
 }

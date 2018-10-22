@@ -6,7 +6,7 @@
                 i.seemorl.fa.fa-compress(aria-hidden="true", v-show="seemore", @click="seemore = !seemore")
                 field(isreadonly="true", :name="label('programplan.rdv_modal.target_name')", :value="target.name")
                 field(isreadonly="true", :name="label('programplan.rdv_modal.facilitator_name')", :value="facilitatorName", v-show="!managerName")
-                field(isreadonly="true", :name="label('programplan.rdv_modal.target_name')", :value="facilitatorAndManagerName", v-show="managerName")
+                field(isreadonly="true", :name="label('programplan.rdv_modal.manager_name')", :value="facilitatorAndManagerName", v-show="managerName")
                 .adresse(v-show="targetAddressHTML")
                     target-infos(:title="label('programplan.rdv_modal.address')", :content="targetAddressHTML")
                 .contact(v-show='targetContactInfosHTML')

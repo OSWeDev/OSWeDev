@@ -29,6 +29,7 @@ import ProgramPlanComponentImpression from './Impression/ProgramPlanComponentImp
 import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanComponentTargetListing';
 import ProgramPlanClientVueModule from './ProgramPlanClientVueModule';
 import './ProgramPlanComponent.scss';
+import IPlanPartner from '../../../../shared/modules/ProgramPlan/interfaces/IPlanPartner';
 
 
 @Component({
@@ -135,6 +136,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
         self.nextLoadingStep();
         promises = [];
 
+        // partenaires (on charge tous les partenaires ça parait pas être voué à exploser comme donnée mais à suivre)
+        promises.push((async () => {
+            let partners: IPlanPartner[] = await ModuleDAO.getInstance().getVos<IPlanPartner>(ModuleProgramPlanBase.getInstance().partner_type_id);
+            self.storeDatas({ API_TYPE_ID: ModuleProgramPlanBase.getInstance().partner_type_id, vos: partners });
+        })());
+
         // managers du programme
         promises.push((async () => {
             let program_managers: IPlanProgramManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanProgramManager>(ModuleProgramPlanBase.getInstance().program_manager_type_id, 'program_id', [this.program_id]);
@@ -235,11 +242,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
         for (let i in this.facilitators) {
             let facilitator: IPlanFacilitator = this.facilitators[i];
             let manager: IPlanManager = this.managers[facilitator.manager_id];
+            let partner: IPlanPartner = this.partners[facilitator.partner_id];
 
             res.push({
                 id: facilitator.id,
                 title: this.getResourceName(facilitator.firstname, facilitator.lastname),
-                manager_title: manager ? this.getResourceName(manager.firstname, manager.lastname) : ""
+                manager_title: manager ? this.getResourceName(manager.firstname, manager.lastname) : "",
+                partner_name: partner ? partner.name : ""
             });
         }
 
@@ -450,6 +459,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return res;
     }
 
+    get partners(): { [id: number]: IPlanPartner } {
+
+        return this.getStoredDatas[ModuleProgramPlanBase.getInstance().partner_type_id] as { [id: number]: IPlanPartner };
+    }
+
     get managers(): { [id: number]: IPlanManager } {
         let res: { [id: number]: IPlanManager } = {};
 
@@ -624,6 +638,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             views: {
                 timelineMonth: {
+                    slotWidth: 75,
                     slotLabelInterval: {
                         hours: 12
                     },
@@ -632,6 +647,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     },
                 },
                 timelineWeek: {
+                    slotWidth: 75,
                     slotLabelInterval: {
                         hours: 12
                     },
@@ -643,9 +659,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
             defaultTimedEventDuration: {
                 hours: 12
             },
-            navLinks: true,
+            navLinks: false,
             eventOverlap: false,
-            resourceAreaWidth: '300px',
+            resourceAreaWidth: '400px',
             resourceLabelText: 'Utilisateurs',
             slotLabelFormat: [
                 'ddd D/M',
@@ -659,6 +675,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 labelText: this.label('programplan.fc.manager.name'),
                 field: 'manager_title',
                 group: true
+            }, {
+                labelText: this.label('programplan.fc.partner.name'),
+                field: 'partner_name'
             }],
             resources: this.getPlanningResources(),
         };
@@ -824,7 +843,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 icon = "fa-square-o";
         }
 
-        var i = $('<i class="fa ' + icon + '" aria-hidden="true"/>');
+        var i = $('<i class="fa ' + icon + ' fa-2x" aria-hidden="true"/>');
         element.find('div.fc-content').prepend(i);
     }
 }
