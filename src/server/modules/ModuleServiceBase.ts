@@ -33,6 +33,15 @@ import ModuleFileServer from './File/ModuleFileServer';
 import ModuleFile from '../../shared/modules/File/ModuleFile';
 import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImage from '../../shared/modules/Image/ModuleImage';
+import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
+import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
+import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
+import ModuleClient from '../../shared/modules/Commerce/Client/ModuleClient';
+import ModuleService from '../../shared/modules/Commerce/Service/ModuleService';
+import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommande';
+import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
+import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
+import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -269,7 +278,14 @@ export default abstract class ModuleServiceBase {
             ModuleDataImport.getInstance(),
             ModuleDataExport.getInstance(),
             ModuleDataRender.getInstance(),
-            ModuleSASSSkinConfigurator.getInstance()
+            ModuleSASSSkinConfigurator.getInstance(),
+            ModuleCommerce.getInstance(),
+            ModuleProduit.getInstance(),
+            ModuleClient.getInstance(),
+            ModuleService.getInstance(),
+            ModuleCommande.getInstance(),
+            ModuleAbonnement.getInstance(),
+            ModulePaiement.getInstance(),
         ];
     }
 
@@ -287,7 +303,9 @@ export default abstract class ModuleServiceBase {
             ModuleDataImportServer.getInstance(),
             ModuleDataExportServer.getInstance(),
             ModuleDataRenderServer.getInstance(),
-            ModuleSASSSkinConfiguratorServer.getInstance()
+            ModuleSASSSkinConfiguratorServer.getInstance(),
+            ModuleCommerceServer.getInstance(),
+            ModuleCommandeServer.getInstance(),
         ];
     }
 

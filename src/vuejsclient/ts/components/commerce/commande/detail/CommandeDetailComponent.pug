@@ -1,0 +1,26 @@
+.row
+    .row(v-if="!isLoading && commande")
+        .field
+            label {{ t('client.commande.id') }}
+            .value {{ commande.id }}
+        .field
+            label {{ t('client.commande.date') }}
+            .value {{ commande.date }}
+        .field
+            label {{ t('client.commande.statut') }}
+            .value {{ commande.statut }}
+        table(v-if="details")
+            thead
+                tr
+                    th {{ t('client.commande.ligne.service.titre') }}
+                    th {{ t('client.commande.ligne.prix_unitaire') }}
+                    th {{ t('client.commande.ligne.quantite') }}
+                    th {{ t('client.commande.ligne.total') }}
+            tbody
+                template(v-for="detail in details")
+                    ligne(:detail="detail")
+            tfooter
+                tr
+                    td(colspan="3")
+                    td {{ const_filters.read.amount(totalCommande, 2) }}
+            

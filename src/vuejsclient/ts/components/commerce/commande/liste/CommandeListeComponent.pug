@@ -1,0 +1,7 @@
+.row
+    table(v-if="!isLoading")
+        tr(v-for="commande in commandes")
+            td {{ commande.id }}
+            td {{ commande.date }}
+            td {{ commande.statut }}
+            td {{ commande.client_id }}
