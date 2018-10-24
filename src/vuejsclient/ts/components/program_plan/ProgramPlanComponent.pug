@@ -1,0 +1,45 @@
+include ../../../views/mixins/loading.pug
+
+.rootElt#program-plan
+    +loading()
+        program-plan-component-impression(:enseignes="enseignes", :targets="targets", :facilitators="facilitators", :rdvs="rdvs")
+
+        program-plan-component-target-listing.hidden-print(:targets="targets", v-if="can_edit_planning", :enseignes="enseignes")
+        full-calendar.hidden-print(
+            :events="fcEvents" 
+            :config="fcConfig"
+            
+            @view-render='onFCViewRender' 
+            @event-drop="onFCEventDrop"
+            @event-resize="onFCEventResize"
+            @event-receive="onFCEventReceive"
+            @event-selected="onFCEventSelected"
+            @event-render="onFCEventRender"
+        )
+
+        #rdv_modal.modal.fade.in(ref="rdv_modal", tabindex='-1', role='dialog')
+            .modal-dialog.modal-lg(role='document')
+                .modal-content(v-if="selected_rdv && targets && targets[selected_rdv.target_id]")
+                    .modal-header
+                        h4.modal-title {{ targets[selected_rdv.target_id].name }}
+                        router-link.btn.close(:to="route_path") &times;
+                    
+                    .modal-body
+                        program-plan-component-modal(:selected_rdv="selected_rdv" :key='selected_rdv.id' :can_edit_planning='can_edit_planning')
+
+                    .modal-footer
+                        button.btn.btn-danger(type='button', @click="deleteSelectedEvent()", v-if="can_edit_planning") {{ label('programplan.rdv_modal.delete_rdv') }}
+                        router-link.btn.btn-default(:to="route_path") {{ label('programplan.rdv_modal.close') }}
+        //- #rdv_modal.modal.fade
+        //-     .modal-dialog.modal-lg
+        //-         .modal-content(v-if="selected_rdv && targets && targets[selected_rdv.target_id]")
+        //-             .modal-header
+        //-                 h4.modal-title {{ targets[selected_rdv.target_id].name }}
+        //-                 router-link.btn.close(:to="route_path") &times;
+                    
+        //-             .modal-body
+        //-                 program-plan-component-modal(:selected_rdv="selected_rdv" :key='selected_rdv.id' :can_edit_planning='can_edit_planning')
+
+        //-             .modal-footer
+        //-                 button.btn.btn-danger(type='button', @click="deleteSelectedEvent()", v-if="can_edit_planning") {{ t('programplan.rdv_modal.delete_rdv') }}
+        //-                 router-link.btn.btn-default(:to="route_path") {{ t('programplan.rdv_modal.close') }}

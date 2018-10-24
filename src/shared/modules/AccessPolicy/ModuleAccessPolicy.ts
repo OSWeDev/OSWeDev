@@ -298,7 +298,7 @@ export default class ModuleAccessPolicy extends Module {
         let datatable_fields = [
             field_role_id,
             field_accpol_id,
-            new ModuleTableField('granted', ModuleTableField.FIELD_TYPE_boolean, 'Granted', true, true, false),
+            new ModuleTableField('granted', ModuleTableField.FIELD_TYPE_boolean, 'Granted', false, true, false),
         ];
 
         this.rolepolicies_datatable = new ModuleTable(this, RolePoliciesVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Droits des rôles" }));

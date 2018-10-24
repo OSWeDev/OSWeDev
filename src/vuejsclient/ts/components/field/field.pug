@@ -1,0 +1,7 @@
+.form-group(:id="field_id")
+        label.control-label(class="has-subname", v-if="typeof subname != 'undefined'") {{name}}
+          .subname {{subname}}
+        label.control-label(v-else) {{name}}
+        .input-block
+          img.field-icon(v-if="typeof icon != 'undefined'", :src="'/public/img/pictos/' + icon")
+          filtered-input(wrapper="div", :istextarea="istextarea", :isreadonly="isreadonly", :value="value", :filters="filters", v-on:update_editable_td='on_update_field')

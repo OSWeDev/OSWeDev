@@ -1,4 +1,4 @@
-@import '../generated/skin-variables.scss';
+@import 'skin-variables';
 
 .v-select {
   background: #fff;
@@ -127,4 +127,32 @@
 
 .hide_annonce:before {
   display: none;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.primary_theme_bg {
+    background-color: $button_primary_bg_color !important;
+    color: $button_text_color !important;
+}
+
+.primary_theme_light_bg {
+    background-color: $button_primary_active_bg_color !important;
+    color: $button_text_color !important;
+}
+
+.table_total_row td {
+    font-weight: bolder !important;
+    @extend .primary_theme_light_bg;
+}
+
+.panel-default>.panel-heading {
+    font-weight: bolder !important;
+    @extend .primary_theme_bg;
+}
+
+.fc-view-container .fc-view{
+    background: white;
 }

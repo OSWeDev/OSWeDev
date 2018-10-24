@@ -48,8 +48,9 @@ export default class ModuleSASSSkinConfigurator extends Module {
 
             new ModuleTableField('main_box_title_color', ModuleTableField.FIELD_TYPE_string, 'main_box_title_color', true, true, '#b3003c'),
 
-            new ModuleTableField('main_background_int_url', ModuleTableField.FIELD_TYPE_string, 'main_background_int_url', true, true, '"/public/img/background_int.jpg"'),
+            new ModuleTableField('main_background_int_url', ModuleTableField.FIELD_TYPE_string, 'main_background_int_url'),
             new ModuleTableField('main_background_url', ModuleTableField.FIELD_TYPE_string, 'main_background_url', true, true, '"/public/img/background.jpg"'),
+            new ModuleTableField('main_background_header_url', ModuleTableField.FIELD_TYPE_string, 'main_background_header_url'),
 
             new ModuleTableField('main_icons_lightbackground', ModuleTableField.FIELD_TYPE_string, 'main_icons_lightbackground', true, true, 'rgba(255,255,255,0.3)'),
 

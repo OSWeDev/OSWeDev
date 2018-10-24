@@ -57,6 +57,6 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
 
     private getSassVariableDefinition(name: string, value: string): string {
-        return "$" + name + ": " + value + ";";
+        return "$" + name + ": " + (((value == '') || (typeof value == 'undefined')) ? 'null' : value) + ";";
     }
 }

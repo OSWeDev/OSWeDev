@@ -1,0 +1,37 @@
+.root
+    .modal-body
+        .row(:class="'infosContener ' + (seemore ? '' : 'seeless')")
+            .col-md-6.infos
+                i.seemorl.fa.fa-expand(aria-hidden="true", v-show="!seemore", @click="seemore = !seemore")
+                i.seemorl.fa.fa-compress(aria-hidden="true", v-show="seemore", @click="seemore = !seemore")
+                field(isreadonly="true", :name="label('programplan.rdv_modal.target_name')", :value="target.name")
+                field(isreadonly="true", :name="label('programplan.rdv_modal.facilitator_name')", :value="facilitatorName", v-show="!managerName")
+                field(isreadonly="true", :name="label('programplan.rdv_modal.manager_name')", :value="facilitatorAndManagerName", v-show="managerName")
+                .adresse(v-show="targetAddressHTML")
+                    target-infos(:title="label('programplan.rdv_modal.address')", :content="targetAddressHTML")
+                .contact(v-show='targetContactInfosHTML')
+                    target-infos(:title="label('programplan.rdv_modal.infos_contact')", :content="targetContactInfosHTML")
+            .col-md-6.map(v-show='targetAddressHTML')
+                .mapouter(style="overflow:hidden;height:346px;width:346px;")
+                    .gmap_canvas(style="background:none!important;height:346px;width:346px;")
+                        iframe(width="346", height="346", id="gmap_canvas", :src="'https://maps.google.com/maps?q=' + GmapQ + '&t=&z=14&ie=UTF8&iwloc=&output=embed'", frameborder="0", scrolling="no", marginheight="0",   marginwidth="0")
+                .horaires(v-show='target.infos_horaires')
+                    target-infos(:title="label('programplan.rdv_modal.infos_horaires')", :content="target.infos_horaires")
+        .row
+            .col-md-12.crsandnew
+                label {{ label('programplan.rdv_modal.confirmed') }}
+                    input(type="checkbox", v-model="rdv_confirmed")
+                .crs(v-if="!edited_cr")
+                    .cr(v-for="(cr, i) in crs")
+                        i.fa.fa-trash(aria-hidden="true", @click="delete_cr(cr)")
+                        i.fa.fa-pencil(aria-hidden="true", @click="editCR(cr)")
+                        .custom_cr_read_component(:is="custom_cr_read_component" :rdv='selected_rdv' :cr='cr')
+                                
+    .newcr(v-if="selected_rdv && selected_rdv.id && canaddcr", :class="(newcr_seemore ? '' : 'newcr_seeless')")
+        i.newcr_seemorl.fa.fa-expand(aria-hidden="true", v-show="!newcr_seemore", @click="newcr_seemore = !newcr_seemore")
+        i.newcr_seemorl.fa.fa-compress(aria-hidden="true", v-show="newcr_seemore", @click="newcr_seemore = !newcr_seemore")
+        .custom_cr_create_component(:is="custom_cr_create_component" :rdv='selected_rdv' :create_cr="create_cr")
+    .updatecr(v-if="selected_rdv && selected_rdv.id && edited_cr", :class="(updatecr_seemore ? '' : 'updatecr_seeless')")
+        i.updatecr_seemorl.fa.fa-expand(aria-hidden="true", v-show="!updatecr_seemore", @click="updatecr_seemore = !updatecr_seemore")
+        i.updatecr_seemorl.fa.fa-compress(aria-hidden="true", v-show="updatecr_seemore", @click="updatecr_seemore = !updatecr_seemore")
+        .custom_cr_update_component(:is="custom_cr_update_component" :rdv='selected_rdv' :cr='edited_cr' :update_cr='update_cr' :cancel_edition='cancel_edition')

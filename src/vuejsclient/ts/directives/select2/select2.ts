@@ -9,11 +9,12 @@ export default Vue.directive('select2', {
         var select = $(el);
 
         Vue.nextTick(function () {
-            if (!select.select2) {
+            // DIRTY : Incompatibilité quand on essaie de mettre les types select2 avec les types nodes....
+            if (!select['select2']) {
                 console.error("FIXME: select2 not loading properly");
                 return;
             }
-            select.select2({
+            select['select2']({
                 theme: 'bootstrap',
                 //tags: "true",
                 allowClear: false

@@ -1,0 +1,53 @@
+include ../../../../views/mixins/box.pug
+include ../../../../views/mixins/table.pug
+
+.root
+    .printform.hidden-print
+        div.col-md-12
+            +box("{{t('client.planning-store-visits.printform.title')}}", 'fa-filter')
+                .form.row
+                    .col-md-6
+                        select.form-control(v-model="printform_filter_enseignes", set_value_in="printform_filter_enseignes", multiple, v-select2="", :data-placeholder="t('client.planning-store-visits.printform.filtrer.enseignes')")
+                            option(v-for="(enseigne, i) in enseignes", :value='enseigne.id') {{enseigne.name}}
+                        label {{ t('client.planning-store-visits.printform.filtrer.clientformat') }}
+                            input(type="checkbox", v-model="printform_filter_clientformat", set_value_in="printform_filter_clientformat")
+                    .col-md-6
+                        input(type="date", v-model="printform_filter_date_debut", set_value_in="printform_filter_date_debut", :data-placeholder="t('client.planning-store-visits.printform.filtrer.begindate')")
+                        input(type="date", v-model="printform_filter_date_fin", set_value_in="printform_filter_date_fin", :data-placeholder="t('client.planning-store-visits.printform.filtrer.enddate')")
+                        label {{ t('client.planning-store-visits.printform.filtrer.slotsize') }}
+                            input(type="checkbox", v-model="printform_filter_slotsize", set_value_in="printform_filter_slotsize")
+                    .col-md-6
+                        button.btn.pull-right.btn-primary(type="button", @click="printPlanning()")
+                            span {{ t('client.planning-store-visits.printform.go') }}
+
+    .printable.hidden-noprint
+
+        mixin print-planning-headers(printable_table_week)
+            tr
+                th(colspan=2, v-for="(printable_table_day, i) in printable_table_week.days").th-colspan.text-left {{printable_table_day}}
+            tr(v-if="printform_filter_slotsize")
+                template(v-for="i in printable_table_week.days")
+                    th.th-colspan.text-left {{ t('client.planning-store-visits.printform.am') }}
+                    th.th-colspan.text-left {{ t('client.planning-store-visits.printform.pm') }}
+
+
+        mixin print-planning-table()
+            +table()
+                thead
+                    +print-planning-headers()
+                tbody
+                    block
+
+        mixin print-planning-slots(printable_table_row)
+            template(v-for="(printable_table_row_colspanned, i) in printable_table_row")
+                template(v-if="printable_table_row_colspanned.isrdv")
+                    td(v-bind:colspan="printable_table_row_colspanned.nb_slots", :style="'border-color: black; color: ' + printable_table_row_colspanned.color + ' !important; background-color: ' + printable_table_row_colspanned.bgcolor + ' !important'") {{printable_table_row_colspanned.short_name}}
+                template(v-else)
+                    td(v-for="i in printable_table_row_colspanned.nb_slots")
+
+        template(v-if="printable_table_weeks && printable_table_weeks.length")
+            template(v-for="(printable_table_week, i) in printable_table_weeks")
+                .row.page
+                    +print-planning-table(printable_table_week)
+                        tr.text-center(v-for="(printable_table_row, j) in printable_table_week.rows")
+                            +print-planning-slots(printable_table_row)

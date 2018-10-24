@@ -1,3 +1,8 @@
+# 0.4.7 => 0.4.8
+    ALTER TABLE admin.module_sass_resource_planning_skin_configurator ADD COLUMN main_background_header_url text;
+    ALTER TABLE admin.module_sass_resource_planning_skin_configurator ALTER COLUMN main_background_int_url DROP DEFAULT;
+    ALTER TABLE admin.module_sass_resource_planning_skin_configurator ALTER COLUMN main_background_int_url DROP NOT NULL;
+
 # Modification des imports [<= 0.3.5] -> [*]
 
 ## SQL
@@ -95,14 +100,41 @@ Visual Studio Code
             END LOOP;
         END;$$
         --------------------------------------------------------------------------------------------------------
-        DO $$DECLARE r record;
-        BEGIN
-        FOR r IN SELECT table_schema, table_name 
-        FROM information_schema.views WHERE NOT table_schema IN ('pg_catalog', 'information_schema')
-        LOOP
-        EXECUTE 'ALTER SCHEMA '|| quote_ident(r.table_schema) ||' OWNER TO my_new_user;';
-        END LOOP;
-        END;$$
+        ALTER SCHEMA admin
+        OWNER TO my_new_user;
+        ALTER SCHEMA checks
+        OWNER TO my_new_user;
+
+        ALTER SCHEMA computations
+        OWNER TO my_new_user;
+        ALTER SCHEMA data_import
+        OWNER TO my_new_user;
+        ALTER SCHEMA day
+        OWNER TO my_new_user;
+        ALTER SCHEMA fte
+        OWNER TO my_new_user;
+        ALTER SCHEMA hourly
+        OWNER TO my_new_user;
+        ALTER SCHEMA imports
+        OWNER TO my_new_user;
+        ALTER SCHEMA monthly
+        OWNER TO my_new_user;
+        ALTER SCHEMA public
+        OWNER TO my_new_user;
+        ALTER SCHEMA ref
+        OWNER TO my_new_user;
+        ALTER SCHEMA sales
+        OWNER TO my_new_user;
+        ALTER SCHEMA store
+        OWNER TO my_new_user;
+        ALTER SCHEMA tasks
+        OWNER TO my_new_user;
+        ALTER SCHEMA usr
+        OWNER TO my_new_user;
+        ALTER SCHEMA web
+        OWNER TO my_new_user;
+        ALTER SCHEMA weekly
+        OWNER TO my_new_user;
 
     * Configurer les tâches (/.vscode/.tasks.json) pour une compilation en watch du typescript de chaque sous-partie. 
 Exemple de fichier tasks.json :

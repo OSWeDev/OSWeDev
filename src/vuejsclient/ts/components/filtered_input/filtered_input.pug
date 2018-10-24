@@ -1,0 +1,5 @@
+input(:class="input_class", :readonly="isreadonly", ref="input", :value="value", @:input="onChangeHandler()", @blur=formatValue, v-if="(!istextarea) && (wrapper=='div')")
+input(:class="input_class", @keyup.esc='deactivateEdition()', @change="onChangeHandler()", :type=type, :readonly="isreadonly", ref='input', :value="value", @blur="formatValue", v-else-if="(!istextarea) && (wrapper=='td')")
+
+textarea(:readonly="isreadonly", @input="onChangeHandler()", ref="input", :value=value, @blur="formatValue", v-else-if="(istextarea) && (wrapper=='div')")
+textarea(@keyup.esc='deactivateEdition()', type="#{typeElt}", :readonly="isreadonly", ref="input", :value=value, @change="onChangeHandler()", @blur="formatValue", v-else-if="(istextarea) && (wrapper=='td')")

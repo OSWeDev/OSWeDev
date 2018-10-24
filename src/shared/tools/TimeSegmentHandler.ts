@@ -262,4 +262,29 @@ export default class TimeSegmentHandler {
 
         return ts2Moment.isSameOrAfter(start) && ts2Moment.isBefore(end);
     }
+
+    public segmentsAreEquivalent(ts1: TimeSegment, ts2: TimeSegment): boolean {
+
+        if ((!ts1) && ts2) {
+            return false;
+        }
+
+        if (ts1 && (!ts2)) {
+            return false;
+        }
+
+        if ((!ts1) && (!ts2)) {
+            return true;
+        }
+
+        if (ts1.type != ts2.type) {
+            return false;
+        }
+
+        if (ts1.dateIndex != ts2.dateIndex) {
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -79,12 +79,19 @@ export default abstract class DataImportComponentBase extends VueComponentBase {
         setTimeout(() => {
             self.handle_modal_show_hide();
             $("#import_modal").on("hidden.bs.modal", function () {
-                self.$router.push(self.get_url_for_modal ? self.get_url_for_modal(null) : self.route_path);
+
+                self.closeModal();
             });
         }, 100);
 
         this.stopLoading();
     }
+
+
+    protected closeModal() {
+        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(null) : this.route_path);
+    }
+
 
     protected async handle_modal_show_hide() {
         if (!this.modal_show) {
