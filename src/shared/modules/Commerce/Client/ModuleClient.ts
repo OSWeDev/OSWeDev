@@ -1,12 +1,17 @@
-import ClientVO from './vos/ClientVO';
-import InformationsVO from './vos/InformationsVO';
+import AccessPolicyVO from '../../AccessPolicy/vos/AccessPolicyVO';
+import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
 import ModuleTableField from '../../ModuleTableField';
-import ModuleAccessPolicy from '../../AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../../DAO/ModuleDAO';
+import VOsTypesManager from '../../VOsTypesManager';
+import ClientVO from './vos/ClientVO';
+import InformationsVO from './vos/InformationsVO';
+import ModuleAPI from '../../API/ModuleAPI';
+import NumberParamVO from '../../API/vos/apis/NumberParamVO';
+import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 
 export default class ModuleClient extends Module {
+    public static APINAME_getInformationsClientUser: string = "getInformationsClientUser";
 
     public static getInstance(): ModuleClient {
         if (!ModuleClient.instance) {
@@ -21,7 +26,17 @@ export default class ModuleClient extends Module {
     public datatable_client: ModuleTable<ClientVO> = null;
 
     private constructor() {
-        super('commerce_client', 'Client', 'Commerce/Client');
+        super(ClientVO.API_TYPE_ID, 'Client', 'Commerce/Client');
+    }
+    public registerApis() {
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, InformationsVO>(
+            ModuleClient.APINAME_getInformationsClientUser,
+            [InformationsVO.API_TYPE_ID],
+            NumberParamVO.translateCheckAccessParams,
+            NumberParamVO.URL,
+            NumberParamVO.translateToURL,
+            NumberParamVO.translateFromREQ
+        ));
     }
 
     public async hook_module_configure(db) {
@@ -66,9 +81,13 @@ export default class ModuleClient extends Module {
             field_informations_id
         ];
         this.datatable_client = new ModuleTable<ClientVO>(this, ClientVO.API_TYPE_ID, datatable_fields, null, 'Client');
-        field_user_id.addManyToOneRelation(this.datatable_client, ModuleAccessPolicy.getInstance().user_datatable);
+        field_user_id.addManyToOneRelation(this.datatable_client, VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
         field_informations_id.addManyToOneRelation(this.datatable_client, this.datatable_informations);
         this.datatables.push(this.datatable_client);
+    }
+
+    public async getInformationsClientUser(userId: number): Promise<InformationsVO> {
+        return ModuleAPI.getInstance().handleAPI<NumberParamVO, InformationsVO>(ModuleClient.APINAME_getInformationsClientUser, userId);
     }
 
     public async getClientById(clientId: number): Promise<ClientVO> {

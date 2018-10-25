@@ -4,6 +4,8 @@ import AbonnementVO from './vos/AbonnementVO';
 import PackAbonnementVO from './vos/PackAbonnementVO';
 import ModuleTableField from '../../ModuleTableField';
 import ModuleCommande from '../Commande/ModuleCommande';
+import CommandeVO from '../Commande/vos/CommandeVO';
+import VOsTypesManager from '../../VOsTypesManager';
 
 export default class ModuleAbonnement extends Module {
 
@@ -20,7 +22,7 @@ export default class ModuleAbonnement extends Module {
     public datatable_pack_abonnement: ModuleTable<PackAbonnementVO> = null;
 
     private constructor() {
-        super('commerce_abonnement', 'Abonnement', 'Commerce/Abonnement');
+        super(AbonnementVO.API_TYPE_ID, 'Abonnement', 'Commerce/Abonnement');
     }
 
     public async hook_module_configure(db) {
@@ -34,10 +36,7 @@ export default class ModuleAbonnement extends Module {
         this.datatables = [];
 
         this.initializeAbonnement();
-
-        if (ModuleCommande.getInstance().actif) {
-            this.initializePackAbonnement();
-        }
+        this.initializePackAbonnement();
     }
 
     public initializeAbonnement(): void {
@@ -62,7 +61,7 @@ export default class ModuleAbonnement extends Module {
             field_abonnement_id,
         ];
         this.datatable_pack_abonnement = new ModuleTable<PackAbonnementVO>(this, PackAbonnementVO.API_TYPE_ID, datatable_fields, null, 'PackAbonnement');
-        field_ligne_commande_id.addManyToOneRelation(this.datatable_pack_abonnement, ModuleCommande.getInstance().datatable_ligne_commande);
+        field_ligne_commande_id.addManyToOneRelation(this.datatable_pack_abonnement, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
         field_abonnement_id.addManyToOneRelation(this.datatable_pack_abonnement, this.datatable_abonnement);
         this.datatables.push(this.datatable_pack_abonnement);
     }

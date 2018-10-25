@@ -42,6 +42,11 @@ import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommand
 import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
 import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
 import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
+import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
+import ModuleClientServer from './Commerce/Client/ModuleClientServer';
+import ModuleServiceServer from './Commerce/Service/ModuleServiceServer';
+import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
+import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -152,6 +157,10 @@ export default abstract class ModuleServiceBase {
         //      et en faisant le lien dans le typescript, on importera que le fichier qui nous est utile.
         return this.registered_modules;
     }
+
+    protected abstract getChildModules(): Module[];
+    protected abstract getServerChildModules(): ModuleServerBase[];
+
     private async create_modules_base_structure_in_db() {
         // On vérifie que la table des modules est disponible, sinon on la crée
         await this.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
@@ -305,11 +314,12 @@ export default abstract class ModuleServiceBase {
             ModuleDataRenderServer.getInstance(),
             ModuleSASSSkinConfiguratorServer.getInstance(),
             ModuleCommerceServer.getInstance(),
+            ModuleProduitServer.getInstance(),
+            ModuleClientServer.getInstance(),
+            ModuleServiceServer.getInstance(),
             ModuleCommandeServer.getInstance(),
+            ModuleAbonnementServer.getInstance(),
+            ModulePaiementServer.getInstance(),
         ];
     }
-
-
-    protected abstract getChildModules(): Module[];
-    protected abstract getServerChildModules(): ModuleServerBase[];
 }

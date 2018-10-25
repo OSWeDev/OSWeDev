@@ -1,7 +1,7 @@
 import IDistantVOBase from '../../../IDistantVOBase';
 
 export default class CommandeVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "commande";
+    public static API_TYPE_ID: string = 'commerce_commande';
 
     public id: number;
     public _type: string = CommandeVO.API_TYPE_ID;

@@ -2,6 +2,7 @@ import ModuleCommerce from '../../../../shared/modules/Commerce/ModuleCommerce';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import CommandeListeComponent from './commande/liste/CommandeListeComponent';
 import CommandeDetailComponent from './commande/detail/CommandeDetailComponent';
+import ClientComponent from './client/ClientComponent';
 
 export default class CommerceVueModule extends VueModuleBase {
     public static getInstance(): CommerceVueModule {
@@ -18,7 +19,7 @@ export default class CommerceVueModule extends VueModuleBase {
         super(ModuleCommerce.getInstance().name);
     }
 
-    public initialize(): void {
+    public initialize() {
         this.routes.push(
             {
                 path: '/commandes',
@@ -27,11 +28,16 @@ export default class CommerceVueModule extends VueModuleBase {
             },
             {
                 path: '/commande/:commande_id',
-                name: 'commandes',
+                name: 'commande_detail',
                 component: CommandeDetailComponent,
                 props: (route) => ({
                     commande_id: parseInt(route.params.commande_id)
                 })
+            },
+            {
+                path: '/infos',
+                name: 'infos',
+                component: ClientComponent
             }
         );
     }

@@ -1,10 +1,11 @@
+import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
-import ServiceVO from './vos/ServiceVO';
 import ModuleTableField from '../../ModuleTableField';
-import ModuleClient from '../Client/ModuleClient';
-import ModuleProduit from '../Produit/ModuleProduit';
-import ModuleDAO from '../../DAO/ModuleDAO';
+import VOsTypesManager from '../../VOsTypesManager';
+import ClientVO from '../Client/vos/ClientVO';
+import ProduitVO from '../Produit/vos/ProduitVO';
+import ServiceVO from './vos/ServiceVO';
 
 export default class ModuleService extends Module {
 
@@ -20,7 +21,7 @@ export default class ModuleService extends Module {
     public datatable: ModuleTable<ServiceVO> = null;
 
     private constructor() {
-        super('commerce_service', 'Service', 'Commerce/Service');
+        super(ServiceVO.API_TYPE_ID, 'Service', 'Commerce/Service');
     }
 
     public async hook_module_configure(db) {
@@ -33,9 +34,7 @@ export default class ModuleService extends Module {
         this.fields = [];
         this.datatables = [];
 
-        if (ModuleProduit.getInstance().actif && ModuleClient.getInstance().actif) {
-            this.initializeService();
-        }
+        this.initializeService();
     }
 
     public initializeService(): void {
@@ -48,8 +47,8 @@ export default class ModuleService extends Module {
             field_informations_id,
         ];
         this.datatable = new ModuleTable<ServiceVO>(this, ServiceVO.API_TYPE_ID, datatable_fields, null, 'Service');
-        field_produit_id.addManyToOneRelation(this.datatable, ModuleProduit.getInstance().datatable_produit);
-        field_informations_id.addManyToOneRelation(this.datatable, ModuleClient.getInstance().datatable_informations);
+        field_produit_id.addManyToOneRelation(this.datatable, VOsTypesManager.getInstance().moduleTables_by_voType[ProduitVO.API_TYPE_ID]);
+        field_informations_id.addManyToOneRelation(this.datatable, VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID]);
 
         this.datatables.push(this.datatable);
     }

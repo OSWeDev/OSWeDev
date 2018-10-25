@@ -47,6 +47,8 @@ import 'quill/dist/quill.snow.css';
 import 'quill/dist/quill.bubble.css';
 
 import VueDraggableResizable from 'vue-draggable-resizable';
+import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
+import CommerceVueModule from './ts/components/commerce/CommerceVueModule';
 
 
 export default abstract class VueAppBase {

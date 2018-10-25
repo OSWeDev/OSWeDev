@@ -19,7 +19,7 @@ export default class ModuleProduit extends Module {
     public datatable_categorie_produit: ModuleTable<CategorieProduitVO> = null;
 
     private constructor() {
-        super('commerce_produit', 'Produit', 'Commerce/Produit');
+        super(ProduitVO.API_TYPE_ID, 'Produit', 'Commerce/Produit');
     }
 
     public async hook_module_configure(db) {

@@ -12,6 +12,8 @@ import NumberParamVO from '../../API/vos/apis/NumberParamVO';
 import ServiceVO from '../Service/vos/ServiceVO';
 import ModuleProduit from '../Produit/ModuleProduit';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
+import VOsTypesManager from '../../VOsTypesManager';
+import ClientVO from '../Client/vos/ClientVO';
 
 export default class ModuleCommande extends Module {
     public static APINAME_getCommandesUser: string = "getCommandesUser";
@@ -30,7 +32,7 @@ export default class ModuleCommande extends Module {
     public datatable_ligne_commande: ModuleTable<LigneCommandeVO> = null;
 
     private constructor() {
-        super('commerce_commande', 'Commande', 'Commerce/Commande');
+        super(CommandeVO.API_TYPE_ID, 'Commande', 'Commerce/Commande');
     }
 
     public registerApis() {
@@ -63,13 +65,8 @@ export default class ModuleCommande extends Module {
         this.fields = [];
         this.datatables = [];
 
-        if (ModuleClient.getInstance().actif) {
-            this.initializeCommande();
-        }
-
-        if (ModuleService.getInstance().actif) {
-            this.initializeLigneCommande();
-        }
+        this.initializeCommande();
+        this.initializeLigneCommande();
     }
 
     public initializeCommande(): void {
@@ -81,7 +78,7 @@ export default class ModuleCommande extends Module {
             field_client_id
         ];
         this.datatable_commande = new ModuleTable<CommandeVO>(this, CommandeVO.API_TYPE_ID, datatable_fields, null, 'Commande');
-        field_client_id.addManyToOneRelation(this.datatable_commande, ModuleClient.getInstance().datatable_client);
+        field_client_id.addManyToOneRelation(this.datatable_commande, VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID]);
         this.datatables.push(this.datatable_commande);
     }
 
@@ -97,8 +94,8 @@ export default class ModuleCommande extends Module {
             field_service_id,
         ];
         this.datatable_ligne_commande = new ModuleTable<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, datatable_fields, null, 'Ligne commande');
-        field_commande_id.addManyToOneRelation(this.datatable_ligne_commande, this.datatable_commande);
-        field_service_id.addManyToOneRelation(this.datatable_ligne_commande, ModuleService.getInstance().datatable);
+        field_commande_id.addManyToOneRelation(this.datatable_ligne_commande, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
+        field_service_id.addManyToOneRelation(this.datatable_ligne_commande, VOsTypesManager.getInstance().moduleTables_by_voType[ServiceVO.API_TYPE_ID]);
         this.datatables.push(this.datatable_ligne_commande);
     }
 
@@ -131,7 +128,7 @@ export default class ModuleCommande extends Module {
                         (service) ? await ModuleProduit.getInstance().getProduitById(service.produit_id) : null,
                         (service) ? await ModuleClient.getInstance().getInformationsById(service.informations_id) : null,
                     )
-                )
+                );
             }
         }
 

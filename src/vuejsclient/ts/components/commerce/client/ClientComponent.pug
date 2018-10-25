@@ -1,0 +1,30 @@
+.client
+    h1 {{ t('client.client.infos') }}
+    div(v-if="client")
+        div(v-if="client.nom")
+            label(for="nom") {{ t('client.user.mon-compte.nom') }}
+            input(id="nom", type="text", disabled="disabled", :value="client.nom")
+        div(v-if="client.prenom")
+            label(for="prenom") {{ t('client.user.mon-compte.prenom') }}
+            input(id="prenom", type="text", disabled="disabled", :value="client.prenom")
+        div(v-if="client.telephone")
+            label(for="telephone") {{ t('client.user.mon-compte.telephone') }}
+            input(id="telephone", type="text", disabled="disabled", :value="client.telephone")
+        div(v-if="client.adresse")
+            label(for="adresse") {{ t('client.user.mon-compte.adresse') }}
+            input(id="adresse", type="text", disabled="disabled", :value="client.adresse")
+        div(v-if="client.code_postal")
+            label(for="code_postal") {{ t('client.user.mon-compte.code_postal') }}
+            input(id="code_postal", type="text", disabled="disabled", :value="client.code_postal")
+        div(v-if="client.ville")
+            label(for="ville") {{ t('client.user.mon-compte.ville') }}
+            input(id="ville", type="text", disabled="disabled", :value="client.ville")
+        div(v-if="client.societe")
+            label(for="societe") {{ t('client.user.mon-compte.societe') }}
+            input(id="societe", type="text", disabled="disabled", :value="client.societe")
+        div(v-if="client.siret")
+            label(for="siret") {{ t('client.user.mon-compte.siret') }}
+            input(id="siret", type="text", disabled="disabled", :value="client.siret")
+        div(v-if="client.email")
+            label(for="email") {{ t('client.user.mon-compte.email') }}
+            input(id="email", type="text", disabled="disabled", :value="client.email")

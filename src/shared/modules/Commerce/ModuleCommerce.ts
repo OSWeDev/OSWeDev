@@ -1,10 +1,5 @@
 import Module from '../Module';
-import ModuleProduit from './Produit/ModuleProduit';
-import ModuleClient from './Client/ModuleClient';
-import ModuleService from './Service/ModuleService';
-import ModuleCommande from './Commande/ModuleCommande';
-import ModuleAbonnement from './Abonnement/ModuleAbonnement';
-import ModulePaiement from './Paiement/ModulePaiement';
+import CommerceVueModule from '../../../vuejsclient/ts/components/commerce/CommerceVueModule';
 
 export default class ModuleCommerce extends Module {
 

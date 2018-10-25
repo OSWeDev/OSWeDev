@@ -1,7 +1,7 @@
 import IDistantVOBase from '../../../IDistantVOBase';
 
 export default class ProduitVO implements IDistantVOBase {
-    public static API_TYPE_ID: string = "produit";
+    public static API_TYPE_ID: string = 'commerce_produit';
 
     public id: number;
     public _type: string = ProduitVO.API_TYPE_ID;

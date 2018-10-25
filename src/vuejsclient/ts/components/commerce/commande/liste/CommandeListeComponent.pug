@@ -1,7 +1,9 @@
-.row
-    table(v-if="!isLoading")
-        tr(v-for="commande in commandes")
-            td {{ commande.id }}
-            td {{ commande.date }}
-            td {{ commande.statut }}
-            td {{ commande.client_id }}
+.commandes
+    h1 {{ t('client.commandes') }}
+    div(v-if="!isLoading")
+        table(v-if="commandes && commandes.length > 0")
+            tbody
+                template(v-for="commande in commandes")
+                    ligne(:commande="commande")
+
+        div(v-else) {{ t('client.commandes.no') }}

@@ -1,9 +1,10 @@
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
-import PaiementVO from './vos/PaiementVO';
-import ModePaiementVO from './vos/ModePaiementVO';
 import ModuleTableField from '../../ModuleTableField';
-import ModuleAbonnement from '../Abonnement/ModuleAbonnement';
+import VOsTypesManager from '../../VOsTypesManager';
+import AbonnementVO from '../Abonnement/vos/AbonnementVO';
+import ModePaiementVO from './vos/ModePaiementVO';
+import PaiementVO from './vos/PaiementVO';
 
 export default class ModulePaiement extends Module {
 
@@ -20,7 +21,7 @@ export default class ModulePaiement extends Module {
     public datatable_mode_paiement: ModuleTable<ModePaiementVO> = null;
 
     private constructor() {
-        super('commerce_paiement', 'Paiement', 'Commerce/Paiement');
+        super(PaiementVO.API_TYPE_ID, 'Paiement', 'Commerce/Paiement');
     }
 
     public async hook_module_configure(db) {
@@ -34,10 +35,7 @@ export default class ModulePaiement extends Module {
         this.datatables = [];
 
         this.initializeModePaiement();
-
-        if (ModuleAbonnement.getInstance().actif) {
-            this.initializePaiement();
-        }
+        this.initializePaiement();
     }
 
     public initializeModePaiement(): void {
@@ -60,7 +58,7 @@ export default class ModulePaiement extends Module {
             new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_string, 'Statut'),
         ];
         this.datatable_paiement = new ModuleTable<PaiementVO>(this, PaiementVO.API_TYPE_ID, datatable_fields, null, 'Paiement');
-        field_abonnement_id.addManyToOneRelation(this.datatable_paiement, ModuleAbonnement.getInstance().datatable_abonnement);
+        field_abonnement_id.addManyToOneRelation(this.datatable_paiement, VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);
         field_mode_paiement_id.addManyToOneRelation(this.datatable_paiement, this.datatable_mode_paiement);
         this.datatables.push(this.datatable_paiement);
     }

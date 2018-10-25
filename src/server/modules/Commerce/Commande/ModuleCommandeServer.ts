@@ -6,6 +6,8 @@ import CommandeVO from '../../../../shared/modules/Commerce/Commande/vos/Command
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleClient from '../../../../shared/modules/Commerce/Client/ModuleClient';
 import LigneCommandeVO from '../../../../shared/modules/Commerce/Commande/vos/LigneCommandeVO';
+import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 
 export default class ModuleCommandeServer extends ModuleServerBase {
 
@@ -30,7 +32,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     public async getCommandesUser(param: NumberParamVO): Promise<CommandeVO[]> {
         return await ModuleDAOServer.getInstance().selectAll<CommandeVO>(
             CommandeVO.API_TYPE_ID,
-            ' JOIN ' + ModuleClient.getInstance().datatable_client.full_name + ' c on c.id = t.client_id ' +
+            ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' c on c.id = t.client_id ' +
             ' WHERE c.user_id = $1', [param.num]
         );
     }
@@ -38,7 +40,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     public async getLignesCommandeByCommandeId(param: NumberParamVO): Promise<LigneCommandeVO[]> {
         return await ModuleDAOServer.getInstance().selectAll<LigneCommandeVO>(
             LigneCommandeVO.API_TYPE_ID,
-            ' JOIN ' + ModuleClient.getInstance().datatable_client.full_name + ' c on c.id = t.client_id ' +
+            ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' c on c.id = t.client_id ' +
             ' WHERE c.user_id = $1', [param.num]
         );
     }

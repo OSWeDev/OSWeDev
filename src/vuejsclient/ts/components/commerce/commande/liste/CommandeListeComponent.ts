@@ -3,10 +3,13 @@ import VueComponentBase from '../../../VueComponentBase';
 import CommandeVO from '../../../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
 import ModuleCommande from '../../../../../../shared/modules/Commerce/Commande/ModuleCommande';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import CommandeListeLigneComponent from './ligne/CommandeListeLigneComponent';
 
 @Component({
     template: require('./CommandeListeComponent.pug'),
-    components: {}
+    components: {
+        ligne: CommandeListeLigneComponent
+    }
 })
 export default class CommandeListeComponent extends VueComponentBase {
 
