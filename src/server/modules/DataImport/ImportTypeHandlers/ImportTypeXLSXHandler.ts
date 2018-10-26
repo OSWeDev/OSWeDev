@@ -194,17 +194,6 @@ export default class ImportTypeXLSXHandler {
         return worsheet_datas;
     }
 
-    private getStringfromColumnDataString(column_data_string: any): string {
-        if (column_data_string.h && column_data_string.h != "") {
-            return column_data_string.h;
-        } else if (column_data_string.w && column_data_string.w != "") {
-            return column_data_string.w;
-        } else if (column_data_string.v && column_data_string.v != "") {
-            return column_data_string.v;
-        }
-        return null;
-    }
-
     public getMomentFromXLSDateString(column_data_string: any): Moment {
         if (!column_data_string) {
             return null;
@@ -215,7 +204,21 @@ export default class ImportTypeXLSXHandler {
         if (moment(column_data_string, 'MM/DD/YY').isValid()) {
             return moment(column_data_string, 'MM/DD/YY');
         }
+        if (moment(column_data_string, 'YYYYMMDD').isValid()) {
+            return moment(column_data_string, 'YYYYMMDD');
+        }
 
+        return null;
+    }
+
+    private getStringfromColumnDataString(column_data_string: any): string {
+        if (column_data_string.h && column_data_string.h != "") {
+            return column_data_string.h;
+        } else if (column_data_string.w && column_data_string.w != "") {
+            return column_data_string.w;
+        } else if (column_data_string.v && column_data_string.v != "") {
+            return column_data_string.v;
+        }
         return null;
     }
 
