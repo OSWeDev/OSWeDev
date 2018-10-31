@@ -1,0 +1,9 @@
+.on_page_translation.hide-print(v-if="isActive")
+    .openclose_onpage_translation_module_wrapper
+        template(v-if="!isOpened")
+            button.btn.btn-secondary(type="button" @click='openModule()') {{ label('on_page_translation.open_button_title') }}
+                span.badge.badge-success(v-if='missingTranslationsNumber == 0') 0
+                span.badge.badge-danger(v-else) {{ missingTranslationsNumber }}
+        template(v-else)
+            button.btn.btn-primary(type="button" @click='closeModule()') {{ label('on_page_translation.close_button_title') }}
+
