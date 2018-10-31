@@ -2,14 +2,16 @@ import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors, GetterHandler } from "vuex-typescript";
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import Vue from 'vue';
+import Vue, { WatchOptionsWithHandler } from 'vue';
 import IStoreModule from '../../../../../vuejsclient/ts/store/IStoreModule';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import DaoStoreTypeWatcherDefinition from '../vos/DaoStoreTypeWatcherDefinition';
 
 export type DAOContext = ActionContext<IDAOState, any>;
 
 export interface IDAOState {
-    storedDatasArray: IDistantVOBase[][];
+    storedDatasArray: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
+    typeWatchers: { [API_TYPE_ID: string]: DaoStoreTypeWatcherDefinition[] };
 }
 
 
@@ -37,31 +39,46 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
 
         this.state = {
-            storedDatasArray: [],
+            storedDatasArray: {},
+            typeWatchers: {}
         };
 
 
         this.getters = {
             getStoredDatas(state: IDAOState): { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } } {
-                let res: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } } = {};
-
-                for (let i in state.storedDatasArray) {
-                    let storedDataArray = state.storedDatasArray[i];
-
-                    if ((!storedDataArray) || (!storedDataArray[0]) || (!storedDataArray[0]._type)) {
-                        continue;
-                    }
-
-                    res[storedDataArray[0]._type] = VOsTypesManager.getInstance().vosArray_to_vosByIds(storedDataArray);
-                }
-
-                return res;
+                return state.storedDatasArray;
             },
         };
 
 
+        let callWatchers = async (watchers: DaoStoreTypeWatcherDefinition[]) => {
+            for (let i in watchers) {
+                await watchers[i].handler();
+            }
+        };
 
         this.mutations = {
+
+            registerTypeWatcher(state: IDAOState, watcher: DaoStoreTypeWatcherDefinition) {
+
+                if (!watcher) {
+                    return;
+                }
+
+                if (!state.typeWatchers[watcher.API_TYPE_ID]) {
+                    Vue.set(state.typeWatchers, watcher.API_TYPE_ID, []);
+                }
+
+                for (let i in state.typeWatchers[watcher.API_TYPE_ID]) {
+                    if (state.typeWatchers[watcher.API_TYPE_ID][i].UID == watcher.UID) {
+                        // On remplace le précédent
+                        state.typeWatchers[watcher.API_TYPE_ID][i] = watcher;
+                        return;
+                    }
+                }
+
+                state.typeWatchers[watcher.API_TYPE_ID].push(watcher);
+            },
 
             storeData(state: IDAOState, vo: IDistantVOBase) {
 
@@ -69,14 +86,27 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                     return;
                 }
 
-                for (let i in state.storedDatasArray) {
-                    if (state.storedDatasArray[i] && state.storedDatasArray[i][0] && state.storedDatasArray[i][0]._type == vo._type) {
-                        state.storedDatasArray[i].push(vo);
-                        return;
+                if (!state.storedDatasArray[vo._type]) {
+                    Vue.set(state.storedDatasArray, vo._type, {
+                        [vo.id]: vo
+                    });
+                    if (state.typeWatchers[vo._type]) {
+                        callWatchers(state.typeWatchers[vo._type]);
                     }
+                    return;
                 }
 
-                state.storedDatasArray.push([vo]);
+                if (!state.storedDatasArray[vo._type][vo.id]) {
+                    Vue.set(state.storedDatasArray[vo._type] as any, vo.id, vo);
+                    if (state.typeWatchers[vo._type]) {
+                        callWatchers(state.typeWatchers[vo._type]);
+                    }
+                    return;
+                }
+                state.storedDatasArray[vo._type][vo.id] = vo;
+                if (state.typeWatchers[vo._type]) {
+                    callWatchers(state.typeWatchers[vo._type]);
+                }
             },
 
             storeDatas(state: IDAOState, infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) {
@@ -85,13 +115,11 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                     return;
                 }
 
-                for (let i in state.storedDatasArray) {
-                    if (state.storedDatasArray[i] && state.storedDatasArray[i][0] && state.storedDatasArray[i][0]._type == infos.vos[0]._type) {
-                        Vue.set(state.storedDatasArray, i, infos.vos);
-                        return;
-                    }
+                let _type: string = infos.vos[0]._type;
+                Vue.set(state.storedDatasArray, _type, VOsTypesManager.getInstance().vosArray_to_vosByIds(infos.vos));
+                if (state.typeWatchers[_type]) {
+                    callWatchers(state.typeWatchers[_type]);
                 }
-                state.storedDatasArray.push(infos.vos);
             },
 
             removeData(state: IDAOState, infos: { API_TYPE_ID: string, id: number }) {
@@ -100,18 +128,9 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                     return;
                 }
 
-                for (let i in state.storedDatasArray) {
-                    if (state.storedDatasArray[i] && state.storedDatasArray[i][0] && state.storedDatasArray[i][0]._type == infos.API_TYPE_ID) {
-
-                        for (let j in state.storedDatasArray[i]) {
-                            if (state.storedDatasArray[i][j] && (state.storedDatasArray[i][j].id == infos.id)) {
-
-                                state.storedDatasArray[i].splice(parseInt(j.toString()), 1);
-                                return;
-                            }
-                        }
-                        return;
-                    }
+                Vue.delete(state.storedDatasArray[infos.API_TYPE_ID] as any, infos.id);
+                if (state.typeWatchers[infos.API_TYPE_ID]) {
+                    callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }
             },
 
@@ -122,18 +141,9 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                     return;
                 }
 
-                for (let i in state.storedDatasArray) {
-                    if (state.storedDatasArray[i] && state.storedDatasArray[i][0] && state.storedDatasArray[i][0]._type == vo._type) {
-
-                        for (let j in state.storedDatasArray[i]) {
-                            if (state.storedDatasArray[i][j] && (state.storedDatasArray[i][j].id == vo.id)) {
-
-                                Vue.set(state.storedDatasArray[i], j, vo);
-                                return;
-                            }
-                        }
-                        return;
-                    }
+                state.storedDatasArray[vo._type][vo.id] = vo;
+                if (state.typeWatchers[vo._type]) {
+                    callWatchers(state.typeWatchers[vo._type]);
                 }
             },
         };
@@ -141,6 +151,9 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
 
         this.actions = {
+            registerTypeWatcher(context: DAOContext, watcher: DaoStoreTypeWatcherDefinition) {
+                commitRegisterTypeWatcher(context, watcher);
+            },
             storeData(context: DAOContext, vo: IDistantVOBase) {
                 commitStoreData(context, vo);
             },
@@ -164,6 +177,7 @@ export const ModuleDAOAction = namespace('DAOStore', Action);
 
 export const getStoredDatas = read(DAOStore.getInstance().getters.getStoredDatas as GetterHandler<IDAOState, any, any>);
 
+export const commitRegisterTypeWatcher = commit(DAOStore.getInstance().mutations.registerTypeWatcher);
 export const commitStoreData = commit(DAOStore.getInstance().mutations.storeData);
 export const commitStoreDatas = commit(DAOStore.getInstance().mutations.storeDatas);
 export const commitRemoveData = commit(DAOStore.getInstance().mutations.removeData);
