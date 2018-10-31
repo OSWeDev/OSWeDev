@@ -17,7 +17,6 @@ import IDeclareVueComponent from "./IDeclareVueComponent";
 import DateHandler from '../../../shared/tools/DateHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import OnPageTranslationController from './OnPageTranslation/OnPageTranslationController';
 
 // MONTHS MIXIN
 let months = [
@@ -538,7 +537,10 @@ export default class VueComponentBase extends Vue
         }
 
         if (VueAppController.getInstance().has_access_to_onpage_translation) {
-            OnPageTranslationController.getInstance().registerPageTranslation(txt, false);
+            AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslation', {
+                translation_code: txt,
+                missing: false
+            });
         }
 
         let res = LocaleManager.getInstance().i18n.t(txt, params);

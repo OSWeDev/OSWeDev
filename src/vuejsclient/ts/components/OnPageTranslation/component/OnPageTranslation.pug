@@ -5,19 +5,25 @@
                 span.badge.badge-success(v-if='missingTranslationsNumber == 0') 0
                 span.badge.badge-danger(v-else) {{ missingTranslationsNumber }}
         template(v-else)
-            button.btn.btn-primary(type="button" @click='closeModule()') {{ label('on_page_translation.close_button_title') }}
+            button.btn.btn-success(type="button" @click='closeModule()') {{ label('on_page_translation.close_button_title') }}
 
-    .on_page_translation_module_wrapper(v-if="!isOpened")
-        template(v-if='missingTranslationsNumber > 0')
-            template(v-for='editable_translation in editable_translations')
-                .col-sm
-                    label {{ editable_translation.translation_code }}
-                .col-sm
-                    input(type="text" v-model="editable_translation.editable_translation")
-                .col-sm
-                    button.btn.btn-secondary(v-if="updated(editable_translation)" type="button" @click='rollback_translation(editable_translation)')
+    .on_page_translation_module_wrapper(v-if="isOpened")
+        template(v-for='editable_translation in editable_translations')
+            .row
+                .col-md-4
+                    label(:for="editable_translation.translation_code") {{ editable_translation.translation_code }}
+                .col-md-6
+                    input.form-control(
+                        :class="{'bg-warning': !editable_translation.translation}" 
+                        :name="editable_translation.translation_code" 
+                        type="text" 
+                        size="100" 
+                        v-model="editable_translation.editable_translation"
+                        @keyup.13="save_translation(editable_translation)" )
+                .col-md-2
+                    button.btn.btn-secondary(v-if="updated_translation(editable_translation)" type="button" @click='rollback_translation(editable_translation)')
                         i.fa.fa-undo.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('on_page_translation.rollback_button') }}
-                    button.btn.btn-primary(v-if="updated(editable_translation)" type="button" @click='save_translation(editable_translation)')
-                        i.fa.fa-undo.fa-lg.btn_icon(aria-hidden="true")
+                    button.btn.btn-success(v-if="updated_translation(editable_translation)" type="button" @click='save_translation(editable_translation)')
+                        i.fa.fa-check.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('on_page_translation.save_button') }}

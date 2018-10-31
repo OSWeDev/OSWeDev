@@ -3,6 +3,7 @@ import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
 import IStoreModule from '../../../../../vuejsclient/ts/store/IStoreModule';
 import OnPageTranslationItem from '../vos/OnPageTranslationItem';
+import Vue from 'vue';
 
 export type OnPageTranslationContext = ActionContext<IOnPageTranslationState, any>;
 
@@ -59,7 +60,7 @@ export default class OnPageTranslationStore implements IStoreModule<IOnPageTrans
                     return;
                 }
 
-                state.page_translations[infos.translation_code] = new OnPageTranslationItem(infos.translation_code, infos.missing);
+                Vue.set(state.page_translations, infos.translation_code, new OnPageTranslationItem(infos.translation_code, infos.missing));
             },
 
             clear(state: IOnPageTranslationState) {
