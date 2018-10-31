@@ -64,7 +64,17 @@ export default class OnPageTranslationStore implements IStoreModule<IOnPageTrans
             },
 
             clear(state: IOnPageTranslationState) {
-                state.page_translations = {};
+                // On clear tout sauf les traductions manquantes
+                let res: { [translation_code: string]: OnPageTranslationItem } = {};
+
+                for (let i in state.page_translations) {
+                    let page_translation = state.page_translations[i];
+
+                    if (page_translation.missing) {
+                        res[page_translation.translation_code] = page_translation;
+                    }
+                }
+                state.page_translations = res;
             }
         };
 
