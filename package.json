@@ -110,6 +110,7 @@
         "vue-tables-2": "1.4.64"
     },
     "peerDependencies": {
+        "@types/lodash": "4.14.117",
         "@types/jquery": "3.3.14",
         "@types/jqueryui": "1.12.2",
         "fullcalendar": "3.9.0",
@@ -130,7 +131,8 @@
         "vuex-typescript": "3.0.2",
         "vue2-dropzone": "3.4.0",
         "web-push": "3.3.2",
-        "mkdirp": "0.5.1"
+        "mkdirp": "0.5.1",
+        "lodash": "4.17.11"
     },
     "_dependencies": {
         "pg-promise": "8.1.0"

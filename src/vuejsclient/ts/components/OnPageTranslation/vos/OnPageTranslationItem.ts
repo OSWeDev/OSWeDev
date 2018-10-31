@@ -1,3 +1,4 @@
+
 export default class OnPageTranslationItem {
     public constructor(
         public translation_code: string,
