@@ -17,6 +17,7 @@ import IDeclareVueComponent from "./IDeclareVueComponent";
 import DateHandler from '../../../shared/tools/DateHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import OnPageTranslationController from './OnPageTranslation/OnPageTranslationController';
 
 // MONTHS MIXIN
 let months = [
@@ -258,6 +259,10 @@ export default class VueComponentBase extends Vue
 
     public $snotify: any;
 
+    public segment_type_year: number = TimeSegment.TYPE_YEAR;
+    public segment_type_month: number = TimeSegment.TYPE_MONTH;
+    public segment_type_day: number = TimeSegment.TYPE_DAY;
+
     protected data_user = VueAppController.getInstance().data_user;
 
     // FILTERS MIXIN
@@ -276,9 +281,6 @@ export default class VueComponentBase extends Vue
         hourAndMinutes: hourAndMinutesFilter
     };
 
-    public segment_type_year: number = TimeSegment.TYPE_YEAR;
-    public segment_type_month: number = TimeSegment.TYPE_MONTH;
-    public segment_type_day: number = TimeSegment.TYPE_DAY;
 
     // LOADING MIXIN
     protected isLoading = true;
@@ -534,12 +536,17 @@ export default class VueComponentBase extends Vue
         if (!txt) {
             return txt;
         }
+
+        if (VueAppController.getInstance().has_access_to_onpage_translation) {
+            OnPageTranslationController.getInstance().registerPageTranslation(txt, false);
+        }
+
         let res = LocaleManager.getInstance().i18n.t(txt, params);
         return res ? res.toString() : null;
     }
 
     protected label(txt, params = {}): string {
-        let res = LocaleManager.getInstance().i18n.t(
+        let res = this.t(
             txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
             params
         );

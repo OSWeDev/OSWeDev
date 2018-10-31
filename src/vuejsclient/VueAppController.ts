@@ -24,6 +24,11 @@ export default abstract class VueAppController {
     public SERVER_HEADERS;
     public my_roles: RoleVO[] = [];
 
+    /**
+     * Module un peu spécifique qui peut avoir un impact sur les perfs donc on gère son accès le plus vite possible
+     */
+    public has_access_to_onpage_translation: boolean = false;
+
     protected constructor() {
         VueAppController.instance_ = this;
     }
@@ -44,6 +49,10 @@ export default abstract class VueAppController {
 
         promises.push((async () => {
             self.ALL_LOCALES = await ModuleTranslation.getInstance().getALL_LOCALES();
+        })());
+
+        promises.push((async () => {
+            self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.ACCESS_GROUP_NAME, ModuleTranslation.ACCESS_ON_PAGE_TRANSLATION_MODULE);
         })());
 
         promises.push(ModuleAjaxCache.getInstance().get('/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED).then((d) => {

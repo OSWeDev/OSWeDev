@@ -47,6 +47,7 @@ import 'quill/dist/quill.snow.css';
 import 'quill/dist/quill.bubble.css';
 
 import VueDraggableResizable from 'vue-draggable-resizable';
+import OnPageTranslationController from './ts/components/OnPageTranslation/OnPageTranslationController';
 
 
 export default abstract class VueAppBase {
@@ -102,7 +103,10 @@ export default abstract class VueAppBase {
         Vue.use(VueI18n);
         LocaleManager.getInstance().i18n = new VueI18n({
             locale: default_locale,
-            messages: this.appController.ALL_LOCALES
+            messages: this.appController.ALL_LOCALES,
+            missing: (locale, key, vm) => {
+                OnPageTranslationController.getInstance().registerPageTranslation(key);
+            },
         });
         Vue.config['lang'] = default_locale;
 
