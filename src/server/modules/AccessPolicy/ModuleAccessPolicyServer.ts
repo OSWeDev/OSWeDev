@@ -24,6 +24,8 @@ import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -36,10 +38,65 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private static instance: ModuleAccessPolicyServer = null;
 
+    public role_anonymous: RoleVO = null;
+    public role_logged: RoleVO = null;
+    public role_admin: RoleVO = null;
+
+    public registered_roles: { [role_name: string]: RoleVO } = {};
+    public registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO } = {};
+    public registered_policies: { [policy_name: string]: AccessPolicyVO } = {};
+    public registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
+
     private debug_check_access: boolean = false;
 
     private constructor() {
         super(ModuleAccessPolicy.getInstance().name);
+    }
+
+    /**
+     * On définit les droits d'accès du module
+     */
+    public async registerAccessPolicies(): Promise<void> {
+        let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        group.translatable_name = ModuleAccessPolicy.BACK_OFFICE_POLICY_GROUP;
+        await this.registerPolicyGroup(group);
+
+        let bo_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_access.group_id = group.id;
+        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_access.translatable_name = ModuleAccessPolicy.BACK_OFFICE_ACCESS_POLICY;
+        await this.registerPolicyGroup(bo_access);
+
+        let rights_managment_tool_access: AccessPolicyVO = new AccessPolicyVO();
+        rights_managment_tool_access.group_id = group.id;
+        rights_managment_tool_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        rights_managment_tool_access.translatable_name = ModuleAccessPolicy.BACK_OFFICE_RIGHTS_MANAGMENT_TOOL_ACCESS_POLICY;
+        await this.registerPolicyGroup(rights_managment_tool_access);
+
+        // On déclare une dépendance entre l'accès à l'outil de gestion des droits et l'accès à l'admin.
+        let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        dependency.src_pol_id = rights_managment_tool_access.id;
+        dependency.depends_on_pol_id = bo_access.id;
+        await this.registerPolicyDependency(dependency);
+    }
+
+    /**
+     * On définit les 3 rôles principaux et fondamentaux dans tous les projets : Anonyme, connecté et admin
+     * Les héritages sont gérés directement dans la fonction register_role pour ces rôles de base
+     */
+    public async registerAccessRoles(): Promise<void> {
+        this.role_anonymous = new RoleVO();
+        this.role_anonymous.translatable_name = ModuleAccessPolicy.ROLE_ANONYMOUS;
+        await this.registerRole(this.role_anonymous);
+
+        this.role_logged = new RoleVO();
+        this.role_logged.translatable_name = ModuleAccessPolicy.ROLE_LOGGED;
+        await this.registerRole(this.role_logged);
+
+        this.role_admin = new RoleVO();
+        this.role_admin.translatable_name = ModuleAccessPolicy.ROLE_ADMIN;
+        await this.registerRole(this.role_admin);
     }
 
     public registerCrons(): void {
@@ -47,11 +104,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     public async configure() {
-        // On init le Rôle super admin qui est la base de tout
-        let role_superadmin: RoleVO = await ModuleAccessPolicy.getInstance().addRoleIfNotExists(ModuleAccessPolicy.ROLE_SUPER_ADMIN);
-
-        // Register Policies
-        await ModuleAccessPolicy.getInstance().registerModuleAccessPolicy(ModuleAccessPolicy.MAIN_ACCESS_GROUP_NAME, ModuleAccessPolicy.ADMIN_ACCESS_NAME);
 
         // On ajoute un trigger pour la création du compte
         let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
@@ -66,59 +118,238 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_CHECK_ACCESS, this.checkAccess.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ADMIN, this.isAdmin.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_IS_ROLE, this.isRole.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_ROLE_IF_NOT_EXISTS, this.addRoleIfNotExists.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_DEFAULT_ROLE_POLICY_IF_NOT_EXISTS, this.addDefaultRolePolicyIfNotExists.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_MY_ROLES, this.getMyRoles.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER, this.addRoleToUser.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, this.beginRecover.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_registerModuleAccessPolicy, this.registerModuleAccessPolicy.bind(this));
     }
 
-    /**
-     * On s'assure que la policy existe en base. Sinon on crée au besoin le groupe et/ou la policy
-     * @param group_name Le titre du groupe
-     * @param policy_name Le titre de la policy
-     */
-    public async registerModuleAccessPolicy(params: RegisterModuleAccessPolicyParamVO): Promise<void> {
-        let group_name: string = params.group_name;
-        let policy_name: string = params.policy_name;
-
-        if ((!group_name) || (!policy_name)) {
+    public async registerRole(role: RoleVO) {
+        if ((!role) || (!role.translatable_name)) {
             return;
         }
 
-        let apg: AccessPolicyGroupVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyGroupVO>(
-            AccessPolicyGroupVO.API_TYPE_ID,
-            'WHERE uniq_id=$1',
-            [AccessPolicyGroupVO.getUniqID(group_name)]
-        );
+        if (this.registered_roles[role.translatable_name]) {
+            return;
+        }
 
-        if (!apg) {
-            apg = new AccessPolicyGroupVO(group_name);
-            // let request = "INSERT INTO " + this.accesspolicygroup_datatable.full_name + " (uniq_id, translatable_name) VALUES ('" + apg.uniq_id + "', '" + apg.translatable_name + "') RETURNING id;";
-            // let id = await this.db.query(request);
-            let insertres = await ModuleDAO.getInstance().insertOrUpdateVO(apg);
+        // Un nouveau rôle a forcément un parent :
+        //  - si c'est le rôle 'identifié', son parent est le rôle 'anonyme'
+        //  - si c'est le rôle 'anonyme', il n'a pas de parent (c'est le seul)
+        //  - si c'est le rôle 'admin', son parent est 'identifié'
+        //  - pour tout autre rôle, son parent est soit 'identifié' soit un autre rôle ajouté (ne peut dépendre de 'anonyme' ou de 'admin')
 
-            if ((!insertres) || (!insertres.id)) {
-                return;
+        if (role == this.role_anonymous) {
+            role.parent_role_id = null;
+        } else if (role == this.role_logged) {
+            role.parent_role_id = this.role_anonymous.id;
+        } else if (role == this.role_admin) {
+            role.parent_role_id = this.role_logged.id;
+        } else {
+            if ((!role.parent_role_id) || (role.parent_role_id == this.role_anonymous.id) || (role.parent_role_id == this.role_admin.id)) {
+                role.parent_role_id = this.role_logged.id;
             }
-            apg.id = parseInt(insertres.id.toString());
-            apg = VOsTypesManager.getInstance().moduleTables_by_voType[apg._type].forceNumeric(apg);
         }
 
-        let ap: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(
-            AccessPolicyVO.API_TYPE_ID,
-            'WHERE uniq_id=$1', [AccessPolicyVO.getUniqID(group_name, policy_name)]);
-
-        if (!ap) {
-            ap = new AccessPolicyVO(group_name, policy_name, apg.id);
-            // let request = "INSERT INTO " + this.accesspolicy_datatable.full_name + " (uniq_id, translatable_name, group_id) VALUES ('" + apg.uniq_id + "', '" + apg.translatable_name + "', " + apg.id + ") RETURNING id;";
-            // await this.db.query(request);
-            await ModuleDAO.getInstance().insertOrUpdateVO(ap);
-
-            // TODO ajouter l'insert des traductions par défaut à ce niveau, pour toutes les langues ?
+        let roleFromBDD: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, "where translatable_name = $1", [role.translatable_name]);
+        if (roleFromBDD) {
+            this.registered_roles[role.translatable_name] = roleFromBDD;
+            return;
         }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            console.error('Ajout de role échoué:' + role.translatable_name + ':');
+            return;
+        }
+
+        role.id = parseInt(insertOrDeleteQueryResult.id);
+        this.registered_roles[role.translatable_name] = role;
+        console.error('Ajout du role OK:' + role.translatable_name + ':');
+    }
+
+    public async registerPolicyGroup(group: AccessPolicyGroupVO) {
+        if ((!group) || (!group.translatable_name)) {
+            return;
+        }
+
+        if (this.registered_policy_groups[group.translatable_name]) {
+            return;
+        }
+
+        let groupFromBDD: AccessPolicyGroupVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyGroupVO>(AccessPolicyGroupVO.API_TYPE_ID, "where translatable_name = $1", [group.translatable_name]);
+        if (groupFromBDD) {
+            this.registered_policy_groups[group.translatable_name] = groupFromBDD;
+            return;
+        }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(group);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            console.error('Ajout de role échoué:' + group.translatable_name + ':');
+            return;
+        }
+
+        group.id = parseInt(insertOrDeleteQueryResult.id);
+        this.registered_policy_groups[group.translatable_name] = group;
+        console.error('Ajout du group OK:' + group.translatable_name + ':');
+    }
+
+    public async registerPolicy(policy: AccessPolicyVO) {
+        if ((!policy) || (!policy.translatable_name)) {
+            return;
+        }
+
+        if (this.registered_policies[policy.translatable_name]) {
+            return;
+        }
+
+        let groupFromBDD: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID, "where translatable_name = $1", [policy.translatable_name]);
+        if (groupFromBDD) {
+            this.registered_policies[policy.translatable_name] = groupFromBDD;
+            return;
+        }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policy);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            console.error('Ajout de droit échoué:' + policy.translatable_name + ':');
+            return;
+        }
+
+        policy.id = parseInt(insertOrDeleteQueryResult.id);
+        this.registered_policies[policy.translatable_name] = policy;
+        console.error('Ajout du droit OK:' + policy.translatable_name + ':');
+    }
+
+    public async registerPolicyDependency(dependency: PolicyDependencyVO) {
+        if ((!dependency) || (!dependency.src_pol_id) || (!dependency.depends_on_pol_id)) {
+            return;
+        }
+
+        if (this.registered_dependencies[dependency.src_pol_id]) {
+
+            for (let i in this.registered_dependencies[dependency.src_pol_id]) {
+                if (this.registered_dependencies[dependency.src_pol_id][i].depends_on_pol_id == dependency.depends_on_pol_id) {
+                    return;
+                }
+            }
+        }
+
+        if (!this.registered_dependencies[dependency.src_pol_id]) {
+            this.registered_dependencies[dependency.src_pol_id] = [];
+        }
+
+        let dependencyFromBDD: PolicyDependencyVO = await ModuleDAOServer.getInstance().selectOne<PolicyDependencyVO>(PolicyDependencyVO.API_TYPE_ID, "where src_pol_id = $1 and depends_on_pol_id = $2", [dependency.src_pol_id, dependency.depends_on_pol_id]);
+        if (dependencyFromBDD) {
+            this.registered_dependencies[dependency.src_pol_id].push(dependencyFromBDD);
+            return;
+        }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(dependency);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            console.error('Ajout de droit échoué:' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
+            return;
+        }
+
+        dependency.id = parseInt(insertOrDeleteQueryResult.id);
+        this.registered_dependencies[dependency.src_pol_id].push(dependency);
+        console.error('Ajout du droit OK:' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
+    }
+
+    /**
+     * Public pour faire des tests unitaires principalement.
+     * Pour faciliter les tests on prend en entrée le maximum de données pour pas avoir besoin de la BDD
+     * et on sort juste le boolean
+     * @param target_policy La policy cible de l'appel pour laquelle on veut savoir si le user a accès
+     * @param user_roles Les rôles du user
+     * @param all_roles Tous les rôles
+     * @param role_policies Les liaisons entre droits et rôles
+     * @param policies Les droits
+     * @param policies_dependencies Les dépendances
+     */
+    public checkAccessTo(
+        target_policy: AccessPolicyVO,
+        user_roles: RoleVO[],
+        all_roles: { [role_id: number]: RoleVO },
+        role_policies: { [role_id: number]: { [pol_id: number]: RolePoliciesVO } },
+        policies: { [policy_id: number]: AccessPolicyVO },
+        policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] }): boolean {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!target_policy) || (!user_roles) || (!user_roles.length)) {
+            return false;
+        }
+
+        /**
+         * Les règles de résolution d'un accès :
+         *  - Si un de mes rôle me donne accès, j'ai accès
+         *  - On doit éliminer les rôles un par un en cherchant à autoriser l'accès. Par défaut on refusera l'accès
+         *  - Pour chaque rôle, et chaque rôle hérité :
+         *      - Cas 1 : Si j'ai explicitement un paramétrage pour ce droit sur ce rôle :
+         *          - Si accès granted : return true;
+         *          - Si accès denied : on ne peut pas avoir accès avec ce rôle, on passe au suivant.
+         *      - Cas 2 : Sinon : Je peux vérifier que le droit lui-même me donne pas accès par défaut, suivant son comportement et le rôle que je suis entrain de tester.
+         *      - Cas 3 : Sinon : Je peux tester une dépendance de droit sur ce droit, qui serait par défaut en Access granted
+         *          - Si cette dépendance existe, je peux retester sur le droit dépendant (et donc si checkAccess de ce droit, alors return true)
+         *          - Sinon, je n'ai pas accès à ce droit.
+         */
+
+        // On identifie d'abord les rôles et rôles hérités
+        let user_roles_and_inherited: { [role_id: number]: RoleVO } = {};
+        for (let i in user_roles) {
+            let role: RoleVO = user_roles[i];
+
+            while (!!role) {
+                if (!user_roles_and_inherited[role.id]) {
+                    user_roles_and_inherited[role.id] = role;
+                }
+
+                role = (role.parent_role_id && all_roles[role.parent_role_id]) ? all_roles[role.parent_role_id] : null;
+            }
+        }
+
+        for (let i in user_roles_and_inherited) {
+            let user_role: RoleVO = user_roles_and_inherited[i];
+
+            // Cas 1
+            if (role_policies[user_role.id] && role_policies[user_role.id][target_policy.id]) {
+                if (role_policies[user_role.id][target_policy.id].granted) {
+                    return true;
+                }
+                continue;
+            }
+
+            // Cas 2
+            if (policies[target_policy.id]) {
+                switch (policies[target_policy.id].default_behaviour) {
+                    case AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE:
+                        return true;
+                    case AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS:
+                        if (user_role.id != this.role_anonymous.id) {
+                            return true;
+                        }
+                    case AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN:
+                        if (user_role.id == this.role_admin.id) {
+                            return true;
+                        }
+                    default:
+                }
+            }
+
+            // Cas 3
+            if (policies_dependencies[target_policy.id] && policies_dependencies[target_policy.id].length) {
+
+                for (let j in policies_dependencies[target_policy.id]) {
+                    let dependency: PolicyDependencyVO = policies_dependencies[target_policy.id][j];
+
+                    if (dependency.default_behaviour == PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED) {
+                        if (this.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {
@@ -131,12 +362,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         return await ModuleDAOServer.getInstance().selectAll<RoleVO>(
             RoleVO.API_TYPE_ID,
-            " join " + ModuleAccessPolicy.getInstance().userroles_datatable.full_name + " ur on ur.role_id = t.id " +
+            " join " + VOsTypesManager.getInstance().moduleTables_by_voType[UserRolesVO.API_TYPE_ID].full_name + " ur on ur.role_id = t.id " +
             " where ur.user_id = $1",
             [uid],
             [UserRolesVO.API_TYPE_ID, UserVO.API_TYPE_ID]);
     }
 
+    /**
+     * @deprecated Why use this function, seems like a bad idea, just checkAccess directly there shall be no need for this one. Delete ASAP
+     */
     private async isRole(param: StringParamVO): Promise<boolean> {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let uid: number = httpContext ? httpContext.get('UID') : null;
@@ -147,7 +381,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let userRoles: UserRolesVO = await ModuleDAOServer.getInstance().selectOne<UserRolesVO>(
             UserRolesVO.API_TYPE_ID,
-            " join " + ModuleAccessPolicy.getInstance().role_datatable.full_name + " r on r.id = t.role_id " +
+            " join " + VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID].full_name + " r on r.id = t.role_id " +
             " where t.user_id = $1 and r.translatable_name = $2",
             [uid, param.text],
             [UserVO.API_TYPE_ID, RoleVO.API_TYPE_ID]);
@@ -169,9 +403,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let userRoles: UserRolesVO = await ModuleDAOServer.getInstance().selectOne<UserRolesVO>(
             UserRolesVO.API_TYPE_ID,
-            " join " + ModuleAccessPolicy.getInstance().role_datatable.full_name + " r on r.id = t.role_id " +
+            " join " + VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID].full_name + " r on r.id = t.role_id " +
             " where t.user_id = $1 and r.translatable_name = $2",
-            [uid, ModuleAccessPolicy.ROLE_SUPER_ADMIN],
+            [uid, ModuleAccessPolicy.ROLE_ADMIN],
             [UserVO.API_TYPE_ID, RoleVO.API_TYPE_ID]);
 
         if (userRoles) {
@@ -187,53 +421,52 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    private async checkAccess(checkAccessParam: CheckAccessParamVO): Promise<boolean> {
+    private async checkAccess(checkAccessParam: StringParamVO): Promise<boolean> {
 
-        if (!ModuleAccessPolicy.getInstance().actif) {
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!checkAccessParam) || (!checkAccessParam.text)) {
             return false;
         }
 
-        this.consoledebug("CHECKACCESS:" + checkAccessParam.group_name + ":" + checkAccessParam.policy_name + ":");
+        let policy_name: string = checkAccessParam.text;
+
+        this.consoledebug("CHECKACCESS:" + policy_name + ":");
 
         // Un admin a accès à tout dans tous les cas
         if (await this.isAdmin()) {
-            this.consoledebug("CHECKACCESS:" + checkAccessParam.group_name + ":" + checkAccessParam.policy_name + ":TRUE:IS_ADMIN");
+            this.consoledebug("CHECKACCESS:" + policy_name + ":TRUE:IS_ADMIN");
             return true;
         }
 
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
-            this.consoledebug("CHECKACCESS:" + checkAccessParam.group_name + ":" + checkAccessParam.policy_name + ":TRUE:IS_SERVER");
+            this.consoledebug("CHECKACCESS:" + policy_name + ":TRUE:IS_SERVER");
             return true;
         }
 
         let uid: number = httpContext.get('UID');
         if (!uid) {
-            this.consoledebug("CHECKACCESS:" + checkAccessParam.group_name + ":" + checkAccessParam.policy_name + ":FALSE:UID:NULL");
+            this.consoledebug("CHECKACCESS:" + policy_name + ":FALSE:UID:NULL");
             return false;
         }
 
-        let group_name: string = checkAccessParam.group_name;
-        let policy_name: string = checkAccessParam.policy_name;
-
         this.consoledebug(
-            'JOIN ' + ModuleAccessPolicy.getInstance().accesspolicy_datatable.full_name + " ap ON ap.id = t.accpol_id " +
-            'JOIN ' + ModuleAccessPolicy.getInstance().role_datatable.full_name + " r ON t.role_id = r.id " +
-            'JOIN ' + ModuleAccessPolicy.getInstance().userroles_datatable.full_name + " ur ON ur.role_id = r.id " +
+            'JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID].full_name + " ap ON ap.id = t.accpol_id " +
+            'JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID].full_name + " r ON t.role_id = r.id " +
+            'JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserRolesVO.API_TYPE_ID].full_name + " ur ON ur.role_id = r.id " +
             'JOIN ref.user u ON u.id = ur.user_id ' +
-            'WHERE u.id = ' + uid + ' and ap.uniq_id = \'' + AccessPolicyVO.getUniqID(group_name, policy_name) + '\'');
+            'WHERE u.id = ' + uid + ' and ap.uniq_id = \'' + policy_name + '\'');
 
         let rolePolicies: RolePoliciesVO[] = await ModuleDAOServer.getInstance().selectAll<RolePoliciesVO>(
             RolePoliciesVO.API_TYPE_ID,
-            'JOIN ' + ModuleAccessPolicy.getInstance().accesspolicy_datatable.full_name + " ap ON ap.id = t.accpol_id " +
-            'JOIN ' + ModuleAccessPolicy.getInstance().role_datatable.full_name + " r ON t.role_id = r.id " +
-            'JOIN ' + ModuleAccessPolicy.getInstance().userroles_datatable.full_name + " ur ON ur.role_id = r.id " +
+            'JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID].full_name + " ap ON ap.id = t.accpol_id " +
+            'JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID].full_name + " r ON t.role_id = r.id " +
+            'JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserRolesVO.API_TYPE_ID].full_name + " ur ON ur.role_id = r.id " +
             'JOIN ref.user u ON u.id = ur.user_id ' +
             'WHERE u.id = $1 and ap.uniq_id = $2',
-            [uid, AccessPolicyVO.getUniqID(group_name, policy_name)],
+            [uid, policy_name],
             [UserRolesVO.API_TYPE_ID, AccessPolicyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]);
         if ((!rolePolicies) || (!rolePolicies.length)) {
-            this.consoledebug("CHECKACCESS:" + checkAccessParam.group_name + ":" + checkAccessParam.policy_name + ":FALSE:NO_POLICY");
+            this.consoledebug("CHECKACCESS:" + policy_name + ":FALSE:NO_POLICY");
             return false;
         }
 
@@ -242,58 +475,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let rolePolicy: RolePoliciesVO = rolePolicies[i];
 
             if (rolePolicy.granted) {
-                this.consoledebug("CHECKACCESS:" + checkAccessParam.group_name + ":" + checkAccessParam.policy_name + ":TRUE:POLICY:GRANTED");
+                this.consoledebug("CHECKACCESS:" + policy_name + ":TRUE:POLICY:GRANTED");
                 return true;
             }
         }
 
-        this.consoledebug("CHECKACCESS:" + checkAccessParam.group_name + ":" + checkAccessParam.policy_name + ":FALSE:POLICY:NOT_GRANTED");
+        this.consoledebug("CHECKACCESS:" + policy_name + ":FALSE:POLICY:NOT_GRANTED");
         return false;
-    }
-
-    private async addRoleIfNotExists(param: StringParamVO): Promise<RoleVO> {
-
-        if (!ModuleAccessPolicy.getInstance().actif) {
-            return null;
-        }
-
-        let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, " WHERE t.translatable_name = $1", [param.text]);
-
-        if (!role) {
-            role = new RoleVO();
-            role.translatable_name = param.text;
-            let insertres = await ModuleDAO.getInstance().insertOrUpdateVO(role);
-
-            if ((!insertres) || (!insertres.id)) {
-                return;
-            }
-            role.id = parseInt(insertres.id.toString());
-            role = VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID].forceNumeric(role);
-        }
-
-        return role;
-    }
-
-    private async addDefaultRolePolicyIfNotExists(params: AddDefaultRolePolicyIfNotExistsParamVO): Promise<void> {
-
-        if ((!ModuleAccessPolicy.getInstance().actif) || (!params) || (!params.policy) || (!params.role)) {
-            return;
-        }
-
-        let rolePolicy: RolePoliciesVO = await ModuleDAOServer.getInstance().selectOne<RolePoliciesVO>(RolePoliciesVO.API_TYPE_ID, " WHERE t.accpol_id = $1 and t.role_id = $2", [params.policy.id, params.role.id]);
-
-        if (!rolePolicy) {
-            rolePolicy = new RolePoliciesVO();
-            rolePolicy.accpol_id = params.policy.id;
-            rolePolicy.role_id = params.role.id;
-            rolePolicy.granted = params.granted;
-            await ModuleDAO.getInstance().insertOrUpdateVO(rolePolicy);
-        }
     }
 
     private async addRoleToUser(params: AddRoleToUserParamVO): Promise<void> {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!params) || (!params.user_id) || (!params.role_id)) {
+            return;
+        }
+
+        if (!await this.checkAccess(ModuleAccessPolicy.BACK_OFFICE_RIGHTS_MANAGMENT_TOOL_ACCESS_POLICY)) {
             return;
         }
 

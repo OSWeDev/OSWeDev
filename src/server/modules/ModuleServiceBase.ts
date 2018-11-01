@@ -41,15 +41,15 @@ export default abstract class ModuleServiceBase {
     }
     private static instance: ModuleServiceBase;
 
+    public db: IDatabase<any>;
+    protected registered_child_modules: Module[] = [];
+    protected server_child_modules: ModuleServerBase[] = [];
+
     private registered_modules: Module[] = [];
     private server_modules: ModuleServerBase[] = [];
 
     private registered_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
-
-    protected registered_child_modules: Module[] = [];
-    protected server_child_modules: ModuleServerBase[] = [];
-    public db: IDatabase<any>;
 
     protected constructor() {
         ModuleServiceBase.instance = this;
@@ -130,6 +130,9 @@ export default abstract class ModuleServiceBase {
             let server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
+                await server_module.registerAccessPolicies();
+                await server_module.registerAccessRoles();
+
                 await server_module.registerImport();
                 server_module.registerCrons();
                 server_module.registerAccessHooks();
@@ -143,6 +146,10 @@ export default abstract class ModuleServiceBase {
         //      et en faisant le lien dans le typescript, on importera que le fichier qui nous est utile.
         return this.registered_modules;
     }
+
+    protected abstract getChildModules(): Module[];
+    protected abstract getServerChildModules(): ModuleServerBase[];
+
     private async create_modules_base_structure_in_db() {
         // On vérifie que la table des modules est disponible, sinon on la crée
         await this.db.none("CREATE TABLE IF NOT EXISTS admin.modules (id bigserial NOT NULL, name varchar(255) not null, actif bool default false, CONSTRAINT modules_pkey PRIMARY KEY (id));");
@@ -290,8 +297,4 @@ export default abstract class ModuleServiceBase {
             ModuleSASSSkinConfiguratorServer.getInstance()
         ];
     }
-
-
-    protected abstract getChildModules(): Module[];
-    protected abstract getServerChildModules(): ModuleServerBase[];
 }

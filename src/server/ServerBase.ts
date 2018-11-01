@@ -334,7 +334,7 @@ export default abstract class ServerBase {
 
         this.app.get('/admin', (req, res) => {
 
-            if (ModuleAccessPolicy.getInstance().actif && (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.MAIN_ACCESS_GROUP_NAME, ModuleAccessPolicy.ADMIN_ACCESS_NAME))) {
+            if (ModuleAccessPolicy.getInstance().actif && (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.bo, ModuleAccessPolicy.ADMIN_ACCESS_NAME))) {
                 res.redirect('/');
             }
             res.sendFile(path.resolve('./src/admin/public/generated/admin.html'));
