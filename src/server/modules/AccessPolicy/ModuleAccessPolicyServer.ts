@@ -1,31 +1,26 @@
-import ModuleServerBase from '../ModuleServerBase';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import GetAPIDefinition from '../../../shared/modules/API/vos/GetAPIDefinition';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import UserRolesVO from '../../../shared/modules/AccessPolicy/vos/UserRolesVO';
+import AddRoleToUserParamVO from '../../../shared/modules/AccessPolicy/vos/apis/AddRoleToUserParamVO';
+import ResetPwdParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ResetPwdParamVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePoliciesVO from '../../../shared/modules/AccessPolicy/vos/RolePoliciesVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserRolesVO from '../../../shared/modules/AccessPolicy/vos/UserRolesVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import CheckAccessParamVO from '../../../shared/modules/AccessPolicy/vos/apis/CheckAccessParamVO';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import AddDefaultRolePolicyIfNotExistsParamVO from '../../../shared/modules/AccessPolicy/vos/apis/AddDefaultRolePolicyIfNotExistsParamVO';
-import AddRoleToUserParamVO from '../../../shared/modules/AccessPolicy/vos/apis/AddRoleToUserParamVO';
-import PostAPIDefinition from '../../../shared/modules/API/vos/PostAPIDefinition';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ServerBase from '../../ServerBase';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleServerBase from '../ModuleServerBase';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
-import ResetPwdParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ResetPwdParamVO';
 import PasswordReset from './PasswordReset/PasswordReset';
-import ServerBase from '../../ServerBase';
-import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import RegisterModuleAccessPolicyParamVO from '../../../shared/modules/AccessPolicy/vos/apis/RegisterModuleAccessPolicyParamVO';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -68,7 +63,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         //  avoir été ajoutée en parralèle des déclarations dans le source
         await this.preload_registered_roles();
         await this.preload_registered_policies();
-        await this.preload_registered_policy_groups();
         await this.preload_registered_dependencies();
 
         await this.preload_registered_users_roles();
@@ -170,6 +164,30 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // On ajoute un trigger pour la modification du mot de passe
         let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOUpdate.bind(this));
+
+        // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
+        //  ajout ou suppression on en prend compte immédiatement
+        let postCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+
+        postCreateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onCreateAccessPolicyVO.bind(this));
+        postCreateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onCreatePolicyDependencyVO.bind(this));
+        postCreateTrigger.registerHandler(RolePoliciesVO.API_TYPE_ID, this.onCreateRolePoliciesVO.bind(this));
+        postCreateTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onCreateRoleVO.bind(this));
+        postCreateTrigger.registerHandler(UserRolesVO.API_TYPE_ID, this.onCreateUserRolesVO.bind(this));
+
+        postUpdateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onUpdateAccessPolicyVO.bind(this));
+        postUpdateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onUpdatePolicyDependencyVO.bind(this));
+        postUpdateTrigger.registerHandler(RolePoliciesVO.API_TYPE_ID, this.onUpdateRolePoliciesVO.bind(this));
+        postUpdateTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onUpdateRoleVO.bind(this));
+        postUpdateTrigger.registerHandler(UserRolesVO.API_TYPE_ID, this.onUpdateUserRolesVO.bind(this));
+
+        preDeleteTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onDeleteAccessPolicyVO.bind(this));
+        preDeleteTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onDeletePolicyDependencyVO.bind(this));
+        preDeleteTrigger.registerHandler(RolePoliciesVO.API_TYPE_ID, this.onDeleteRolePoliciesVO.bind(this));
+        preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onDeleteRoleVO.bind(this));
+        preDeleteTrigger.registerHandler(UserRolesVO.API_TYPE_ID, this.onDeleteUserRolesVO.bind(this));
     }
 
     public registerServerApiHandlers() {
@@ -709,18 +727,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    private async preload_registered_policy_groups() {
-        // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
-        this.registered_policy_groups = {};
-
-        let policy_groups: AccessPolicyGroupVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyGroupVO>(AccessPolicyGroupVO.API_TYPE_ID);
-        for (let i in policy_groups) {
-            let policy_group: AccessPolicyGroupVO = policy_groups[i];
-
-            this.registered_policy_groups[policy_group.translatable_name] = policy_group;
-        }
-    }
-
     private async preload_registered_dependencies() {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         this.registered_dependencies = {};
@@ -735,4 +741,258 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             this.registered_dependencies[dependency.src_pol_id].push(dependency);
         }
     }
+
+
+    /**
+     * Faut généraliser ce concept c'est ridicule
+     */
+    private async onCreateAccessPolicyVO(vo: AccessPolicyVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        this.registered_policies[vo.translatable_name] = vo;
+        this.registered_policies_by_ids[vo.id] = vo;
+    }
+
+    private async onCreatePolicyDependencyVO(vo: PolicyDependencyVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        if (!this.registered_dependencies[vo.src_pol_id]) {
+            this.registered_dependencies[vo.src_pol_id] = [];
+        }
+        this.registered_dependencies[vo.src_pol_id].push(vo);
+    }
+
+    private async onCreateRolePoliciesVO(vo: RolePoliciesVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        if (!this.registered_roles_policies[vo.role_id]) {
+            this.registered_roles_policies[vo.role_id] = {};
+        }
+        this.registered_roles_policies[vo.role_id][vo.accpol_id] = vo;
+    }
+
+    private async onCreateRoleVO(vo: RoleVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        this.registered_roles[vo.translatable_name] = vo;
+        this.registered_roles_by_ids[vo.id] = vo;
+    }
+
+    private async onCreateUserRolesVO(vo: UserRolesVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        if (!this.registered_users_roles[vo.user_id]) {
+            this.registered_users_roles[vo.user_id] = [];
+        }
+        this.registered_users_roles[vo.user_id].push(this.registered_roles[vo.role_id]);
+    }
+
+    private async onUpdateAccessPolicyVO(vo: AccessPolicyVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        if ((!this.registered_policies_by_ids[vo.id]) || (!this.registered_policies[this.registered_policies_by_ids[vo.id].translatable_name])) {
+            return;
+        }
+
+        if (this.registered_policies_by_ids[vo.id].translatable_name != vo.translatable_name) {
+            delete this.registered_policies[this.registered_policies_by_ids[vo.id].translatable_name];
+        }
+        this.registered_policies[vo.translatable_name] = vo;
+        this.registered_policies_by_ids[vo.id] = vo;
+    }
+
+    private async onUpdatePolicyDependencyVO(vo: PolicyDependencyVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        for (let i in this.registered_dependencies[vo.src_pol_id]) {
+            if (this.registered_dependencies[vo.src_pol_id][i].id == vo.id) {
+                this.registered_dependencies[vo.src_pol_id][i] = vo;
+                return;
+            }
+        }
+
+        // Si on le trouve pas c'est probablement un changement de src_pol_id, on lance une recherche plus large
+        for (let j in this.registered_dependencies) {
+            for (let i in this.registered_dependencies[j]) {
+                if (this.registered_dependencies[j][i].id == vo.id) {
+                    this.registered_dependencies[j][i] = vo;
+                    return;
+                }
+            }
+        }
+    }
+
+    private async onUpdateRolePoliciesVO(vo: RolePoliciesVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        if (this.registered_roles_policies[vo.role_id] && this.registered_roles_policies[vo.role_id][vo.accpol_id] &&
+            (this.registered_roles_policies[vo.role_id][vo.accpol_id].id == vo.id)) {
+            this.registered_roles_policies[vo.role_id][vo.accpol_id] = vo;
+            return;
+        }
+
+        // Sinon il y a eu un changement dans les ids, on fait une recherche intégrale
+        for (let j in this.registered_roles_policies) {
+            for (let i in this.registered_roles_policies[j]) {
+                if (this.registered_roles_policies[j][i].id == vo.id) {
+                    this.registered_roles_policies[j][i] = vo;
+                    return;
+                }
+            }
+        }
+    }
+
+    private async onUpdateRoleVO(vo: RoleVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        if ((!this.registered_roles_by_ids[vo.id]) || (!this.registered_roles[this.registered_roles_by_ids[vo.id].translatable_name])) {
+            return;
+        }
+
+        if (this.registered_roles_by_ids[vo.id].translatable_name != vo.translatable_name) {
+            delete this.registered_roles[this.registered_roles_by_ids[vo.id].translatable_name];
+        }
+        this.registered_roles[vo.translatable_name] = vo;
+        this.registered_roles_by_ids[vo.id] = vo;
+    }
+
+    private async onUpdateUserRolesVO(vo: UserRolesVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        let role: RoleVO = this.registered_roles_by_ids[vo.role_id];
+
+        for (let i in this.registered_users_roles[vo.user_id]) {
+            if (this.registered_users_roles[vo.user_id][i].id == role.id) {
+                this.registered_users_roles[vo.user_id][i] = role;
+                return;
+            }
+        }
+
+        // Si on le trouve pas c'est probablement un changement de user_id, on lance une recherche plus large
+        for (let j in this.registered_users_roles) {
+            for (let i in this.registered_users_roles[j]) {
+                if (this.registered_users_roles[j][i].id == role.id) {
+                    this.registered_users_roles[j][i] = role;
+                    return;
+                }
+            }
+        }
+    }
+
+    private async onDeleteAccessPolicyVO(vo: AccessPolicyVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        if ((!this.registered_policies_by_ids[vo.id]) || (!this.registered_policies[this.registered_policies_by_ids[vo.id].translatable_name])) {
+            return;
+        }
+
+        delete this.registered_policies[this.registered_policies_by_ids[vo.id].translatable_name];
+        delete this.registered_policies_by_ids[vo.id];
+    }
+
+    private async onDeletePolicyDependencyVO(vo: PolicyDependencyVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        for (let i in this.registered_dependencies[vo.src_pol_id]) {
+            if (this.registered_dependencies[vo.src_pol_id][i].id == vo.id) {
+                this.registered_dependencies[vo.src_pol_id].splice(parseInt(i), 1);
+                return;
+            }
+        }
+
+        // Si on le trouve pas c'est probablement un changement de src_pol_id, on lance une recherche plus large
+        for (let j in this.registered_dependencies) {
+            for (let i in this.registered_dependencies[j]) {
+                if (this.registered_dependencies[j][i].id == vo.id) {
+                    this.registered_dependencies[j].splice(parseInt(i), 1);
+                    return;
+                }
+            }
+        }
+    }
+
+    private async onDeleteRolePoliciesVO(vo: RolePoliciesVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        if (this.registered_roles_policies[vo.role_id] && this.registered_roles_policies[vo.role_id][vo.accpol_id] &&
+            (this.registered_roles_policies[vo.role_id][vo.accpol_id].id == vo.id)) {
+            delete this.registered_roles_policies[vo.role_id][vo.accpol_id];
+            return;
+        }
+
+        // Sinon il y a eu un changement dans les ids, on fait une recherche intégrale
+        for (let j in this.registered_roles_policies) {
+            for (let i in this.registered_roles_policies[j]) {
+                if (this.registered_roles_policies[j][i].id == vo.id) {
+                    delete this.registered_roles_policies[j][i];
+                    return;
+                }
+            }
+        }
+    }
+
+    private async onDeleteRoleVO(vo: RoleVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        if ((!this.registered_roles_by_ids[vo.id]) || (!this.registered_roles[this.registered_roles_by_ids[vo.id].translatable_name])) {
+            return;
+        }
+
+        delete this.registered_roles[this.registered_roles_by_ids[vo.id].translatable_name];
+        delete this.registered_roles_by_ids[vo.id];
+    }
+
+    private async onDeleteUserRolesVO(vo: UserRolesVO) {
+        if ((!vo) || (!vo.id)) {
+            return;
+        }
+
+        let role: RoleVO = this.registered_roles_by_ids[vo.role_id];
+
+        for (let i in this.registered_users_roles[vo.user_id]) {
+            if (this.registered_users_roles[vo.user_id][i].id == role.id) {
+                this.registered_users_roles[vo.user_id].splice(parseInt(i), 1);
+                return;
+            }
+        }
+
+        // Si on le trouve pas c'est probablement un changement de user_id, on lance une recherche plus large
+        for (let j in this.registered_users_roles) {
+            for (let i in this.registered_users_roles[j]) {
+                if (this.registered_users_roles[j][i].id == role.id) {
+                    this.registered_users_roles[j].splice(parseInt(i), 1);
+                    return;
+                }
+            }
+        }
+    }
+
 }
