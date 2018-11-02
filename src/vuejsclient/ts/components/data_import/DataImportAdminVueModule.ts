@@ -39,29 +39,11 @@ export default class DataImportAdminVueModule extends VueModuleBase {
         super(ModuleDataImport.getInstance().name);
     }
 
-    public initialize() {
+    public async initialize() {
 
-        // TODO FIXME On donne accès à toutes les personnes qui ont accès aux imports
-        // TODO FIXME Au fait la gestion des droits, c'est pas comme ça que ça marche :) on devrait avoir des
-        //  droits dans ce genre d'endroits, et vérifier si le droit est actif pour ce compte, et pas partir des rôles
-        //  qui auraient hypothétiquement accès à cet élément... A changer ASAP
-
-        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.RIGHTS_GROUP_NAME, ModuleDataImport.RIGHT_ADMIN_GLOBAL)) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_BO_ACCESS)) {
             return;
         }
-        // if (!
-        //     (
-        //         VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) && (
-        //             (
-        //                 (typeof VueAppController.getInstance().data_user.super_admin === "undefined") &&
-        //                 (typeof VueAppController.getInstance().data_user.admin_central === "undefined") &&
-        //                 (typeof VueAppController.getInstance().data_user.admin === "undefined")
-        //             ) || (
-        //                 VueAppController.getInstance().data_user.super_admin || VueAppController.getInstance().data_user.admin_central
-        //             )
-        //         ))) {
-        //     return;
-        // }
 
         let importsMenuBranch: MenuBranch = DataImportAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
 

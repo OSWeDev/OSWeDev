@@ -89,15 +89,53 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         bo_access.translatable_name = ModuleAccessPolicy.POLICY_BO_ACCESS;
         await this.registerPolicy(bo_access);
 
-        let rights_managment_tool_access: AccessPolicyVO = new AccessPolicyVO();
-        rights_managment_tool_access.group_id = group.id;
-        rights_managment_tool_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        rights_managment_tool_access.translatable_name = ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_TOOL_ACCESS;
-        await this.registerPolicy(rights_managment_tool_access);
+        let modules_managment_access: AccessPolicyVO = new AccessPolicyVO();
+        modules_managment_access.group_id = group.id;
+        modules_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        modules_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
+        await this.registerPolicy(modules_managment_access);
         let dependency: PolicyDependencyVO = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-        dependency.src_pol_id = rights_managment_tool_access.id;
+        dependency.src_pol_id = modules_managment_access.id;
         dependency.depends_on_pol_id = bo_access.id;
+        await this.registerPolicyDependency(dependency);
+
+        let rights_managment_access: AccessPolicyVO = new AccessPolicyVO();
+        rights_managment_access.group_id = group.id;
+        rights_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        rights_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS;
+        await this.registerPolicy(rights_managment_access);
+        dependency = new PolicyDependencyVO();
+        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        dependency.src_pol_id = rights_managment_access.id;
+        dependency.depends_on_pol_id = bo_access.id;
+        await this.registerPolicyDependency(dependency);
+
+        let users_list_access: AccessPolicyVO = new AccessPolicyVO();
+        users_list_access.group_id = group.id;
+        users_list_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        users_list_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS;
+        await this.registerPolicy(users_list_access);
+        dependency = new PolicyDependencyVO();
+        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        dependency.src_pol_id = users_list_access.id;
+        dependency.depends_on_pol_id = bo_access.id;
+        await this.registerPolicyDependency(dependency);
+
+        let users_managment_access: AccessPolicyVO = new AccessPolicyVO();
+        users_managment_access.group_id = group.id;
+        users_managment_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        users_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS;
+        await this.registerPolicy(users_managment_access);
+        dependency = new PolicyDependencyVO();
+        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        dependency.src_pol_id = users_managment_access.id;
+        dependency.depends_on_pol_id = bo_access.id;
+        await this.registerPolicyDependency(dependency);
+        dependency = new PolicyDependencyVO();
+        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        dependency.src_pol_id = users_managment_access.id;
+        dependency.depends_on_pol_id = users_list_access.id;
         await this.registerPolicyDependency(dependency);
     }
 
@@ -551,7 +589,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_TOOL_ACCESS)) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             return;
         }
 

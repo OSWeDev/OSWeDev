@@ -52,7 +52,7 @@ export default abstract class VueAppController {
         })());
 
         promises.push((async () => {
-            self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.ACCESS_GROUP_NAME, ModuleTranslation.ACCESS_ON_PAGE_TRANSLATION_MODULE);
+            self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS);
         })());
 
         promises.push(ModuleAjaxCache.getInstance().get('/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED).then((d) => {

@@ -31,6 +31,22 @@ export default class ModuleAccessPolicy extends Module {
 
     public static MODULE_NAME: string = "AccessPolicy";
 
+    public static ROLE_UID_PREFIX: string = "access.roles.names.";
+    public static POLICY_GROUP_UID_PREFIX: string = "access.policy_groups.names.";
+    public static POLICY_UID_PREFIX: string = "access.policies.names.";
+
+    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME;
+
+    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
+    public static POLICY_BO_MODULES_MANAGMENT_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_MODULES_MANAGMENT_ACCESS";
+    public static POLICY_BO_RIGHTS_MANAGMENT_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_RIGHTS_MANAGMENT_ACCESS";
+    public static POLICY_BO_USERS_LIST_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_USERS_LIST_ACCESS";
+    public static POLICY_BO_USERS_MANAGMENT_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_USERS_MANAGMENT_ACCESS";
+
+    public static ROLE_ADMIN: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'admin';
+    public static ROLE_LOGGED: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'logged';
+    public static ROLE_ANONYMOUS: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'anonymous';
+
     public static APINAME_CHECK_ACCESS = "ACCESS_CHECK_ACCESS";
     public static APINAME_IS_ADMIN = "IS_ADMIN";
     public static APINAME_IS_ROLE = "IS_ROLE";
@@ -38,19 +54,6 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_ADD_ROLE_TO_USER = "ADD_ROLE_TO_USER";
     public static APINAME_BEGIN_RECOVER = "BEGIN_RECOVER";
     public static APINAME_RESET_PWD = "RESET_PWD";
-
-    public static ROLE_UID_PREFIX: string = "access.roles.names.";
-    public static POLICY_GROUP_UID_PREFIX: string = "access.policy_groups.names.";
-    public static POLICY_UID_PREFIX: string = "access.policies.names.";
-
-    public static ROLE_ADMIN: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'admin';
-    public static ROLE_LOGGED: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'logged';
-    public static ROLE_ANONYMOUS: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'anonymous';
-
-    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME;
-
-    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
-    public static POLICY_BO_RIGHTS_MANAGMENT_TOOL_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_RIGHTS_MANAGMENT_TOOL_ACCESS";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';

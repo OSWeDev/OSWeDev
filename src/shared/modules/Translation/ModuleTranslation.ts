@@ -9,11 +9,16 @@ import GetTranslationParamVO from './apis/GetTranslationParamVO';
 import LangVO from './vos/LangVO';
 import TranslatableTextVO from './vos/TranslatableTextVO';
 import TranslationVO from './vos/TranslationVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleTranslation extends Module {
 
-    public static ACCESS_GROUP_NAME: string = "ModuleTranslation_ACCESS_GROUP_NAME";
-    public static ACCESS_ON_PAGE_TRANSLATION_MODULE: string = "ACCESS_ON_PAGE_TRANSLATION_MODULE";
+    public static MODULE_NAME: string = 'ProgramPlanBase';
+
+    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleTranslation.MODULE_NAME;
+    public static POLICY_BO_TRANSLATIONS_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_TRANSLATIONS_ACCESS';
+    public static POLICY_BO_OTHERS_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_OTHERS_ACCESS';
+    public static POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.ON_PAGE_TRANSLATION_MODULE_ACCESS';
 
     public static APINAME_GET_TRANSLATABLE_TEXTS: string = "getTranslatableTexts";
     public static APINAME_GET_TRANSLATABLE_TEXT: string = "getTranslatableText";

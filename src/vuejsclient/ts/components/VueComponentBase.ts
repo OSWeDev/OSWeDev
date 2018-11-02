@@ -286,10 +286,6 @@ export default class VueComponentBase extends Vue
     protected loadingProgression: number = 0;
     protected nbLoadingSteps: number = 5;
 
-    protected access_table: {
-        [group_name: string]: { [policy_name: string]: boolean };
-    } = {};
-
     protected fullscreen = screenfull.isFullscreen;
 
     protected toggleFullscreen() {
@@ -585,31 +581,8 @@ export default class VueComponentBase extends Vue
         }
     }
 
-    protected async updateAccessTable(group_name: string, policy_name: string) {
-        let granted: boolean = ModuleAccessPolicy.getInstance().actif
-            ? await ModuleAccessPolicy.getInstance().checkAccess(
-                group_name,
-                policy_name
-            )
-            : true;
-        Vue.set(this.access_table[group_name], policy_name, granted);
-    }
-
     protected humanizeDurationTo(date: Date): string {
         return DateHandler.getInstance().humanizeDurationTo(moment(date));
-    }
-
-    protected hasAccessTo(group_name: string, policy_name: string) {
-        // On doit passer par une table locale qui sera mise à jour si besoin en async
-        if (!this.access_table[group_name]) {
-            Vue.set(this.access_table, group_name, {});
-        }
-        if (!this.access_table[group_name][policy_name]) {
-            Vue.set(this.access_table[group_name], policy_name, false);
-            this.updateAccessTable(group_name, policy_name);
-        }
-
-        return this.access_table[group_name][policy_name];
     }
 
     protected routeExists(url: string): boolean {

@@ -40,9 +40,9 @@ export default class CMSAdminVueModule extends VueModuleBase {
         super(ModuleCMS.getInstance().name);
     }
 
-    public initialize() {
+    public async initialize() {
 
-        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleCMS.POLICY_FO_ACCESS)) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleCMS.POLICY_FO_ACCESS)) {
             return;
         }
 

@@ -45,30 +45,11 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         super(ModuleAccessPolicy.getInstance().name);
     }
 
-    public initialize() {
+    public async initialize() {
 
         let accessPolicyMenuBranch: MenuBranch = AccessPolicyAdminVueModule.DEFAULT_MENU_BRANCH;
 
-        // TODO FIXME : TEMPorary right managment for old project compliance. Update ASAP
-        // if (VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) &&
-        //     (((typeof VueAppController.getInstance().data_user.super_admin === "undefined") && (typeof VueAppController.getInstance().data_user.admin_central === "undefined")) ||
-        //         (VueAppController.getInstance().data_user.super_admin || VueAppController.getInstance().data_user.admin_central))) {
-
-        if ((
-            VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) ||
-            (ModulesManager.getInstance().getModuleByNameAndRole('toyota', Module.SharedModuleRoleName) &&
-                ModulesManager.getInstance().getModuleByNameAndRole('toyota', Module.SharedModuleRoleName).actif &&
-                VueAppController.getInstance().hasRole('acces.toyota.roles.admin_central.label') ||
-                VueAppController.getInstance().hasRole('acces.toyota.roles.fac_coventeam.label'))
-        ) && (
-                (
-                    (typeof VueAppController.getInstance().data_user.super_admin === "undefined") &&
-                    (typeof VueAppController.getInstance().data_user.admin_central === "undefined") &&
-                    (typeof VueAppController.getInstance().data_user.admin === "undefined")
-                ) || (
-                    VueAppController.getInstance().data_user.super_admin || VueAppController.getInstance().data_user.admin_central
-                )
-            )) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS)) {
             CRUDComponentManager.getInstance().registerCRUD(
                 UserVO.API_TYPE_ID,
                 this.getUserCRUD(),
@@ -78,15 +59,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 this.routes);
         }
 
-        if (VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) && (
-            (
-                (typeof VueAppController.getInstance().data_user.super_admin === "undefined") &&
-                (typeof VueAppController.getInstance().data_user.admin_central === "undefined") &&
-                (typeof VueAppController.getInstance().data_user.admin === "undefined")
-            ) || (
-                VueAppController.getInstance().data_user.super_admin
-            )
-        )) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
             CRUDComponentManager.getInstance().registerCRUD(
                 UserRolesVO.API_TYPE_ID,
                 null,

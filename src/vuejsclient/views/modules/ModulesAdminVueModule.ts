@@ -30,19 +30,9 @@ export default class ModulesAdminVueModule extends VueModuleBase {
         super(ModuleDAO.getInstance().name);
     }
 
-    public initialize() {
+    public async initialize() {
 
-        if (!
-            (
-                VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) && (
-                    (
-                        (typeof VueAppController.getInstance().data_user.super_admin === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin_central === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin === "undefined")
-                    ) || (
-                        VueAppController.getInstance().data_user.super_admin
-                    )
-                ))) {
+        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS)) {
             return;
         }
 
