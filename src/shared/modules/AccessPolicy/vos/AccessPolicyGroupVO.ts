@@ -6,4 +6,5 @@ export default class AccessPolicyGroupVO {
     public _type: string = AccessPolicyGroupVO.API_TYPE_ID;
 
     public translatable_name: string;
+    public weight: number;
 }

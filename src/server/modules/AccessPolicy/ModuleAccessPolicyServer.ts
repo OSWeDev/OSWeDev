@@ -21,6 +21,8 @@ import ModuleServerBase from '../ModuleServerBase';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
+import ToggleAccessParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ToggleAccessParamVO';
+import BooleanParamVO from '../../../shared/modules/API/vos/apis/BooleanParamVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -396,6 +398,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param role_policies Les liaisons entre droits et rôles
      * @param policies Les droits
      * @param policies_dependencies Les dépendances
+     * @param ignore_role_policy Pour le cas où on veut tester l'accès par héritage (important pour l'admin)
      */
     public checkAccessTo(
         target_policy: AccessPolicyVO,
@@ -403,7 +406,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         all_roles: { [role_id: number]: RoleVO },
         role_policies: { [role_id: number]: { [pol_id: number]: RolePoliciesVO } },
         policies: { [policy_id: number]: AccessPolicyVO },
-        policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] }): boolean {
+        policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] },
+        ignore_role_policy: boolean = false): boolean {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!target_policy) || (!user_roles)) {
             return false;
@@ -414,7 +418,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
          *  - Si un de mes rôle me donne accès, j'ai accès
          *  - On doit éliminer les rôles un par un en cherchant à autoriser l'accès. Par défaut on refusera l'accès
          *  - Pour chaque rôle, et chaque rôle hérité :
-         *      - Cas 1 : Si j'ai explicitement un paramétrage pour ce droit sur ce rôle :
+         *      - Cas 1 : Si j'ai explicitement un paramétrage pour ce droit sur ce rôle et !ignore_role_policy :
          *          - Si accès granted : return true;
          *          - Si accès denied : on ne peut pas avoir accès avec ce rôle, on passe au suivant.
          *      - Cas 2 : Sinon : Je peux vérifier que le droit lui-même me donne pas accès par défaut, suivant son comportement et le rôle que je suis entrain de tester.
@@ -441,7 +445,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             let user_role: RoleVO = user_roles_and_inherited[i];
 
             // Cas 1
-            if (role_policies[user_role.id] && role_policies[user_role.id][target_policy.id]) {
+            if ((!ignore_role_policy) && role_policies[user_role.id] && role_policies[user_role.id][target_policy.id]) {
                 if (role_policies[user_role.id][target_policy.id].granted) {
                     return true;
                 }
@@ -481,6 +485,62 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return false;
+    }
+
+    private async togglePolicy(params: ToggleAccessParamVO): Promise<boolean> {
+        if ((!params.policy_id) || (!params.role_id)) {
+            return false;
+        }
+
+        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+            return false;
+        }
+
+        let target_policy: AccessPolicyVO = this.registered_policies_by_ids[params.policy_id];
+        let role: RoleVO = this.registered_roles_by_ids[params.role_id];
+        if (this.checkAccessTo(
+            target_policy,
+            [role],
+            this.registered_roles_by_ids,
+            this.registered_roles_policies,
+            this.registered_policies_by_ids,
+            this.registered_dependencies,
+            true)) {
+            // On devrait pas pouvoir arriver là avec un héritage true
+            return false;
+        }
+
+        // Il faut qu'on sache si il existe une policy explicit à cet endroit
+        //  et de façon sûre donc on demande au serveur de faire la modif directement
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult;
+        let role_policy: RolePoliciesVO = this.registered_roles_policies[role.id][target_policy.id];
+        if (role_policy) {
+            role_policy.granted = !role_policy.granted;
+            insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role_policy);
+            if ((!insertOrDeleteQueryResult) || (parseInt(insertOrDeleteQueryResult.id) != role_policy.id)) {
+                return false;
+            }
+
+            return true;
+        }
+        role_policy = new RolePoliciesVO();
+        role_policy.accpol_id = target_policy.id;
+        role_policy.granted = true;
+        role_policy.role_id = role.id;
+
+        insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role_policy);
+        if ((!insertOrDeleteQueryResult) || (!parseInt(insertOrDeleteQueryResult.id))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private async getAccessMatrix(param: BooleanParamVO): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
+        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+            return null;
+        }
+        todo
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {

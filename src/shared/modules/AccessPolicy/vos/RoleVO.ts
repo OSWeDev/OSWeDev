@@ -7,4 +7,5 @@ export default class RoleVO {
 
     public translatable_name: string;
     public parent_role_id: number;
+    public weight: number;
 }

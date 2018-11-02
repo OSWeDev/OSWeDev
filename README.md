@@ -1,3 +1,10 @@
+# Gestion des droits V2
+    ALTER TABLE ref.module_access_policy_accpolgrp ADD COLUMN weight bigint NOT NULL DEFAULT 0;
+    ALTER TABLE ref.module_access_policy_accpol ADD COLUMN weight bigint NOT NULL DEFAULT 0;
+    ALTER TABLE ref.module_access_policy_role ADD COLUMN weight bigint NOT NULL DEFAULT 0;
+    ALTER TABLE ref.module_access_policy_accpolgrp DROP COLUMN uniq_id CASCADE;
+    ALTER TABLE ref.module_access_policy_accpol DROP COLUMN uniq_id CASCADE;
+
 # 0.4.7 => 0.4.8
     ALTER TABLE admin.module_sass_resource_planning_skin_configurator ADD COLUMN main_background_header_url text;
     ALTER TABLE admin.module_sass_resource_planning_skin_configurator ALTER COLUMN main_background_int_url DROP DEFAULT;

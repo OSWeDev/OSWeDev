@@ -1,6 +1,4 @@
-import ConversionHandler from '../../../tools/ConversionHandler';
 import IDistantVOBase from '../../IDistantVOBase';
-import TextHandler from '../../../tools/TextHandler';
 
 export default class AccessPolicyVO implements IDistantVOBase {
 
@@ -17,4 +15,5 @@ export default class AccessPolicyVO implements IDistantVOBase {
     public translatable_name: string;
     public group_id: number;
     public default_behaviour: number;
+    public weight: number;
 }

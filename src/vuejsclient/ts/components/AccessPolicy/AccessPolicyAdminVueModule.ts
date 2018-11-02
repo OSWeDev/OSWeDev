@@ -1,25 +1,25 @@
-import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import AccessPolicyGroupVO from '../../../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import AccessPolicyVO from '../../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import RolePoliciesVO from '../../../../../shared/modules/AccessPolicy/vos/RolePoliciesVO';
-import RoleVO from '../../../../../shared/modules/AccessPolicy/vos/RoleVO';
-import UserRolesVO from '../../../../../shared/modules/AccessPolicy/vos/UserRolesVO';
-import CRUDComponentManager from '../../../../ts/components/crud/CRUDComponentManager';
-import CRUD from '../../../../ts/components/crud/vos/CRUD';
-import Datatable from '../../../../ts/components/datatable/vos/Datatable';
-import ManyToOneReferenceDatatableField from '../../../../ts/components/datatable/vos/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../../../../ts/components/datatable/vos/SimpleDatatableField';
-import MenuBranch from '../../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../../ts/components/menu/vos/MenuPointer';
-import VueModuleBase from '../../../../ts/modules/VueModuleBase';
-import UserVO from '../../../../../shared/modules/AccessPolicy/vos/UserVO';
-import VueAppController from '../../../../VueAppController';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
-import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
-import ModulesManager from '../../../../../shared/modules/ModulesManager';
-import Module from '../../../../../shared/modules/Module';
+import VueModuleBase from '../../modules/VueModuleBase';
+import MenuBranch from '../menu/vos/MenuBranch';
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import CRUDComponentManager from '../crud/CRUDComponentManager';
+import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import MenuPointer from '../menu/vos/MenuPointer';
+import MenuLeaf from '../menu/vos/MenuLeaf';
+import UserRolesVO from '../../../../shared/modules/AccessPolicy/vos/UserRolesVO';
+import MenuElementBase from '../menu/vos/MenuElementBase';
+import RolePoliciesVO from '../../../../shared/modules/AccessPolicy/vos/RolePoliciesVO';
+import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import CRUD from '../crud/vos/CRUD';
+import Datatable from '../datatable/vos/Datatable';
+import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
+import Module from '../../../../shared/modules/Module';
+import ModulesManager from '../../../../shared/modules/ModulesManager';
+import VueAppController from '../../../VueAppController';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ManyToOneReferenceDatatableField from '../datatable/vos/ManyToOneReferenceDatatableField';
+import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
@@ -52,7 +52,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS)) {
             CRUDComponentManager.getInstance().registerCRUD(
                 UserVO.API_TYPE_ID,
-                this.getUserCRUD(),
+                await this.getUserCRUD(),
                 new MenuPointer(
                     new MenuLeaf("UserVO", 0, "fa-lock"),
                     accessPolicyMenuBranch),
@@ -102,7 +102,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         }
     }
 
-    protected getUserCRUD(): CRUD<UserVO> {
+    protected async getUserCRUD(): Promise<CRUD<UserVO>> {
         let crud: CRUD<UserVO> = new CRUD<UserVO>(new Datatable<UserVO>(UserVO.API_TYPE_ID));
 
 
@@ -110,15 +110,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password"));
 
-        // TODO FIXME ne doit pas avoir besoin de ça ici.... à remplacer ASAP
-        if (ModulesManager.getInstance().getModuleByNameAndRole('gr', Module.SharedModuleRoleName) &&
-            ModulesManager.getInstance().getModuleByNameAndRole('gr', Module.SharedModuleRoleName).actif) {
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("admin"));
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("super_admin"));
-            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("admin_central"));
-        }
-
-        if (VueAppController.getInstance().data_user.super_admin) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password_change_date"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("reminded_pwd_1"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("reminded_pwd_2"));

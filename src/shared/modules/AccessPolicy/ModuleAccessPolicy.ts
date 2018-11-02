@@ -26,6 +26,8 @@ import TextHandler from '../../tools/TextHandler';
 import VOsTypesManager from '../VOsTypesManager';
 import LangVO from '../Translation/vos/LangVO';
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
+import ToggleAccessParamVO from './vos/apis/ToggleAccessParamVO';
+import BooleanParamVO from '../API/vos/apis/BooleanParamVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -54,6 +56,8 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_ADD_ROLE_TO_USER = "ADD_ROLE_TO_USER";
     public static APINAME_BEGIN_RECOVER = "BEGIN_RECOVER";
     public static APINAME_RESET_PWD = "RESET_PWD";
+    public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
+    public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -102,6 +106,15 @@ export default class ModuleAccessPolicy extends Module {
             StringParamVO.translateFromREQ
         ));
 
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<BooleanParamVO, { [policy_id: number]: { [role_id: number]: boolean } }>(
+            ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX,
+            [AccessPolicyVO.API_TYPE_ID, RolePoliciesVO.API_TYPE_ID, PolicyDependencyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, RolePoliciesVO.API_TYPE_ID],
+            BooleanParamVO.translateCheckAccessParams,
+            BooleanParamVO.URL,
+            BooleanParamVO.translateToURL,
+            BooleanParamVO.translateFromREQ
+        ));
+
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, RoleVO[]>(
             ModuleAccessPolicy.APINAME_GET_MY_ROLES,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRolesVO.API_TYPE_ID]
@@ -124,9 +137,21 @@ export default class ModuleAccessPolicy extends Module {
             [UserVO.API_TYPE_ID],
             ResetPwdParamVO.translateCheckAccessParams
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ToggleAccessParamVO, boolean>(
+            ModuleAccessPolicy.APINAME_TOGGLE_ACCESS,
+            [RolePoliciesVO.API_TYPE_ID],
+            ToggleAccessParamVO.translateCheckAccessParams
+        ));
     }
 
+    public async getAccessMatrix(inherited_only: boolean): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
+        return await ModuleAPI.getInstance().handleAPI<BooleanParamVO, { [policy_id: number]: { [role_id: number]: boolean } }>(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX, inherited_only);
+    }
 
+    public async togglePolicy(policy_id: number, role_id: number): Promise<boolean> {
+        return await ModuleAPI.getInstance().handleAPI<ToggleAccessParamVO, boolean>(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, policy_id, role_id);
+    }
 
     /**
      * @param policy_name Le titre de la policy, qui doit être unique sur tous les groupes de toutes façons
@@ -215,7 +240,8 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable_fields = [
             label_field,
-            parent_role_id
+            parent_role_id,
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, RoleVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Rôles" }));
@@ -244,7 +270,7 @@ export default class ModuleAccessPolicy extends Module {
         let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let datatable_fields = [
             label_field,
-            new ModuleTableField('uniq_id', ModuleTableField.FIELD_TYPE_string, 'ID unique', true),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, AccessPolicyGroupVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Groupe de droits" }));
@@ -262,7 +288,8 @@ export default class ModuleAccessPolicy extends Module {
                 [AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN]: AccessPolicyVO.DEFAULT_BEHAVIOUR_LABELS[AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN],
                 [AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS]: AccessPolicyVO.DEFAULT_BEHAVIOUR_LABELS[AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS],
                 [AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE]: AccessPolicyVO.DEFAULT_BEHAVIOUR_LABELS[AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE]
-            })
+            }),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Droit" }));
