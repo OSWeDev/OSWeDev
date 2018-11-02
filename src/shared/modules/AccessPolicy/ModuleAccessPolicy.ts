@@ -29,6 +29,8 @@ import PolicyDependencyVO from './vos/PolicyDependencyVO';
 
 export default class ModuleAccessPolicy extends Module {
 
+    public static MODULE_NAME: string = "AccessPolicy";
+
     public static APINAME_CHECK_ACCESS = "ACCESS_CHECK_ACCESS";
     public static APINAME_IS_ADMIN = "IS_ADMIN";
     public static APINAME_IS_ROLE = "IS_ROLE";
@@ -45,9 +47,10 @@ export default class ModuleAccessPolicy extends Module {
     public static ROLE_LOGGED: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'logged';
     public static ROLE_ANONYMOUS: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'anonymous';
 
-    public static BACK_OFFICE_POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + "back_office";
-    public static BACK_OFFICE_ACCESS_POLICY: string = ModuleAccessPolicy.POLICY_UID_PREFIX + "back_office.access";
-    public static BACK_OFFICE_RIGHTS_MANAGMENT_TOOL_ACCESS_POLICY: string = ModuleAccessPolicy.POLICY_UID_PREFIX + "back_office.rights_managment_tool_access";
+    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME;
+
+    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
+    public static POLICY_BO_RIGHTS_MANAGMENT_TOOL_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_RIGHTS_MANAGMENT_TOOL_ACCESS";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -68,7 +71,7 @@ export default class ModuleAccessPolicy extends Module {
 
     private constructor() {
 
-        super("access_policy", "AccessPolicy");
+        super("access_policy", ModuleAccessPolicy.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 

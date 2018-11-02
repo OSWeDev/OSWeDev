@@ -33,6 +33,7 @@ import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import SocketWrapper from './modules/PushData/vos/SocketWrapper';
 import NotificationVO from '../shared/modules/PushData/vos/NotificationVO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
+import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 
 export default abstract class ServerBase {
 
@@ -290,7 +291,7 @@ export default abstract class ServerBase {
             resave: false,
             saveUninitialized: false,
             store: new FileStore()
-        })
+        });
         this.app.use(this.session);
 
 
@@ -334,7 +335,7 @@ export default abstract class ServerBase {
 
         this.app.get('/admin', (req, res) => {
 
-            if (ModuleAccessPolicy.getInstance().actif && (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.bo, ModuleAccessPolicy.ADMIN_ACCESS_NAME))) {
+            if (ModuleAccessPolicy.getInstance().actif && (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS))) {
                 res.redirect('/');
             }
             res.sendFile(path.resolve('./src/admin/public/generated/admin.html'));
@@ -528,6 +529,8 @@ export default abstract class ServerBase {
         this.registerApis(this.app);
 
         await this.modulesService.configure_server_modules(this.app);
+        // Une fois tous les droits / rôles définis, on doit pouvoir initialiser les droits d'accès
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
         console.log('listening on port', ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')
@@ -541,7 +544,7 @@ export default abstract class ServerBase {
                 server.listen(ServerBase.getInstance().port);
                 // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
 
-                // SocketIO 
+                // SocketIO
                 // let io = socketIO.listen(ServerBase.getInstance().app);
                 //turn off debug
                 // io.set('log level', 1);

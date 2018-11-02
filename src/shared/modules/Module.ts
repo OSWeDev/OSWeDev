@@ -29,10 +29,6 @@ export default abstract class Module implements IModuleBase {
         ModulesManager.getInstance().registerModule(Module.SharedModuleRoleName, this);
     }
 
-    protected forceActivationOnInstallation(): void {
-        this.activate_on_installation = true;
-    }
-
     public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
 
     public async hook_module_install(db): Promise<any> { }
@@ -103,5 +99,9 @@ export default abstract class Module implements IModuleBase {
                 return;
             }
         }
+    }
+
+    protected forceActivationOnInstallation(): void {
+        this.activate_on_installation = true;
     }
 }

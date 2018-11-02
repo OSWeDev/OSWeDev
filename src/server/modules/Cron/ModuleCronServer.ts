@@ -9,6 +9,11 @@ import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModulePushDataServer from '../PushData/ModulePushDataServer';
 import ServerBase from '../../ServerBase';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
@@ -25,6 +30,26 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleCron.getInstance().name);
+    }
+
+    /**
+     * On définit les droits d'accès du module
+     */
+    public async registerAccessPolicies(): Promise<void> {
+        let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        group.translatable_name = ModuleCron.POLICY_GROUP;
+        await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group);
+
+        let bo_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_access.group_id = group.id;
+        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_access.translatable_name = ModuleCron.POLICY_BO_ACCESS;
+        await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access);
+        let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        admin_access_dependency.src_pol_id = bo_access.id;
+        admin_access_dependency.depends_on_pol_id = ModuleAccessPolicyServer.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
+        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
     public registerServerApiHandlers() {

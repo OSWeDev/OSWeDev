@@ -19,8 +19,8 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 
 export default class ModuleDataImport extends Module {
 
-    public static RIGHTS_GROUP_NAME: string = 'module_data_import';
-    public static RIGHT_ADMIN_GLOBAL: string = 'admin_global';
+    public static POLICY_GROUP_NAME: string = 'DATAIMPORT';
+    public static POLICY_ADMIN_ACCESS: string = ModuleDataImport.POLICY_GROUP_NAME + '.ADMIN_ACCESS';
 
     public static IMPORT_SCHEMA: string = 'imports';
 
@@ -165,7 +165,7 @@ export default class ModuleDataImport extends Module {
 
         targetModuleTable.defineAsImportable();
 
-        // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable 
+        // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable
         let fields: Array<ModuleTableField<any>> = [];
 
         for (let i in targetModuleTable.fields) {

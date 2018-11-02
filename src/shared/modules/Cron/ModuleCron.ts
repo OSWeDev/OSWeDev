@@ -5,8 +5,14 @@ import CronWorkerPlanification from './vos/CronWorkerPlanification';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleCron extends Module {
+
+    public static MODULE_NAME: string = "Cron";
+
+    public static POLICY_GROUP = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleCron.MODULE_NAME;
+    public static POLICY_BO_ACCESS = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleCron.MODULE_NAME + ".BO_ACCESS";
 
     public static APINAME_executeWorkersManually: string = "executeWorkersManually";
 
@@ -19,9 +25,11 @@ export default class ModuleCron extends Module {
 
     private static instance: ModuleCron = null;
 
+    public datatable_cronworkplan: ModuleTable<CronWorkerPlanification>;
+
     private constructor() {
 
-        super("cron", "Cron");
+        super("cron", ModuleCron.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 
@@ -35,8 +43,6 @@ export default class ModuleCron extends Module {
     public async executeWorkersManually() {
         ModuleAPI.getInstance().handleAPI(ModuleCron.APINAME_executeWorkersManually);
     }
-
-    public datatable_cronworkplan: ModuleTable<CronWorkerPlanification>;
 
     public initialize() {
         this.fields = [];

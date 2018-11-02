@@ -35,19 +35,9 @@ export default class CronAdminVueModule extends VueModuleBase {
         super(ModuleCron.getInstance().name);
     }
 
-    public initialize() {
+    public async initialize() {
 
-        if (!
-            (
-                VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) && (
-                    (
-                        (typeof VueAppController.getInstance().data_user.super_admin === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin_central === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin === "undefined")
-                    ) || (
-                        VueAppController.getInstance().data_user.super_admin
-                    )
-                ))) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleCron.POLICY_BO_ACCESS)) {
             return;
         }
 
