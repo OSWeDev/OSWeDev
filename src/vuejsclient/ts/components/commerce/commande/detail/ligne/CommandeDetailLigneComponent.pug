@@ -1,5 +1,5 @@
 tr
     td {{ produitTitle }}
-    td {{ const_filters.read.toFixed(prixUnitaire, 2) }}
-    td {{ const_filters.read.toFixed(quantite, 0) }}
-    td {{ const_filters.read.amount(total, 2) }}
+    td {{ const_filters.toFixed.read(prixUnitaire, 2) }}
+    td {{ const_filters.toFixed.read(quantite, 0) }}
+    td {{ const_filters.amount.read(total, 2) }}

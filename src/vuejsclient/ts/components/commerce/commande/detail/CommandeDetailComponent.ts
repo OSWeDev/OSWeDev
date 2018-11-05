@@ -9,7 +9,7 @@ import CommandeDetailLigneComponent from './ligne/CommandeDetailLigneComponent';
 @Component({
     template: require('./CommandeDetailComponent.pug'),
     components: {
-        ligne: CommandeDetailLigneComponent
+        'ligne-detail': CommandeDetailLigneComponent
     }
 })
 export default class CommandeDetailComponent extends VueComponentBase {
@@ -20,6 +20,8 @@ export default class CommandeDetailComponent extends VueComponentBase {
     private details: LigneCommandeDetailsVO[] = null;
 
     private async created(): Promise<void> {
+        this.startLoading();
+
         // On charge la commande
         this.commande = await ModuleCommande.getInstance().getCommandeById(this.commande_id);
 
@@ -28,7 +30,7 @@ export default class CommandeDetailComponent extends VueComponentBase {
         }
 
         // Fin de chargement
-        this.isLoading = false;
+        this.stopLoading();
     }
 
     get totalCommande(): number {

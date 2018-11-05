@@ -6,6 +6,7 @@ import ModuleTableField from '../../ModuleTableField';
 import ModuleCommande from '../Commande/ModuleCommande';
 import CommandeVO from '../Commande/vos/CommandeVO';
 import VOsTypesManager from '../../VOsTypesManager';
+import DefaultTranslation from '../../Translation/vos/DefaultTranslation';
 
 export default class ModuleAbonnement extends Module {
 
@@ -42,25 +43,38 @@ export default class ModuleAbonnement extends Module {
     public initializeAbonnement(): void {
         // Création de la table Abonnement
         let datatable_fields = [
-            new ModuleTableField('renouvellement', ModuleTableField.FIELD_TYPE_boolean, 'Renouvellement'),
-            new ModuleTableField('echeance', ModuleTableField.FIELD_TYPE_date, 'Date echeance'),
-            new ModuleTableField('resiliation', ModuleTableField.FIELD_TYPE_date, 'Date resiliation'),
+            new ModuleTableField('renouvellement', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({
+                fr: 'Renouvellement'
+            })),
+            new ModuleTableField('echeance', ModuleTableField.FIELD_TYPE_date, new DefaultTranslation({
+                fr: 'Date echeance'
+            })),
+            new ModuleTableField('resiliation', ModuleTableField.FIELD_TYPE_date, new DefaultTranslation({
+                fr: 'Date resiliation'
+            })),
         ];
-        this.datatable_abonnement = new ModuleTable<AbonnementVO>(this, AbonnementVO.API_TYPE_ID, datatable_fields, null, 'Abonnement');
+        this.datatable_abonnement = new ModuleTable<AbonnementVO>(this, AbonnementVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({
+            fr: 'Abonnement'
+        }));
         this.datatables.push(this.datatable_abonnement);
     }
 
     public initializePackAbonnement(): void {
-
         // Création de la table PackAbonnement
-        let field_ligne_commande_id: ModuleTableField<number> = new ModuleTableField('ligne_commande_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Ligne Commande', true);
-        let field_abonnement_id: ModuleTableField<number> = new ModuleTableField('abonnement_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Abonnement', true);
+        let field_ligne_commande_id: ModuleTableField<number> = new ModuleTableField('ligne_commande_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({
+            fr: 'Ligne Commande'
+        }), true);
+        let field_abonnement_id: ModuleTableField<number> = new ModuleTableField('abonnement_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({
+            fr: 'Abonnement'
+        }), true);
 
         let datatable_fields = [
             field_ligne_commande_id,
             field_abonnement_id,
         ];
-        this.datatable_pack_abonnement = new ModuleTable<PackAbonnementVO>(this, PackAbonnementVO.API_TYPE_ID, datatable_fields, null, 'PackAbonnement');
+        this.datatable_pack_abonnement = new ModuleTable<PackAbonnementVO>(this, PackAbonnementVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({
+            fr: 'PackAbonnement'
+        }));
         field_ligne_commande_id.addManyToOneRelation(this.datatable_pack_abonnement, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
         field_abonnement_id.addManyToOneRelation(this.datatable_pack_abonnement, this.datatable_abonnement);
         this.datatables.push(this.datatable_pack_abonnement);

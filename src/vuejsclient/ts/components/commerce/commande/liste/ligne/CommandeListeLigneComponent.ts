@@ -4,10 +4,10 @@ import { Prop } from 'vue-property-decorator';
 import CommandeVO from '../../../../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
 
 @Component({
-    template: require('./CommandeDetailLigneComponent.pug'),
+    template: require('./CommandeListeLigneComponent.pug'),
     components: {}
 })
-export default class CommandeDetailLigneComponent extends VueComponentBase {
+export default class CommandeListeLigneComponent extends VueComponentBase {
     @Prop()
     private commande: CommandeVO;
 

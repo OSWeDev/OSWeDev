@@ -38,26 +38,28 @@ export default class ModuleProduit extends Module {
 
     public initializeCategorieProduit(): void {
         // Table CategorieProduit
+        let default_label_field: ModuleTableField<string> = new ModuleTableField('titre', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
         let datatable_fields = [
-            new ModuleTableField('titre', ModuleTableField.FIELD_TYPE_string, 'Titre', true),
+            default_label_field,
             new ModuleTableField('param_type', ModuleTableField.FIELD_TYPE_string, 'Type de param', true),
         ];
-        this.datatable_categorie_produit = new ModuleTable<CategorieProduitVO>(this, CategorieProduitVO.API_TYPE_ID, datatable_fields, null, 'CategorieProduit');
+        this.datatable_categorie_produit = new ModuleTable<CategorieProduitVO>(this, CategorieProduitVO.API_TYPE_ID, datatable_fields, default_label_field, 'CategorieProduit');
         this.datatables.push(this.datatable_categorie_produit);
     }
 
     public initializeProduit(): void {
         // Table Produit
         let field_categorie_produit_id: ModuleTableField<number> = new ModuleTableField('categorie_produit_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Categorie produit');
+        let default_label_field: ModuleTableField<string> = new ModuleTableField('titre', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
 
         let datatable_fields = [
-            new ModuleTableField('titre', ModuleTableField.FIELD_TYPE_string, 'Titre', true),
+            default_label_field,
             new ModuleTableField('actif', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true),
             new ModuleTableField('prix', ModuleTableField.FIELD_TYPE_float, 'Prix'),
             new ModuleTableField('tva', ModuleTableField.FIELD_TYPE_float, 'TVA', true),
             field_categorie_produit_id,
         ];
-        this.datatable_produit = new ModuleTable<ProduitVO>(this, ProduitVO.API_TYPE_ID, datatable_fields, null, 'Produit');
+        this.datatable_produit = new ModuleTable<ProduitVO>(this, ProduitVO.API_TYPE_ID, datatable_fields, default_label_field, 'Produit');
         field_categorie_produit_id.addManyToOneRelation(this.datatable_produit, this.datatable_categorie_produit);
         this.datatables.push(this.datatable_produit);
     }

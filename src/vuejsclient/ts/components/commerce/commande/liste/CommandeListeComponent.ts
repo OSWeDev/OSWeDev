@@ -8,20 +8,21 @@ import CommandeListeLigneComponent from './ligne/CommandeListeLigneComponent';
 @Component({
     template: require('./CommandeListeComponent.pug'),
     components: {
-        ligne: CommandeListeLigneComponent
+        'ligne-commande': CommandeListeLigneComponent
     }
 })
 export default class CommandeListeComponent extends VueComponentBase {
-
     private commandes: CommandeVO[] = null;
 
     private async created(): Promise<void> {
+        this.startLoading();
+
         if (ModuleAccessPolicy.getInstance().connected_user) {
             // On charge les commandes
             this.commandes = await ModuleCommande.getInstance().getCommandesUser(ModuleAccessPolicy.getInstance().connected_user.id);
         }
 
         // Fin de chargement
-        this.isLoading = false;
+        this.stopLoading();
     }
 }

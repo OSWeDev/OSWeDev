@@ -1,0 +1,11 @@
+div(v-if="user")
+    h2 {{ t('client.user.mon-compte.compte') }}
+    div
+        label(for="name") {{ t('client.user.mon-compte.name') }}
+        input(id="name", type="text", disabled="disabled", :value="user.name")
+    div
+        label(for="email") {{ t('client.user.mon-compte.email') }}
+        input(id="email", type="text", disabled="disabled", :value="user.email")
+    div
+        label(for="password") {{ t('client.user.mon-compte.password') }}
+        input(id="password", type="password", disabled="disabled", value="password")

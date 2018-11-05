@@ -1,5 +1,5 @@
-.row
-    .row(v-if="!isLoading && commande")
+div
+    div(v-if="!isLoading && commande")
         .field
             label {{ t('client.commande.id') }}
             .value {{ commande.id }}
@@ -18,9 +18,9 @@
                     th {{ t('client.commande.ligne.total') }}
             tbody
                 template(v-for="detail in details")
-                    ligne(:detail="detail")
-            tfooter
+                    ligne-detail(:detail="detail")
+            tfoot
                 tr
                     td(colspan="3")
-                    td {{ const_filters.read.amount(totalCommande, 2) }}
+                    td {{ const_filters.amount.read(totalCommande, 2) }}
             

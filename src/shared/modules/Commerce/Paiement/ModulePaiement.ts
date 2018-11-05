@@ -51,13 +51,14 @@ export default class ModulePaiement extends Module {
         // Création de la table Paiement
         let field_abonnement_id: ModuleTableField<number> = new ModuleTableField('abonnement_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Abonnement', true);
         let field_mode_paiement_id: ModuleTableField<number> = new ModuleTableField('mode_paiement_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Mode paiement', true);
+        let default_label_field: ModuleTableField<string> = new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_string, 'Statut');
 
         let datatable_fields = [
             field_abonnement_id,
             field_mode_paiement_id,
-            new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_string, 'Statut'),
+            default_label_field,
         ];
-        this.datatable_paiement = new ModuleTable<PaiementVO>(this, PaiementVO.API_TYPE_ID, datatable_fields, null, 'Paiement');
+        this.datatable_paiement = new ModuleTable<PaiementVO>(this, PaiementVO.API_TYPE_ID, datatable_fields, default_label_field, 'Paiement');
         field_abonnement_id.addManyToOneRelation(this.datatable_paiement, VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);
         field_mode_paiement_id.addManyToOneRelation(this.datatable_paiement, this.datatable_mode_paiement);
         this.datatables.push(this.datatable_paiement);

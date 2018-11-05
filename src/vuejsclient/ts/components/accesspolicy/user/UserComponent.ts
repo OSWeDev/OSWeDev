@@ -1,16 +1,15 @@
 import Component from 'vue-class-component';
 import VueComponentBase from '../../VueComponentBase';
-import UserVO from '../../../../../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import UserCompteComponent from './compte/UserCompteComponent';
+import ClientComponent from '../../commerce/client/ClientComponent';
 
 @Component({
     template: require('./UserComponent.pug'),
-    components: {}
+    components: {
+        'user-compte': UserCompteComponent,
+        'user-informations': ClientComponent,
+    }
 })
 export default class UserComponent extends VueComponentBase {
-    public user: UserVO = null;
-
-    private async created(): Promise<void> {
-        this.user = ModuleAccessPolicy.getInstance().connected_user;
-    }
+    private async created(): Promise<void> { }
 }

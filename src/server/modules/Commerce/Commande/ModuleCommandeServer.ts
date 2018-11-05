@@ -40,8 +40,9 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     public async getLignesCommandeByCommandeId(param: NumberParamVO): Promise<LigneCommandeVO[]> {
         return await ModuleDAOServer.getInstance().selectAll<LigneCommandeVO>(
             LigneCommandeVO.API_TYPE_ID,
-            ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' c on c.id = t.client_id ' +
-            ' WHERE c.user_id = $1', [param.num]
+            ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID].full_name + ' commande on commande.id = t.commande_id ' +
+            ' JOIN ' + VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID].full_name + ' client on client.id = commande.client_id ' +
+            ' WHERE t.commande_id = $1', [param.num]
         );
     }
 }

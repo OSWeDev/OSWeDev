@@ -46,7 +46,7 @@ export default class ModuleService extends Module {
             field_produit_id,
             field_informations_id,
         ];
-        this.datatable = new ModuleTable<ServiceVO>(this, ServiceVO.API_TYPE_ID, datatable_fields, null, 'Service');
+        this.datatable = new ModuleTable<ServiceVO>(this, ServiceVO.API_TYPE_ID, datatable_fields, field_produit_id, 'Service');
         field_produit_id.addManyToOneRelation(this.datatable, VOsTypesManager.getInstance().moduleTables_by_voType[ProduitVO.API_TYPE_ID]);
         field_informations_id.addManyToOneRelation(this.datatable, VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID]);
 

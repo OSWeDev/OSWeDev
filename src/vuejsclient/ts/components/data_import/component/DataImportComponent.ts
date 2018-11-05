@@ -19,6 +19,7 @@ import DataImportComponentBase from '../base/DataImportComponentBase';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import { ModuleDataImportAction, ModuleDataImportGetter } from '../store/DataImportStore';
 import './DataImportComponent.scss';
+import { watch } from 'fs';
 
 @Component({
     template: require('./DataImportComponent.pug'),
@@ -103,12 +104,13 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: null })
     public get_url_for_modal: (segment_date_index: string) => string;
 
+    public show_overview: boolean = false;
+
     private selected_segment: TimeSegment = null;
 
     private previous_import_historics: { [segment_date_index: string]: { [api_type_id: string]: DataImportHistoricVO } } = {};
 
     private autovalidate: boolean = false;
-    public show_overview: boolean = false;
 
     private lower_selected_date_index: string = null;
     private upper_selected_date_index: string = null;
@@ -116,6 +118,46 @@ export default class DataImportComponent extends DataImportComponentBase {
     private importing_multiple_segments: boolean = false;
     private importing_multiple_segments_current_segment: TimeSegment = null;
     private importing_multiple_segments_filevo_id: number = null;
+
+
+    @Watch('api_type_ids', { immediate: true })
+    public async onmounted() {
+        await this.on_mount();
+    }
+
+    public async initialize_on_mount() {
+        if (this.getlower_segment) {
+
+            if (!this.lower_selected_date_index) {
+                this.lower_selected_date_index = this.getlower_segment.dateIndex;
+            }
+            if (!this.upper_selected_date_index) {
+                this.upper_selected_date_index = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.getlower_segment, this.getsegment_type, -this.getsegment_number + 1).dateIndex;
+            }
+        }
+    }
+
+    @Watch("$route")
+    public async onrouteChange() {
+        this.handle_modal_show_hide();
+    }
+    public async on_show_modal() {
+
+        this.selected_segment = null;
+        if (!this.initial_selected_segment) {
+            return;
+        }
+        for (let i in this.getsegments) {
+            if (this.getsegments[i].dateIndex == this.initial_selected_segment) {
+                await this.select_segment(this.getsegments[i]);
+                return;
+            }
+        }
+
+        // Si le segment est pas chargé on le cible pour le trouver dans la liste
+        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.initial_selected_segment), this.getsegment_type, -Math.floor(this.getsegment_number / 2)));
+        await this.select_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.initial_selected_segment), this.getsegment_type));
+    }
 
     @Watch('getOptions')
     private onChangeOptions() {
@@ -240,43 +282,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res;
     }
 
-    protected async mounted() {
-        await this.on_mount();
-    }
 
-    public async initialize_on_mount() {
-        if (this.getlower_segment) {
-
-            if (!this.lower_selected_date_index) {
-                this.lower_selected_date_index = this.getlower_segment.dateIndex;
-            }
-            if (!this.upper_selected_date_index) {
-                this.upper_selected_date_index = TimeSegmentHandler.getInstance().getPreviousTimeSegment(this.getlower_segment, this.getsegment_type, -this.getsegment_number + 1).dateIndex;
-            }
-        }
-    }
-
-    @Watch("$route")
-    public async onrouteChange() {
-        this.handle_modal_show_hide();
-    }
-    public async on_show_modal() {
-
-        this.selected_segment = null;
-        if (!this.initial_selected_segment) {
-            return;
-        }
-        for (let i in this.getsegments) {
-            if (this.getsegments[i].dateIndex == this.initial_selected_segment) {
-                await this.select_segment(this.getsegments[i]);
-                return;
-            }
-        }
-
-        // Si le segment est pas chargé on le cible pour le trouver dans la liste
-        this.setlower_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.initial_selected_segment), this.getsegment_type, -Math.floor(this.getsegment_number / 2)));
-        await this.select_segment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(this.initial_selected_segment), this.getsegment_type));
-    }
 
     private async select_segment(segment: TimeSegment) {
         await this.loadRawImportedDatas(segment);

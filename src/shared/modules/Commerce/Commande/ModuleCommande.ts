@@ -77,7 +77,7 @@ export default class ModuleCommande extends Module {
             new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_string, 'Statut'),
             field_client_id
         ];
-        this.datatable_commande = new ModuleTable<CommandeVO>(this, CommandeVO.API_TYPE_ID, datatable_fields, null, 'Commande');
+        this.datatable_commande = new ModuleTable<CommandeVO>(this, CommandeVO.API_TYPE_ID, datatable_fields, field_client_id, 'Commande');
         field_client_id.addManyToOneRelation(this.datatable_commande, VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID]);
         this.datatables.push(this.datatable_commande);
     }
@@ -93,7 +93,7 @@ export default class ModuleCommande extends Module {
             field_commande_id,
             field_service_id,
         ];
-        this.datatable_ligne_commande = new ModuleTable<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, datatable_fields, null, 'Ligne commande');
+        this.datatable_ligne_commande = new ModuleTable<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, datatable_fields, field_commande_id, 'Ligne commande');
         field_commande_id.addManyToOneRelation(this.datatable_ligne_commande, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
         field_service_id.addManyToOneRelation(this.datatable_ligne_commande, VOsTypesManager.getInstance().moduleTables_by_voType[ServiceVO.API_TYPE_ID]);
         this.datatables.push(this.datatable_ligne_commande);

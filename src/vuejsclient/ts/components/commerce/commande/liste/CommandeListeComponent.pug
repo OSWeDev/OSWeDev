@@ -2,8 +2,14 @@
     h1 {{ t('client.commandes') }}
     div(v-if="!isLoading")
         table(v-if="commandes && commandes.length > 0")
+            thead
+                tr
+                    th {{ t('client.commandes.commande.id') }}
+                    th {{ t('client.commandes.commande.date') }}
+                    th {{ t('client.commandes.commande.statut') }}
+                    th 
             tbody
                 template(v-for="commande in commandes")
-                    ligne(:commande="commande")
+                    ligne-commande(:commande="commande")
 
         div(v-else) {{ t('client.commandes.no') }}

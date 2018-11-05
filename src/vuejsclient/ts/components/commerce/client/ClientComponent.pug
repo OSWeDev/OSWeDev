@@ -26,5 +26,5 @@
             label(for="siret") {{ t('client.user.mon-compte.siret') }}
             input(id="siret", type="text", disabled="disabled", :value="client.siret")
         div(v-if="client.email")
-            label(for="email") {{ t('client.user.mon-compte.email') }}
-            input(id="email", type="text", disabled="disabled", :value="client.email")
+            label(for="infos_email") {{ t('client.user.mon-compte.email') }}
+            input(id="infos_email", type="text", disabled="disabled", :value="client.email")

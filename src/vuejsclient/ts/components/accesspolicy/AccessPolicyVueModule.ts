@@ -1,6 +1,7 @@
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserComponent from './user/UserComponent';
+import { RouteConfig } from 'vue-router';
 
 export default class AccessPolicyVueModule extends VueModuleBase {
     public static getInstance(): AccessPolicyVueModule {
@@ -19,11 +20,27 @@ export default class AccessPolicyVueModule extends VueModuleBase {
 
     public initialize() {
         this.routes.push(
-            {
-                path: '/user',
-                name: 'user',
-                component: UserComponent
-            }
+            this.getRouteUser()
         );
+    }
+
+    public getRoutesMenu(): Array<{ route: RouteConfig, icon: string, text: string }> {
+        let routes: Array<{ route: RouteConfig, icon: string, text: string }> = [];
+
+        routes.push({
+            route: this.getRouteUser(),
+            icon: 'fa-user',
+            text: 'Mon compte'
+        });
+
+        return routes;
+    }
+
+    private getRouteUser(): RouteConfig {
+        return {
+            path: '/user',
+            name: 'user',
+            component: UserComponent
+        };
     }
 }

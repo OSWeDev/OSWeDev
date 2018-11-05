@@ -1,9 +1,4 @@
 .user
     h1 {{ t('client.user.mon-compte') }}
-    div(v-if="user")
-        div
-            label(for="name") {{ t('client.user.mon-compte.name') }}
-            input(id="name", type="text", disabled="disabled", :value="user.name")
-        div
-            label(for="email") {{ t('client.user.mon-compte.email') }}
-            input(id="email", type="text", disabled="disabled", :value="user.email")
+    user-compte()
+    user-informations()

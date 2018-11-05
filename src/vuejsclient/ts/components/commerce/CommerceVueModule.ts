@@ -3,6 +3,7 @@ import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import CommandeListeComponent from './commande/liste/CommandeListeComponent';
 import CommandeDetailComponent from './commande/detail/CommandeDetailComponent';
 import ClientComponent from './client/ClientComponent';
+import { RouteConfig } from 'vue-router';
 
 export default class CommerceVueModule extends VueModuleBase {
     public static getInstance(): CommerceVueModule {
@@ -21,24 +22,39 @@ export default class CommerceVueModule extends VueModuleBase {
 
     public initialize() {
         this.routes.push(
-            {
-                path: '/commandes',
-                name: 'commandes',
-                component: CommandeListeComponent
-            },
-            {
-                path: '/commande/:commande_id',
-                name: 'commande_detail',
-                component: CommandeDetailComponent,
-                props: (route) => ({
-                    commande_id: parseInt(route.params.commande_id)
-                })
-            },
-            {
-                path: '/infos',
-                name: 'infos',
-                component: ClientComponent
-            }
+            this.getRouteCommandes(),
+            this.getRouteCommandeDetail(),
         );
+    }
+
+    public getRoutesMenu(): Array<{ route: RouteConfig, icon: string, text: string }> {
+        let routes: Array<{ route: RouteConfig, icon: string, text: string }> = [];
+
+        routes.push({
+            route: this.getRouteCommandes(),
+            icon: 'fa-shopping-cart',
+            text: 'Commandes'
+        });
+
+        return routes;
+    }
+
+    private getRouteCommandes(): RouteConfig {
+        return {
+            path: '/commandes',
+            name: 'commandes',
+            component: CommandeListeComponent
+        };
+    }
+
+    private getRouteCommandeDetail(): RouteConfig {
+        return {
+            path: '/commande/:commande_id',
+            name: 'commande_detail',
+            component: CommandeDetailComponent,
+            props: (route) => ({
+                commande_id: parseInt(route.params.commande_id)
+            })
+        };
     }
 }

@@ -9,6 +9,7 @@ import InformationsVO from './vos/InformationsVO';
 import ModuleAPI from '../../API/ModuleAPI';
 import NumberParamVO from '../../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
+import UserVO from '../../AccessPolicy/vos/UserVO';
 
 export default class ModuleClient extends Module {
     public static APINAME_getInformationsClientUser: string = "getInformationsClientUser";
@@ -55,6 +56,7 @@ export default class ModuleClient extends Module {
 
     public initializeInformations(): void {
         // Création de la table Informations
+        let default_label_field: ModuleTableField<string> = new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email');
         let datatable_fields = [
             new ModuleTableField('nom', ModuleTableField.FIELD_TYPE_string, 'Nom'),
             new ModuleTableField('prenom', ModuleTableField.FIELD_TYPE_string, 'Prenom'),
@@ -64,9 +66,9 @@ export default class ModuleClient extends Module {
             new ModuleTableField('ville', ModuleTableField.FIELD_TYPE_string, 'Ville'),
             new ModuleTableField('societe', ModuleTableField.FIELD_TYPE_string, 'Societe'),
             new ModuleTableField('siret', ModuleTableField.FIELD_TYPE_string, 'Siret'),
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email'),
+            default_label_field,
         ];
-        this.datatable_informations = new ModuleTable<InformationsVO>(this, InformationsVO.API_TYPE_ID, datatable_fields, null, 'Informations');
+        this.datatable_informations = new ModuleTable<InformationsVO>(this, InformationsVO.API_TYPE_ID, datatable_fields, default_label_field, 'Informations');
         this.datatables.push(this.datatable_informations);
     }
 
@@ -76,12 +78,11 @@ export default class ModuleClient extends Module {
         let field_user_id: ModuleTableField<number> = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true);
 
         let datatable_fields = [
-            new ModuleTableField('id_client_facturationpro', ModuleTableField.FIELD_TYPE_string, 'ID Client FacturationPro'),
             field_user_id,
             field_informations_id
         ];
-        this.datatable_client = new ModuleTable<ClientVO>(this, ClientVO.API_TYPE_ID, datatable_fields, null, 'Client');
-        field_user_id.addManyToOneRelation(this.datatable_client, VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
+        this.datatable_client = new ModuleTable<ClientVO>(this, ClientVO.API_TYPE_ID, datatable_fields, field_user_id, 'Client');
+        field_user_id.addManyToOneRelation(this.datatable_client, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         field_informations_id.addManyToOneRelation(this.datatable_client, this.datatable_informations);
         this.datatables.push(this.datatable_client);
     }
