@@ -68,6 +68,9 @@ export default abstract class VueAppBase {
 
     public async runApp() {
 
+        // Chargement des données des modules.
+        await this.initializeModulesDatas();
+
         let self = this;
         let promises = [];
 
@@ -77,9 +80,6 @@ export default abstract class VueAppBase {
         promises.push(this.appController.initialize());
 
         await Promise.all(promises);
-
-        // Chargement des données des modules.
-        await this.initializeModulesDatas();
 
         PushDataVueModule.getInstance();
 

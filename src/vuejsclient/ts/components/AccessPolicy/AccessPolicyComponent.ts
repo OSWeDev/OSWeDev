@@ -92,11 +92,118 @@ export default class AccessPolicyComponent extends VueComponentBase {
 
     get visible_policy_groups(): AccessPolicyGroupVO[] {
         // sont visibles les groupes qui ont au moins une policy visible
+        let res: AccessPolicyGroupVO[] = [];
+
+        for (let i in this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID]) {
+            let group: AccessPolicyGroupVO = this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID][i] as AccessPolicyGroupVO;
+
+            if ((!this.visible_policies_by_group_id[group.id]) || (!this.visible_policies_by_group_id[group.id].length)) {
+                continue;
+            }
+            res.push(group);
+        }
+
+        res.sort((a: AccessPolicyGroupVO, b: AccessPolicyGroupVO) => {
+            if (a.weight < b.weight) {
+                return -1;
+            }
+            if (a.weight > b.weight) {
+                return 1;
+            }
+            return 0;
+        });
+
+        return res;
+    }
+
+    get dependencies_by_policy_id(): { [policy_id: number]: PolicyDependencyVO[] } {
+
+        let res: { [policy_id: number]: PolicyDependencyVO[] } = {};
+
+        for (let i in this.getStoredDatas[PolicyDependencyVO.API_TYPE_ID]) {
+            let dependency: PolicyDependencyVO = this.getStoredDatas[PolicyDependencyVO.API_TYPE_ID][i] as PolicyDependencyVO;
+            if (!res[dependency.src_pol_id]) {
+                res[dependency.src_pol_id] = [];
+            }
+            res[dependency.src_pol_id].push(dependency);
+        }
+
+        return res;
+    }
+
+    get policies_visibility_by_role_id(): { [role_id: number]: { [policy_id: number]: boolean } } {
+        // sont visibles les policies dont les deps sont validées
+        let res: { [role_id: number]: { [policy_id: number]: boolean } } = {};
+
+        for (let k in this.getStoredDatas[RoleVO.API_TYPE_ID]) {
+            let role: RoleVO = this.getStoredDatas[RoleVO.API_TYPE_ID][k] as RoleVO;
+            for (let i in this.getStoredDatas[AccessPolicyVO.API_TYPE_ID]) {
+                let policy: AccessPolicyVO = this.getStoredDatas[AccessPolicyVO.API_TYPE_ID][i] as AccessPolicyVO;
+
+                let visible: boolean = true;
+                for (let j in this.dependencies_by_policy_id[policy.id]) {
+                    let dependency: PolicyDependencyVO = this.dependencies_by_policy_id[policy.id][j];
+
+                    if (!this.access_matrix[dependency.depends_on_pol_id][role.id]) {
+                        visible = false;
+                        break;
+                    }
+                }
+
+                if (!res[role.id]) {
+                    res[role.id] = {};
+                }
+                res[role.id][policy.id] = visible;
+            }
+        }
+
+        return res;
     }
 
     get visible_policies_by_group_id(): { [group_id: number]: AccessPolicyVO[] } {
-        // sont visibles les policies qui héritent d'un false
+        // sont visibles les policies dont au moins un role/policy est visible
+        let res: { [group_id: number]: AccessPolicyVO[] } = {};
 
+        for (let i in this.getStoredDatas[AccessPolicyVO.API_TYPE_ID]) {
+            let policy: AccessPolicyVO = this.getStoredDatas[AccessPolicyVO.API_TYPE_ID][i] as AccessPolicyVO;
+
+            let visible: boolean = true;
+            for (let j in this.getStoredDatas[RoleVO.API_TYPE_ID]) {
+                let role: RoleVO = this.getStoredDatas[RoleVO.API_TYPE_ID][j] as RoleVO;
+
+                if (!this.policies_visibility_by_role_id[role.id][policy.id]) {
+                    visible = false;
+                    break;
+                }
+            }
+
+            if (!res[policy.group_id]) {
+                res[policy.group_id] = [];
+            }
+
+            if (visible) {
+                res[policy.group_id].push(policy);
+            }
+        }
+
+        // On ordonne les policies dans les groupes
+        for (let i in this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID]) {
+            let group: AccessPolicyGroupVO = this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID][i] as AccessPolicyGroupVO;
+
+            if (res[group.id]) {
+                res[group.id].sort((a: AccessPolicyVO, b: AccessPolicyVO) => {
+                    if (a.weight < b.weight) {
+                        return -1;
+                    }
+                    if (a.weight > b.weight) {
+                        return 1;
+                    }
+                    return 0;
+                });
+            }
+        }
+
+        return res;
     }
 
     get roles(): { [id: number]: RoleVO } {

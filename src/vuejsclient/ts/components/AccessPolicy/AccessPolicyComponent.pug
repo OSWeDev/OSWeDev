@@ -18,7 +18,7 @@ include ../../../views/mixins/loading.pug
                             td(v-for="role in roles" :class="{'bg-success': access_matrix[policy.id][role.id], 'bg-secondary': !access_matrix[policy.id][role.id]}")
                                 bootstrap-toggle(
                                     @change="set_policy(policy.id, role.id)" 
-                                    v-if="!inherited_access_matrix[policy.id][role.id]" 
+                                    v-if="(!inherited_access_matrix[policy.id][role.id]) && (policies_visibility_by_role_id[role.id][policy.id])" 
                                     v-model="access_matrix[policy.id][role.id]" 
                                     :options="{on: label('access_policy.admin.table.granted'), off: label('access_policy.admin.table.denied')}"
                                     :disabled="busy")

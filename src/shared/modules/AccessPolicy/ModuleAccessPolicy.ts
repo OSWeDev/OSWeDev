@@ -1,33 +1,26 @@
 import * as moment from 'moment';
 import DateHandler from '../../tools/DateHandler';
 import ModuleAPI from '../API/ModuleAPI';
+import BooleanParamVO from '../API/vos/apis/BooleanParamVO';
+import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
-import ModulesManager from '../ModulesManager';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import DefaultTranslation from '../Translation/vos/DefaultTranslation';
+import LangVO from '../Translation/vos/LangVO';
+import VOsTypesManager from '../VOsTypesManager';
 import AccessPolicyGroupVO from './vos/AccessPolicyGroupVO';
 import AccessPolicyVO from './vos/AccessPolicyVO';
-import AddDefaultRolePolicyIfNotExistsParamVO from './vos/apis/AddDefaultRolePolicyIfNotExistsParamVO';
 import AddRoleToUserParamVO from './vos/apis/AddRoleToUserParamVO';
-import CheckAccessParamVO from './vos/apis/CheckAccessParamVO';
-import RegisterModuleAccessPolicyParamVO from './vos/apis/RegisterModuleAccessPolicyParamVO';
 import ResetPwdParamVO from './vos/apis/ResetPwdParamVO';
+import ToggleAccessParamVO from './vos/apis/ToggleAccessParamVO';
+import PolicyDependencyVO from './vos/PolicyDependencyVO';
 import RolePoliciesVO from './vos/RolePoliciesVO';
 import RoleVO from './vos/RoleVO';
 import UserRolesVO from './vos/UserRolesVO';
 import UserVO from './vos/UserVO';
-import ModuleTranslation from '../Translation/ModuleTranslation';
-import StringParamVO from '../API/vos/apis/StringParamVO';
-import DefaultTranslation from '../Translation/vos/DefaultTranslation';
-import TextHandler from '../../tools/TextHandler';
-import VOsTypesManager from '../VOsTypesManager';
-import LangVO from '../Translation/vos/LangVO';
-import PolicyDependencyVO from './vos/PolicyDependencyVO';
-import ToggleAccessParamVO from './vos/apis/ToggleAccessParamVO';
-import BooleanParamVO from '../API/vos/apis/BooleanParamVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -236,7 +229,7 @@ export default class ModuleAccessPolicy extends Module {
 
     private initializeRole() {
         let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let parent_role_id = new ModuleTableField('parent_role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle parent', true);
+        let parent_role_id = new ModuleTableField('parent_role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle parent');
 
         let datatable_fields = [
             label_field,

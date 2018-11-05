@@ -4,6 +4,7 @@
     ALTER TABLE ref.module_access_policy_role ADD COLUMN weight bigint NOT NULL DEFAULT 0;
     ALTER TABLE ref.module_access_policy_accpolgrp DROP COLUMN uniq_id CASCADE;
     ALTER TABLE ref.module_access_policy_accpol DROP COLUMN uniq_id CASCADE;
+    Le launch.json qui permet de lancer des tests unitaire sur un fichier cible en debug mais du coup il faut enlever : test/**/*.ts dans la conf mocha... à creuser
 
 # 0.4.7 => 0.4.8
     ALTER TABLE admin.module_sass_resource_planning_skin_configurator ADD COLUMN main_background_header_url text;
