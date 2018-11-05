@@ -23,6 +23,7 @@ import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import FileComponent from '../../file/FileComponent';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ImageComponent from '../../image/ImageComponent';
+import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -543,7 +544,7 @@ export default class CRUDComponent extends VueComponentBase {
             // On passe la traduction depuis IHM sur les champs
             let apiokVo = this.IHMToData(this.newVO, this.crud.createDatatable, false);
 
-            let res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
+            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
             if ((!res) || (!res.id)) {
                 this.snotify.error(this.label('crud.create.errors.create_failure'));
                 this.creating_vo = false;

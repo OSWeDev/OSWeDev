@@ -1,0 +1,27 @@
+@import "skin-variables.scss";
+
+.openclose_on_page_translation_module_wrapper {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}
+
+.on_page_translation_module_wrapper {
+    position: fixed;
+    top: 60px;
+    left: 240px;
+    right: 50px;
+    bottom: 90px;
+    overflow: auto;
+    background: #EEE;
+    border-radius: 20px;
+    padding: 20px;
+    z-index: 10000;
+    box-shadow: #888 0px 0px 30px;
+}
+
+.on_page_translation {
+    .form-control{
+        min-width: 600px;
+    }
+}

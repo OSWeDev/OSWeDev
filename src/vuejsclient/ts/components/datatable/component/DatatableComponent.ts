@@ -19,6 +19,8 @@ import DatatableField from '../vos/DatatableField';
 import ManyToOneReferenceDatatableField from '../vos/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../vos/SimpleDatatableField';
 import ManyToManyReferenceDatatableField from '../vos/ManyToManyReferenceDatatableField';
+import DaoStoreTypeWatcherDefinition from '../../dao/vos/DaoStoreTypeWatcherDefinition';
+import * as debounce from 'lodash/debounce';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -35,6 +37,9 @@ export default class DatatableComponent extends VueComponentBase {
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
     @ModuleDAOAction
+    public registerTypeWatcher: (watcher: DaoStoreTypeWatcherDefinition) => void;
+
+    @ModuleDAOAction
     public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
     @ModuleCRUDAction
@@ -47,6 +52,9 @@ export default class DatatableComponent extends VueComponentBase {
         default: true
     })
     private load_datas: boolean;
+
+    @Prop()
+    private api_types_involved: string[];
 
     @Prop({
         default: false
@@ -394,6 +402,14 @@ export default class DatatableComponent extends VueComponentBase {
         }
     }
 
+    private setWatcher(api_type_involved: string) {
+        let watcher: DaoStoreTypeWatcherDefinition = new DaoStoreTypeWatcherDefinition();
+        watcher.UID = this.api_type_id + "___datatable___" + api_type_involved;
+        watcher.API_TYPE_ID = api_type_involved;
+        watcher.handler = this.debounced_update_datatable_data;
+        this.registerTypeWatcher(watcher);
+    }
+
     @Watch('datatable')
     private async loadDatatable() {
         this.selected_datas = {};
@@ -405,21 +421,17 @@ export default class DatatableComponent extends VueComponentBase {
 
         this.update_datatable_data();
 
-        if (!this.watcherLoaded) {
-            this.watcherLoaded = true;
-            this.unwatch = this.$store.watch(
-                function (state) {
-                    return state.DAOStore.storedDatasArray;
-                },
-                this.update_datatable_data,
-                {
-                    deep: true
-                }
-            );
+        for (let i in this.api_types_involved) {
+            this.setWatcher(this.api_types_involved[i]);
         }
     }
 
-
+    get debounced_update_datatable_data() {
+        let self = this;
+        return debounce(() => {
+            self.update_datatable_data();
+        }, 500);
+    }
 
     private update_datatable_data() {
 

@@ -1,18 +1,19 @@
-import Module from '../Module';
-import ModuleTableField from '../ModuleTableField';
-import ModuleTable from '../ModuleTable';
-import ModulesManager from '../ModulesManager';
-import LangVO from './vos/LangVO';
-import TranslationVO from './vos/TranslationVO';
-import TranslatableTextVO from './vos/TranslatableTextVO';
-import VOsTypesManager from '../VOsTypesManager';
 import ModuleAPI from '../API/ModuleAPI';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import GetTranslationParamVO from './apis/GetTranslationParamVO';
-import StringParamVO from '../API/vos/apis/StringParamVO';
 import NumberParamVO from '../API/vos/apis/NumberParamVO';
+import StringParamVO from '../API/vos/apis/StringParamVO';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import Module from '../Module';
+import ModuleTable from '../ModuleTable';
+import ModuleTableField from '../ModuleTableField';
+import GetTranslationParamVO from './apis/GetTranslationParamVO';
+import LangVO from './vos/LangVO';
+import TranslatableTextVO from './vos/TranslatableTextVO';
+import TranslationVO from './vos/TranslationVO';
 
 export default class ModuleTranslation extends Module {
+
+    public static ACCESS_GROUP_NAME: string = "ModuleTranslation_ACCESS_GROUP_NAME";
+    public static ACCESS_ON_PAGE_TRANSLATION_MODULE: string = "ACCESS_ON_PAGE_TRANSLATION_MODULE";
 
     public static APINAME_GET_TRANSLATABLE_TEXTS: string = "getTranslatableTexts";
     public static APINAME_GET_TRANSLATABLE_TEXT: string = "getTranslatableText";

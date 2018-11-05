@@ -126,7 +126,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 return t.batch(queries);
             }).catch((reason) => {
-                reject(reason);
+                resolve(null);
             });
 
             if (results && isUpdates && (isUpdates.length == results.length) && vos && (vos.length == results.length)) {
@@ -157,7 +157,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo).catch((reason) => {
-                reject(reason);
+                resolve(null);
             });
 
             if (result && vo) {

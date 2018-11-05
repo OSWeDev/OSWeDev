@@ -1,19 +1,33 @@
 import 'bootstrap';
-import * as $ from 'jquery';
+import "fullcalendar-scheduler";
+import "fullcalendar-scheduler/dist/scheduler.min.css";
+import "fullcalendar/dist/fullcalendar.min.css";
+import "fullcalendar/dist/locale/de.js";
+import "fullcalendar/dist/locale/es.js";
+import "fullcalendar/dist/locale/fr.js";
 import * as moment from 'moment';
+import 'quill/dist/quill.bubble.css';
+// require styles
+import 'quill/dist/quill.core.css';
+import 'quill/dist/quill.snow.css';
 import 'select2';
-import * as BootstrapToggle from 'vue-bootstrap-toggle';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
+import * as BootstrapToggle from 'vue-bootstrap-toggle';
+import VueDraggableResizable from 'vue-draggable-resizable';
+import FullCalendar from 'vue-full-calendar';
 import VueI18n from 'vue-i18n';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
+import VueQuillEditor from 'vue-quill-editor';
 import * as VueResource from 'vue-resource';
 import VueRouter, { RouterOptions } from 'vue-router';
 import { RouteConfig } from 'vue-router/types/router';
 import vSelect from 'vue-select';
 import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
+import * as vueDropzone from "vue2-dropzone";
+import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import Module from '../shared/modules/Module';
@@ -25,30 +39,9 @@ import VueModuleBase from '../vuejsclient/ts/modules/VueModuleBase';
 import DefaultHomeComponent from './ts/components/DefaultHome/component/DefaultHomeComponent';
 import Error404Component from './ts/components/Error404/component/Error404Component';
 import VueComponentBase from './ts/components/VueComponentBase';
+import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
-import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
-import * as vueDropzone from "vue2-dropzone";
-import 'vue2-dropzone/dist/vue2Dropzone.min.css';
-
-import FullCalendar from 'vue-full-calendar';
-import "fullcalendar-scheduler";
-import "fullcalendar/dist/fullcalendar.min.css";
-import "fullcalendar-scheduler/dist/scheduler.min.css";
-import "fullcalendar/dist/locale/fr.js";
-import "fullcalendar/dist/locale/de.js";
-import "fullcalendar/dist/locale/es.js";
-
-import VueQuillEditor from 'vue-quill-editor';
-
-// require styles
-import 'quill/dist/quill.core.css';
-import 'quill/dist/quill.snow.css';
-import 'quill/dist/quill.bubble.css';
-
-import VueDraggableResizable from 'vue-draggable-resizable';
-import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
-import CommerceVueModule from './ts/components/commerce/CommerceVueModule';
 
 
 export default abstract class VueAppBase {
@@ -104,7 +97,13 @@ export default abstract class VueAppBase {
         Vue.use(VueI18n);
         LocaleManager.getInstance().i18n = new VueI18n({
             locale: default_locale,
-            messages: this.appController.ALL_LOCALES
+            messages: this.appController.ALL_LOCALES,
+            missing: (locale, key, vm) => {
+                AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslation', {
+                    translation_code: key,
+                    missing: true
+                });
+            },
         });
         Vue.config['lang'] = default_locale;
 
@@ -235,6 +234,9 @@ export default abstract class VueAppBase {
             // Desactivation du bouton print
             AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_DISABLE');
             AppVuexStoreManager.getInstance().appVuexStore.commit('register_hook_export_data_to_XLSX', null);
+
+            // On nettoie les traductions de la page
+            AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/clear');
 
             // Commencer par nettoyer
             if (document.body.className.match(/ page-[^ ]+/)) {
