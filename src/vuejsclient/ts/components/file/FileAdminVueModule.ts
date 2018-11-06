@@ -33,7 +33,7 @@ export default class FileAdminVueModule extends VueModuleBase {
         super(ModuleFile.getInstance().name);
     }
 
-    public async initialize() {
+    public async initializeAsync() {
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleFile.POLICY_BO_ACCESS)) {
             return;

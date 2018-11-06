@@ -30,7 +30,7 @@ export default class ModulesAdminVueModule extends VueModuleBase {
         super(ModuleDAO.getInstance().name);
     }
 
-    public async initialize() {
+    public async initializeAsync() {
 
         if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS)) {
             return;

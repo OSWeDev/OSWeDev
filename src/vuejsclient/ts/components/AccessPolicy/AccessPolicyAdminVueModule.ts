@@ -17,6 +17,8 @@ import MenuBranch from '../menu/vos/MenuBranch';
 import MenuElementBase from '../menu/vos/MenuElementBase';
 import MenuLeaf from '../menu/vos/MenuLeaf';
 import MenuPointer from '../menu/vos/MenuPointer';
+import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
+import AccessPolicyComponent from './AccessPolicyComponent';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
@@ -42,7 +44,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         super(ModuleAccessPolicy.getInstance().name);
     }
 
-    public async initialize() {
+    public async initializeAsync() {
 
         let accessPolicyMenuBranch: MenuBranch = AccessPolicyAdminVueModule.DEFAULT_MENU_BRANCH;
 
@@ -64,6 +66,23 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                     new MenuLeaf("UserRolesVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-shield"),
                     accessPolicyMenuBranch),
                 this.routes);
+        }
+
+        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+            let url: string = "/access_managment";
+            let main_route_name: string = 'AccessPolicyComponent';
+
+            this.routes.push({
+                path: url,
+                name: main_route_name,
+                component: AccessPolicyComponent
+            });
+            let menuPointer = new MenuPointer(
+                new MenuLeaf('AccessPolicyComponent', MenuElementBase.PRIORITY_ULTRAHIGH, "fa-cogs"),
+                accessPolicyMenuBranch
+            );
+            menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
+            menuPointer.addToMenu();
 
             CRUDComponentManager.getInstance().registerCRUD(
                 RolePoliciesVO.API_TYPE_ID,

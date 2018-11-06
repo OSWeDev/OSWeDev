@@ -31,7 +31,7 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
         super(ModuleProgramPlanBase.getInstance().name);
     }
 
-    public async initialize() {
+    public async initializeAsync() {
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_BO_ACCESS)) {
             return;

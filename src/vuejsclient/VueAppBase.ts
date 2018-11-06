@@ -42,6 +42,7 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
+import IModuleBase from '../shared/modules/IModuleBase';
 
 
 
@@ -84,6 +85,15 @@ export default abstract class VueAppBase {
         PushDataVueModule.getInstance();
 
         await this.initializeVueAppModulesDatas();
+
+        // On lance les initializeAsync des modules Vue
+        for (let i in ModulesManager.getInstance().modules_by_name) {
+            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
+
+            if (module_) {
+                await module_.initializeAsync();
+            }
+        }
 
         var baseApiUrl = this.appController.data_base_api_url || '';
 

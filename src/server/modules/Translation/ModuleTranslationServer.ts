@@ -38,13 +38,13 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleTranslation.POLICY_GROUP;
-        await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group);
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group);
 
         let bo_translations_access: AccessPolicyVO = new AccessPolicyVO();
         bo_translations_access.group_id = group.id;
         bo_translations_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_translations_access.translatable_name = ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS;
-        await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_translations_access);
+        bo_translations_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_translations_access);
         // let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         // admin_access_dependency.src_pol_id = bo_translations_access.id;
@@ -55,7 +55,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         bo_others_access.group_id = group.id;
         bo_others_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_others_access.translatable_name = ModuleTranslation.POLICY_BO_OTHERS_ACCESS;
-        await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_others_access);
+        bo_others_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_others_access);
         // admin_access_dependency = new PolicyDependencyVO();
         // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         // admin_access_dependency.src_pol_id = bo_others_access.id;
@@ -65,18 +65,18 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         access_dependency.src_pol_id = bo_others_access.id;
         access_dependency.depends_on_pol_id = bo_translations_access.id;
-        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
 
         let on_page_translation_module_access: AccessPolicyVO = new AccessPolicyVO();
         on_page_translation_module_access.group_id = group.id;
         on_page_translation_module_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         on_page_translation_module_access.translatable_name = ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS;
-        await ModuleAccessPolicyServer.getInstance().registerPolicy(on_page_translation_module_access);
+        on_page_translation_module_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(on_page_translation_module_access);
         access_dependency = new PolicyDependencyVO();
         access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         access_dependency.src_pol_id = on_page_translation_module_access.id;
         access_dependency.depends_on_pol_id = bo_translations_access.id;
-        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     }
 
     public registerServerApiHandlers() {

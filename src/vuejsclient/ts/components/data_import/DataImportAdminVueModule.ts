@@ -39,7 +39,7 @@ export default class DataImportAdminVueModule extends VueModuleBase {
         super(ModuleDataImport.getInstance().name);
     }
 
-    public async initialize() {
+    public async initializeAsync() {
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_BO_ACCESS)) {
             return;

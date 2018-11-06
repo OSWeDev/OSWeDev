@@ -41,7 +41,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         super(ModuleImage.getInstance().name);
     }
 
-    public async initialize() {
+    public async initializeAsync() {
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_ACCESS)) {
             return;

@@ -33,7 +33,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
         super(ModuleTranslation.getInstance().name);
     }
 
-    public async initialize() {
+    public async initializeAsync() {
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS)) {
             return;

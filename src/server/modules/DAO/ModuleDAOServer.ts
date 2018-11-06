@@ -69,14 +69,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = ModuleDAO.ACCESS_GROUP_NAME;
-        await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group);
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group);
 
         // On déclare un droit global d'accès qui déclenche tous les autres
         let global_access: AccessPolicyVO = new AccessPolicyVO();
         global_access.group_id = group.id;
         global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         global_access.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_LIST_LABELS, "___GLOBAL_ACCESS___");
-        await ModuleAccessPolicyServer.getInstance().registerPolicy(global_access);
+        global_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(global_access);
 
         // On doit déclarer les access policies de tous les VO
         for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
@@ -99,61 +99,61 @@ export default class ModuleDAOServer extends ModuleServerBase {
             vo_list.group_id = group.id;
             vo_list.default_behaviour = isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             vo_list.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_LIST_LABELS, vo_type);
-            await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_list);
+            vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_list);
             let global_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
             global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
             global_access_dependency.src_pol_id = vo_list.id;
             global_access_dependency.depends_on_pol_id = global_access.id;
-            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
 
 
             let vo_read: AccessPolicyVO = new AccessPolicyVO();
             vo_read.group_id = group.id;
             vo_read.default_behaviour = isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             vo_read.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo_type);
-            await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_read);
+            vo_read = await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_read);
             let dependency: PolicyDependencyVO = new PolicyDependencyVO();
             dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             dependency.src_pol_id = vo_read.id;
             dependency.depends_on_pol_id = vo_list.id;
-            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
+            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
             global_access_dependency = new PolicyDependencyVO();
             global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
             global_access_dependency.src_pol_id = vo_read.id;
             global_access_dependency.depends_on_pol_id = global_access.id;
-            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
 
             let vo_insert_or_update: AccessPolicyVO = new AccessPolicyVO();
             vo_insert_or_update.group_id = group.id;
             vo_insert_or_update.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             vo_insert_or_update.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type);
-            await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_insert_or_update);
+            vo_insert_or_update = await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_insert_or_update);
             dependency = new PolicyDependencyVO();
             dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             dependency.src_pol_id = vo_insert_or_update.id;
             dependency.depends_on_pol_id = vo_read.id;
-            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
+            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
             global_access_dependency = new PolicyDependencyVO();
             global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
             global_access_dependency.src_pol_id = vo_insert_or_update.id;
             global_access_dependency.depends_on_pol_id = global_access.id;
-            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
 
             let vo_delete: AccessPolicyVO = new AccessPolicyVO();
             vo_delete.group_id = group.id;
             vo_delete.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             vo_delete.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_DELETE, vo_type);
-            await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_delete);
+            vo_delete = await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_delete);
             dependency = new PolicyDependencyVO();
             dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             dependency.src_pol_id = vo_delete.id;
             dependency.depends_on_pol_id = vo_read.id;
-            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
+            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
             global_access_dependency = new PolicyDependencyVO();
             global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
             global_access_dependency.src_pol_id = vo_delete.id;
             global_access_dependency.depends_on_pol_id = global_access.id;
-            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
         }
     }
 

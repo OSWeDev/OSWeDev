@@ -35,7 +35,7 @@ export default class CronAdminVueModule extends VueModuleBase {
         super(ModuleCron.getInstance().name);
     }
 
-    public async initialize() {
+    public async initializeAsync() {
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleCron.POLICY_BO_ACCESS)) {
             return;

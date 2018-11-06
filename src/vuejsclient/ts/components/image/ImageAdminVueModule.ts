@@ -33,7 +33,7 @@ export default class ImageAdminVueModule extends VueModuleBase {
         super(ModuleImage.getInstance().name);
     }
 
-    public async initialize() {
+    public async initializeAsync() {
 
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleImage.POLICY_BO_ACCESS)) {
             return;
