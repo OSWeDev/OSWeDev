@@ -13,7 +13,7 @@ import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleTranslation extends Module {
 
-    public static MODULE_NAME: string = 'ProgramPlanBase';
+    public static MODULE_NAME: string = 'Translation';
 
     public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleTranslation.MODULE_NAME;
     public static POLICY_BO_TRANSLATIONS_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_TRANSLATIONS_ACCESS';
@@ -43,7 +43,7 @@ export default class ModuleTranslation extends Module {
 
     private constructor() {
 
-        super("translation", "Translation");
+        super("translation", ModuleTranslation.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 

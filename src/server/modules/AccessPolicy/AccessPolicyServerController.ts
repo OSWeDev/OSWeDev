@@ -47,10 +47,14 @@ export default class AccessPolicyServerController {
         }
 
         // On ajoute le role connecté par défaut dans ce cas au cas où il serait pas en param
-        if (!bdd_user_roles) {
-            bdd_user_roles = [];
+        let user_roles: RoleVO[] = [];
+
+        for (let i in bdd_user_roles) {
+            if (bdd_user_roles[i]) {
+                user_roles.push(bdd_user_roles[i]);
+            }
         }
-        bdd_user_roles.push(AccessPolicyServerController.getInstance().role_logged);
+        user_roles.push(AccessPolicyServerController.getInstance().role_logged);
 
         for (let i in bdd_user_roles) {
             let role: RoleVO = bdd_user_roles[i];

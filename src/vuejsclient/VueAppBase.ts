@@ -13,7 +13,7 @@ import 'quill/dist/quill.snow.css';
 import 'select2';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
-import * as BootstrapToggle from 'vue-bootstrap-toggle';
+import ToggleButton from 'vue-js-toggle-button';
 import VueDraggableResizable from 'vue-draggable-resizable';
 import FullCalendar from 'vue-full-calendar';
 import VueI18n from 'vue-i18n';
@@ -284,7 +284,7 @@ export default abstract class VueAppBase {
         Vue.use(FullCalendar);
         Vue.use(VueQuillEditor);
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
-        Vue.component('bootstrap-toggle', BootstrapToggle);
+        Vue.use(ToggleButton);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
         Vue.component('vue-dropzone', vueDropzone);

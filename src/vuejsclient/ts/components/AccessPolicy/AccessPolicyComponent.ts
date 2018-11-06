@@ -11,6 +11,7 @@ import PolicyDependencyVO from '../../../../shared/modules/AccessPolicy/vos/Poli
 import RolePoliciesVO from '../../../../shared/modules/AccessPolicy/vos/RolePoliciesVO';
 import UserRolesVO from '../../../../shared/modules/AccessPolicy/vos/UserRolesVO';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import './AccessPolicyComponent.scss';
 
 @Component({
     template: require('./AccessPolicyComponent.pug'),
@@ -132,7 +133,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
     }
 
     get policies_visibility_by_role_id(): { [role_id: number]: { [policy_id: number]: boolean } } {
-        // sont visibles les policies dont les deps sont validées
+        // sont visibles les policies dont les deps mandatory sont validées
         let res: { [role_id: number]: { [policy_id: number]: boolean } } = {};
 
         for (let k in this.getStoredDatas[RoleVO.API_TYPE_ID]) {
@@ -143,6 +144,11 @@ export default class AccessPolicyComponent extends VueComponentBase {
                 let visible: boolean = true;
                 for (let j in this.dependencies_by_policy_id[policy.id]) {
                     let dependency: PolicyDependencyVO = this.dependencies_by_policy_id[policy.id][j];
+
+                    // Si on est en access granted par défaut, on a donc pas de relation de nécessité mais d'implication
+                    if (dependency.default_behaviour == PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED) {
+                        continue;
+                    }
 
                     if (!this.access_matrix[dependency.depends_on_pol_id][role.id]) {
                         visible = false;
@@ -207,11 +213,21 @@ export default class AccessPolicyComponent extends VueComponentBase {
     }
 
     get roles(): { [id: number]: RoleVO } {
-        return this.getStoredDatas[RoleVO.API_TYPE_ID] as { [id: number]: RoleVO };
+        let res: { [id: number]: RoleVO } = {};
+
+        for (let i in this.getStoredDatas[RoleVO.API_TYPE_ID]) {
+            let role: RoleVO = this.getStoredDatas[RoleVO.API_TYPE_ID][i] as RoleVO;
+
+            if (role.translatable_name == ModuleAccessPolicy.ROLE_ADMIN) {
+                continue;
+            }
+            res[role.id] = role;
+        }
+        return res;
     }
 
     private async updateMatrices() {
-        this.startLoading();
+        // this.startLoading();
         let self = this;
 
         let promises: Array<Promise<any>> = [];
@@ -223,7 +239,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
         })());
 
         await Promise.all(promises);
-        this.stopLoading();
+        // this.stopLoading();
     }
 
     private async set_policy(policy_id: number, role_id: number) {

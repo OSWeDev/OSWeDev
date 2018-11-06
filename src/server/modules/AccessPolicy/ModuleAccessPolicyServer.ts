@@ -377,7 +377,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // Il faut qu'on sache si il existe une policy explicit à cet endroit
         //  et de façon sûre donc on demande au serveur de faire la modif directement
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult;
-        let role_policy: RolePoliciesVO = AccessPolicyServerController.getInstance().registered_roles_policies[role.id][target_policy.id];
+        let role_policy: RolePoliciesVO = AccessPolicyServerController.getInstance().registered_roles_policies[role.id] ? AccessPolicyServerController.getInstance().registered_roles_policies[role.id][target_policy.id] : null;
         if (role_policy) {
             role_policy.granted = !role_policy.granted;
             insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role_policy);
@@ -417,6 +417,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             for (let j in AccessPolicyServerController.getInstance().registered_roles) {
                 let role: RoleVO = AccessPolicyServerController.getInstance().registered_roles[j];
+
+                // On ignore l'admin qui a accès à tout
+                if (role.id == AccessPolicyServerController.getInstance().role_admin.id) {
+                    continue;
+                }
 
                 res[policy.id][role.id] = AccessPolicyServerController.getInstance().checkAccessTo(
                     policy,
@@ -644,7 +649,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 AccessPolicyServerController.getInstance().registered_users_roles[userRole.user_id] = [];
             }
 
-            AccessPolicyServerController.getInstance().registered_users_roles[userRole.user_id].push(AccessPolicyServerController.getInstance().registered_roles[userRole.role_id]);
+            AccessPolicyServerController.getInstance().registered_users_roles[userRole.user_id].push(AccessPolicyServerController.getInstance().registered_roles_by_ids[userRole.role_id]);
         }
     }
 
