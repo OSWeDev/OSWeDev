@@ -173,12 +173,12 @@ export default class AccessPolicyComponent extends VueComponentBase {
         for (let i in this.getStoredDatas[AccessPolicyVO.API_TYPE_ID]) {
             let policy: AccessPolicyVO = this.getStoredDatas[AccessPolicyVO.API_TYPE_ID][i] as AccessPolicyVO;
 
-            let visible: boolean = true;
+            let visible: boolean = false;
             for (let j in this.getStoredDatas[RoleVO.API_TYPE_ID]) {
                 let role: RoleVO = this.getStoredDatas[RoleVO.API_TYPE_ID][j] as RoleVO;
 
-                if (!this.policies_visibility_by_role_id[role.id][policy.id]) {
-                    visible = false;
+                if (this.policies_visibility_by_role_id[role.id][policy.id]) {
+                    visible = true;
                     break;
                 }
             }

@@ -215,7 +215,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerRole(role: RoleVO, default_translation: DefaultTranslation): Promise<RoleVO> {
-        if ((!role) || (!role.translatable_name) || (!default_translation)) {
+        if ((!role) || (!role.translatable_name)) {
             return null;
         }
 
@@ -230,8 +230,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return AccessPolicyServerController.getInstance().registered_roles[role.translatable_name];
         }
 
-        default_translation.code_text = role.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+        if (default_translation) {
+            default_translation.code_text = role.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+        }
 
         // Un nouveau rôle a forcément un parent :
         //  - si c'est le rôle 'identifié', son parent est le rôle 'anonyme'
@@ -276,7 +278,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslation): Promise<AccessPolicyGroupVO> {
-        if ((!group) || (!group.translatable_name) || (!default_translation)) {
+        if ((!group) || (!group.translatable_name)) {
             return null;
         }
 
@@ -288,8 +290,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return AccessPolicyServerController.getInstance().registered_policy_groups[group.translatable_name];
         }
 
-        default_translation.code_text = group.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+        if (default_translation) {
+            default_translation.code_text = group.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+        }
 
         let groupFromBDD: AccessPolicyGroupVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyGroupVO>(AccessPolicyGroupVO.API_TYPE_ID, "where translatable_name = $1", [group.translatable_name]);
         if (groupFromBDD) {
@@ -314,7 +318,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
     public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation): Promise<AccessPolicyVO> {
-        if ((!policy) || (!policy.translatable_name) || (!default_translation)) {
+        if ((!policy) || (!policy.translatable_name)) {
             return null;
         }
 
@@ -330,8 +334,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return AccessPolicyServerController.getInstance().registered_policies[policy.translatable_name];
         }
 
-        default_translation.code_text = policy.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+        if (default_translation) {
+            default_translation.code_text = policy.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+        }
 
         let policyFromBDD: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID, "where translatable_name = $1", [policy.translatable_name]);
         if (policyFromBDD) {

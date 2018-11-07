@@ -95,17 +95,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[i];
             let vo_type: string = moduleTable.vo_type;
 
+            // On ne s'intéresse pas aux tables des paramétrages de modules (à tord peut-etre ...) qui sont admin uniquement
+            if (moduleTable.isModuleParamTable) {
+                continue;
+            }
+
             // On a besoin de la trad de ce vo_type, si possible celle en base, sinon celle en default translation si elle existe, sinon on reste sur le vo_type
             let vo_translation: string = vo_type;
             let vo_type_translatable_code: string = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].label ? VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].label.code_text : null;
             let translatable: TranslatableTextVO = vo_type_translatable_code ? await ModuleTranslation.getInstance().getTranslatableText(vo_type_translatable_code) : null;
             let translation_from_bdd: TranslationVO = (lang && translatable) ? await ModuleTranslation.getInstance().getTranslation(lang.id, translatable.id) : null;
-            if (translation_from_bdd) {
+            if (translation_from_bdd && (translation_from_bdd.translated != "")) {
                 vo_translation = translation_from_bdd.translated;
             } else {
                 if (DefaultTranslationManager.getInstance().registered_default_translations[vo_type_translatable_code]) {
                     let default_translation: string = DefaultTranslationManager.getInstance().registered_default_translations[vo_type_translatable_code].default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
-                    vo_translation = default_translation ? default_translation : vo_translation;
+                    vo_translation = (default_translation && (default_translation != "")) ? default_translation : vo_translation;
                 }
             }
 
@@ -125,9 +130,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             vo_list.group_id = group.id;
             vo_list.default_behaviour = isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             vo_list.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_LIST_LABELS, vo_type);
-            vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_list, new DefaultTranslation({
-                fr: 'Lister les données de type "' + vo_translation + '"'
-            }));
+            vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(
+                vo_list,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Lister les données de type "' + vo_translation + '"' }) : null);
             let global_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
             global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
             global_access_dependency.src_pol_id = vo_list.id;
@@ -139,9 +144,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             vo_read.group_id = group.id;
             vo_read.default_behaviour = isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             vo_read.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo_type);
-            vo_read = await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_read, new DefaultTranslation({
-                fr: 'Consulter les données de type "' + vo_translation + '"'
-            }));
+            vo_read = await ModuleAccessPolicyServer.getInstance().registerPolicy(
+                vo_read,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Consulter les données de type "' + vo_translation + '"' }) : null);
             let dependency: PolicyDependencyVO = new PolicyDependencyVO();
             dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             dependency.src_pol_id = vo_read.id;
@@ -157,9 +162,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             vo_insert_or_update.group_id = group.id;
             vo_insert_or_update.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             vo_insert_or_update.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type);
-            vo_insert_or_update = await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_insert_or_update, new DefaultTranslation({
-                fr: 'Ajouter ou modifier des données de type "' + vo_translation + '"'
-            }));
+            vo_insert_or_update = await ModuleAccessPolicyServer.getInstance().registerPolicy(
+                vo_insert_or_update,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Ajouter ou modifier des données de type "' + vo_translation + '"' }) : null);
             dependency = new PolicyDependencyVO();
             dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             dependency.src_pol_id = vo_insert_or_update.id;
@@ -175,9 +180,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             vo_delete.group_id = group.id;
             vo_delete.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
             vo_delete.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_DELETE, vo_type);
-            vo_delete = await ModuleAccessPolicyServer.getInstance().registerPolicy(vo_delete, new DefaultTranslation({
-                fr: 'Supprimer des données de type "' + vo_translation + '"'
-            }));
+            vo_delete = await ModuleAccessPolicyServer.getInstance().registerPolicy(
+                vo_delete,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Supprimer des données de type "' + vo_translation + '"' }) : null);
             dependency = new PolicyDependencyVO();
             dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
             dependency.src_pol_id = vo_delete.id;
