@@ -90,13 +90,9 @@ export default class AccessPolicyServerController {
         role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } },
         policies: { [policy_id: number]: AccessPolicyVO },
         policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] },
-        ignore_role_policy: boolean = false): boolean {
+        ignore_role_policy: RoleVO = null): boolean {
 
         if ((!target_policy) || (!user_roles) || (!all_roles)) {
-            return false;
-        }
-
-        if (ignore_role_policy && (Object.keys(user_roles).length > 1)) {
             return false;
         }
 
@@ -135,7 +131,7 @@ export default class AccessPolicyServerController {
 
 
             let is_ignored_role: boolean = false;
-            if (ignore_role_policy && user_roles[user_role.id]) {
+            if (ignore_role_policy && (ignore_role_policy.id == user_role.id)) {
                 is_ignored_role = true;
             }
 

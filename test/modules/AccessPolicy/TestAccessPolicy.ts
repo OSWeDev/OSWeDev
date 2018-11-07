@@ -268,7 +268,7 @@ it('test check access - inheritance test (ignore explicit policies) - no rp', ()
         null,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_anonymous
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -278,7 +278,7 @@ it('test check access - inheritance test (ignore explicit policies) - no rp', ()
         null,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_logged
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -288,7 +288,7 @@ it('test check access - inheritance test (ignore explicit policies) - no rp', ()
         null,
         policies,
         null,
-        true
+        new_role
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -298,7 +298,7 @@ it('test check access - inheritance test (ignore explicit policies) - no rp', ()
         null,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_admin
     )).to.equal(true);
 
     delete all_roles[new_role.id];
@@ -362,7 +362,7 @@ it('test check access - inheritance test (ignore explicit policies) - rp anon', 
         role_policies,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_anonymous
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -372,8 +372,22 @@ it('test check access - inheritance test (ignore explicit policies) - rp anon', 
         role_policies,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_logged
     )).to.equal(true);
+
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyA,
+        {
+            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
+            [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged
+        },
+        all_roles,
+        role_policies,
+        policies,
+        null,
+        AccessPolicyServerController.getInstance().role_logged
+    )).to.equal(true);
+
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
         policyA,
@@ -382,7 +396,21 @@ it('test check access - inheritance test (ignore explicit policies) - rp anon', 
         role_policies,
         policies,
         null,
-        true
+        new_role
+    )).to.equal(true);
+
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyA,
+        {
+            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
+            [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged,
+            [new_role.id]: new_role
+        },
+        all_roles,
+        role_policies,
+        policies,
+        null,
+        new_role
     )).to.equal(true);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -392,7 +420,21 @@ it('test check access - inheritance test (ignore explicit policies) - rp anon', 
         role_policies,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_admin
+    )).to.equal(true);
+
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyA,
+        {
+            [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
+            [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged,
+            [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin
+        },
+        all_roles,
+        role_policies,
+        policies,
+        null,
+        AccessPolicyServerController.getInstance().role_admin
     )).to.equal(true);
 
     delete all_roles[new_role.id];
@@ -456,7 +498,7 @@ it('test check access - inheritance test (ignore explicit policies) - rp logged'
         role_policies,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_anonymous
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -466,7 +508,7 @@ it('test check access - inheritance test (ignore explicit policies) - rp logged'
         role_policies,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_logged
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -476,7 +518,7 @@ it('test check access - inheritance test (ignore explicit policies) - rp logged'
         role_policies,
         policies,
         null,
-        true
+        new_role
     )).to.equal(true);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -486,7 +528,7 @@ it('test check access - inheritance test (ignore explicit policies) - rp logged'
         role_policies,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_admin
     )).to.equal(true);
 
     delete all_roles[new_role.id];
@@ -550,7 +592,7 @@ it('test check access - inheritance test (ignore explicit policies) - rp inherit
         role_policies,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_anonymous
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -560,7 +602,7 @@ it('test check access - inheritance test (ignore explicit policies) - rp inherit
         role_policies,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_logged
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -570,7 +612,7 @@ it('test check access - inheritance test (ignore explicit policies) - rp inherit
         role_policies,
         policies,
         null,
-        true
+        new_role
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -580,7 +622,7 @@ it('test check access - inheritance test (ignore explicit policies) - rp inherit
         role_policies,
         policies,
         null,
-        true
+        AccessPolicyServerController.getInstance().role_admin
     )).to.equal(true);
 
     delete all_roles[new_role.id];
@@ -647,7 +689,7 @@ it('test check access - inheritance test (ignore explicit policies) - dp granted
         null,
         policies,
         policies_dependencies,
-        true
+        AccessPolicyServerController.getInstance().role_anonymous
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -657,7 +699,7 @@ it('test check access - inheritance test (ignore explicit policies) - dp granted
         null,
         policies,
         policies_dependencies,
-        true
+        AccessPolicyServerController.getInstance().role_logged
     )).to.equal(true);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -667,7 +709,7 @@ it('test check access - inheritance test (ignore explicit policies) - dp granted
         null,
         policies,
         policies_dependencies,
-        true
+        new_role
     )).to.equal(true);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -677,7 +719,7 @@ it('test check access - inheritance test (ignore explicit policies) - dp granted
         null,
         policies,
         policies_dependencies,
-        true
+        AccessPolicyServerController.getInstance().role_admin
     )).to.equal(true);
 
     delete all_roles[new_role.id];
@@ -744,7 +786,7 @@ it('test check access - inheritance test (ignore explicit policies) - dp denied'
         null,
         policies,
         policies_dependencies,
-        true
+        AccessPolicyServerController.getInstance().role_anonymous
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -754,7 +796,7 @@ it('test check access - inheritance test (ignore explicit policies) - dp denied'
         null,
         policies,
         policies_dependencies,
-        true
+        AccessPolicyServerController.getInstance().role_logged
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -764,7 +806,7 @@ it('test check access - inheritance test (ignore explicit policies) - dp denied'
         null,
         policies,
         policies_dependencies,
-        true
+        new_role
     )).to.equal(false);
 
     expect(AccessPolicyServerController.getInstance().checkAccessTo(
@@ -774,7 +816,7 @@ it('test check access - inheritance test (ignore explicit policies) - dp denied'
         null,
         policies,
         policies_dependencies,
-        true
+        AccessPolicyServerController.getInstance().role_admin
     )).to.equal(true);
 
     delete all_roles[new_role.id];

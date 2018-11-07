@@ -412,7 +412,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             AccessPolicyServerController.getInstance().registered_roles_policies,
             AccessPolicyServerController.getInstance().registered_policies_by_ids,
             AccessPolicyServerController.getInstance().registered_dependencies,
-            true)) {
+            role)) {
             // On devrait pas pouvoir arriver là avec un héritage true
             return false;
         }
@@ -421,9 +421,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult;
         let role_policy: RolePolicyVO = AccessPolicyServerController.getInstance().registered_roles_policies[role.id] ? AccessPolicyServerController.getInstance().registered_roles_policies[role.id][target_policy.id] : null;
         if (role_policy) {
-            role_policy.granted = !role_policy.granted;
-            insertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role_policy);
-            if ((!insertOrDeleteQueryResult) || (parseInt(insertOrDeleteQueryResult.id) != role_policy.id)) {
+
+            // Si oui on la supprime
+            let insertOrDeleteQueryResults: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([role_policy]);
+            if ((!insertOrDeleteQueryResults) || (!insertOrDeleteQueryResults.length)) {
                 return false;
             }
 
@@ -472,7 +473,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                     AccessPolicyServerController.getInstance().registered_roles_policies,
                     AccessPolicyServerController.getInstance().registered_policies_by_ids,
                     AccessPolicyServerController.getInstance().registered_dependencies,
-                    param.value);
+                    param.value ? role : null);
             }
         }
 
