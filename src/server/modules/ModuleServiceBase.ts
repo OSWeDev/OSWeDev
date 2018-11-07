@@ -136,7 +136,10 @@ export default abstract class ModuleServiceBase {
                 await server_module.registerImport();
                 server_module.registerCrons();
                 server_module.registerAccessHooks();
-                server_module.registerExpressApis(app);
+
+                if (app) {
+                    server_module.registerExpressApis(app);
+                }
             }
         }
     }

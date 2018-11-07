@@ -6,6 +6,8 @@ import ModulesClientInitializationDatasGenerator from '../server/modules/Modules
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
+import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
+import ModuleAccessPolicyServer from '../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 
 export default abstract class GeneratorBase {
 
@@ -41,6 +43,12 @@ export default abstract class GeneratorBase {
         await ModulesClientInitializationDatasGenerator.getInstance().generate();
         console.log("ModuleSASSSkinConfiguratorServer.getInstance().generate()");
         await ModuleSASSSkinConfiguratorServer.getInstance().generate();
+
+        console.log("configure_server_modules...");
+        await this.modulesService.configure_server_modules(null);
+        console.log("saveDefaultTranslations...");
+        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
+
         console.log("Code Generation DONE. Exiting ...");
         process.exit(0);
     }

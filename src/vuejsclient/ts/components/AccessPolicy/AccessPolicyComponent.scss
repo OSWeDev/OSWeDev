@@ -17,8 +17,30 @@
         text-align: left;
     }
 
-    .vue-js-switch{
+    .vue-js-switch {
         margin: 10px;
         font-size: 1em;
+    }
+
+    tr.policy {        
+        td {
+            height: 3em;
+        }            
+    }
+
+    tr.policy_group {
+
+        border-bottom: solid 2px #888;
+
+        td {
+            background-color: #ddd !important;
+            color: #555;
+            text-transform: uppercase;
+            padding: 5px;
+        }
+
+        td button {
+            margin-right: 10px;
+        }
     }
 }

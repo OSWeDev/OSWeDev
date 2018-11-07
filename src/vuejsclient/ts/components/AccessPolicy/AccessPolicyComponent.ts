@@ -8,8 +8,8 @@ import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/Acc
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import RolePoliciesVO from '../../../../shared/modules/AccessPolicy/vos/RolePoliciesVO';
-import UserRolesVO from '../../../../shared/modules/AccessPolicy/vos/UserRolesVO';
+import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
+import UserRoleVO from '../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import './AccessPolicyComponent.scss';
 
@@ -65,9 +65,9 @@ export default class AccessPolicyComponent extends VueComponentBase {
             });
         })());
         promises.push((async () => {
-            let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(RolePoliciesVO.API_TYPE_ID);
+            let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(RolePolicyVO.API_TYPE_ID);
             self.storeDatas({
-                API_TYPE_ID: RolePoliciesVO.API_TYPE_ID,
+                API_TYPE_ID: RolePolicyVO.API_TYPE_ID,
                 vos: vos
             });
         })());

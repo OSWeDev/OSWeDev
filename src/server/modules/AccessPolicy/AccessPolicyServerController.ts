@@ -1,7 +1,7 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import RolePoliciesVO from '../../../shared/modules/AccessPolicy/vos/RolePoliciesVO';
+import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 
 export default class AccessPolicyServerController {
@@ -26,7 +26,7 @@ export default class AccessPolicyServerController {
 
     public registered_roles_by_ids: { [role_id: number]: RoleVO };
     public registered_users_roles: { [uid: number]: RoleVO[] };
-    public registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePoliciesVO } };
+    public registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } };
     public registered_policies_by_ids: { [policy_id: number]: AccessPolicyVO };
 
     /**
@@ -56,8 +56,8 @@ export default class AccessPolicyServerController {
         }
         user_roles.push(AccessPolicyServerController.getInstance().role_logged);
 
-        for (let i in bdd_user_roles) {
-            let role: RoleVO = bdd_user_roles[i];
+        for (let i in user_roles) {
+            let role: RoleVO = user_roles[i];
 
             while (role && role.translatable_name) {
 
@@ -81,18 +81,22 @@ export default class AccessPolicyServerController {
      * @param role_policies Les liaisons entre droits et rôles
      * @param policies Les droits
      * @param policies_dependencies Les dépendances
-     * @param ignore_role_policy Pour le cas où on veut tester l'accès par héritage (important pour l'admin)
+     * @param ignore_role_policy Pour le cas où on veut tester l'accès par héritage (important pour l'admin). Dans ce cas on a obligatoirement un seul role en param
      */
     public checkAccessTo(
         target_policy: AccessPolicyVO,
         user_roles: { [role_id: number]: RoleVO },
         all_roles: { [role_id: number]: RoleVO },
-        role_policies: { [role_id: number]: { [pol_id: number]: RolePoliciesVO } },
+        role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } },
         policies: { [policy_id: number]: AccessPolicyVO },
         policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] },
         ignore_role_policy: boolean = false): boolean {
 
         if ((!target_policy) || (!user_roles) || (!all_roles)) {
+            return false;
+        }
+
+        if (ignore_role_policy && (Object.keys(user_roles).length > 1)) {
             return false;
         }
 
@@ -129,6 +133,12 @@ export default class AccessPolicyServerController {
         for (let i in user_roles_and_inherited) {
             let user_role: RoleVO = user_roles_and_inherited[i];
 
+
+            let is_ignored_role: boolean = false;
+            if (ignore_role_policy && user_roles[user_role.id]) {
+                is_ignored_role = true;
+            }
+
             // Cas 0
             if (user_role.id == this.role_admin.id) {
                 return true;
@@ -146,7 +156,7 @@ export default class AccessPolicyServerController {
             }
 
             // Cas 1
-            if ((!ignore_role_policy) && role_policies && role_policies[user_role.id] && role_policies[user_role.id][target_policy.id]) {
+            if ((!is_ignored_role) && role_policies && role_policies[user_role.id] && role_policies[user_role.id][target_policy.id]) {
                 if (role_policies[user_role.id][target_policy.id].granted) {
 
                     return true;
@@ -201,7 +211,7 @@ export default class AccessPolicyServerController {
         target_policy: AccessPolicyVO,
         user_roles: { [role_id: number]: RoleVO },
         all_roles: { [role_id: number]: RoleVO },
-        role_policies: { [role_id: number]: { [pol_id: number]: RolePoliciesVO } },
+        role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } },
         policies: { [policy_id: number]: AccessPolicyVO },
         policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] }): boolean {
 
@@ -212,7 +222,7 @@ export default class AccessPolicyServerController {
         for (let j in policies_dependencies[target_policy.id]) {
             let dependency: PolicyDependencyVO = policies_dependencies[target_policy.id][j];
 
-            if (!this.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies)) {
+            if ((dependency.default_behaviour == PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED) && (!this.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies))) {
                 return false;
             }
         }

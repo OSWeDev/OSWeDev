@@ -1,9 +1,9 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import RolePoliciesVO from '../../../../shared/modules/AccessPolicy/vos/RolePoliciesVO';
+import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
-import UserRolesVO from '../../../../shared/modules/AccessPolicy/vos/UserRolesVO';
+import UserRoleVO from '../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
@@ -60,10 +60,10 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
             CRUDComponentManager.getInstance().registerCRUD(
-                UserRolesVO.API_TYPE_ID,
+                UserRoleVO.API_TYPE_ID,
                 null,
                 new MenuPointer(
-                    new MenuLeaf("UserRolesVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-shield"),
+                    new MenuLeaf("UserRoleVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-shield"),
                     accessPolicyMenuBranch),
                 this.routes);
         }
@@ -85,10 +85,10 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             menuPointer.addToMenu();
 
             CRUDComponentManager.getInstance().registerCRUD(
-                RolePoliciesVO.API_TYPE_ID,
+                RolePolicyVO.API_TYPE_ID,
                 null,
                 new MenuPointer(
-                    new MenuLeaf("RolePoliciesVO", MenuElementBase.PRIORITY_HIGH, "fa-shield"),
+                    new MenuLeaf("RolePolicyVO", MenuElementBase.PRIORITY_HIGH, "fa-shield"),
                     accessPolicyMenuBranch),
                 this.routes);
 

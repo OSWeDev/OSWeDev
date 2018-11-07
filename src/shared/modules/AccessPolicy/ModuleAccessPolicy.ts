@@ -17,9 +17,9 @@ import AddRoleToUserParamVO from './vos/apis/AddRoleToUserParamVO';
 import ResetPwdParamVO from './vos/apis/ResetPwdParamVO';
 import ToggleAccessParamVO from './vos/apis/ToggleAccessParamVO';
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
-import RolePoliciesVO from './vos/RolePoliciesVO';
+import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
-import UserRolesVO from './vos/UserRolesVO';
+import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
 
 export default class ModuleAccessPolicy extends Module {
@@ -78,7 +78,7 @@ export default class ModuleAccessPolicy extends Module {
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             ModuleAccessPolicy.APINAME_CHECK_ACCESS,
-            [AccessPolicyVO.API_TYPE_ID, UserRolesVO.API_TYPE_ID, RolePoliciesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            [AccessPolicyVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
             StringParamVO.URL,
             StringParamVO.translateToURL,
@@ -87,12 +87,12 @@ export default class ModuleAccessPolicy extends Module {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
             ModuleAccessPolicy.APINAME_IS_ADMIN,
-            [UserRolesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]
+            [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
             ModuleAccessPolicy.APINAME_IS_ROLE,
-            [UserRolesVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
+            [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
             StringParamVO.URL,
             StringParamVO.translateToURL,
@@ -101,7 +101,7 @@ export default class ModuleAccessPolicy extends Module {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<BooleanParamVO, { [policy_id: number]: { [role_id: number]: boolean } }>(
             ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX,
-            [AccessPolicyVO.API_TYPE_ID, RolePoliciesVO.API_TYPE_ID, PolicyDependencyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, RolePoliciesVO.API_TYPE_ID],
+            [AccessPolicyVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, PolicyDependencyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID],
             BooleanParamVO.translateCheckAccessParams,
             BooleanParamVO.URL,
             BooleanParamVO.translateToURL,
@@ -110,7 +110,7 @@ export default class ModuleAccessPolicy extends Module {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, RoleVO[]>(
             ModuleAccessPolicy.APINAME_GET_MY_ROLES,
-            [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRolesVO.API_TYPE_ID]
+            [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<AddRoleToUserParamVO, void>(
@@ -133,7 +133,7 @@ export default class ModuleAccessPolicy extends Module {
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ToggleAccessParamVO, boolean>(
             ModuleAccessPolicy.APINAME_TOGGLE_ACCESS,
-            [RolePoliciesVO.API_TYPE_ID],
+            [RolePolicyVO.API_TYPE_ID],
             ToggleAccessParamVO.translateCheckAccessParams
         ));
     }
@@ -250,7 +250,7 @@ export default class ModuleAccessPolicy extends Module {
             field_role_id,
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, UserRolesVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Rôles des utilisateurs" }));
+        let datatable: ModuleTable<any> = new ModuleTable(this, UserRoleVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Rôles des utilisateurs" }));
 
         field_user_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         field_role_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
@@ -322,7 +322,7 @@ export default class ModuleAccessPolicy extends Module {
             new ModuleTableField('granted', ModuleTableField.FIELD_TYPE_boolean, 'Granted', false, true, false),
         ];
 
-        let datatable: ModuleTable<any> = new ModuleTable(this, RolePoliciesVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Droits des rôles" }));
+        let datatable: ModuleTable<any> = new ModuleTable(this, RolePolicyVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Droits des rôles" }));
 
         field_accpol_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
         field_role_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);

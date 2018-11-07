@@ -11,9 +11,13 @@ include ../../../views/mixins/loading.pug
                 template(slot="tbody")
                     template(v-for="policy_group in visible_policy_groups")
                         tr.policy_group
-                            td {{ label(policy_group.translatable_name) }}
+                            td 
+                                button.btn.btn-primary(type="button" data-toggle="collapse" :data-target="'.collapseGroup' + policy_group.id" aria-expanded="false" :aria-controls="'collapseGroup' + policy_group.id")
+                                    i.collapse.fa.fa-plus.fa-fw(aria-hidden="true" :class="'collapseGroup' + policy_group.id")
+                                    i.collapse.show.fa.fa-minus.fa-fw(aria-hidden="true" :class="'collapseGroup' + policy_group.id")
+                                | {{ label(policy_group.translatable_name) }}
                             td(v-for="role in roles")
-                        tr.policy(v-for="policy in visible_policies_by_group_id[policy_group.id]")
+                        tr.show.collapse.policy(v-for="policy in visible_policies_by_group_id[policy_group.id]" :class="'collapseGroup' + policy_group.id")
                             td {{ label(policy.translatable_name) }}
                             td(v-for="role in roles" :class="{'bg-success': access_matrix[policy.id][role.id], 'bg-secondary': !access_matrix[policy.id][role.id]}")
                                 toggle-button(

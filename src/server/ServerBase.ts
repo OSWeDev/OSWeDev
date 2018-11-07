@@ -30,6 +30,7 @@ import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyS
 import ModuleCronServer from './modules/Cron/ModuleCronServer';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
+import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 
 export default abstract class ServerBase {
 
@@ -213,10 +214,7 @@ export default abstract class ServerBase {
         //     next();
         // });
 
-        let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
-        this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
-            ignoreRoutes: ["/public"]
-        }));
+        this.registerApis(this.app);
 
         // Pour activation auto let's encrypt
         this.app.use('/.well-known', express.static('.well-known'));
@@ -328,6 +326,17 @@ export default abstract class ServerBase {
             }
             next();
         });
+
+        await this.modulesService.configure_server_modules(this.app);
+        // A ce stade on a chargé toutes les trads par défaut possible et immaginables
+        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
+        // Une fois tous les droits / rôles définis, on doit pouvoir initialiser les droits d'accès
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
+
+        let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
+        this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
+            ignoreRoutes: ["/public"]
+        }));
 
         this.app.get('/admin', async (req, res) => {
 
@@ -520,13 +529,7 @@ export default abstract class ServerBase {
             }), res);
         });
 
-        // this.initializePush();
-        // this.initializePushApis(this.app);
-        this.registerApis(this.app);
 
-        await this.modulesService.configure_server_modules(this.app);
-        // Une fois tous les droits / rôles définis, on doit pouvoir initialiser les droits d'accès
-        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
         console.log('listening on port', ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')
