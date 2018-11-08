@@ -103,12 +103,22 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: null })
     public get_url_for_modal: (segment_date_index: string) => string;
 
+    @Prop({ default: false })
+    public force_show_overview: boolean;
+
+    @Prop({ default: true })
+    public show_import: boolean;
+
+    @Prop({ default: null })
+    public accordion_elements: Array<{ id: number, label: string }>;
+
+    public show_overview: boolean = this.force_show_overview;
+
     private selected_segment: TimeSegment = null;
 
     private previous_import_historics: { [segment_date_index: string]: { [api_type_id: string]: DataImportHistoricVO } } = {};
 
     private autovalidate: boolean = false;
-    public show_overview: boolean = false;
 
     private lower_selected_date_index: string = null;
     private upper_selected_date_index: string = null;

@@ -9,8 +9,8 @@
         h2.imports_page_title {{ title }}
 .row(v-if='import_overview_component && show_overview')
     .col-sm
-        component(:is="import_overview_component")
+        component(:is="import_overview_component", :accordion_elements="accordion_elements")
 
 .row(v-if='import_param_component')
     .col-sm
-        component(:is="import_param_component")
+        component(:is="import_param_component", :accordion_elements="accordion_elements")

@@ -4,7 +4,7 @@ include ../../../../views/mixins/loading.pug
     +loading()
         include ../base/DataImportHeader.pug
 
-        template(v-if="hasValidOptions")
+        template(v-if="hasValidOptions && show_import")
             .row.justify-content-between
                 .col-md-1
                     button.btn.btn-primary.pull-left(@click="previous_segments")
