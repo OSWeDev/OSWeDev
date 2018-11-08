@@ -42,6 +42,7 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
+import OnPageTranslation from './ts/components/OnPageTranslation/component/OnPageTranslation';
 
 
 
@@ -277,6 +278,7 @@ export default abstract class VueAppBase {
         Vue.component('bootstrap-toggle', BootstrapToggle);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
+        Vue.component('on-page-translation', OnPageTranslation);
         Vue.component('vue-dropzone', vueDropzone);
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
