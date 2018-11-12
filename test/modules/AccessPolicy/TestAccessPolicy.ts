@@ -1476,3 +1476,152 @@ it('test getUsersRoles', () => {
 
     delete all_roles[new_role.id];
 });
+
+it('test check access - inheritance test - complex - dont inherit role policy when dependency not validated', () => {
+    AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
+    AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
+    AccessPolicyServerController.getInstance().role_anonymous.id = 1;
+    AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+
+    AccessPolicyServerController.getInstance().role_logged = new RoleVO();
+    AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+    AccessPolicyServerController.getInstance().role_logged.id = 2;
+    AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+
+    AccessPolicyServerController.getInstance().role_admin = new RoleVO();
+    AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+    AccessPolicyServerController.getInstance().role_admin.id = 3;
+    AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+
+    let all_roles: { [role_id: number]: RoleVO } = {
+        1: AccessPolicyServerController.getInstance().role_anonymous,
+        2: AccessPolicyServerController.getInstance().role_logged,
+        3: AccessPolicyServerController.getInstance().role_admin
+    };
+
+
+
+    let policyA: AccessPolicyVO = new AccessPolicyVO();
+    policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+    policyA.translatable_name = 'testA';
+    policyA.id = 1;
+
+    let policyB: AccessPolicyVO = new AccessPolicyVO();
+    policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+    policyB.translatable_name = 'testB';
+    policyB.id = 2;
+    let policies: { [policy_id: number]: AccessPolicyVO } = {
+        1: policyA,
+        2: policyB
+    };
+
+    let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+    dependency.id = 1;
+    dependency.src_pol_id = policyB.id;
+    dependency.depends_on_pol_id = policyA.id;
+    dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+    let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+        [policyB.id]: [dependency]
+    };
+
+    let role_policyA: RolePolicyVO = new RolePolicyVO();
+    role_policyA.id = 1;
+    role_policyA.accpol_id = policyA.id;
+    role_policyA.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+    role_policyA.granted = true;
+
+    let role_policyB: RolePolicyVO = new RolePolicyVO();
+    role_policyB.id = 2;
+    role_policyB.accpol_id = policyB.id;
+    role_policyB.role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+    role_policyB.granted = true;
+
+    let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+        [AccessPolicyServerController.getInstance().role_anonymous.id]: {
+            [policyB.id]: role_policyB
+        },
+        [AccessPolicyServerController.getInstance().role_logged.id]: {
+            [policyA.id]: role_policyA
+        }
+    };
+
+    // anon ne peut hériter dans ce contexte, et pas de droit anon sur A
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyA,
+        { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+        all_roles,
+        role_policies,
+        policies,
+        policies_dependencies,
+        AccessPolicyServerController.getInstance().role_anonymous
+    )).to.equal(false);
+
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyA,
+        { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+        all_roles,
+        role_policies,
+        policies,
+        policies_dependencies
+    )).to.equal(false);
+
+    // Anon sur B nécessite anon A donc false pour les 2
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyB,
+        { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+        all_roles,
+        role_policies,
+        policies,
+        policies_dependencies,
+        AccessPolicyServerController.getInstance().role_anonymous
+    )).to.equal(false);
+
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyB,
+        { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+        all_roles,
+        role_policies,
+        policies,
+        policies_dependencies
+    )).to.equal(false);
+
+    // logged sur A ok, mais pas hérité
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyA,
+        { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+        all_roles,
+        role_policies,
+        policies,
+        policies_dependencies,
+        AccessPolicyServerController.getInstance().role_logged
+    )).to.equal(false);
+
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyA,
+        { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+        all_roles,
+        role_policies,
+        policies,
+        policies_dependencies
+    )).to.equal(true);
+
+    // logged sur B nécessite A (ok) mais ne peut hériter de B sur anon puisque A anon est invalide
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyB,
+        { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+        all_roles,
+        role_policies,
+        policies,
+        policies_dependencies,
+        AccessPolicyServerController.getInstance().role_logged
+    )).to.equal(false);
+
+    expect(AccessPolicyServerController.getInstance().checkAccessTo(
+        policyB,
+        { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+        all_roles,
+        role_policies,
+        policies,
+        policies_dependencies
+    )).to.equal(false);
+});

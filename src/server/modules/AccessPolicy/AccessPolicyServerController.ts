@@ -142,7 +142,7 @@ export default class AccessPolicyServerController {
 
             if (!this.hasCleanDependencies(
                 target_policy,
-                user_roles,
+                [user_role],
                 all_roles,
                 role_policies,
                 policies,

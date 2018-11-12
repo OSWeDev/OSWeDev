@@ -1,5 +1,18 @@
 .access_policy {
 
+    .group_hidden,
+    .policy_hidden,
+    .toggle_hidden {
+        opacity: 0.2;
+        // display: none;
+    }
+
+    .table_container{
+        table{
+            max-height: calc(100vh - 166px);
+        }
+    }
+
     table.scrolling td, table.scrolling th {
         border: 1px solid #ddd;
         width: 12em;

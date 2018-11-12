@@ -9,21 +9,24 @@ include ../../../views/mixins/loading.pug
                         th {{ label('access_policy.admin.table.headers.first_header') }}
                         th(v-for="role in roles") {{ label(role.translatable_name) }}
                 template(slot="tbody")
-                    template(v-for="policy_group in visible_policy_groups")
-                        tr.policy_group
+                    template(v-for="policy_group in ordered_policy_groups")
+                        tr.policy_group(:class="{'group_hidden': !policy_groups_vibility[policy_group.id]}")
                             td 
                                 button.btn.btn-primary(type="button" data-toggle="collapse" :data-target="'.collapseGroup' + policy_group.id" aria-expanded="false" :aria-controls="'collapseGroup' + policy_group.id")
                                     i.collapse.fa.fa-plus.fa-fw(aria-hidden="true" :class="'collapseGroup' + policy_group.id")
                                     i.collapse.show.fa.fa-minus.fa-fw(aria-hidden="true" :class="'collapseGroup' + policy_group.id")
                                 | {{ label(policy_group.translatable_name) }}
                             td(v-for="role in roles")
-                        tr.show.collapse.policy(v-for="policy in visible_policies_by_group_id[policy_group.id]" :class="'collapseGroup' + policy_group.id")
+                        tr.show.collapse.policy(v-for="policy in policies_by_group_id[policy_group.id]" :class="{['collapseGroup' + policy_group.id] : true, 'policy_hidden': !policy_visibility[policy.id]}")
                             td {{ label(policy.translatable_name) }}
-                            td(v-for="role in roles" :class="{'bg-success': access_matrix[policy.id][role.id], 'bg-secondary': !access_matrix[policy.id][role.id]}")
+                            td( v-for="role in roles" 
+                                :class="{'bg-success': access_matrix[policy.id][role.id], 'bg-secondary': !access_matrix[policy.id][role.id]}"
+                                :key="policy.id + '_' + role.id")
                                 toggle-button(
                                     @change="set_policy(policy.id, role.id)" 
-                                    v-if="(!inherited_access_matrix[policy.id][role.id]) && (policies_visibility_by_role_id[role.id][policy.id])" 
-                                    v-model="access_matrix[policy.id][role.id]" 
+                                    :class="{'toggle_hidden': !((!inherited_access_matrix[policy.id][role.id]) && (policies_visibility_by_role_id[role.id][policy.id]))}" 
+                                    :value="access_matrix[policy.id][role.id]" 
+                                    :sync="true"
                                     :width="100"
-                                    :labels="{checked: label('access_policy.admin.table.granted'), unchecked: label('access_policy.admin.table.denied')}"
-                                    :disabled="busy")
+                                    :disabled="busy || !((!inherited_access_matrix[policy.id][role.id]) && (policies_visibility_by_role_id[role.id][policy.id]))"
+                                    :labels="{checked: label('access_policy.admin.table.granted'), unchecked: label('access_policy.admin.table.denied')}")

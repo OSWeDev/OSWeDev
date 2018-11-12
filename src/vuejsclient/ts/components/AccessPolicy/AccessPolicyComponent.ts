@@ -91,16 +91,13 @@ export default class AccessPolicyComponent extends VueComponentBase {
         this.stopLoading();
     }
 
-    get visible_policy_groups(): AccessPolicyGroupVO[] {
+    get ordered_policy_groups(): AccessPolicyGroupVO[] {
         // sont visibles les groupes qui ont au moins une policy visible
         let res: AccessPolicyGroupVO[] = [];
 
         for (let i in this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID]) {
             let group: AccessPolicyGroupVO = this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID][i] as AccessPolicyGroupVO;
 
-            if ((!this.visible_policies_by_group_id[group.id]) || (!this.visible_policies_by_group_id[group.id].length)) {
-                continue;
-            }
             res.push(group);
         }
 
@@ -113,6 +110,22 @@ export default class AccessPolicyComponent extends VueComponentBase {
             }
             return 0;
         });
+
+        return res;
+    }
+
+    get policy_groups_vibility(): { [group_id: number]: boolean } {
+        // sont visibles les groupes qui ont au moins une policy visible
+        let res: { [group_id: number]: boolean } = {};
+
+        for (let i in this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID]) {
+            let group: AccessPolicyGroupVO = this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID][i] as AccessPolicyGroupVO;
+
+            if ((!this.visible_policies_by_group_id[group.id]) || (!this.visible_policies_by_group_id[group.id].length)) {
+                res[group.id] = false;
+            }
+            res[group.id] = true;
+        }
 
         return res;
     }
@@ -138,6 +151,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
 
         for (let k in this.getStoredDatas[RoleVO.API_TYPE_ID]) {
             let role: RoleVO = this.getStoredDatas[RoleVO.API_TYPE_ID][k] as RoleVO;
+
             for (let i in this.getStoredDatas[AccessPolicyVO.API_TYPE_ID]) {
                 let policy: AccessPolicyVO = this.getStoredDatas[AccessPolicyVO.API_TYPE_ID][i] as AccessPolicyVO;
 
@@ -161,6 +175,62 @@ export default class AccessPolicyComponent extends VueComponentBase {
                 }
                 res[role.id][policy.id] = visible;
             }
+        }
+
+        return res;
+    }
+
+    get policies_by_group_id(): { [group_id: number]: AccessPolicyVO[] } {
+        let res: { [group_id: number]: AccessPolicyVO[] } = {};
+
+        for (let i in this.getStoredDatas[AccessPolicyVO.API_TYPE_ID]) {
+            let policy: AccessPolicyVO = this.getStoredDatas[AccessPolicyVO.API_TYPE_ID][i] as AccessPolicyVO;
+
+            if (!res[policy.group_id]) {
+                res[policy.group_id] = [];
+            }
+
+            res[policy.group_id].push(policy);
+        }
+
+        // On ordonne les policies dans les groupes
+        for (let i in this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID]) {
+            let group: AccessPolicyGroupVO = this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID][i] as AccessPolicyGroupVO;
+
+            if (res[group.id]) {
+                res[group.id].sort((a: AccessPolicyVO, b: AccessPolicyVO) => {
+                    if (a.weight < b.weight) {
+                        return -1;
+                    }
+                    if (a.weight > b.weight) {
+                        return 1;
+                    }
+                    return 0;
+                });
+            }
+        }
+
+        return res;
+    }
+
+    get policy_visibility(): { [policy_id: number]: boolean } {
+        // sont visibles les policies dont au moins un role/policy est visible
+        let res: { [policy_id: number]: boolean } = {};
+
+        for (let i in this.getStoredDatas[AccessPolicyVO.API_TYPE_ID]) {
+            let policy: AccessPolicyVO = this.getStoredDatas[AccessPolicyVO.API_TYPE_ID][i] as AccessPolicyVO;
+
+            let visible: boolean = false;
+            for (let j in this.getStoredDatas[RoleVO.API_TYPE_ID]) {
+                let role: RoleVO = this.getStoredDatas[RoleVO.API_TYPE_ID][j] as RoleVO;
+
+                if (this.policies_visibility_by_role_id[role.id][policy.id]) {
+                    visible = true;
+                    break;
+                }
+            }
+
+            res[policy.id] = visible;
         }
 
         return res;
