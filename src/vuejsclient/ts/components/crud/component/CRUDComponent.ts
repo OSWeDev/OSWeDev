@@ -713,9 +713,9 @@ export default class CRUDComponent extends VueComponentBase {
      * Cas spécifique du FileVo sur lequel on a un champ fichier qui crée l'objet que l'on souhaite update ou create.
      * Si on est en cours d'update, il faut conserver l'ancien vo (pour maintenir les liaisons vers son id)
      *  et lui mettre en path le nouveau fichier. On garde aussi le nouveau file, pour archive de l'ancien fichier
-     * @param vo 
-     * @param field 
-     * @param fileVo 
+     * @param vo
+     * @param field
+     * @param fileVo
      */
     private async uploadedFile(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
         if ((!fileVo) || (!fileVo.id)) {

@@ -1,0 +1,3 @@
+.col-md-12.new_import.mb-3.mt-3
+    button.btn.btn-primary.btn-sm.btn-block.mb-1(v-show="import_historics[selected_segment.dateIndex]", v-on:click="toggleShowNewImport") {{ label('import.modal.new_import') }}
+    fileinput(v-show="show_new_import", :key="'fileinput_'+selected_segment.dateIndex", :muted="true", :options="dropzoneOptions[selected_segment.dateIndex]", @uploaded="uploadedFile(selected_segment.dateIndex, ...arguments)")

@@ -60,7 +60,5 @@ include ../../../../views/mixins/loading.pug
                     .modal-header(v-if="selected_segment")
                         h4.modal-title {{ selected_segment.dateIndex }}
                         button.btn.close(@click="closeModal()") &times;
-                    .modal-body(v-if="selected_segment && (!import_historics[selected_segment.dateIndex])")
-                        span {{ label('import.modal.no_hisotoric') }}
-                    .modal-body(v-if="selected_segment && import_historics[selected_segment.dateIndex]")
+                    .modal-body(v-if="selected_segment")
                         include ../base/DataImportModal.pug
