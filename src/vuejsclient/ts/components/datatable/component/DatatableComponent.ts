@@ -492,9 +492,11 @@ export default class DatatableComponent extends VueComponentBase {
                             let manyToOneField: ManyToOneReferenceDatatableField<any> = (field) as ManyToOneReferenceDatatableField<any>;
 
                             // On va chercher la valeur du champs depuis la valeur de la donnée liée
-                            let ref_data: IDistantVOBase = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type][baseData[manyToOneField.srcField.field_id]];
-                            resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
-                            resData[field.datatable_field_uid + "___id___"] = baseData[manyToOneField.srcField.field_id];
+                            if (this.getStoredDatas && this.getStoredDatas[manyToOneField.targetModuleTable.vo_type]) {
+                                let ref_data: IDistantVOBase = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type][baseData[manyToOneField.srcField.field_id]];
+                                resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
+                                resData[field.datatable_field_uid + "___id___"] = baseData[manyToOneField.srcField.field_id];
+                            }
                             break;
 
                         // case DatatableField.ONE_TO_MANY_FIELD_TYPE:
