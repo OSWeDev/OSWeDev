@@ -112,7 +112,10 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: null })
     public accordion_elements: Array<{ id: number, label: string }>;
 
-    public show_overview: boolean = this.force_show_overview;
+    @Prop({ default: null })
+    private validate_previous_segment: TimeSegment;
+
+    private show_overview: boolean = this.force_show_overview;
 
     private selected_segment: TimeSegment = null;
 
@@ -322,6 +325,11 @@ export default class DataImportComponent extends DataImportComponentBase {
 
             if (!this.is_valid_segments[segment.dateIndex]) {
                 res[segment.dateIndex] = this.state_unavail;
+                continue;
+            }
+
+            if (this.validate_previous_segment && moment(this.validate_previous_segment.dateIndex).isSameOrAfter(segment.dateIndex)) {
+                res[segment.dateIndex] = this.state_ok;
                 continue;
             }
 
