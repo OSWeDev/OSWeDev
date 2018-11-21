@@ -41,7 +41,7 @@ include ../../../../views/mixins/loading.pug
                                     i.fa.fa-refresh(aria-hidden="true" @click='planif_reimport(segment)' class="valid_selection")
 
                             fileinput(:key="'fileinput_'+segment.dateIndex" :muted="true" :options="dropzoneOptions[segment.dateIndex]" @uploaded="uploadedFile(segment.dateIndex, ...arguments)")
-            .row.justify-content-between.multiple_segments
+            .row.justify-content-between.multiple_segments(v-if="show_multiple_segments")
                 .col-md-4.multiple_segments_block
                     .row
                         .col-sm.multiple_segments_header {{ label('import.multiple_segments') }}

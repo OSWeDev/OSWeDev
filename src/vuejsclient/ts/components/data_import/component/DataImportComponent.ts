@@ -115,6 +115,9 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: null })
     public validate_previous_segment: TimeSegment;
 
+    @Prop({ default: true })
+    public show_multiple_segments: boolean;
+
     public show_overview: boolean = this.force_show_overview;
 
     private selected_segment: TimeSegment = null;
