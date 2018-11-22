@@ -6,7 +6,8 @@ export default class LigneCommandeVO implements IDistantVOBase {
     public id: number;
     public _type: string = LigneCommandeVO.API_TYPE_ID;
     public commande_id: number;
-    public service_id: number;
+    public produit_id: number;
+    public informations_id: number;
     public prix_unitaire: number;
     public quantite: number;
 }

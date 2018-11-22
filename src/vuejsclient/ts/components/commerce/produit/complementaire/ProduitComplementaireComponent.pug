@@ -1,0 +1,11 @@
+include ../../../../../views/mixins/loading.pug
+
+.produits_complementaires
+    +loading()
+        div(v-if="produits_complementaires && produits_complementaires.length > 0")
+            h2 {{ label('client.produits_complementaires') }}
+            div(v-for="produit in produits_complementaires")
+                a 
+                    i(:class="produit.picto")
+                    span {{ produit.titre }}
+        

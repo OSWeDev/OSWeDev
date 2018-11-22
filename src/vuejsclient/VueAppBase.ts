@@ -43,7 +43,7 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
-
+import OnPageTranslation from './ts/components/OnPageTranslation/component/OnPageTranslation';
 
 export default abstract class VueAppBase {
 

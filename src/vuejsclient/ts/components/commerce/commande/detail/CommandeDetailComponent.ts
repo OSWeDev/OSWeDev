@@ -50,4 +50,8 @@ export default class CommandeDetailComponent extends VueComponentBase {
 
         return total;
     }
+
+    get statutCommande(): string {
+        return ModuleCommande.getInstance().getStatutCommande(this.commande);
+    }
 }

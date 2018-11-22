@@ -13,6 +13,7 @@ import UserVO from '../../AccessPolicy/vos/UserVO';
 
 export default class ModuleClient extends Module {
     public static APINAME_getInformationsClientUser: string = "getInformationsClientUser";
+    public static APINAME_getClientsByUserId: string = "getClientsByUserId";
 
     public static getInstance(): ModuleClient {
         if (!ModuleClient.instance) {
@@ -33,6 +34,15 @@ export default class ModuleClient extends Module {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, InformationsVO>(
             ModuleClient.APINAME_getInformationsClientUser,
             [InformationsVO.API_TYPE_ID],
+            NumberParamVO.translateCheckAccessParams,
+            NumberParamVO.URL,
+            NumberParamVO.translateToURL,
+            NumberParamVO.translateFromREQ
+        ));
+
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, ClientVO[]>(
+            ModuleClient.APINAME_getClientsByUserId,
+            [ClientVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
             NumberParamVO.URL,
             NumberParamVO.translateToURL,
@@ -93,6 +103,10 @@ export default class ModuleClient extends Module {
 
     public async getClientById(clientId: number): Promise<ClientVO> {
         return ModuleDAO.getInstance().getVoById<ClientVO>(ClientVO.API_TYPE_ID, clientId);
+    }
+
+    public async getClientsByUserId(userId: number): Promise<ClientVO[]> {
+        return ModuleAPI.getInstance().handleAPI<NumberParamVO, ClientVO[]>(ModuleClient.APINAME_getClientsByUserId, userId);
     }
 
     public async getInformationsById(infoId: number): Promise<InformationsVO> {

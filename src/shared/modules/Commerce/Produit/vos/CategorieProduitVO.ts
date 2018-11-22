@@ -6,5 +6,4 @@ export default class CategorieProduitVO implements IDistantVOBase {
     public id: number;
     public _type: string = CategorieProduitVO.API_TYPE_ID;
     public titre: string;
-    public param_type: string;
 }

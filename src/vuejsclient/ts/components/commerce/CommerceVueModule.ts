@@ -33,7 +33,7 @@ export default class CommerceVueModule extends VueModuleBase {
         routes.push({
             route: this.getRouteCommandes(),
             icon: 'fa-shopping-cart',
-            text: 'Commandes'
+            text: 'menu.mes-commandes'
         });
 
         return routes;

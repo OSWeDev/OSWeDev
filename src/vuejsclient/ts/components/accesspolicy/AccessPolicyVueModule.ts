@@ -30,7 +30,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
         routes.push({
             route: this.getRouteUser(),
             icon: 'fa-user',
-            text: 'Mon compte'
+            text: 'menu.mon-compte'
         });
 
         return routes;

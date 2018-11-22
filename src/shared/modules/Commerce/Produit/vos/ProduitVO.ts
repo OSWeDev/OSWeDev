@@ -9,5 +9,7 @@ export default class ProduitVO implements IDistantVOBase {
     public actif: boolean;
     public prix: number;
     public tva: number;
-    public categorie_produit_id: number;
+    public type_produit_id: number;
+    public picto: string;
+    public is_complementaire: boolean;
 }

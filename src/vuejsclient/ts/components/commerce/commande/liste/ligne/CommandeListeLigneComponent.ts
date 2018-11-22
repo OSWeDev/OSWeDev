@@ -2,6 +2,7 @@ import Component from 'vue-class-component';
 import VueComponentBase from '../../../../VueComponentBase';
 import { Prop } from 'vue-property-decorator';
 import CommandeVO from '../../../../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
+import ModuleCommande from '../../../../../../../shared/modules/Commerce/Commande/ModuleCommande';
 
 @Component({
     template: require('./CommandeListeLigneComponent.pug'),
@@ -17,5 +18,9 @@ export default class CommandeListeLigneComponent extends VueComponentBase {
         }
 
         return null;
+    }
+
+    get statutCommande(): string {
+        return ModuleCommande.getInstance().getStatutCommande(this.commande);
     }
 }

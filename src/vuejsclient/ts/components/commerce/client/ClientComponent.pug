@@ -1,30 +1,37 @@
+include ../../../../views/mixins/loading.pug
+
 .client
-    h1 {{ t('client.client.infos') }}
-    div(v-if="client")
-        div(v-if="client.nom")
-            label(for="nom") {{ t('client.user.mon-compte.nom') }}
-            input(id="nom", type="text", disabled="disabled", :value="client.nom")
-        div(v-if="client.prenom")
-            label(for="prenom") {{ t('client.user.mon-compte.prenom') }}
-            input(id="prenom", type="text", disabled="disabled", :value="client.prenom")
-        div(v-if="client.telephone")
-            label(for="telephone") {{ t('client.user.mon-compte.telephone') }}
-            input(id="telephone", type="text", disabled="disabled", :value="client.telephone")
-        div(v-if="client.adresse")
-            label(for="adresse") {{ t('client.user.mon-compte.adresse') }}
-            input(id="adresse", type="text", disabled="disabled", :value="client.adresse")
-        div(v-if="client.code_postal")
-            label(for="code_postal") {{ t('client.user.mon-compte.code_postal') }}
-            input(id="code_postal", type="text", disabled="disabled", :value="client.code_postal")
-        div(v-if="client.ville")
-            label(for="ville") {{ t('client.user.mon-compte.ville') }}
-            input(id="ville", type="text", disabled="disabled", :value="client.ville")
-        div(v-if="client.societe")
-            label(for="societe") {{ t('client.user.mon-compte.societe') }}
-            input(id="societe", type="text", disabled="disabled", :value="client.societe")
-        div(v-if="client.siret")
-            label(for="siret") {{ t('client.user.mon-compte.siret') }}
-            input(id="siret", type="text", disabled="disabled", :value="client.siret")
-        div(v-if="client.email")
-            label(for="infos_email") {{ t('client.user.mon-compte.email') }}
-            input(id="infos_email", type="text", disabled="disabled", :value="client.email")
+    +loading()
+        h2 
+            span {{ label('client.client.infos') }}
+            i.fa.fa-edit(v-on:click="switchIsEditable")
+        form(v-if="client", onsubmit="return false;")
+            div
+                label(for="nom") {{ label('client.user.mon-compte.nom') }}
+                input(id="nom", type="text", :disabled="!isEditable", v-model="client.nom")
+            div
+                label(for="prenom") {{ label('client.user.mon-compte.prenom') }}
+                input(id="prenom", type="text", :disabled="!isEditable", v-model="client.prenom")
+            div
+                label(for="telephone") {{ label('client.user.mon-compte.telephone') }}
+                input(id="telephone", type="text", :disabled="!isEditable", v-model="client.telephone")
+            div
+                label(for="adresse") {{ label('client.user.mon-compte.adresse') }}
+                input(id="adresse", type="text", :disabled="!isEditable", v-model="client.adresse")
+            div
+                label(for="code_postal") {{ label('client.user.mon-compte.code_postal') }}
+                input(id="code_postal", type="text", :disabled="!isEditable", v-model="client.code_postal")
+            div
+                label(for="ville") {{ label('client.user.mon-compte.ville') }}
+                input(id="ville", type="text", :disabled="!isEditable", v-model="client.ville")
+            div
+                label(for="societe") {{ label('client.user.mon-compte.societe') }}
+                input(id="societe", type="text", :disabled="!isEditable", v-model="client.societe")
+            div
+                label(for="siret") {{ label('client.user.mon-compte.siret') }}
+                input(id="siret", type="text", :disabled="!isEditable", v-model="client.siret")
+            div
+                label(for="infos_email") {{ label('client.user.mon-compte.email') }}
+                input(id="infos_email", type="text", :disabled="!isEditable", v-model="client.email")
+            div(v-if="isEditable")
+                input(type="submit", class='btn btn-primary', v-on:click="save", :value="label('client.user.mon-compte.sauvegarder')")

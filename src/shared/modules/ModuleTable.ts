@@ -199,6 +199,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 e[field.field_id] = ConversionHandler.getInstance().forceNumber(e[field.field_id]);
             }
 
+            if (field.field_type == ModuleTableField.FIELD_TYPE_int_array) {
+                e[field.field_id] = e[field.field_id].map(Number);
+            }
+
             if ((field.field_type == ModuleTableField.FIELD_TYPE_day) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_date)) {
                 e[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(e[field.field_id]));

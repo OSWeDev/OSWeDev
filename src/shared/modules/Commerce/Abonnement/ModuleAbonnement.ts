@@ -42,18 +42,19 @@ export default class ModuleAbonnement extends Module {
 
     public initializeAbonnement(): void {
         // Création de la table Abonnement
+        let default_label_field: ModuleTableField<string> = new ModuleTableField('echeance', ModuleTableField.FIELD_TYPE_date, new DefaultTranslation({
+            fr: 'Date echeance'
+        }));
         let datatable_fields = [
             new ModuleTableField('renouvellement', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({
                 fr: 'Renouvellement'
             })),
-            new ModuleTableField('echeance', ModuleTableField.FIELD_TYPE_date, new DefaultTranslation({
-                fr: 'Date echeance'
-            })),
+            default_label_field,
             new ModuleTableField('resiliation', ModuleTableField.FIELD_TYPE_date, new DefaultTranslation({
                 fr: 'Date resiliation'
             })),
         ];
-        this.datatable_abonnement = new ModuleTable<AbonnementVO>(this, AbonnementVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({
+        this.datatable_abonnement = new ModuleTable<AbonnementVO>(this, AbonnementVO.API_TYPE_ID, datatable_fields, default_label_field, new DefaultTranslation({
             fr: 'Abonnement'
         }));
         this.datatables.push(this.datatable_abonnement);
@@ -72,7 +73,7 @@ export default class ModuleAbonnement extends Module {
             field_ligne_commande_id,
             field_abonnement_id,
         ];
-        this.datatable_pack_abonnement = new ModuleTable<PackAbonnementVO>(this, PackAbonnementVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({
+        this.datatable_pack_abonnement = new ModuleTable<PackAbonnementVO>(this, PackAbonnementVO.API_TYPE_ID, datatable_fields, field_ligne_commande_id, new DefaultTranslation({
             fr: 'PackAbonnement'
         }));
         field_ligne_commande_id.addManyToOneRelation(this.datatable_pack_abonnement, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);

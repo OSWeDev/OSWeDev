@@ -17,6 +17,7 @@ import * as socketIO from 'socket.io';
 import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
@@ -529,6 +530,21 @@ export default abstract class ServerBase {
             }), res);
         });
 
+        if (ModuleCommerce.getInstance().actif) {
+            this.app.get('/getIdPanierEnCours', (req: Request, res) => {
+                res.json({ id_panier: this.session.id_panier });
+                res.send();
+            });
+            this.app.get('/setIdPanierEnCours/:value', (req: Request, res) => {
+                this.session.id_panier = parseInt(req.params.value);
+                res.json({ id_panier: this.session.id_panier });
+                res.send();
+            });
+        }
+
+        // this.initializePush();
+        // this.initializePushApis(this.app);
+        this.registerApis(this.app);
 
 
         console.log('listening on port', ServerBase.getInstance().port);

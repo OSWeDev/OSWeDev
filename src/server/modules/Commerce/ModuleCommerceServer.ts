@@ -1,6 +1,5 @@
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleCommerce from '../../../shared/modules/Commerce/ModuleCommerce';
-import ModuleCommandeServer from './Commande/ModuleCommandeServer';
 
 export default class ModuleCommerceServer extends ModuleServerBase {
 
