@@ -21,6 +21,7 @@ import SimpleDatatableField from '../vos/SimpleDatatableField';
 import ManyToManyReferenceDatatableField from '../vos/ManyToManyReferenceDatatableField';
 import DaoStoreTypeWatcherDefinition from '../../dao/vos/DaoStoreTypeWatcherDefinition';
 import * as debounce from 'lodash/debounce';
+import './DatatableComponent.scss';
 
 @Component({
     template: require('./DatatableComponent.pug'),

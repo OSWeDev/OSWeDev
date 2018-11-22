@@ -33,6 +33,7 @@ import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import SocketWrapper from './modules/PushData/vos/SocketWrapper';
 import NotificationVO from '../shared/modules/PushData/vos/NotificationVO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
+import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 
 export default abstract class ServerBase {
 
@@ -290,7 +291,7 @@ export default abstract class ServerBase {
             resave: false,
             saveUninitialized: false,
             store: new FileStore()
-        })
+        });
         this.app.use(this.session);
 
 
@@ -523,6 +524,18 @@ export default abstract class ServerBase {
             }), res);
         });
 
+        if (ModuleCommerce.getInstance().actif) {
+            this.app.get('/getIdPanierEnCours', (req: Request, res) => {
+                res.json({ id_panier: this.session.id_panier });
+                res.send();
+            });
+            this.app.get('/setIdPanierEnCours/:value', (req: Request, res) => {
+                this.session.id_panier = parseInt(req.params.value);
+                res.json({ id_panier: this.session.id_panier });
+                res.send();
+            });
+        }
+
         // this.initializePush();
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
@@ -541,7 +554,7 @@ export default abstract class ServerBase {
                 server.listen(ServerBase.getInstance().port);
                 // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
 
-                // SocketIO 
+                // SocketIO
                 // let io = socketIO.listen(ServerBase.getInstance().app);
                 //turn off debug
                 // io.set('log level', 1);

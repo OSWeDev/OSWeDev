@@ -1,15 +1,17 @@
+include ../../../../../views/mixins/loading.pug
+
 .commandes
-    h1 {{ t('client.commandes') }}
-    div(v-if="!isLoading")
+    h1 {{ label('client.commandes') }}
+    +loading()
         table(v-if="commandes && commandes.length > 0")
             thead
                 tr
-                    th {{ t('client.commandes.commande.id') }}
-                    th {{ t('client.commandes.commande.date') }}
-                    th {{ t('client.commandes.commande.statut') }}
+                    th {{ label('client.commandes.commande.id') }}
+                    th {{ label('client.commandes.commande.date') }}
+                    th {{ label('client.commandes.commande.statut') }}
                     th 
             tbody
                 template(v-for="commande in commandes")
                     ligne-commande(:commande="commande")
 
-        div(v-else) {{ t('client.commandes.no') }}
+        div(v-else) {{ label('client.commandes.no') }}

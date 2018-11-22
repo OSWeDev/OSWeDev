@@ -33,10 +33,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private static instance: ModuleDAOServer = null;
 
-    private constructor() {
-        super(ModuleDAO.getInstance().name);
-    }
-
     // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
     private access_hooks: { [api_type_id: string]: { [access_type: string]: IHookFilterVos<IDistantVOBase> } } = {};
 
@@ -49,6 +45,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private post_update_trigger_hook: DAOTriggerHook;
     private post_create_trigger_hook: DAOTriggerHook;
     // private post_delete_trigger_hook: DAOTriggerHook;
+
+    private constructor() {
+        super(ModuleDAO.getInstance().name);
+    }
 
     public async configure() {
         // this.pre_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_READ_TRIGGER);
@@ -100,6 +100,54 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.full_name + ";");
+    }
+
+
+    public async selectAll<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T[]> {
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let res: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
+
+        // On filtre les res suivant les droits d'accès
+        return await this.filterVOsAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, res);
+    }
+
+    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T> {
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T);
+
+        // On filtre suivant les droits d'accès
+        return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
+    }
+
+    public async getVoById<T extends IDistantVOBase>(apiDAOParamVO: APIDAOParamVO): Promise<T> {
+
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t WHERE id=" + apiDAOParamVO.id + ";") as T);
+
+        if (!vo) {
+            return vo;
+        }
+
+        // On filtre suivant les droits d'accès
+        return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
     }
 
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
@@ -277,21 +325,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
 
-    public async selectAll<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T[]> {
-        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
-
-        // On vérifie qu'on peut faire un select
-        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
-            return null;
-        }
-
-        let res: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
-
-        // On filtre les res suivant les droits d'accès
-        return await this.filterVOsAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, res);
-    }
-
-
     // private async selectAll<T extends IDistantVOBase>(apiDAOParamVOs: APIDAOParamVOs<T>): Promise<T[]> {
     //     let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVOs.API_TYPE_ID];
 
@@ -402,39 +435,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
     //     // On filtre suivant les droits d'accès
     //     return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
     // }
-
-    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T> {
-        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
-
-        // On vérifie qu'on peut faire un select
-        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
-            return null;
-        }
-
-        let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T);
-
-        // On filtre suivant les droits d'accès
-        return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
-    }
-
-    private async getVoById<T extends IDistantVOBase>(apiDAOParamVO: APIDAOParamVO): Promise<T> {
-
-        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
-
-        // On vérifie qu'on peut faire un select
-        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
-            return null;
-        }
-
-        let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t WHERE id=" + apiDAOParamVO.id + ";") as T);
-
-        if (!vo) {
-            return vo;
-        }
-
-        // On filtre suivant les droits d'accès
-        return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
-    }
 
     private async getVosByRefFieldIds<T extends IDistantVOBase>(apiDAOParamsVO: APIDAORefFieldParamsVO): Promise<T[]> {
 

@@ -24,13 +24,15 @@ import FileComponent from '../../file/FileComponent';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ImageComponent from '../../image/ImageComponent';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import MultiInputComponent from '../../multiinput/MultiInputComponent';
 
 @Component({
     template: require('./CRUDComponent.pug'),
     components: {
-        datatable: DatatableComponent,
-        fileinput: FileComponent,
-        imageinput: ImageComponent
+        'datatable': DatatableComponent,
+        'fileinput': FileComponent,
+        'imageinput': ImageComponent,
+        'multi-input': MultiInputComponent
     },
     directives: {
         select2: select2
@@ -219,12 +221,11 @@ export default class CRUDComponent extends VueComponentBase {
                         });
                     })()
                 );
-
-                for (let i in reference.sortedTargetFields) {
-                    res = res.concat(
-                        this.loadDatasFromDatatableField(reference.sortedTargetFields[i])
-                    );
-                }
+            }
+            for (let i in reference.sortedTargetFields) {
+                res = res.concat(
+                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i])
+                );
             }
         }
 
@@ -493,6 +494,9 @@ export default class CRUDComponent extends VueComponentBase {
                         }
                     }
                 }
+                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_int_array) {
+                    res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
+                }
             }
         }
 
@@ -702,6 +706,10 @@ export default class CRUDComponent extends VueComponentBase {
         input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
     }
 
+    private validateMultiInput(values: any[], field: DatatableField<any, any>, vo: string) {
+        this[vo][field.datatable_field_uid] = values;
+    }
+
     private onChangeField(vo: IDistantVOBase, field: DatatableField<any, any>) {
         if (!field.onChange) {
             return;
@@ -713,9 +721,9 @@ export default class CRUDComponent extends VueComponentBase {
      * Cas spécifique du FileVo sur lequel on a un champ fichier qui crée l'objet que l'on souhaite update ou create.
      * Si on est en cours d'update, il faut conserver l'ancien vo (pour maintenir les liaisons vers son id)
      *  et lui mettre en path le nouveau fichier. On garde aussi le nouveau file, pour archive de l'ancien fichier
-     * @param vo 
-     * @param field 
-     * @param fileVo 
+     * @param vo
+     * @param field
+     * @param fileVo
      */
     private async uploadedFile(vo: IDistantVOBase, field: DatatableField<any, any>, fileVo: FileVO) {
         if ((!fileVo) || (!fileVo.id)) {

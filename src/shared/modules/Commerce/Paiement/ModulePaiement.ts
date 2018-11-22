@@ -40,10 +40,11 @@ export default class ModulePaiement extends Module {
 
     public initializeModePaiement(): void {
         // Création de la table ModePaiement
+        let default_label_field: ModuleTableField<string> = new ModuleTableField('mode', ModuleTableField.FIELD_TYPE_string, 'Mode');
         let datatable_fields = [
-            new ModuleTableField('mode', ModuleTableField.FIELD_TYPE_string, 'Mode'),
+            default_label_field,
         ];
-        this.datatable_mode_paiement = new ModuleTable<ModePaiementVO>(this, ModePaiementVO.API_TYPE_ID, datatable_fields, null, 'Mode de paiement');
+        this.datatable_mode_paiement = new ModuleTable<ModePaiementVO>(this, ModePaiementVO.API_TYPE_ID, datatable_fields, default_label_field, 'Mode de paiement');
         this.datatables.push(this.datatable_mode_paiement);
     }
 
@@ -51,14 +52,16 @@ export default class ModulePaiement extends Module {
         // Création de la table Paiement
         let field_abonnement_id: ModuleTableField<number> = new ModuleTableField('abonnement_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Abonnement', true);
         let field_mode_paiement_id: ModuleTableField<number> = new ModuleTableField('mode_paiement_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Mode paiement', true);
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_string, 'Statut');
 
         let datatable_fields = [
             field_abonnement_id,
             field_mode_paiement_id,
-            default_label_field,
+            new ModuleTableField('statut', ModuleTableField.FIELD_TYPE_enum, 'Statut').setEnumValues({
+                [PaiementVO.STATUT_ERREUR]: PaiementVO.STATUT_LABELS[PaiementVO.STATUT_ERREUR],
+                [PaiementVO.STATUT_SUCCES]: PaiementVO.STATUT_LABELS[PaiementVO.STATUT_SUCCES],
+            }),
         ];
-        this.datatable_paiement = new ModuleTable<PaiementVO>(this, PaiementVO.API_TYPE_ID, datatable_fields, default_label_field, 'Paiement');
+        this.datatable_paiement = new ModuleTable<PaiementVO>(this, PaiementVO.API_TYPE_ID, datatable_fields, field_mode_paiement_id, 'Paiement');
         field_abonnement_id.addManyToOneRelation(this.datatable_paiement, VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);
         field_mode_paiement_id.addManyToOneRelation(this.datatable_paiement, this.datatable_mode_paiement);
         this.datatables.push(this.datatable_paiement);

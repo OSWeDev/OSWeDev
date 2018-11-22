@@ -37,14 +37,12 @@ import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
 import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
 import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
 import ModuleClient from '../../shared/modules/Commerce/Client/ModuleClient';
-import ModuleService from '../../shared/modules/Commerce/Service/ModuleService';
 import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommande';
 import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
 import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
 import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
 import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
 import ModuleClientServer from './Commerce/Client/ModuleClientServer';
-import ModuleServiceServer from './Commerce/Service/ModuleServiceServer';
 import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 
@@ -55,15 +53,17 @@ export default abstract class ModuleServiceBase {
     }
     private static instance: ModuleServiceBase;
 
+    public db: IDatabase<any>;
+
+    protected registered_child_modules: Module[] = [];
+    protected server_child_modules: ModuleServerBase[] = [];
+
     private registered_modules: Module[] = [];
     private server_modules: ModuleServerBase[] = [];
 
     private registered_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
 
-    protected registered_child_modules: Module[] = [];
-    protected server_child_modules: ModuleServerBase[] = [];
-    public db: IDatabase<any>;
 
     protected constructor() {
         ModuleServiceBase.instance = this;
@@ -291,7 +291,6 @@ export default abstract class ModuleServiceBase {
             ModuleCommerce.getInstance(),
             ModuleProduit.getInstance(),
             ModuleClient.getInstance(),
-            ModuleService.getInstance(),
             ModuleCommande.getInstance(),
             ModuleAbonnement.getInstance(),
             ModulePaiement.getInstance(),
@@ -316,7 +315,6 @@ export default abstract class ModuleServiceBase {
             ModuleCommerceServer.getInstance(),
             ModuleProduitServer.getInstance(),
             ModuleClientServer.getInstance(),
-            ModuleServiceServer.getInstance(),
             ModuleCommandeServer.getInstance(),
             ModuleAbonnementServer.getInstance(),
             ModulePaiementServer.getInstance(),

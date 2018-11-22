@@ -52,6 +52,8 @@ mixin simple_input_types(vo, field_type)
                 :preselectFirst="field.is_required",
                 @search-change="asyncLoadEnumOptions",
                 @input="onChangeField("+vo+", field)")
+        template(v-else-if=field_type+" == 'number[]'")
+            multi-input(:field_value=vo+"[field.datatable_field_uid]", :vo="'" + vo + "'", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="number", @input="validateMultiInput")
 
 
 mixin manytoone_input(vo)
@@ -106,7 +108,7 @@ mixin manytoone_input(vo)
                 :api_types_involved="api_types_involved",
                 :load_datas="false")
 
-        <!-- Edit Modal HTML -->
+        <!-- Create Modal HTML -->
         #createData.modal.fade(v-if='!isModuleParamTable')
             .modal-dialog
                 .modal-content

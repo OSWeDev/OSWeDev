@@ -14,7 +14,6 @@ import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import './OnPageTranslation.scss';
 import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 

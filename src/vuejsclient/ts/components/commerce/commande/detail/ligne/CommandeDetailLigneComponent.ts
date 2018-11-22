@@ -2,7 +2,6 @@ import Component from 'vue-class-component';
 import VueComponentBase from '../../../../VueComponentBase';
 import { Prop } from 'vue-property-decorator';
 import LigneCommandeDetailsVO from '../../../../../../../shared/modules/Commerce/Commande/vos/LigneCommandeDetailsVO';
-import { timingSafeEqual } from 'crypto';
 
 @Component({
     template: require('./CommandeDetailLigneComponent.pug'),
@@ -18,6 +17,29 @@ export default class CommandeDetailLigneComponent extends VueComponentBase {
         }
 
         return null;
+    }
+
+    get produitDescription(): string {
+        let returnValue: string = null;
+
+        if (this.detail && this.detail.ligneParam) {
+            returnValue = "<ul>";
+            let disableAttr: string[] = [
+                '_type',
+                'id',
+                'service_id'
+            ];
+
+            Object.keys(this.detail.ligneParam).forEach((attr: string) => {
+                if (this.detail.ligneParam[attr] != null && disableAttr.indexOf(attr) == -1) {
+                    returnValue += "<li>" + this.label('client.commande.ligne.service.' + attr) + " : " + this.detail.ligneParam[attr] + "</li>";
+                }
+            });
+
+            returnValue += "</ul>";
+        }
+
+        return returnValue;
     }
 
     get prixUnitaire(): number {
