@@ -29,10 +29,6 @@ export default abstract class Module implements IModuleBase {
         ModulesManager.getInstance().registerModule(Module.SharedModuleRoleName, this);
     }
 
-    protected forceActivationOnInstallation(): void {
-        this.activate_on_installation = true;
-    }
-
     public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
 
     public async hook_module_install(db): Promise<any> { }
@@ -40,8 +36,8 @@ export default abstract class Module implements IModuleBase {
         return true;
     }
 
-    public registerApis() { }
-    public initialize() { }
+    public registerApis(): void { }
+    public initialize(): void { }
 
     // Pour le chargement de données nécessaires à l'application ou la mise en place de caches de données.
     public async hook_module_async_client_admin_initialization(): Promise<any> { }
@@ -103,5 +99,9 @@ export default abstract class Module implements IModuleBase {
                 return;
             }
         }
+    }
+
+    protected forceActivationOnInstallation(): void {
+        this.activate_on_installation = true;
     }
 }

@@ -2,8 +2,14 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import ImageVO from './vos/ImageVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleImage extends Module {
+
+    public static MODULE_NAME: string = 'Image';
+
+    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleImage.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleImage.MODULE_NAME + '.BO_ACCESS';
 
     public static IMAGES_ROOT: string = './images/';
 
@@ -18,7 +24,7 @@ export default class ModuleImage extends Module {
 
     private constructor() {
 
-        super("image", "Image");
+        super("image", ModuleImage.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 

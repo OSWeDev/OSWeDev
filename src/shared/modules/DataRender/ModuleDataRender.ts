@@ -32,9 +32,6 @@ export default class ModuleDataRender extends Module {
 
     private static instance: ModuleDataRender = null;
 
-    public dataRenderers_by_name: { [name: string]: DataRendererVO } = {};
-    public dataRenderers_by_id: { [id: number]: DataRendererVO } = {};
-
     private datatable_log: ModuleTable<DataRenderingLogVO>;
     private datatable_renderer: ModuleTable<DataRendererVO>;
 
@@ -69,27 +66,6 @@ export default class ModuleDataRender extends Module {
             StringParamVO.translateToURL,
             StringParamVO.translateFromREQ
         ));
-    }
-
-    public async hook_module_async_client_admin_initialization() {
-        await this.preload();
-    }
-
-    public async hook_module_configure() {
-        await this.preload();
-        return true;
-    }
-
-    private async preload() {
-        // On précharge les DataImportFile pour être synchrone sur l'admin sur ce sujet et pouvoir créer les menus adaptés
-        let dataRenderers: DataRendererVO[] = await this.getDataRenderers();
-
-        for (let i in dataRenderers) {
-            let dataRenderer: DataRendererVO = dataRenderers[i];
-
-            this.dataRenderers_by_name[dataRenderer.renderer_name] = dataRenderer;
-            this.dataRenderers_by_id[dataRenderer.id] = dataRenderer;
-        }
     }
 
     public async getLatestAvailableSegment(api_name: string): Promise<TimeSegment> {

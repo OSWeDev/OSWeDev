@@ -9,15 +9,21 @@ import GetTranslationParamVO from './apis/GetTranslationParamVO';
 import LangVO from './vos/LangVO';
 import TranslatableTextVO from './vos/TranslatableTextVO';
 import TranslationVO from './vos/TranslationVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleTranslation extends Module {
 
-    public static ACCESS_GROUP_NAME: string = "ModuleTranslation_ACCESS_GROUP_NAME";
-    public static ACCESS_ON_PAGE_TRANSLATION_MODULE: string = "ACCESS_ON_PAGE_TRANSLATION_MODULE";
+    public static MODULE_NAME: string = 'Translation';
+
+    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleTranslation.MODULE_NAME;
+    public static POLICY_BO_TRANSLATIONS_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_TRANSLATIONS_ACCESS';
+    public static POLICY_BO_OTHERS_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_OTHERS_ACCESS';
+    public static POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.ON_PAGE_TRANSLATION_MODULE_ACCESS';
 
     public static APINAME_GET_TRANSLATABLE_TEXTS: string = "getTranslatableTexts";
     public static APINAME_GET_TRANSLATABLE_TEXT: string = "getTranslatableText";
     public static APINAME_GET_LANGS: string = "getLangs";
+    public static APINAME_GET_LANG: string = "getLang";
     public static APINAME_GET_ALL_TRANSLATIONS: string = "getAllTranslations";
     public static APINAME_GET_TRANSLATIONS: string = "getTranslations";
     public static APINAME_GET_TRANSLATION: string = "getTranslation";
@@ -38,7 +44,7 @@ export default class ModuleTranslation extends Module {
 
     private constructor() {
 
-        super("translation", "Translation");
+        super("translation", ModuleTranslation.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 
@@ -50,6 +56,14 @@ export default class ModuleTranslation extends Module {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, LangVO[]>(
             ModuleTranslation.APINAME_GET_LANGS,
             [LangVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, LangVO>(
+            ModuleTranslation.APINAME_GET_LANG,
+            [LangVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams,
+            StringParamVO.URL,
+            StringParamVO.translateToURL,
+            StringParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, TranslatableTextVO>(
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT,
@@ -99,6 +113,10 @@ export default class ModuleTranslation extends Module {
 
     public async getLangs(): Promise<LangVO[]> {
         return await ModuleAPI.getInstance().handleAPI<void, LangVO[]>(ModuleTranslation.APINAME_GET_LANGS);
+    }
+
+    public async getLang(code_lang: string): Promise<LangVO> {
+        return await ModuleAPI.getInstance().handleAPI<void, LangVO>(ModuleTranslation.APINAME_GET_LANG, code_lang);
     }
 
     public async getAllTranslations(): Promise<TranslationVO[]> {

@@ -94,14 +94,15 @@ export default class CRUDComponent extends VueComponentBase {
         }
         await this.reload_datas();
         this.handle_modal_show_hide();
-        let self = this;
-        $("#updateData,#createData,#deleteData").on("hidden.bs.modal", function () {
-            self.$router.push(self.getCRUDLink(self.api_type_id));
-        });
     }
 
     @Watch("$route")
     private async handle_modal_show_hide() {
+        let self = this;
+        $("#updateData,#createData,#deleteData").on("hidden.bs.modal", function () {
+            self.$router.push(self.getCRUDLink(self.api_type_id));
+        });
+
         if (this.read_query) {
             this.$router.replace({ query: this.read_query });
         }
@@ -323,6 +324,31 @@ export default class CRUDComponent extends VueComponentBase {
                 }
             }
         }
+    }
+
+    private updateBooleanRadio(editableVO: IDistantVOBase, field: DatatableField<any, any>) {
+        // On récupère l
+        let start = editableVO[field.datatable_field_uid + '_start'];
+        let end = editableVO[field.datatable_field_uid + '_end'];
+
+        let res = "";
+        if (start) {
+            try {
+                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(start));
+            } catch (error) {
+            }
+        }
+
+        res += "-";
+
+        if (end) {
+            try {
+                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(end));
+            } catch (error) {
+            }
+        }
+
+        editableVO[field.datatable_field_uid] = res;
     }
 
     private updateDateRange(editableVO: IDistantVOBase, field: DatatableField<any, any>) {

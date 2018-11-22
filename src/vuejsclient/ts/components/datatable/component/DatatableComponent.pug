@@ -33,7 +33,7 @@ v-client-table(
     template(v-for="field in datatable.fields" :slot="field.datatable_field_uid" slot-scope="props")
         template(v-if="field.type == 'Simple'")
             template(v-if="field.moduleTableField.field_type == 'boolean'")
-                template(v-if="props.row[field.datatable_field_uid]")
+                template(v-if="props.row[field.datatable_field_uid] == 'true'")
                     i.fa.fa-check
             template(v-else-if="field.moduleTableField.field_type == 'password'")
                 i.fa.fa-lock

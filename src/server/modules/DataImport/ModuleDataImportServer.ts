@@ -25,6 +25,13 @@ import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
 import FormattedDatasStats from './FormattedDatasStats';
 import ImportTypeXLSXHandler from './ImportTypeHandlers/ImportTypeXLSXHandler';
 import ImportLogger from './logger/ImportLogger';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -39,6 +46,31 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleDataImport.getInstance().name);
+    }
+
+
+    /**
+     * On définit les droits d'accès du module
+     */
+    public async registerAccessPolicies(): Promise<void> {
+        let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        group.translatable_name = ModuleDataImport.POLICY_GROUP;
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+            fr: 'Imports'
+        }));
+
+        let bo_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_access.group_id = group.id;
+        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_access.translatable_name = ModuleDataImport.POLICY_BO_ACCESS;
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+            fr: 'Administration des imports'
+        }));
+        let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        admin_access_dependency.src_pol_id = bo_access.id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
+        admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
     public registerCrons(): void {
@@ -59,6 +91,57 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricProgression.bind(this));
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID.bind(this));
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricProgression.bind(this));
+    }
+
+
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportLogs, this.getDataImportLogs.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFiles, this.getDataImportFiles.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFile, this.getDataImportFile.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, this.getDataImportColumnsFromFormatId.bind(this));
+    }
+
+    public async getDataImportHistorics(param: NumberParamVO): Promise<DataImportHistoricVO[]> {
+
+        return await ModuleDAOServer.getInstance().selectAll<DataImportHistoricVO>(
+            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [param.num]);
+    }
+
+    public async getDataImportHistoric(param: NumberParamVO): Promise<DataImportHistoricVO> {
+
+        return await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(
+            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.id = $1;', [param.num]);
+    }
+
+    public async getDataImportLogs(param: NumberParamVO): Promise<DataImportLogVO[]> {
+
+        return await ModuleDAOServer.getInstance().selectAll<DataImportLogVO>(
+            DataImportLogVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [param.num]);
+    }
+
+    public async getDataImportFiles(): Promise<DataImportFormatVO[]> {
+
+        return await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID);
+    }
+
+    public async getDataImportFile(param: StringParamVO): Promise<DataImportFormatVO> {
+
+        return await ModuleDAOServer.getInstance().selectOne<DataImportFormatVO>(
+            DataImportFormatVO.API_TYPE_ID, 'WHERE t.import_uid = $1', [param.text]);
+    }
+
+    public async getImportFormatsForApiTypeId(API_TYPE_ID: string): Promise<DataImportFormatVO[]> {
+
+        return await ModuleDAOServer.getInstance().selectAll<DataImportFormatVO>(
+            DataImportFormatVO.API_TYPE_ID, 'WHERE t.api_type_id = $1', [API_TYPE_ID]);
+    }
+
+    public async getDataImportColumnsFromFormatId(param: NumberParamVO): Promise<DataImportColumnVO[]> {
+
+        return await ModuleDAOServer.getInstance().selectAll<DataImportColumnVO>(
+            DataImportColumnVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1', [param.num]);
     }
 
     private async setImportHistoricUID(importHistoric: DataImportHistoricVO): Promise<void> {
@@ -125,7 +208,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
     }
 
     /**
-     * 1 - Récupérer les différents formats possible, 
+     * 1 - Récupérer les différents formats possible,
      * 2 - Choisir le format le plus adapté
      * 3 - Importer dans le vo intermédiaire
      * 4 - Mettre à jour le status et informer le client de la mise à jour du DAO
@@ -453,56 +536,6 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         await ImportLogger.getInstance().log(importHistoric, format, logmsg, log_lvl);
         await this.updateImportHistoric(importHistoric);
-    }
-
-    public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistorics, this.getDataImportHistorics.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportHistoric, this.getDataImportHistoric.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportLogs, this.getDataImportLogs.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFiles, this.getDataImportFiles.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFile, this.getDataImportFile.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, this.getDataImportColumnsFromFormatId.bind(this));
-    }
-
-    public async getDataImportHistorics(param: NumberParamVO): Promise<DataImportHistoricVO[]> {
-
-        return await ModuleDAOServer.getInstance().selectAll<DataImportHistoricVO>(
-            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [param.num]);
-    }
-
-    public async getDataImportHistoric(param: NumberParamVO): Promise<DataImportHistoricVO> {
-
-        return await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(
-            DataImportHistoricVO.API_TYPE_ID, 'WHERE t.id = $1;', [param.num]);
-    }
-
-    public async getDataImportLogs(param: NumberParamVO): Promise<DataImportLogVO[]> {
-
-        return await ModuleDAOServer.getInstance().selectAll<DataImportLogVO>(
-            DataImportLogVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1 LIMIT 50;', [param.num]);
-    }
-
-    public async getDataImportFiles(): Promise<DataImportFormatVO[]> {
-
-        return await ModuleDAO.getInstance().getVos<DataImportFormatVO>(DataImportFormatVO.API_TYPE_ID);
-    }
-
-    public async getDataImportFile(param: StringParamVO): Promise<DataImportFormatVO> {
-
-        return await ModuleDAOServer.getInstance().selectOne<DataImportFormatVO>(
-            DataImportFormatVO.API_TYPE_ID, 'WHERE t.import_uid = $1', [param.text]);
-    }
-
-    public async getImportFormatsForApiTypeId(API_TYPE_ID: string): Promise<DataImportFormatVO[]> {
-
-        return await ModuleDAOServer.getInstance().selectAll<DataImportFormatVO>(
-            DataImportFormatVO.API_TYPE_ID, 'WHERE t.api_type_id = $1', [API_TYPE_ID]);
-    }
-
-    public async getDataImportColumnsFromFormatId(param: NumberParamVO): Promise<DataImportColumnVO[]> {
-
-        return await ModuleDAOServer.getInstance().selectAll<DataImportColumnVO>(
-            DataImportColumnVO.API_TYPE_ID, 'WHERE t.data_import_format_id = $1', [param.num]);
     }
 
     private async insertImportedDatasInDb(vos: IImportedData[], api_type_id: string, moduleTable: ModuleTable<any>): Promise<InsertOrDeleteQueryResult[]> {

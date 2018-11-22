@@ -28,12 +28,12 @@ export default class ModulesManager {
     private constructor() {
 
         // Il faut quand même qu'on register une moduleTable pour le admin.modules
-        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ 'fr': 'Nom' }), true);
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Nom' }), true);
         let fields = [
             label_field,
-            new ModuleTableField('actif', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ 'fr': 'Actif' }), true),
+            new ModuleTableField('actif', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Actif' }), true),
         ];
-        let moduleTable: ModuleTable<ModuleVO> = new ModuleTable<ModuleVO>(null, ModuleVO.API_TYPE_ID, fields, label_field, new DefaultTranslation({ 'fr': 'Modules' }));
+        let moduleTable: ModuleTable<ModuleVO> = new ModuleTable<ModuleVO>(null, ModuleVO.API_TYPE_ID, fields, label_field, new DefaultTranslation({ fr: 'Modules' }));
         moduleTable.set_bdd_ref('admin', 'modules');
     }
 
@@ -56,7 +56,7 @@ export default class ModulesManager {
                     ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name,
                     (module as Module).fields,
                     null,
-                    new DefaultTranslation({ 'fr': module.name }));
+                    new DefaultTranslation({ fr: module.name }));
                 moduleParamsTable.set_bdd_ref('admin', ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name);
                 moduleParamsTable.defineAsModuleParamTable();
             }

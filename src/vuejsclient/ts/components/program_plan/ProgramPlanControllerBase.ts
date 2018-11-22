@@ -1,118 +1,7 @@
-import { View, EventObjectInput, OptionsInput } from 'fullcalendar';
+import { EventObjectInput } from 'fullcalendar';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
-import ICustomCRReadComponent from './interfaces/ICustomCRReadComponent';
-import ICustomCRUpdateComponent from './interfaces/ICustomCRUpdateComponent';
-import ICustomCRCreateComponent from './interfaces/ICustomCRCreateComponent';
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-
-
-
-
-
-
-// TODO FIXME les filtrages suivant le role du user // On va filtrer en fonction du rôle
-// if (this.user.admin || this.user.super_admin || this.user.admin_central) {
-//     this.user_role = this.role_admin;
-//     // Aucun filtrage
-// } else {
-//     // On cherche un manager en premier lieu
-//     this.user_manager_obj = null;
-//     this.user_animateur_obj = null;
-
-//     for (let i in this.managers) {
-//         let manager = this.managers[i];
-
-//         if (manager.user_id == this.user.id) {
-//             this.user_role = this.role_manager;
-//             this.user_manager_obj = manager;
-
-//             break;
-//         }
-//     }
-
-//     if (this.user_manager_obj) {
-//         // Filtrage en fonction du manager
-
-//         // Managers
-//         this.managers = [this.user_manager_obj];
-
-//         // Animateurs
-//         let filtered_animateurs = [];
-//         for (let i in this.facilitators) {
-//             let animateur = this.facilitators[i];
-
-//             if (animateur.manager_id == this.user_manager_obj.id) {
-//                 filtered_animateurs.push(animateur);
-//             }
-//         }
-//         this.facilitators = filtered_animateurs;
-
-//         this.updateFilteredDatas();
-//     } else {
-
-//         // On cherche un animateur
-//         for (let i in this.facilitators) {
-//             let animateur = this.facilitators[i];
-
-//             if (animateur.user_id == this.user.id) {
-//                 this.user_role = this.role_animateur;
-//                 this.user_animateur_obj = animateur;
-
-//                 break;
-//             }
-//         }
-
-//         if (this.user_animateur_obj) {
-//             // Filtrage en fonction de l'animateur
-
-//             if (!this.user_animateur_obj.region_id) {
-//                 // Filtrage par le manager et affichage que de l'animateur
-//                 this.facilitators = [this.user_animateur_obj];
-
-//                 for (let i in this.managers) {
-//                     let manager = this.managers[i];
-
-//                     if (manager.id == this.user_animateur_obj.manager_id) {
-//                         this.managers = [manager];
-//                         break;
-//                     }
-//                 }
-//             } else {
-
-//                 // Filtrage par région et visu sur les plannings des commerciaux de la région
-
-//                 // Le premier est celui connecté pour plus de clarté
-//                 let new_animateurs = [this.user_animateur_obj];
-
-//                 for (let i in this.facilitators) {
-//                     if ((this.facilitators[i].region_id == this.user_animateur_obj.region_id) && (this.facilitators[i].id != this.user_animateur_obj.id)) {
-//                         new_animateurs.push(this.facilitators[i]);
-//                     }
-//                 }
-//                 this.facilitators = new_animateurs;
-//             }
-
-//             this.updateFilteredDatas();
-//         } else {
-//             // Ni admin, ni animateur, ni manager...
-
-//             // Réinitialiser les datas
-//             this.enseignes = [];
-//             this.managers = [];
-//             this.etablissements = [];
-//             this.boutiques_animees_mois = [];
-//             this.facilitators = [];
-//             this.rdvs = [];
-//             this.animation_crs = [];
-
-//             // this.stopLoading();
-//             return;
-//         }
-//     }
-// }
-
-
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -150,7 +39,7 @@ export default abstract class ProgramPlanControllerBase {
     }
 
     /**
-     * 
+     *
      * @param event droppable item infos
      * @param elt jquery elt
      */

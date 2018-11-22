@@ -80,6 +80,12 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_enum:
                     return field_value;
 
+                case ModuleTableField.FIELD_TYPE_boolean:
+                    if (moduleTableField.field_required) {
+                        return (!field_value) ? false : true;
+                    }
+                    return field_value;
+
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
                     return field_value;

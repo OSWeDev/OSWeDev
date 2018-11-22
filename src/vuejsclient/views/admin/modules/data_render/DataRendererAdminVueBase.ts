@@ -29,7 +29,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
 
         this.isLoading = true;
 
-        this.dataRenderer = ModuleDataRender.getInstance().dataRenderers_by_name[this.renderer_name];
+        this.dataRenderer = await ModuleDataRender.getInstance().getDataRenderer(this.renderer_name);
 
         let segment_correspondant: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(), this.time_segment_type);
         this.segment_start_date =

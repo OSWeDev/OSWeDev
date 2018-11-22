@@ -50,7 +50,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     public async getLatestAvailableSegment(renderer_name: StringParamVO): Promise<TimeSegment> {
 
         // On veut trouver la data rendu de ce type dont la date est la plus récente.
-        let dataRenderer: DataRendererVO = ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name.text];
+        let dataRenderer: DataRendererVO = await this.getDataRenderer(renderer_name);
         if (!dataRenderer) {
             return null;
         }
@@ -96,13 +96,13 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         );
         let timeSegments_in: string = null;
         for (let i in timeSegments) {
-            let timeSegment: TimeSegment = timeSegments[i];
+            let timeSegment_: TimeSegment = timeSegments[i];
 
             if (!timeSegments_in) {
-                timeSegments_in = "\'" + timeSegment.dateIndex + "\'";
+                timeSegments_in = "\'" + timeSegment_.dateIndex + "\'";
             } else {
 
-                timeSegments_in += ", \'" + timeSegment.dateIndex + "\'";
+                timeSegments_in += ", \'" + timeSegment_.dateIndex + "\'";
             }
         }
         return await ModuleDAOServer.getInstance().selectAll<T>(datatable.vo_type, ' where data_dateindex in (' + timeSegments_in + ')') as T[];
@@ -157,7 +157,8 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         log.date = DateHandler.getInstance().formatDateTimeForBDD(moment());
         log.state = DataRenderingLogVO.RENDERING_STATE_STARTED;
         log.data_time_segment_json = render_time_segments_json;
-        log.rendered_api_type_id = ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name] ? ModuleDataRender.getInstance().dataRenderers_by_name[renderer_name].id : null;
+        let renderer: DataRendererVO = (await ModuleDataRender.getInstance().getDataRenderer(renderer_name));
+        log.rendered_api_type_id = renderer ? renderer.id : null;
 
         // On charge les informations de ce type d'import
         let dataRender: DataRendererVO = null;

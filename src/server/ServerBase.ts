@@ -4,18 +4,20 @@ import * as express from 'express';
 import { NextFunction, Request, Response } from 'express';
 import * as createLocaleMiddleware from 'express-locale';
 import * as expressSession from 'express-session';
+import * as sharedsession from 'express-socket.io-session';
 import * as fs from 'fs';
-import * as proxyMiddleware from 'http-proxy-middleware';
 import * as jwt from 'jsonwebtoken';
 import * as path from 'path';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import * as sessionFileStore from 'session-file-store';
+// import * as webpush from 'web-push';
+import * as socketIO from 'socket.io';
 import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import ModuleFile from '../shared/modules/File/ModuleFile';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
@@ -24,15 +26,11 @@ import TranslationVO from '../shared/modules/Translation/vos/TranslationVO';
 import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
+import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModuleCronServer from './modules/Cron/ModuleCronServer';
 import ModuleServiceBase from './modules/ModuleServiceBase';
-// import * as webpush from 'web-push';
-import * as socketIO from 'socket.io';
-import * as sharedsession from 'express-socket.io-session';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
-import SocketWrapper from './modules/PushData/vos/SocketWrapper';
-import NotificationVO from '../shared/modules/PushData/vos/NotificationVO';
-import ModuleFile from '../shared/modules/File/ModuleFile';
+import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 
 export default abstract class ServerBase {
 
@@ -216,10 +214,7 @@ export default abstract class ServerBase {
         //     next();
         // });
 
-        let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
-        this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
-            ignoreRoutes: ["/public"]
-        }));
+        this.registerApis(this.app);
 
         // Pour activation auto let's encrypt
         this.app.use('/.well-known', express.static('.well-known'));
@@ -290,7 +285,7 @@ export default abstract class ServerBase {
             resave: false,
             saveUninitialized: false,
             store: new FileStore()
-        })
+        });
         this.app.use(this.session);
 
 
@@ -332,9 +327,20 @@ export default abstract class ServerBase {
             next();
         });
 
-        this.app.get('/admin', (req, res) => {
+        await this.modulesService.configure_server_modules(this.app);
+        // A ce stade on a chargé toutes les trads par défaut possible et immaginables
+        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
+        // Une fois tous les droits / rôles définis, on doit pouvoir initialiser les droits d'accès
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
 
-            if (ModuleAccessPolicy.getInstance().actif && (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.MAIN_ACCESS_GROUP_NAME, ModuleAccessPolicy.ADMIN_ACCESS_NAME))) {
+        let i18nextInit = I18nextInit.getInstance(await ModuleTranslation.getInstance().getALL_LOCALES());
+        this.app.use(i18nextInit.i18nextMiddleware.handle(i18nextInit.i18next, {
+            ignoreRoutes: ["/public"]
+        }));
+
+        this.app.get('/admin', async (req, res) => {
+
+            if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS)) {
                 res.redirect('/');
             }
             res.sendFile(path.resolve('./src/admin/public/generated/admin.html'));
@@ -523,11 +529,7 @@ export default abstract class ServerBase {
             }), res);
         });
 
-        // this.initializePush();
-        // this.initializePushApis(this.app);
-        this.registerApis(this.app);
 
-        await this.modulesService.configure_server_modules(this.app);
 
         console.log('listening on port', ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')
@@ -541,7 +543,7 @@ export default abstract class ServerBase {
                 server.listen(ServerBase.getInstance().port);
                 // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
 
-                // SocketIO 
+                // SocketIO
                 // let io = socketIO.listen(ServerBase.getInstance().app);
                 //turn off debug
                 // io.set('log level', 1);
