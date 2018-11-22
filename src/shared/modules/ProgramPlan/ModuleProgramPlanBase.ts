@@ -11,13 +11,16 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import IPlanRDVCR from './interfaces/IPlanRDVCR';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import TranslatableTextVO from '../Translation/vos/TranslatableTextVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default abstract class ModuleProgramPlanBase extends Module {
 
-    public static ACCESS_GROUP_NAME = "ProgramPlan_ACCESS";
-    public static ADMIN_ACCESS_RULE_NAME = "ADMIN_CONF";
-    public static FRONT_ACCESS_RULE_NAME = "FRONT_ACCESS";
-    public static FRONT_EDIT_RULE_NAME = "FRONT_EDIT";
+    public static MODULE_NAME: string = 'ProgramPlanBase';
+
+    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.BO_ACCESS';
+    public static POLICY_FO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_ACCESS';
+    public static POLICY_FO_EDIT: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT';
 
     public static APINAME_GET_RDVS_OF_PROGRAM_SEGMENT = "GET_RDVS_OF_PROGRAM_SEGMENT";
     public static APINAME_GET_CRS_OF_PROGRAM_SEGMENT = "GET_CRS_OF_PROGRAM_SEGMENT";
@@ -144,7 +147,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanProgramCategory();
-    protected initializePlanProgramCategory(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanProgramCategory(additional_fields: Array<ModuleTableField<any>>) {
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
@@ -168,7 +171,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanProgram();
-    protected initializePlanProgram(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanProgram(additional_fields: Array<ModuleTableField<any>>) {
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let category_id = new ModuleTableField('category_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Catégorie', false);
 
@@ -194,7 +197,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanFacilitator();
-    protected initializePlanFacilitator(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanFacilitator(additional_fields: Array<ModuleTableField<any>>) {
         let manager_id = new ModuleTableField('manager_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', false);
         let partner_id = new ModuleTableField('partner_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
         let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
@@ -213,7 +216,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanManager();
-    protected initializePlanManager(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanManager(additional_fields: Array<ModuleTableField<any>>) {
         let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let partner_id = new ModuleTableField('partner_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
 
@@ -229,7 +232,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanEnseigne();
-    protected initializePlanEnseigne(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanEnseigne(additional_fields: Array<ModuleTableField<any>>) {
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
@@ -241,7 +244,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanTarget();
-    protected initializePlanTarget(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanTarget(additional_fields: Array<ModuleTableField<any>>) {
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let enseigne_id = new ModuleTableField('enseigne_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Enseigne', false);
 
@@ -269,7 +272,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanRDVCR();
-    protected initializePlanRDVCR(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanRDVCR(additional_fields: Array<ModuleTableField<any>>) {
         let rdv_id = new ModuleTableField('rdv_id', ModuleTableField.FIELD_TYPE_foreign_key, 'RDV', false);
         let cr_file_id = new ModuleTableField('cr_file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier CR', false);
         let author_id = new ModuleTableField('author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
@@ -287,7 +290,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanRDV();
-    protected initializePlanRDV(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanRDV(additional_fields: Array<ModuleTableField<any>>) {
 
         let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', false);
         let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', false);
@@ -315,7 +318,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanProgramFacilitator();
-    protected initializePlanProgramFacilitator(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanProgramFacilitator(additional_fields: Array<ModuleTableField<any>>) {
         let facilitator_id = new ModuleTableField('facilitator_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', true);
         let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
 
@@ -331,7 +334,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanProgramManager();
-    protected initializePlanProgramManager(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanProgramManager(additional_fields: Array<ModuleTableField<any>>) {
         let manager_id = new ModuleTableField('manager_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager', true);
         let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
 
@@ -347,7 +350,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanProgramTarget();
-    protected initializePlanProgramTarget(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanProgramTarget(additional_fields: Array<ModuleTableField<any>>) {
         let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', true);
         let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', true);
 
@@ -369,7 +372,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanPartner();
-    protected initializePlanPartner(additional_fields: ModuleTableField<any>[]) {
+    protected initializePlanPartner(additional_fields: Array<ModuleTableField<any>>) {
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', false);
 
         additional_fields.unshift(

@@ -82,16 +82,11 @@ export default class DatatableComponent extends VueComponentBase {
     private preload_custom_filters: string[] = [];
     private custom_filters_options: { [field_id: string]: any[] } = {};
 
-    private unwatch = null;
     private watcherLoaded: boolean = false;
 
     get isModuleParamTable() {
         return VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
             VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
-    }
-
-    public beforeDestroy() {
-        this.unwatch();
     }
 
     public async mounted() {
@@ -492,9 +487,11 @@ export default class DatatableComponent extends VueComponentBase {
                             let manyToOneField: ManyToOneReferenceDatatableField<any> = (field) as ManyToOneReferenceDatatableField<any>;
 
                             // On va chercher la valeur du champs depuis la valeur de la donnée liée
-                            let ref_data: IDistantVOBase = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type][baseData[manyToOneField.srcField.field_id]];
-                            resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
-                            resData[field.datatable_field_uid + "___id___"] = baseData[manyToOneField.srcField.field_id];
+                            if (this.getStoredDatas && this.getStoredDatas[manyToOneField.targetModuleTable.vo_type]) {
+                                let ref_data: IDistantVOBase = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type][baseData[manyToOneField.srcField.field_id]];
+                                resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
+                                resData[field.datatable_field_uid + "___id___"] = baseData[manyToOneField.srcField.field_id];
+                            }
                             break;
 
                         // case DatatableField.ONE_TO_MANY_FIELD_TYPE:
@@ -616,8 +613,8 @@ export default class DatatableComponent extends VueComponentBase {
             return customFilters;
         }
 
-        for (let i in this.datatable.fields) {
-            let field = this.datatable.fields[i];
+        for (let j in this.datatable.fields) {
+            let field = this.datatable.fields[j];
 
             customFilters.push({
                 name: field.datatable_field_uid,

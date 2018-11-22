@@ -55,15 +55,15 @@ export default abstract class ModuleServiceBase {
     }
     private static instance: ModuleServiceBase;
 
+    public db: IDatabase<any>;
+    protected registered_child_modules: Module[] = [];
+    protected server_child_modules: ModuleServerBase[] = [];
+
     private registered_modules: Module[] = [];
     private server_modules: ModuleServerBase[] = [];
 
     private registered_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
-
-    protected registered_child_modules: Module[] = [];
-    protected server_child_modules: ModuleServerBase[] = [];
-    public db: IDatabase<any>;
 
     protected constructor() {
         ModuleServiceBase.instance = this;
@@ -144,10 +144,16 @@ export default abstract class ModuleServiceBase {
             let server_module: ModuleServerBase = this.server_modules[i];
 
             if (server_module.actif) {
+                await server_module.registerAccessPolicies();
+                await server_module.registerAccessRoles();
+
                 await server_module.registerImport();
                 server_module.registerCrons();
                 server_module.registerAccessHooks();
-                server_module.registerExpressApis(app);
+
+                if (app) {
+                    server_module.registerExpressApis(app);
+                }
             }
         }
     }
@@ -275,12 +281,12 @@ export default abstract class ModuleServiceBase {
             ModuleAjaxCache.getInstance(),
             ModuleAPI.getInstance(),
             ModuleDAO.getInstance(),
+            ModuleTranslation.getInstance(),
             ModuleAccessPolicy.getInstance(),
             ModuleFile.getInstance(),
             ModuleImage.getInstance(),
             ModuleTrigger.getInstance(),
             ModuleCron.getInstance(),
-            ModuleTranslation.getInstance(),
             ModulePushData.getInstance(),
             ModuleFormatDatesNombres.getInstance(),
             ModuleMailer.getInstance(),
@@ -302,11 +308,11 @@ export default abstract class ModuleServiceBase {
         return [
             ModuleAPIServer.getInstance(),
             ModuleDAOServer.getInstance(),
+            ModuleTranslationServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
             ModuleFileServer.getInstance(),
             ModuleImageServer.getInstance(),
             ModuleCronServer.getInstance(),
-            ModuleTranslationServer.getInstance(),
             ModulePushDataServer.getInstance(),
             ModuleMailerServer.getInstance(),
             ModuleDataImportServer.getInstance(),

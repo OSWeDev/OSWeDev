@@ -104,7 +104,22 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: null })
     public get_url_for_modal: (segment_date_index: string) => string;
 
-    public show_overview: boolean = false;
+    @Prop({ default: false })
+    public force_show_overview: boolean;
+
+    @Prop({ default: true })
+    public show_import: boolean;
+
+    @Prop({ default: null })
+    public accordion_elements: Array<{ id: number, label: string }>;
+
+    @Prop({ default: null })
+    public validate_previous_segment: TimeSegment;
+
+    @Prop({ default: true })
+    public show_multiple_segments: boolean;
+
+    public show_overview: boolean = this.force_show_overview;
 
     private selected_segment: TimeSegment = null;
 
@@ -118,6 +133,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     private importing_multiple_segments: boolean = false;
     private importing_multiple_segments_current_segment: TimeSegment = null;
     private importing_multiple_segments_filevo_id: number = null;
+    private show_new_import: boolean = false;
 
 
     @Watch('api_type_ids', { immediate: true })
@@ -160,7 +176,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     @Watch('getOptions')
-    private onChangeOptions() {
+    public onChangeOptions() {
         if (this.importing_multiple_segments) {
             this.snotify.info(this.label('imports.stop_imports_multiples'));
             this.importing_multiple_segments = false;
@@ -168,7 +184,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     @Watch('autovalidate')
-    private onChangeAutovalidate() {
+    public onChangeAutovalidate() {
         if (this.importing_multiple_segments) {
             this.snotify.info(this.label('imports.stop_imports_multiples'));
             this.importing_multiple_segments = false;
@@ -176,7 +192,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     @Watch('lower_selected_date_index')
-    private onChangeLowerSelectedDateIndex() {
+    public onChangeLowerSelectedDateIndex() {
         if (this.importing_multiple_segments) {
             this.snotify.info(this.label('imports.stop_imports_multiples'));
             this.importing_multiple_segments = false;
@@ -184,7 +200,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     @Watch('upper_selected_date_index')
-    private onChangeUpperSelectedDateIndex() {
+    public onChangeUpperSelectedDateIndex() {
         if (this.importing_multiple_segments) {
             this.snotify.info(this.label('imports.stop_imports_multiples'));
             this.importing_multiple_segments = false;
@@ -218,8 +234,40 @@ export default class DataImportComponent extends DataImportComponentBase {
         return res;
     }
 
+    get is_valid_lower(): { [date_index: string]: boolean } {
+        let res: { [date_index: string]: boolean } = {};
+
+        for (let i in this.getsegments) {
+            let segment: TimeSegment = this.getsegments[i];
+
+            res[segment.dateIndex] = !moment(this.upper_selected_segment.dateIndex).isBefore(moment(segment.dateIndex));
+        }
+
+        return res;
+    }
+
+    get is_valid_upper(): { [date_index: string]: boolean } {
+        let res: { [date_index: string]: boolean } = {};
+
+        for (let i in this.getsegments) {
+            let segment: TimeSegment = this.getsegments[i];
+
+            res[segment.dateIndex] = !moment(this.lower_selected_segment.dateIndex).isAfter(moment(segment.dateIndex));
+        }
+
+        return res;
+    }
+
     public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
         return this.getHistoricOptionsTester(historic, this.getOptions);
+    }
+
+    protected async mounted() {
+        await this.on_mount();
+    }
+
+    private toggleShowNewImport(): void {
+        this.show_new_import = !this.show_new_import;
     }
 
     private check_change_import_historics(): boolean {
@@ -258,32 +306,6 @@ export default class DataImportComponent extends DataImportComponentBase {
         this.upper_selected_date_index = segment.dateIndex;
     }
 
-    get is_valid_lower(): { [date_index: string]: boolean } {
-        let res: { [date_index: string]: boolean } = {};
-
-        for (let i in this.getsegments) {
-            let segment: TimeSegment = this.getsegments[i];
-
-            res[segment.dateIndex] = !moment(this.upper_selected_segment.dateIndex).isBefore(moment(segment.dateIndex));
-        }
-
-        return res;
-    }
-
-    get is_valid_upper(): { [date_index: string]: boolean } {
-        let res: { [date_index: string]: boolean } = {};
-
-        for (let i in this.getsegments) {
-            let segment: TimeSegment = this.getsegments[i];
-
-            res[segment.dateIndex] = !moment(this.lower_selected_segment.dateIndex).isAfter(moment(segment.dateIndex));
-        }
-
-        return res;
-    }
-
-
-
     private async select_segment(segment: TimeSegment) {
         await this.loadRawImportedDatas(segment);
         this.selected_segment = segment;
@@ -316,11 +338,16 @@ export default class DataImportComponent extends DataImportComponentBase {
                 continue;
             }
 
+            if (this.validate_previous_segment && moment(this.validate_previous_segment.dateIndex).isSameOrAfter(segment.dateIndex)) {
+                res[segment.dateIndex] = this.state_ok;
+                continue;
+            }
+
             // Un segment est ko si tous les valid_api_type_ids sont ko
             //  Un api_type est ko si il n'y a pas d'historique
             //      ou si l'historique est en erreur
             // Un segment est ok si tous les api_types_ids sont ok
-            //  Un api_type est ok si il y a un historique et 
+            //  Un api_type est ok si il y a un historique et
             //      que celui-ci est en statut posttreated
             // Un segment est info si un api_type est en info
             //  Un api_type est info si il est est en attente de validation du formattage
@@ -368,7 +395,7 @@ export default class DataImportComponent extends DataImportComponentBase {
 
 
     get api_types_ids_states(): { [segment_date_index: string]: { [api_type_id: string]: string } } {
-        let res: { [segment_date_index: string]: { [api_type_id: string]: string } } = {}
+        let res: { [segment_date_index: string]: { [api_type_id: string]: string } } = {};
 
         if (!this.import_historics) {
             return res;
@@ -443,6 +470,13 @@ export default class DataImportComponent extends DataImportComponentBase {
         }
         this.previous_import_historics = Object.assign({}, this.import_historics);
         await this.loadRawImportedDatas(this.selected_segment);
+    }
+
+    @Watch('selected_segment')
+    private async onchange_selected_segment() {
+        if (this.selected_segment && this.import_historics) {
+            this.show_new_import = (!this.import_historics[this.selected_segment.dateIndex]) ? true : false;
+        }
     }
 
     private async loadRawImportedDatas(timeSegment: TimeSegment) {
@@ -941,7 +975,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     /**
-     * On veut la liste des formats de fichiers acceptables pour importation, 
+     * On veut la liste des formats de fichiers acceptables pour importation,
      *  en prenant l'ensemble commun à tous les valid_api_type_ids (si on peut importer un CSV
      *  mais sur un seul api_type_id et pas sur les autres on refuse, le but sur la page
      *  est de gérer un seul fichier pour plusieurs imports)
@@ -1063,7 +1097,7 @@ export default class DataImportComponent extends DataImportComponentBase {
 
                         this.checkUnfinishedImportsAndReplacement(segment_date_index, done);
                     }
-                }
+                };
             })(segment.dateIndex);
         }
         return res;
@@ -1295,7 +1329,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     get raw_datas_path(): { [api_type_id: string]: string } {
-        return this.getRaw_datas_path(null);//'import.state.ready_to_import');
+        return this.getRaw_datas_path(null); //'import.state.ready_to_import');
     }
 
     private getRaw_datas_path(import_state: string): { [api_type_id: string]: string } {

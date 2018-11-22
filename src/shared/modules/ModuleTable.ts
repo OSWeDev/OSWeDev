@@ -79,7 +79,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
 
-        this.datatable_uid = "";//TODO FIXME : pas de nombre ici, mais est-ce bien utile surtout ce uid (qui du coup n'en est pas)ModuleTable.getNextUID().toString();
+        this.datatable_uid = ""; //TODO FIXME : pas de nombre ici, mais est-ce bien utile surtout ce uid (qui du coup n'en est pas)ModuleTable.getNextUID().toString();
     }
 
     public defineAsModuleParamTable(): ModuleTable<any> {
@@ -114,7 +114,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     /**
      * On part du principe que les refs on en trouve une par type sur une table, en tout cas on renvoie la premiere
-     * @param vo_type 
+     * @param vo_type
      */
     public getRefFieldFromTargetVoType(vo_type: string): ModuleTableField<any> {
         if (!vo_type) {

@@ -4,7 +4,7 @@ include ../../../../views/mixins/loading.pug
     +loading()
         include ../base/DataImportHeader.pug
 
-        template(v-if="hasValidOptions")
+        template(v-if="hasValidOptions && show_import")
             .row.justify-content-between
                 .col-md-1
                     button.btn.btn-primary.pull-left(@click="previous_segments")
@@ -41,7 +41,7 @@ include ../../../../views/mixins/loading.pug
                                     i.fa.fa-refresh(aria-hidden="true" @click='planif_reimport(segment)' class="valid_selection")
 
                             fileinput(:key="'fileinput_'+segment.dateIndex" :muted="true" :options="dropzoneOptions[segment.dateIndex]" @uploaded="uploadedFile(segment.dateIndex, ...arguments)")
-            .row.justify-content-between.multiple_segments
+            .row.justify-content-between.multiple_segments(v-if="show_multiple_segments")
                 .col-md-4.multiple_segments_block
                     .row
                         .col-sm.multiple_segments_header {{ label('import.multiple_segments') }}
@@ -60,7 +60,5 @@ include ../../../../views/mixins/loading.pug
                     .modal-header(v-if="selected_segment")
                         h4.modal-title {{ selected_segment.dateIndex }}
                         button.btn.close(@click="closeModal()") &times;
-                    .modal-body(v-if="selected_segment && (!import_historics[selected_segment.dateIndex])")
-                        span {{ label('import.modal.no_hisotoric') }}
-                    .modal-body(v-if="selected_segment && import_historics[selected_segment.dateIndex]")
+                    .modal-body(v-if="selected_segment")
                         include ../base/DataImportModal.pug

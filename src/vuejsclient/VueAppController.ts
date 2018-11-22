@@ -22,7 +22,6 @@ export default abstract class VueAppController {
     public data_is_dev: boolean;
     public ALL_LOCALES: any;
     public SERVER_HEADERS;
-    public my_roles: RoleVO[] = [];
 
     /**
      * Module un peu spécifique qui peut avoir un impact sur les perfs donc on gère son accès le plus vite possible
@@ -42,17 +41,12 @@ export default abstract class VueAppController {
             datas = JSON.parse(d as string);
         }));
 
-        // On précharge les rôles de l'utilisateur connecté
-        promises.push((async () => {
-            self.my_roles = await ModuleAccessPolicy.getInstance().getMyRoles();
-        })());
-
         promises.push((async () => {
             self.ALL_LOCALES = await ModuleTranslation.getInstance().getALL_LOCALES();
         })());
 
         promises.push((async () => {
-            self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.ACCESS_GROUP_NAME, ModuleTranslation.ACCESS_ON_PAGE_TRANSLATION_MODULE);
+            self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS);
         })());
 
         promises.push(ModuleAjaxCache.getInstance().get('/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED).then((d) => {
@@ -67,23 +61,5 @@ export default abstract class VueAppController {
         this.data_base_api_url = datas.data_base_api_url;
         this.data_default_locale = datas.data_default_locale;
         this.data_is_dev = datas.data_is_dev;
-    }
-
-
-
-    /**
-     * !!!!!! WARNING !!!!!!
-     * USE only in synchronous forced context like the initialization step of angular
-     * In any other case, use the server side methods
-     */
-    public hasRole(role_name: string): boolean {
-        for (let i in this.my_roles) {
-            let my_role: RoleVO = this.my_roles[i];
-
-            if (my_role.translatable_name == role_name) {
-                return true;
-            }
-        }
-        return false;
     }
 }

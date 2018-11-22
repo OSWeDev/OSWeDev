@@ -13,12 +13,15 @@ import PageComponentVO from './vos/PageComponentVO';
 import PageVO from './vos/PageVO';
 import TemplateComponentVO from './vos/TemplateComponentVO';
 import ImageVO from '../Image/vos/ImageVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleCMS extends Module {
 
-    public static ACCESS_GROUP_NAME = "CMS_ACCESS";
-    public static ADMIN_ACCESS_RULE_NAME = "ADMIN_CONF";
-    public static FRONT_ACCESS_RULE_NAME = "FRONT_ACCESS";
+    public static MODULE_NAME: string = "CMS";
+    public static POLICY_GROUP = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleCMS.MODULE_NAME;
+
+    public static POLICY_BO_ACCESS = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleCMS.MODULE_NAME + ".BO_ACCESS";
+    public static POLICY_FO_ACCESS = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleCMS.MODULE_NAME + ".FO_ACCESS";
 
     public static getInstance(): ModuleCMS {
         if (!ModuleCMS.instance) {
@@ -31,7 +34,7 @@ export default class ModuleCMS extends Module {
 
     private constructor() {
 
-        super("cms", "CMS");
+        super("cms", ModuleCMS.MODULE_NAME);
     }
 
     public initialize() {

@@ -30,8 +30,6 @@ export default class ModuleTableDBService {
     // Après installation de tous les modules
     public async datatable_configure(moduleTable: ModuleTable<any>) {
 
-        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
-
         return true;
     }
 

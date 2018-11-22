@@ -1,27 +1,29 @@
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import ModuleAPI from '../API/ModuleAPI';
 import NumberParamVO from '../API/vos/apis/NumberParamVO';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import ModuleVO from '../ModuleVO';
+import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import DataImportColumnVO from './vos/DataImportColumnVO';
 import DataImportFormatVO from './vos/DataImportFormatVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
 import DataImportLogVO from './vos/DataImportLogVO';
-import UserVO from '../AccessPolicy/vos/UserVO';
-import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 
 export default class ModuleDataImport extends Module {
 
-    public static RIGHTS_GROUP_NAME: string = 'module_data_import';
-    public static RIGHT_ADMIN_GLOBAL: string = 'admin_global';
+    public static MODULE_NAME: string = 'DataImport';
+
+    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleDataImport.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleDataImport.MODULE_NAME + '.BO_ACCESS';
 
     public static IMPORT_SCHEMA: string = 'imports';
 
@@ -77,7 +79,7 @@ export default class ModuleDataImport extends Module {
 
     private constructor() {
 
-        super("data_import", "DataImport");
+        super("data_import", ModuleDataImport.MODULE_NAME);
     }
 
     public registerApis() {
@@ -166,7 +168,7 @@ export default class ModuleDataImport extends Module {
 
         targetModuleTable.defineAsImportable();
 
-        // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable 
+        // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable
         let fields: Array<ModuleTableField<any>> = [];
 
         for (let i in targetModuleTable.fields) {

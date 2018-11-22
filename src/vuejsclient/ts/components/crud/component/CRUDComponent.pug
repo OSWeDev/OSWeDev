@@ -10,7 +10,18 @@ mixin simple_input_types(vo, field_type)
         template(v-if=field_type+" == 'text'")
             input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
         template(v-else-if=field_type+" == 'boolean'")
-            input.form-control(type="checkbox" v-model=vo+"[field.datatable_field_uid]" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            template(v-if="field.is_required")
+                input.form-control(type="checkbox" v-model=vo+"[field.datatable_field_uid]" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            template(v-else)
+                .form-check
+                    input.form-check-input(type="radio" v-model=vo+"[field.datatable_field_uid]" :value="null" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___N_A'" @input="validateInput($event.target, field)")
+                    label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___N_A'") {{ label('crud.field.boolean.n_a') }}
+                .form-check
+                    input.form-check-input(type="radio" v-model=vo+"[field.datatable_field_uid]" :value="true" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___TRUE'" @input="validateInput($event.target, field)")
+                    label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___TRUE'") {{ label('crud.field.boolean.true') }}
+                .form-check
+                    input.form-check-input(type="radio" v-model=vo+"[field.datatable_field_uid]" :value="false" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___FALSE'" @input="validateInput($event.target, field)")
+                    label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___FALSE'") {{ label('crud.field.boolean.false') }}
         template(v-else-if=field_type+" == 'number'")
             input.form-control(type="number" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
         template(v-else-if=field_type+" == 'amount'")
