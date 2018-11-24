@@ -8,5 +8,6 @@ export default class PageComponentVO implements IDistantVOBase {
 
     public type: string;
     public page_id: number;
+    public instantiated_component_id: number;
     public weight: number;
 }

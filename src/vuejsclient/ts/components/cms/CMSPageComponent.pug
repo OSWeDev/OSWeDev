@@ -1,0 +1,6 @@
+include ../../../views/mixins/loading.pug
+
+.cms_page
+    +loading()
+        .row.page_component(v-for='page_component in page_components')
+            

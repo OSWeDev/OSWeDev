@@ -45,6 +45,8 @@ import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
 import ModuleClientServer from './Commerce/Client/ModuleClientServer';
 import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
+import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
+import ModuleCMSServer from './CMS/ModuleCMSServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -300,6 +302,7 @@ export default abstract class ModuleServiceBase {
             ModuleCommande.getInstance(),
             ModuleAbonnement.getInstance(),
             ModulePaiement.getInstance(),
+            ModuleCMS.getInstance()
         ];
     }
 
@@ -324,6 +327,7 @@ export default abstract class ModuleServiceBase {
             ModuleCommandeServer.getInstance(),
             ModuleAbonnementServer.getInstance(),
             ModulePaiementServer.getInstance(),
+            ModuleCMSServer.getInstance()
         ];
     }
 }

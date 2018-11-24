@@ -15,4 +15,16 @@ export default class URLHandler {
             return encodeURIComponent(k) + '=' + encodeURIComponent(obj[k])
         }).join('&');
     }
+
+    public isValidRoute(str: string): boolean {
+        let pattern = new RegExp(
+            '^(\/[-a-z\d%_.~+]*)+' + // path
+            '(\?[;&a-z\d%_.~+=-]*)?' + // query string
+            '(\#[-a-z\d_]*)?$', 'i'); // fragment locater
+        if (!pattern.test(str)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 }

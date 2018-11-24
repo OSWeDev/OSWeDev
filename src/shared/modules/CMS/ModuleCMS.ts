@@ -3,10 +3,10 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import TranslatableTextVO from '../Translation/vos/TranslatableTextVO';
 import VOsTypesManager from '../VOsTypesManager';
-import HTML_ComponentVO from './template_components_vo/HTML_ComponentVO';
-import HTML_HTML_ComponentVO from './template_components_vo/HTML_HTML_ComponentVO';
-import HTML_HTML_HTML_ComponentVO from './template_components_vo/HTML_HTML_HTML_ComponentVO';
-import Img_HTML_ComponentVO from './template_components_vo/Img_HTML_ComponentVO';
+import HtmlComponentVO from './page_components_types/HtmlComponentVO';
+import HtmlHtmlComponentVO from './page_components_types/HtmlHtmlComponentVO';
+import HtmlHtmlHtmlComponentVO from './page_components_types/HtmlHtmlHtmlComponentVO';
+import ImgHtmlComponentVO from './page_components_types/ImgHtmlComponentVO';
 import ContentTypeVO from './vos/ContentTypeVO';
 import PageAliasVO from './vos/PageAliasVO';
 import PageComponentVO from './vos/PageComponentVO';
@@ -14,6 +14,7 @@ import PageVO from './vos/PageVO';
 import TemplateComponentVO from './vos/TemplateComponentVO';
 import ImageVO from '../Image/vos/ImageVO';
 import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import URLHandler from '../../tools/URLHandler';
 
 export default class ModuleCMS extends Module {
 
@@ -37,6 +38,27 @@ export default class ModuleCMS extends Module {
         super("cms", ModuleCMS.MODULE_NAME);
     }
 
+    /**
+     * Checks the format of the route and makes sure it's ok to work with
+     * @param route the route we need to check
+     * @returns the route updated if necessary or null if unable to complete task
+     */
+    public clean_route(route: string): string {
+        if ((!route) || (route == "")) {
+            return null;
+        }
+
+        if (!route.startsWith('/')) {
+            route = '/' + route;
+        }
+
+        if (!URLHandler.getInstance().isValidRoute(route)) {
+            return null;
+        }
+
+        return route;
+    }
+
     public initialize() {
         this.fields = [];
         this.datatables = [];
@@ -56,14 +78,18 @@ export default class ModuleCMS extends Module {
     private initializePageComponentVO() {
         let label_field = new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'Type de composant', true);
         let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
+        let instantiated_component_id = new ModuleTableField('instantiated_component_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Composant', true);
+
         let datatable_fields = [
             label_field,
             page_id,
+            instantiated_component_id,
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids dans la page', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, PageComponentVO.API_TYPE_ID, datatable_fields, label_field, "Composants des pages");
         page_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        instantiated_component_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -138,14 +164,14 @@ export default class ModuleCMS extends Module {
         let datatable_fields = [
             page_component_id,
             image_vo_id,
-            new ModuleTableField('image_position', ModuleTableField.FIELD_TYPE_enum, 'Position de l\'image', true, true, Img_HTML_ComponentVO.IMAGE_POSITION_LEFT).setEnumValues({
-                [Img_HTML_ComponentVO.IMAGE_POSITION_LEFT]: Img_HTML_ComponentVO.IMAGE_POSITION_NAMES[Img_HTML_ComponentVO.IMAGE_POSITION_LEFT],
-                [Img_HTML_ComponentVO.IMAGE_POSITION_RIGHT]: Img_HTML_ComponentVO.IMAGE_POSITION_NAMES[Img_HTML_ComponentVO.IMAGE_POSITION_RIGHT],
+            new ModuleTableField('image_position', ModuleTableField.FIELD_TYPE_enum, 'Position de l\'image', true, true, ImgHtmlComponentVO.IMAGE_POSITION_LEFT).setEnumValues({
+                [ImgHtmlComponentVO.IMAGE_POSITION_LEFT]: ImgHtmlComponentVO.IMAGE_POSITION_NAMES[ImgHtmlComponentVO.IMAGE_POSITION_LEFT],
+                [ImgHtmlComponentVO.IMAGE_POSITION_RIGHT]: ImgHtmlComponentVO.IMAGE_POSITION_NAMES[ImgHtmlComponentVO.IMAGE_POSITION_RIGHT],
             }),
             new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'HTML', false)
         ];
 
-        let datatable = new ModuleTable(this, Img_HTML_ComponentVO.API_TYPE_ID, datatable_fields, label_field, "Composant template : HTML");
+        let datatable = new ModuleTable(this, ImgHtmlComponentVO.API_TYPE_ID, datatable_fields, label_field, "Composant template : HTML");
         page_component_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageComponentVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
@@ -158,7 +184,7 @@ export default class ModuleCMS extends Module {
             new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'Texte', false)
         ];
 
-        let datatable = new ModuleTable(this, HTML_ComponentVO.API_TYPE_ID, datatable_fields, label_field, "Composant template : HTML");
+        let datatable = new ModuleTable(this, HtmlComponentVO.API_TYPE_ID, datatable_fields, label_field, "Composant template : HTML");
         page_component_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageComponentVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
@@ -172,7 +198,7 @@ export default class ModuleCMS extends Module {
             new ModuleTableField('right_html', ModuleTableField.FIELD_TYPE_string, 'Texte - Droite', false)
         ];
 
-        let datatable = new ModuleTable(this, HTML_HTML_ComponentVO.API_TYPE_ID, datatable_fields, label_field, "Composant template : HTML");
+        let datatable = new ModuleTable(this, HtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, label_field, "Composant template : HTML");
         page_component_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageComponentVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
@@ -187,7 +213,7 @@ export default class ModuleCMS extends Module {
             new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'Texte - Droite', false)
         ];
 
-        let datatable = new ModuleTable(this, HTML_HTML_HTML_ComponentVO.API_TYPE_ID, datatable_fields, label_field, "Composant template : HTML");
+        let datatable = new ModuleTable(this, HtmlHtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, label_field, "Composant template : HTML");
         page_component_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageComponentVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
