@@ -1,20 +1,15 @@
 import Component from 'vue-class-component';
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import PolicyDependencyVO from '../../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
-import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import { Prop, Watch } from 'vue-property-decorator';
+import IInstantiatedPageComponent from '../../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
+import ModuleCMS from '../../../../shared/modules/CMS/ModuleCMS';
+import PageVO from '../../../../shared/modules/CMS/vos/PageVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
+import CMSComponentManager from './CMSComponentManager';
 import './CMSPageComponent.scss';
-import PageVO from '../../../../shared/modules/CMS/vos/PageVO';
-import { Prop, Watch } from 'vue-property-decorator';
-import PageComponentVO from '../../../../shared/modules/CMS/vos/PageComponentVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
-import TemplateComponentVO from '../../../../shared/modules/CMS/vos/TemplateComponentVO';
+import ICMSComponentTemplateVue from './interfaces/ICMSComponentTemplateVue';
 
 @Component({
     template: require('./CMSPageComponent.pug')
@@ -37,18 +32,10 @@ export default class CMSPageComponent extends VueComponentBase {
     private page_id: number;
 
     private page_vo: PageVO = null;
-    private page_components: PageComponentVO[] = null;
+    private instantiated_page_components: IInstantiatedPageComponent[] = null;
 
-    private need_to_load_page_components: PageComponentVO[] = null;
-
-    get page_components_by_ids(): { [id: number]: PageComponentVO } {
-        let res: { [id: number]: PageComponentVO } = {};
-
-        if ((!this.page_components) || (!this.page_components.length)) {
-            return {};
-        }
-
-        return VOsTypesManager.getInstance().vosArray_to_vosByIds(this.page_components);
+    get component_templates_by_type_id(): { [api_type_id: string]: ICMSComponentTemplateVue } {
+        return CMSComponentManager.getInstance().template_component_vue_by_type_id;
     }
 
     @Watch("page_id", { immediate: true })
@@ -67,41 +54,12 @@ export default class CMSPageComponent extends VueComponentBase {
             self.page_vo = await ModuleDAO.getInstance().getVoById<PageVO>(PageVO.API_TYPE_ID, self.page_id);
         })());
         promises.push((async () => {
-            self.page_components = await ModuleDAO.getInstance().getVosByRefFieldIds<PageComponentVO>(PageComponentVO.API_TYPE_ID, 'page_id', [self.page_id]);
-            self.page_components.sort((a: PageComponentVO, b: PageComponentVO) => {
-                if (a.weight < b.weight) {
-                    return -1;
-                }
-                if (a.weight > b.weight) {
-                    return 1;
-                }
-                return 0;
-            });
-            self.need_to_load_page_components = Array.from(self.page_components);
+            self.instantiated_page_components = await ModuleCMS.getInstance().getPageComponents(self.page_id);
         })());
 
         await Promise.all(promises);
-        self.page_components[0].type
         this.stopLoading();
     }
 
-    /**
-     * The idea is to load as fast as possible the structure, so the pagevo and pagecomponents,
-     *  and then take the time necessary to load each individual component of the page, in the weight order, on at a time
-     *  to give the customer content as fast as possible
-     */
-    private async load_next_component() {
-        if ((!this.need_to_load_page_components) || (!this.need_to_load_page_components.length)) {
-            return;
-        }
 
-        let page_component_to_load: PageComponentVO = this.need_to_load_page_components.splice(0, 1);
-        let page_component: TemplateComponentVO = await ModuleDAO.getInstance().getVoById(page_component_to_load.type, page_component_to_load.);
-
-        let self = this;
-
-        this.$nextTick(function () {
-            self.load_next_component();
-        });
-    }
 }

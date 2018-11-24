@@ -2,5 +2,5 @@ include ../../../views/mixins/loading.pug
 
 .cms_page
     +loading()
-        .row.page_component(v-for='page_component in page_components')
-            
+        .row.page_component_wrapper(v-for='instantiated_page_component in instantiated_page_components')
+            .page_component(:is='component_templates_by_type_id[instantiated_page_component._type]' :instantiated_page_component='instantiated_page_component')

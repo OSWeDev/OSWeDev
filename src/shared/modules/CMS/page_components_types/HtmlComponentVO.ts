@@ -1,7 +1,6 @@
-import IDistantVOBase from '../../IDistantVOBase';
 import IInstantiatedPageComponent from '../interfaces/IInstantiatedPageComponent';
 
-export default class HtmlComponentVO implements IDistantVOBase, IInstantiatedPageComponent {
+export default class HtmlComponentVO implements IInstantiatedPageComponent {
     public static API_TYPE_ID: string = "html_cmpnt";
 
     public id: number;
@@ -9,5 +8,7 @@ export default class HtmlComponentVO implements IDistantVOBase, IInstantiatedPag
 
     public page_id: number;
     public page_component_id: number;
+    public weight: number;
+
     public html: string;
 }

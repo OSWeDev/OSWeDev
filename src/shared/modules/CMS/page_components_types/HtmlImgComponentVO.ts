@@ -1,7 +1,7 @@
 import IInstantiatedPageComponent from '../interfaces/IInstantiatedPageComponent';
 
-export default class ImgHtmlComponentVO implements IInstantiatedPageComponent {
-    public static API_TYPE_ID: string = "img_html_cmpnt";
+export default class HtmlImgComponentVO implements IInstantiatedPageComponent {
+    public static API_TYPE_ID: string = "html_img_cmpnt";
 
     public id: number;
     public _type: string = ImgHtmlComponentVO.API_TYPE_ID;

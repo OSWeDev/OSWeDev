@@ -1,22 +1,10 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCMS from '../../../../shared/modules/CMS/ModuleCMS';
-import HTML_ComponentVO from '../../../../shared/modules/CMS/template_components_vo/HTML_ComponentVO';
-import HTML_HTML_ComponentVO from '../../../../shared/modules/CMS/template_components_vo/HTML_HTML_ComponentVO';
-import HTML_HTML_HTML_ComponentVO from '../../../../shared/modules/CMS/template_components_vo/HTML_HTML_HTML_ComponentVO';
-import Img_HTML_ComponentVO from '../../../../shared/modules/CMS/template_components_vo/Img_HTML_ComponentVO';
-import ContentTypeVO from '../../../../shared/modules/CMS/vos/ContentTypeVO';
 import PageAliasVO from '../../../../shared/modules/CMS/vos/PageAliasVO';
-import PageComponentVO from '../../../../shared/modules/CMS/vos/PageComponentVO';
 import PageVO from '../../../../shared/modules/CMS/vos/PageVO';
-import TemplateComponentVO from '../../../../shared/modules/CMS/vos/TemplateComponentVO';
-import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
-import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
-import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
-import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
-import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import CMSPageComponent from './CMSPageComponent';
 
 export default class CMSFrontVueModule extends VueModuleBase {

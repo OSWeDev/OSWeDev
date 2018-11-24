@@ -7,6 +7,13 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import TemplateComponentVO from '../../../shared/modules/CMS/vos/TemplateComponentVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import IInstantiatedPageComponent from '../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
+import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 
 export default class ModuleCMSServer extends ModuleServerBase {
 
@@ -21,6 +28,11 @@ export default class ModuleCMSServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleCMS.getInstance().name);
+    }
+
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleCMS.APINAME_getPageComponents, this.getPageComponents.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleCMS.APINAME_registerTemplateComponent, this.registerTemplateComponent.bind(this));
     }
 
     /**
@@ -58,5 +70,55 @@ export default class ModuleCMSServer extends ModuleServerBase {
         admin_access_dependency.src_pol_id = bo_access.id;
         admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+    }
+
+    private async registerTemplateComponent(templateComponent: TemplateComponentVO): Promise<TemplateComponentVO> {
+        if (!ModuleCMS.getInstance().registered_template_components[templateComponent.type_id]) {
+
+            if (!templateComponent.id) {
+                let bdd_components: TemplateComponentVO[] = await ModuleDAOServer.getInstance().selectAll<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID, "where type_id = $1", [templateComponent.type_id]);
+                if ((bdd_components) && (bdd_components.length >= 1)) {
+                    templateComponent = bdd_components[0];
+                }
+            }
+
+            if (!templateComponent.id) {
+                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(templateComponent);
+                if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                    return null;
+                }
+                templateComponent.id = parseInt(insertOrDeleteQueryResult.id);
+            }
+
+            ModuleCMS.getInstance().registered_template_components[templateComponent.type_id] = templateComponent;
+        }
+
+        return ModuleCMS.getInstance().registered_template_components[templateComponent.type_id];
+    }
+
+    private async getPageComponents(param: NumberParamVO): Promise<IInstantiatedPageComponent[]> {
+        let res: IInstantiatedPageComponent[] = [];
+
+        for (let i in ModuleCMS.getInstance().registered_template_components) {
+
+            let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components[i];
+
+            let type_page_components: IInstantiatedPageComponent[] = await ModuleDAOServer.getInstance().selectAll<IInstantiatedPageComponent>(registered_template_component.type_id, 'where page_id = $1', [param.num]);
+
+            res = res.concat(type_page_components);
+        }
+
+        res.sort((a: IInstantiatedPageComponent, b: IInstantiatedPageComponent) => {
+            if (a.weight < b.weight) {
+                return -1;
+            }
+            if (a.weight > b.weight) {
+                return 1;
+            }
+
+            return 0;
+        });
+
+        return res;
     }
 }

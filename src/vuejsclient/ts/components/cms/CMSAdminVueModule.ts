@@ -1,12 +1,11 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCMS from '../../../../shared/modules/CMS/ModuleCMS';
-import HTML_ComponentVO from '../../../../shared/modules/CMS/template_components_vo/HTML_ComponentVO';
-import HTML_HTML_ComponentVO from '../../../../shared/modules/CMS/template_components_vo/HTML_HTML_ComponentVO';
-import HTML_HTML_HTML_ComponentVO from '../../../../shared/modules/CMS/template_components_vo/HTML_HTML_HTML_ComponentVO';
-import Img_HTML_ComponentVO from '../../../../shared/modules/CMS/template_components_vo/Img_HTML_ComponentVO';
+import HtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlComponentVO';
+import HtmlHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlHtmlComponentVO';
+import HtmlHtmlHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlHtmlHtmlComponentVO';
+import ImgHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/ImgHtmlComponentVO';
 import ContentTypeVO from '../../../../shared/modules/CMS/vos/ContentTypeVO';
 import PageAliasVO from '../../../../shared/modules/CMS/vos/PageAliasVO';
-import PageComponentVO from '../../../../shared/modules/CMS/vos/PageComponentVO';
 import PageVO from '../../../../shared/modules/CMS/vos/PageVO';
 import TemplateComponentVO from '../../../../shared/modules/CMS/vos/TemplateComponentVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
@@ -59,52 +58,20 @@ export default class CMSAdminVueModule extends VueModuleBase {
                 contentsComponentsBranch),
             this.routes);
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            PageComponentVO.API_TYPE_ID,
-            null,
-            new MenuPointer(
-                new MenuLeaf("PageComponentVO", MenuElementBase.PRIORITY_MEDIUM, "fa-th-large"),
-                cmsMenuBranch,
-                contentsComponentsBranch),
-            this.routes);
-
         let pageComponentsBranch: MenuBranch = new MenuBranch("CMSAdminVueModule_PageComponents", MenuElementBase.PRIORITY_ULTRALOW, "fa-cogs", []);
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            HTML_ComponentVO.API_TYPE_ID,
-            null,
-            new MenuPointer(
-                new MenuLeaf("HTML_ComponentVO", MenuElementBase.PRIORITY_LOW, "fa-cogs"),
-                cmsMenuBranch,
-                pageComponentsBranch),
-            this.routes);
+        for (let i in ModuleCMS.getInstance().registered_template_components) {
+            let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components[i];
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            HTML_HTML_ComponentVO.API_TYPE_ID,
-            null,
-            new MenuPointer(
-                new MenuLeaf("HTML_HTML_ComponentVO", MenuElementBase.PRIORITY_LOW, "fa-cogs"),
-                cmsMenuBranch,
-                pageComponentsBranch),
-            this.routes);
-
-        CRUDComponentManager.getInstance().registerCRUD(
-            HTML_HTML_HTML_ComponentVO.API_TYPE_ID,
-            null,
-            new MenuPointer(
-                new MenuLeaf("HTML_HTML_HTML_ComponentVO", MenuElementBase.PRIORITY_LOW, "fa-cogs"),
-                cmsMenuBranch,
-                pageComponentsBranch),
-            this.routes);
-
-        CRUDComponentManager.getInstance().registerCRUD(
-            Img_HTML_ComponentVO.API_TYPE_ID,
-            null,
-            new MenuPointer(
-                new MenuLeaf("Img_HTML_ComponentVO", MenuElementBase.PRIORITY_LOW, "fa-cogs"),
-                cmsMenuBranch,
-                pageComponentsBranch),
-            this.routes);
+            CRUDComponentManager.getInstance().registerCRUD(
+                registered_template_component.type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(registered_template_component.type_id, registered_template_component.weight, "fa-cogs"),
+                    cmsMenuBranch,
+                    pageComponentsBranch),
+                this.routes);
+        }
 
         let structureComponentsBranch: MenuBranch = new MenuBranch("CMSAdminVueModule_Structure", MenuElementBase.PRIORITY_LOW, "fa-cogs", []);
 
