@@ -192,7 +192,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_type_id, additional_fields, label_field, "Programmes");
-        category_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_category_type_id]);
+        category_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_category_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -210,8 +210,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.facilitator_type_id, additional_fields, label_field, "Animateurs");
-        manager_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
-        partner_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
+        manager_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
+        partner_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -227,7 +227,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.manager_type_id, additional_fields, label_field, "Managers");
-        partner_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
+        partner_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -267,7 +267,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.target_type_id, additional_fields, label_field, "Etablissements");
-        enseigne_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.enseigne_type_id]);
+        enseigne_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.enseigne_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -283,9 +283,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.rdv_cr_type_id, additional_fields, null, "Compte-rendus");
-        rdv_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.rdv_type_id]);
-        author_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        cr_file_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        rdv_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.rdv_type_id]);
+        author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        cr_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -311,9 +311,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.rdv_type_id, additional_fields, null, "RDVs");
-        program_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
-        target_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
-        facilitator_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
+        facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -328,8 +328,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_facilitator_type_id, additional_fields, null, "Animateurs par programme");
-        facilitator_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
-        program_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -344,8 +344,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_manager_type_id, additional_fields, null, "Animateurs par programme");
-        manager_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
-        program_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        manager_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -366,8 +366,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_target_type_id, additional_fields, null, "Etablissements par programme");
-        target_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
-        program_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 

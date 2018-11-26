@@ -24,12 +24,6 @@ export default class ModulePaiement extends Module {
         super(PaiementVO.API_TYPE_ID, 'Paiement', 'Commerce/Paiement');
     }
 
-    public async hook_module_configure(db) {
-        return true;
-    }
-
-    public async hook_module_async_client_admin_initialization() { }
-
     public initialize() {
         this.fields = [];
         this.datatables = [];
@@ -62,8 +56,8 @@ export default class ModulePaiement extends Module {
             }),
         ];
         this.datatable_paiement = new ModuleTable<PaiementVO>(this, PaiementVO.API_TYPE_ID, datatable_fields, field_mode_paiement_id, 'Paiement');
-        field_abonnement_id.addManyToOneRelation(this.datatable_paiement, VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);
-        field_mode_paiement_id.addManyToOneRelation(this.datatable_paiement, this.datatable_mode_paiement);
+        field_abonnement_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);
+        field_mode_paiement_id.addManyToOneRelation(this.datatable_mode_paiement);
         this.datatables.push(this.datatable_paiement);
     }
 }

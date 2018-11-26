@@ -26,12 +26,6 @@ export default class ModuleAbonnement extends Module {
         super(AbonnementVO.API_TYPE_ID, 'Abonnement', 'Commerce/Abonnement');
     }
 
-    public async hook_module_configure(db) {
-        return true;
-    }
-
-    public async hook_module_async_client_admin_initialization() { }
-
     public initialize() {
         this.fields = [];
         this.datatables = [];
@@ -76,8 +70,8 @@ export default class ModuleAbonnement extends Module {
         this.datatable_pack_abonnement = new ModuleTable<PackAbonnementVO>(this, PackAbonnementVO.API_TYPE_ID, datatable_fields, field_ligne_commande_id, new DefaultTranslation({
             fr: 'PackAbonnement'
         }));
-        field_ligne_commande_id.addManyToOneRelation(this.datatable_pack_abonnement, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
-        field_abonnement_id.addManyToOneRelation(this.datatable_pack_abonnement, this.datatable_abonnement);
+        field_ligne_commande_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
+        field_abonnement_id.addManyToOneRelation(this.datatable_abonnement);
         this.datatables.push(this.datatable_pack_abonnement);
     }
 }

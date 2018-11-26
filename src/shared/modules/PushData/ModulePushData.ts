@@ -52,7 +52,7 @@ export default class ModulePushData extends Module {
             new ModuleTableField('read_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de lecture', false),
         ];
         let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, datatable_fields, null, "Notifications");
-        user_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 }

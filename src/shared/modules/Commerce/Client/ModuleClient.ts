@@ -50,12 +50,6 @@ export default class ModuleClient extends Module {
         ));
     }
 
-    public async hook_module_configure(db) {
-        return true;
-    }
-
-    public async hook_module_async_client_admin_initialization() { }
-
     public initialize() {
         this.fields = [];
         this.datatables = [];
@@ -92,8 +86,8 @@ export default class ModuleClient extends Module {
             field_informations_id
         ];
         this.datatable_client = new ModuleTable<ClientVO>(this, ClientVO.API_TYPE_ID, datatable_fields, field_user_id, 'Client');
-        field_user_id.addManyToOneRelation(this.datatable_client, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        field_informations_id.addManyToOneRelation(this.datatable_client, this.datatable_informations);
+        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_informations_id.addManyToOneRelation(this.datatable_informations);
         this.datatables.push(this.datatable_client);
     }
 

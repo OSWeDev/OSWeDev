@@ -14,6 +14,7 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import IInstantiatedPageComponent from '../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
 import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
+import WeightHandler from '../../../shared/tools/WeightHandler';
 
 export default class ModuleCMSServer extends ModuleServerBase {
 
@@ -73,7 +74,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
     }
 
     private async registerTemplateComponent(templateComponent: TemplateComponentVO): Promise<TemplateComponentVO> {
-        if (!ModuleCMS.getInstance().registered_template_components[templateComponent.type_id]) {
+        if (!ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id]) {
 
             if (!templateComponent.id) {
                 let bdd_components: TemplateComponentVO[] = await ModuleDAOServer.getInstance().selectAll<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID, "where type_id = $1", [templateComponent.type_id]);
@@ -90,34 +91,25 @@ export default class ModuleCMSServer extends ModuleServerBase {
                 templateComponent.id = parseInt(insertOrDeleteQueryResult.id);
             }
 
-            ModuleCMS.getInstance().registered_template_components[templateComponent.type_id] = templateComponent;
+            ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id] = templateComponent;
         }
 
-        return ModuleCMS.getInstance().registered_template_components[templateComponent.type_id];
+        return ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id];
     }
 
     private async getPageComponents(param: NumberParamVO): Promise<IInstantiatedPageComponent[]> {
         let res: IInstantiatedPageComponent[] = [];
 
-        for (let i in ModuleCMS.getInstance().registered_template_components) {
+        for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
 
-            let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components[i];
+            let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
 
             let type_page_components: IInstantiatedPageComponent[] = await ModuleDAOServer.getInstance().selectAll<IInstantiatedPageComponent>(registered_template_component.type_id, 'where page_id = $1', [param.num]);
 
             res = res.concat(type_page_components);
         }
 
-        res.sort((a: IInstantiatedPageComponent, b: IInstantiatedPageComponent) => {
-            if (a.weight < b.weight) {
-                return -1;
-            }
-            if (a.weight > b.weight) {
-                return 1;
-            }
-
-            return 0;
-        });
+        WeightHandler.getInstance().sortByWeight(res);
 
         return res;
     }

@@ -60,8 +60,8 @@ export default class CMSAdminVueModule extends VueModuleBase {
 
         let pageComponentsBranch: MenuBranch = new MenuBranch("CMSAdminVueModule_PageComponents", MenuElementBase.PRIORITY_ULTRALOW, "fa-cogs", []);
 
-        for (let i in ModuleCMS.getInstance().registered_template_components) {
-            let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components[i];
+        for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
+            let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
 
             CRUDComponentManager.getInstance().registerCRUD(
                 registered_template_component.type_id,

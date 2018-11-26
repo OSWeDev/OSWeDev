@@ -29,7 +29,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public prefix: string;
     public database: string;
     public vo_type: string;
-    public datatable_uid: string;
     public label: DefaultTranslation = null;
     public forceNumeric: (e: T) => T = null;
     public forceNumerics: (es: T[]) => T[] = null;
@@ -78,8 +77,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
-
-        this.datatable_uid = ""; //TODO FIXME : pas de nombre ici, mais est-ce bien utile surtout ce uid (qui du coup n'en est pas)ModuleTable.getNextUID().toString();
     }
 
     public defineAsModuleParamTable(): ModuleTable<any> {

@@ -41,7 +41,7 @@ export default class ModuleCMS extends Module {
 
     private static instance: ModuleCMS = null;
 
-    public registered_template_components: { [type: string]: TemplateComponentVO } = {};
+    public registered_template_components_by_type: { [type: string]: TemplateComponentVO } = {};
     private constructor() {
 
         super("cms", ModuleCMS.MODULE_NAME);
@@ -53,8 +53,9 @@ export default class ModuleCMS extends Module {
             (param: NumberParamVO) => {
                 // On se base sur les templates enregistrés pour définir les types dont dépend cette api
                 let res: string[] = [];
-                for (let i in ModuleCMS.getInstance().registered_template_components) {
-                    let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components[i];
+                for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
+                    let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
+                    res.push(registered_template_component.type_id);
                 }
 
                 return res;
@@ -83,8 +84,8 @@ export default class ModuleCMS extends Module {
     public async registerTemplateComponent(templateComponent: TemplateComponentVO): Promise<TemplateComponentVO> {
         let res: TemplateComponentVO = await ModuleAPI.getInstance().handleAPI<TemplateComponentVO, TemplateComponentVO>(ModuleCMS.APINAME_registerTemplateComponent, templateComponent);
 
-        if (!ModuleCMS.getInstance().registered_template_components[templateComponent.type_id]) {
-            ModuleCMS.getInstance().registered_template_components[templateComponent.type_id] = templateComponent;
+        if (!ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id]) {
+            ModuleCMS.getInstance().registered_template_components_by_type[templateComponent.type_id] = templateComponent;
         }
 
         return res;
@@ -124,6 +125,36 @@ export default class ModuleCMS extends Module {
         this.initializeHTML_HTML_ComponentVO();
         this.initializeHTML_HTML_HTML_ComponentVO();
         this.initializeImg_HTML_ComponentVO();
+        this.initializeHTML_Img_ComponentVO();
+    }
+
+    public async hook_module_configure(): Promise<boolean> {
+        let templateComponent: TemplateComponentVO = new TemplateComponentVO();
+        templateComponent.type_id = HtmlComponentVO.API_TYPE_ID;
+        templateComponent.weight = 0;
+        await this.registerTemplateComponent(templateComponent);
+
+        templateComponent = new TemplateComponentVO();
+        templateComponent.type_id = HtmlHtmlComponentVO.API_TYPE_ID;
+        templateComponent.weight = 1;
+        await this.registerTemplateComponent(templateComponent);
+
+        templateComponent = new TemplateComponentVO();
+        templateComponent.type_id = HtmlHtmlHtmlComponentVO.API_TYPE_ID;
+        templateComponent.weight = 2;
+        await this.registerTemplateComponent(templateComponent);
+
+        templateComponent = new TemplateComponentVO();
+        templateComponent.type_id = ImgHtmlComponentVO.API_TYPE_ID;
+        templateComponent.weight = 3;
+        await this.registerTemplateComponent(templateComponent);
+
+        templateComponent = new TemplateComponentVO();
+        templateComponent.type_id = HtmlImgComponentVO.API_TYPE_ID;
+        templateComponent.weight = 4;
+        await this.registerTemplateComponent(templateComponent);
+
+        return true;
     }
 
     private initializePageVO() {
@@ -137,8 +168,8 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, PageVO.API_TYPE_ID, datatable_fields, label_field, "Pages");
-        translatable_title_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
-        content_type_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[ContentTypeVO.API_TYPE_ID]);
+        translatable_title_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        content_type_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ContentTypeVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -152,8 +183,8 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, ContentTypeVO.API_TYPE_ID, datatable_fields, label_field, "Types de contenus");
-        translatable_desc_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
-        translatable_name_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        translatable_desc_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        translatable_name_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -166,15 +197,15 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, PageAliasVO.API_TYPE_ID, datatable_fields, label_field, "Alias des pages");
-        page_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
     private initializeTemplateComponentVO() {
         let label_field = new ModuleTableField('type_id', ModuleTableField.FIELD_TYPE_string, 'UID du composant', true);
-        let translatable_name_id = new ModuleTableField('translatable_title_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Nom', true);
-        let translatable_desc_id = new ModuleTableField('translatable_desc_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Description', true);
-        let thumbnail_id = new ModuleTableField('thumbnail_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Miniature', true);
+        let translatable_name_id = new ModuleTableField('translatable_title_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Nom', false);
+        let translatable_desc_id = new ModuleTableField('translatable_desc_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Description', false);
+        let thumbnail_id = new ModuleTableField('thumbnail_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Miniature', false);
         let datatable_fields = [
             label_field,
             translatable_name_id,
@@ -184,9 +215,9 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, TemplateComponentVO.API_TYPE_ID, datatable_fields, label_field, "Alias des pages");
-        translatable_name_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
-        translatable_desc_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
-        thumbnail_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
+        translatable_name_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        translatable_desc_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
+        thumbnail_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -201,7 +232,7 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, ImgHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
-        page_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -215,7 +246,7 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, HtmlImgComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
-        page_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -227,7 +258,7 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, HtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
-        page_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -240,7 +271,7 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, HtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
-        page_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -254,7 +285,7 @@ export default class ModuleCMS extends Module {
         ];
 
         let datatable = new ModuleTable(this, HtmlHtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
-        page_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 }

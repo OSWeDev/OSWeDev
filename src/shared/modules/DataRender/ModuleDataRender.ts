@@ -349,7 +349,7 @@ export default class ModuleDataRender extends Module {
         ];
 
         this.datatable_log = new ModuleTable(this, DataRenderingLogVO.API_TYPE_ID, datatable_fields, label_field, "Logs de render");
-        rendered_api_type_id.addManyToOneRelation(this.datatable_log, this.datatable_renderer);
+        rendered_api_type_id.addManyToOneRelation(this.datatable_renderer);
         this.datatables.push(this.datatable_log);
     }
 }

@@ -1,0 +1,17 @@
+include ../../../../views/mixins/loading.pug
+
+.cms_page
+    +loading()
+        .cms_page_content
+            template(v-if='has_access_to_cms_fo_admin')
+                draggable.draggable_page_components(v-model='instantiated_page_components')
+                    .row.page_component_wrapper(v-for='instantiated_page_component in instantiated_page_components')
+                        .page_component(:is='component_templates_by_type_id[instantiated_page_component._type]' :instantiated_page_component='instantiated_page_component' :page_vo='page_vo')
+            template(v-else)
+                .row.page_component_wrapper(v-for='instantiated_page_component in instantiated_page_components')
+                    .page_component(:is='component_templates_by_type_id[instantiated_page_component._type]' :instantiated_page_component='instantiated_page_component' :page_vo='page_vo')
+        .cms_page_admin(v-if='has_access_to_cms_fo_admin')
+            .row.droppable_targets(ref="droppable_targets")
+                cms_droppable_template_component.col-md-12(v-for='template_component in template_components' :template_component='template_component')
+
+            

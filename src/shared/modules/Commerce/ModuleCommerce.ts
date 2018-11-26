@@ -16,12 +16,6 @@ export default class ModuleCommerce extends Module {
         super("commerce", "Commerce");
     }
 
-    public async hook_module_configure(db) {
-        return true;
-    }
-
-    public async hook_module_async_client_admin_initialization() { }
-
     public initialize() {
         this.fields = [];
         this.datatables = [];

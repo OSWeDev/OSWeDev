@@ -1,6 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
+import IWeightedItem from '../../../tools/interfaces/IWeightedItem';
 
-export default class TemplateComponentVO implements IDistantVOBase {
+export default class TemplateComponentVO implements IDistantVOBase, IWeightedItem {
     public static API_TYPE_ID: string = "template_component";
 
     public id: number;

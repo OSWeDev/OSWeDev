@@ -1,5 +1,7 @@
+import IDistantVOBase from '../../IDistantVOBase';
+import IWeightedItem from '../../../tools/interfaces/IWeightedItem';
 
-export default class RoleVO {
+export default class RoleVO implements IDistantVOBase, IWeightedItem {
     public static API_TYPE_ID: string = "role";
 
     public id: number;

@@ -62,12 +62,6 @@ export default class ModuleProduit extends Module {
         ));
     }
 
-    public async hook_module_configure(db) {
-        return true;
-    }
-
-    public async hook_module_async_client_admin_initialization() { }
-
     public async getProduitById(produitId: number): Promise<ProduitVO> {
         return ModuleDAO.getInstance().getVoById<ProduitVO>(ProduitVO.API_TYPE_ID, produitId);
     }
@@ -126,7 +120,7 @@ export default class ModuleProduit extends Module {
         ];
 
         this.datatable_type_produit = new ModuleTable<TypeProduitVO>(this, TypeProduitVO.API_TYPE_ID, datatable_fields, default_label_field, 'TypeProduit');
-        field_categorie_produit_id.addManyToOneRelation(this.datatable_type_produit, this.datatable_categorie_produit);
+        field_categorie_produit_id.addManyToOneRelation(this.datatable_categorie_produit);
         this.datatables.push(this.datatable_type_produit);
     }
 
@@ -145,7 +139,7 @@ export default class ModuleProduit extends Module {
             new ModuleTableField('is_complementaire', ModuleTableField.FIELD_TYPE_boolean, 'Complémentaire ?'),
         ];
         this.datatable_produit = new ModuleTable<ProduitVO>(this, ProduitVO.API_TYPE_ID, datatable_fields, default_label_field, 'Produit');
-        field_type_produit_id.addManyToOneRelation(this.datatable_produit, this.datatable_type_produit);
+        field_type_produit_id.addManyToOneRelation(this.datatable_type_produit);
         this.datatables.push(this.datatable_produit);
     }
 
@@ -173,8 +167,8 @@ export default class ModuleProduit extends Module {
             new ModuleTableField('par_defaut', ModuleTableField.FIELD_TYPE_boolean, 'Par default'),
         ];
         this.datatable_facturation_produit = new ModuleTable<FacturationProduitVO>(this, FacturationProduitVO.API_TYPE_ID, datatable_fields, null, 'Facturation Produit');
-        field_produit_id.addManyToOneRelation(this.datatable_facturation_produit, this.datatable_produit);
-        field_facturation_id.addManyToOneRelation(this.datatable_facturation_produit, this.datatable_facturation);
+        field_produit_id.addManyToOneRelation(this.datatable_produit);
+        field_facturation_id.addManyToOneRelation(this.datatable_facturation);
         this.datatables.push(this.datatable_facturation_produit);
     }
 }
