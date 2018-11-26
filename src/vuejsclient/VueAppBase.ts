@@ -13,10 +13,10 @@ import 'quill/dist/quill.snow.css';
 import 'select2';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
-import * as BootstrapToggle from 'vue-bootstrap-toggle';
 import VueDraggableResizable from 'vue-draggable-resizable';
 import FullCalendar from 'vue-full-calendar';
 import VueI18n from 'vue-i18n';
+import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
 import VueQuillEditor from 'vue-quill-editor';
@@ -38,11 +38,11 @@ import IVueModule from '../vuejsclient/ts/modules/IVueModule';
 import VueModuleBase from '../vuejsclient/ts/modules/VueModuleBase';
 import DefaultHomeComponent from './ts/components/DefaultHome/component/DefaultHomeComponent';
 import Error404Component from './ts/components/Error404/component/Error404Component';
+import OnPageTranslation from './ts/components/OnPageTranslation/component/OnPageTranslation';
 import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
-import OnPageTranslation from './ts/components/OnPageTranslation/component/OnPageTranslation';
 
 
 
@@ -69,6 +69,9 @@ export default abstract class VueAppBase {
 
     public async runApp() {
 
+        // Chargement des données des modules.
+        await this.initializeModulesDatas();
+
         let self = this;
         let promises = [];
 
@@ -79,12 +82,18 @@ export default abstract class VueAppBase {
 
         await Promise.all(promises);
 
-        // Chargement des données des modules.
-        await this.initializeModulesDatas();
-
         PushDataVueModule.getInstance();
 
         await this.initializeVueAppModulesDatas();
+
+        // On lance les initializeAsync des modules Vue
+        for (let i in ModulesManager.getInstance().modules_by_name) {
+            let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
+
+            if (module_) {
+                await module_.initializeAsync();
+            }
+        }
 
         var baseApiUrl = this.appController.data_base_api_url || '';
 
@@ -275,7 +284,7 @@ export default abstract class VueAppBase {
         Vue.use(FullCalendar);
         Vue.use(VueQuillEditor);
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
-        Vue.component('bootstrap-toggle', BootstrapToggle);
+        Vue.use(ToggleButton);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
         Vue.component('on-page-translation', OnPageTranslation);

@@ -16,11 +16,14 @@ import DataImportLogVO from './vos/DataImportLogVO';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleDataImport extends Module {
 
-    public static RIGHTS_GROUP_NAME: string = 'module_data_import';
-    public static RIGHT_ADMIN_GLOBAL: string = 'admin_global';
+    public static MODULE_NAME: string = 'DataImport';
+
+    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleDataImport.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleDataImport.MODULE_NAME + '.BO_ACCESS';
 
     public static IMPORT_SCHEMA: string = 'imports';
 
@@ -76,7 +79,7 @@ export default class ModuleDataImport extends Module {
 
     private constructor() {
 
-        super("data_import", "DataImport");
+        super("data_import", ModuleDataImport.MODULE_NAME);
     }
 
     public registerApis() {
@@ -165,7 +168,7 @@ export default class ModuleDataImport extends Module {
 
         targetModuleTable.defineAsImportable();
 
-        // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable 
+        // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable
         let fields: Array<ModuleTableField<any>> = [];
 
         for (let i in targetModuleTable.fields) {

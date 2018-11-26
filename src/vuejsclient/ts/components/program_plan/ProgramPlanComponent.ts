@@ -120,7 +120,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let promises = [];
 
         promises.push((async () => {
-            self.can_edit_planning = await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.ACCESS_GROUP_NAME, ModuleProgramPlanBase.FRONT_EDIT_RULE_NAME);
+            self.can_edit_planning = await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_EDIT);
         })());
 
         // On va charger par étape pour alléger au max les chargements et réduire au max la taille des données téléchargées

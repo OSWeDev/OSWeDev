@@ -2,8 +2,14 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import FileVO from './vos/FileVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleFile extends Module {
+
+    public static MODULE_NAME: string = 'File';
+
+    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleFile.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleFile.MODULE_NAME + '.BO_ACCESS';
 
     public static FILES_ROOT: string = './files/';
 
@@ -18,7 +24,7 @@ export default class ModuleFile extends Module {
 
     private constructor() {
 
-        super("file", "File");
+        super("file", ModuleFile.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 

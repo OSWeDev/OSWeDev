@@ -33,19 +33,9 @@ export default class TranslationAdminVueModule extends VueModuleBase {
         super(ModuleTranslation.getInstance().name);
     }
 
-    public initialize() {
+    public async initializeAsync() {
 
-        if (!
-            (
-                VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) && (
-                    (
-                        (typeof VueAppController.getInstance().data_user.super_admin === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin_central === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin === "undefined")
-                    ) || (
-                        VueAppController.getInstance().data_user.super_admin || VueAppController.getInstance().data_user.admin_central
-                    )
-                ))) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS)) {
             return;
         }
 
@@ -59,17 +49,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
                 translationMenuBranch),
             this.routes);
 
-        if (!
-            (
-                VueAppController.getInstance().hasRole(ModuleAccessPolicy.ROLE_SUPER_ADMIN) && (
-                    (
-                        (typeof VueAppController.getInstance().data_user.super_admin === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin_central === "undefined") &&
-                        (typeof VueAppController.getInstance().data_user.admin === "undefined")
-                    ) || (
-                        VueAppController.getInstance().data_user.super_admin
-                    )
-                ))) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_BO_OTHERS_ACCESS)) {
             return;
         }
 

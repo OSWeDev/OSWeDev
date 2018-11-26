@@ -10,6 +10,13 @@ import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -26,9 +33,65 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         super(ModuleTranslation.getInstance().name);
     }
 
+    /**
+     * On définit les droits d'accès du module
+     */
+    public async registerAccessPolicies(): Promise<void> {
+        let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        group.translatable_name = ModuleTranslation.POLICY_GROUP;
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+            fr: 'Traductions'
+        }));
+
+        let bo_translations_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_translations_access.group_id = group.id;
+        bo_translations_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_translations_access.translatable_name = ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS;
+        bo_translations_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_translations_access, new DefaultTranslation({
+            fr: 'Administration des traductions'
+        }));
+        // let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        // admin_access_dependency.src_pol_id = bo_translations_access.id;
+        // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
+        // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+        let bo_others_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_others_access.group_id = group.id;
+        bo_others_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_others_access.translatable_name = ModuleTranslation.POLICY_BO_OTHERS_ACCESS;
+        bo_others_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_others_access, new DefaultTranslation({
+            fr: 'Administration des langues et codes de traduction'
+        }));
+        // admin_access_dependency = new PolicyDependencyVO();
+        // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        // admin_access_dependency.src_pol_id = bo_others_access.id;
+        // admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().registered_policies[ModuleAccessPolicy.POLICY_BO_ACCESS].id;
+        // await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+        let access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        access_dependency.src_pol_id = bo_others_access.id;
+        access_dependency.depends_on_pol_id = bo_translations_access.id;
+        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+
+        let on_page_translation_module_access: AccessPolicyVO = new AccessPolicyVO();
+        on_page_translation_module_access.group_id = group.id;
+        on_page_translation_module_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        on_page_translation_module_access.translatable_name = ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS;
+        on_page_translation_module_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(on_page_translation_module_access, new DefaultTranslation({
+            fr: 'Module de traduction sur page'
+        }));
+        access_dependency = new PolicyDependencyVO();
+        access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        access_dependency.src_pol_id = on_page_translation_module_access.id;
+        access_dependency.depends_on_pol_id = bo_translations_access.id;
+        access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+    }
+
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS, this.getAllTranslations.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANGS, this.getLangs.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_LANG, this.getLang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT, this.getTranslatableText.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS, this.getTranslatableTexts.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
@@ -42,6 +105,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     public async getTranslatableText(param: StringParamVO): Promise<TranslatableTextVO> {
         return await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [param.text]);
+    }
+
+    public async getLang(param: StringParamVO): Promise<LangVO> {
+        return await ModuleDAOServer.getInstance().selectOne<LangVO>(LangVO.API_TYPE_ID, 'where code_lang = $1', [param.text]);
     }
 
     public async getLangs(): Promise<LangVO[]> {
@@ -58,29 +125,6 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     public async getTranslation(params: GetTranslationParamVO): Promise<TranslationVO> {
         return await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [params.lang_id, params.text_id]);
-    }
-
-    private async getALL_LOCALES(): Promise<{ [code_lang: string]: any }> {
-        let langs: LangVO[] = await this.getLangs();
-        let translatableTexts: TranslatableTextVO[] = await this.getTranslatableTexts();
-        let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
-        let res: { [code_lang: string]: any } = {};
-
-        for (let i in langs) {
-            let lang: LangVO = langs[i];
-            let translations: TranslationVO[] = await ModuleTranslation.getInstance().getTranslations(lang.id);
-
-            for (let i in translations) {
-                let translation: TranslationVO = translations[i];
-
-                if (!translation.text_id) {
-                    continue;
-                }
-
-                res = this.addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
-            }
-        }
-        return res;
     }
 
     public addCodeToLocales(ALL_LOCALES: { [code_lang: string]: any }, code_lang: string, code_text: string, translated: string): { [code_lang: string]: any } {
@@ -128,5 +172,28 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }
 
         return ALL_LOCALES;
+    }
+
+    private async getALL_LOCALES(): Promise<{ [code_lang: string]: any }> {
+        let langs: LangVO[] = await this.getLangs();
+        let translatableTexts: TranslatableTextVO[] = await this.getTranslatableTexts();
+        let translatableTexts_by_id: { [id: number]: TranslatableTextVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(translatableTexts);
+        let res: { [code_lang: string]: any } = {};
+
+        for (let i in langs) {
+            let lang: LangVO = langs[i];
+            let translations: TranslationVO[] = await ModuleTranslation.getInstance().getTranslations(lang.id);
+
+            for (let j in translations) {
+                let translation: TranslationVO = translations[j];
+
+                if (!translation.text_id) {
+                    continue;
+                }
+
+                res = this.addCodeToLocales(res, lang.code_lang.toLowerCase(), translatableTexts_by_id[translation.text_id].code_text, translation.translated);
+            }
+        }
+        return res;
     }
 }

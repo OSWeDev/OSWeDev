@@ -16,12 +16,32 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import APIDAOParamsVO from '../../../shared/modules/DAO/vos/APIDAOParamsVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import APIDAORefFieldParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldParamsVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
+import LocaleManager from '../../../shared/tools/LocaleManager';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
+import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
-    public static DAO_ACCESS_TYPE_CREATE: string = "CREATE";
+    public static DAO_ACCESS_TYPE_LIST_LABELS: string = "LIST_LABELS";
+    // inherit DAO_ACCESS_TYPE_LIST_LABELS
     public static DAO_ACCESS_TYPE_READ: string = "READ";
-    public static DAO_ACCESS_TYPE_UPDATE: string = "UPDATE";
+
+    // inherit DAO_ACCESS_TYPE_READ
+    public static DAO_ACCESS_TYPE_INSERT_OR_UPDATE: string = "INSERT_OR_UPDATE";
+
+    // inherit DAO_ACCESS_TYPE_READ
     public static DAO_ACCESS_TYPE_DELETE: string = "DELETE";
 
     public static getInstance() {
@@ -32,10 +52,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private static instance: ModuleDAOServer = null;
-
-    private constructor() {
-        super(ModuleDAO.getInstance().name);
-    }
 
     // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
     private access_hooks: { [api_type_id: string]: { [access_type: string]: IHookFilterVos<IDistantVOBase> } } = {};
@@ -49,6 +65,136 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private post_update_trigger_hook: DAOTriggerHook;
     private post_create_trigger_hook: DAOTriggerHook;
     // private post_delete_trigger_hook: DAOTriggerHook;
+
+    private constructor() {
+        super(ModuleDAO.getInstance().name);
+    }
+
+    /**
+     * On définit les droits d'accès du module
+     */
+    public async registerAccessPolicies(): Promise<void> {
+        let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        group.translatable_name = ModuleDAO.ACCESS_GROUP_NAME;
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+            fr: 'Données'
+        }));
+
+        // On déclare un droit global d'accès qui déclenche tous les autres
+        let global_access: AccessPolicyVO = new AccessPolicyVO();
+        global_access.group_id = group.id;
+        global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        global_access.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_LIST_LABELS, "___GLOBAL_ACCESS___");
+        global_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(global_access, new DefaultTranslation({
+            fr: 'Outrepasser les droits d\'accès'
+        }));
+
+        // On doit déclarer les access policies de tous les VO
+        let lang: LangVO = await ModuleTranslation.getInstance().getLang(DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION);
+        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
+            let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+            let vo_type: string = moduleTable.vo_type;
+
+            // On ne s'intéresse pas aux tables des paramétrages de modules (à tord peut-etre ...) qui sont admin uniquement
+            if (moduleTable.isModuleParamTable) {
+                continue;
+            }
+
+            // On a besoin de la trad de ce vo_type, si possible celle en base, sinon celle en default translation si elle existe, sinon on reste sur le vo_type
+            let vo_translation: string = vo_type;
+            let vo_type_translatable_code: string = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].label ? VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].label.code_text : null;
+            let translatable: TranslatableTextVO = vo_type_translatable_code ? await ModuleTranslation.getInstance().getTranslatableText(vo_type_translatable_code) : null;
+            let translation_from_bdd: TranslationVO = (lang && translatable) ? await ModuleTranslation.getInstance().getTranslation(lang.id, translatable.id) : null;
+            if (translation_from_bdd && (translation_from_bdd.translated != "")) {
+                vo_translation = translation_from_bdd.translated;
+            } else {
+                if (DefaultTranslationManager.getInstance().registered_default_translations[vo_type_translatable_code]) {
+                    let default_translation: string = DefaultTranslationManager.getInstance().registered_default_translations[vo_type_translatable_code].default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
+                    vo_translation = (default_translation && (default_translation != "")) ? default_translation : vo_translation;
+                }
+            }
+
+            // Si on lit les droits, on peut tout lire, mais pas modifier évidemment
+            let isAccessConfVoType: boolean = false;
+            if ((vo_type == AccessPolicyVO.API_TYPE_ID) ||
+                (vo_type == RolePolicyVO.API_TYPE_ID) ||
+                (vo_type == RoleVO.API_TYPE_ID) ||
+                (vo_type == PolicyDependencyVO.API_TYPE_ID) ||
+                (vo_type == AccessPolicyGroupVO.API_TYPE_ID) ||
+                (vo_type == UserRoleVO.API_TYPE_ID)) {
+                isAccessConfVoType = true;
+            }
+
+            // On déclare les 4 policies et leurs dépendances
+            let vo_list: AccessPolicyVO = new AccessPolicyVO();
+            vo_list.group_id = group.id;
+            vo_list.default_behaviour = isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            vo_list.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_LIST_LABELS, vo_type);
+            vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(
+                vo_list,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Lister les données de type "' + vo_translation + '"' }) : null);
+            let global_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+            global_access_dependency.src_pol_id = vo_list.id;
+            global_access_dependency.depends_on_pol_id = global_access.id;
+            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+
+
+            let vo_read: AccessPolicyVO = new AccessPolicyVO();
+            vo_read.group_id = group.id;
+            vo_read.default_behaviour = isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            vo_read.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo_type);
+            vo_read = await ModuleAccessPolicyServer.getInstance().registerPolicy(
+                vo_read,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Consulter les données de type "' + vo_translation + '"' }) : null);
+            let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            dependency.src_pol_id = vo_read.id;
+            dependency.depends_on_pol_id = vo_list.id;
+            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
+            global_access_dependency = new PolicyDependencyVO();
+            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+            global_access_dependency.src_pol_id = vo_read.id;
+            global_access_dependency.depends_on_pol_id = global_access.id;
+            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+
+            let vo_insert_or_update: AccessPolicyVO = new AccessPolicyVO();
+            vo_insert_or_update.group_id = group.id;
+            vo_insert_or_update.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            vo_insert_or_update.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type);
+            vo_insert_or_update = await ModuleAccessPolicyServer.getInstance().registerPolicy(
+                vo_insert_or_update,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Ajouter ou modifier des données de type "' + vo_translation + '"' }) : null);
+            dependency = new PolicyDependencyVO();
+            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            dependency.src_pol_id = vo_insert_or_update.id;
+            dependency.depends_on_pol_id = vo_read.id;
+            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
+            global_access_dependency = new PolicyDependencyVO();
+            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+            global_access_dependency.src_pol_id = vo_insert_or_update.id;
+            global_access_dependency.depends_on_pol_id = global_access.id;
+            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+
+            let vo_delete: AccessPolicyVO = new AccessPolicyVO();
+            vo_delete.group_id = group.id;
+            vo_delete.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            vo_delete.translatable_name = this.getAccessPolicyName(ModuleDAOServer.DAO_ACCESS_TYPE_DELETE, vo_type);
+            vo_delete = await ModuleAccessPolicyServer.getInstance().registerPolicy(
+                vo_delete,
+                (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Supprimer des données de type "' + vo_translation + '"' }) : null);
+            dependency = new PolicyDependencyVO();
+            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+            dependency.src_pol_id = vo_delete.id;
+            dependency.depends_on_pol_id = vo_read.id;
+            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
+            global_access_dependency = new PolicyDependencyVO();
+            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+            global_access_dependency.src_pol_id = vo_delete.id;
+            global_access_dependency.depends_on_pol_id = global_access.id;
+            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+        }
+    }
 
     public async configure() {
         // this.pre_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_READ_TRIGGER);
@@ -85,10 +231,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS, this.getVosByIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS, this.getVosByRefFieldIds.bind(this));
-
-
-        // ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ALL, this.selectAll.bind(this));
-        // ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_SELECT_ONE, this.selectOne.bind(this));
     }
 
     public async truncate(api_type_id: string) {
@@ -102,7 +244,43 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.full_name + ";");
     }
 
+    public async selectAll<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T[]> {
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let res: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
+
+        // On filtre les res suivant les droits d'accès
+        return await this.filterVOsAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, res);
+    }
+
+    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T> {
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T);
+
+        // On filtre suivant les droits d'accès
+        return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
+    }
+
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
+
+        // On vérifie qu'on peut faire un insert ou update
+        if ((!vos) || (!vos.length) || (!vos[0]) || (!vos[0]._type) || (!VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type])) {
+            return null;
+        }
+        if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type], ModuleDAOServer.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)) {
+            return null;
+        }
 
         return new Promise<InsertOrDeleteQueryResult[]>(async (resolve, reject) => {
 
@@ -147,6 +325,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
 
+        // On vérifie qu'on peut faire un insert ou update
+        if ((!vo) || (!vo._type) || (!VOsTypesManager.getInstance().moduleTables_by_voType[vo._type])) {
+            return null;
+        }
+        if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type], ModuleDAOServer.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)) {
+            return null;
+        }
+
         return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
 
             let isUpdate: boolean = vo.id ? true : false;
@@ -174,6 +360,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {
+
+        // On vérifie qu'on peut faire un delete
+        if ((!vos) || (!vos.length) || (!vos[0]) || (!vos[0]._type) || (!VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type])) {
+            return null;
+        }
+        if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[vos[0]._type], ModuleDAOServer.DAO_ACCESS_TYPE_DELETE)) {
+            return null;
+        }
 
         let results: any[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
@@ -276,52 +470,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return sql;
     }
 
-
-    public async selectAll<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T[]> {
-        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
-
-        // On vérifie qu'on peut faire un select
-        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
-            return null;
-        }
-
-        let res: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
-
-        // On filtre les res suivant les droits d'accès
-        return await this.filterVOsAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, res);
-    }
-
-
-    // private async selectAll<T extends IDistantVOBase>(apiDAOParamVOs: APIDAOParamVOs<T>): Promise<T[]> {
-    //     let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVOs.API_TYPE_ID];
-
-    //     // On vérifie qu'on peut faire un select
-    //     if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
-    //         return null;
-    //     }
-
-    //     let res: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t " + (apiDAOParamVOs.query ? apiDAOParamVOs.query : ''), apiDAOParamVOs.queryParams ? apiDAOParamVOs.queryParams : []) as T[]);
-
-    //     // On filtre les res suivant les droits d'accès
-    //     return await this.filterVOsAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, res);
-    // }
-
     private async checkAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string): Promise<boolean> {
 
         if (!ModuleAccessPolicy.getInstance().actif) {
             return true;
         }
 
-        // Si on lit les droits, on peut tout lire
-        if ((datatable.full_name == ModuleAccessPolicy.getInstance().accesspolicy_datatable.full_name) ||
-            (datatable.full_name == ModuleAccessPolicy.getInstance().rolepolicies_datatable.full_name) ||
-            (datatable.full_name == ModuleAccessPolicy.getInstance().role_datatable.full_name) ||
-            (datatable.full_name == ModuleAccessPolicy.getInstance().userroles_datatable.full_name)) {
-            return true;
-        }
-
         // On applique les accès au global sur le droit de faire un SELECT
-        return await ModuleAccessPolicy.getInstance().checkAccess(ModuleDAO.ACCESS_GROUP_NAME, ModuleDAO.ACCESS_GROUP_NAME + '.' + access_type + "." + datatable.full_name);
+        return await ModuleAccessPolicy.getInstance().checkAccess(this.getAccessPolicyName(access_type, datatable.vo_type));
     }
 
     private async filterVOsAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string, vos: T[]): Promise<T[]> {
@@ -330,27 +486,32 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return vos;
         }
 
-        // Si on lit les droits, on peut tout lire
-        if ((datatable.full_name == ModuleAccessPolicy.getInstance().accesspolicy_datatable.full_name) ||
-            (datatable.full_name == ModuleAccessPolicy.getInstance().rolepolicies_datatable.full_name) ||
-            (datatable.full_name == ModuleAccessPolicy.getInstance().role_datatable.full_name) ||
-            (datatable.full_name == ModuleAccessPolicy.getInstance().userroles_datatable.full_name)) {
-            return vos;
-        }
-
-        // On regarde si il existe un acces pour ce VO
-        // Par défaut pas de filtrage
-        // if (await ModuleAccessPolicy.getInstance().isAdmin()) {
-        //     return vos;
-        // }
-
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
             let uid: number = httpContext ? httpContext.get('UID') : null;
             let user_data = httpContext ? httpContext.get('USER_DATA') : null;
-            return await hook(datatable, vos, uid, user_data) as T[];
+            vos = await hook(datatable, vos, uid, user_data) as T[];
+        }
+
+        if (vos && vos.length && !await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+            // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
+
+            for (let j in vos) {
+                let vo: IDistantVOBase = vos[j];
+
+                for (let i in datatable.fields) {
+                    let field: ModuleTableField<any> = datatable.fields[i];
+
+                    if (datatable.default_label_field &&
+                        (field.field_id == datatable.default_label_field.field_id)) {
+                        continue;
+                    }
+
+                    delete vo[field.field_id];
+                }
+            }
         }
 
         return vos;
@@ -362,17 +523,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return vo;
         }
 
-        // Si on lit les droits, on peut tout lire
-        if ((datatable.full_name == ModuleAccessPolicy.getInstance().accesspolicy_datatable.full_name) ||
-            (datatable.full_name == ModuleAccessPolicy.getInstance().rolepolicies_datatable.full_name) ||
-            (datatable.full_name == ModuleAccessPolicy.getInstance().role_datatable.full_name) ||
-            (datatable.full_name == ModuleAccessPolicy.getInstance().userroles_datatable.full_name)) {
-            return vo;
-        }
-
-        // On regarde si il existe un acces pour ce VO
-        // Par défaut pas de filtrage
-
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
@@ -381,48 +531,34 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let user_data = httpContext ? httpContext.get('USER_DATA') : null;
             let filtered: T[] = await hook(datatable, [vo], uid, user_data) as T[];
 
-            if (filtered && (filtered.length == 1)) {
-                return vo;
+            if ((!filtered) || (!filtered.length)) {
+                return null;
+            }
+        }
+
+        if (vo && !await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+            // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
+            for (let i in datatable.fields) {
+                let field: ModuleTableField<any> = datatable.fields[i];
+
+                if (datatable.default_label_field &&
+                    (field.field_id == datatable.default_label_field.field_id)) {
+                    continue;
+                }
+
+                delete vo[field.field_id];
             }
         }
 
         return vo;
     }
 
-    // private async selectOne<T extends IDistantVOBase>(apiDAOParamVO: APIDAOParamVO<T>): Promise<T> {
-    //     let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
-
-    //     // On vérifie qu'on peut faire un select
-    //     if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
-    //         return null;
-    //     }
-
-    //     let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + (apiDAOParamVO.query ? apiDAOParamVO.query : '') + ";", apiDAOParamVO.queryParams ? apiDAOParamVO.queryParams : []) as T);
-
-    //     // On filtre suivant les droits d'accès
-    //     return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
-    // }
-
-    public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T> {
-        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
-
-        // On vérifie qu'on peut faire un select
-        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
-            return null;
-        }
-
-        let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T);
-
-        // On filtre suivant les droits d'accès
-        return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
-    }
-
     private async getVoById<T extends IDistantVOBase>(apiDAOParamVO: APIDAOParamVO): Promise<T> {
 
         let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
 
-        // On vérifie qu'on peut faire un select
-        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+        // On vérifie qu'on peut faire a minima un listage
+        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_LIST_LABELS)) {
             return null;
         }
 
@@ -480,5 +616,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // On filtre les res suivant les droits d'accès
         // return await this.selectAll(apiDAOParamVOs);
         return await this.selectAll<T>(API_TYPE_ID.text);
+    }
+
+    private getAccessPolicyName(access_type: string, vo_type: string): string {
+        return ModuleDAO.ACCESS_GROUP_NAME + '.' + access_type + "." + vo_type;
     }
 }

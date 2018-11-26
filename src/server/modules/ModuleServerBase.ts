@@ -19,6 +19,8 @@ export default abstract class ModuleServerBase implements IModuleBase {
 
     public initialize() { }
     public registerExpressApis(app: Express): void { }
+    public async registerAccessPolicies(): Promise<void> { }
+    public async registerAccessRoles(): Promise<void> { }
     public registerCrons(): void { }
     public registerAccessHooks(): void { }
     public registerServerApiHandlers(): void { }

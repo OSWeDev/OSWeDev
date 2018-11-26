@@ -1,39 +1,19 @@
-import ConversionHandler from '../../../tools/ConversionHandler';
 import IDistantVOBase from '../../IDistantVOBase';
-import TextHandler from '../../../tools/TextHandler';
 
 export default class AccessPolicyVO implements IDistantVOBase {
 
     public static API_TYPE_ID: string = "accpol";
 
-    /**
-     * Renvoie le code permettant de retrouver les trads d'une accesspolicy
-     * @param group_name Nom du groupe
-     * @param policy_name Nom de la policy
-     */
-    public static getTranslatableName(group_name: string, policy_name: string): string {
-        return "access_policy." + TextHandler.getInstance().formatTextToID(group_name) + "." + TextHandler.getInstance().formatTextToID(policy_name) + ".title";
-    }
-
-    /**
-     * Renvoie le uniqID
-     * @param group_name Nom du groupe
-     * @param policy_name Nom de la policy
-     */
-    public static getUniqID(group_name: string, policy_name: string): string {
-        return "ap." + TextHandler.getInstance().formatTextToID(group_name) + "." + TextHandler.getInstance().formatTextToID(policy_name);
-    }
+    public static DEFAULT_BEHAVIOUR_LABELS: string[] = ['accpol.default_behaviour.access_denied_to_all_but_admin', 'accpol.default_behaviour.access_denied_to_anonymous', 'accpol.default_behaviour.access_granted_to_anyone'];
+    public static DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN: number = 0;
+    public static DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS: number = 1;
+    public static DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE: number = 2;
 
     public id: number;
     public _type: string = AccessPolicyVO.API_TYPE_ID;
 
-    public uniq_id: string;
     public translatable_name: string;
     public group_id: number;
-
-    constructor(group_name: string, policy_name: string, group_id: number) {
-        this.uniq_id = AccessPolicyVO.getUniqID(group_name, policy_name);
-        this.translatable_name = AccessPolicyVO.getTranslatableName(group_name, policy_name);
-        this.group_id = group_id;
-    }
+    public default_behaviour: number;
+    public weight: number;
 }
