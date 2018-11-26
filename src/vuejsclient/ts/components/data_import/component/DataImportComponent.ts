@@ -84,7 +84,6 @@ export default class DataImportComponent extends DataImportComponentBase {
     @Prop({ default: null })
     public import_param_component: VueComponentBase;
 
-
     @Prop()
     public api_type_ids: string[];
 
@@ -113,9 +112,9 @@ export default class DataImportComponent extends DataImportComponentBase {
     public accordion_elements: Array<{ id: number, label: string }>;
 
     @Prop({ default: null })
-    private validate_previous_segment: TimeSegment;
+    public validate_previous_segment: TimeSegment;
 
-    private show_overview: boolean = this.force_show_overview;
+    public show_overview: boolean = this.force_show_overview;
 
     private selected_segment: TimeSegment = null;
 
