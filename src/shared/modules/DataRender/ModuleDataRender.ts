@@ -80,18 +80,6 @@ export default class ModuleDataRender extends Module {
         return true;
     }
 
-    private async preload() {
-        // On précharge les DataImportFile pour être synchrone sur l'admin sur ce sujet et pouvoir créer les menus adaptés
-        let dataRenderers: DataRendererVO[] = await this.getDataRenderers();
-
-        for (let i in dataRenderers) {
-            let dataRenderer: DataRendererVO = dataRenderers[i];
-
-            this.dataRenderers_by_name[dataRenderer.renderer_name] = dataRenderer;
-            this.dataRenderers_by_id[dataRenderer.id] = dataRenderer;
-        }
-    }
-
     public async getLatestAvailableSegment(api_name: string): Promise<TimeSegment> {
         return await ModuleAPI.getInstance().handleAPI<StringParamVO, TimeSegment>(ModuleDataRender.APINAME_getLatestAvailableSegment, api_name);
     }
@@ -375,5 +363,17 @@ export default class ModuleDataRender extends Module {
         this.datatable_log = new ModuleTable(this, DataRenderingLogVO.API_TYPE_ID, datatable_fields, label_field, "Logs de render");
         rendered_api_type_id.addManyToOneRelation(this.datatable_log, this.datatable_renderer);
         this.datatables.push(this.datatable_log);
+    }
+
+    private async preload() {
+        // On précharge les DataImportFile pour être synchrone sur l'admin sur ce sujet et pouvoir créer les menus adaptés
+        let dataRenderers: DataRendererVO[] = await this.getDataRenderers();
+
+        for (let i in dataRenderers) {
+            let dataRenderer: DataRendererVO = dataRenderers[i];
+
+            this.dataRenderers_by_name[dataRenderer.renderer_name] = dataRenderer;
+            this.dataRenderers_by_id[dataRenderer.id] = dataRenderer;
+        }
     }
 }

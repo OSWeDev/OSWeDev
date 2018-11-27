@@ -6,6 +6,9 @@ export default class DataFilterOption {
     public constructor(
         public select_state: number,
         public label: string,
-        public id: number
+        public id: number,
+        public disabled_state_selected: boolean = false,
+        public disabled_state_selectable: boolean = false,
+        public disabled_state_unselectable: boolean = false,
     ) { }
 }

@@ -1,0 +1,11 @@
+.card(:class="cardClasses", @click="emitSelection")
+    .row.text-center
+        .col-md-2
+        .col-md-8
+            img(v-if="img_type == img_type_img", :src="img_src")
+            i.fa.hidden-print(v-if="img_type == img_type_icon", :class="'fa-' + img_src")
+        .col-md-2
+    .row.text-center
+        h4 {{ t(title) }}
+    .row.text-center(v-if="description")
+        p {{ description }}

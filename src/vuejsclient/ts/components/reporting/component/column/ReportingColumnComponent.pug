@@ -1,0 +1,12 @@
+td(:class='classes')
+    template(v-if="isAmountSlot")
+        include ./amount.pug
+                
+    template(v-else-if="isPercentSlot")
+        include ./percent.pug
+        
+    template(v-else-if="isFixedSlot")
+        include ./fixed.pug
+
+    template(v-else)
+        include ./default.pug

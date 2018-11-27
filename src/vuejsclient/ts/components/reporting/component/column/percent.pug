@@ -1,0 +1,15 @@
+.col-md-12.percent
+    div(v-if="columnData.trend")
+        .row
+            span {{ const_filters.percent.read(columnData.value, 1) }}
+        .row(v-if="columnData.moyenne != null")
+            span.italic {{ const_filters.percent.read(columnData.moyenne, 1) }}
+
+    div(v-else-if="columnData.trend")
+        trend_widget(:positive_min="0.1", :medium_min="0", :column_data="columnData")
+        
+    div(v-else)
+        .row
+            span {{ const_filters.percent.read(columnData.value) }}
+        .row(v-if="columnData.moyenne != null")
+            span.italic {{ const_filters.percent.read(columnData.moyenne) }}
