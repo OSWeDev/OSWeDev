@@ -5,16 +5,28 @@ include ../../../../views/mixins/loading.pug
         .cms_page_content(:class='{"cms_fo_admin": has_access_to_cms_fo_admin}')
             template(v-if='has_access_to_cms_fo_admin')
                 #sortable_page_component_list
-                    .row.page_component_wrapper(v-for='instantiated_page_component in instantiated_page_components')
-                        .page_component(:is='component_templates_by_type_id[instantiated_page_component._type]' :instantiated_page_component='instantiated_page_component' :page_vo='page_vo')
-                //- draggable.draggable_page_components(v-model='instantiated_page_components')
+                    .sortable_page_component_wrapper(v-for='instantiated_page_component in instantiated_page_components' :data-instantiated_page_component_vo_type='instantiated_page_component._type' :data-instantiated_page_component_id='instantiated_page_component.id')
+                        .row.page_component_handle_bar
+                            .col-md-1.page_component_sort_handle
+                                i.fa.fa-sort.fa-fw.fa-2x(aria-hidden="true")
+                            .col-md-10
+                            .col-md-1
+                                a.btn.btn-sm.btn-danger.pull-right(:href="'/admin#' + getCRUDDeleteLink(instantiated_page_component._type, instantiated_page_component.id)" target='_blank')
+                                    i.fa.fa-trash.fa-fw
+                                a.btn.btn-sm.btn-info.pull-right(:href="'/admin#' + getCRUDUpdateLink(instantiated_page_component._type, instantiated_page_component.id)" target='_blank')
+                                    i.fa.fa-pencil.fa-fw
+                        .row.page_component_wrapper
+                            .page_component(:is='component_templates_by_type_id[instantiated_page_component._type]' :instantiated_page_component='instantiated_page_component' :page_vo='page_vo' :key='instantiated_page_component.id')
             template(v-else)
                 .row.page_component_wrapper(v-for='instantiated_page_component in instantiated_page_components')
-                    .page_component(:is='component_templates_by_type_id[instantiated_page_component._type]' :instantiated_page_component='instantiated_page_component' :page_vo='page_vo')
+                    .page_component(:is='component_templates_by_type_id[instantiated_page_component._type]' :instantiated_page_component='instantiated_page_component' :page_vo='page_vo'  :key='instantiated_page_component.id')
         .cms_page_admin_show_hide(v-if='has_access_to_cms_fo_admin' :class='{"hidden_admin": hidden_admin}')
             i.fa.fa-chevron-circle-left.fa-2x.fa-fw(aria-hidden="true" v-if='hidden_admin' @click='hidden_admin = !hidden_admin')
             i.fa.fa-chevron-circle-right.fa-2x.fa-fw(aria-hidden="true" v-if='!hidden_admin' @click='hidden_admin = !hidden_admin')
         .cms_page_admin(v-if='has_access_to_cms_fo_admin' :class='{"hidden_admin": hidden_admin}')
+            .row.refresh_wrapper
+                .col-md-12
+                    i.fa.fa-refresh.fa-fw.fa-2x(aria-hidden="true" @click='onChange_page_id()')
             .row.droppable_targets(ref="droppable_targets")
                 .col-md-12
                     cms_droppable_template_component.row(v-for='template_component in template_components' :template_component='template_component' :key='template_component.id')

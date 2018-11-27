@@ -17,13 +17,22 @@
     .cms_page_admin {
         display: block;
         width: 23em;
-        border: solid;
+        border: solid 2px #888;
         position: fixed;
         top: 1em;
         right: 10px;
         height: 90%;
         background: white;
         box-shadow: 1px 1px 40px -10px #000;
+        border-radius: 3px;
+
+        .refresh_wrapper i.fa-refresh {
+            cursor: pointer;
+            padding: 5px 0px 5px 5px;
+            margin: 10px;
+            box-shadow: 0px 0px 10px -2px;
+            border-radius: 20px;
+        }
     }
 
     .cms_page_admin.hidden_admin {
@@ -37,6 +46,17 @@
         .sortable_page_component_list_placeholder {
             background: #AAA;
             border: solid #888;
+            min-height: 30px;
+        }
+
+        .page_component_handle_bar {
+
+            padding: 5px 0px;
+            background: #DDD;
+
+            .page_component_sort_handle {
+                cursor: pointer;
+            }
         }
     }
 

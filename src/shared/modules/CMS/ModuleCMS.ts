@@ -128,7 +128,17 @@ export default class ModuleCMS extends Module {
         this.initializeHTML_Img_ComponentVO();
     }
 
+    public async hook_module_async_client_admin_initialization(): Promise<any> {
+        await this.configure_templates();
+        return true;
+    }
+
     public async hook_module_configure(): Promise<boolean> {
+        await this.configure_templates();
+        return true;
+    }
+
+    private async configure_templates(): Promise<boolean> {
         let templateComponent: TemplateComponentVO = new TemplateComponentVO();
         templateComponent.type_id = HtmlComponentVO.API_TYPE_ID;
         templateComponent.weight = 0;
@@ -228,7 +238,8 @@ export default class ModuleCMS extends Module {
         let datatable_fields = [
             page_id,
             image_vo_id,
-            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'HTML', false)
+            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_html, 'HTML', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, ImgHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
@@ -242,7 +253,8 @@ export default class ModuleCMS extends Module {
         let datatable_fields = [
             page_id,
             image_vo_id,
-            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'HTML', false)
+            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_html, 'HTML', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, HtmlImgComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
@@ -254,7 +266,8 @@ export default class ModuleCMS extends Module {
         let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
         let datatable_fields = [
             page_id,
-            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'Texte', false)
+            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_html, 'Texte', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, HtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
@@ -266,8 +279,9 @@ export default class ModuleCMS extends Module {
         let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
         let datatable_fields = [
             page_id,
-            new ModuleTableField('left_html', ModuleTableField.FIELD_TYPE_string, 'Texte - Gauche', false),
-            new ModuleTableField('right_html', ModuleTableField.FIELD_TYPE_string, 'Texte - Droite', false)
+            new ModuleTableField('left_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Gauche', false),
+            new ModuleTableField('right_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Droite', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, HtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
@@ -279,9 +293,10 @@ export default class ModuleCMS extends Module {
         let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
         let datatable_fields = [
             page_id,
-            new ModuleTableField('left_html', ModuleTableField.FIELD_TYPE_string, 'Texte - Gauche', false),
-            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'Texte - Centre', false),
-            new ModuleTableField('right_html', ModuleTableField.FIELD_TYPE_string, 'Texte - Droite', false)
+            new ModuleTableField('left_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Gauche', false),
+            new ModuleTableField('center_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Centre', false),
+            new ModuleTableField('right_html', ModuleTableField.FIELD_TYPE_html, 'Texte - Droite', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
         let datatable = new ModuleTable(this, HtmlHtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");

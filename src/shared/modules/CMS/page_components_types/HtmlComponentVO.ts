@@ -7,7 +7,6 @@ export default class HtmlComponentVO implements IInstantiatedPageComponent {
     public _type: string = HtmlComponentVO.API_TYPE_ID;
 
     public page_id: number;
-    public page_component_id: number;
     public weight: number;
 
     public html: string;
