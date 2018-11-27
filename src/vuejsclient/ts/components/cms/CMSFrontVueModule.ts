@@ -78,14 +78,22 @@ export default class CMSFrontVueModule extends VueModuleBase {
         for (let cms_route in cms_routes_by_aliases) {
             let page: PageVO = cms_routes_by_aliases[cms_route];
 
-            this.routes.push({
-                path: page.main_route,
-                component: CMSPageComponent,
-                props: () => ({
-                    page_id: page.id,
-                    preloaded_page: page
-                })
-            });
+            let cleaned_route: string = ModuleCMS.getInstance().clean_route(page.main_route);
+
+            if (cms_route == cleaned_route) {
+                this.routes.push({
+                    path: cleaned_route,
+                    component: CMSPageComponent,
+                    props: () => ({
+                        page_id: page.id,
+                        preloaded_page: page
+                    })
+                });
+            } else {
+                this.routes.push({
+                    path: cms_route, redirect: cleaned_route
+                });
+            }
         }
     }
 }

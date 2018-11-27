@@ -1,3 +1,47 @@
 .cms_page {
 
+    .cms_page_admin_show_hide {
+        top: 1em;
+        position: fixed;
+        right: 25em;
+        background: white;
+        box-shadow: 1px 1px 40px -10px #000;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+
+    .cms_page_admin_show_hide.hidden_admin {
+        right: 10px;
+    }
+
+    .cms_page_admin {
+        display: block;
+        width: 23em;
+        border: solid;
+        position: fixed;
+        top: 1em;
+        right: 10px;
+        height: 90%;
+        background: white;
+        box-shadow: 1px 1px 40px -10px #000;
+    }
+
+    .cms_page_admin.hidden_admin {
+        display: none;
+    }
+
+    #sortable_page_component_list {
+        min-height: 100px;
+        min-width: 100%;
+
+        .sortable_page_component_list_placeholder {
+            background: #AAA;
+            border: solid #888;
+        }
+    }
+
+    .cms_page_content.cms_fo_admin {
+        padding-bottom: 50px;
+        padding-top: 20px;
+    }
 }

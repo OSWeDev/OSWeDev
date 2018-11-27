@@ -16,12 +16,15 @@ import TemplateComponentVO from '../../../../../shared/modules/CMS/vos/TemplateC
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import ImageViewComponent from '../../image/View/ImageViewComponent';
 import CMSDroppableTemplateComponent from './droppable_template/CMSDroppableTemplateComponent';
+import * as draggable from 'vuedraggable';
+import { userInfo } from 'os';
 
 @Component({
     template: require('./CMSPageComponent.pug'),
     components: {
         'image-view-component': ImageViewComponent,
-        'cms_droppable_template_component': CMSDroppableTemplateComponent
+        'cms_droppable_template_component': CMSDroppableTemplateComponent,
+        'draggable': draggable
     }
 })
 export default class CMSPageComponent extends VueComponentBase {
@@ -42,8 +45,10 @@ export default class CMSPageComponent extends VueComponentBase {
     private page_id: number;
 
     private page_vo: PageVO = null;
-    private instantiated_page_components: IInstantiatedPageComponent[] = null;
+    private instantiated_page_components: IInstantiatedPageComponent[] = [];
     private has_access_to_cms_fo_admin: boolean = false;
+
+    private hidden_admin: boolean = true;
 
     get template_components(): TemplateComponentVO[] {
         let res: TemplateComponentVO[] = [];
@@ -77,6 +82,9 @@ export default class CMSPageComponent extends VueComponentBase {
         })());
         promises.push((async () => {
             self.instantiated_page_components = await ModuleCMS.getInstance().getPageComponents(self.page_id);
+            if (!self.instantiated_page_components) {
+                self.instantiated_page_components = [];
+            }
         })());
         promises.push((async () => {
             self.has_access_to_cms_fo_admin = await ModuleAccessPolicy.getInstance().checkAccess(ModuleCMS.POLICY_BO_ACCESS);
@@ -93,5 +101,29 @@ export default class CMSPageComponent extends VueComponentBase {
         }
 
         this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await ModuleDAO.getInstance().getVos<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID) });
+
+        $("#sortable_page_component_list").sortable({
+            revert: true,
+            placeholder: "sortable_page_component_list_placeholder",
+            receive: async (event, ui) => { await this.onReceiveNewTemplateComponent(event, ui); }
+        });
+    }
+
+    private async onReceiveNewTemplateComponent(event, ui) {
+        let template_component = $(ui.item).data('template_component');
+        let index = ui.item.index();
+
+        // Refuser de rajouter le template
+        $("#sortable_page_component_list").sortable("cancel");
+
+        // Mais ajouter le composant instancié
+        if (index > 0) {
+            $('#sortable_page_component_list>:nth-child(' + (index + 1) + ')').remove();
+            $("<div class='page_component_wrapper'>ITEM instance</div>").insertAfter($('#sortable_page_component_list>:nth-child(' + index + ')'));
+        } else {
+            $('#sortable_page_component_list>:nth-child(1)').remove();
+            $("<div class='page_component_wrapper'>ITEM instance</div>").prependTo($('#sortable_page_component_list'));
+        }
+        $("#sortable_page_component_list").sortable("refresh");
     }
 }

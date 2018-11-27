@@ -1,20 +1,11 @@
+import * as $ from 'jquery';
+import 'jqueryui';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import IInstantiatedPageComponent from '../../../../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
-import ModuleCMS from '../../../../../../shared/modules/CMS/ModuleCMS';
-import PageVO from '../../../../../../shared/modules/CMS/vos/PageVO';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
-import VueComponentBase from '../../../../../ts/components/VueComponentBase';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
-import CMSComponentManager from '../../CMSComponentManager';
-import './CMSDroppableTemplateComponent.scss';
-import ICMSComponentTemplateVue from '../../interfaces/ICMSComponentTemplateVue';
-import { VueConstructor } from 'vue';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import TemplateComponentVO from '../../../../../../shared/modules/CMS/vos/TemplateComponentVO';
-import WeightHandler from '../../../../../../shared/tools/WeightHandler';
+import VueComponentBase from '../../../../../ts/components/VueComponentBase';
 import ImageViewComponent from '../../../image/View/ImageViewComponent';
+import './CMSDroppableTemplateComponent.scss';
 
 @Component({
     template: require('./CMSDroppableTemplateComponent.pug'),
@@ -40,8 +31,13 @@ export default class CMSDroppableTemplateComponent extends VueComponentBase {
         // make the event draggable using jQuery UI
         $(this.$el).draggable({
             zIndex: 10000,
-            revert: true, // will cause the event to go back to its
-            revertDuration: 0 //  original position after the drag
+            revertDuration: 0, //  original position after the drag
+            opacity: 0.7,
+            helper: "clone",
+            cursor: "pointer",
+            cursorAt: { top: -10, left: -2 },
+            connectToSortable: "#sortable_page_component_list",
+            revert: "invalid"
         });
     }
 }

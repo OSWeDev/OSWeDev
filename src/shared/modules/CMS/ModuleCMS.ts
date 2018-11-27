@@ -214,7 +214,7 @@ export default class ModuleCMS extends Module {
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable = new ModuleTable(this, TemplateComponentVO.API_TYPE_ID, datatable_fields, label_field, "Alias des pages");
+        let datatable = new ModuleTable(this, TemplateComponentVO.API_TYPE_ID, datatable_fields, label_field, "Templates de composants");
         translatable_name_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
         translatable_desc_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID]);
         thumbnail_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
@@ -279,9 +279,9 @@ export default class ModuleCMS extends Module {
         let page_id = new ModuleTableField('page_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Page', true);
         let datatable_fields = [
             page_id,
-            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'Texte - Gauche', false),
+            new ModuleTableField('left_html', ModuleTableField.FIELD_TYPE_string, 'Texte - Gauche', false),
             new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'Texte - Centre', false),
-            new ModuleTableField('html', ModuleTableField.FIELD_TYPE_string, 'Texte - Droite', false)
+            new ModuleTableField('right_html', ModuleTableField.FIELD_TYPE_string, 'Texte - Droite', false)
         ];
 
         let datatable = new ModuleTable(this, HtmlHtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");

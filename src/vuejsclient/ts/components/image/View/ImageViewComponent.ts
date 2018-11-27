@@ -23,7 +23,7 @@ export default class ImageViewComponent extends VueComponentBase {
 
     private imagevo: ImageVO = null;
 
-    @Watch('imagevo_id')
+    @Watch('imagevo_id', { immediate: true })
     public async onChange_imagevo_id() {
         this.imagevo = null;
 
