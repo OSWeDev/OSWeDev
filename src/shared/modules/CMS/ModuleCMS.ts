@@ -244,6 +244,7 @@ export default class ModuleCMS extends Module {
 
         let datatable = new ModuleTable(this, ImgHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
         page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        image_vo_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -259,6 +260,7 @@ export default class ModuleCMS extends Module {
 
         let datatable = new ModuleTable(this, HtmlImgComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
         page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
+        image_vo_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 

@@ -19,6 +19,8 @@ import CMSDroppableTemplateComponent from './droppable_template/CMSDroppableTemp
 import * as draggable from 'vuedraggable';
 import { userInfo } from 'os';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleAPI from '../../../../../shared/modules/API/ModuleAPI';
+import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 @Component({
     template: require('./CMSPageComponent.pug'),
@@ -108,74 +110,95 @@ export default class CMSPageComponent extends VueComponentBase {
             placeholder: "sortable_page_component_list_placeholder",
             receive: async (event, ui) => { await this.onReceiveNewTemplateComponent(event, ui); },
             handle: '.page_component_sort_handle',
-            stop: async (event, ui) => { await this.onChangeOrder(event, ui); },
+            update: async (event, ui) => { await this.onChangeOrder(event, ui); },
 
         });
     }
 
     private async onChangeOrder(event, ui) {
+        let instantiated_page_component_vo_type: string = $(ui.item).attr('instantiated_page_component_vo_type');
+        if (!instantiated_page_component_vo_type) {
+            return;
+        }
+
         this.snotify.info(this.label('cms.change_order.start'));
 
-        let instantiated_page_component_id: number = parseInt($(ui.item).data('instantiated_page_component_id').toString());
-        let instantiated_page_component_vo_type: string = $(ui.item).data('instantiated_page_component_vo_type');
+        let instantiated_page_component_id: number = parseInt($(ui.item).attr('instantiated_page_component_id').toString());
         let instantiated_page_component: IInstantiatedPageComponent = await ModuleDAO.getInstance().getVoById<IInstantiatedPageComponent>(instantiated_page_component_vo_type, instantiated_page_component_id);
         let index = ui.item.index();
 
-        // Décaler les poids des autres composants après celui-ci
-        for (let i in this.instantiated_page_components) {
-            let instantiated_page_component_: IInstantiatedPageComponent = this.instantiated_page_components[i];
-
-            if (instantiated_page_component_.weight >= index) {
-                instantiated_page_component_.weight++;
-                await ModuleDAO.getInstance().insertOrUpdateVO(instantiated_page_component_);
-            }
-        }
-
-        instantiated_page_component.weight = index;
-
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(instantiated_page_component);
-        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+        if (!await this.updateWeights()) {
             this.snotify.error(this.label('cms.change_order.failure'));
             return;
         }
 
-        this.instantiated_page_components = await ModuleCMS.getInstance().getPageComponents(this.page_id);
-        if (!this.instantiated_page_components) {
-            this.instantiated_page_components = [];
+        $("#sortable_page_component_list").sortable("cancel");
+
+        await this.update_list();
+    }
+
+    /**
+     * On met simplement à jour les poids pour correspondre à l'ordre actuel
+     */
+    private async updateWeights(): Promise<boolean> {
+        let items = $("#sortable_page_component_list>");
+
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+
+            let instantiated_page_component_vo_type: string = $(item).attr('instantiated_page_component_vo_type');
+            if (!instantiated_page_component_vo_type) {
+                continue;
+            }
+
+            let instantiated_page_component_id: number = parseInt($(item).attr('instantiated_page_component_id').toString());
+            let instantiated_page_component: IInstantiatedPageComponent = await ModuleDAO.getInstance().getVoById<IInstantiatedPageComponent>(instantiated_page_component_vo_type, instantiated_page_component_id);
+
+            let index: number = parseInt(i.toString());
+
+            if (index == instantiated_page_component.weight) {
+                continue;
+            }
+
+            instantiated_page_component.weight = index;
+
+            let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(instantiated_page_component);
+            if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                return false;
+            }
         }
 
-        // Waiting for an update of the lists
-        let self = this;
-        this.$nextTick(() => {
-            $("#sortable_page_component_list").sortable("refresh");
-            self.snotify.success(self.label('cms.change_order.ok'));
-        });
+        return true;
     }
 
     private async onReceiveNewTemplateComponent(event, ui) {
         this.snotify.info(this.label('cms.insert_new_composant.start'));
 
         let template_component: TemplateComponentVO = $(ui.item).data('template_component');
-        let index = ui.item.index();
+
+        // On met à jour les poids, en profitant de la présence du placeholder que l'on va supprimer ensuite
+        if (!await this.updateWeights()) {
+            this.snotify.error(this.label('cms.insert_new_composant.failure'));
+            return;
+        }
 
         // Refuser de rajouter le template
-        $("#sortable_page_component_list").sortable("cancel");
-        $('#sortable_page_component_list>:nth-child(' + (index + 1) + ')').remove();
+        // $("#sortable_page_component_list").sortable("cancel");
 
-        // let new_composant_constructor: VueConstructor<ICMSComponentTemplateVue> = CMSComponentManager.getInstance().template_component_vue_by_type_id[template_component.type_id];
-
-        // Décaler les poids des autres composants après celui-ci
-        for (let i in this.instantiated_page_components) {
-
-            if (i < index) {
+        // L'index fournit est absurde, donc on va le chercher nous-mêmes en nettoyant au passage le dom
+        let index: number = 0;
+        let items = $('#sortable_page_component_list>');
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+            let instantiated_page_component_vo_type: string = $(item).attr('instantiated_page_component_vo_type');
+            if (instantiated_page_component_vo_type) {
                 continue;
             }
 
-            let instantiated_page_component: IInstantiatedPageComponent = this.instantiated_page_components[i];
-
-            instantiated_page_component.weight++;
-            await ModuleDAO.getInstance().insertOrUpdateVO(instantiated_page_component);
+            // si on a pas de type, c'est qu'on est sur l'insert
+            index = parseInt(i.toString());
         }
+        $('#sortable_page_component_list>:nth-child(' + (index + 1) + ')').remove();
 
         let new_composant_constructor: IInstantiatedPageComponent = {
             id: null,
@@ -190,26 +213,88 @@ export default class CMSPageComponent extends VueComponentBase {
             return;
         }
         new_composant_constructor.id = parseInt(insertOrDeleteQueryResult.id);
-        // this.storeData(new_composant_constructor);
+
+        await this.update_list();
+    }
+
+    private async deleteComponent(instantiated_page_component: IInstantiatedPageComponent) {
+        let self = this;
+
+        // On demande confirmation avant toute chose.
+        // si on valide, on lance la suppression
+        self.snotify.confirm(self.label('cms.delete.confirmation.body'), self.label('cms.delete.confirmation.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.info(self.label('cms.delete.start'));
+
+                        let insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs([instantiated_page_component]);
+                        if ((!insertOrDeleteQueryResult_) || (insertOrDeleteQueryResult_.length != 1)) {
+                            self.snotify.error(self.label('cms.delete.error'));
+                            return;
+                        }
+
+                        await this.update_list();
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
+
+    private async update_list(force: boolean = false) {
+
+        if (force) {
+            for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
+                let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
+                ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([registered_template_component.type_id]);
+            }
+            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([TemplateComponentVO.API_TYPE_ID]);
+        }
+
+        $("#sortable_page_component_list").sortable("destroy");
 
         this.instantiated_page_components = await ModuleCMS.getInstance().getPageComponents(this.page_id);
         if (!this.instantiated_page_components) {
             this.instantiated_page_components = [];
         }
 
-        // Mais ajouter le composant instancié
-        // if (index > 0) {
-        //     $("<div class='page_component_wrapper'>ITEM instance</div>").insertAfter($('#sortable_page_component_list>:nth-child(' + index + ')'));
-        // } else {
-        //     $("<div class='page_component_wrapper'>ITEM instance</div>").prependTo($('#sortable_page_component_list'));
-        // }
-        // $("#sortable_page_component_list").sortable("refresh");
+        this.storeDatas({ API_TYPE_ID: TemplateComponentVO.API_TYPE_ID, vos: await ModuleDAO.getInstance().getVos<TemplateComponentVO>(TemplateComponentVO.API_TYPE_ID) });
+
+        // $("#sortable_page_component_list").sortable({
+        //     revert: true,
+        //     placeholder: "sortable_page_component_list_placeholder",
+        //     receive: async (event, ui) => { await this.onReceiveNewTemplateComponent(event, ui); },
+        //     handle: '.page_component_sort_handle',
+        //     update: async (event, ui) => { await this.onChangeOrder(event, ui); },
+
+        // });
 
         // Waiting for an update of the lists
         let self = this;
         this.$nextTick(() => {
-            $("#sortable_page_component_list").sortable("refresh");
-            self.snotify.success(self.label('cms.insert_new_composant.ok'));
+            // $("#sortable_page_component_list").sortable("refresh");
+            $("#sortable_page_component_list").sortable({
+                revert: true,
+                placeholder: "sortable_page_component_list_placeholder",
+                receive: async (event, ui) => { await this.onReceiveNewTemplateComponent(event, ui); },
+                handle: '.page_component_sort_handle',
+                update: async (event, ui) => { await this.onChangeOrder(event, ui); },
+
+            });
+            self.snotify.success(self.label('cms.action.ok'));
         });
     }
 }
