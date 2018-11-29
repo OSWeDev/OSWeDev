@@ -1,7 +1,6 @@
 import { Component, Vue, Watch, Prop } from 'vue-property-decorator';
 import VueComponentBase from '../../../VueComponentBase';
 import ColumnVO from '../../vos/ColumnVO';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import ReportingTrendComponent from '../trend/ReportingTrendComponent';
 import ColumnDataVO from '../../vos/ColumnDataVO';
 
@@ -18,23 +17,31 @@ export default class ReportingColumnComponent extends VueComponentBase {
 
     public mounted(): void { }
 
-    get classes(): string {
-        if (!this.columnData || !this.columnData.column) {
-            return null;
+    get isAmountSlot(): boolean {
+        if (!this.column) {
+            return false;
         }
 
-        return ColumnVO.GET_CLASSES(this.columnData.column);
-    }
-
-    get isAmountSlot(): boolean {
-        return this.columnData.type == ReportingTrendComponent.TYPE_AMOUNT;
+        return this.column.type == ColumnVO.TYPE_AMOUNT;
     }
 
     get isPercentSlot(): boolean {
-        return (this.columnData.type == ReportingTrendComponent.TYPE_PERCENT);
+        if (!this.column) {
+            return false;
+        }
+
+        return (this.column.type == ColumnVO.TYPE_PERCENT);
     }
 
     get isFixedSlot(): boolean {
-        return (this.columnData.type == ReportingTrendComponent.TYPE_FIXED);
+        if (!this.column) {
+            return false;
+        }
+
+        return (this.column.type == ColumnVO.TYPE_FIXED);
+    }
+
+    get column(): ColumnVO {
+        return (this.columnData && this.columnData.column) ? this.columnData.column : null;
     }
 }

@@ -1,5 +1,6 @@
 import { Component, Vue, Watch, Prop } from 'vue-property-decorator';
 import VueComponentBase from '../../../VueComponentBase';
+import CardVO from '../../vos/CardVO';
 
 @Component({
     template: require('./ReportingCardComponent.pug'),
@@ -9,9 +10,6 @@ export default class ReportingCardComponent extends VueComponentBase {
 
     public static EMIT_SELECT_EVENT_NAME: string = "select";
     public static EMIT_UNSELECT_EVENT_NAME: string = "unselect";
-
-    public static IMG_TYPE_ICON: string = "icon";
-    public static IMG_TYPE_IMG: string = "img";
 
     @Prop()
     private title: string;
@@ -26,8 +24,8 @@ export default class ReportingCardComponent extends VueComponentBase {
     @Prop()
     private activated: boolean;
 
-    private img_type_icon: string = ReportingCardComponent.IMG_TYPE_ICON;
-    private img_type_img: string = ReportingCardComponent.IMG_TYPE_IMG;
+    private img_type_icon: string = CardVO.IMG_TYPE_ICON;
+    private img_type_img: string = CardVO.IMG_TYPE_IMG;
 
     get cardClasses() {
         return this.activable ? (this.activated ? 'activated' : 'activable') : '';
