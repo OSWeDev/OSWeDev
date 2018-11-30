@@ -1,3 +1,5 @@
+import { Request, Response } from 'express';
+
 export default abstract class APIDefinition<T, U> {
 
     public static API_TYPE_GET: number = 0;
@@ -7,7 +9,7 @@ export default abstract class APIDefinition<T, U> {
     public static API_RETURN_TYPE_RES: number = 1;
     public static API_RETURN_TYPE_FILE: number = 2;
 
-    public SERVER_HANDLER: (translated_param: T) => Promise<U> = null;
+    public SERVER_HANDLER: (translated_param: T, req: Request, res: Response) => Promise<U> = null;
 
     /**
      *

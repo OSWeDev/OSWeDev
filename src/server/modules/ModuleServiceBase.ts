@@ -58,12 +58,15 @@ export default abstract class ModuleServiceBase {
     public db: IDatabase<any>;
 
     protected registered_child_modules: Module[] = [];
+    protected login_child_modules: Module[] = [];
     protected server_child_modules: ModuleServerBase[] = [];
 
     private registered_modules: Module[] = [];
+    private login_modules: Module[] = [];
     private server_modules: ModuleServerBase[] = [];
 
     private registered_base_modules: Module[] = [];
+    private login_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
 
 
@@ -78,6 +81,9 @@ export default abstract class ModuleServiceBase {
     get sharedModules(): Module[] {
         return this.registered_modules;
     }
+    get loginModules(): Module[] {
+        return this.login_modules;
+    }
     get serverModules(): ModuleServerBase[] {
         return this.server_modules;
     }
@@ -89,6 +95,18 @@ export default abstract class ModuleServiceBase {
 
         for (let i in this.registered_base_modules) {
             if (this.registered_base_modules[i] == module) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public isBaseLoginModule(module: Module): boolean {
+        if (!module) {
+            return false;
+        }
+
+        for (let i in this.login_base_modules) {
+            if (this.login_base_modules[i] == module) {
                 return true;
             }
         }
@@ -113,6 +131,10 @@ export default abstract class ModuleServiceBase {
         this.registered_base_modules = this.getBaseModules();
         this.registered_child_modules = this.getChildModules();
         this.registered_modules = [].concat(this.registered_base_modules, this.registered_child_modules);
+
+        this.login_base_modules = this.getLoginBaseModules();
+        this.login_child_modules = this.getLoginChildModules();
+        this.login_modules = [].concat(this.login_base_modules, this.login_child_modules);
 
         this.server_base_modules = this.getServerBaseModules();
         this.server_child_modules = this.getServerChildModules();
@@ -167,6 +189,7 @@ export default abstract class ModuleServiceBase {
     }
 
     protected abstract getChildModules(): Module[];
+    protected abstract getLoginChildModules(): Module[];
     protected abstract getServerChildModules(): ModuleServerBase[];
 
     private async create_modules_base_structure_in_db() {
@@ -276,6 +299,23 @@ export default abstract class ModuleServiceBase {
 
         console.log("Tous les modules ont été configurés");
         return true;
+    }
+
+    private getLoginBaseModules(): Module[] {
+        return [
+            ModuleAjaxCache.getInstance(),
+            ModuleAPI.getInstance(),
+            ModuleDAO.getInstance(),
+            ModuleTranslation.getInstance(),
+            ModuleAccessPolicy.getInstance(),
+            ModuleFile.getInstance(),
+            ModuleImage.getInstance(),
+            ModuleTrigger.getInstance(),
+            ModulePushData.getInstance(),
+            ModuleFormatDatesNombres.getInstance(),
+            ModuleMailer.getInstance(),
+            ModuleSASSSkinConfigurator.getInstance()
+        ];
     }
 
     private getBaseModules(): Module[] {

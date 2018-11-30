@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -27,6 +28,7 @@ import AccessPolicyServerController from './AccessPolicyServerController';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
+import LoginParamVO from '../../../shared/modules/AccessPolicy/vos/apis/LoginParamVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -67,6 +69,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         group.translatable_name = ModuleAccessPolicy.POLICY_GROUP;
         group = await this.registerPolicyGroup(group, new DefaultTranslation({
             fr: 'Droits d\'administration principaux'
+        }));
+
+        let fo_access: AccessPolicyVO = new AccessPolicyVO();
+        fo_access.group_id = group.id;
+        fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS;
+        fo_access.translatable_name = ModuleAccessPolicy.POLICY_FO_ACCESS;
+        fo_access = await this.registerPolicy(fo_access, new DefaultTranslation({
+            fr: 'Accès au front'
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -208,6 +218,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX, this.getAccessMatrix.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
     }
 
     /**
@@ -1022,5 +1033,54 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
         }
         return true;
+    }
+
+    private async loginAndRedirect(param: LoginParamVO, req: Request, res: Response): Promise<UserVO> {
+
+        if ((!req) || (!res)) {
+            return null;
+        }
+
+        try {
+            const session = req.session;
+
+            if (session && session.user) {
+                this.redirectUserPostLogin(param.redirect_to, res);
+
+                return session.user;
+            }
+
+            session.user = null;
+
+            if ((!param) || (!param.email) || (!param.password)) {
+                return null;
+            }
+
+            let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, "WHERE (name = $1 OR email = $1) AND password = crypt($2, password)", [param.email, param.password]);
+
+            if (!user) {
+                return null;
+            }
+
+            session.user = user;
+
+            this.redirectUserPostLogin(param.redirect_to, res);
+
+            return user;
+        } catch (error) {
+            console.error("login:" + param.email + ":" + error);
+        }
+        res.redirect('/login');
+
+        return null;
+    }
+
+    private redirectUserPostLogin(redirect_to: string, res: Response) {
+        if (redirect_to && (redirect_to != "")) {
+            res.redirect(redirect_to);
+        } else {
+            // Par défaut on redirige vers la page d'accueil
+            res.redirect("/");
+        }
     }
 }

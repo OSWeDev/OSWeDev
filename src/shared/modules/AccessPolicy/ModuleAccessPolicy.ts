@@ -21,6 +21,7 @@ import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
+import LoginParamVO from './vos/apis/LoginParamVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -31,6 +32,8 @@ export default class ModuleAccessPolicy extends Module {
     public static POLICY_UID_PREFIX: string = "access.policies.names.";
 
     public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME;
+
+    public static POLICY_FO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".FO_ACCESS";
 
     public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_BO_MODULES_MANAGMENT_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_MODULES_MANAGMENT_ACCESS";
@@ -51,6 +54,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_RESET_PWD = "RESET_PWD";
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
+    public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -136,6 +140,16 @@ export default class ModuleAccessPolicy extends Module {
             [RolePolicyVO.API_TYPE_ID],
             ToggleAccessParamVO.translateCheckAccessParams
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, UserVO>(
+            ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT,
+            [UserVO.API_TYPE_ID],
+            LoginParamVO.translateCheckAccessParams
+        ));
+    }
+
+    public async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<UserVO> {
+        return await ModuleAPI.getInstance().handleAPI<LoginParamVO, UserVO>(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, email, password, redirect_to);
     }
 
     public async getAccessMatrix(inherited_only: boolean): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {

@@ -24,14 +24,17 @@ export default class ModulesClientInitializationDatasGenerator {
             //  et on veut aussi initialiser les params
             let fileContent_admin = this.getFileContent('Admin');
             let fileContent_client = this.getFileContent('Client');
+            let fileContent_login = this.getFileContent('Login');
 
             // 'export default ModulesClientInitializationDatas = ' + JSON.stringify(this.GM.get_modules_infos(req.params.env)) + ';';
             try {
 
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/client/ts/generated/');
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/admin/ts/generated/');
+                await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/login/ts/generated/');
                 await ModuleFileServer.getInstance().writeFile('./src/client/ts/generated/InitializeClientModulesDatas.ts', fileContent_client);
                 await ModuleFileServer.getInstance().writeFile('./src/admin/ts/generated/InitializeAdminModulesDatas.ts', fileContent_admin);
+                await ModuleFileServer.getInstance().writeFile('./src/login/ts/generated/InitializeLoginModulesDatas.ts', fileContent_login);
             } catch (error) {
                 reject(error);
             } finally {
@@ -56,8 +59,17 @@ export default class ModulesClientInitializationDatasGenerator {
     private generateModulesCode(hook: (module: Module, target: string) => {}, target: string) {
         let fileContent = "";
 
-        for (let i in ModuleServiceBase.getInstance().sharedModules) {
-            let module: Module = ModuleServiceBase.getInstance().sharedModules[i];
+        let modules: Module[] = [];
+        switch (target) {
+            case 'Client':
+            case 'Admin':
+                modules = ModuleServiceBase.getInstance().sharedModules;
+                break;
+            case 'Login':
+                modules = ModuleServiceBase.getInstance().loginModules;
+        }
+        for (let i in modules) {
+            let module: Module = modules[i];
 
             if (module.actif) {
                 fileContent += hook(module, target);
@@ -67,10 +79,11 @@ export default class ModulesClientInitializationDatasGenerator {
         return fileContent;
     }
 
-    private generateModuleImport(module: Module) {
+    private generateModuleImport(module: Module, target: string) {
         let path: string = '../../../shared/modules/';
 
-        if (ModuleServiceBase.getInstance().isBaseSharedModule(module)) {
+        if ((((target == 'Client') || (target == 'Admin')) && ModuleServiceBase.getInstance().isBaseSharedModule(module)) ||
+            ((target == 'Login') && ModuleServiceBase.getInstance().isBaseLoginModule(module))) {
             path = 'oswedev/dist/shared/modules/';
         }
 
@@ -98,7 +111,11 @@ export default class ModulesClientInitializationDatasGenerator {
     }
 
     private generateModuleAsyncInitialisation(module: Module, target: string) {
-        return "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_client_admin_initialization();\n" +
-            "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_" + target.toLowerCase() + "_initialization();\n";
+        let res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_" + target.toLowerCase() + "_initialization();\n";
+
+        if ((target == 'Client') || (target == 'Admin')) {
+            res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_client_admin_initialization();\n" + res;
+        }
+        return res;
     }
 }

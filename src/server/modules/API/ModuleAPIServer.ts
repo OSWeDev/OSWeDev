@@ -47,17 +47,17 @@ export default class ModuleAPIServer extends ModuleServerBase {
             }
 
             if (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) {
-                let returnvalue = await api.SERVER_HANDLER(param);
+                let returnvalue = await api.SERVER_HANDLER(param, req, res);
 
                 if (!returnvalue) {
                     returnvalue = {} as any;
                 }
                 res.json(returnvalue);
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_RES) {
-                res.end(await api.SERVER_HANDLER(param));
+                res.end(await api.SERVER_HANDLER(param, req, res));
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
 
-                res.json(await api.SERVER_HANDLER(param));
+                res.json(await api.SERVER_HANDLER(param, req, res));
 
                 // let filedata = await api.SERVER_HANDLER(param);
 
@@ -90,7 +90,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 // // res.write(filedata, 'binary');
                 // // res.end(undefined, 'binary');
             } else {
-                res.end(await api.SERVER_HANDLER(param));
+                res.end(await api.SERVER_HANDLER(param, req, res));
             }
         };
     }
