@@ -189,7 +189,9 @@ export default abstract class ModuleServiceBase {
     }
 
     protected abstract getChildModules(): Module[];
-    protected abstract getLoginChildModules(): Module[];
+    protected getLoginChildModules(): Module[] {
+        return [];
+    }
     protected abstract getServerChildModules(): ModuleServerBase[];
 
     private async create_modules_base_structure_in_db() {

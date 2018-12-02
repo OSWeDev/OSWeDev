@@ -43,6 +43,7 @@ export default abstract class Module implements IModuleBase {
     public async hook_module_async_client_admin_initialization(): Promise<any> { }
     public async hook_module_async_client_initialization(): Promise<any> { }
     public async hook_module_async_admin_initialization(): Promise<any> { }
+    public async hook_module_async_login_initialization(): Promise<any> { }
 
     public getDataTableBySuffixPrefixDatabase(suffix = "", prefix = "module", database = "ref"): ModuleTable<any> {
         if (this.datatables) {

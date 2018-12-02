@@ -224,6 +224,7 @@ export default abstract class ServerBase {
 
         this.app.use('/public', express.static('src/client/public'));
         this.app.use('/admin/public', express.static('src/admin/public'));
+        this.app.use('/login/public', express.static('src/login/public'));
 
         // Le service de push
         this.app.get('/sw_push.js', (req, res, next) => {
