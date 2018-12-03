@@ -139,6 +139,7 @@ export default class ModuleCMS extends Module {
     }
 
     private async configure_templates(): Promise<boolean> {
+
         let templateComponent: TemplateComponentVO = new TemplateComponentVO();
         templateComponent.type_id = HtmlComponentVO.API_TYPE_ID;
         templateComponent.weight = 0;
@@ -242,7 +243,7 @@ export default class ModuleCMS extends Module {
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable = new ModuleTable(this, ImgHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
+        let datatable = new ModuleTable(this, ImgHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : Img+HTML");
         page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         image_vo_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
@@ -258,7 +259,7 @@ export default class ModuleCMS extends Module {
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable = new ModuleTable(this, HtmlImgComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
+        let datatable = new ModuleTable(this, HtmlImgComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML+Img");
         page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         image_vo_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ImageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
@@ -286,7 +287,7 @@ export default class ModuleCMS extends Module {
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable = new ModuleTable(this, HtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
+        let datatable = new ModuleTable(this, HtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML+HTML");
         page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
@@ -301,7 +302,7 @@ export default class ModuleCMS extends Module {
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0)
         ];
 
-        let datatable = new ModuleTable(this, HtmlHtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML");
+        let datatable = new ModuleTable(this, HtmlHtmlHtmlComponentVO.API_TYPE_ID, datatable_fields, null, "Composant template : HTML+HTML+HTML");
         page_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[PageVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }

@@ -43,6 +43,11 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
 import OnPageTranslation from './ts/components/OnPageTranslation/component/OnPageTranslation';
+import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
+import OnPageTranslationPlaceholder from './ts/components/OnPageTranslation/component/OnPageTranslationPlaceholder';
+import AjaxCacheComponent from './ts/components/AjaxCache/component/AjaxCacheComponent';
+import AjaxCacheComponentPlaceholder from './ts/components/ajaxcache/component/AjaxCacheComponentPlaceholder';
 
 export default abstract class VueAppBase {
 
@@ -282,8 +287,20 @@ export default abstract class VueAppBase {
         Vue.use(ToggleButton);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
-        Vue.component('on-page-translation', OnPageTranslation);
         Vue.component('vue-dropzone', vueDropzone);
+
+        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS)) {
+            Vue.component('on-page-translation', OnPageTranslation);
+        } else {
+            Vue.component('on-page-translation', OnPageTranslationPlaceholder);
+        }
+
+        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAjaxCache.POLICY_FO_ACCESS)) {
+            Vue.component('ajax-cache-command-panel', AjaxCacheComponent);
+        } else {
+            Vue.component('ajax-cache-command-panel', AjaxCacheComponentPlaceholder);
+        }
+
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
 

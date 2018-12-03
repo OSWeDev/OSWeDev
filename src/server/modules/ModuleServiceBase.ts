@@ -47,6 +47,7 @@ import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer
 import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
+import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -369,7 +370,8 @@ export default abstract class ModuleServiceBase {
             ModuleCommandeServer.getInstance(),
             ModuleAbonnementServer.getInstance(),
             ModulePaiementServer.getInstance(),
-            ModuleCMSServer.getInstance()
+            ModuleCMSServer.getInstance(),
+            ModuleAjaxCacheServer.getInstance()
         ];
     }
 }

@@ -49,15 +49,26 @@ export default class ModuleAPIServer extends ModuleServerBase {
             if (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) {
                 let returnvalue = await api.SERVER_HANDLER(param, req, res);
 
-                if (!returnvalue) {
+                if ((typeof returnvalue == 'undefined') || (returnvalue == null)) {
                     returnvalue = {} as any;
                 }
-                res.json(returnvalue);
+
+                if (!api.is_autonomous_res_handler) {
+                    res.json(returnvalue);
+                }
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_RES) {
-                res.end(await api.SERVER_HANDLER(param, req, res));
+                let returnvalue = await api.SERVER_HANDLER(param, req, res);
+
+                if (!api.is_autonomous_res_handler) {
+                    res.end(returnvalue);
+                }
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
 
-                res.json(await api.SERVER_HANDLER(param, req, res));
+                let returnvalue = await api.SERVER_HANDLER(param, req, res);
+
+                if (!api.is_autonomous_res_handler) {
+                    res.json(returnvalue);
+                }
 
                 // let filedata = await api.SERVER_HANDLER(param);
 
@@ -90,7 +101,11 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 // // res.write(filedata, 'binary');
                 // // res.end(undefined, 'binary');
             } else {
-                res.end(await api.SERVER_HANDLER(param, req, res));
+                let returnvalue = await api.SERVER_HANDLER(param, req, res);
+
+                if (!api.is_autonomous_res_handler) {
+                    res.end(returnvalue);
+                }
             }
         };
     }

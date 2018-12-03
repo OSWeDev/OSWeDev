@@ -55,6 +55,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
     public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
+    public static APINAME_GET_LOGGED_USER = "GET_LOGGED_USER";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -117,6 +118,11 @@ export default class ModuleAccessPolicy extends Module {
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID]
         ));
 
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, UserVO>(
+            ModuleAccessPolicy.APINAME_GET_LOGGED_USER,
+            [UserVO.API_TYPE_ID]
+        ));
+
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<AddRoleToUserParamVO, void>(
             ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
@@ -146,6 +152,11 @@ export default class ModuleAccessPolicy extends Module {
             [UserVO.API_TYPE_ID],
             LoginParamVO.translateCheckAccessParams
         ));
+        // ).define_as_autonomous_res_handler());
+    }
+
+    public async getLoggedUser(): Promise<UserVO> {
+        return await ModuleAPI.getInstance().handleAPI<void, UserVO>(ModuleAccessPolicy.APINAME_GET_LOGGED_USER);
     }
 
     public async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<UserVO> {

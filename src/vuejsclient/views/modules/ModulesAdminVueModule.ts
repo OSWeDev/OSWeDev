@@ -32,7 +32,7 @@ export default class ModulesAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        if (!ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS)) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS)) {
             return;
         }
 

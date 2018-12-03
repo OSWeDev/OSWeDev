@@ -55,7 +55,7 @@ export default abstract class VueAppController {
 
         await Promise.all(promises);
 
-        this.data_user = datas.data_user;
+        this.data_user = (!!datas.data_user) ? datas.data_user : null;
         ModuleAccessPolicy.getInstance().connected_user = this.data_user;
         this.data_ui_debug = datas.data_ui_debug;
         this.data_base_api_url = datas.data_base_api_url;

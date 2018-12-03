@@ -344,15 +344,22 @@ export default abstract class ServerBase {
         this.app.get('/', async (req, res) => {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS)) {
-                res.redirect('/login?redirect_to=' + encodeURIComponent(req.originalUrl));
+                let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
                 return;
             }
             res.sendFile(path.resolve('./src/client/public/generated/index.html'));
         });
 
-        this.app.get('/admin', async (req, res) => {
+        this.app.get('/admin', async (req: Request, res) => {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS)) {
+
+                if (!await ModuleAccessPolicy.getInstance().getLoggedUser()) {
+                    let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                    res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
+                    return;
+                }
                 res.redirect('/');
                 return;
             }
@@ -476,7 +483,7 @@ export default abstract class ServerBase {
             res.json(JSON.stringify(
                 {
                     data_version: ServerBase.getInstance().version,
-                    data_user: session.user,
+                    data_user: (!!session.user) ? session.user : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     data_base_api_url: "",
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
@@ -492,7 +499,7 @@ export default abstract class ServerBase {
                     data_version: ServerBase.getInstance().version,
                     data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
                     data_node_env: process.env.NODE_ENV,
-                    data_user: session.user,
+                    data_user: (!!session.user) ? session.user : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
                     data_is_dev: ServerBase.getInstance().envParam.ISDEV

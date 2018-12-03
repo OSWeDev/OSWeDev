@@ -1290,7 +1290,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             importHistoric.params = JSON.stringify(this.getOptions);
             importHistoric.segment_date_index = segment_date_index;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
-            importHistoric.user_id = VueAppController.getInstance().data_user.id;
+            importHistoric.user_id = (!!VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
 
             importHistorics.push(importHistoric);
         }

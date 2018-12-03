@@ -31,6 +31,7 @@ import LocaleManager from '../../../shared/tools/LocaleManager';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -271,6 +272,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On filtre suivant les droits d'accès
         return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
+    }
+
+    /**
+     * Cas très spécifique de la connexion où l'on a évidemment pas le droit de lister les comptes, mais il faut tout de même pouvoir se connecter...
+     */
+    public async selectOneUser(login: string, password: string): Promise<UserVO> {
+        let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+
+        let vo: UserVO = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) AND password = crypt($2, password)", [login, password]) as UserVO);
+        return vo;
     }
 
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {

@@ -3,6 +3,12 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 
 export default class AccessPolicyServerController {
 
@@ -19,15 +25,237 @@ export default class AccessPolicyServerController {
     public role_logged: RoleVO = null;
     public role_admin: RoleVO = null;
 
-    public registered_roles: { [role_name: string]: RoleVO };
-    public registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO };
-    public registered_policies: { [policy_name: string]: AccessPolicyVO };
     public registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] };
 
     public registered_roles_by_ids: { [role_id: number]: RoleVO };
     public registered_users_roles: { [uid: number]: RoleVO[] };
     public registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } };
     public registered_policies_by_ids: { [policy_id: number]: AccessPolicyVO };
+
+    private registered_roles: { [role_name: string]: RoleVO };
+    private registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO };
+    private registered_policies: { [policy_name: string]: AccessPolicyVO };
+
+    public get_registered_role(role_name: string): RoleVO {
+        return this.registered_roles[role_name ? role_name.toLowerCase() : role_name];
+    }
+
+    public get_registered_policy_group(group_name: string): AccessPolicyGroupVO {
+        return this.registered_policy_groups[group_name ? group_name.toLowerCase() : group_name];
+    }
+
+    public get_registered_policy(policy_name: string): AccessPolicyVO {
+        return this.registered_policies[policy_name ? policy_name.toLowerCase() : policy_name];
+    }
+
+    public clean_registered_roles() {
+        this.registered_roles = {};
+    }
+
+    public clean_registered_policy_groups() {
+        this.registered_policy_groups = {};
+    }
+
+    public clean_registered_policies() {
+        this.registered_policies = {};
+    }
+
+    public set_registered_role(name: string, object: RoleVO) {
+        if (!name) {
+            return;
+        }
+        this.registered_roles[name.toLowerCase()] = object;
+    }
+
+    public set_registered_policy_group(name: string, object: AccessPolicyGroupVO) {
+        if (!name) {
+            return;
+        }
+        this.registered_policy_groups[name.toLowerCase()] = object;
+    }
+
+    public set_registered_policy(name: string, object: AccessPolicyVO) {
+        if (!name) {
+            return;
+        }
+        this.registered_policies[name.toLowerCase()] = object;
+    }
+
+    public delete_registered_role(name: string) {
+        if (!name) {
+            return;
+        }
+        delete this.registered_roles[name.toLowerCase()];
+    }
+
+    public delete_registered_policy_group(name: string) {
+        if (!name) {
+            return;
+        }
+        delete this.registered_policy_groups[name.toLowerCase()];
+    }
+
+    public delete_registered_policy(name: string) {
+        if (!name) {
+            return;
+        }
+        delete this.registered_policies[name.toLowerCase()];
+    }
+
+    /**
+     * @param role Le rôle à déclarer
+     * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
+     */
+    public async registerRole(role: RoleVO, default_translation: DefaultTranslation): Promise<RoleVO> {
+        if ((!role) || (!role.translatable_name)) {
+            return null;
+        }
+
+        let translatable_name: string = role.translatable_name.toLowerCase();
+
+        if (!AccessPolicyServerController.getInstance().registered_roles) {
+            AccessPolicyServerController.getInstance().registered_roles = {};
+        }
+        if (!AccessPolicyServerController.getInstance().registered_roles_by_ids) {
+            AccessPolicyServerController.getInstance().registered_roles_by_ids = {};
+        }
+
+        if (AccessPolicyServerController.getInstance().registered_roles[translatable_name]) {
+            return AccessPolicyServerController.getInstance().registered_roles[translatable_name];
+        }
+
+        if (default_translation) {
+            default_translation.code_text = role.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+        }
+
+        // Un nouveau rôle a forcément un parent :
+        //  - si c'est le rôle 'identifié', son parent est le rôle 'anonyme'
+        //  - si c'est le rôle 'anonyme', il n'a pas de parent (c'est le seul)
+        //  - si c'est le rôle 'admin', son parent est 'identifié'
+        //  - pour tout autre rôle, son parent est soit 'identifié' soit un autre rôle ajouté (ne peut dépendre de 'anonyme' ou de 'admin')
+
+        if (role.translatable_name == AccessPolicyServerController.getInstance().role_anonymous.translatable_name) {
+            role.parent_role_id = null;
+        } else if (role.translatable_name == AccessPolicyServerController.getInstance().role_logged.translatable_name) {
+            role.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        } else if (role.translatable_name == AccessPolicyServerController.getInstance().role_admin.translatable_name) {
+            role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        } else {
+            if ((!role.parent_role_id) || (role.parent_role_id == AccessPolicyServerController.getInstance().role_anonymous.id) || (role.parent_role_id == AccessPolicyServerController.getInstance().role_admin.id)) {
+                role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+            }
+        }
+
+        let roleFromBDD: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, "where translatable_name = $1", [role.translatable_name]);
+        if (roleFromBDD) {
+            AccessPolicyServerController.getInstance().registered_roles[translatable_name] = roleFromBDD;
+            AccessPolicyServerController.getInstance().registered_roles_by_ids[roleFromBDD.id] = roleFromBDD;
+            return roleFromBDD;
+        }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            console.error('Ajout de role échoué:' + role.translatable_name + ':');
+            return null;
+        }
+
+        role.id = parseInt(insertOrDeleteQueryResult.id);
+        AccessPolicyServerController.getInstance().registered_roles[role.translatable_name] = role;
+        AccessPolicyServerController.getInstance().registered_roles_by_ids[role.id] = role;
+        console.error('Ajout du role OK:' + role.translatable_name + ':');
+        return role;
+    }
+
+    /**
+     * @param group Le group à déclarer
+     * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
+     */
+    public async registerPolicyGroup(group: AccessPolicyGroupVO, default_translation: DefaultTranslation): Promise<AccessPolicyGroupVO> {
+        if ((!group) || (!group.translatable_name)) {
+            return null;
+        }
+
+        let translatable_name: string = group.translatable_name.toLowerCase();
+
+        if (!AccessPolicyServerController.getInstance().registered_policy_groups) {
+            AccessPolicyServerController.getInstance().registered_policy_groups = {};
+        }
+
+        if (AccessPolicyServerController.getInstance().registered_policy_groups[translatable_name]) {
+            return AccessPolicyServerController.getInstance().registered_policy_groups[translatable_name];
+        }
+
+        if (default_translation) {
+            default_translation.code_text = group.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+        }
+
+        let groupFromBDD: AccessPolicyGroupVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyGroupVO>(AccessPolicyGroupVO.API_TYPE_ID, "where translatable_name = $1", [group.translatable_name]);
+        if (groupFromBDD) {
+            AccessPolicyServerController.getInstance().registered_policy_groups[translatable_name] = groupFromBDD;
+            return groupFromBDD;
+        }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(group);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            console.error('Ajout de groupe échoué :' + group.translatable_name + ':');
+            return null;
+        }
+
+        group.id = parseInt(insertOrDeleteQueryResult.id);
+        AccessPolicyServerController.getInstance().registered_policy_groups[translatable_name] = group;
+        console.error('Ajout du groupe OK :' + group.translatable_name + ':');
+        return group;
+    }
+
+    /**
+     * @param policy La policy à déclarer
+     * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
+     */
+    public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation): Promise<AccessPolicyVO> {
+        if ((!policy) || (!policy.translatable_name)) {
+            return null;
+        }
+
+        let translatable_name: string = policy.translatable_name.toLowerCase();
+
+        if (!AccessPolicyServerController.getInstance().registered_policies) {
+            AccessPolicyServerController.getInstance().registered_policies = {};
+        }
+
+        if (!AccessPolicyServerController.getInstance().registered_policies_by_ids) {
+            AccessPolicyServerController.getInstance().registered_policies_by_ids = {};
+        }
+
+        if (AccessPolicyServerController.getInstance().registered_policies[translatable_name]) {
+            return AccessPolicyServerController.getInstance().registered_policies[translatable_name];
+        }
+
+        if (default_translation) {
+            default_translation.code_text = policy.translatable_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(default_translation);
+        }
+
+        let policyFromBDD: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID, "where translatable_name = $1", [policy.translatable_name]);
+        if (policyFromBDD) {
+            AccessPolicyServerController.getInstance().registered_policies[translatable_name] = policyFromBDD;
+            AccessPolicyServerController.getInstance().registered_policies_by_ids[policyFromBDD.id] = policyFromBDD;
+            return policyFromBDD;
+        }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policy);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            console.error('Ajout de droit échoué :' + policy.translatable_name + ':');
+            return null;
+        }
+
+        policy.id = parseInt(insertOrDeleteQueryResult.id);
+        AccessPolicyServerController.getInstance().registered_policies[translatable_name] = policy;
+        AccessPolicyServerController.getInstance().registered_policies_by_ids[policy.id] = policy;
+        console.error('Ajout du droit OK :' + policy.translatable_name + ':');
+        return policy;
+    }
 
     /**
      * Public pour faire des tests unitaires principalement.
@@ -65,6 +293,43 @@ export default class AccessPolicyServerController {
                     res[role.id] = role;
                 }
                 role = role.parent_role_id ? all_roles[role.parent_role_id] : null;
+            }
+        }
+
+        return res;
+    }
+
+    public async getAccessMatrix(ignore_role: boolean = false): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
+            return null;
+        }
+
+        let res: { [policy_id: number]: { [role_id: number]: boolean } } = {};
+
+        // Pour toutes les policies et tous les rôles, on fait un checkaccess. C'est bourrin mais pas mieux en stock pour être sûr d'avoir le bon résultat
+        for (let i in AccessPolicyServerController.getInstance().registered_policies) {
+            let policy: AccessPolicyVO = AccessPolicyServerController.getInstance().registered_policies[i];
+
+            if (!res[policy.id]) {
+                res[policy.id] = {};
+            }
+
+            for (let j in AccessPolicyServerController.getInstance().registered_roles) {
+                let role: RoleVO = AccessPolicyServerController.getInstance().registered_roles[j];
+
+                // On ignore l'admin qui a accès à tout
+                if (role.id == AccessPolicyServerController.getInstance().role_admin.id) {
+                    continue;
+                }
+
+                res[policy.id][role.id] = AccessPolicyServerController.getInstance().checkAccessTo(
+                    policy,
+                    { [role.id]: role },
+                    AccessPolicyServerController.getInstance().registered_roles_by_ids,
+                    AccessPolicyServerController.getInstance().registered_roles_policies,
+                    AccessPolicyServerController.getInstance().registered_policies_by_ids,
+                    AccessPolicyServerController.getInstance().registered_dependencies,
+                    ignore_role ? role : null);
             }
         }
 

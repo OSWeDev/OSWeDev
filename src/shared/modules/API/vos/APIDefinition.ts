@@ -11,6 +11,8 @@ export default abstract class APIDefinition<T, U> {
 
     public SERVER_HANDLER: (translated_param: T, req: Request, res: Response) => Promise<U> = null;
 
+    public is_autonomous_res_handler: boolean = false;
+
     /**
      *
      * @param api_name UID de l'api attention à l'unicité intermodules
@@ -30,5 +32,10 @@ export default abstract class APIDefinition<T, U> {
         public PARAM_TRANSLATE_FROM_REQ: (url: any) => Promise<T> = null,
 
         public api_return_type: number = 0) {
+    }
+
+    public define_as_autonomous_res_handler(): APIDefinition<T, U> {
+        this.is_autonomous_res_handler = true;
+        return this;
     }
 }
