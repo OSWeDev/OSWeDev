@@ -49,7 +49,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             if (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) {
                 let returnvalue = await api.SERVER_HANDLER(param, req, res);
 
-                if ((typeof returnvalue == 'undefined') || (returnvalue == null)) {
+                if (typeof returnvalue == 'undefined') {
                     returnvalue = {} as any;
                 }
 

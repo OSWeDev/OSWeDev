@@ -1,3 +1,4 @@
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
 import NumberParamVO from '../API/vos/apis/NumberParamVO';
 import StringParamVO from '../API/vos/apis/StringParamVO';
@@ -9,16 +10,15 @@ import GetTranslationParamVO from './apis/GetTranslationParamVO';
 import LangVO from './vos/LangVO';
 import TranslatableTextVO from './vos/TranslatableTextVO';
 import TranslationVO from './vos/TranslationVO';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleTranslation extends Module {
 
     public static MODULE_NAME: string = 'Translation';
 
-    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleTranslation.MODULE_NAME;
-    public static POLICY_BO_TRANSLATIONS_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_TRANSLATIONS_ACCESS';
-    public static POLICY_BO_OTHERS_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_OTHERS_ACCESS';
-    public static POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.ON_PAGE_TRANSLATION_MODULE_ACCESS';
+    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleTranslation.MODULE_NAME;
+    public static POLICY_BO_TRANSLATIONS_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_TRANSLATIONS_ACCESS';
+    public static POLICY_BO_OTHERS_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_OTHERS_ACCESS';
+    public static POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.ON_PAGE_TRANSLATION_MODULE_ACCESS';
 
     public static APINAME_GET_TRANSLATABLE_TEXTS: string = "getTranslatableTexts";
     public static APINAME_GET_TRANSLATABLE_TEXT: string = "getTranslatableText";

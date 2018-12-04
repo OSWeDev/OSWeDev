@@ -323,11 +323,11 @@ export default abstract class ModuleServiceBase {
 
     private getBaseModules(): Module[] {
         return [
-            ModuleAjaxCache.getInstance(),
-            ModuleAPI.getInstance(),
             ModuleDAO.getInstance(),
             ModuleTranslation.getInstance(),
             ModuleAccessPolicy.getInstance(),
+            ModuleAPI.getInstance(),
+            ModuleAjaxCache.getInstance(),
             ModuleFile.getInstance(),
             ModuleImage.getInstance(),
             ModuleTrigger.getInstance(),
@@ -351,10 +351,11 @@ export default abstract class ModuleServiceBase {
 
     private getServerBaseModules(): ModuleServerBase[] {
         return [
-            ModuleAPIServer.getInstance(),
             ModuleDAOServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
+            ModuleAPIServer.getInstance(),
+            ModuleAjaxCacheServer.getInstance(),
             ModuleFileServer.getInstance(),
             ModuleImageServer.getInstance(),
             ModuleCronServer.getInstance(),
@@ -370,8 +371,7 @@ export default abstract class ModuleServiceBase {
             ModuleCommandeServer.getInstance(),
             ModuleAbonnementServer.getInstance(),
             ModulePaiementServer.getInstance(),
-            ModuleCMSServer.getInstance(),
-            ModuleAjaxCacheServer.getInstance()
+            ModuleCMSServer.getInstance()
         ];
     }
 }

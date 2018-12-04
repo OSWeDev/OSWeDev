@@ -96,10 +96,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[i];
             let vo_type: string = moduleTable.vo_type;
 
-            // On ne s'intéresse pas aux tables des paramétrages de modules (à tord peut-etre ...) qui sont admin uniquement
-            if (moduleTable.isModuleParamTable) {
-                continue;
-            }
+            // // On ne s'intéresse pas aux tables des paramétrages de modules (à tord peut-etre ...) qui sont admin uniquement
+            //  Evidemment à tord ....
+            // if (moduleTable.isModuleParamTable) {
+            //     continue;
+            // }
 
             // On a besoin de la trad de ce vo_type, si possible celle en base, sinon celle en default translation si elle existe, sinon on reste sur le vo_type
             let vo_translation: string = vo_type;

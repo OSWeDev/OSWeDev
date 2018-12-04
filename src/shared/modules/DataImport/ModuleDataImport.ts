@@ -1,4 +1,4 @@
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import ModuleAPI from '../API/ModuleAPI';
@@ -22,8 +22,8 @@ export default class ModuleDataImport extends Module {
 
     public static MODULE_NAME: string = 'DataImport';
 
-    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleDataImport.MODULE_NAME;
-    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleDataImport.MODULE_NAME + '.BO_ACCESS';
+    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDataImport.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDataImport.MODULE_NAME + '.BO_ACCESS';
 
     public static IMPORT_SCHEMA: string = 'imports';
 

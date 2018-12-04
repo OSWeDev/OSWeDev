@@ -927,7 +927,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     //     }
     // }
 
-    private getLoggedUser(req: Request): Promise<UserVO> {
+    private getLoggedUser(noparam, req: Request): Promise<UserVO> {
         if (!req) {
             return null;
         }

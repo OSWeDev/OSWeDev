@@ -9,15 +9,15 @@ import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
 import CacheInvalidationRegexpRuleVO from './vos/CacheInvalidationRegexpRuleVO';
 import CacheInvalidationRulesVO from './vos/CacheInvalidationRulesVO';
 import { Duration } from 'moment';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 
 export default class ModuleAjaxCache extends Module {
 
     public static MODULE_NAME: string = "AjaxCache";
 
-    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleAjaxCache.MODULE_NAME;
+    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleAjaxCache.MODULE_NAME;
 
-    public static POLICY_FO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAjaxCache.MODULE_NAME + ".FO_ACCESS";
+    public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAjaxCache.MODULE_NAME + ".FO_ACCESS";
 
     public static getInstance(): ModuleAjaxCache {
         if (!ModuleAjaxCache.instance) {

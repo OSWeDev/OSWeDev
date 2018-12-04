@@ -1,5 +1,5 @@
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import URLHandler from '../../tools/URLHandler';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import ModuleAPI from '../API/ModuleAPI';
 import NumberParamVO from '../API/vos/apis/NumberParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
@@ -14,20 +14,20 @@ import IInstantiatedPageComponent from './interfaces/IInstantiatedPageComponent'
 import HtmlComponentVO from './page_components_types/HtmlComponentVO';
 import HtmlHtmlComponentVO from './page_components_types/HtmlHtmlComponentVO';
 import HtmlHtmlHtmlComponentVO from './page_components_types/HtmlHtmlHtmlComponentVO';
+import HtmlImgComponentVO from './page_components_types/HtmlImgComponentVO';
 import ImgHtmlComponentVO from './page_components_types/ImgHtmlComponentVO';
 import ContentTypeVO from './vos/ContentTypeVO';
 import PageAliasVO from './vos/PageAliasVO';
 import PageVO from './vos/PageVO';
 import TemplateComponentVO from './vos/TemplateComponentVO';
-import HtmlImgComponentVO from './page_components_types/HtmlImgComponentVO';
 
 export default class ModuleCMS extends Module {
 
     public static MODULE_NAME: string = "CMS";
-    public static POLICY_GROUP = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleCMS.MODULE_NAME;
+    public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleCMS.MODULE_NAME;
 
-    public static POLICY_BO_ACCESS = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleCMS.MODULE_NAME + ".BO_ACCESS";
-    public static POLICY_FO_ACCESS = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleCMS.MODULE_NAME + ".FO_ACCESS";
+    public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleCMS.MODULE_NAME + ".BO_ACCESS";
+    public static POLICY_FO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleCMS.MODULE_NAME + ".FO_ACCESS";
 
     public static APINAME_registerTemplateComponent: string = "registerTemplateComponent";
     public static APINAME_getPageComponents: string = "getPageComponents";

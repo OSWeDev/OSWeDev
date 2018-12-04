@@ -1,26 +1,25 @@
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import UserVO from '../AccessPolicy/vos/UserVO';
+import ModuleAPI from '../API/ModuleAPI';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import ModuleAPI from '../API/ModuleAPI';
 import IPlanRDV from './interfaces/IPlanRDV';
-import ProgramSegmentParamVO from './vos/ProgramSegmentParamVO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
 import IPlanRDVCR from './interfaces/IPlanRDVCR';
-import UserVO from '../AccessPolicy/vos/UserVO';
-import TranslatableTextVO from '../Translation/vos/TranslatableTextVO';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import ProgramSegmentParamVO from './vos/ProgramSegmentParamVO';
 
 export default abstract class ModuleProgramPlanBase extends Module {
 
     public static MODULE_NAME: string = 'ProgramPlanBase';
 
-    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME;
-    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.BO_ACCESS';
-    public static POLICY_FO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_ACCESS';
-    public static POLICY_FO_EDIT: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT';
+    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.BO_ACCESS';
+    public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_ACCESS';
+    public static POLICY_FO_EDIT: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT';
 
     public static APINAME_GET_RDVS_OF_PROGRAM_SEGMENT = "GET_RDVS_OF_PROGRAM_SEGMENT";
     public static APINAME_GET_CRS_OF_PROGRAM_SEGMENT = "GET_CRS_OF_PROGRAM_SEGMENT";
