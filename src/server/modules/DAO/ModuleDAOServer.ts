@@ -31,6 +31,7 @@ import LocaleManager from '../../../shared/tools/LocaleManager';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -95,10 +96,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[i];
             let vo_type: string = moduleTable.vo_type;
 
-            // On ne s'intéresse pas aux tables des paramétrages de modules (à tord peut-etre ...) qui sont admin uniquement
-            if (moduleTable.isModuleParamTable) {
-                continue;
-            }
+            // // On ne s'intéresse pas aux tables des paramétrages de modules (à tord peut-etre ...) qui sont admin uniquement
+            //  Evidemment à tord ....
+            // if (moduleTable.isModuleParamTable) {
+            //     continue;
+            // }
 
             // On a besoin de la trad de ce vo_type, si possible celle en base, sinon celle en default translation si elle existe, sinon on reste sur le vo_type
             let vo_translation: string = vo_type;
@@ -244,6 +246,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.full_name + ";");
     }
 
+
     public async selectAll<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null): Promise<T[]> {
         let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
@@ -270,6 +273,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On filtre suivant les droits d'accès
         return await this.filterVOAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vo);
+    }
+
+    /**
+     * Cas très spécifique de la connexion où l'on a évidemment pas le droit de lister les comptes, mais il faut tout de même pouvoir se connecter...
+     */
+    public async selectOneUser(login: string, password: string): Promise<UserVO> {
+        let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+
+        let vo: UserVO = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) AND password = crypt($2, password)", [login, password]) as UserVO);
+        return vo;
     }
 
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {

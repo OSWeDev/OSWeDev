@@ -21,26 +21,26 @@ import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
+import LoginParamVO from './vos/apis/LoginParamVO';
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 
 export default class ModuleAccessPolicy extends Module {
 
     public static MODULE_NAME: string = "AccessPolicy";
 
-    public static ROLE_UID_PREFIX: string = "access.roles.names.";
-    public static POLICY_GROUP_UID_PREFIX: string = "access.policy_groups.names.";
-    public static POLICY_UID_PREFIX: string = "access.policies.names.";
+    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME;
 
-    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME;
+    public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".FO_ACCESS";
 
-    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
-    public static POLICY_BO_MODULES_MANAGMENT_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_MODULES_MANAGMENT_ACCESS";
-    public static POLICY_BO_RIGHTS_MANAGMENT_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_RIGHTS_MANAGMENT_ACCESS";
-    public static POLICY_BO_USERS_LIST_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_USERS_LIST_ACCESS";
-    public static POLICY_BO_USERS_MANAGMENT_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_USERS_MANAGMENT_ACCESS";
+    public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
+    public static POLICY_BO_MODULES_MANAGMENT_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_MODULES_MANAGMENT_ACCESS";
+    public static POLICY_BO_RIGHTS_MANAGMENT_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_RIGHTS_MANAGMENT_ACCESS";
+    public static POLICY_BO_USERS_LIST_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_USERS_LIST_ACCESS";
+    public static POLICY_BO_USERS_MANAGMENT_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_USERS_MANAGMENT_ACCESS";
 
-    public static ROLE_ADMIN: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'admin';
-    public static ROLE_LOGGED: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'logged';
-    public static ROLE_ANONYMOUS: string = ModuleAccessPolicy.ROLE_UID_PREFIX + 'anonymous';
+    public static ROLE_ADMIN: string = AccessPolicyTools.ROLE_UID_PREFIX + 'admin';
+    public static ROLE_LOGGED: string = AccessPolicyTools.ROLE_UID_PREFIX + 'logged';
+    public static ROLE_ANONYMOUS: string = AccessPolicyTools.ROLE_UID_PREFIX + 'anonymous';
 
     public static APINAME_CHECK_ACCESS = "ACCESS_CHECK_ACCESS";
     public static APINAME_IS_ADMIN = "IS_ADMIN";
@@ -51,6 +51,8 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_RESET_PWD = "RESET_PWD";
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
+    public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
+    public static APINAME_GET_LOGGED_USER = "GET_LOGGED_USER";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -113,6 +115,11 @@ export default class ModuleAccessPolicy extends Module {
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID]
         ));
 
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, UserVO>(
+            ModuleAccessPolicy.APINAME_GET_LOGGED_USER,
+            [UserVO.API_TYPE_ID]
+        ));
+
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<AddRoleToUserParamVO, void>(
             ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
@@ -136,6 +143,21 @@ export default class ModuleAccessPolicy extends Module {
             [RolePolicyVO.API_TYPE_ID],
             ToggleAccessParamVO.translateCheckAccessParams
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, UserVO>(
+            ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT,
+            [UserVO.API_TYPE_ID],
+            LoginParamVO.translateCheckAccessParams
+        ));
+        // ).define_as_autonomous_res_handler());
+    }
+
+    public async getLoggedUser(): Promise<UserVO> {
+        return await ModuleAPI.getInstance().handleAPI<void, UserVO>(ModuleAccessPolicy.APINAME_GET_LOGGED_USER);
+    }
+
+    public async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<UserVO> {
+        return await ModuleAPI.getInstance().handleAPI<LoginParamVO, UserVO>(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, email, password, redirect_to);
     }
 
     public async getAccessMatrix(inherited_only: boolean): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {
@@ -223,7 +245,7 @@ export default class ModuleAccessPolicy extends Module {
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, UserVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Utilisateurs" }));
-        field_lang_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
+        field_lang_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', 'user');
     }
 
@@ -238,7 +260,7 @@ export default class ModuleAccessPolicy extends Module {
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, RoleVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Rôles" }));
-        parent_role_id.addManyToOneRelation(datatable, datatable);
+        parent_role_id.addManyToOneRelation(datatable);
         this.datatables.push(datatable);
     }
 
@@ -252,8 +274,8 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable: ModuleTable<any> = new ModuleTable(this, UserRoleVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Rôles des utilisateurs" }));
 
-        field_user_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        field_role_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_role_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }
@@ -287,7 +309,7 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable: ModuleTable<any> = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Droit" }));
 
-        field_accpolgroup_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyGroupVO.API_TYPE_ID]);
+        field_accpolgroup_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyGroupVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }
@@ -306,8 +328,8 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable: ModuleTable<any> = new ModuleTable(this, PolicyDependencyVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Dépendances entre droits" }));
 
-        src_pol_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
-        depends_on_pol_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
+        src_pol_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
+        depends_on_pol_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }
@@ -324,8 +346,8 @@ export default class ModuleAccessPolicy extends Module {
 
         let datatable: ModuleTable<any> = new ModuleTable(this, RolePolicyVO.API_TYPE_ID, datatable_fields, null, new DefaultTranslation({ fr: "Droits des rôles" }));
 
-        field_accpol_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
-        field_role_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+        field_accpol_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyVO.API_TYPE_ID]);
+        field_role_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }

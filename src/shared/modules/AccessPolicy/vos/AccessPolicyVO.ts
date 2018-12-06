@@ -1,6 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
+import IWeightedItem from '../../../tools/interfaces/IWeightedItem';
 
-export default class AccessPolicyVO implements IDistantVOBase {
+export default class AccessPolicyVO implements IDistantVOBase, IWeightedItem {
 
     public static API_TYPE_ID: string = "accpol";
 

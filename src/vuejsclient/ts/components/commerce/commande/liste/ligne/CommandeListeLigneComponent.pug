@@ -1,0 +1,6 @@
+tr
+    td {{ commande.identifiant }}
+    td {{ commande.date }}
+    td {{ t(statutCommande) }}
+    td 
+        router-link(:to="routeDetail") {{ label('client.commande.detail') }}

@@ -51,6 +51,7 @@ export default class ModuleSASSSkinConfigurator extends Module {
             new ModuleTableField('main_background_int_url', ModuleTableField.FIELD_TYPE_string, 'main_background_int_url'),
             new ModuleTableField('main_background_url', ModuleTableField.FIELD_TYPE_string, 'main_background_url', true, true, '"/public/img/background.jpg"'),
             new ModuleTableField('main_background_header_url', ModuleTableField.FIELD_TYPE_string, 'main_background_header_url'),
+            new ModuleTableField('logo_url', ModuleTableField.FIELD_TYPE_string, 'URL du Logo'),
 
             new ModuleTableField('main_icons_lightbackground', ModuleTableField.FIELD_TYPE_string, 'main_icons_lightbackground', true, true, 'rgba(255,255,255,0.3)'),
 

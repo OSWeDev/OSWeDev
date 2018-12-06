@@ -1,5 +1,4 @@
 import Module from '../Module';
-import ModuleParamChange from '../ModuleParamChange';
 import * as moment from 'moment';
 // if false
 // FIXME RIEN A FAIRE ICI
@@ -10,9 +9,15 @@ import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
 import CacheInvalidationRegexpRuleVO from './vos/CacheInvalidationRegexpRuleVO';
 import CacheInvalidationRulesVO from './vos/CacheInvalidationRulesVO';
 import { Duration } from 'moment';
-import IDistantVOBase from '../IDistantVOBase';
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 
 export default class ModuleAjaxCache extends Module {
+
+    public static MODULE_NAME: string = "AjaxCache";
+
+    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleAjaxCache.MODULE_NAME;
+
+    public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAjaxCache.MODULE_NAME + ".FO_ACCESS";
 
     public static getInstance(): ModuleAjaxCache {
         if (!ModuleAjaxCache.instance) {
@@ -34,7 +39,7 @@ export default class ModuleAjaxCache extends Module {
 
     private constructor() {
 
-        super("ajax_cache", "AjaxCache");
+        super("ajax_cache", ModuleAjaxCache.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 

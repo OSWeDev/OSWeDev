@@ -1,6 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
+import IWeightedItem from '../../../tools/interfaces/IWeightedItem';
 
-export default interface IPlanProgram extends IDistantVOBase {
+export default interface IPlanProgram extends IDistantVOBase, IWeightedItem {
     name: string;
     start_date: string;
     end_date: string;

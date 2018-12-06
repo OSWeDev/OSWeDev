@@ -24,13 +24,15 @@ import FileComponent from '../../file/FileComponent';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ImageComponent from '../../image/ImageComponent';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import MultiInputComponent from '../../multiinput/MultiInputComponent';
 
 @Component({
     template: require('./CRUDComponent.pug'),
     components: {
-        datatable: DatatableComponent,
-        fileinput: FileComponent,
-        imageinput: ImageComponent
+        'datatable': DatatableComponent,
+        'fileinput': FileComponent,
+        'imageinput': ImageComponent,
+        'multi-input': MultiInputComponent
     },
     directives: {
         select2: select2
@@ -220,12 +222,11 @@ export default class CRUDComponent extends VueComponentBase {
                         });
                     })()
                 );
-
-                for (let i in reference.sortedTargetFields) {
-                    res = res.concat(
-                        this.loadDatasFromDatatableField(reference.sortedTargetFields[i])
-                    );
-                }
+            }
+            for (let i in reference.sortedTargetFields) {
+                res = res.concat(
+                    this.loadDatasFromDatatableField(reference.sortedTargetFields[i])
+                );
             }
         }
 
@@ -519,6 +520,9 @@ export default class CRUDComponent extends VueComponentBase {
                         }
                     }
                 }
+                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_int_array) {
+                    res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
+                }
             }
         }
 
@@ -726,6 +730,10 @@ export default class CRUDComponent extends VueComponentBase {
             msg = this.t(error);
         }
         input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
+    }
+
+    private validateMultiInput(values: any[], field: DatatableField<any, any>, vo: string) {
+        this[vo][field.datatable_field_uid] = values;
     }
 
     private onChangeField(vo: IDistantVOBase, field: DatatableField<any, any>) {

@@ -1,0 +1,8 @@
+.row
+    .col-md-12        
+        div.row(v-for="i in nb_values", :index="i-1")
+            div.col-md-10
+                input.form-control(v-model="values[i - 1]", :type="type_input", :required="required", :disabled="disabled", @input="emitInput")
+            div.actions.col-md-2
+                i.fa.fa-plus-circle(v-if="i == nb_values", v-on:click="addNumberToField($event.target)")
+                i.fa.fa-minus-circle(v-if="(i-1) != 0", v-on:click="removeNumberToField($event.target)")

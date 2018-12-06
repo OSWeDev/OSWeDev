@@ -33,6 +33,21 @@ import ModuleFileServer from './File/ModuleFileServer';
 import ModuleFile from '../../shared/modules/File/ModuleFile';
 import ModuleImageServer from './Image/ModuleImageServer';
 import ModuleImage from '../../shared/modules/Image/ModuleImage';
+import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
+import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
+import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
+import ModuleClient from '../../shared/modules/Commerce/Client/ModuleClient';
+import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommande';
+import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
+import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
+import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
+import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
+import ModuleClientServer from './Commerce/Client/ModuleClientServer';
+import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
+import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
+import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
+import ModuleCMSServer from './CMS/ModuleCMSServer';
+import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -42,14 +57,19 @@ export default abstract class ModuleServiceBase {
     private static instance: ModuleServiceBase;
 
     public db: IDatabase<any>;
+
     protected registered_child_modules: Module[] = [];
+    protected login_child_modules: Module[] = [];
     protected server_child_modules: ModuleServerBase[] = [];
 
     private registered_modules: Module[] = [];
+    private login_modules: Module[] = [];
     private server_modules: ModuleServerBase[] = [];
 
     private registered_base_modules: Module[] = [];
+    private login_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
+
 
     protected constructor() {
         ModuleServiceBase.instance = this;
@@ -62,6 +82,9 @@ export default abstract class ModuleServiceBase {
     get sharedModules(): Module[] {
         return this.registered_modules;
     }
+    get loginModules(): Module[] {
+        return this.login_modules;
+    }
     get serverModules(): ModuleServerBase[] {
         return this.server_modules;
     }
@@ -73,6 +96,18 @@ export default abstract class ModuleServiceBase {
 
         for (let i in this.registered_base_modules) {
             if (this.registered_base_modules[i] == module) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public isBaseLoginModule(module: Module): boolean {
+        if (!module) {
+            return false;
+        }
+
+        for (let i in this.login_base_modules) {
+            if (this.login_base_modules[i] == module) {
                 return true;
             }
         }
@@ -97,6 +132,10 @@ export default abstract class ModuleServiceBase {
         this.registered_base_modules = this.getBaseModules();
         this.registered_child_modules = this.getChildModules();
         this.registered_modules = [].concat(this.registered_base_modules, this.registered_child_modules);
+
+        this.login_base_modules = this.getLoginBaseModules();
+        this.login_child_modules = this.getLoginChildModules();
+        this.login_modules = [].concat(this.login_base_modules, this.login_child_modules);
 
         this.server_base_modules = this.getServerBaseModules();
         this.server_child_modules = this.getServerChildModules();
@@ -151,6 +190,9 @@ export default abstract class ModuleServiceBase {
     }
 
     protected abstract getChildModules(): Module[];
+    protected getLoginChildModules(): Module[] {
+        return [];
+    }
     protected abstract getServerChildModules(): ModuleServerBase[];
 
     private async create_modules_base_structure_in_db() {
@@ -262,13 +304,30 @@ export default abstract class ModuleServiceBase {
         return true;
     }
 
-    private getBaseModules(): Module[] {
+    private getLoginBaseModules(): Module[] {
         return [
             ModuleAjaxCache.getInstance(),
             ModuleAPI.getInstance(),
             ModuleDAO.getInstance(),
             ModuleTranslation.getInstance(),
             ModuleAccessPolicy.getInstance(),
+            ModuleFile.getInstance(),
+            ModuleImage.getInstance(),
+            ModuleTrigger.getInstance(),
+            ModulePushData.getInstance(),
+            ModuleFormatDatesNombres.getInstance(),
+            ModuleMailer.getInstance(),
+            ModuleSASSSkinConfigurator.getInstance()
+        ];
+    }
+
+    private getBaseModules(): Module[] {
+        return [
+            ModuleDAO.getInstance(),
+            ModuleTranslation.getInstance(),
+            ModuleAccessPolicy.getInstance(),
+            ModuleAPI.getInstance(),
+            ModuleAjaxCache.getInstance(),
             ModuleFile.getInstance(),
             ModuleImage.getInstance(),
             ModuleTrigger.getInstance(),
@@ -279,16 +338,24 @@ export default abstract class ModuleServiceBase {
             ModuleDataImport.getInstance(),
             ModuleDataExport.getInstance(),
             ModuleDataRender.getInstance(),
-            ModuleSASSSkinConfigurator.getInstance()
+            ModuleSASSSkinConfigurator.getInstance(),
+            ModuleCommerce.getInstance(),
+            ModuleProduit.getInstance(),
+            ModuleClient.getInstance(),
+            ModuleCommande.getInstance(),
+            ModuleAbonnement.getInstance(),
+            ModulePaiement.getInstance(),
+            ModuleCMS.getInstance()
         ];
     }
 
     private getServerBaseModules(): ModuleServerBase[] {
         return [
-            ModuleAPIServer.getInstance(),
             ModuleDAOServer.getInstance(),
             ModuleTranslationServer.getInstance(),
             ModuleAccessPolicyServer.getInstance(),
+            ModuleAPIServer.getInstance(),
+            ModuleAjaxCacheServer.getInstance(),
             ModuleFileServer.getInstance(),
             ModuleImageServer.getInstance(),
             ModuleCronServer.getInstance(),
@@ -297,7 +364,14 @@ export default abstract class ModuleServiceBase {
             ModuleDataImportServer.getInstance(),
             ModuleDataExportServer.getInstance(),
             ModuleDataRenderServer.getInstance(),
-            ModuleSASSSkinConfiguratorServer.getInstance()
+            ModuleSASSSkinConfiguratorServer.getInstance(),
+            ModuleCommerceServer.getInstance(),
+            ModuleProduitServer.getInstance(),
+            ModuleClientServer.getInstance(),
+            ModuleCommandeServer.getInstance(),
+            ModuleAbonnementServer.getInstance(),
+            ModulePaiementServer.getInstance(),
+            ModuleCMSServer.getInstance()
         ];
     }
 }

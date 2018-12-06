@@ -36,7 +36,7 @@ export default class ModuleDBService {
         }
 
         // On appelle le hook
-        if (!await module.hook_module_configure(this.db)) {
+        if (!await module.hook_module_configure()) {
             return false;
         }
 
@@ -245,7 +245,7 @@ export default class ModuleDBService {
         }
 
         // On appelle le hook de fin d'installation
-        await module.hook_module_install(this.db);
+        await module.hook_module_install();
     }
 
     private async loadParams(module: Module) {

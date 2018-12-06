@@ -42,7 +42,6 @@ export default class ModuleTableField<T> {
     public field_loaded: boolean;
 
     public has_relation: boolean;
-    public datatable_uid: string = null;
     public target_database: string = null;
     public target_table: string = null;
     public target_field: string = null;
@@ -83,7 +82,6 @@ export default class ModuleTableField<T> {
         this.validate = this.defaultValidator.bind(this);
         this.field_label = field_label;
         this.has_relation = false;
-        this.datatable_uid = null;
         this.target_database = null;
         this.target_table = null;
         this.target_field = null;
@@ -145,13 +143,12 @@ export default class ModuleTableField<T> {
         if (!this.has_relation) {
             return null;
         }
-        return 'CONSTRAINT ' + this.datatable_uid + '_' + this.field_id + '_fkey FOREIGN KEY (' + this.field_id + ') ' +
+        return 'CONSTRAINT ' + this.field_id + '_fkey FOREIGN KEY (' + this.field_id + ') ' +
             'REFERENCES ' + this.target_database + '.' + this.target_table + ' (' + this.target_field + ') MATCH SIMPLE ' +
             'ON UPDATE NO ACTION ON DELETE CASCADE';
     }
 
-    public addManyToOneRelation<T extends IDistantVOBase, U extends IDistantVOBase>(datatable: ModuleTable<T>, target_database: ModuleTable<U>, default_label_field: ModuleTableField<any> = null) {
-        this.datatable_uid = datatable.datatable_uid;
+    public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTable<U>, default_label_field: ModuleTableField<any> = null) {
         this.manyToOne_target_moduletable = target_database;
         this.target_database = target_database.database;
         this.target_table = target_database.name;

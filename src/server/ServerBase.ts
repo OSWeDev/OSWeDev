@@ -17,6 +17,7 @@ import * as socketIO from 'socket.io';
 import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
@@ -223,6 +224,7 @@ export default abstract class ServerBase {
 
         this.app.use('/public', express.static('src/client/public'));
         this.app.use('/admin/public', express.static('src/admin/public'));
+        this.app.use('/login/public', express.static('src/login/public'));
 
         // Le service de push
         this.app.get('/sw_push.js', (req, res, next) => {
@@ -289,20 +291,21 @@ export default abstract class ServerBase {
         this.app.use(this.session);
 
 
-        this.app.use((req, res, next) => {
-            const session = req.session;
-            const publicPrefix = "/public/";
-            const isPublic = req.path.substring(0, publicPrefix.length) == publicPrefix;
-            if (req.method == "OPTIONS" || req.path == "/login" || req.path == "/recover" || req.path == "/cron" || req.path == "/reset" || req.path == "/logout" || isPublic || session.user) {
-                next();
-            } else {
-                if (req.path.indexOf("/api") == 0) {
-                    return res.sendStatus(401);
-                } else {
-                    res.redirect('/login?url=' + encodeURIComponent(req.originalUrl));
-                }
-            }
-        });
+        // Faille de sécu ? à voir si il manque quelque chose, normalement avec les droits par table directement on devrait être clean...
+        // this.app.use((req, res, next) => {
+        //     const session = req.session;
+        //     const publicPrefix = "/public/";
+        //     const isPublic = req.path.substring(0, publicPrefix.length) == publicPrefix;
+        //     if (req.method == "OPTIONS" || req.path == "/login" || req.path == "/recover" || req.path == "/cron" || req.path == "/reset" || req.path == "/logout" || isPublic || session.user) {
+        //         next();
+        //     } else {
+        //         if (req.path.indexOf("/api") == 0) {
+        //             return res.sendStatus(401);
+        //         } else {
+        //             res.redirect('/login?redirect_to=' + encodeURIComponent(req.originalUrl));
+        //         }
+        //     }
+        // });
 
         this.app.use('/admin/js', express.static('src/admin/public/js'));
 
@@ -338,10 +341,27 @@ export default abstract class ServerBase {
             ignoreRoutes: ["/public"]
         }));
 
-        this.app.get('/admin', async (req, res) => {
+        this.app.get('/', async (req, res) => {
+
+            if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS)) {
+                let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
+                return;
+            }
+            res.sendFile(path.resolve('./src/client/public/generated/index.html'));
+        });
+
+        this.app.get('/admin', async (req: Request, res) => {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS)) {
+
+                if (!await ModuleAccessPolicy.getInstance().getLoggedUser()) {
+                    let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                    res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
+                    return;
+                }
                 res.redirect('/');
+                return;
             }
             res.sendFile(path.resolve('./src/admin/public/generated/admin.html'));
         });
@@ -350,9 +370,7 @@ export default abstract class ServerBase {
         this.app.set('views', 'src/client/views');
 
         this.app.get('/login', (req, res) => {
-            res.render('login.jade', {
-                url: req.query.url || '/'
-            });
+            res.sendFile(path.resolve('./src/login/public/generated/login.html'));
         });
 
         this.app.get('/recover', (req, res) => {
@@ -361,11 +379,6 @@ export default abstract class ServerBase {
 
         this.app.get('/reset', (req, res) => {
             res.render('reset.jade');
-        });
-
-
-        this.app.post('/login', (req, res) => {
-            ServerBase.getInstance().login(req, res, ServerBase.getInstance().jwtSecret);
         });
 
 
@@ -466,17 +479,11 @@ export default abstract class ServerBase {
         });
         this.app.get('/api/clientappcontrollerinit', async (req, res) => {
             const session = req.session;
-            let user_infos = await ServerBase.getInstance().getUserInfos(session.user.email);
-
-            if (!user_infos) {
-                ServerBase.getInstance().sendError(res, "No user info. Please reload.");
-                return;
-            }
 
             res.json(JSON.stringify(
                 {
                     data_version: ServerBase.getInstance().version,
-                    data_user: user_infos,
+                    data_user: (!!session.user) ? session.user : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     data_base_api_url: "",
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
@@ -486,19 +493,13 @@ export default abstract class ServerBase {
 
         this.app.get('/api/adminappcontrollerinit', async (req, res) => {
             const session = req.session;
-            let user_infos = await ServerBase.getInstance().getUserInfos(session.user.email);
-
-            if (!user_infos) {
-                ServerBase.getInstance().sendError(res, "No user info. Please reload.");
-                return;
-            }
 
             res.json(JSON.stringify(
                 {
                     data_version: ServerBase.getInstance().version,
                     data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
                     data_node_env: process.env.NODE_ENV,
-                    data_user: user_infos,
+                    data_user: (!!session.user) ? session.user : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
                     data_is_dev: ServerBase.getInstance().envParam.ISDEV
@@ -529,6 +530,21 @@ export default abstract class ServerBase {
             }), res);
         });
 
+        if (ModuleCommerce.getInstance().actif) {
+            this.app.get('/getIdPanierEnCours', (req: Request, res) => {
+                res.json({ id_panier: this.session.id_panier });
+                res.send();
+            });
+            this.app.get('/setIdPanierEnCours/:value', (req: Request, res) => {
+                this.session.id_panier = parseInt(req.params.value);
+                res.json({ id_panier: this.session.id_panier });
+                res.send();
+            });
+        }
+
+        // this.initializePush();
+        // this.initializePushApis(this.app);
+        this.registerApis(this.app);
 
 
         console.log('listening on port', ServerBase.getInstance().port);
@@ -592,122 +608,10 @@ export default abstract class ServerBase {
     protected abstract hook_configure_express();
     protected abstract getVersion();
 
-    protected async login(req, res, jwtSecret) {
-
-        const session = req.session;
-
-        const email = req.body.email;
-        const password = req.body.password;
-
-        const redirectUrl = req.body.url || '/';
-
-        let request = 'SELECT "user", role FROM web.';
-
-        // JNE : a changer evidemment....
-        request += 'user_info_without_stores';
-        request += ' WHERE login = $1 AND password = crypt($2, password)';
-
-        this.db.one(request, [email, password])
-            .then((row) => {
-                session.user = row.user;
-                session.jwtToken = jwt.sign({
-                    role: row.role
-                }, jwtSecret);
-
-                // console.log('storing in session', JSON.stringify(row.user));
-                // console.log('storing in session jwt for role', row.role, session.jwtToken);
-                // console.log('redirecting to', redirectUrl);
-
-                res.redirect(redirectUrl);
-            })
-            .catch((err) => {
-                console.log("Login error :" + err);
-                res.render('login.jade', {
-                    message: "user/password not found",
-                    url: redirectUrl
-                });
-            });
-    }
-
     protected async getUserData(uid: number) {
         return null;
     }
 
-    // A changer ASAP
-    protected async getUserInfos(email: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            let request = 'SELECT "user" FROM web.';
-            request += 'user_info_without_stores';
-            request += ' WHERE login = $1';
-            ServerBase.getInstance().db.one(request, email)
-                .then((row) => {
-                    resolve(row.user);
-                });
-        });
-    }
-
     protected registerApis(app) {
     }
-
-    // private initializePushApis(app) {
-    //     let self = this;
-
-    //     app.post('/subscribepush', (req, res) => {
-    //         self.subscription = req.body;
-    //         res.status(201).json({});
-    //         const payload = JSON.stringify({ title: 'test' });
-    //         webpush.sendNotification(self.subscription, payload);
-
-    //         setTimeout(self.testNotifs.bind(self), 1000);
-    //     });
-    // }
-
-    // private async testNotifs() {
-
-    //     try {
-
-    //         let allSockets: SocketWrapper[] = ModulePushDataServer.getInstance().getAllSockets();
-    //         let allUsersIds: number[] = [];
-    //         for (let i in allSockets) {
-    //             let socketWrapper: SocketWrapper = allSockets[i];
-    //             if (allUsersIds.indexOf(socketWrapper.userId) < 0) {
-    //                 allUsersIds.push(socketWrapper.userId);
-    //             }
-    //         }
-
-    //         for (let i in allUsersIds) {
-    //             let userId: number = allUsersIds[i];
-
-    //             let notification: NotificationVO = new NotificationVO();
-    //             notification.notification_type = NotificationVO.TYPE_NOTIF_SIMPLE;
-    //             let index = Math.floor(Math.random() * 4);
-    //             notification.simple_notif_type = [NotificationVO.SIMPLE_SUCCESS, NotificationVO.SIMPLE_INFO, NotificationVO.SIMPLE_WARN, NotificationVO.SIMPLE_ERROR][index];
-    //             notification.simple_notif_label = 'notifsimple.' + index;
-
-    //             await ModulePushDataServer.getInstance().notify(userId, notification);
-    //         }
-
-    //         setTimeout(this.testNotifs.bind(this), 5000);
-    //     } catch (e) {
-    //         console.error(e);
-    //     }
-    // }
-
-    // private async testNotifs() {
-    //     const payload = JSON.stringify({ title: 'test' });
-
-    //     try {
-    //         await webpush.sendNotification(this.subscription, payload);
-    //         setTimeout(this.testNotifs.bind(this), 10000);
-    //     } catch (e) {
-    //         console.error(e);
-    //     }
-    // }
-
-    // private initializePush() {
-    //     const publicVapidKey = this.envParam.PUBLIC_VAPID_KEY;
-    //     const privateVapidKey = this.envParam.PRIVATE_VAPID_KEY;
-
-    //     webpush.setVapidDetails('mailto:contact@wedev.fr', publicVapidKey, privateVapidKey);
-    // }
 }

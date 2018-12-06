@@ -1,0 +1,6 @@
+tr
+    td {{ produitTitle }}
+    td(v-html="produitDescription")
+    td {{ const_filters.toFixed.read(prixUnitaire, 2) }}
+    td {{ const_filters.toFixed.read(quantite, 0) }}
+    td {{ const_filters.amount.read(total, 2) }}

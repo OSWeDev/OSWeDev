@@ -1,0 +1,17 @@
+div(v-if="user")
+    h2 
+        span {{ label('client.user.mon-compte.compte') }}
+        i.fa.fa-edit(v-on:click="switchIsEditable")
+    form(onsubmit="return false;")
+        div
+            label(for="name") {{ label('client.user.mon-compte.name') }}
+            input(id="name", type="text", :disabled="!isEditable", v-model="user.name")
+        div
+            label(for="email") {{ label('client.user.mon-compte.email') }}
+            input(id="email", type="text", :disabled="!isEditable", v-model="user.email")
+        div
+            label(for="password") {{ label('client.user.mon-compte.password') }}
+            input(id="password", type="password", disabled="true", value="password")
+            a(href="/recover") {{ label('client.user.mon-compte.reinitialiser-pass') }}
+        div(v-if="isEditable")
+            input(type="submit", class='btn btn-primary', v-on:click="save", :value="label('client.user.mon-compte.sauvegarder')")

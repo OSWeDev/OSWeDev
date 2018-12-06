@@ -1,5 +1,7 @@
+import IWeightedItem from '../../../tools/interfaces/IWeightedItem';
+import IDistantVOBase from '../../IDistantVOBase';
 
-export default class AccessPolicyGroupVO {
+export default class AccessPolicyGroupVO implements IDistantVOBase, IWeightedItem {
     public static API_TYPE_ID: string = "accpolgrp";
 
     public id: number;

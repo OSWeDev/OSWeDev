@@ -1,26 +1,25 @@
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import UserVO from '../AccessPolicy/vos/UserVO';
+import ModuleAPI from '../API/ModuleAPI';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import ModuleAPI from '../API/ModuleAPI';
 import IPlanRDV from './interfaces/IPlanRDV';
-import ProgramSegmentParamVO from './vos/ProgramSegmentParamVO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
 import IPlanRDVCR from './interfaces/IPlanRDVCR';
-import UserVO from '../AccessPolicy/vos/UserVO';
-import TranslatableTextVO from '../Translation/vos/TranslatableTextVO';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
+import ProgramSegmentParamVO from './vos/ProgramSegmentParamVO';
 
 export default abstract class ModuleProgramPlanBase extends Module {
 
     public static MODULE_NAME: string = 'ProgramPlanBase';
 
-    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME;
-    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.BO_ACCESS';
-    public static POLICY_FO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_ACCESS';
-    public static POLICY_FO_EDIT: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT';
+    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.BO_ACCESS';
+    public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_ACCESS';
+    public static POLICY_FO_EDIT: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT';
 
     public static APINAME_GET_RDVS_OF_PROGRAM_SEGMENT = "GET_RDVS_OF_PROGRAM_SEGMENT";
     public static APINAME_GET_CRS_OF_PROGRAM_SEGMENT = "GET_CRS_OF_PROGRAM_SEGMENT";
@@ -192,7 +191,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_type_id, additional_fields, label_field, "Programmes");
-        category_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_category_type_id]);
+        category_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_category_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -210,8 +209,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.facilitator_type_id, additional_fields, label_field, "Animateurs");
-        manager_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
-        partner_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
+        manager_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
+        partner_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -227,7 +226,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.manager_type_id, additional_fields, label_field, "Managers");
-        partner_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
+        partner_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -267,7 +266,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.target_type_id, additional_fields, label_field, "Etablissements");
-        enseigne_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.enseigne_type_id]);
+        enseigne_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.enseigne_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -283,9 +282,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.rdv_cr_type_id, additional_fields, null, "Compte-rendus");
-        rdv_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.rdv_type_id]);
-        author_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        cr_file_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        rdv_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.rdv_type_id]);
+        author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        cr_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -311,9 +310,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.rdv_type_id, additional_fields, null, "RDVs");
-        program_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
-        target_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
-        facilitator_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
+        facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -328,8 +327,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_facilitator_type_id, additional_fields, null, "Animateurs par programme");
-        facilitator_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
-        program_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -344,8 +343,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_manager_type_id, additional_fields, null, "Animateurs par programme");
-        manager_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
-        program_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        manager_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
@@ -366,8 +365,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_target_type_id, additional_fields, null, "Etablissements par programme");
-        target_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
-        program_id.addManyToOneRelation(datatable, VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
+        target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
+        program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 

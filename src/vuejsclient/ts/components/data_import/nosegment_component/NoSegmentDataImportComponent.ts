@@ -70,31 +70,13 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     @Prop({ default: null })
     public get_url_for_modal: (segment_date_index: string) => string;
 
-    private autovalidate: boolean = false;
     public show_overview: boolean = false;
+    private autovalidate: boolean = false;
 
     private previous_import_historics: { [api_type_id: string]: DataImportHistoricVO } = {};
 
     public hasSelectedOptions(historic: DataImportHistoricVO): boolean {
         return this.getHistoricOptionsTester(historic, this.getOptions);
-    }
-
-    private check_change_import_historics(): boolean {
-        if (!this.import_historics) {
-            return !!this.previous_import_historics;
-        }
-
-        for (let j in this.import_historics) {
-            if (this.check_change_import_historic(this.import_historics[j], this.previous_import_historics[j])) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected async mounted() {
-        await this.on_mount();
     }
 
     public async initialize_on_mount() {
@@ -130,7 +112,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         //  Un api_type est ko si il n'y a pas d'historique
         //      ou si l'historique est en erreur
         // Un segment est ok si tous les api_types_ids sont ok
-        //  Un api_type est ok si il y a un historique et 
+        //  Un api_type est ok si il y a un historique et
         //      que celui-ci est en statut posttreated
         // Un segment est info si un api_type est en info
         //  Un api_type est info si il est est en attente de validation du formattage
@@ -169,6 +151,24 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         return this.state_warn;
     }
 
+    protected async mounted() {
+        await this.on_mount();
+    }
+
+    private check_change_import_historics(): boolean {
+        if (!this.import_historics) {
+            return !!this.previous_import_historics;
+        }
+
+        for (let j in this.import_historics) {
+            if (this.check_change_import_historic(this.import_historics[j], this.previous_import_historics[j])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private async planif_reimport() {
         if (!this.import_historics) {
             return;
@@ -184,7 +184,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     }
 
     get api_types_ids_states(): { [api_type_id: string]: string } {
-        let res: { [api_type_id: string]: string } = {}
+        let res: { [api_type_id: string]: string } = {};
 
         for (let j in this.valid_api_type_ids) {
             let api_type_id: string = this.valid_api_type_ids[j];
@@ -678,7 +678,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     }
 
     /**
-     * On veut la liste des formats de fichiers acceptables pour importation, 
+     * On veut la liste des formats de fichiers acceptables pour importation,
      *  en prenant l'ensemble commun à tous les valid_api_type_ids (si on peut importer un CSV
      *  mais sur un seul api_type_id et pas sur les autres on refuse, le but sur la page
      *  est de gérer un seul fichier pour plusieurs imports)
@@ -875,7 +875,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
             importHistoric.params = JSON.stringify(this.getOptions);
             importHistoric.segment_date_index = null;
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
-            importHistoric.user_id = VueAppController.getInstance().data_user.id;
+            importHistoric.user_id = (!!VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
 
             importHistorics.push(importHistoric);
         }
@@ -910,7 +910,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     }
 
     get raw_datas_path(): { [api_type_id: string]: string } {
-        return this.getRaw_datas_path(null);//'import.state.ready_to_import');
+        return this.getRaw_datas_path(null); //'import.state.ready_to_import');
     }
 
     private getRaw_datas_path(import_state: string): { [api_type_id: string]: string } {

@@ -1,18 +1,17 @@
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ModuleAPI from '../API/ModuleAPI';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import CronWorkerPlanification from './vos/CronWorkerPlanification';
-import ModuleAPI from '../API/ModuleAPI';
-import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleCron extends Module {
 
     public static MODULE_NAME: string = "Cron";
 
-    public static POLICY_GROUP = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleCron.MODULE_NAME;
-    public static POLICY_BO_ACCESS = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleCron.MODULE_NAME + ".BO_ACCESS";
+    public static POLICY_GROUP = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleCron.MODULE_NAME;
+    public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleCron.MODULE_NAME + ".BO_ACCESS";
 
     public static APINAME_executeWorkersManually: string = "executeWorkersManually";
 

@@ -1,29 +1,29 @@
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import ModuleAPI from '../API/ModuleAPI';
 import NumberParamVO from '../API/vos/apis/NumberParamVO';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import ModuleVO from '../ModuleVO';
+import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import DataImportColumnVO from './vos/DataImportColumnVO';
 import DataImportFormatVO from './vos/DataImportFormatVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
 import DataImportLogVO from './vos/DataImportLogVO';
-import UserVO from '../AccessPolicy/vos/UserVO';
-import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleDataImport extends Module {
 
     public static MODULE_NAME: string = 'DataImport';
 
-    public static POLICY_GROUP: string = ModuleAccessPolicy.POLICY_GROUP_UID_PREFIX + ModuleDataImport.MODULE_NAME;
-    public static POLICY_BO_ACCESS: string = ModuleAccessPolicy.POLICY_UID_PREFIX + ModuleDataImport.MODULE_NAME + '.BO_ACCESS';
+    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDataImport.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDataImport.MODULE_NAME + '.BO_ACCESS';
 
     public static IMPORT_SCHEMA: string = 'imports';
 
@@ -199,7 +199,7 @@ export default class ModuleDataImport extends Module {
         fields.unshift(field_historic_id);
         let importTable: ModuleTable<any> = new ModuleTable<any>(targetModuleTable.module, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type, fields, null, "Import " + targetModuleTable.name);
         importTable.set_bdd_ref(ModuleDataImport.IMPORT_SCHEMA, ModuleDataImport.IMPORT_TABLE_PREFIX + targetModuleTable.vo_type);
-        field_historic_id.addManyToOneRelation(importTable, VOsTypesManager.getInstance().moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID]);
+        field_historic_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DataImportHistoricVO.API_TYPE_ID]);
         targetModuleTable.module.datatables.push(importTable);
         targetModuleTable.importable = true;
     }
@@ -243,8 +243,8 @@ export default class ModuleDataImport extends Module {
             field_post_exec_module_id
         ];
         this.datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, datatable_fields, label_field, "Fichiers d'import");
-        field_file_id.addManyToOneRelation(this.datatable_desc, VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        field_post_exec_module_id.addManyToOneRelation(this.datatable_desc, VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
+        field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        field_post_exec_module_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
         this.datatables.push(this.datatable_desc);
 
         // Création de la table dataimportcolumn
@@ -259,7 +259,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('vo_field_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Vo)', true),
         ];
         this.datatable_column = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, datatable_fields, label_field, "Colonnes importées");
-        field_data_import_format_id.addManyToOneRelation(this.datatable_column, this.datatable_desc);
+        field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
         this.datatables.push(this.datatable_column);
 
         // Création de la table dataimportlog
@@ -301,14 +301,16 @@ export default class ModuleDataImport extends Module {
                 [DataImportHistoricVO.IMPORT_TYPE_EDIT]: DataImportHistoricVO.IMPORT_TYPE_NAMES[DataImportHistoricVO.IMPORT_TYPE_EDIT],
                 [DataImportHistoricVO.IMPORT_TYPE_REPLACE]: DataImportHistoricVO.IMPORT_TYPE_NAMES[DataImportHistoricVO.IMPORT_TYPE_REPLACE],
             }),
-            new ModuleTableField('nb_row_validated', ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes validées', false),
+            new ModuleTableField('nb_row_validated', ModuleTableField.FIELD_TYPE_int, new DefaultTranslation({
+                fr: 'Nb. de lignes validées'
+            }), false),
             new ModuleTableField('nb_row_unvalidated', ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes invalidées', false),
             new ModuleTableField('autovalidate', ModuleTableField.FIELD_TYPE_boolean, 'Validation automatique', false, true, false),
         ];
         this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, datatable_fields, label_field, "Historiques d'importation");
-        field_data_import_format_id.addManyToOneRelation(this.datatable_historic, this.datatable_desc);
-        field_user_id.addManyToOneRelation(this.datatable_historic, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        field_file_id.addManyToOneRelation(this.datatable_historic, VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+        field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
+        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
         this.datatables.push(this.datatable_historic);
 
 
@@ -332,8 +334,8 @@ export default class ModuleDataImport extends Module {
             })
         ];
         this.datatable_log = new ModuleTable(this, DataImportLogVO.API_TYPE_ID, datatable_fields, label_field, "Logs d'importation");
-        field_data_import_format_id.addManyToOneRelation(this.datatable_log, this.datatable_desc);
-        field_data_import_historic_id.addManyToOneRelation(this.datatable_log, this.datatable_historic);
+        field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
+        field_data_import_historic_id.addManyToOneRelation(this.datatable_historic);
         this.datatables.push(this.datatable_log);
     }
 }

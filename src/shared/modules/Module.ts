@@ -31,8 +31,8 @@ export default abstract class Module implements IModuleBase {
 
     public async hook_module_on_params_changed(paramChanged: Array<ModuleParamChange<any>>) { }
 
-    public async hook_module_install(db): Promise<any> { }
-    public async hook_module_configure(db): Promise<boolean> {
+    public async hook_module_install(): Promise<any> { }
+    public async hook_module_configure(): Promise<boolean> {
         return true;
     }
 
@@ -43,6 +43,7 @@ export default abstract class Module implements IModuleBase {
     public async hook_module_async_client_admin_initialization(): Promise<any> { }
     public async hook_module_async_client_initialization(): Promise<any> { }
     public async hook_module_async_admin_initialization(): Promise<any> { }
+    public async hook_module_async_login_initialization(): Promise<any> { }
 
     public getDataTableBySuffixPrefixDatabase(suffix = "", prefix = "module", database = "ref"): ModuleTable<any> {
         if (this.datatables) {
