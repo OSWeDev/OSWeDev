@@ -47,7 +47,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             }
 
             if (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) {
-                let returnvalue = await api.SERVER_HANDLER(param, req, res);
+                let returnvalue = await api.SERVER_HANDLER(param);
 
                 if (typeof returnvalue == 'undefined') {
                     returnvalue = {} as any;
@@ -57,14 +57,14 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     res.json(returnvalue);
                 }
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_RES) {
-                let returnvalue = await api.SERVER_HANDLER(param, req, res);
+                let returnvalue = await api.SERVER_HANDLER(param);
 
                 if (!api.is_autonomous_res_handler) {
                     res.end(returnvalue);
                 }
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
 
-                let returnvalue = await api.SERVER_HANDLER(param, req, res);
+                let returnvalue = await api.SERVER_HANDLER(param);
 
                 if (!api.is_autonomous_res_handler) {
                     res.json(returnvalue);
@@ -101,7 +101,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 // // res.write(filedata, 'binary');
                 // // res.end(undefined, 'binary');
             } else {
-                let returnvalue = await api.SERVER_HANDLER(param, req, res);
+                let returnvalue = await api.SERVER_HANDLER(param);
 
                 if (!api.is_autonomous_res_handler) {
                     res.end(returnvalue);

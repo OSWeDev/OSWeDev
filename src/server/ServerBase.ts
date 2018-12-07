@@ -322,10 +322,14 @@ export default abstract class ServerBase {
             if (req && req.session && req.session.user && req.session.user.id) {
                 let uid: number = parseInt(req.session.user.id.toString());
                 httpContext.set('UID', uid);
-
+                httpContext.set('SESSION', req.session);
+                httpContext.set('USER', req.session.user);
                 httpContext.set('USER_DATA', await ServerBase.getInstance().getUserData(uid));
             } else {
                 httpContext.set('UID', null);
+                httpContext.set('SESSION', req ? req.session : null);
+                httpContext.set('USER', null);
+                httpContext.set('USER_DATA', null);
             }
             next();
         });
@@ -344,8 +348,12 @@ export default abstract class ServerBase {
         this.app.get('/', async (req, res) => {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS)) {
-                let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
+                if (!await ModuleAccessPolicy.getInstance().getLoggedUser()) {
+                    let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                    res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
+                    return;
+                }
+                res.redirect('/login');
                 return;
             }
             res.sendFile(path.resolve('./src/client/public/generated/index.html'));

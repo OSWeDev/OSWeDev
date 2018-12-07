@@ -878,14 +878,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async loginAndRedirect(param: LoginParamVO, req: Request, res: Response): Promise<UserVO> {
-
-        if ((!req) || (!res)) {
-            return null;
-        }
+    private async loginAndRedirect(param: LoginParamVO): Promise<UserVO> {
 
         try {
-            const session = req.session;
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            let session = httpContext ? httpContext.get('SESSION') : null;
 
             if (session && session.user) {
                 // this.redirectUserPostLogin(param.redirect_to, res);
@@ -927,12 +924,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     //     }
     // }
 
-    private getLoggedUser(noparam, req: Request): Promise<UserVO> {
-        if (!req) {
-            return null;
-        }
+    private getLoggedUser(): Promise<UserVO> {
 
-        const session = req.session;
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        let session = httpContext ? httpContext.get('SESSION') : null;
 
         if (session && session.user) {
             return session.user;

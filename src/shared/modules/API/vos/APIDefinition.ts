@@ -9,7 +9,7 @@ export default abstract class APIDefinition<T, U> {
     public static API_RETURN_TYPE_RES: number = 1;
     public static API_RETURN_TYPE_FILE: number = 2;
 
-    public SERVER_HANDLER: (translated_param: T, req: Request, res: Response) => Promise<U> = null;
+    public SERVER_HANDLER: (translated_param: T) => Promise<U> = null;
 
     public is_autonomous_res_handler: boolean = false;
 

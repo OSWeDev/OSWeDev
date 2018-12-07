@@ -73,7 +73,7 @@ export default class ModuleAPI extends Module {
         // Si on est côté client, on doit transférer la demande au serveur via les apis.
         //  La suite se passera donc dans la partie serveur de ce module
         if (ModulesManager.getInstance().isServerSide) {
-            return await apiDefinition.SERVER_HANDLER(translated_param, null, null);
+            return await apiDefinition.SERVER_HANDLER(translated_param);
         } else {
 
             let API_TYPES_IDS_involved = apiDefinition.API_TYPES_IDS_involved;
