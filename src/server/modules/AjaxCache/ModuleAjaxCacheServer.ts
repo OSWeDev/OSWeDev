@@ -4,6 +4,7 @@ import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
@@ -36,6 +37,6 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         fo_access.translatable_name = ModuleAjaxCache.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
             fr: 'Configuration sur le front'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 }

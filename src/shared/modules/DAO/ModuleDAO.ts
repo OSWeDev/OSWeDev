@@ -8,10 +8,15 @@ import APIDAOParamVO from './vos/APIDAOParamVO';
 import APIDAOParamsVO from './vos/APIDAOParamsVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 import APIDAORefFieldParamsVO from './vos/APIDAORefFieldParamsVO';
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 
 export default class ModuleDAO extends Module {
 
-    public static ACCESS_GROUP_NAME = "DAO_ACCESS";
+    public static MODULE_NAME: string = 'DAO';
+
+    public static POLICY_GROUP_OVERALL: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_OVERALL';
+    public static POLICY_GROUP_DATAS: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_DATAS';
+    public static POLICY_GROUP_MODULES_CONF: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_MODULES_CONF';
 
     public static APINAME_DELETE_VOS = "DAO_DELETE_VOS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
@@ -34,7 +39,7 @@ export default class ModuleDAO extends Module {
 
     private constructor() {
 
-        super("dao", "DAO");
+        super("dao", ModuleDAO.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 

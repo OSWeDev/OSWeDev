@@ -1240,11 +1240,12 @@ export default class DataImportComponent extends DataImportComponentBase {
         await this.importSegment(this.importing_multiple_segments_current_segment.dateIndex, this.importing_multiple_segments_filevo_id);
     }
 
-    private async uploadedFile(segment_date_index: string, fileVo: FileVO) {
+    private async uploadedFile(fileVo: FileVO) {
         if ((!fileVo) || (!fileVo.id)) {
             return;
         }
 
+        let segment_date_index: string = this.selected_segment ? this.selected_segment.dateIndex : null;
         // Si on ne fournit pas le segment, c'est qu'on veut faire un import sur les segments sélectionnés
         if (!segment_date_index) {
             if ((!this.lower_selected_segment) || (!this.upper_selected_segment) || (moment(this.upper_selected_segment.dateIndex).isBefore(moment(this.lower_selected_segment.dateIndex)))) {

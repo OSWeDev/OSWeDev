@@ -12,6 +12,7 @@ import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicy
 import UserRoleVO from '../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import './AccessPolicyComponent.scss';
+import Vue from 'vue';
 
 @Component({
     template: require('./AccessPolicyComponent.pug'),
@@ -37,6 +38,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
 
     private access_matrix: { [policy_id: number]: { [role_id: number]: boolean } } = {};
     private inherited_access_matrix: { [policy_id: number]: { [role_id: number]: boolean } } = {};
+    private display_policy_groups: { [policy_group_id: number]: boolean } = {};
 
     public async mounted() {
         this.startLoading();
@@ -88,6 +90,12 @@ export default class AccessPolicyComponent extends VueComponentBase {
 
         await Promise.all(promises);
 
+        for (let i in this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID]) {
+            let group: AccessPolicyGroupVO = this.getStoredDatas[AccessPolicyGroupVO.API_TYPE_ID][i] as AccessPolicyGroupVO;
+
+            Vue.set(this.display_policy_groups as any, group.id, false);
+        }
+
         this.stopLoading();
     }
 
@@ -136,6 +144,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
 
         for (let i in this.getStoredDatas[PolicyDependencyVO.API_TYPE_ID]) {
             let dependency: PolicyDependencyVO = this.getStoredDatas[PolicyDependencyVO.API_TYPE_ID][i] as PolicyDependencyVO;
+
             if (!res[dependency.src_pol_id]) {
                 res[dependency.src_pol_id] = [];
             }
@@ -330,5 +339,9 @@ export default class AccessPolicyComponent extends VueComponentBase {
         await this.updateMatrices();
         this.busy = false;
         this.snotify.success('access_policy.admin.set_policy.ok');
+    }
+
+    private set_display_policy_group(policy_group_id: number) {
+        Vue.set(this.display_policy_groups as any, policy_group_id, !this.display_policy_groups[policy_group_id]);
     }
 }

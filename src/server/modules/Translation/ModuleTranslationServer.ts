@@ -17,6 +17,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -49,7 +50,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         bo_translations_access.translatable_name = ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS;
         bo_translations_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_translations_access, new DefaultTranslation({
             fr: 'Administration des traductions'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         // let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         // admin_access_dependency.src_pol_id = bo_translations_access.id;
@@ -62,7 +63,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         bo_others_access.translatable_name = ModuleTranslation.POLICY_BO_OTHERS_ACCESS;
         bo_others_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_others_access, new DefaultTranslation({
             fr: 'Administration des langues et codes de traduction'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         // admin_access_dependency = new PolicyDependencyVO();
         // admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         // admin_access_dependency.src_pol_id = bo_others_access.id;
@@ -80,7 +81,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         on_page_translation_module_access.translatable_name = ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS;
         on_page_translation_module_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(on_page_translation_module_access, new DefaultTranslation({
             fr: 'Module de traduction sur page'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         access_dependency = new PolicyDependencyVO();
         access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         access_dependency.src_pol_id = on_page_translation_module_access.id;

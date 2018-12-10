@@ -9,6 +9,8 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import Module from '../../../shared/modules/Module';
+import ModuleVO from '../../../shared/modules/ModuleVO';
 
 export default class AccessPolicyServerController {
 
@@ -213,11 +215,13 @@ export default class AccessPolicyServerController {
      * @param policy La policy à déclarer
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
-    public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation): Promise<AccessPolicyVO> {
+    public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
         if ((!policy) || (!policy.translatable_name)) {
             return null;
         }
 
+        let moduleVoID = moduleVO ? moduleVO.id : null;
+        policy.module_id = moduleVoID;
         let translatable_name: string = policy.translatable_name.toLowerCase();
 
         if (!AccessPolicyServerController.getInstance().registered_policies) {
@@ -239,6 +243,25 @@ export default class AccessPolicyServerController {
 
         let policyFromBDD: AccessPolicyVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID, "where translatable_name = $1", [policy.translatable_name]);
         if (policyFromBDD) {
+
+            // On vérifie les champs tout de même pour prendre en compte les modifs qui ont pu intervenir dans la définition du droit
+            // La seule chose qu'on ne récupère pas est le weight pour le moment, a priori on doit pouvoir réorganiser dans l'admin ?
+            // le comportement par défaut et le groupe sont eux fixés par l'appli, le changement dans l'admin sera donc écrasé à chaque redémarrage
+            if ((policyFromBDD.default_behaviour != policy.default_behaviour) ||
+                (policyFromBDD.group_id != policy.group_id) ||
+                (policyFromBDD.module_id != moduleVoID)) {
+
+                policyFromBDD.module_id = moduleVoID;
+                policyFromBDD.default_behaviour = policy.default_behaviour;
+                policyFromBDD.group_id = policy.group_id;
+                let insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policyFromBDD);
+                if ((!insertOrDeleteQueryResult_modif) || (!insertOrDeleteQueryResult_modif.id)) {
+                    console.error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
+                    return null;
+                }
+                console.error('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
+            }
+
             AccessPolicyServerController.getInstance().registered_policies[translatable_name] = policyFromBDD;
             AccessPolicyServerController.getInstance().registered_policies_by_ids[policyFromBDD.id] = policyFromBDD;
             return policyFromBDD;

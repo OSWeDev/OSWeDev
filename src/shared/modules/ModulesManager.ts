@@ -37,27 +37,27 @@ export default class ModulesManager {
         moduleTable.set_bdd_ref('admin', 'modules');
     }
 
-    public registerModule(role: string, module: IModuleBase) {
-        if (!module) {
+    public registerModule(role: string, moduleObj: IModuleBase) {
+        if (!moduleObj) {
             return;
         }
-        if (!this.modules_by_name[module.name]) {
-            this.modules_by_name[module.name] = new ModuleWrapper(module.name);
+        if (!this.modules_by_name[moduleObj.name]) {
+            this.modules_by_name[moduleObj.name] = new ModuleWrapper(moduleObj.name);
         }
-        this.modules_by_name[module.name].addModuleComponent(role, module);
-        module.initialize();
-        module.registerApis();
+        this.modules_by_name[moduleObj.name].addModuleComponent(role, moduleObj);
+        moduleObj.initialize();
+        moduleObj.registerApis();
 
         // Et il faut register une moduleTable pour les parametres du module si on est sur un SharedModule
         if (role == Module.SharedModuleRoleName) {
-            if ((module as Module).fields) {
+            if ((moduleObj as Module).fields) {
                 let moduleParamsTable: ModuleTable<IDistantVOBase> = new ModuleTable<IDistantVOBase>(
+                    moduleObj as Module,
+                    ModulesManager.MODULE_PARAM_TABLE_PREFIX + moduleObj.name,
+                    (moduleObj as Module).fields,
                     null,
-                    ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name,
-                    (module as Module).fields,
-                    null,
-                    new DefaultTranslation({ fr: module.name }));
-                moduleParamsTable.set_bdd_ref('admin', ModulesManager.MODULE_PARAM_TABLE_PREFIX + module.name);
+                    new DefaultTranslation({ fr: moduleObj.name }));
+                moduleParamsTable.set_bdd_ref('admin', ModulesManager.MODULE_PARAM_TABLE_PREFIX + moduleObj.name);
                 moduleParamsTable.defineAsModuleParamTable();
             }
         }

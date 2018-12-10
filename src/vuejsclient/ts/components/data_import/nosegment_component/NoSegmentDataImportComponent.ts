@@ -734,6 +734,18 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         return res ? res.join(',') : "";
     }
 
+    get modal_historic(): DataImportHistoricVO {
+
+    }
+
+    get modal_dropzone_options(): any {
+
+    }
+
+    get modal_dropzone_key(): string {
+
+    }
+
     get unfinished_imports(): DataImportHistoricVO[] {
         let res: DataImportHistoricVO[] = [];
 
@@ -857,7 +869,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         }
     }
 
-    private async uploadedFile(empty, fileVo: FileVO) {
+    private async uploadedFile(fileVo: FileVO) {
         if ((!fileVo) || (!fileVo.id)) {
             return;
         }

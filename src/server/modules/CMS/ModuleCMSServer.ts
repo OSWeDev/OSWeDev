@@ -15,6 +15,7 @@ import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import IInstantiatedPageComponent from '../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
 import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import WeightHandler from '../../../shared/tools/WeightHandler';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleCMSServer extends ModuleServerBase {
 
@@ -52,7 +53,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
         fo_access.translatable_name = ModuleCMS.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
             fr: 'Accès aux pages CMS'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
         bo_access.group_id = group.id;
@@ -60,7 +61,7 @@ export default class ModuleCMSServer extends ModuleServerBase {
         bo_access.translatable_name = ModuleCMS.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
             fr: 'Administration'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let dependency: PolicyDependencyVO = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         dependency.src_pol_id = bo_access.id;

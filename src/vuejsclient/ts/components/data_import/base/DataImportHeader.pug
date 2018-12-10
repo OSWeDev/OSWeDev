@@ -3,8 +3,14 @@
         button.btn.btn-sm.btn-secondary.pull-right(@click='reload_datas()')
             i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
             | {{ label('crud.actions.refresh') }}
-        toggle-button.pull-right(v-model="autovalidate" :labels="{checked: 'Auto', unchecked:'Normal'}" :disabled="false")
-        toggle-button.pull-right(v-model="show_overview" :labels="{checked: 'Vue complète', unchecked:'Allégé'}" :disabled="false" v-if='import_overview_component')
+        toggle-button.pull-right(
+            v-model="autovalidate" 
+            :width="100"
+            :labels="{checked: 'Auto', unchecked:'Normal'}" :disabled="false")
+        toggle-button.pull-right(
+            v-model="show_overview" 
+            :width="100"
+            :labels="{checked: 'Vue complète', unchecked:'Allégé'}" :disabled="false" v-if='import_overview_component')
 
         h2.imports_page_title {{ title }}
 .row(v-if='import_overview_component && show_overview')

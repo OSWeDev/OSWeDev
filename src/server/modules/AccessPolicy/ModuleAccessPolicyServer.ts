@@ -1,34 +1,35 @@
-import { Request, Response } from 'express';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import AddRoleToUserParamVO from '../../../shared/modules/AccessPolicy/vos/apis/AddRoleToUserParamVO';
+import LoginParamVO from '../../../shared/modules/AccessPolicy/vos/apis/LoginParamVO';
 import ResetPwdParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ResetPwdParamVO';
+import ToggleAccessParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ToggleAccessParamVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import BooleanParamVO from '../../../shared/modules/API/vos/apis/BooleanParamVO';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleVO from '../../../shared/modules/ModuleVO';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ServerBase from '../../ServerBase';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
+import ModulesManagerServer from '../ModulesManagerServer';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
+import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
-import ToggleAccessParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ToggleAccessParamVO';
-import BooleanParamVO from '../../../shared/modules/API/vos/apis/BooleanParamVO';
-import AccessPolicyServerController from './AccessPolicyServerController';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import LoginParamVO from '../../../shared/modules/AccessPolicy/vos/apis/LoginParamVO';
+import ModuleTable from '../../../shared/modules/ModuleTable';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -77,7 +78,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         fo_access.translatable_name = ModuleAccessPolicy.POLICY_FO_ACCESS;
         fo_access = await this.registerPolicy(fo_access, new DefaultTranslation({
             fr: 'Accès au front'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
         bo_access.group_id = group.id;
@@ -85,7 +86,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         bo_access.translatable_name = ModuleAccessPolicy.POLICY_BO_ACCESS;
         bo_access = await this.registerPolicy(bo_access, new DefaultTranslation({
             fr: 'Accès à l\'administration'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let modules_managment_access: AccessPolicyVO = new AccessPolicyVO();
         modules_managment_access.group_id = group.id;
@@ -93,7 +94,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         modules_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS;
         modules_managment_access = await this.registerPolicy(modules_managment_access, new DefaultTranslation({
             fr: 'Gestion des modules'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let dependency: PolicyDependencyVO = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         dependency.src_pol_id = modules_managment_access.id;
@@ -106,7 +107,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         rights_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS;
         rights_managment_access = await this.registerPolicy(rights_managment_access, new DefaultTranslation({
             fr: 'Gestion des droits'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         dependency = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         dependency.src_pol_id = rights_managment_access.id;
@@ -119,7 +120,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         users_list_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_LIST_ACCESS;
         users_list_access = await this.registerPolicy(users_list_access, new DefaultTranslation({
             fr: 'Liste des utilisateurs'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         dependency = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         dependency.src_pol_id = users_list_access.id;
@@ -132,7 +133,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         users_managment_access.translatable_name = ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS;
         users_managment_access = await this.registerPolicy(users_managment_access, new DefaultTranslation({
             fr: 'Gestion des utilisateurs'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         dependency = new PolicyDependencyVO();
         dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         dependency.src_pol_id = users_managment_access.id;
@@ -171,6 +172,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public registerCrons(): void {
         AccessPolicyCronWorkersHandler.getInstance();
+    }
+
+
+    public registerAccessHooks(): void {
+
+        ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAOServer.DAO_ACCESS_TYPE_READ, this.filterPolicyByActivModules.bind(this));
     }
 
     public async configure() {
@@ -242,8 +249,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @param policy La policy à déclarer
      * @param default_translation La traduction par défaut. Le code_text est écrasé par la fonction avec le translatable_name
      */
-    public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation): Promise<AccessPolicyVO> {
-        return await AccessPolicyServerController.getInstance().registerPolicy(policy, default_translation);
+    public async registerPolicy(policy: AccessPolicyVO, default_translation: DefaultTranslation, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
+        return await AccessPolicyServerController.getInstance().registerPolicy(policy, default_translation, moduleVO);
     }
 
 
@@ -590,6 +597,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         for (let i in policies) {
             let policy: AccessPolicyVO = policies[i];
 
+            let moduleVO: ModuleVO = policy.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(policy.module_id) : null;
+            if (policy.module_id && ((!moduleVO) || (!moduleVO.actif))) {
+                continue;
+            }
             AccessPolicyServerController.getInstance().set_registered_policy(policy.translatable_name, policy);
         }
     }
@@ -933,5 +944,20 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return session.user;
         }
         return null;
+    }
+
+
+    private async filterPolicyByActivModules(datatable: ModuleTable<AccessPolicyVO>, vos: AccessPolicyVO[], uid: number, user_data: IUserData): Promise<AccessPolicyVO[]> {
+        let res: AccessPolicyVO[] = [];
+
+        for (let i in vos) {
+            let vo: AccessPolicyVO = vos[i];
+            let moduleVO: ModuleVO = vo.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(vo.module_id) : null;
+
+            if ((!vo.module_id) || (moduleVO && moduleVO.actif)) {
+                res.push(vo);
+            }
+        }
+        return res;
     }
 }

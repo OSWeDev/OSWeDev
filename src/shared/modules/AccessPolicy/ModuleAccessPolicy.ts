@@ -23,6 +23,7 @@ import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
 import LoginParamVO from './vos/apis/LoginParamVO';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -209,7 +210,6 @@ export default class ModuleAccessPolicy extends Module {
         user.reminded_pwd_2 = false;
     }
 
-
     public initialize() {
         this.fields = [
             new ModuleTableField(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD1_DAYS, ModuleTableField.FIELD_TYPE_int, 'reminder_pwd1_days', true, true, 20),
@@ -296,9 +296,11 @@ export default class ModuleAccessPolicy extends Module {
     private initializeModuleAccessPolicy() {
         let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let field_accpolgroup_id = new ModuleTableField('group_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Group', false);
+        let field_module_id = new ModuleTableField('module_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Module', false);
         let datatable_fields = [
             label_field,
             field_accpolgroup_id,
+            field_module_id,
             new ModuleTableField('default_behaviour', ModuleTableField.FIELD_TYPE_enum, 'Comportement par défaut', true, true, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN).setEnumValues({
                 [AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN]: AccessPolicyVO.DEFAULT_BEHAVIOUR_LABELS[AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN],
                 [AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS]: AccessPolicyVO.DEFAULT_BEHAVIOUR_LABELS[AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ANONYMOUS],

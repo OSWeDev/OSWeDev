@@ -15,6 +15,7 @@ export default class AccessPolicyVO implements IDistantVOBase, IWeightedItem {
 
     public translatable_name: string;
     public group_id: number;
+    public module_id: number;
     public default_behaviour: number;
     public weight: number;
 }

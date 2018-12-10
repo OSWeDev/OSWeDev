@@ -1,13 +1,7 @@
 import * as moment from 'moment';
-import { isNumber } from 'util';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
-import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
-import ThreadHandler from '../../../../../shared/tools/ThreadHandler';
-import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 import NotificationVO from '../../../../../shared/modules/PushData/vos/NotificationVO';
-import DateHandler from '../../../../../shared/tools/DateHandler';
+import ICronWorker from '../../../Cron/interfaces/ICronWorker';
 
 export default class CleanOldNotifsCronWorker implements ICronWorker {
 

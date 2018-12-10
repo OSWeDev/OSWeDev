@@ -22,7 +22,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public hook_datatable_install: (db) => {} = null;
 
-    @EnumerableProperty(false)
     public module: Module;
     public fields: Array<ModuleDBField<any>>;
     public suffix: string;

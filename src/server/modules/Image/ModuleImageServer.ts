@@ -8,6 +8,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleImageServer extends ModuleFileServerBase<ImageVO> {
 
@@ -40,7 +41,7 @@ export default class ModuleImageServer extends ModuleFileServerBase<ImageVO> {
         bo_access.translatable_name = ModuleImage.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
             fr: 'Administration des images'
-        }));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         admin_access_dependency.src_pol_id = bo_access.id;
