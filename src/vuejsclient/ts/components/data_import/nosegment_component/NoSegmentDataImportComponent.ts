@@ -71,6 +71,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     public get_url_for_modal: (segment_date_index: string) => string;
 
     public show_overview: boolean = false;
+    public show_new_import: boolean = false;
     private autovalidate: boolean = false;
 
     private previous_import_historics: { [api_type_id: string]: DataImportHistoricVO } = {};
@@ -88,6 +89,39 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     }
     public async on_show_modal() {
         await this.loadRawImportedDatas();
+    }
+
+    public toggleShowNewImport(): void {
+        this.show_new_import = !this.show_new_import;
+    }
+
+    public async uploadedFile(target_segment_date_index: string, fileVo: FileVO) {
+        if ((!fileVo) || (!fileVo.id)) {
+            return;
+        }
+
+        let importHistorics: DataImportHistoricVO[] = [];
+        for (let i in this.valid_api_type_ids) {
+            let api_type_id: string = this.valid_api_type_ids[i];
+
+            let importHistoric: DataImportHistoricVO = new DataImportHistoricVO();
+            importHistoric.api_type_id = api_type_id;
+            importHistoric.file_id = fileVo.id;
+            importHistoric.autovalidate = this.autovalidate;
+            importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
+            importHistoric.segment_type = null;
+            importHistoric.params = JSON.stringify(this.getOptions);
+            importHistoric.segment_date_index = null;
+            importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
+            importHistoric.user_id = (!!VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
+
+            importHistorics.push(importHistoric);
+        }
+        await ModuleDAO.getInstance().insertOrUpdateVOs(importHistorics);
+
+        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(null) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL);
+
+        this.openModal();
     }
 
     get valid_api_type_ids(): string[] {
@@ -734,16 +768,16 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         return res ? res.join(',') : "";
     }
 
-    get modal_historic(): DataImportHistoricVO {
-
+    get modal_historics(): { [api_type_id: string]: DataImportHistoricVO; } {
+        return this.import_historics;
     }
 
     get modal_dropzone_options(): any {
-
+        return this.dropzoneOptions;
     }
 
     get modal_dropzone_key(): string {
-
+        return 'fileinput_0';
     }
 
     get unfinished_imports(): DataImportHistoricVO[] {
@@ -867,35 +901,6 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
             done();
             self.snotify.info(self.label('import.upload_started'));
         }
-    }
-
-    private async uploadedFile(fileVo: FileVO) {
-        if ((!fileVo) || (!fileVo.id)) {
-            return;
-        }
-
-        let importHistorics: DataImportHistoricVO[] = [];
-        for (let i in this.valid_api_type_ids) {
-            let api_type_id: string = this.valid_api_type_ids[i];
-
-            let importHistoric: DataImportHistoricVO = new DataImportHistoricVO();
-            importHistoric.api_type_id = api_type_id;
-            importHistoric.file_id = fileVo.id;
-            importHistoric.autovalidate = this.autovalidate;
-            importHistoric.import_type = DataImportHistoricVO.IMPORT_TYPE_REPLACE;
-            importHistoric.segment_type = null;
-            importHistoric.params = JSON.stringify(this.getOptions);
-            importHistoric.segment_date_index = null;
-            importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
-            importHistoric.user_id = (!!VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
-
-            importHistorics.push(importHistoric);
-        }
-        await ModuleDAO.getInstance().insertOrUpdateVOs(importHistorics);
-
-        this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(null) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL);
-
-        this.openModal();
     }
 
     private openModal() {

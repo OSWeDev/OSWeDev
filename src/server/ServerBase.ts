@@ -493,7 +493,7 @@ export default abstract class ServerBase {
                     data_version: ServerBase.getInstance().version,
                     data_user: (!!session.user) ? session.user : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
-                    data_base_api_url: "",
+                    // data_base_api_url: "",
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
                 }
             ));

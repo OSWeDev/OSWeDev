@@ -1,3 +1,3 @@
 .col-md-12.new_import.mb-3.mt-3
-    button.btn.btn-primary.btn-sm.btn-block.mb-1(v-show="modal_historic import_historics[selected_segment.dateIndex]", v-on:click="toggleShowNewImport") {{ label('import.modal.new_import') }}
-    fileinput(v-show="show_new_import", :key="modal_dropzone_key 'fileinput_'+selected_segment.dateIndex", :muted="true", :options="modal_dropzone_options dropzoneOptions[selected_segment.dateIndex]", @uploaded="uploadedFile(...arguments)")
+    button.btn.btn-primary.btn-sm.btn-block.mb-1(v-show="modal_historics", v-on:click="toggleShowNewImport") {{ label('import.modal.new_import') }}
+    fileinput(v-show="show_new_import", :key="modal_dropzone_key", :muted="true", :options="modal_dropzone_options", @uploaded="uploadedFile(null, ...arguments)")

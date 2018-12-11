@@ -560,7 +560,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
             let uid: number = httpContext ? httpContext.get('UID') : null;
             let user_data = httpContext ? httpContext.get('USER_DATA') : null;
-            let filtered: T[] = await hook(datatable, [vo], uid, user_data) as T[];
+            let filtered: T[] = await hook(datatable, (((typeof vo != 'undefined') && (vo != null)) ? [vo] : null), uid, user_data) as T[];
 
             if ((!filtered) || (!filtered.length)) {
                 return null;

@@ -1,4 +1,4 @@
-.row(v-if="!modal_historic import_historics[selected_segment.dateIndex]")
+.row(v-if="!modal_historics")
     span.col-md-12 {{ label('import.modal.no_hisotoric') }}
     include ./DataImportNewImport.pug
 .row(v-else)

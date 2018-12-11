@@ -87,15 +87,17 @@ export default abstract class VueAppBase {
         await this.initializeVueAppModulesDatas();
 
         // On lance les initializeAsync des modules Vue
+        promises = [];
         for (let i in ModulesManager.getInstance().modules_by_name) {
             let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
 
             if (module_) {
-                await module_.initializeAsync();
+                promises.push(module_.initializeAsync());
             }
         }
+        await Promise.all(promises);
 
-        var baseApiUrl = this.appController.data_base_api_url || '';
+        // var baseApiUrl = this.appController.data_base_api_url || '';
 
         let accepted_language = this.appController.SERVER_HEADERS['accept-language'];
         if (accepted_language) {
@@ -173,11 +175,11 @@ export default abstract class VueAppBase {
             linkActiveClass: "active"
         };
 
-        var normalMode = baseApiUrl == '';
+        /* Test suppression baseApiUrl var normalMode = baseApiUrl == '';
 
-        if (normalMode) {
-            routerOptions['history'] = true;
-        }
+        if (normalMode) {*/
+        routerOptions['history'] = true;
+        //}
 
         let routerRoutes: RouteConfig[] = [];
         let moduleWrappersByName: { [key: string]: ModuleWrapper } = ModulesManager.getInstance().getModuleWrappersByName();

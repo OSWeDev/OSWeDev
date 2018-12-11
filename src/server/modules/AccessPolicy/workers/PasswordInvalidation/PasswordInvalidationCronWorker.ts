@@ -71,7 +71,9 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
                         await ModuleMailerServer.getInstance().sendMail({
                             to: user.email,
                             subject: translated_mail_subject.translated,
-                            html: await ModuleMailerServer.getInstance().prepareHTML(invalidation_mail_html_template, user.lang_id)
+                            html: await ModuleMailerServer.getInstance().prepareHTML(invalidation_mail_html_template, user.lang_id, {
+                                EMAIL: user.email
+                            })
                         });
                     }
                 }
@@ -90,7 +92,9 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
                         await ModuleMailerServer.getInstance().sendMail({
                             to: user.email,
                             subject: translated_mail_subject.translated,
-                            html: await ModuleMailerServer.getInstance().prepareHTML(reminder1_mail_html_template, user.lang_id)
+                            html: await ModuleMailerServer.getInstance().prepareHTML(reminder1_mail_html_template, user.lang_id, {
+                                EMAIL: user.email
+                            })
                         });
                     }
                 }
@@ -109,7 +113,9 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
                         await ModuleMailerServer.getInstance().sendMail({
                             to: user.email,
                             subject: translated_mail_subject.translated,
-                            html: await ModuleMailerServer.getInstance().prepareHTML(reminder2_mail_html_template, user.lang_id)
+                            html: await ModuleMailerServer.getInstance().prepareHTML(reminder2_mail_html_template, user.lang_id, {
+                                EMAIL: user.email
+                            })
                         });
                     }
                 }

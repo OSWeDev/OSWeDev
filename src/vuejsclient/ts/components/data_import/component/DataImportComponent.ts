@@ -119,6 +119,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     public show_multiple_segments: boolean;
 
     public show_overview: boolean = this.force_show_overview;
+    public show_new_import: boolean = false;
 
     private selected_segment: TimeSegment = null;
 
@@ -132,12 +133,37 @@ export default class DataImportComponent extends DataImportComponentBase {
     private importing_multiple_segments: boolean = false;
     private importing_multiple_segments_current_segment: TimeSegment = null;
     private importing_multiple_segments_filevo_id: number = null;
-    private show_new_import: boolean = false;
 
 
     @Watch('api_type_ids', { immediate: true })
     public async onmounted() {
         await this.on_mount();
+    }
+
+    public toggleShowNewImport(): void {
+        this.show_new_import = !this.show_new_import;
+    }
+
+    public async uploadedFile(target_segment_date_index: string, fileVo: FileVO) {
+        if ((!fileVo) || (!fileVo.id)) {
+            return;
+        }
+
+        let segment_date_index: string = (target_segment_date_index ? target_segment_date_index : (this.selected_segment ? this.selected_segment.dateIndex : null));
+        // Si on ne fournit pas le segment, c'est qu'on veut faire un import sur les segments sélectionnés
+        if (!segment_date_index) {
+            if ((!this.lower_selected_segment) || (!this.upper_selected_segment) || (moment(this.upper_selected_segment.dateIndex).isBefore(moment(this.lower_selected_segment.dateIndex)))) {
+                return;
+            }
+            segment_date_index = this.lower_selected_segment.dateIndex;
+            this.importing_multiple_segments_current_segment = this.lower_selected_segment;
+            this.importing_multiple_segments_filevo_id = fileVo.id;
+            this.importing_multiple_segments = true;
+        } else {
+            this.importing_multiple_segments = false;
+        }
+
+        await this.importSegment(segment_date_index, fileVo.id);
     }
 
     public async initialize_on_mount() {
@@ -263,10 +289,6 @@ export default class DataImportComponent extends DataImportComponentBase {
 
     protected async mounted() {
         await this.on_mount();
-    }
-
-    private toggleShowNewImport(): void {
-        this.show_new_import = !this.show_new_import;
     }
 
     private check_change_import_historics(): boolean {
@@ -1240,28 +1262,6 @@ export default class DataImportComponent extends DataImportComponentBase {
         await this.importSegment(this.importing_multiple_segments_current_segment.dateIndex, this.importing_multiple_segments_filevo_id);
     }
 
-    private async uploadedFile(fileVo: FileVO) {
-        if ((!fileVo) || (!fileVo.id)) {
-            return;
-        }
-
-        let segment_date_index: string = this.selected_segment ? this.selected_segment.dateIndex : null;
-        // Si on ne fournit pas le segment, c'est qu'on veut faire un import sur les segments sélectionnés
-        if (!segment_date_index) {
-            if ((!this.lower_selected_segment) || (!this.upper_selected_segment) || (moment(this.upper_selected_segment.dateIndex).isBefore(moment(this.lower_selected_segment.dateIndex)))) {
-                return;
-            }
-            segment_date_index = this.lower_selected_segment.dateIndex;
-            this.importing_multiple_segments_current_segment = this.lower_selected_segment;
-            this.importing_multiple_segments_filevo_id = fileVo.id;
-            this.importing_multiple_segments = true;
-        } else {
-            this.importing_multiple_segments = false;
-        }
-
-        await this.importSegment(segment_date_index, fileVo.id);
-    }
-
     private async planif_reimport(segment: TimeSegment) {
         if ((!this.import_historics) || (!this.import_historics[segment.dateIndex])) {
             return;
@@ -1354,5 +1354,17 @@ export default class DataImportComponent extends DataImportComponentBase {
             API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID,
             vos: await ModuleDAO.getInstance().getVos<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID)
         });
+    }
+
+    get modal_historics(): { [api_type_id: string]: DataImportHistoricVO; } {
+        return this.import_historics[this.selected_segment.dateIndex];
+    }
+
+    get modal_dropzone_options(): any {
+        return this.dropzoneOptions[this.selected_segment.dateIndex];
+    }
+
+    get modal_dropzone_key(): string {
+        return 'fileinput_' + this.selected_segment.dateIndex;
     }
 }

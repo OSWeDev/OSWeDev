@@ -188,7 +188,7 @@ let template: string = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitiona
     '                            <table class="container" border="0" cellpadding="0" cellspacing="0">' +
     '                                <tr>' +
     '                                    <td class="cta-block__button" width="230" align="center" style="width: 200px;padding-bottom: 30px">' +
-    '                                        <a href="%%ENV%%URL_RECOVERY%%" style="border: 3px solid #eeeeee; color: #969696; text-decoration: none; padding: 15px 45px; text-transform: uppercase; display: block; text-align: center; font-size: 16px;">' +
+    '                                        <a href="%%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY%%" style="border: 3px solid #eeeeee; color: #969696; text-decoration: none; padding: 15px 45px; text-transform: uppercase; display: block; text-align: center; font-size: 16px;">' +
     '                                           %%TRAD%%login.reset.submit%%' +
     '                                        </a>' +
     '                                    </td>' +

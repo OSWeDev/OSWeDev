@@ -325,20 +325,20 @@ export default class AccessPolicyComponent extends VueComponentBase {
         if ((!policy_id) || (!role_id)) {
             return;
         }
-        this.snotify.info('access_policy.admin.set_policy.start');
+        this.snotify.info(this.label('access_policy.admin.set_policy.start'));
         this.busy = true;
 
         if (!await ModuleAccessPolicy.getInstance().togglePolicy(policy_id, role_id)) {
             // On devrait pas pouvoir arriver là
             await this.updateMatrices();
             this.busy = false;
-            this.snotify.error('access_policy.admin.set_policy.ko');
+            this.snotify.error(this.label('access_policy.admin.set_policy.ko'));
             return;
         }
 
         await this.updateMatrices();
         this.busy = false;
-        this.snotify.success('access_policy.admin.set_policy.ok');
+        this.snotify.success(this.label('access_policy.admin.set_policy.ok'));
     }
 
     private set_display_policy_group(policy_group_id: number) {

@@ -1,9 +1,11 @@
 .data-import {
 
-    .toggle[data-toggle='toggle']{
+    .import_header {
+        .vue-js-switch {
 
-        margin-right: 5px;
-        float: left;
+            margin-right: 6px;
+            margin-top: 1em;
+        }
     }
 
     .dropzone {

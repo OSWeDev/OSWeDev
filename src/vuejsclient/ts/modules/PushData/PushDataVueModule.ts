@@ -30,7 +30,8 @@ export default class PushDataVueModule extends VueModuleBase {
     public initialize() {
         let self = this;
 
-        this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
+        // test suppression base api url this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
+        this.socket = io.connect('');
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], function (notification: NotificationVO) {
             if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {
 

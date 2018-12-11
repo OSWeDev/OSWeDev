@@ -41,24 +41,29 @@ export default class DataImportAdminVueModule extends VueModuleBase {
 
     public async initializeAsync() {
 
-        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_BO_ACCESS)) {
+        let importsMenuBranch: MenuBranch = DataImportAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
+
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_LOGS_ACCESS)) {
             return;
         }
 
-        let importsMenuBranch: MenuBranch = DataImportAdminVueModule.DEFAULT_IMPORT_MENU_BRANCH;
+        CRUDComponentManager.getInstance().registerCRUD(
+            DataImportLogVO.API_TYPE_ID,
+            null,
+            new MenuPointer(
+                new MenuLeaf("DataImportLogVO", MenuElementBase.PRIORITY_HIGH, "fa-info-circle"),
+                importsMenuBranch),
+            this.routes);
+
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDataImport.POLICY_BO_ACCESS)) {
+            return;
+        }
 
         CRUDComponentManager.getInstance().registerCRUD(
             DataImportHistoricVO.API_TYPE_ID,
             null,
             new MenuPointer(
                 new MenuLeaf("DataImportHistoricVO", MenuElementBase.PRIORITY_HIGH, "fa-history"),
-                importsMenuBranch),
-            this.routes);
-        CRUDComponentManager.getInstance().registerCRUD(
-            DataImportLogVO.API_TYPE_ID,
-            null,
-            new MenuPointer(
-                new MenuLeaf("DataImportLogVO", MenuElementBase.PRIORITY_HIGH, "fa-info-circle"),
                 importsMenuBranch),
             this.routes);
         CRUDComponentManager.getInstance().registerCRUD(
