@@ -1,0 +1,15 @@
+.login-page
+    .login-box
+        .login-box-body
+            .login-logo(v-if='logo_url')
+            h1.text-center(v-if='!logo_url') {{ label('login.recover.title') }}
+            h2.text-center {{ label('login.recover.sub_title') }}
+            p.server-answer(v-if='message') {{ message }}
+            p.login-box-msg {{ label('login.recover.desc') }}
+            form
+                .form-group.has-feedback(v-on:submit.prevent="recover")
+                    input.form-control(type='email', v-model='email', :placeholder='label("login.email_placeholder")')
+                    span.glyphicon.glyphicon-envelope.form-control-feedback
+
+                .center
+                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('login.recover.submit') }}

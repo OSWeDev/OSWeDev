@@ -31,6 +31,8 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public registered_cronWorkers: { [worker_uid: string]: ICronWorker } = {};
 
+    private semaphore: boolean = false;
+
     private constructor() {
         super(ModuleCron.getInstance().name);
     }
@@ -91,26 +93,29 @@ export default class ModuleCronServer extends ModuleServerBase {
     }
 
     public async executeWorkers() {
-        let plannedWorkers: CronWorkerPlanification[] = await ModuleDAO.getInstance().getVos<CronWorkerPlanification>(CronWorkerPlanification.API_TYPE_ID);
 
-        for (let i in plannedWorkers) {
-            let plannedWorker: CronWorkerPlanification = plannedWorkers[i];
+        if (this.semaphore) {
+            return false;
+        }
+        this.semaphore = true;
 
-            if (plannedWorker.date_heure_planifiee && moment(plannedWorker.date_heure_planifiee).isBefore(moment())) {
-                await this.executeWorker(plannedWorker.worker_uid);
-                await this.nextRecurrence(plannedWorker);
+        try {
+
+            let plannedWorkers: CronWorkerPlanification[] = await ModuleDAO.getInstance().getVos<CronWorkerPlanification>(CronWorkerPlanification.API_TYPE_ID);
+
+            for (let i in plannedWorkers) {
+                let plannedWorker: CronWorkerPlanification = plannedWorkers[i];
+
+                if (plannedWorker.date_heure_planifiee && moment(plannedWorker.date_heure_planifiee).isBefore(moment())) {
+                    await this.executeWorker(plannedWorker.worker_uid);
+                    await this.nextRecurrence(plannedWorker);
+                }
             }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            this.semaphore = false;
         }
-    }
-
-    public async executeWorker(worker_uid: string) {
-        if ((!worker_uid) || (!this.registered_cronWorkers[worker_uid]) || (!this.registered_cronWorkers[worker_uid].work)) {
-            return;
-        }
-
-        console.log('CRON:LANCEMENT:' + worker_uid);
-        await this.registered_cronWorkers[worker_uid].work();
-        console.log('CRON:FIN:' + worker_uid);
     }
 
     protected async nextRecurrence(plannedWorker: CronWorkerPlanification) {
@@ -144,5 +149,15 @@ export default class ModuleCronServer extends ModuleServerBase {
         plannedWorker.date_heure_planifiee = DateHandler.getInstance().formatDateTimeForBDD(date_heure_planifiee);
 
         await ModuleDAO.getInstance().insertOrUpdateVO(plannedWorker);
+    }
+
+    private async executeWorker(worker_uid: string) {
+        if ((!worker_uid) || (!this.registered_cronWorkers[worker_uid]) || (!this.registered_cronWorkers[worker_uid].work)) {
+            return;
+        }
+
+        console.log('CRON:LANCEMENT:' + worker_uid);
+        await this.registered_cronWorkers[worker_uid].work();
+        console.log('CRON:FIN:' + worker_uid);
     }
 }

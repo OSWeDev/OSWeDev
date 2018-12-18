@@ -1,0 +1,21 @@
+.login-page
+    .login-box
+        .login-box-body
+            .login-logo(v-if='logo_url')
+            h1.text-center(v-if='!logo_url') {{ label('login.reset.title') }}
+            h2.text-center {{ label('login.reset.sub_title') }}
+            p.server-answer(v-if='message') {{ message }}
+            p.login-box-msg {{ label('login.reset.desc') }}
+            form(v-on:submit.prevent="login")
+                .form-group.has-feedback
+                    input.form-control(type='email', v-model='email', :placeholder='label("login.email_placeholder")')
+                    span.glyphicon.glyphicon-envelope.form-control-feedback
+                .form-group.has-feedback
+                    input.form-control(type='code', v-model='challenge', :placeholder='label("login.code_placeholder")')
+                    span.glyphicon.glyphicon-envelope.form-control-feedback
+                .form-group.has-feedback
+                    input.form-control(type='password', v-model='new_pwd1' :placeholder='label("login.password_placeholder")')
+                    span.glyphicon.glyphicon-lock.form-control-feedback
+
+                .center
+                    button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('login.reset.submit') }}

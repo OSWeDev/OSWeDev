@@ -349,6 +349,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async getMyRoles(): Promise<RoleVO[]> {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+
+        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+            return null;
+        }
+
         let uid: number = httpContext ? httpContext.get('UID') : null;
 
         if (!uid) {
@@ -368,6 +373,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      */
     private async isRole(param: StringParamVO): Promise<boolean> {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+            return false;
+        }
+
         let uid: number = httpContext ? httpContext.get('UID') : null;
 
         if (!uid) {
@@ -390,6 +399,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async isAdmin(): Promise<boolean> {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+            return false;
+        }
+
         let uid: number = httpContext ? httpContext.get('UID') : null;
 
         if (!uid) {

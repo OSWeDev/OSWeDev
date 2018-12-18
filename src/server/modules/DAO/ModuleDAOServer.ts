@@ -521,6 +521,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+                // Server
+                return vos;
+            }
+
             let uid: number = httpContext ? httpContext.get('UID') : null;
             let user_data = httpContext ? httpContext.get('USER_DATA') : null;
             vos = await hook(datatable, vos, uid, user_data) as T[];
@@ -558,6 +563,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+
+            if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+                // Server
+                return vo;
+            }
+
             let uid: number = httpContext ? httpContext.get('UID') : null;
             let user_data = httpContext ? httpContext.get('USER_DATA') : null;
             let filtered: T[] = await hook(datatable, (((typeof vo != 'undefined') && (vo != null)) ? [vo] : null), uid, user_data) as T[];

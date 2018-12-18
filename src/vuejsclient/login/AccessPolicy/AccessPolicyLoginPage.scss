@@ -1,0 +1,87 @@
+@import "skin-variables.scss";
+
+.login-page {
+    /*background: #efe5d9;*/
+    background: transparent;
+
+    .img-center {margin:0 auto;}
+    img {
+    }
+
+    .login-box, .register-box {
+        width: 360px;
+        margin: 7% auto;
+
+
+        .login-logo, .register-logo {
+            font-size: 35px;
+            text-align: center;
+            font-weight: 300;
+            margin-bottom: 50px;
+            margin-top: 20px;
+
+            height: 2em;
+            width: 100%;
+            background: url(#{$logo_url});
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+
+        .login-box-body, .register-box-body {
+            background: #fff;
+            padding: 20px;
+            border-top: 0;
+            color: #666;
+
+            h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+                font-family: 'Source Sans Pro',sans-serif;
+            }
+
+            // .form-control:not(select) {
+            //     -webkit-appearance: none;
+            //     -moz-appearance: none;
+            //     appearance: none;
+            // }
+
+            // .form-control {
+            //     border-radius: 0;
+            //     box-shadow: none;
+            //     border-color: #d2d6de;
+            // }
+
+            .form-group i {
+                position: relative;
+                right: 0.4em;
+                margin-top: -1.7em;
+            }
+
+            .login-box-msg, .register-box-msg {
+                margin: 0;
+                text-align: center;
+                padding: 0 20px 20px 20px;
+            }
+        }
+    }
+
+    .btn-primary {
+        background-color: $button_primary_bg_color;
+        border:none;
+        text-transform:uppercase;
+    }
+
+    .btn-primary:hover, .btn-primary.active {
+        border:none;
+        background-color: $button_primary_active_bg_color;
+    }
+
+    .server-answer{
+        border: solid 2px grey;
+        background: lightgray;
+        color: black;
+        padding: 10px;
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+}
