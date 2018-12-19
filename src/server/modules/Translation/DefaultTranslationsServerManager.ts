@@ -28,6 +28,40 @@ export default class DefaultTranslationsServerManager {
         for (let i in DefaultTranslationManager.getInstance().registered_default_translations) {
             await this.saveDefaultTranslation(DefaultTranslationManager.getInstance().registered_default_translations[i]);
         }
+
+        await this.cleanTranslationCodes();
+    }
+
+    /**
+     * Makes sure to remove any invalid translation_code from the database
+     */
+    private async cleanTranslationCodes() {
+        let codes: TranslatableTextVO[] = await ModuleDAO.getInstance().getVos<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID);
+        let codes_to_deletes: TranslatableTextVO[] = [];
+
+        for (let i in codes) {
+            let code_a: TranslatableTextVO = codes[i];
+
+            for (let j in codes) {
+                if (parseInt(j.toString()) <= parseInt(i.toString())) {
+                    continue;
+                }
+
+                let code_b: TranslatableTextVO = codes[j];
+
+                if (code_b.code_text.startsWith(code_a.code_text)) {
+
+                    console.error('TranslatableText : REMOVE :' + code_a.code_text);
+                    codes_to_deletes.push(code_a);
+                    break;
+                }
+            }
+        }
+
+        if (codes_to_deletes.length > 0) {
+
+            await ModuleDAO.getInstance().deleteVOs(codes_to_deletes);
+        }
     }
 
     private async saveDefaultTranslation(default_translation: DefaultTranslation) {
