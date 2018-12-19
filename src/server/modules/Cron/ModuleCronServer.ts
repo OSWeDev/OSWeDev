@@ -113,9 +113,8 @@ export default class ModuleCronServer extends ModuleServerBase {
             }
         } catch (error) {
             console.error(error);
-        } finally {
-            this.semaphore = false;
         }
+        this.semaphore = false;
     }
 
     protected async nextRecurrence(plannedWorker: CronWorkerPlanification) {
