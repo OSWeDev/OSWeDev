@@ -22,26 +22,31 @@ export default class TimeSegmentHandler {
      * @param time_segment_type
      */
     public getAllDataTimeSegments(start: Moment, end: Moment, time_segment_type: number, exclude_end: boolean = false): TimeSegment[] {
+
+        if ((!start) || (!end) || (time_segment_type == null) || (typeof time_segment_type === 'undefined')) {
+            return null;
+        }
+
         let res: TimeSegment[] = [];
         let date: Moment = moment(start);
         let stop_at: Moment = moment(end);
 
         switch (time_segment_type) {
             case TimeSegment.TYPE_YEAR:
-                date = start.startOf('year');
-                stop_at = end.startOf('year');
+                date = date.startOf('year');
+                stop_at = stop_at.startOf('year');
                 break;
             case TimeSegment.TYPE_MONTH:
-                date = start.startOf('month');
-                stop_at = end.startOf('month');
+                date = date.startOf('month');
+                stop_at = stop_at.startOf('month');
                 break;
             case TimeSegment.TYPE_DAY:
             default:
-                date = start.startOf('day');
-                stop_at = end.startOf('day');
+                date = date.startOf('day');
+                stop_at = stop_at.startOf('day');
         }
 
-        while (((!exclude_end) && date.isSameOrBefore(stop_at)) || (exclude_end && date.isBefore(stop_at))) {
+        while (((!exclude_end) && date.isSameOrBefore(stop_at)) || (exclude_end && (date.isBefore(stop_at) || (date.isSame(stop_at, 'day') && stop_at.isSame(start, 'day'))))) {
 
             let timeSegment: TimeSegment = new TimeSegment();
             timeSegment.dateIndex = DateHandler.getInstance().formatDayForIndex(date);
@@ -98,8 +103,17 @@ export default class TimeSegmentHandler {
      * @returns Corresponding CumulTimeSegment
      */
     public getCumulTimeSegments(timeSegment: TimeSegment): TimeSegment[] {
+
+        if (!timeSegment) {
+            return null;
+        }
+
         let res: TimeSegment[] = [];
         let parentTimeSegment: TimeSegment = this.getParentTimeSegment(timeSegment);
+
+        if (!parentTimeSegment) {
+            return null;
+        }
 
         let start_period = this.getStartTimeSegment(parentTimeSegment);
         let end_period = this.getEndTimeSegment(timeSegment);
@@ -122,6 +136,11 @@ export default class TimeSegmentHandler {
      * @returns Exclusive upper bound of the timeSegment
      */
     public getEndTimeSegment(timeSegment: TimeSegment): Moment {
+
+        if (!timeSegment) {
+            return null;
+        }
+
         let res: Moment = moment(timeSegment.dateIndex);
 
         switch (timeSegment.type) {
@@ -140,6 +159,11 @@ export default class TimeSegmentHandler {
     }
 
     public getPreviousTimeSegments(timeSegments: TimeSegment[], type: number = null, offset: number = 1): TimeSegment[] {
+
+        if (!timeSegments) {
+            return null;
+        }
+
         let res: TimeSegment[] = [];
 
         for (let i in timeSegments) {
@@ -154,6 +178,10 @@ export default class TimeSegmentHandler {
      * @returns Le moment correspondant
      */
     public getDateInMonthSegment(monthSegment: TimeSegment, date: number): Moment {
+
+        if ((!monthSegment) || (!date)) {
+            return null;
+        }
 
         if (monthSegment.type != TimeSegment.TYPE_MONTH) {
             return null;
@@ -176,7 +204,7 @@ export default class TimeSegmentHandler {
         let res: TimeSegment = new TimeSegment();
         res.type = timeSegment.type;
         let date_segment: Moment = moment(timeSegment.dateIndex);
-        type = type ? type : timeSegment.type;
+        type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
 
         switch (type) {
             case TimeSegment.TYPE_YEAR:
@@ -221,6 +249,10 @@ export default class TimeSegmentHandler {
     }
 
     public isMomentInTimeSegment(date: Moment, time_segment: TimeSegment): boolean {
+        if ((!date) || (!time_segment)) {
+            return false;
+        }
+
         let start: Moment = moment(time_segment.dateIndex);
         let end: Moment;
 
@@ -239,7 +271,21 @@ export default class TimeSegmentHandler {
         return date.isSameOrAfter(start) && date.isBefore(end);
     }
 
-    public isInSameSegmentType(ts1: TimeSegment, ts2: TimeSegment, type: number = TimeSegment.TYPE_YEAR): boolean {
+    /**
+     * @param ts1
+     * @param ts2
+     * @param type Par défaut on prend le plus grand ensemble
+     */
+    public isInSameSegmentType(ts1: TimeSegment, ts2: TimeSegment, type: number = null): boolean {
+
+        if ((!ts1) || (!ts2)) {
+            return false;
+        }
+
+        if ((type == null) || (typeof type === "undefined")) {
+            type = Math.min(ts1.type, ts2.type);
+        }
+
         let start: Moment = moment(ts1.dateIndex);
         let end: Moment;
 
