@@ -15,7 +15,7 @@ export default class CardVO {
         public img_src: string,
         public activable: boolean,
         public rowsColumnsDatas: GroupColumnDataVO[],
-        public columnsTotal: ColumnDataVO[],
+        public columnsTotal: GroupColumnDataVO[],
         public columnsHeader: ColumnVO[],
         public columnsHeaderSupp: GroupColumnVO[],
         public columnsFooter: ColumnVO[],

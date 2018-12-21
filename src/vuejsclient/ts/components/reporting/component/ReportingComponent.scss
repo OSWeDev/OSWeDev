@@ -1,0 +1,149 @@
+table.VueTables__table {
+    & thead {
+        & tr {
+            & th {
+                background: white;
+                padding: 10px;
+                vertical-align: top;
+
+                & .VueTables__sort-icon {
+                    float: none !important;
+                    position: inherit;
+                    top: inherit;
+                    display: block;
+                    text-align: right;
+                    color: #BBB;
+                    padding-top: 5px;
+                    font-size: 13px;
+                }
+            }
+        }
+    }
+
+    & tr {
+
+        & td,
+        & th {
+            text-align: center;
+
+            &.admin {
+                filter: brightness(0.9);
+                background: white;
+            }
+
+            &.separate {
+                border-right: solid 3px rgba(226, 213, 197, 0.9);
+            }
+        }
+    }
+
+    & tbody {
+        & tr {
+            &.header_group {
+                &.main {
+                    & td {
+                        text-align: center;
+                        font-weight: bold;
+                        text-transform: uppercase;
+
+                        &:nth-child(2) {
+                            background: #AAA;
+                        }
+
+                        &:nth-child(3) {
+                            background: #BBB;
+                        }
+
+                        &:nth-child(4) {
+                            background: #CCC;
+                        }
+
+                        &:nth-child(5) {
+                            background: #DDD;
+                        }
+
+                        &:nth-child(6) {
+                            background: #EEE;
+                        }
+                    }
+                }
+            }
+
+            &.header_group.supp {
+                & td {
+                    background: white;
+                    font-style: italic;
+                }
+            }
+
+            &.main_total_line {
+                & td {
+                    background: #666;
+                    color: white;
+                    filter: none;
+                }
+
+                &.total_filter {
+                    & td {
+                        background: #8F8F8F;
+                    }
+                }
+            }
+
+            &.tfoot_repeat {
+                & td {
+                    background: white;
+                    font-size: smaller;
+                }
+            }
+        }
+    }
+
+    & tfoot {
+        & tr {
+            & td {
+                background: white;
+                font-size: smaller;
+            }
+        }
+    }
+}
+
+.VuePagination {
+    & .VuePagination__count {
+        display: none;
+    }
+}
+
+.VueTables__limit {
+    & label {
+        display: none;
+    }
+}
+
+button {
+    &.action-button {
+
+        &.selectall,
+        &.deselectall {
+            margin-top: 0;
+        }
+    }
+}
+
+.card {
+    &.activable {
+        background-color: rgba(226, 213, 197, 0.9);
+        color: #563c22;
+
+        &:hover {
+            background-color: white;
+            color: #563c22;
+        }
+    }
+
+    &.activated {
+        background: #563c22;
+        color: white;
+    }
+}

@@ -1,4 +1,4 @@
-.col-md-12.percent
+.col-md-12.percent(v-if="columnData")
     div(v-if="column && column.is_decimal")
         .row(v-if="columnData.value != null")
             span(:class="columnData.classLabelData") {{ const_filters.percent.read(columnData.value, 1) }}

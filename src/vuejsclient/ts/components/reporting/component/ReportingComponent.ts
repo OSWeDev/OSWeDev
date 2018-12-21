@@ -1,22 +1,21 @@
 import CardVO from '../vos/CardVO';
 import { Prop, Component, Vue, Watch } from 'vue-property-decorator';
 import ReportingCardComponent from './card/ReportingCardComponent';
-import FilterVO from '../vos/FilterVO';
 import 'vue-tables-2';
 import ReportingComponentBase from '../_base/ReportingComponentBase';
 import ColumnVO from '../vos/ColumnVO';
-import ReportingFilterComponent from './filter/ReportingFilterComponent';
 import ReportingColumnComponent from './column/ReportingColumnComponent';
 import moment = require('moment');
 import GroupColumnDataVO from '../vos/GroupColumnDataVO';
 import ColumnDataVO from '../vos/ColumnDataVO';
+import CustomFilterVueTable from '../vos/CustomFilterVueTable';
+import './ReportingComponent.scss';
 
 @Component({
     template: require('./ReportingComponent.pug'),
     components: {
         card_widget: ReportingCardComponent,
-        filter_widget: ReportingFilterComponent,
-        column_widget: ReportingColumnComponent
+        column_widget: ReportingColumnComponent,
     }
 })
 export default class ReportingComponent extends ReportingComponentBase {
@@ -30,10 +29,7 @@ export default class ReportingComponent extends ReportingComponentBase {
     public default_selected_card: CardVO;
 
     @Prop({ default: null })
-    public filters: FilterVO[];
-
-    @Prop({ default: null })
-    public filter_title: string;
+    public filters: CustomFilterVueTable[];
 
     @Prop({ default: null })
     public default_filter_date_active_option: string;
@@ -41,24 +37,17 @@ export default class ReportingComponent extends ReportingComponentBase {
     @Prop({ default: null })
     public default_filter_datevs_active_option: string;
 
-    @Prop({ default: null })
+    @Prop({ default: {} })
     public vue_tables_options_default: any;
 
     private selected_card: CardVO = null;
+    private filter_title: string = 'client.reporting.filtres';
     private filter_date_active_option: string = null;
     private filter_datevs_active_option: string = null;
 
     @Watch('filter_date_active_option')
-    private on_change_filter_date_active_option(): void {
-        this.on_change_filter_date();
-    }
-
     @Watch('filter_datevs_active_option')
-    private on_change_filter_datevs_active_option(): void {
-        this.on_change_filter_date();
-    }
-
-    private on_change_filter_date(): void {
+    private on_change_filter_date_active_option(): void {
         this.$emit('change_filter_date', this.filter_date_active_option, this.filter_datevs_active_option);
     }
 
@@ -75,7 +64,9 @@ export default class ReportingComponent extends ReportingComponentBase {
     private empty_filters(): void {
         if (this.$children.length > 0) {
             for (let i in this.$children) {
-                this.$children[i].$emit('deselect_all');
+                if (this.$children[i]['deselect_all']) {
+                    this.$children[i]['deselect_all']();
+                }
             }
         }
     }
@@ -144,36 +135,6 @@ export default class ReportingComponent extends ReportingComponentBase {
         }
 
         return null;
-    }
-
-    get vue_tables_options(): any {
-        let options: any = {};
-
-        if (this.vue_tables_options_default) {
-            options = this.vue_tables_options_default;
-        }
-
-        if (this.cards) {
-            let columnsClasses: { [columnName: string]: string } = {};
-
-            for (let i in this.cards) {
-                let card: CardVO = this.cards[i];
-
-                if (card.columnsHeader) {
-                    for (let j in card.columnsHeader) {
-                        let column: ColumnVO = card.columnsHeader[j];
-
-                        if (!columnsClasses[column.name]) {
-                            columnsClasses[column.name] = this.getClassesColumn(column);
-                        }
-                    }
-                }
-            }
-
-            options.columnsClasses = columnsClasses;
-        }
-
-        return options;
     }
 
     get data_selected_card(): any[] {

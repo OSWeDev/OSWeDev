@@ -1,0 +1,13 @@
+.row.filtre.list(v-if="all_values")
+    .col-md-6.filter-col
+        v-select.v-select-multiple(:placeholder="label('client.reporting.filtre.placeholder.' + name)", v-model="values", multiple, :options="all_values")
+            span(slot="no-options") -
+            template(slot="option", slot-scope="option")
+                i.fa.fa-object-group(aria-hidden='true')
+                span {{ option.label }}
+    .col-md-1
+        button.selectall.action-button(@click="select_all")
+            i.fa.fa-list(aria-hidden="true")
+    .col-md-1
+        button.deselectall.action-button(@click="deselect_all")
+            i.fa.fa-trash(aria-hidden="true")

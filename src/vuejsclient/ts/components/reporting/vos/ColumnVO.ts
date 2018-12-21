@@ -18,7 +18,12 @@ export default class ColumnVO {
         if (column.bold) {
             classes.push('bold');
         }
+        if (column.separate) {
+            classes.push('separate');
+        }
         classes.push(column.name);
+
+        classes.push(column.classLabel);
 
         return classes.join(' ');
     }
@@ -33,5 +38,6 @@ export default class ColumnVO {
         public admin: boolean = false,
         public is_decimal: boolean = false,
         public trend: boolean = false,
+        public separate: boolean = false,
     ) { }
 }
