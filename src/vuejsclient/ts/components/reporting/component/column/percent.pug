@@ -1,0 +1,15 @@
+.col-md-12.percent(v-if="columnData")
+    div(v-if="column && column.is_decimal")
+        .row(v-if="columnData.value != null")
+            span(:class="columnData.classLabelData") {{ const_filters.percent.read(columnData.value, 1) }}
+        .row(v-if="columnData.moyenne != null")
+            span.italic(:class="columnData.classLabelData") {{ const_filters.percent.read(columnData.moyenne, 1) }}
+
+    div(v-else-if="column && column.trend")
+        trend_widget(:positive_min="0.1", :medium_min="0", :column_data="columnData")
+        
+    div(v-else)
+        .row(v-if="columnData.value != null")
+            span(:class="columnData.classLabelData") {{ const_filters.percent.read(columnData.value) }}
+        .row(v-if="columnData.moyenne != null")
+            span.italic(:class="columnData.classLabelData") {{ const_filters.percent.read(columnData.moyenne) }}

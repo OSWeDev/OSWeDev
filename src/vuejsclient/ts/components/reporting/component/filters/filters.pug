@@ -1,0 +1,19 @@
+.col-md-6.hidden-print
+    +box("{{ t(filter_title) }}", '', "8px", "0px")
+        i.box-header-icon.fa.fa-filter
+        .custom_filters(v-if="filters && filters.length > 0") 
+            template(v-for="filter in filters")
+                component(v-if="filter.component", :is="filter.component", :name="filter.name", :default_value="filter.default_value", :all_values="filter.all_values")
+        
+        .col-md-12
+            label {{ t('client.reporting.date_A_label') }}
+            input(type="month", size="10", v-model="filter_date_active_option", class="form-control", :placeholder="t('client.reporting.date')")
+
+        .col-md-12
+            label {{ t('client.reporting.date_B_label') }}
+            input(type="month", size="10", v-model="filter_datevs_active_option", class="form-control", :placeholder="t('client.reporting.datevs')")
+
+        .col-md-12
+            button.action-button(@click="empty_filters")
+                i.fa.fa-eraser(aria-hidden="true")
+                span {{t('client.reporting.vider_les_filtres')}}

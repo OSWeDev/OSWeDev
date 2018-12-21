@@ -359,11 +359,6 @@ export default class DataImportComponent extends DataImportComponentBase {
                 continue;
             }
 
-            if (this.validate_previous_segment && moment(this.validate_previous_segment.dateIndex).isSameOrAfter(segment.dateIndex)) {
-                res[segment.dateIndex] = this.state_ok;
-                continue;
-            }
-
             // Un segment est ko si tous les valid_api_type_ids sont ko
             //  Un api_type est ko si il n'y a pas d'historique
             //      ou si l'historique est en erreur
@@ -394,21 +389,21 @@ export default class DataImportComponent extends DataImportComponentBase {
             }
             if (all_none) {
                 res[segment.dateIndex] = this.state_none;
-                continue;
-            }
-            if (all_ko) {
+            } else if (all_ko) {
                 res[segment.dateIndex] = this.state_ko;
-                continue;
-            }
-            if (all_ok && !has_info) {
+            } else if (all_ok && !has_info) {
                 res[segment.dateIndex] = this.state_ok;
-                continue;
-            }
-            if (has_info) {
+            } else if (has_info) {
                 res[segment.dateIndex] = this.state_info;
-                continue;
+            } else {
+                res[segment.dateIndex] = this.state_warn;
             }
-            res[segment.dateIndex] = this.state_warn;
+
+            if (res[segment.dateIndex] == this.state_none) {
+                if (this.validate_previous_segment && moment(this.validate_previous_segment.dateIndex).isSameOrAfter(segment.dateIndex)) {
+                    res[segment.dateIndex] = this.state_ok;
+                }
+            }
         }
 
         return res;
