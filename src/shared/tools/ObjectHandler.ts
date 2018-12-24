@@ -15,7 +15,7 @@ export default class ObjectHandler {
         var keys = [];
         var sorted_obj = {};
 
-        for (var key in obj) {
+        for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
                 keys.push(key);
             }
@@ -29,5 +29,14 @@ export default class ObjectHandler {
         }
 
         return sorted_obj;
+    }
+
+    public arrayFromMap<T>(map: {}): T[] {
+        let res: T[] = [];
+
+        for (let i in map) {
+            res.push(map[i]);
+        }
+        return res;
     }
 }

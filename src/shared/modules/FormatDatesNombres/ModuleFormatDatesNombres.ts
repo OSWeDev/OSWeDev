@@ -114,13 +114,17 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     // Formatter un nombre
-    public formatNumber_nodecimal(numberToFormat) {
+    public formatNumber_nodecimal(numberToFormat: number): string {
 
         let number = null;
         let res = "";
 
         try {
-            number = Math.abs(parseFloat(numberToFormat));
+            // js failover
+            if (!isNumber(numberToFormat)) {
+                numberToFormat = parseFloat((numberToFormat as any).toString());
+            }
+            number = Math.abs(numberToFormat);
 
             // On coupe après la virgule
             number = Math.round(number);
@@ -141,58 +145,96 @@ export default class ModuleFormatDatesNombres extends Module {
 
             res = number + res;
         } catch (e) {
-            return NaN;
+            return "NaN";
         }
         return this.formatNumber_sign(numberToFormat) + res;
     }
 
-    // Formatter un nombre : 1 décimale
-    public formatNumber_1decimal(numberToFormat) {
+    // // Formatter un nombre : 1 décimale
+    // public formatNumber_1decimal(numberToFormat) {
+
+    //     let number = null;
+
+    //     try {
+    //         number = Math.abs(parseFloat(numberToFormat));
+
+    //         // On sépare les décimals du reste
+    //         let entier = Math.floor(number);
+    //         let decimals = number - entier;
+    //         decimals = Math.round(decimals * 10);
+    //         if (decimals >= 10) {
+    //             decimals -= 10;
+    //             entier++;
+    //         }
+    //         return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + decimals;
+    //     } catch (e) {
+
+    //     }
+
+    //     return NaN;
+    // }
+
+    public formatNumber_n_decimals(numberToFormat: number, n_decimals: number): string {
 
         let number = null;
 
+        if ((!n_decimals) || (n_decimals < 0)) {
+            return this.formatNumber_nodecimal(numberToFormat);
+        }
+
         try {
-            number = Math.abs(parseFloat(numberToFormat));
+            // js failover
+            if (!isNumber(numberToFormat)) {
+                numberToFormat = parseFloat((numberToFormat as any).toString());
+            }
+
+            number = Math.abs(numberToFormat);
 
             // On sépare les décimals du reste
             let entier = Math.floor(number);
             let decimals = number - entier;
-            decimals = Math.round(decimals * 10);
-            if (decimals >= 10) {
-                decimals -= 10;
+            let tenth = Math.pow(10, n_decimals);
+            decimals = Math.round(decimals * tenth);
+            if (decimals >= tenth) {
+                decimals -= tenth;
                 entier++;
             }
-            return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + decimals;
-        } catch (e) {
 
-        }
-
-        return NaN;
-    }
-
-    // Formatter un nombre : 2 décimales
-    public formatNumber_2decimal(numberToFormat) {
-
-        let number = null;
-
-        try {
-            number = Math.abs(parseFloat(numberToFormat));
-
-            // On sépare les décimals du reste
-            let entier = Math.floor(number);
-            let decimals = number - entier;
-            decimals = Math.round(decimals * 100);
-            if (decimals >= 100) {
-                decimals -= 100;
-                entier++;
+            let dectxt: string = "";
+            for (let i = n_decimals; i > 1; i--) {
+                dectxt = dectxt + (decimals < Math.pow(10, i - 1) ? "0" : "");
             }
-            return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + (decimals < 10 ? "0" + decimals : decimals);
+            dectxt += decimals;
+            return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + dectxt;
         } catch (e) {
-
         }
 
-        return NaN;
+        return "NaN";
     }
+
+    // // Formatter un nombre : 2 décimales
+    // public formatNumber_2decimal(numberToFormat) {
+
+    //     let number = null;
+
+    //     try {
+    //         number = Math.abs(parseFloat(numberToFormat));
+
+    //         // On sépare les décimals du reste
+    //         let entier = Math.floor(number);
+    //         let decimals = number - entier;
+    //         decimals = Math.round(decimals * 100);
+    //         if (decimals >= 100) {
+    //             decimals -= 100;
+    //             entier++;
+    //         }
+    //         return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + (decimals < 10 ? "0" + decimals : decimals);
+    //     } catch (e) {
+
+    //     }
+
+    //     return NaN;
+    // }
 
     public initialize() {
         this.fields = [

@@ -1,26 +1,5 @@
 import * as moment from 'moment';
 import ModuleFormatDatesNombres from '../modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import LocaleManager from './LocaleManager';
-
-let lang = LocaleManager.getInstance().getDefaultLocale();
-function GetSeparateurParLangue() {
-    if (!lang) {
-        lang = LocaleManager.getInstance().getDefaultLocale();
-    }
-    if (!lang) {
-        lang = "fr";
-    }
-    let separateur = [];
-
-    separateur["millier"] = ",";
-    separateur["decimal"] = ".";
-    if (lang.toLowerCase() == "de") {
-        separateur["millier"] = ".";
-        separateur["decimal"] = ",";
-    }
-
-    return separateur;
-}
 
 // FILTERS MIXIN
 function FilterObj(read, write) {
@@ -160,11 +139,10 @@ export let amountFilter = new FilterObj(
         let _int;
 
         // On récupère le séparateur en fonction de la langue
-        let separateur = GetSeparateurParLangue();
         let currency = "€";
 
         if (typeof k !== "undefined") {
-            let currency = "k€";
+            currency = "k€";
             value = value / 1000;
         }
 
@@ -182,52 +160,7 @@ export let amountFilter = new FilterObj(
             _int = stringified;
         }
 
-        if (
-            ModuleFormatDatesNombres.getInstance().actif &&
-            ((!fractionalDigits) || (fractionalDigits == 1) || (fractionalDigits == 2))
-        ) {
-            if (!fractionalDigits) {
-                return (
-                    currency +
-                    ModuleFormatDatesNombres.getInstance().formatNumber_nodecimal(value)
-                );
-            }
-            if (fractionalDigits == 1) {
-                return (
-                    currency +
-                    ModuleFormatDatesNombres.getInstance().formatNumber_1decimal(value)
-                );
-            }
-            if (fractionalDigits == 2) {
-                return (
-                    currency +
-                    ModuleFormatDatesNombres.getInstance().formatNumber_2decimal(value)
-                );
-            }
-        } else {
-            let sign = value < 0 ? "-" : "";
-            let res = "";
-            let i = 0;
-
-            while (_int.length > i + 3) {
-                if (i > 0) {
-                    res = "," + _int.slice(-i - 3, -i) + res;
-                } else {
-                    res = "," + _int.slice(-i - 3) + res;
-                }
-                i += 3;
-            }
-
-            if (i > 0) {
-                res = _int.slice(0, -i) + res;
-            } else {
-                res = _int + res;
-            }
-
-            let _float = stringified.slice(decalageComa + 1);
-
-            return currency + sign + res + (decalageComa ? "." + _float : "");
-        }
+        return currency + ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
     },
     function (value) {
 
@@ -250,7 +183,7 @@ export let amountFilter = new FilterObj(
 );
 
 export let percentFilter = new FilterObj(
-    function (value, fractionalDigits, pts = false) {
+    function (value: number, fractionalDigits: number, pts: boolean = false) {
         if (value == undefined) {
             return value;
         }
@@ -265,47 +198,10 @@ export let percentFilter = new FilterObj(
         }
 
         if (!isFinite(value) || isNaN(value)) {
-            return "";
+            return null;
         }
 
-        if (
-            ModuleFormatDatesNombres.getInstance().actif &&
-            ((!fractionalDigits) || (fractionalDigits == 1) || (fractionalDigits == 2))
-        ) {
-            if (!fractionalDigits) {
-                return (
-                    ModuleFormatDatesNombres.getInstance().formatNumber_nodecimal(value) +
-                    " " +
-                    pourcentage
-                );
-            }
-            if (fractionalDigits == 1) {
-                return (
-                    ModuleFormatDatesNombres.getInstance().formatNumber_1decimal(value) +
-                    " " +
-                    pourcentage
-                );
-            }
-            if (fractionalDigits == 2) {
-                return (
-                    ModuleFormatDatesNombres.getInstance().formatNumber_2decimal(value) +
-                    " " +
-                    pourcentage
-                );
-            }
-        } else {
-            if (typeof fractionalDigits !== "undefined") {
-                value = Number(value).toFixed(fractionalDigits);
-                // value = Math.round(value * Math.pow(10, fractionalDigits)) / Math.pow(10, fractionalDigits);
-            }
-            return value + " " + pourcentage;
-        }
-        let separateur = GetSeparateurParLangue();
-        let value_render = value.replace(".", separateur["decimal"]);
-
-        return !isFinite(value) || isNaN(value)
-            ? ""
-            : value_render + " " + pourcentage;
+        return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits) + " " + pourcentage;
     },
     function (value) {
         let result = value
@@ -327,32 +223,7 @@ export let toFixedFilter = new FilterObj(
             return value;
         }
 
-        if (
-            ModuleFormatDatesNombres.getInstance().actif &&
-            (!fractionalDigits || fractionalDigits == 1 || fractionalDigits == 2)
-        ) {
-            if (!fractionalDigits) {
-                return ModuleFormatDatesNombres.getInstance().formatNumber_nodecimal(
-                    value
-                );
-            }
-            if (fractionalDigits == 1) {
-                return ModuleFormatDatesNombres.getInstance().formatNumber_1decimal(
-                    value
-                );
-            }
-            if (fractionalDigits == 2) {
-                return ModuleFormatDatesNombres.getInstance().formatNumber_2decimal(
-                    value
-                );
-            }
-        } else {
-            let value_fixed = Number(value).toFixed(fractionalDigits);
-
-            // On récupère le séparateur en fonction de la langue
-            let separateur = GetSeparateurParLangue();
-            return value_fixed.replace(".", separateur["decimal"]);
-        }
+        return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
     },
     function (value) {
         value = value.replace(",", "");
@@ -401,7 +272,7 @@ export let bignumFilter = new FilterObj(
     function (value) {
         value = parseFloat(value);
         if (!isFinite(value) || (!value && value !== 0)) {
-            return "";
+            return null;
         }
         let stringified = Math.abs(value).toFixed(2);
         let _int = stringified.slice(0, -3);
