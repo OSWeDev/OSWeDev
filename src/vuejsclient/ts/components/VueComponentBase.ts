@@ -375,8 +375,9 @@ export default class VueComponentBase extends Vue
 
     protected formatNumber_1decimal(numberToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
-            return ModuleFormatDatesNombres.getInstance().formatNumber_1decimal(
-                numberToFormat
+            return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(
+                numberToFormat,
+                1
             );
         }
         return numberToFormat;
@@ -384,8 +385,9 @@ export default class VueComponentBase extends Vue
 
     protected formatNumber_2decimal(numberToFormat) {
         if (ModuleFormatDatesNombres.getInstance().actif) {
-            return ModuleFormatDatesNombres.getInstance().formatNumber_2decimal(
-                numberToFormat
+            return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(
+                numberToFormat,
+                2
             );
         }
         return numberToFormat;
