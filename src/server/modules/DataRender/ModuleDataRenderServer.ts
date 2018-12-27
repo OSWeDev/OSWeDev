@@ -80,11 +80,11 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     /**
-     * Attention le résultat doit passer par un force numerics approprié
-     * @param bdd_full_name
+     * @param datatable
      * @param timeSegment
+     * @param rendered_data_time_segment_type
      */
-    public async getDataSegment_needs_force_numerics<T extends IDistantVOBase>(
+    public async getDataSegment<T extends IDistantVOBase>(
         datatable: ModuleTable<T>,
         timeSegment: TimeSegment,
         rendered_data_time_segment_type: number): Promise<T[]> {
