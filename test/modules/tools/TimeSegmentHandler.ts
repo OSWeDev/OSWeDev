@@ -1,13 +1,10 @@
-import * as chai from 'chai';
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import 'mocha';
-
 import * as moment from 'moment';
-import TimeSegmentHandler from '../../../src/shared/tools/TimeSegmentHandler';
 import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
 import DateHandler from '../../../src/shared/tools/DateHandler';
+import TimeSegmentHandler from '../../../src/shared/tools/TimeSegmentHandler';
 
-let should = chai.should();
 
 it('test getAllDataTimeSegments', () => {
     expect(TimeSegmentHandler.getInstance().getAllDataTimeSegments(null, null, null)).to.equal(null);

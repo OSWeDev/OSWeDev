@@ -1,9 +1,8 @@
-import * as chai from 'chai';
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import 'mocha';
-
-import { amountFilter, hourAndMinutesFilter, hourFilter, percentFilter } from '../../../src/shared/tools/Filters';
 import ModuleFormatDatesNombres from '../../../src/shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import { amountFilter, hourAndMinutesFilter, hourFilter, percentFilter } from '../../../src/shared/tools/Filters';
+
 
 
 it('test percentFilter read', () => {
