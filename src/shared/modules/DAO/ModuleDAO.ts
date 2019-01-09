@@ -9,6 +9,8 @@ import APIDAOParamsVO from './vos/APIDAOParamsVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 import APIDAORefFieldParamsVO from './vos/APIDAORefFieldParamsVO';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import INamedVO from '../../interfaces/INamedVO';
+import APIDAONamedParamVO from './vos/APIDAONamedParamVO';
 
 export default class ModuleDAO extends Module {
 
@@ -27,6 +29,7 @@ export default class ModuleDAO extends Module {
     public static APINAME_GET_VOS_BY_IDS = "GET_VOS_BY_IDS";
     public static APINAME_GET_VOS = "GET_VOS";
     public static APINAME_GET_VOS_BY_REFFIELD_IDS = "GET_VOS_BY_REFFIELD_IDS";
+    public static APINAME_GET_NAMED_VO_BY_NAME = "GET_NAMED_VO_BY_NAME";
 
     public static getInstance() {
         if (!ModuleDAO.instance) {
@@ -99,6 +102,15 @@ export default class ModuleDAO extends Module {
             APIDAORefFieldParamsVO.translateFromREQ
         ));
 
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
+            ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME,
+            (param: APIDAONamedParamVO) => [param.API_TYPE_ID],
+            APIDAONamedParamVO.translateCheckAccessParams,
+            APIDAONamedParamVO.URL,
+            APIDAONamedParamVO.translateToURL,
+            APIDAONamedParamVO.translateFromREQ
+        ));
+
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
             ModuleDAO.APINAME_GET_VO_BY_ID,
             (param: APIDAOParamVO) => [param.API_TYPE_ID],
@@ -127,6 +139,10 @@ export default class ModuleDAO extends Module {
 
     public async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
         return await ModuleAPI.getInstance().handleAPI<IDistantVOBase, InsertOrDeleteQueryResult>(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, vo);
+    }
+
+    public async getNamedVoByName<T extends INamedVO>(API_TYPE_ID: string, vo_name: string): Promise<T> {
+        return await ModuleAPI.getInstance().handleAPI<APIDAONamedParamVO, T>(ModuleDAO.APINAME_GET_VO_BY_ID, API_TYPE_ID, vo_name);
     }
 
     public async getVoById<T extends IDistantVOBase>(API_TYPE_ID: string, id: number): Promise<T> {
