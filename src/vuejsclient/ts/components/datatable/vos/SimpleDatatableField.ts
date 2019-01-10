@@ -5,6 +5,7 @@ import VueComponentBase from '../../VueComponentBase';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import * as moment from 'moment';
+import { Moment } from 'moment';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
@@ -33,7 +34,8 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
-                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value));
+
+                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
 
                 case ModuleTableField.FIELD_TYPE_daterange:
                     // On stocke au format day - day
@@ -52,7 +54,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     }
                     res += '-';
                     if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
-                        res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(parts[1].trim()));
+                        res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(parts[1].trim()), moduleTableField, true));
                     }
 
                     return res;
@@ -79,7 +81,8 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
-                    return field_value;
+
+                    return DateHandler.getInstance().formatDayForVO(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
 
                 default:
                     return SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo);
@@ -140,11 +143,11 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                     let res: string = "[";
                     if (parts[0] && parts[0].trim() && (parts[0].trim() != "")) {
-                        res += DateHandler.getInstance().formatDayForSQL(moment(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[0].trim())));
+                        res += DateHandler.getInstance().formatDayForSQL(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[0].trim()));
                     }
                     res += ',';
                     if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
-                        res += DateHandler.getInstance().formatDayForSQL(moment(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim())));
+                        res += DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim()), moduleTableField, false));
                     }
                     res += ')';
 
@@ -152,7 +155,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
-                    return DateHandler.getInstance().formatDayForSQL(moment(value));
+                    return DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value), moduleTableField, false));
 
                 default:
                     return value;
@@ -247,5 +250,18 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
     public dataToHumanReadableField(e: IDistantVOBase): U {
         return this.dataToReadIHM(e[this.datatable_field_uid], e);
+    }
+
+    private static getMomentDateFieldInclusif(momentSrc: Moment, moduleTableField: ModuleTableField<any>, is_data_to_ihm: boolean): Moment {
+        let date = moment(momentSrc);
+        if (moduleTableField.is_inclusive_data != moduleTableField.is_inclusive_ihm) {
+            if (moduleTableField.is_inclusive_data) {
+                date.add(is_data_to_ihm ? 1 : -1, 'day');
+            } else {
+                date.add(is_data_to_ihm ? -1 : 1, 'day');
+            }
+        }
+
+        return date;
     }
 }

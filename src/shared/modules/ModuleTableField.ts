@@ -48,6 +48,17 @@ export default class ModuleTableField<T> {
     public manyToOne_target_moduletable: ModuleTable<any> = null;
     public default_target_label_field_id: string = null;
 
+    /**
+     * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
+     * Sur daterange : idem si date fin du range
+     */
+    public is_inclusive_data: boolean = false;
+    /**
+     * Sur date : identifie si la date est utilisée dans l'ihm comme inclusive ou exclusive (le jour ciblé est inclus ou non)
+     * Sur daterange : idem si date fin du range
+     */
+    public is_inclusive_ihm: boolean = false;
+
     public enum_values: { [value: number]: string } = {};
 
     /**
@@ -84,6 +95,18 @@ export default class ModuleTableField<T> {
         this.target_database = null;
         this.target_table = null;
         this.target_field = null;
+    }
+
+    public setInclusiveData(): ModuleTableField<T> {
+        this.is_inclusive_data = true;
+
+        return this;
+    }
+
+    public setInclusiveIHM(): ModuleTableField<T> {
+        this.is_inclusive_ihm = true;
+
+        return this;
     }
 
     /**
