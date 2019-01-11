@@ -109,7 +109,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         return await ModuleDAOServer.getInstance().selectAll<T>(datatable.vo_type, ' where data_dateindex in (' + timeSegments_in + ')') as T[];
     }
 
-    public async clearDataSegments(API_TYPE_ID: string, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
+    public async clearDataSegments(moduletable: ModuleTable<any>, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
 
         let timeSegments_in: string = null;
         for (let i in timeSegments) {
@@ -122,12 +122,12 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
                 timeSegments_in += ", \'" + timeSegment.dateIndex + "\'";
             }
         }
-        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID].full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
+        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
     }
 
-    public async clearDataSegment(API_TYPE_ID: string, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
+    public async clearDataSegment(moduletable: ModuleTable<any>, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
 
-        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID].full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.dateIndex]);
+        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + moduletable.full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.dateIndex]);
     }
 
     public async getDataRenderingLogs(): Promise<DataRenderingLogVO[]> {
