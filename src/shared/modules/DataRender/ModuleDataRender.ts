@@ -287,9 +287,34 @@ export default class ModuleDataRender extends Module {
         }
 
         if (hasValue) {
+            if ((!hasPreviousValue) && isInSameSegmentType) {
+                // on essaie de retrouver un cumul précédent des fois qu'il y ai un trou dans les datas
+                while (isInSameSegmentType) {
+                    timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
+                    isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
+                    previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
+                    hasPreviousValue = isNumber(previousCumul);
+                    if (hasPreviousValue && isInSameSegmentType) {
+                        return previousCumul + value;
+                    }
+                }
+
+            }
             return value;
         }
 
+        if ((!hasPreviousValue) && isInSameSegmentType) {
+            // on essaie de retrouver un cumul précédent des fois qu'il y ai un trou dans les datas
+            while (isInSameSegmentType) {
+                timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
+                isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
+                previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
+                hasPreviousValue = isNumber(previousCumul);
+                if (hasPreviousValue && isInSameSegmentType) {
+                    return previousCumul;
+                }
+            }
+        }
         return null;
     }
 

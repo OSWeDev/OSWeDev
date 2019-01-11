@@ -317,6 +317,137 @@ it('test DataRender: getCumul', () => {
             moment('2018-05-01'),
             TimeSegment.TYPE_MONTH),
         1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(26);
+
+
+
+    renderedDatasBySegmentAndResourceId = {
+        '2018-01-01': {
+            1: {
+                2: {
+                    val: 1,
+                    cum: 15
+                } as any
+            }
+        },
+        '2018-02-01': {
+            1: {
+                2: {
+                    val: 2,
+                    cum: 25
+                } as any
+            }
+        },
+        '2018-04-01': {
+            1: {
+                2: {
+                    val: 20,
+                    cum: 36
+                } as any
+            }
+        },
+        '2018-05-01': {
+            1: {
+                2: {
+                    val: -10,
+                    cum: 21
+                } as any
+            }
+        }
+    };
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-01-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(1);
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-02-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(17);
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-03-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(25);
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-04-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(45);
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-05-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(26);
+
+
+
+
+    renderedDatasBySegmentAndResourceId = {
+        '2018-01-01': {
+            1: {
+                2: {
+                    cum: 15
+                } as any
+            }
+        },
+        '2018-02-01': {
+            1: {
+                2: {
+                    cum: 25
+                } as any
+            }
+        },
+        '2018-04-01': {
+            1: {
+                2: {
+                    cum: 36
+                } as any
+            }
+        },
+        '2018-05-01': {
+            1: {
+                2: {
+                    cum: 21
+                } as any
+            }
+        }
+    };
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-01-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(null);
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-02-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(15);
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-03-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(25);
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-04-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(25);
+
+    expect(ModuleDataRender.getInstance().getCumul(
+        TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            moment('2018-05-01'),
+            TimeSegment.TYPE_MONTH),
+        1, 'val', 'cum', 2, renderedDatasBySegmentAndResourceId)).to.equal(36);
 });
 
 it('test DataRender: getCumul_m_mm1_mm2', () => {
