@@ -67,6 +67,13 @@ it('test getAllDataTimeSegments', () => {
 });
 
 it('test getCorrespondingTimeSegment', () => {
+    expect(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+        moment('2018-03-01'),
+        TimeSegment.TYPE_MONTH, 2)).to.deep.equal({
+            dateIndex: '2018-05-01',
+            type: TimeSegment.TYPE_MONTH
+        });
+
     expect(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2018-02-03'), TimeSegment.TYPE_DAY)).to.deep.equal({
         dateIndex: '2018-02-03',
         type: TimeSegment.TYPE_DAY

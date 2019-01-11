@@ -124,6 +124,11 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + bdd_full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
     }
 
+    public async clearDataSegment(bdd_full_name: string, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
+
+        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + bdd_full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.dateIndex]);
+    }
+
     public async getDataRenderingLogs(): Promise<DataRenderingLogVO[]> {
         return ModuleDAO.getInstance().getVos<DataRenderingLogVO>(DataRenderingLogVO.API_TYPE_ID);
     }

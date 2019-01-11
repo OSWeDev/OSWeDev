@@ -201,6 +201,10 @@ export default class TimeSegmentHandler {
      * @returns Exclusive upper bound of the timeSegment
      */
     public getPreviousTimeSegment(timeSegment: TimeSegment, type: number = null, offset: number = 1): TimeSegment {
+        if (!timeSegment) {
+            return null;
+        }
+
         let res: TimeSegment = new TimeSegment();
         res.type = timeSegment.type;
         let date_segment: Moment = moment(timeSegment.dateIndex);
