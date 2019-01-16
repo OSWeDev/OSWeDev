@@ -1,6 +1,8 @@
 import ModuleServiceBase from "./ModuleServiceBase";
 import Module from "../../shared/modules/Module";
 import ModuleFileServer from './File/ModuleFileServer';
+import ModulesManager from '../../shared/modules/ModulesManager';
+import ObjectHandler from '../../shared/tools/ObjectHandler';
 
 export default class ModulesClientInitializationDatasGenerator {
 
@@ -25,6 +27,7 @@ export default class ModulesClientInitializationDatasGenerator {
             let fileContent_admin = this.getFileContent('Admin');
             let fileContent_client = this.getFileContent('Client');
             let fileContent_login = this.getFileContent('Login');
+            let fileContent_test = this.getFileContent('Test');
 
             // 'export default ModulesClientInitializationDatas = ' + JSON.stringify(this.GM.get_modules_infos(req.params.env)) + ';';
             try {
@@ -32,9 +35,11 @@ export default class ModulesClientInitializationDatasGenerator {
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/client/ts/generated/');
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/admin/ts/generated/');
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/login/ts/generated/');
+                await ModuleFileServer.getInstance().makeSureThisFolderExists('./test/generated/');
                 await ModuleFileServer.getInstance().writeFile('./src/client/ts/generated/InitializeClientModulesDatas.ts', fileContent_client);
                 await ModuleFileServer.getInstance().writeFile('./src/admin/ts/generated/InitializeAdminModulesDatas.ts', fileContent_admin);
                 await ModuleFileServer.getInstance().writeFile('./src/login/ts/generated/InitializeLoginModulesDatas.ts', fileContent_login);
+                await ModuleFileServer.getInstance().writeFile('./test/generated/InitializeTestModulesDatas.ts', fileContent_test);
             } catch (error) {
                 reject(error);
             } finally {
@@ -67,11 +72,19 @@ export default class ModulesClientInitializationDatasGenerator {
                 break;
             case 'Login':
                 modules = ModuleServiceBase.getInstance().loginModules;
+                break;
+            case 'Test':
+                // modules =[];
+                // for (let i in ModulesManager.getInstance().modules_by_name){
+                //     module.push(ModulesManager.getInstance().modules_by_name[i].getModuleComponentByRole(Module.SharedModuleRoleName));
+                // }
+                modules = ModuleServiceBase.getInstance().sharedModules;
+                break;
         }
         for (let i in modules) {
             let module: Module = modules[i];
 
-            if (module.actif) {
+            if (module.actif || (target == 'Test')) {
                 fileContent += hook(module, target);
             }
         }
@@ -82,9 +95,11 @@ export default class ModulesClientInitializationDatasGenerator {
     private generateModuleImport(module: Module, target: string) {
         let path: string = '../../../shared/modules/';
 
-        if ((((target == 'Client') || (target == 'Admin')) && ModuleServiceBase.getInstance().isBaseSharedModule(module)) ||
+        if ((((target == 'Test') || (target == 'Client') || (target == 'Admin')) && ModuleServiceBase.getInstance().isBaseSharedModule(module)) ||
             ((target == 'Login') && ModuleServiceBase.getInstance().isBaseLoginModule(module))) {
             path = 'oswedev/dist/shared/modules/';
+        } else if (target == 'Test') {
+            path = '../../src/shared/modules/';
         }
 
         if (module.specificImportPath) {
@@ -113,7 +128,7 @@ export default class ModulesClientInitializationDatasGenerator {
     private generateModuleAsyncInitialisation(module: Module, target: string) {
         let res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_" + target.toLowerCase() + "_initialization();\n";
 
-        if ((target == 'Client') || (target == 'Admin')) {
+        if ((target == 'Client') || (target == 'Admin') || (target == 'Test')) {
             res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_client_admin_initialization();\n" + res;
         }
         return res;

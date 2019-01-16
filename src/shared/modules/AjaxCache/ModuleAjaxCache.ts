@@ -120,15 +120,19 @@ export default class ModuleAjaxCache extends Module {
             if (timeout != null) {
                 options.timeout = timeout;
             }
-            return $.ajax(options)
-                .done((r) => {
-                    resolve(r);
-                })
-                .fail((err) => {
-                    self.traitementFailRequest(err, cache);
+            if ($.ajax) {
+                return $.ajax(options)
+                    .done((r) => {
+                        resolve(r);
+                    })
+                    .fail((err) => {
+                        self.traitementFailRequest(err, cache);
 
-                    console.log("post failed :" + url + ":" + postdatas + ":" + err);
-                });
+                        console.log("post failed :" + url + ":" + postdatas + ":" + err);
+                    });
+            } else {
+                resolve(null);
+            }
         });
 
         return res;
@@ -314,28 +318,36 @@ export default class ModuleAjaxCache extends Module {
 
 
             // TODO fixme en cas d'erreur les post renvoient des GET ... pas valide...
-            $.ajaxSetup({
-                timeout: 30000
-            }); // in milliseconds
-            $.get(
-                request.url,
-                (datas) => {
-                    request.datas = datas;
-                    request.datasDate = moment();
-                    request.state = RequestResponseCacheVO.STATE_RESOLVED;
+            if ($.ajaxSetup) {
+                $.ajaxSetup({
+                    timeout: 30000
+                }); // in milliseconds
+            }
 
-                    while (request.resolve_callbacks && request.resolve_callbacks.length) {
-                        let resolve_callback = request.resolve_callbacks.shift();
+            if ($.get) {
+                $.get(
+                    request.url,
+                    (datas) => {
+                        request.datas = datas;
+                        request.datasDate = moment();
+                        request.state = RequestResponseCacheVO.STATE_RESOLVED;
 
-                        // Make the calls asynchronous to call them all at the same time
-                        setTimeout(() => {
-                            resolve_callback(datas);
-                        }, 10);
-                    }
-                })
-                .fail((err) => {
-                    self.traitementFailRequest(err, request);
-                });
+                        while (request.resolve_callbacks && request.resolve_callbacks.length) {
+                            let resolve_callback = request.resolve_callbacks.shift();
+
+                            // Make the calls asynchronous to call them all at the same time
+                            setTimeout(() => {
+                                resolve_callback(datas);
+                            }, 10);
+                        }
+                    })
+                    .fail((err) => {
+                        self.traitementFailRequest(err, request);
+                    });
+            } else {
+                let resolve_callback = request.resolve_callbacks.shift();
+                resolve_callback(null);
+            }
         }
 
         setTimeout((async () => {
