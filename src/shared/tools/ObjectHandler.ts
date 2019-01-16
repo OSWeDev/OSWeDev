@@ -1,3 +1,5 @@
+import IDistantVOBase from '../modules/IDistantVOBase.1';
+
 export default class ObjectHandler {
     public static getInstance(): ObjectHandler {
         if (!ObjectHandler.instance) {
@@ -36,6 +38,18 @@ export default class ObjectHandler {
 
         for (let i in map) {
             res.push(map[i]);
+        }
+        return res;
+    }
+
+    public getIdsList(vos: IDistantVOBase[]): number[] {
+        let res: number[] = [];
+
+        for (let i in vos) {
+            if (!vos[i]) {
+                continue;
+            }
+            res.push(vos[i].id);
         }
         return res;
     }

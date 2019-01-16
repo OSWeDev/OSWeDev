@@ -1,0 +1,8 @@
+import IVarDataParamVOBase from './IVarDataParamVOBase';
+import IVarDataValueBase from './IVarDataValueBase';
+
+export default interface IImportedVarDataVOBase extends IVarDataParamVOBase, IVarDataValueBase {
+
+    var_id: number;
+    imported_value: number;
+}

@@ -1,15 +1,11 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import VarCacheBase from './VarCacheBase';
-import VarsController from './VarsController';
-import VarDataVOBase from './vos/VarDataVOBase';
-import VarGroupConfVOBase from './vos/VarGroupConfVOBase';
-import VarDataParamVOBase from './vos/VarDataParamVOBase';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
+import VarsController from './VarsController';
+import VarGroupConfVOBase from './vos/VarGroupConfVOBase';
 
-export default abstract class VarGroupControllerBase<TData extends VarDataVOBase, TDataParam extends VarDataParamVOBase, TCache extends VarCacheBase> {
-
-    private static UID: number = 0;
+export default abstract class VarGroupControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase, TCache extends VarCacheBase> {
 
     protected cache: { [UID: number]: TCache } = {};
 
@@ -30,7 +26,7 @@ export default abstract class VarGroupControllerBase<TData extends VarDataVOBase
         return this.getOrderedVarsNames();
     }
 
-    protected async abstract updateData(param: TDataParam);
+    public async abstract updateData(param: TDataParam);
 
     protected startUpdateSoldes(UID: number): void {
         this.cache[UID] = {} as TCache;

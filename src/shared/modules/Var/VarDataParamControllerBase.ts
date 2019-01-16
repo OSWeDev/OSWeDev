@@ -1,10 +1,10 @@
-import VarDataParamVOBase from './vos/VarDataParamVOBase';
+import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 
-export default abstract class VarDataParamControllerBase<TDataParam extends VarDataParamVOBase> {
+export default abstract class VarDataParamControllerBase<TDataParam extends IVarDataParamVOBase> {
 
     protected constructor() { }
 
-    public sortParams(params: VarDataParamVOBase[]) {
+    public sortParams(params: IVarDataParamVOBase[]) {
         params.sort(this.compareParams);
     }
 
@@ -39,5 +39,5 @@ export default abstract class VarDataParamControllerBase<TDataParam extends VarD
         return res;
     }
 
-    protected abstract compareParams(paramA: VarDataParamVOBase, paramB: VarDataParamVOBase);
+    protected abstract compareParams(paramA: IVarDataParamVOBase, paramB: IVarDataParamVOBase);
 }
