@@ -39,4 +39,8 @@ export default class ObjectHandler {
         }
         return res;
     }
+
+    public hasData(object): boolean {
+        return (object != null) && (typeof object != "undefined");
+    }
 }

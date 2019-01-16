@@ -20,6 +20,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -80,11 +81,11 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
     }
 
     /**
-     * Attention le résultat doit passer par un force numerics approprié
-     * @param bdd_full_name
+     * @param datatable
      * @param timeSegment
+     * @param rendered_data_time_segment_type
      */
-    public async getDataSegment_needs_force_numerics<T extends IDistantVOBase>(
+    public async getDataSegment<T extends IDistantVOBase>(
         datatable: ModuleTable<T>,
         timeSegment: TimeSegment,
         rendered_data_time_segment_type: number): Promise<T[]> {
@@ -108,7 +109,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         return await ModuleDAOServer.getInstance().selectAll<T>(datatable.vo_type, ' where data_dateindex in (' + timeSegments_in + ')') as T[];
     }
 
-    public async clearDataSegments(bdd_full_name: string, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
+    public async clearDataSegments(API_TYPE_ID: string, timeSegments: TimeSegment[], date_field_name: string = 'data_dateindex'): Promise<void> {
 
         let timeSegments_in: string = null;
         for (let i in timeSegments) {
@@ -121,7 +122,12 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
                 timeSegments_in += ", \'" + timeSegment.dateIndex + "\'";
             }
         }
-        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + bdd_full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
+        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID].full_name + ' t where ' + date_field_name + ' in (' + timeSegments_in + ');');
+    }
+
+    public async clearDataSegment(API_TYPE_ID: string, timeSegment: TimeSegment, date_field_name: string = 'data_dateindex'): Promise<void> {
+
+        await ModuleServiceBase.getInstance().db.none('DELETE FROM ' + VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID].full_name + ' t where ' + date_field_name + ' = $1;', [timeSegment.dateIndex]);
     }
 
     public async getDataRenderingLogs(): Promise<DataRenderingLogVO[]> {

@@ -1,11 +1,6 @@
-import * as chai from 'chai';
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import 'mocha';
-
-import * as moment from 'moment';
 import BooleanHandler from '../../../src/shared/tools/BooleanHandler';
-
-let should = chai.should();
 
 it('test OR', () => {
     expect(BooleanHandler.getInstance().OR(null)).to.equal(false);

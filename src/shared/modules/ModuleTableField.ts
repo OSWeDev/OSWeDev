@@ -37,6 +37,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_tsrange: string = 'tsrange';
     public static FIELD_TYPE_timestamp: string = 'timestamp';
     public static FIELD_TYPE_day: string = 'day';
+    public static FIELD_TYPE_timewithouttimezone: string = 'timewithouttimezone';
 
     public field_value: T;
     public field_loaded: boolean;
@@ -202,7 +203,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return "tsrange";
 
-            case 'timewithouttimezone':
+            case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 return "time without time zone";
 
             case ModuleTableField.FIELD_TYPE_prct:

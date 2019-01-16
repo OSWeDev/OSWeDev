@@ -1,13 +1,10 @@
-import * as chai from 'chai';
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import 'mocha';
-
 import * as moment from 'moment';
-import TimeSegmentHandler from '../../../src/shared/tools/TimeSegmentHandler';
 import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
 import DateHandler from '../../../src/shared/tools/DateHandler';
+import TimeSegmentHandler from '../../../src/shared/tools/TimeSegmentHandler';
 
-let should = chai.should();
 
 it('test getAllDataTimeSegments', () => {
     expect(TimeSegmentHandler.getInstance().getAllDataTimeSegments(null, null, null)).to.equal(null);
@@ -70,6 +67,13 @@ it('test getAllDataTimeSegments', () => {
 });
 
 it('test getCorrespondingTimeSegment', () => {
+    expect(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+        moment('2018-03-01'),
+        TimeSegment.TYPE_MONTH, 2)).to.deep.equal({
+            dateIndex: '2018-05-01',
+            type: TimeSegment.TYPE_MONTH
+        });
+
     expect(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment('2018-02-03'), TimeSegment.TYPE_DAY)).to.deep.equal({
         dateIndex: '2018-02-03',
         type: TimeSegment.TYPE_DAY

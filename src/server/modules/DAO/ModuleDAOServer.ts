@@ -33,6 +33,8 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModulesManagerServer from '../ModulesManagerServer';
+import INamedVO from '../../../shared/interfaces/INamedVO';
+import APIDAONamedParamVO from '../../../shared/modules/DAO/vos/APIDAONamedParamVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -251,6 +253,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS, this.getVosByIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS, this.getVosByRefFieldIds.bind(this));
+
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, this.getNamedVoByName.bind(this));
     }
 
     public async truncate(api_type_id: string) {
@@ -663,5 +667,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private getAccessPolicyName(access_type: string, vo_type: string): string {
         let isModulesParams: boolean = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].isModuleParamTable;
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
+    }
+
+    private async getNamedVoByName<U extends INamedVO>(param: APIDAONamedParamVO): Promise<U> {
+        // On définit des limites pour les noms de vos nommes, qui ne doivent contenir que les caractères suivants :
+        //  [a-z0-9A-Z-_ ./:,]
+        if ((!param) || (!/^[a-z0-9A-Z-_ ./:,]+$/.test(param.name))) {
+            return null;
+        }
+        return await this.selectOne<U>(param.API_TYPE_ID, "where name=$1", [param.name]);
     }
 }

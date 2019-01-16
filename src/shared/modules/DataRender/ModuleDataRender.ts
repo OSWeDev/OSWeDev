@@ -19,7 +19,6 @@ export default class ModuleDataRender extends Module {
 
     public static APINAME_GET_DATA_RENDERERS = "GET_DATA_RENDERERS";
     public static APINAME_GET_DATA_RENDERER = "GET_DATA_RENDERER";
-    public static APINAME_CLEAR_DATA_SEGMENTS = "CLEAR_DATA_SEGMENTS";
     public static APINAME_GET_DATA_RENDERING_LOGS = "GET_DATA_RENDERING_LOGS";
     public static APINAME_getLatestAvailableSegment = "getLatestAvailableSegment";
 
@@ -122,7 +121,15 @@ export default class ModuleDataRender extends Module {
      */
     public getPrct(value_a: number, value_b: number): number {
 
-        if (!isNumber(value_a) || !isNumber(value_b) || !value_b) {
+        if ((!isNumber(value_a)) || (!isNumber(value_b)) || (!value_b)) {
+            return null;
+        }
+
+        if ((value_a < 0) && (value_b > 0)) {
+            return null;
+        }
+
+        if ((value_a > 0) && (value_b < 0)) {
             return null;
         }
 
@@ -165,7 +172,7 @@ export default class ModuleDataRender extends Module {
         for (let i in rows) {
             let row: IRenderedData = rows[i];
 
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name]))) {
+            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name])) || (row[field_name] == null)) {
                 continue;
             }
 
@@ -189,7 +196,7 @@ export default class ModuleDataRender extends Module {
         for (let i in rows) {
             let row: IRenderedData = rows[i];
 
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name])) || (!row[field_name])) {
+            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name])) || (row[field_name] == null)) {
                 continue;
             }
 
@@ -215,7 +222,7 @@ export default class ModuleDataRender extends Module {
         for (let i in rows) {
             let row: IRenderedData = rows[i];
 
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name]))) {
+            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name]) || (row[field_name] == null))) {
                 continue;
             }
 
@@ -259,13 +266,13 @@ export default class ModuleDataRender extends Module {
     }
 
     public getCumul<T extends IRenderedData>(
-        timeSegment: TimeSegment, id: number, field_name: string, field_name_cumul: string, segclient_id: number,
-        ventesExtBySegmentAndConcessionId: { [date_index: string]: { [concession_id: number]: { [segclient_id: number]: T } } }): number {
+        timeSegment: TimeSegment, resource_id: number, field_name: string, field_name_cumul: string, segment_id: number,
+        renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
         let timeSegment_prec: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
 
-        let previousCumul: number = this.getValueFromRendererData(timeSegment_prec, id, field_name_cumul, segclient_id, ventesExtBySegmentAndConcessionId);
-        let value: number = this.getValueFromRendererData(timeSegment, id, field_name, segclient_id, ventesExtBySegmentAndConcessionId);
+        let previousCumul: number = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
+        let value: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
 
         let hasPreviousValue: boolean = isNumber(previousCumul);
         let hasValue: boolean = isNumber(value);
@@ -280,21 +287,46 @@ export default class ModuleDataRender extends Module {
         }
 
         if (hasValue) {
+            if ((!hasPreviousValue) && isInSameSegmentType) {
+                // on essaie de retrouver un cumul précédent des fois qu'il y ai un trou dans les datas
+                while (isInSameSegmentType) {
+                    timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
+                    isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
+                    previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
+                    hasPreviousValue = isNumber(previousCumul);
+                    if (hasPreviousValue && isInSameSegmentType) {
+                        return previousCumul + value;
+                    }
+                }
+
+            }
             return value;
         }
 
+        if ((!hasPreviousValue) && isInSameSegmentType) {
+            // on essaie de retrouver un cumul précédent des fois qu'il y ai un trou dans les datas
+            while (isInSameSegmentType) {
+                timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
+                isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
+                previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
+                hasPreviousValue = isNumber(previousCumul);
+                if (hasPreviousValue && isInSameSegmentType) {
+                    return previousCumul;
+                }
+            }
+        }
         return null;
     }
 
     public getCumul_m_mm1_mm2<T extends IRenderedData>(
-        timeSegment: TimeSegment, concession_id: number, field_name: string, segclient_id: number,
-        ventesExtBySegmentAndConcessionId: { [date_index: string]: { [concession_id: number]: { [segclient_id: number]: T } } }): number {
+        timeSegment: TimeSegment, resource_id: number, field_name: string, segment_id: number,
+        renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
         let timeSegment_mm1: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
-        let timeSegment_mm2: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
-        let value_m: number = this.getValueFromRendererData(timeSegment, concession_id, field_name, segclient_id, ventesExtBySegmentAndConcessionId);
-        let value_mm1: number = this.getValueFromRendererData(timeSegment_mm1, concession_id, field_name, segclient_id, ventesExtBySegmentAndConcessionId);
-        let value_mm2: number = this.getValueFromRendererData(timeSegment_mm2, concession_id, field_name, segclient_id, ventesExtBySegmentAndConcessionId);
+        let timeSegment_mm2: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_mm1);
+        let value_m: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
+        let value_mm1: number = this.getValueFromRendererData(timeSegment_mm1, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
+        let value_mm2: number = this.getValueFromRendererData(timeSegment_mm2, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
 
         let hasValue_m: boolean = isNumber(value_m);
         let hasValue_mm1: boolean = isNumber(value_mm1);
@@ -312,18 +344,27 @@ export default class ModuleDataRender extends Module {
     }
 
     public getValueFromRendererData<T extends IRenderedData>(
-        timeSegment: TimeSegment, concession_id: number, field_name: string, segclient_id: number,
-        ventesExtBySegmentAndConcessionId: { [date_index: string]: { [concession_id: number]: { [segclient_id: number]: T } } }): number {
+        timeSegment: TimeSegment, resource_id: number, field_name: string, segment_id: number,
+        renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
-        let hasValue: boolean = (ventesExtBySegmentAndConcessionId[timeSegment.dateIndex] &&
-            ventesExtBySegmentAndConcessionId[timeSegment.dateIndex][concession_id] &&
-            ventesExtBySegmentAndConcessionId[timeSegment.dateIndex][concession_id][segclient_id ? segclient_id : 0] &&
-            ventesExtBySegmentAndConcessionId[timeSegment.dateIndex][concession_id][segclient_id ? segclient_id : 0][field_name]);
-
-        if (hasValue) {
-            return ventesExtBySegmentAndConcessionId[timeSegment.dateIndex][concession_id][segclient_id ? segclient_id : 0][field_name];
+        if (!timeSegment) {
+            return null;
         }
-        return null;
+
+        if (!renderedDatasBySegmentAndResourceId) {
+            return null;
+        }
+
+        segment_id = segment_id ? segment_id : 0;
+        if ((!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex]) ||
+            (!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id]) ||
+            (!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id]) ||
+            (renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id][field_name] == null) ||
+            (typeof renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id ? segment_id : 0][field_name] == 'undefined')) {
+            return null;
+        }
+
+        return renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id ? segment_id : 0][field_name];
     }
 
     public initialize() {

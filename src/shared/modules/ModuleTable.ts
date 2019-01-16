@@ -36,6 +36,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public importable: boolean = false;
     public isModuleParamTable: boolean = false;
 
+    public voConstructor: () => T = null;
+
     constructor(
         tmp_module: Module,
         tmp_vo_type: string,
@@ -76,6 +78,17 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
+    }
+
+    public defineVOConstructor(voConstructor: () => T) {
+        this.voConstructor = voConstructor;
+    }
+
+    public getNewVO(): T {
+        if (this.voConstructor) {
+            return this.voConstructor();
+        }
+        return null;
     }
 
     public defineAsModuleParamTable(): ModuleTable<any> {
@@ -179,7 +192,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             let field = this.fields[i];
 
             if (field.field_type == ModuleTableField.FIELD_TYPE_timestamp) {
-                e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:ss') + 'Z' : e[field.field_id];
+                e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:SS.sss') + 'Z' : e[field.field_id];
             }
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_float) ||
