@@ -38,6 +38,26 @@ export default class VarsController {
     protected constructor() {
     }
 
+    public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase): T {
+
+        if ((!this.registered_vars_groups_controller) || (!this.registered_vars_groups_by_ids) ||
+            (!param) || (!param.var_group_id) || (!this.registered_vars_groups_by_ids[param.var_group_id])
+            || (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name])
+            || (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name].varDataParamController)) {
+            return null;
+        }
+        let index: string = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name].varDataParamController.getIndex(param);
+        if (!(index && VarsController.getInstance().varDatas && VarsController.getInstance().varDatas[index])) {
+            return null;
+        }
+
+        let varData: T = VarsController.getInstance().varDatas[index] as T;
+        if (!varData) {
+            return null;
+        }
+        return varData;
+    }
+
     public registerStoreHandlers<TData extends IVarDataVOBase>(
         getVarData: { [paramIndex: string]: TData },
         setVarData: (varData: IVarDataVOBase) => void,
