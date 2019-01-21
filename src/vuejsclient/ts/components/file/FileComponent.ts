@@ -39,7 +39,7 @@ export default class FileComponent extends VueComponentBase {
 
     protected uid: number = null;
 
-    @Watch('filevo')
+    @Watch('filevo', { immediate: true })
     public async updateFileVo() {
         this.has_valid_file_linked = false;
         if (this.filevo && this.filevo.id) {
