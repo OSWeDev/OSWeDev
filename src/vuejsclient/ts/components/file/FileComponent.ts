@@ -41,6 +41,11 @@ export default class FileComponent extends VueComponentBase {
 
     @Watch('filevo')
     public async updateFileVo() {
+        this.has_valid_file_linked = false;
+        if (this.filevo && this.filevo.id) {
+            this.has_valid_file_linked = await ModuleFile.getInstance().testFileExistenz(this.filevo.id);
+        }
+
         let dropzone = (this.$refs['filedropzone' + this.uid] as any);
 
         if (!dropzone) {
@@ -67,11 +72,6 @@ export default class FileComponent extends VueComponentBase {
 
     public async mounted() {
         this.uid = FileComponent.__UID++;
-
-        this.has_valid_file_linked = false;
-        if (this.filevo && this.filevo.id) {
-            this.has_valid_file_linked = await ModuleFile.getInstance().testFileExistenz(this.filevo.id);
-        }
     }
 
     get dropzoneOptions() {
