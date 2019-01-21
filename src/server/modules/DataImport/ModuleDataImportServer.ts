@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as moment from 'moment';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
@@ -33,6 +34,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModulesManagerServer from '../ModulesManagerServer';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 

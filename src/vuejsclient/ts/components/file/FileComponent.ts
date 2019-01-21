@@ -4,6 +4,7 @@ import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
+import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 
 @Component({
     template: require('./FileComponent.pug'),
@@ -33,6 +34,8 @@ export default class FileComponent extends VueComponentBase {
 
     // protected uploading: boolean = false;
     // protected datafile = null;
+
+    protected has_valid_file_linked: boolean = false;
 
     protected uid: number = null;
 
@@ -64,6 +67,11 @@ export default class FileComponent extends VueComponentBase {
 
     public async mounted() {
         this.uid = FileComponent.__UID++;
+
+        this.has_valid_file_linked = false;
+        if (this.filevo && this.filevo.id) {
+            this.has_valid_file_linked = await ModuleFile.getInstance().testFileExistenz(this.filevo.id);
+        }
     }
 
     get dropzoneOptions() {

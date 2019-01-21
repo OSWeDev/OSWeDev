@@ -5,5 +5,6 @@
                 .dz-message
                     i.fa.fa-upload.fa-3x(aria-hidden="true")
             a.btn.btn-sm.btn-primary(v-if="(!!filevo) && filevo.id" :href="'/' + filevo.path" target='_blank')
-                i.fa-download.fa.fa-lg.btn_icon(aria-hidden="true")
+                i.fa-download.fa.fa-lg.btn_icon(aria-hidden="true" v-if='has_valid_file_linked')
+                i.fa-times.fa.fa-lg.btn_icon.text-danger(aria-hidden="true" v-else)
                 | {{ label('file.download') }}
