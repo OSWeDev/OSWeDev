@@ -29,6 +29,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_amount: string = 'amount';
     public static FIELD_TYPE_foreign_key: string = 'fkey';
     public static FIELD_TYPE_int_array: string = 'number[]';
+    public static FIELD_TYPE_string_array: string = 'text[]';
     public static FIELD_TYPE_prct: string = 'pct';
     public static FIELD_TYPE_hours_and_minutes_sans_limite: string = 'HourAndMinuteWithoutLimit';
     public static FIELD_TYPE_date: string = 'date';
@@ -173,6 +174,8 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_foreign_key:
                 return "bigint";
 
+            case ModuleTableField.FIELD_TYPE_string_array:
+                return "text[]";
 
             case ModuleTableField.FIELD_TYPE_int_array:
                 return "bigint[]";
@@ -256,6 +259,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_tsrange:
             default:

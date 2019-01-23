@@ -714,6 +714,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if ((!param) || (!/^[a-z0-9A-Z-_ ./:,]+$/.test(param.name))) {
             return null;
         }
-        return await this.selectOne<U>(param.API_TYPE_ID, "where name=$1", [param.name]);
+        return await this.selectOne<U>(param.API_TYPE_ID, "where LOWER(name) = LOWER($1)", [param.name]);
     }
 }

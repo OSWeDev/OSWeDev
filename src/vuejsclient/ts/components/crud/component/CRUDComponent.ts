@@ -181,7 +181,7 @@ export default class CRUDComponent extends VueComponentBase {
                 (async () => {
                     let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
                         IDistantVOBase
-                        >(datatable.API_TYPE_ID);
+                    >(datatable.API_TYPE_ID);
                     self.storeDatas({
                         API_TYPE_ID: datatable.API_TYPE_ID,
                         vos: vos
@@ -521,6 +521,9 @@ export default class CRUDComponent extends VueComponentBase {
                     }
                 }
                 if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_int_array) {
+                    res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
+                }
+                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_string_array) {
                     res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
                 }
             }

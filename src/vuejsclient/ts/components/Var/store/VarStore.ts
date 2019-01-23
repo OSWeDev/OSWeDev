@@ -65,7 +65,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     return;
                 }
 
-                let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(varData.id);
+                let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(varData.var_group_id);
                 if (!varGroupController) {
                     return;
                 }
@@ -82,7 +82,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     return;
                 }
 
-                let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(varDataParam.id);
+                let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(varDataParam.var_group_id);
                 if (!varGroupController) {
                     return;
                 }
@@ -117,8 +117,6 @@ const { commit, read, dispatch } =
     getStoreAccessors<IVarState, any>("VarStore"); // We pass namespace here, if we make the module namespaced: true.
 export const ModuleVarGetter = namespace('VarStore', Getter);
 export const ModuleVarAction = namespace('VarStore', Action);
-
-export const getStoredDatas = read(VarStore.getInstance().getters.getStoredDatas as GetterHandler<IVarState, any, any>);
 
 export const commitSetVarData = commit(VarStore.getInstance().mutations.setVarData);
 export const commitRemoveVarData = commit(VarStore.getInstance().mutations.removeVarData);

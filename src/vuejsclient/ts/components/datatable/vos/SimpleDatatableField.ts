@@ -63,6 +63,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_int_array:
                     return field_value;
 
+                case ModuleTableField.FIELD_TYPE_string_array:
+                    return field_value;
+
                 default:
                     return field_value.toString();
             }
@@ -167,6 +170,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return DateHandler.getInstance().formatDayForSQL(moment(value));
 
                 case ModuleTableField.FIELD_TYPE_int_array:
+                    return '{' + value.join() + '}';
+
+                case ModuleTableField.FIELD_TYPE_string_array:
                     return '{' + value.join() + '}';
 
                 default:

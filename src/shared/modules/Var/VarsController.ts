@@ -7,6 +7,7 @@ import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import VarGroupConfVOBase from './vos/VarGroupConfVOBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import * as debounce from 'lodash/debounce';
+import VarDataParamControllerBase from './VarDataParamControllerBase';
 
 export default class VarsController {
     public static getInstance(): VarsController {
@@ -18,10 +19,13 @@ export default class VarsController {
 
     private static instance: VarsController = null;
 
-    public varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
-    public setVarData: (varData: IVarDataVOBase) => void = null;
+    private setVarData_: (varData: IVarDataVOBase) => void = null;
+    private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
 
     private waitingForUpdate: { [paramIndex: string]: IVarDataParamVOBase } = {};
+
+    private registeredDatasParamsIndexes: { [paramIndex: string]: number } = {};
+    private registeredDatasParams: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
     private registered_vars_groups: { [name: string]: VarGroupConfVOBase } = {};
     private registered_vars_groups_by_ids: { [id: number]: VarGroupConfVOBase } = {};
@@ -35,7 +39,26 @@ export default class VarsController {
 
     private setUpdatingDatas: (updating: boolean) => void = null;
 
+    private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
+
     protected constructor() {
+    }
+
+    public setVarData<T extends IVarDataVOBase>(varData: T) {
+
+        if ((!this.registered_vars_groups_controller) || (!this.registered_vars_groups_by_ids) ||
+            (!varData) || (!varData.var_group_id) || (!this.registered_vars_groups_by_ids[varData.var_group_id])
+            || (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[varData.var_group_id].name])
+            || (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[varData.var_group_id].name].varDataParamController)) {
+            return null;
+        }
+        let index: string = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[varData.var_group_id].name].varDataParamController.getIndex(varData);
+
+        if (!!this.registeredDatasParamsIndexes[index]) {
+            this.setVarData_(varData);
+        } else {
+            this.varDatasStaticCache[index] = varData;
+        }
     }
 
     public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase): T {
@@ -47,11 +70,23 @@ export default class VarsController {
             return null;
         }
         let index: string = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name].varDataParamController.getIndex(param);
-        if (!(index && VarsController.getInstance().varDatas && VarsController.getInstance().varDatas[index])) {
-            return null;
-        }
 
-        let varData: T = VarsController.getInstance().varDatas[index] as T;
+        // Si on doit l'afficher il faut que ce soit synchro dans le store, sinon on utilise le cache static
+        let varData: T = null;
+        if (!!this.registeredDatasParamsIndexes[index]) {
+
+            if (!(index && this.varDatas && this.varDatas[index])) {
+                return null;
+            }
+
+            varData = this.varDatas[index] as T;
+        } else {
+            if (!(index && this.varDatasStaticCache && this.varDatasStaticCache[index])) {
+                return null;
+            }
+
+            varData = this.varDatasStaticCache[index] as T;
+        }
         if (!varData) {
             return null;
         }
@@ -63,7 +98,7 @@ export default class VarsController {
         setVarData: (varData: IVarDataVOBase) => void,
         setUpdatingDatas: (updating: boolean) => void) {
         this.varDatas = getVarData;
-        this.setVarData = setVarData;
+        this.setVarData_ = setVarData;
         this.setUpdatingDatas = setUpdatingDatas;
     }
 
@@ -80,11 +115,78 @@ export default class VarsController {
             return;
         }
 
-        let param_index: string = this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex(param);
-        if (!this.waitingForUpdate[param.var_group_id][param_index]) {
-            this.waitingForUpdate[param.var_group_id][param_index] = param;
+        let param_controller: VarDataParamControllerBase<TDataParam> = this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController;
+        let param_index: string = param_controller.getIndex(param);
+        if (!this.waitingForUpdate[param_index]) {
+            this.waitingForUpdate[param_index] = param;
         }
+
+        // On demande au controller si on doit invalider d'autres params (par exemple un solde recalculé au 02/01 remet en cause celui du 03/01 et 05/01, ...)
+        let params_needing_update: TDataParam[] = param_controller.getImpactedParamsList(param, this.registeredDatasParams as { [index: string]: TDataParam });
+        if (params_needing_update && params_needing_update.length) {
+            for (let i in params_needing_update) {
+                let param_needing_update: TDataParam = params_needing_update[i];
+
+                param_index = param_controller.getIndex(param_needing_update);
+                if (!this.waitingForUpdate[param_index]) {
+                    this.waitingForUpdate[param_index] = param_needing_update;
+                }
+            }
+        }
+
         this.debouncedUpdateDatas();
+    }
+
+    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
+        if (!this.registeredDatasParamsIndexes) {
+            this.registeredDatasParamsIndexes = {};
+            this.registeredDatasParams = {};
+        }
+
+        if ((!param) || (!param.var_group_id) || (!this.registered_vars_by_ids[param.var_group_id]) ||
+            (!this.registered_vars_by_ids[param.var_group_id].name) ||
+            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name]) ||
+            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController) ||
+            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex)) {
+            return;
+        }
+
+        let param_index: string = this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex(param);
+        if (!this.registeredDatasParamsIndexes[param_index]) {
+            this.registeredDatasParamsIndexes[param_index] = 1;
+        } else {
+            this.registeredDatasParamsIndexes[param_index]++;
+        }
+        this.registeredDatasParams[param_index] = param;
+
+        this.stageUpdateData(param);
+    }
+
+    public unregisterDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
+        if (!this.registeredDatasParamsIndexes) {
+            this.registeredDatasParamsIndexes = {};
+            this.registeredDatasParams = {};
+            return;
+        }
+
+        if ((!param) || (!param.var_group_id) || (!this.registered_vars_by_ids[param.var_group_id]) ||
+            (!this.registered_vars_by_ids[param.var_group_id].name) ||
+            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name]) ||
+            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController) ||
+            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex)) {
+            return;
+        }
+
+        let param_index: string = this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex(param);
+        if ((this.registeredDatasParamsIndexes[param_index] == null) || (typeof this.registeredDatasParamsIndexes[param_index] == 'undefined')) {
+            return;
+        }
+
+        this.registeredDatasParamsIndexes[param_index]--;
+        if (this.registeredDatasParamsIndexes[param_index] <= 0) {
+            delete this.registeredDatasParamsIndexes[param_index];
+            delete this.registeredDatasParams[param_index];
+        }
     }
 
     get debouncedUpdateDatas() {
@@ -171,6 +273,8 @@ export default class VarsController {
             await this.setVar(daoVarConf);
             return daoVarConf;
         }
+        console.error(daoVarConf + ":" + varConf._type + ":" + varConf.name);
+        console.error(JSON.stringify(await ModuleDAO.getInstance().getVos(varConf._type)));
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(varConf);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
@@ -194,6 +298,8 @@ export default class VarsController {
             await this.setVarGroup(daoVarGroupConf, controller);
             return daoVarGroupConf;
         }
+        console.error(daoVarGroupConf + ":" + varGroupConf._type + ":" + varGroupConf.name);
+        console.error(JSON.stringify(await ModuleDAO.getInstance().getVos(varGroupConf._type)));
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(varGroupConf);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {

@@ -15,7 +15,7 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarGetter
     public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
     @ModuleVarGetter
-    public is_updating: boolean;
+    public isUpdating: boolean;
     @ModuleVarAction
     public setVarData: (varData: IVarDataVOBase) => void;
     @ModuleVarAction

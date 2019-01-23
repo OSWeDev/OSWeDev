@@ -18,8 +18,8 @@ export default class APIDAORefFieldsParamsVO {
 
         return param ? param.API_TYPE_ID
             + '/' + param.field_name1 + '/' + param.ids1.join('_')
-            + '/' + (param.field_name2 ? param.field_name2 : '') + '/' + (param.field_name2 ? param.ids2.join('_') : '')
-            + '/' + (param.field_name3 ? param.field_name3 : '') + '/' + (param.field_name3 ? param.ids3.join('_') : '') : '';
+            + '/' + (param.field_name2 ? param.field_name2 : '_') + '/' + (param.field_name2 ? param.ids2.join('_') : '_')
+            + '/' + (param.field_name3 ? param.field_name3 : '_') + '/' + (param.field_name3 ? param.ids3.join('_') : '_') : '';
     }
     public static async translateFromREQ(req): Promise<APIDAORefFieldsParamsVO> {
 
@@ -37,7 +37,7 @@ export default class APIDAORefFieldsParamsVO {
             ids1[i] = parseInt(ids1[i]);
         }
 
-        let field_name2: string = ((req.params.field_name2 != null) && (req.params.field_name2 != 'null') && (req.params.field_name2 != '')) ? req.params.field_name2 : null;
+        let field_name2: string = ((req.params.field_name2 != null) && (req.params.field_name2 != 'null') && (req.params.field_name2 != '') && (req.params.field_name2 != '_')) ? req.params.field_name2 : null;
         let ids2 = null;
         if (field_name2) {
             ids2 = req.params.ids2.split('_');
@@ -46,7 +46,7 @@ export default class APIDAORefFieldsParamsVO {
             }
         }
 
-        let field_name3: string = ((req.params.field_name3 != null) && (req.params.field_name3 != 'null') && (req.params.field_name3 != '')) ? req.params.field_name3 : null;
+        let field_name3: string = ((req.params.field_name3 != null) && (req.params.field_name3 != 'null') && (req.params.field_name3 != '') && (req.params.field_name3 != '_')) ? req.params.field_name3 : null;
         let ids3 = null;
         if (field_name3) {
             ids3 = req.params.ids3.split('_');

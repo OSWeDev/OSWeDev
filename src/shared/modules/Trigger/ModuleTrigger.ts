@@ -3,6 +3,8 @@ import TriggerHook from './TriggerHook';
 
 export default class ModuleTrigger extends Module {
 
+    public static MODULE_NAME: string = 'Trigger';
+
     public static getInstance(): ModuleTrigger {
         if (!ModuleTrigger.instance) {
             ModuleTrigger.instance = new ModuleTrigger();
@@ -16,7 +18,7 @@ export default class ModuleTrigger extends Module {
 
     private constructor() {
 
-        super("trigger", "TRIGGER");
+        super("trigger", ModuleTrigger.MODULE_NAME);
         this.forceActivationOnInstallation();
     }
 

@@ -153,7 +153,7 @@ export default class ModuleDAO extends Module {
     }
 
     public async getNamedVoByName<T extends INamedVO>(API_TYPE_ID: string, vo_name: string): Promise<T> {
-        return await ModuleAPI.getInstance().handleAPI<APIDAONamedParamVO, T>(ModuleDAO.APINAME_GET_VO_BY_ID, API_TYPE_ID, vo_name);
+        return await ModuleAPI.getInstance().handleAPI<APIDAONamedParamVO, T>(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, API_TYPE_ID, vo_name);
     }
 
     public async getVoById<T extends IDistantVOBase>(API_TYPE_ID: string, id: number): Promise<T> {

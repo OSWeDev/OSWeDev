@@ -25,42 +25,79 @@ export default class VarDataRefComponent extends VueComponentBase {
     public setIsUpdating: (is_updating: boolean) => void;
 
     @Prop()
-    private data_params: IVarDataParamVOBase;
+    private datas_params: IVarDataParamVOBase[];
 
-    get var_group_controller(): VarGroupControllerBase<any, any, any> {
-        if ((!this.getVarDatas) || (!this.data_params)) {
-            return null;
+    get datas_params_by_index(): { [index: string]: IVarDataParamVOBase } {
+        let res: { [index: string]: IVarDataParamVOBase } = {};
+
+        for (let i in this.datas_params) {
+            let data_params: IVarDataParamVOBase = this.datas_params[i];
+
+            let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(data_params.var_group_id);
+
+            res[varGroupController.varDataParamController.getIndex(data_params)] = data_params;
         }
 
-        let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(this.data_params.var_group_id);
-        return varGroupController;
+        return res;
     }
 
-    get data_index(): string {
-        if (!this.data_params) {
+    get datas_by_index(): { [index: string]: IVarDataVOBase } {
+        let res: { [index: string]: IVarDataVOBase } = {};
+
+        if ((!this.getVarDatas) || (!this.datas_params)) {
             return null;
         }
 
-        return this.var_group_controller ? this.var_group_controller.varDataParamController.getIndex(this.data_params) : null;
+        for (let i in this.datas_params) {
+            let data_params: IVarDataParamVOBase = this.datas_params[i];
+
+            let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(data_params.var_group_id);
+            let data_index: string = varGroupController.varDataParamController.getIndex(data_params);
+
+            res[data_index] = this.getVarDatas[data_index];
+        }
+
+        return res;
     }
 
-    get var_data(): IVarDataVOBase {
-        if ((!this.getVarDatas) || (!this.data_params)) {
+    get datas_array(): IVarDataVOBase[] {
+        let res: IVarDataVOBase[] = [];
+
+        if ((!this.getVarDatas) || (!this.datas_params)) {
             return null;
         }
 
-        if ((!this.data_index) || (!this.getVarDatas[this.data_index])) {
-            return null;
+        for (let i in this.datas_params) {
+            let data_params: IVarDataParamVOBase = this.datas_params[i];
+
+            let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(data_params.var_group_id);
+            let data_index: string = varGroupController.varDataParamController.getIndex(data_params);
+
+            res.push(this.getVarDatas[data_index]);
         }
 
-        return this.getVarDatas[this.data_index];
+        return res;
     }
 
     @Watch('dataParams', { immediate: true })
-    private onChangeDataParams() {
-        if (!this.data_params) {
+    private onChangeDataParams(new_datas_params: IVarDataParamVOBase[], old_datas_params: IVarDataParamVOBase[]) {
+
+        if (old_datas_params && old_datas_params.length) {
+            for (let i in old_datas_params) {
+                let data_params: IVarDataParamVOBase = old_datas_params[i];
+
+                VarsController.getInstance().unregisterDataParam(data_params);
+            }
+        }
+
+        if (!this.datas_params) {
             return;
         }
-        VarsController.getInstance().stageUpdateData(this.data_params);
+
+        for (let i in this.datas_params) {
+            let data_params: IVarDataParamVOBase = this.datas_params[i];
+
+            VarsController.getInstance().registerDataParam(data_params);
+        }
     }
 }
