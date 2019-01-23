@@ -134,12 +134,6 @@ export default class DataImportComponent extends DataImportComponentBase {
     private importing_multiple_segments_current_segment: TimeSegment = null;
     private importing_multiple_segments_filevo_id: number = null;
 
-
-    @Watch('api_type_ids', { immediate: true })
-    public async onmounted() {
-        await this.on_mount();
-    }
-
     public toggleShowNewImport(): void {
         this.show_new_import = !this.show_new_import;
     }
