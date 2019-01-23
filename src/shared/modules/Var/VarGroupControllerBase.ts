@@ -26,7 +26,9 @@ export default abstract class VarGroupControllerBase<TData extends IVarDataVOBas
         return this.getOrderedVarsNames();
     }
 
-    public async abstract updateData(param: TDataParam);
+    public async abstract updateData(BATCH_UID: number, param: TDataParam);
+    public async abstract begin_batch(BATCH_UID: number, vars_params: TDataParam[]);
+    public async abstract end_batch(BATCH_UID: number, vars_params: TDataParam[]);
 
     protected startUpdateSoldes(UID: number): void {
         this.cache[UID] = {} as TCache;

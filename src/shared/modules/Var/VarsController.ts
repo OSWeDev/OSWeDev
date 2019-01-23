@@ -10,12 +10,15 @@ import * as debounce from 'lodash/debounce';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 
 export default class VarsController {
+
     public static getInstance(): VarsController {
         if (!VarsController.instance) {
             VarsController.instance = new VarsController();
         }
         return VarsController.instance;
     }
+
+    private static BATCH_UID: number = 0;
 
     private static instance: VarsController = null;
 
@@ -41,10 +44,33 @@ export default class VarsController {
 
     private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
 
+    /**
+     * This is meant to handle the datas before sending it the store to avoid multiple overloading problems
+     */
+    private varDatasBATCHCache: { [BATCH_UID: number]: { [index: string]: IVarDataVOBase } } = {};
+
     protected constructor() {
     }
 
-    public setVarData<T extends IVarDataVOBase>(varData: T) {
+    /**
+     * Pushes all BatchCached datas of this Batch_uid to the store and clears the cache
+     */
+    public flushVarsDatas(BATCH_UID: number) {
+        if ((!this.varDatasBATCHCache) || (!this.varDatasBATCHCache[BATCH_UID])) {
+            return;
+        }
+
+        for (let index in this.varDatasBATCHCache[BATCH_UID]) {
+            let varData: IVarDataVOBase = this.varDatasBATCHCache[BATCH_UID][index];
+
+            // Set the data finally
+            this.setVarData(varData);
+        }
+
+        delete this.varDatasBATCHCache[BATCH_UID];
+    }
+
+    public setVarData<T extends IVarDataVOBase>(varData: T, BATCH_UID: number = null) {
 
         if ((!this.registered_vars_groups_controller) || (!this.registered_vars_groups_by_ids) ||
             (!varData) || (!varData.var_group_id) || (!this.registered_vars_groups_by_ids[varData.var_group_id])
@@ -54,14 +80,26 @@ export default class VarsController {
         }
         let index: string = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[varData.var_group_id].name].varDataParamController.getIndex(varData);
 
+        // WARNING : Might be strange some day when the static cache is updated by a BATCH since it should only
+        //  be updated after the end of the batch, but the batch sometimes uses methods that need data that
+        //  are being created by the batch itself.... if some funny datas are being calculated, you might want to check that thing
+        this.varDatasStaticCache[index] = varData;
+
+        if (BATCH_UID != null) {
+            if (!this.varDatasBATCHCache[BATCH_UID]) {
+                this.varDatasBATCHCache[BATCH_UID] = {};
+            }
+            this.varDatasBATCHCache[BATCH_UID][index] = varData;
+
+            return;
+        }
+
         if (!!this.registeredDatasParamsIndexes[index]) {
             this.setVarData_(varData);
-        } else {
-            this.varDatasStaticCache[index] = varData;
         }
     }
 
-    public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase): T {
+    public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, BATCH_UID: number = null): T {
 
         if ((!this.registered_vars_groups_controller) || (!this.registered_vars_groups_by_ids) ||
             (!param) || (!param.var_group_id) || (!this.registered_vars_groups_by_ids[param.var_group_id])
@@ -70,6 +108,12 @@ export default class VarsController {
             return null;
         }
         let index: string = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name].varDataParamController.getIndex(param);
+
+        if (BATCH_UID != null) {
+            if (this.varDatasBATCHCache && this.varDatasBATCHCache[BATCH_UID] && this.varDatasBATCHCache[BATCH_UID][index]) {
+                return this.varDatasBATCHCache[BATCH_UID][index] as T;
+            }
+        }
 
         // Si on doit l'afficher il faut que ce soit synchro dans le store, sinon on utilise le cache static
         let varData: T = null;
@@ -330,6 +374,8 @@ export default class VarsController {
      */
     private async updateDatas() {
 
+        this.setUpdatingDatas(true);
+
         // On passe par une copie pour ne pas dépendre des demandes de mise à jour en cours
         //  et on réinitialise immédiatement les waiting for update, comme ça on peut voir ce qui a été demandé pendant qu'on
         //  mettait à jour (important pour éviter des bugs assez difficiles à identifier potentiellement)
@@ -363,14 +409,29 @@ export default class VarsController {
         }
 
         // Et une fois que tout est propre, on lance la mise à jour de chaque élément
+        let BATCH_UIDs_by_var_group_id: { [var_group_id: number]: number } = {};
         for (let var_group_id in ordered_params_by_var_group_ids) {
             let vars_params: IVarDataParamVOBase[] = ordered_params_by_var_group_ids[var_group_id];
+
+            // On peut vouloir faire des chargements de données groupés et les nettoyer après le calcul
+            let BATCH_UID: number = VarsController.BATCH_UID++;
+            BATCH_UIDs_by_var_group_id[var_group_id] = BATCH_UID;
+            await this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].begin_batch(BATCH_UID, vars_params);
 
             for (let i in vars_params) {
                 let var_params: IVarDataParamVOBase = vars_params[i];
 
-                await this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].updateData(var_params);
+                await this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].updateData(BATCH_UID, var_params);
             }
+
+            await this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].end_batch(BATCH_UID, vars_params);
         }
+
+        // Enfin quand toutes les datas sont à jour on pousse sur le store
+        for (let i in BATCH_UIDs_by_var_group_id) {
+            this.flushVarsDatas(BATCH_UIDs_by_var_group_id[i]);
+        }
+
+        this.setUpdatingDatas(false);
     }
 }
