@@ -65,6 +65,8 @@ mixin simple_input_types(vo, field_type)
                 @input="onChangeField("+vo+", field)")
         template(v-else-if=field_type+" == 'number[]'")
             multi-input(:field_value=vo+"[field.datatable_field_uid]", :vo="'" + vo + "'", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="number", @input="validateMultiInput")
+        template(v-else-if=field_type+" == 'text[]'")
+            multi-input(:field_value=vo+"[field.datatable_field_uid]", :vo="'" + vo + "'", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input="validateMultiInput")
 
 
 mixin manytoone_input(vo)

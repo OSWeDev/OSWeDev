@@ -1,43 +1,50 @@
-import VarDataParamVOBase from './vos/VarDataParamVOBase';
+import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 
-export default abstract class VarDataParamControllerBase<TDataParam extends VarDataParamVOBase> {
+export default abstract class VarDataParamControllerBase<TDataParam extends IVarDataParamVOBase> {
 
     protected constructor() { }
 
-    public sortParams(params: VarDataParamVOBase[]) {
+    public sortParams(params: IVarDataParamVOBase[]) {
         params.sort(this.compareParams);
     }
 
     /**
+     * TODO : si on avait un lien propre vers la description des types de données liées
+     *  aux compteurs et données associées, on pourrait théoriquement chercher la defs des fields
+     *  du type param associé à la donnée en param (qui peut être une data ou un param), puis lister
+     *  les champs et construire un index générique pour toutes les vars. en l'état on a pas ça, donc on passe en abstract
      * @returns Index for HashMaps. ID uniq for each possible configuration
      */
-    public getIndex(param: TDataParam): string {
+    public abstract getIndex(param: TDataParam): string;
+    // public getIndex(param: TDataParam): string {
 
-        let res: string = "";
+    //     let res: string = "";
 
-        res += param.var_group_id;
+    //     res += param.var_group_id;
 
-        if ((!!param.json_params) && (param.json_params != "")) {
-            res += "__" + param.json_params.replace(/[^0-9a-zA-Z-_]/ig, '_');
-        }
+    //     if ((!!param.json_params) && (param.json_params != "")) {
+    //         res += "__" + param.json_params.replace(/[^0-9a-zA-Z-_]/ig, '_');
+    //     }
 
-        for (let i in param) {
-            let val: string = param[i].toString();
+    //     for (let i in param) {
+    //         if ((i == 'var_group_id') || (i == 'json_params') || (i == 'id') || (i == '_type')) {
+    //             continue;
+    //         }
 
-            if ((i == 'var_group_id') || (i == 'json_params') || (i == 'id') || (i == '_type')) {
-                continue;
-            }
+    //         let val: string = param[i] ? param[i].toString() : null;
 
-            if (!val) {
-                res += "____";
-                continue;
-            }
+    //         if (!val) {
+    //             res += "____";
+    //             continue;
+    //         }
 
-            res += "__" + val + "__";
-        }
+    //         res += "__" + val + "__";
+    //     }
 
-        return res;
-    }
+    //     return res;
+    // }
 
-    protected abstract compareParams(paramA: VarDataParamVOBase, paramB: VarDataParamVOBase);
+    public abstract getImpactedParamsList(paramUpdated: TDataParam, paramsRegisteredByIndex: { [index: string]: TDataParam }): TDataParam[];
+
+    protected abstract compareParams(paramA: TDataParam, paramB: TDataParam);
 }

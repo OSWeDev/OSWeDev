@@ -5,12 +5,9 @@ import IParameterizedVO from '../../../interfaces/IParameterizedVO';
  *  pour une data spécifique attendue (par exemple un compteur sur un cas particulier pour un jour particulier,
  *  qui sera affiché et mis à jour en live sur l'outil)
  */
-export default abstract class VarDataParamVOBase implements IParameterizedVO {
+export default interface IVarDataParamVOBase extends IParameterizedVO {
 
-    public id: number;
-    public abstract _type: string;
+    var_group_id: number;
 
-    public var_group_id: number;
-
-    public json_params: string;
+    json_params: string;
 }

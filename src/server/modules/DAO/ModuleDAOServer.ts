@@ -35,6 +35,7 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModulesManagerServer from '../ModulesManagerServer';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 import APIDAONamedParamVO from '../../../shared/modules/DAO/vos/APIDAONamedParamVO';
+import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsParamsVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -253,6 +254,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS, this.getVosByIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS, this.getVosByRefFieldIds.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS, this.getVosByRefFieldsIds.bind(this));
 
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, this.getNamedVoByName.bind(this));
     }
@@ -638,6 +640,43 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOsAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vos);
     }
 
+    private async getVosByRefFieldsIds<T extends IDistantVOBase>(apiDAOParamsVO: APIDAORefFieldsParamsVO): Promise<T[]> {
+
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamsVO.API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        // On check le field_name par rapport à la liste des fields, et au fait qu'il doit être un manyToOne (pour sécuriser)
+        if ((!datatable) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name1)) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name1).field_id)) {
+            return null;
+        }
+
+        if (apiDAOParamsVO.field_name2 && ((!datatable.getFieldFromId(apiDAOParamsVO.field_name2)) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name2).field_id))) {
+            return null;
+        }
+
+        if (apiDAOParamsVO.field_name3 && ((!datatable.getFieldFromId(apiDAOParamsVO.field_name3)) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name3).field_id))) {
+            return null;
+        }
+
+        let request: string = "SELECT t.* FROM " + datatable.full_name + " t WHERE " +
+            datatable.getFieldFromId(apiDAOParamsVO.field_name1).field_id + " in (" + apiDAOParamsVO.ids1 + ")";
+        if (apiDAOParamsVO.field_name2) {
+            request += " AND " + datatable.getFieldFromId(apiDAOParamsVO.field_name2).field_id + " in (" + apiDAOParamsVO.ids2 + ")";
+        }
+        if (apiDAOParamsVO.field_name3) {
+            request += " AND " + datatable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in (" + apiDAOParamsVO.ids3 + ")";
+        }
+
+        let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";") as T[]);
+
+        // On filtre suivant les droits d'accès
+        return await this.filterVOsAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ, vos);
+    }
+
     private async  getVosByIds<T extends IDistantVOBase>(apiDAOParamsVO: APIDAOParamsVO): Promise<T[]> {
 
         if ((!apiDAOParamsVO) || (!apiDAOParamsVO.ids) || (!apiDAOParamsVO.ids.length)) {
@@ -675,6 +714,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if ((!param) || (!/^[a-z0-9A-Z-_ ./:,]+$/.test(param.name))) {
             return null;
         }
-        return await this.selectOne<U>(param.API_TYPE_ID, "where name=$1", [param.name]);
+        return await this.selectOne<U>(param.API_TYPE_ID, "where LOWER(name) = LOWER($1)", [param.name]);
     }
 }

@@ -11,6 +11,7 @@ import APIDAORefFieldParamsVO from './vos/APIDAORefFieldParamsVO';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import INamedVO from '../../interfaces/INamedVO';
 import APIDAONamedParamVO from './vos/APIDAONamedParamVO';
+import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
 
 export default class ModuleDAO extends Module {
 
@@ -29,6 +30,7 @@ export default class ModuleDAO extends Module {
     public static APINAME_GET_VOS_BY_IDS = "GET_VOS_BY_IDS";
     public static APINAME_GET_VOS = "GET_VOS";
     public static APINAME_GET_VOS_BY_REFFIELD_IDS = "GET_VOS_BY_REFFIELD_IDS";
+    public static APINAME_GET_VOS_BY_REFFIELDS_IDS = "GET_VOS_BY_REFFIELDS_IDS";
     public static APINAME_GET_NAMED_VO_BY_NAME = "GET_NAMED_VO_BY_NAME";
 
     public static getInstance() {
@@ -102,6 +104,15 @@ export default class ModuleDAO extends Module {
             APIDAORefFieldParamsVO.translateFromREQ
         ));
 
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAORefFieldsParamsVO, IDistantVOBase[]>(
+            ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS,
+            (param: APIDAORefFieldsParamsVO) => [param.API_TYPE_ID],
+            APIDAORefFieldsParamsVO.translateCheckAccessParams,
+            APIDAORefFieldsParamsVO.URL,
+            APIDAORefFieldsParamsVO.translateToURL,
+            APIDAORefFieldsParamsVO.translateFromREQ
+        ));
+
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
             ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME,
             (param: APIDAONamedParamVO) => [param.API_TYPE_ID],
@@ -142,7 +153,7 @@ export default class ModuleDAO extends Module {
     }
 
     public async getNamedVoByName<T extends INamedVO>(API_TYPE_ID: string, vo_name: string): Promise<T> {
-        return await ModuleAPI.getInstance().handleAPI<APIDAONamedParamVO, T>(ModuleDAO.APINAME_GET_VO_BY_ID, API_TYPE_ID, vo_name);
+        return await ModuleAPI.getInstance().handleAPI<APIDAONamedParamVO, T>(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, API_TYPE_ID, vo_name);
     }
 
     public async getVoById<T extends IDistantVOBase>(API_TYPE_ID: string, id: number): Promise<T> {
@@ -157,7 +168,12 @@ export default class ModuleDAO extends Module {
     }
 
     public async getVosByRefFieldIds<T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]): Promise<T[]> {
-        return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS, API_TYPE_ID, field_name, ids);
+        return await ModuleAPI.getInstance().handleAPI<APIDAORefFieldParamsVO, T[]>(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS, API_TYPE_ID, field_name, ids);
+    }
+
+    public async getVosByRefFieldsIds<T extends IDistantVOBase>(
+        API_TYPE_ID: string, field_name1: string, ids1: number[], field_name2: string = null, ids2: number[] = null, field_name3: string = null, ids3: number[] = null): Promise<T[]> {
+        return await ModuleAPI.getInstance().handleAPI<APIDAORefFieldsParamsVO, T[]>(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS, API_TYPE_ID, field_name1, ids1, field_name2, ids2, field_name3, ids3);
     }
 
     public async getVos<T extends IDistantVOBase>(API_TYPE_ID: string): Promise<T[]> {

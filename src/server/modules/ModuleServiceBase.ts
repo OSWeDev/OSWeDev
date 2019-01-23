@@ -48,6 +48,7 @@ import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
 import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
+import ModuleVar from '../../shared/modules/Var/ModuleVar';
 
 export default abstract class ModuleServiceBase {
 
@@ -262,7 +263,8 @@ export default abstract class ModuleServiceBase {
             ModulePushData.getInstance(),
             ModuleFormatDatesNombres.getInstance(),
             ModuleMailer.getInstance(),
-            ModuleSASSSkinConfigurator.getInstance()
+            ModuleSASSSkinConfigurator.getInstance(),
+            ModuleVar.getInstance()
         ];
     }
 

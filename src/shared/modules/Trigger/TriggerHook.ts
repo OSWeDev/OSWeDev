@@ -1,4 +1,4 @@
-export default abstract class TriggerHook<Conditions, Params, Out>{
+export default abstract class TriggerHook<Conditions, Params, Out> {
 
     public static NO_CONDITION_UID: string = "___NOCONDITION";
     protected registered_handlers: { [conditionUID: string]: [(params: Params) => Promise<Out>] } = {};
@@ -42,4 +42,4 @@ export default abstract class TriggerHook<Conditions, Params, Out>{
 
         return res;
     }
-} 
+}
