@@ -26,9 +26,17 @@ export default abstract class VarGroupControllerBase<TData extends IVarDataVOBas
         return this.getOrderedVarsNames();
     }
 
-    public async abstract updateData(BATCH_UID: number, param: TDataParam);
     public async abstract begin_batch(BATCH_UID: number, vars_params: TDataParam[]);
     public async abstract end_batch(BATCH_UID: number, vars_params: TDataParam[]);
+
+    /**
+     * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
+     * @param BATCH_UID
+     * @param param
+     */
+    public async abstract getDependencies(BATCH_UID: number, param: TDataParam): Promise<TDataParam[]>;
+
+    public async abstract updateData(BATCH_UID: number, param: TDataParam);
 
     protected startUpdateSoldes(UID: number): void {
         this.cache[UID] = {} as TCache;

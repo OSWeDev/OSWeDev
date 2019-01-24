@@ -8,6 +8,7 @@ import VarGroupConfVOBase from './vos/VarGroupConfVOBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import * as debounce from 'lodash/debounce';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
+import ObjectHandler from '../../tools/ObjectHandler';
 
 export default class VarsController {
 
@@ -380,13 +381,96 @@ export default class VarsController {
         //  et on réinitialise immédiatement les waiting for update, comme ça on peut voir ce qui a été demandé pendant qu'on
         //  mettait à jour (important pour éviter des bugs assez difficiles à identifier potentiellement)
         let params_copy: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate);
+        let BATCH_UIDs_by_var_group_id: { [var_group_id: number]: number } = {};
         this.waitingForUpdate = {};
 
+        // On résoud les deps
+        let deps_by_group_id: { [from_group_id: number]: number[] } = await this.solveDependencies(params_copy, BATCH_UIDs_by_var_group_id);
+
+        let ordered_params_by_var_group_ids: { [var_group_id: number]: IVarDataParamVOBase[] } = this.getOrganizedDataParamsForUpdate(params_copy);
+
+        // Et une fois que tout est propre, on lance la mise à jour de chaque élément
+        await this.updateEachData(deps_by_group_id, ordered_params_by_var_group_ids, BATCH_UIDs_by_var_group_id);
+
+        // Enfin quand toutes les datas sont à jour on pousse sur le store
+        for (let i in BATCH_UIDs_by_var_group_id) {
+            this.flushVarsDatas(BATCH_UIDs_by_var_group_id[i]);
+        }
+
+        this.setUpdatingDatas(false);
+    }
+
+    private async solveDependencies(
+        params: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate),
+        BATCH_UIDs_by_var_group_id: { [var_group_id: number]: number }
+    ): Promise<{ [from_group_id: number]: number[] }> {
+        // On cherche les dépendances de ces params
+        // Et on construit en parralèle l'arbre de dépendances
+        //  TODO : à ce niveau, il faudrait utiliser un vrai arbre et vérifier les deps circulaires, résoudre de manière optimale, ...
+        //  ici on fait rien de tout çà, on essaie juste de résoudre les deps avant le group_id. Plus on aura de vars plus la
+        //  perf sera impactée à ce niveau il faudra modifier ce système (QUICK AND DIRTY)
+        let deps_by_group_id: { [from_group_id: number]: number[] } = {};
+        let needs_check_deps: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate);
+        while (needs_check_deps && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_check_deps)) {
+
+            let param: IVarDataParamVOBase = ObjectHandler.getInstance().shiftAttribute(needs_check_deps);
+
+            if (!BATCH_UIDs_by_var_group_id[param.var_group_id]) {
+                BATCH_UIDs_by_var_group_id[param.var_group_id] = VarsController.BATCH_UID++;
+            }
+
+            if ((!this.registered_vars_groups_by_ids[param.var_group_id]) ||
+                (!this.registered_vars_groups_by_ids[param.var_group_id].name) ||
+                (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name])) {
+                continue;
+            }
+
+            let dependencies: IVarDataParamVOBase[] = await this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name].getDependencies(
+                BATCH_UIDs_by_var_group_id[param.var_group_id],
+                param
+            );
+
+            // Pour chaque dep, on vérifie si on a déjà cette demande par ailleurs, et sinon on ajoute, et on remet en check de dep
+            for (let i in dependencies) {
+                let dependency: IVarDataParamVOBase = dependencies[i];
+
+                if ((!this.registered_vars_groups_by_ids[dependency.var_group_id]) ||
+                    (!this.registered_vars_groups_by_ids[dependency.var_group_id].name) ||
+                    (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[dependency.var_group_id].name]) ||
+                    (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[dependency.var_group_id].name].varDataParamController) ||
+                    (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[dependency.var_group_id].name].varDataParamController.getIndex)) {
+                    continue;
+                }
+
+                let index: string = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[dependency.var_group_id].name].
+                    varDataParamController.getIndex(dependency);
+
+                // We don't check cause it's not meant to be possible but if there's a dependency of same index as the one creating the dependency,
+                //  then we will push it forever.... but that's silly, and shouldn't be possible to begin with
+                if ((!!needs_check_deps[index]) || (!!params[index])) {
+                    continue;
+                }
+
+                if (!deps_by_group_id[param.var_group_id]) {
+                    deps_by_group_id[param.var_group_id] = [];
+                }
+                if (deps_by_group_id[param.var_group_id].indexOf(dependency.var_group_id) < 0) {
+                    deps_by_group_id[param.var_group_id].push(dependency.var_group_id);
+                }
+
+                needs_check_deps[index] = dependency;
+            }
+        }
+
+        return deps_by_group_id;
+    }
+
+    private getOrganizedDataParamsForUpdate(params: { [paramIndex: string]: IVarDataParamVOBase }): { [var_group_id: number]: IVarDataParamVOBase[] } {
         let ordered_params_by_var_group_ids: { [var_group_id: number]: IVarDataParamVOBase[] } = {};
 
         // On organise un peu les datas
-        for (let paramIndex in params_copy) {
-            let param: IVarDataParamVOBase = params_copy[paramIndex];
+        for (let paramIndex in params) {
+            let param: IVarDataParamVOBase = params[paramIndex];
 
             if (!ordered_params_by_var_group_ids[param.var_group_id]) {
                 ordered_params_by_var_group_ids[param.var_group_id] = [];
@@ -408,30 +492,66 @@ export default class VarsController {
             this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].varDataParamController.sortParams(ordered_params);
         }
 
-        // Et une fois que tout est propre, on lance la mise à jour de chaque élément
-        let BATCH_UIDs_by_var_group_id: { [var_group_id: number]: number } = {};
-        for (let var_group_id in ordered_params_by_var_group_ids) {
-            let vars_params: IVarDataParamVOBase[] = ordered_params_by_var_group_ids[var_group_id];
+        return ordered_params_by_var_group_ids;
+    }
 
-            // On peut vouloir faire des chargements de données groupés et les nettoyer après le calcul
-            let BATCH_UID: number = VarsController.BATCH_UID++;
-            BATCH_UIDs_by_var_group_id[var_group_id] = BATCH_UID;
-            await this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].begin_batch(BATCH_UID, vars_params);
+    private async updateEachData(
+        deps_by_group_id: { [from_group_id: number]: number[] },
+        ordered_params_by_var_group_ids: { [var_group_id: number]: IVarDataParamVOBase[] },
+        BATCH_UIDs_by_var_group_id: { [var_group_id: number]: number }) {
 
-            for (let i in vars_params) {
-                let var_params: IVarDataParamVOBase = vars_params[i];
+        let solved_group_id: number[] = [];
+        let groups_ids_to_solve: number[] = Object.keys(ordered_params_by_var_group_ids) as any; // typing pb but should only be numbers by design
 
-                await this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].updateData(BATCH_UID, var_params);
+        // On doit résoudre en respectant l'ordre des deps
+        while (groups_ids_to_solve && groups_ids_to_solve.length) {
+
+            // Needed for the Q&D version of the tree resolution
+            let solved_something: boolean = false;
+            for (let i in groups_ids_to_solve) {
+                let group_id: number = groups_ids_to_solve[i];
+
+                if (deps_by_group_id[group_id] && deps_by_group_id[group_id].length) {
+                    let dependency_check: boolean = true;
+                    for (let j in deps_by_group_id[group_id]) {
+                        if (solved_group_id.indexOf(deps_by_group_id[group_id][j]) < 0) {
+                            dependency_check = false;
+                            break;
+                        }
+                    }
+
+                    if (!dependency_check) {
+                        continue;
+                    }
+                }
+
+                let vars_params: IVarDataParamVOBase[] = ordered_params_by_var_group_ids[group_id];
+
+                // On peut vouloir faire des chargements de données groupés et les nettoyer après le calcul
+                let BATCH_UID: number = BATCH_UIDs_by_var_group_id[group_id];
+                let controller: VarGroupControllerBase<any, any, any> = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[group_id].name];
+                await controller.begin_batch(BATCH_UID, vars_params);
+
+                for (let j in vars_params) {
+                    let var_params: IVarDataParamVOBase = vars_params[i];
+
+                    await controller.updateData(BATCH_UID, var_params);
+                }
+
+                await controller.end_batch(BATCH_UID, vars_params);
+
+                delete ordered_params_by_var_group_ids[group_id];
+                solved_group_id.push(group_id);
+                solved_something = true;
             }
 
-            await this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].end_batch(BATCH_UID, vars_params);
-        }
+            if (!solved_something) {
+                // Plus rien qu'on puisse résoudre mais reste des choses en attente ...
+                console.error('updateEachData:Dependencies check failed');
+                return;
+            }
 
-        // Enfin quand toutes les datas sont à jour on pousse sur le store
-        for (let i in BATCH_UIDs_by_var_group_id) {
-            this.flushVarsDatas(BATCH_UIDs_by_var_group_id[i]);
+            groups_ids_to_solve = Object.keys(ordered_params_by_var_group_ids) as any; // typing pb but should only be numbers by design
         }
-
-        this.setUpdatingDatas(false);
     }
 }

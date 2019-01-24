@@ -57,4 +57,30 @@ export default class ObjectHandler {
     public hasData(object): boolean {
         return (object != null) && (typeof object != "undefined");
     }
+
+    /**
+     * Returns true if the object has an attribute, even if the attribute is valued to null
+     * @param object
+     */
+    public hasAtLeastOneAttribute(object): boolean {
+        for (let i in object) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a var we delete right next ...
+     * @param object
+     */
+    public shiftAttribute(object): any {
+        for (let i in object) {
+            let res = object[i];
+            delete object[i];
+            return res;
+        }
+
+        return null;
+    }
 }
