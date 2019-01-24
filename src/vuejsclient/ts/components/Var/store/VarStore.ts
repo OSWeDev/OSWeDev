@@ -2,12 +2,11 @@ import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors, GetterHandler } from "vuex-typescript";
-import VarGroupControllerBase from '../../../../../shared/modules/Var/VarGroupControllerBase';
 import VarsController from '../../../../../shared/modules/Var/VarsController';
 import IVarDataParamVOBase from '../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import IStoreModule from '../../../store/IStoreModule';
-import VarGroupConfVOBase from '../../../../../shared/modules/Var/vos/VarGroupConfVOBase';
+import VarControllerBase from '../../../../../shared/modules/Var/VarControllerBase';
 
 export type VarContext = ActionContext<IVarState, any>;
 
@@ -65,12 +64,12 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     return;
                 }
 
-                let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(varData.var_group_id);
-                if (!varGroupController) {
+                let varController: VarControllerBase<any, any, any> = VarsController.getInstance().getVarControllerById(varData.var_id);
+                if (!varController) {
                     return;
                 }
 
-                let index: string = varGroupController.varDataParamController.getIndex(varData);
+                let index: string = varController.varDataParamController.getIndex(varData);
 
                 Vue.set(state.varDatas as any, index, varData);
             },
@@ -82,12 +81,12 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     return;
                 }
 
-                let varGroupController: VarGroupControllerBase<any, any, any> = VarsController.getInstance().getVarGroupControllerById(varDataParam.var_group_id);
-                if (!varGroupController) {
+                let varController: VarControllerBase<any, any, any> = VarsController.getInstance().getVarControllerById(varDataParam.var_id);
+                if (!varController) {
                     return;
                 }
 
-                let index: string = varGroupController.varDataParamController.getIndex(varDataParam);
+                let index: string = varController.varDataParamController.getIndex(varDataParam);
 
                 try {
                     Vue.delete(state.varDatas, index);
@@ -103,8 +102,8 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setIsUpdating(context: VarContext, is_updating: boolean) {
                 commitSetIsUpdating(context, is_updating);
             },
-            setVarData(context: VarContext, varGroupData) {
-                commitSetVarData(context, varGroupData);
+            setVarData(context: VarContext, varData) {
+                commitSetVarData(context, varData);
             },
             removeVarData(context: VarContext, varDataParam: IVarDataParamVOBase) {
                 commitRemoveVarData(context, varDataParam);

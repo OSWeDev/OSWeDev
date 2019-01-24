@@ -1,10 +1,9 @@
 import ModuleDAO from '../DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
-import VarGroupControllerBase from './VarGroupControllerBase';
+import VarControllerBase from './VarControllerBase';
 import IImportedVarDataVOBase from './interfaces/IImportedVarDataVOBase';
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
-import VarGroupConfVOBase from './vos/VarGroupConfVOBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import * as debounce from 'lodash/debounce';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
@@ -31,13 +30,10 @@ export default class VarsController {
     private registeredDatasParamsIndexes: { [paramIndex: string]: number } = {};
     private registeredDatasParams: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
-    private registered_vars_groups: { [name: string]: VarGroupConfVOBase } = {};
-    private registered_vars_groups_by_ids: { [id: number]: VarGroupConfVOBase } = {};
-
     private registered_vars: { [name: string]: VarConfVOBase } = {};
     private registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
 
-    private registered_vars_groups_controller: { [name: string]: VarGroupControllerBase<any, any, any> } = {};
+    private registered_vars_controller: { [name: string]: VarControllerBase<any, any, any> } = {};
 
     private updateSemaphore: boolean = false;
 
@@ -73,13 +69,13 @@ export default class VarsController {
 
     public setVarData<T extends IVarDataVOBase>(varData: T, BATCH_UID: number = null) {
 
-        if ((!this.registered_vars_groups_controller) || (!this.registered_vars_groups_by_ids) ||
-            (!varData) || (!varData.var_group_id) || (!this.registered_vars_groups_by_ids[varData.var_group_id])
-            || (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[varData.var_group_id].name])
-            || (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[varData.var_group_id].name].varDataParamController)) {
+        if ((!this.registered_vars_controller) || (!this.registered_vars_by_ids) ||
+            (!varData) || (!varData.var_id) || (!this.registered_vars_by_ids[varData.var_id])
+            || (!this.registered_vars_controller[this.registered_vars_by_ids[varData.var_id].name])
+            || (!this.registered_vars_controller[this.registered_vars_by_ids[varData.var_id].name].varDataParamController)) {
             return null;
         }
-        let index: string = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[varData.var_group_id].name].varDataParamController.getIndex(varData);
+        let index: string = this.registered_vars_controller[this.registered_vars_by_ids[varData.var_id].name].varDataParamController.getIndex(varData);
 
         // WARNING : Might be strange some day when the static cache is updated by a BATCH since it should only
         //  be updated after the end of the batch, but the batch sometimes uses methods that need data that
@@ -102,13 +98,13 @@ export default class VarsController {
 
     public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, BATCH_UID: number = null): T {
 
-        if ((!this.registered_vars_groups_controller) || (!this.registered_vars_groups_by_ids) ||
-            (!param) || (!param.var_group_id) || (!this.registered_vars_groups_by_ids[param.var_group_id])
-            || (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name])
-            || (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name].varDataParamController)) {
+        if ((!this.registered_vars_controller) || (!this.registered_vars_by_ids) ||
+            (!param) || (!param.var_id) || (!this.registered_vars_by_ids[param.var_id])
+            || (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name])
+            || (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController)) {
             return null;
         }
-        let index: string = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name].varDataParamController.getIndex(param);
+        let index: string = this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController.getIndex(param);
 
         if (BATCH_UID != null) {
             if (this.varDatasBATCHCache && this.varDatasBATCHCache[BATCH_UID] && this.varDatasBATCHCache[BATCH_UID][index]) {
@@ -152,15 +148,16 @@ export default class VarsController {
             this.waitingForUpdate = {};
         }
 
-        if ((!param) || (!param.var_group_id) || (!this.registered_vars_by_ids[param.var_group_id]) ||
-            (!this.registered_vars_by_ids[param.var_group_id].name) ||
-            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name]) ||
-            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController) ||
-            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex)) {
+        if ((!param) || (!param.var_id) || (!this.registered_vars_by_ids[param.var_id]) ||
+            (!this.registered_vars_by_ids[param.var_id].name) ||
+            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name]) ||
+            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController) ||
+            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController.getIndex)) {
             return;
         }
 
-        let param_controller: VarDataParamControllerBase<TDataParam> = this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController;
+        let param_controller: VarDataParamControllerBase<TDataParam> = this.registered_vars_controller[
+            this.registered_vars_by_ids[param.var_id].name].varDataParamController;
         let param_index: string = param_controller.getIndex(param);
         if (!this.waitingForUpdate[param_index]) {
             this.waitingForUpdate[param_index] = param;
@@ -188,15 +185,16 @@ export default class VarsController {
             this.registeredDatasParams = {};
         }
 
-        if ((!param) || (!param.var_group_id) || (!this.registered_vars_by_ids[param.var_group_id]) ||
-            (!this.registered_vars_by_ids[param.var_group_id].name) ||
-            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name]) ||
-            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController) ||
-            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex)) {
+        if ((!param) || (!param.var_id) || (!this.registered_vars_by_ids[param.var_id]) ||
+            (!this.registered_vars_by_ids[param.var_id].name) ||
+            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name]) ||
+            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController) ||
+            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController.getIndex)) {
             return;
         }
 
-        let param_index: string = this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex(param);
+        let param_index: string = this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].
+            varDataParamController.getIndex(param);
         if (!this.registeredDatasParamsIndexes[param_index]) {
             this.registeredDatasParamsIndexes[param_index] = 1;
         } else {
@@ -214,15 +212,16 @@ export default class VarsController {
             return;
         }
 
-        if ((!param) || (!param.var_group_id) || (!this.registered_vars_by_ids[param.var_group_id]) ||
-            (!this.registered_vars_by_ids[param.var_group_id].name) ||
-            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name]) ||
-            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController) ||
-            (!this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex)) {
+        if ((!param) || (!param.var_id) || (!this.registered_vars_by_ids[param.var_id]) ||
+            (!this.registered_vars_by_ids[param.var_id].name) ||
+            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name]) ||
+            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController) ||
+            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController.getIndex)) {
             return;
         }
 
-        let param_index: string = this.registered_vars_groups_controller[this.registered_vars_by_ids[param.var_group_id].name].varDataParamController.getIndex(param);
+        let param_index: string = this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].
+            varDataParamController.getIndex(param);
         if ((this.registeredDatasParamsIndexes[param_index] == null) || (typeof this.registeredDatasParamsIndexes[param_index] == 'undefined')) {
             return;
         }
@@ -256,58 +255,54 @@ export default class VarsController {
     }
 
     public getImportedVarsDatasByIndexFromArray<TImportedData extends IImportedVarDataVOBase>(
-        compteursValeursImportees: TImportedData[]): { [var_group_id: number]: { [param_index: string]: TImportedData } } {
-        let res: { [var_group_id: number]: { [param_index: string]: TImportedData } } = {};
+        compteursValeursImportees: TImportedData[]): { [var_id: number]: { [param_index: string]: TImportedData } } {
+        let res: { [var_id: number]: { [param_index: string]: TImportedData } } = {};
 
         for (let i in compteursValeursImportees) {
             let importedData: TImportedData = compteursValeursImportees[i];
 
-            if ((!importedData) || (!importedData.var_group_id) || (!this.registered_vars_by_ids[importedData.var_group_id]) ||
-                (!this.registered_vars_by_ids[importedData.var_group_id].name) ||
-                (!this.registered_vars_groups_controller[this.registered_vars_by_ids[importedData.var_group_id].name]) ||
-                (!this.registered_vars_groups_controller[this.registered_vars_by_ids[importedData.var_group_id].name].varDataParamController) ||
-                (!this.registered_vars_groups_controller[this.registered_vars_by_ids[importedData.var_group_id].name].varDataParamController.getIndex)) {
+            if ((!importedData) || (!importedData.var_id) || (!this.registered_vars_by_ids[importedData.var_id]) ||
+                (!this.registered_vars_by_ids[importedData.var_id].name) ||
+                (!this.registered_vars_controller[this.registered_vars_by_ids[importedData.var_id].name]) ||
+                (!this.registered_vars_controller[this.registered_vars_by_ids[importedData.var_id].name].varDataParamController) ||
+                (!this.registered_vars_controller[this.registered_vars_by_ids[importedData.var_id].name].varDataParamController.getIndex)) {
                 continue;
             }
 
-            let param_index: string = this.registered_vars_groups_controller[this.registered_vars_by_ids[importedData.var_group_id].name].varDataParamController.getIndex(
-                importedData
-            );
+            let param_index: string = this.registered_vars_controller[this.registered_vars_by_ids[importedData.var_id].name].
+                varDataParamController.getIndex(
+                    importedData
+                );
 
-            if (!res[importedData.var_group_id]) {
-                res[importedData.var_group_id] = {};
+            if (!res[importedData.var_id]) {
+                res[importedData.var_id] = {};
             }
 
-            res[importedData.var_group_id][param_index] = importedData;
+            res[importedData.var_id][param_index] = importedData;
         }
 
         return res;
     }
 
-    public getVarConf(name: string): VarConfVOBase {
-        return this.registered_vars ? (this.registered_vars[name] ? this.registered_vars[name] : null) : null;
+    public getVarConf(var_name: string): VarConfVOBase {
+        return this.registered_vars ? (this.registered_vars[var_name] ? this.registered_vars[var_name] : null) : null;
     }
 
-    public getVarGroupConf(group_name: string): VarGroupConfVOBase {
-        return this.registered_vars_groups ? (this.registered_vars_groups[group_name] ? this.registered_vars_groups[group_name] : null) : null;
+    public getVarController(var_name: string): VarControllerBase<any, any, any> {
+        return this.registered_vars_controller ? (this.registered_vars_controller[var_name] ? this.registered_vars_controller[var_name] : null) : null;
     }
 
-    public getVarGroupController(group_name: string): VarGroupControllerBase<any, any, any> {
-        return this.registered_vars_groups_controller ? (this.registered_vars_groups_controller[group_name] ? this.registered_vars_groups_controller[group_name] : null) : null;
-    }
-
-    public getVarGroupControllerById(group_id: number): VarGroupControllerBase<any, any, any> {
-        if ((!this.registered_vars_groups_by_ids) || (!this.registered_vars_groups_by_ids[group_id]) ||
-            (!this.registered_vars_groups_controller)) {
+    public getVarControllerById(var_id: number): VarControllerBase<any, any, any> {
+        if ((!this.registered_vars_by_ids) || (!this.registered_vars_by_ids[var_id]) ||
+            (!this.registered_vars_controller)) {
             return null;
         }
 
-        let res = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[group_id].name];
+        let res = this.registered_vars_controller[this.registered_vars_by_ids[var_id].name];
         return res ? res : null;
     }
 
-    public async registerVar(varConf: VarConfVOBase): Promise<VarConfVOBase> {
-
+    public async registerVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any, any>): Promise<VarConfVOBase> {
         if (this.registered_vars && this.registered_vars[varConf.name]) {
             return this.registered_vars[varConf.name];
         }
@@ -315,7 +310,7 @@ export default class VarsController {
         let daoVarConf: VarConfVOBase = await ModuleDAO.getInstance().getNamedVoByName<VarConfVOBase>(varConf._type, varConf.name);
 
         if (daoVarConf) {
-            await this.setVar(daoVarConf);
+            await this.setVar(daoVarConf, controller);
             return daoVarConf;
         }
         console.error(daoVarConf + ":" + varConf._type + ":" + varConf.name);
@@ -327,45 +322,14 @@ export default class VarsController {
         }
 
         varConf.id = parseInt(insertOrDeleteQueryResult.id.toString());
-        await this.setVar(varConf);
 
+        await this.setVar(varConf, controller);
         return varConf;
     }
 
-    public async registerVarGroup(varGroupConf: VarGroupConfVOBase, controller: VarGroupControllerBase<any, any, any>): Promise<VarGroupConfVOBase> {
-        if (this.registered_vars_groups && this.registered_vars_groups[varGroupConf.name]) {
-            return this.registered_vars_groups[varGroupConf.name];
-        }
-
-        let daoVarGroupConf: VarGroupConfVOBase = await ModuleDAO.getInstance().getNamedVoByName<VarGroupConfVOBase>(varGroupConf._type, varGroupConf.name);
-
-        if (daoVarGroupConf) {
-            await this.setVarGroup(daoVarGroupConf, controller);
-            return daoVarGroupConf;
-        }
-        console.error(daoVarGroupConf + ":" + varGroupConf._type + ":" + varGroupConf.name);
-        console.error(JSON.stringify(await ModuleDAO.getInstance().getVos(varGroupConf._type)));
-
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(varGroupConf);
-        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            return null;
-        }
-
-        varGroupConf.id = parseInt(insertOrDeleteQueryResult.id.toString());
-
-        await this.setVarGroup(varGroupConf, controller);
-        return varGroupConf;
-    }
-
-    private async setVarGroup(varGroup: VarGroupConfVOBase, controller: VarGroupControllerBase<any, any, any>) {
-        this.registered_vars_groups[varGroup.name] = varGroup;
-        this.registered_vars_groups_controller[varGroup.name] = controller;
-        this.registered_vars_groups_by_ids[varGroup.id] = varGroup;
-        await controller.registerVars();
-    }
-
-    private async setVar(varConf: VarConfVOBase) {
+    private async setVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any, any>) {
         this.registered_vars[varConf.name] = varConf;
+        this.registered_vars_controller[varConf.name] = controller;
         this.registered_vars_by_ids[varConf.id] = varConf;
     }
 
@@ -381,20 +345,20 @@ export default class VarsController {
         //  et on réinitialise immédiatement les waiting for update, comme ça on peut voir ce qui a été demandé pendant qu'on
         //  mettait à jour (important pour éviter des bugs assez difficiles à identifier potentiellement)
         let params_copy: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate);
-        let BATCH_UIDs_by_var_group_id: { [var_group_id: number]: number } = {};
+        let BATCH_UIDs_by_var_id: { [var_id: number]: number } = {};
         this.waitingForUpdate = {};
 
         // On résoud les deps
-        let deps_by_group_id: { [from_group_id: number]: number[] } = await this.solveDependencies(params_copy, BATCH_UIDs_by_var_group_id);
+        let deps_by_var_id: { [from_var_id: number]: number[] } = await this.solveDependencies(params_copy, BATCH_UIDs_by_var_id);
 
-        let ordered_params_by_var_group_ids: { [var_group_id: number]: IVarDataParamVOBase[] } = this.getOrganizedDataParamsForUpdate(params_copy);
+        let ordered_params_by_vars_ids: { [var_id: number]: IVarDataParamVOBase[] } = this.getOrganizedDataParamsForUpdate(params_copy);
 
         // Et une fois que tout est propre, on lance la mise à jour de chaque élément
-        await this.updateEachData(deps_by_group_id, ordered_params_by_var_group_ids, BATCH_UIDs_by_var_group_id);
+        await this.updateEachData(deps_by_var_id, ordered_params_by_vars_ids, BATCH_UIDs_by_var_id);
 
         // Enfin quand toutes les datas sont à jour on pousse sur le store
-        for (let i in BATCH_UIDs_by_var_group_id) {
-            this.flushVarsDatas(BATCH_UIDs_by_var_group_id[i]);
+        for (let i in BATCH_UIDs_by_var_id) {
+            this.flushVarsDatas(BATCH_UIDs_by_var_id[i]);
         }
 
         this.setUpdatingDatas(false);
@@ -402,31 +366,31 @@ export default class VarsController {
 
     private async solveDependencies(
         params: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate),
-        BATCH_UIDs_by_var_group_id: { [var_group_id: number]: number }
-    ): Promise<{ [from_group_id: number]: number[] }> {
+        BATCH_UIDs_by_var_id: { [var_id: number]: number }
+    ): Promise<{ [from_var_id: number]: number[] }> {
         // On cherche les dépendances de ces params
         // Et on construit en parralèle l'arbre de dépendances
         //  TODO : à ce niveau, il faudrait utiliser un vrai arbre et vérifier les deps circulaires, résoudre de manière optimale, ...
-        //  ici on fait rien de tout çà, on essaie juste de résoudre les deps avant le group_id. Plus on aura de vars plus la
+        //  ici on fait rien de tout çà, on essaie juste de résoudre les deps avant le var_id. Plus on aura de vars plus la
         //  perf sera impactée à ce niveau il faudra modifier ce système (QUICK AND DIRTY)
-        let deps_by_group_id: { [from_group_id: number]: number[] } = {};
+        let deps_by_var_id: { [from_var_id: number]: number[] } = {};
         let needs_check_deps: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate);
         while (needs_check_deps && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_check_deps)) {
 
             let param: IVarDataParamVOBase = ObjectHandler.getInstance().shiftAttribute(needs_check_deps);
 
-            if (!BATCH_UIDs_by_var_group_id[param.var_group_id]) {
-                BATCH_UIDs_by_var_group_id[param.var_group_id] = VarsController.BATCH_UID++;
+            if (!BATCH_UIDs_by_var_id[param.var_id]) {
+                BATCH_UIDs_by_var_id[param.var_id] = VarsController.BATCH_UID++;
             }
 
-            if ((!this.registered_vars_groups_by_ids[param.var_group_id]) ||
-                (!this.registered_vars_groups_by_ids[param.var_group_id].name) ||
-                (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name])) {
+            if ((!this.registered_vars_by_ids[param.var_id]) ||
+                (!this.registered_vars_by_ids[param.var_id].name) ||
+                (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name])) {
                 continue;
             }
 
-            let dependencies: IVarDataParamVOBase[] = await this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[param.var_group_id].name].getDependencies(
-                BATCH_UIDs_by_var_group_id[param.var_group_id],
+            let dependencies: IVarDataParamVOBase[] = await this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].getDependencies(
+                BATCH_UIDs_by_var_id[param.var_id],
                 param
             );
 
@@ -434,15 +398,15 @@ export default class VarsController {
             for (let i in dependencies) {
                 let dependency: IVarDataParamVOBase = dependencies[i];
 
-                if ((!this.registered_vars_groups_by_ids[dependency.var_group_id]) ||
-                    (!this.registered_vars_groups_by_ids[dependency.var_group_id].name) ||
-                    (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[dependency.var_group_id].name]) ||
-                    (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[dependency.var_group_id].name].varDataParamController) ||
-                    (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[dependency.var_group_id].name].varDataParamController.getIndex)) {
+                if ((!this.registered_vars_by_ids[dependency.var_id]) ||
+                    (!this.registered_vars_by_ids[dependency.var_id].name) ||
+                    (!this.registered_vars_controller[this.registered_vars_by_ids[dependency.var_id].name]) ||
+                    (!this.registered_vars_controller[this.registered_vars_by_ids[dependency.var_id].name].varDataParamController) ||
+                    (!this.registered_vars_controller[this.registered_vars_by_ids[dependency.var_id].name].varDataParamController.getIndex)) {
                     continue;
                 }
 
-                let index: string = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[dependency.var_group_id].name].
+                let index: string = this.registered_vars_controller[this.registered_vars_by_ids[dependency.var_id].name].
                     varDataParamController.getIndex(dependency);
 
                 // We don't check cause it's not meant to be possible but if there's a dependency of same index as the one creating the dependency,
@@ -451,70 +415,70 @@ export default class VarsController {
                     continue;
                 }
 
-                if (!deps_by_group_id[param.var_group_id]) {
-                    deps_by_group_id[param.var_group_id] = [];
+                if (!deps_by_var_id[param.var_id]) {
+                    deps_by_var_id[param.var_id] = [];
                 }
-                if (deps_by_group_id[param.var_group_id].indexOf(dependency.var_group_id) < 0) {
-                    deps_by_group_id[param.var_group_id].push(dependency.var_group_id);
+                if (deps_by_var_id[param.var_id].indexOf(dependency.var_id) < 0) {
+                    deps_by_var_id[param.var_id].push(dependency.var_id);
                 }
 
                 needs_check_deps[index] = dependency;
             }
         }
 
-        return deps_by_group_id;
+        return deps_by_var_id;
     }
 
-    private getOrganizedDataParamsForUpdate(params: { [paramIndex: string]: IVarDataParamVOBase }): { [var_group_id: number]: IVarDataParamVOBase[] } {
-        let ordered_params_by_var_group_ids: { [var_group_id: number]: IVarDataParamVOBase[] } = {};
+    private getOrganizedDataParamsForUpdate(params: { [paramIndex: string]: IVarDataParamVOBase }): { [var_id: number]: IVarDataParamVOBase[] } {
+        let ordered_params_by_vars_ids: { [var_id: number]: IVarDataParamVOBase[] } = {};
 
         // On organise un peu les datas
         for (let paramIndex in params) {
             let param: IVarDataParamVOBase = params[paramIndex];
 
-            if (!ordered_params_by_var_group_ids[param.var_group_id]) {
-                ordered_params_by_var_group_ids[param.var_group_id] = [];
+            if (!ordered_params_by_vars_ids[param.var_id]) {
+                ordered_params_by_vars_ids[param.var_id] = [];
             }
-            ordered_params_by_var_group_ids[param.var_group_id].push(param);
+            ordered_params_by_vars_ids[param.var_id].push(param);
         }
 
         // On demande l'ordre dans lequel résoudre les params
-        for (let var_group_id in ordered_params_by_var_group_ids) {
-            let ordered_params: IVarDataParamVOBase[] = ordered_params_by_var_group_ids[var_group_id];
+        for (let var_id in ordered_params_by_vars_ids) {
+            let ordered_params: IVarDataParamVOBase[] = ordered_params_by_vars_ids[var_id];
 
-            if ((!this.registered_vars_groups_by_ids[var_group_id]) ||
-                (!this.registered_vars_groups_by_ids[var_group_id].name) ||
-                (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name]) ||
-                (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].varDataParamController) ||
-                (!this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].varDataParamController.sortParams)) {
+            if ((!this.registered_vars_by_ids[var_id]) ||
+                (!this.registered_vars_by_ids[var_id].name) ||
+                (!this.registered_vars_controller[this.registered_vars_by_ids[var_id].name]) ||
+                (!this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].varDataParamController) ||
+                (!this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].varDataParamController.sortParams)) {
                 continue;
             }
-            this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[var_group_id].name].varDataParamController.sortParams(ordered_params);
+            this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].varDataParamController.sortParams(ordered_params);
         }
 
-        return ordered_params_by_var_group_ids;
+        return ordered_params_by_vars_ids;
     }
 
     private async updateEachData(
-        deps_by_group_id: { [from_group_id: number]: number[] },
-        ordered_params_by_var_group_ids: { [var_group_id: number]: IVarDataParamVOBase[] },
-        BATCH_UIDs_by_var_group_id: { [var_group_id: number]: number }) {
+        deps_by_var_id: { [from_var_id: number]: number[] },
+        ordered_params_by_vars_ids: { [var_id: number]: IVarDataParamVOBase[] },
+        BATCH_UIDs_by_var_id: { [var_id: number]: number }) {
 
-        let solved_group_id: number[] = [];
-        let groups_ids_to_solve: number[] = Object.keys(ordered_params_by_var_group_ids) as any; // typing pb but should only be numbers by design
+        let solved_var_ids: number[] = [];
+        let vars_ids_to_solve: number[] = Object.keys(ordered_params_by_vars_ids) as any; // typing pb but should only be numbers by design
 
         // On doit résoudre en respectant l'ordre des deps
-        while (groups_ids_to_solve && groups_ids_to_solve.length) {
+        while (vars_ids_to_solve && vars_ids_to_solve.length) {
 
             // Needed for the Q&D version of the tree resolution
             let solved_something: boolean = false;
-            for (let i in groups_ids_to_solve) {
-                let group_id: number = groups_ids_to_solve[i];
+            for (let i in vars_ids_to_solve) {
+                let var_id: number = vars_ids_to_solve[i];
 
-                if (deps_by_group_id[group_id] && deps_by_group_id[group_id].length) {
+                if (deps_by_var_id[var_id] && deps_by_var_id[var_id].length) {
                     let dependency_check: boolean = true;
-                    for (let j in deps_by_group_id[group_id]) {
-                        if (solved_group_id.indexOf(deps_by_group_id[group_id][j]) < 0) {
+                    for (let j in deps_by_var_id[var_id]) {
+                        if (solved_var_ids.indexOf(deps_by_var_id[var_id][j]) < 0) {
                             dependency_check = false;
                             break;
                         }
@@ -525,11 +489,11 @@ export default class VarsController {
                     }
                 }
 
-                let vars_params: IVarDataParamVOBase[] = ordered_params_by_var_group_ids[group_id];
+                let vars_params: IVarDataParamVOBase[] = ordered_params_by_vars_ids[var_id];
 
                 // On peut vouloir faire des chargements de données groupés et les nettoyer après le calcul
-                let BATCH_UID: number = BATCH_UIDs_by_var_group_id[group_id];
-                let controller: VarGroupControllerBase<any, any, any> = this.registered_vars_groups_controller[this.registered_vars_groups_by_ids[group_id].name];
+                let BATCH_UID: number = BATCH_UIDs_by_var_id[var_id];
+                let controller: VarControllerBase<any, any, any> = this.registered_vars_controller[this.registered_vars_by_ids[var_id].name];
                 await controller.begin_batch(BATCH_UID, vars_params);
 
                 for (let j in vars_params) {
@@ -540,8 +504,8 @@ export default class VarsController {
 
                 await controller.end_batch(BATCH_UID, vars_params);
 
-                delete ordered_params_by_var_group_ids[group_id];
-                solved_group_id.push(group_id);
+                delete ordered_params_by_vars_ids[var_id];
+                solved_var_ids.push(var_id);
                 solved_something = true;
             }
 
@@ -551,7 +515,7 @@ export default class VarsController {
                 return;
             }
 
-            groups_ids_to_solve = Object.keys(ordered_params_by_var_group_ids) as any; // typing pb but should only be numbers by design
+            vars_ids_to_solve = Object.keys(ordered_params_by_vars_ids) as any; // typing pb but should only be numbers by design
         }
     }
 }

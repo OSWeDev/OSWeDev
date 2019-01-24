@@ -7,7 +7,7 @@ import IParameterizedVO from '../../../interfaces/IParameterizedVO';
  */
 export default interface IVarDataParamVOBase extends IParameterizedVO {
 
-    var_group_id: number;
+    var_id: number;
 
     json_params: string;
 }

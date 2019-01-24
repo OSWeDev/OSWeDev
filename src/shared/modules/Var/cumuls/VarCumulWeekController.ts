@@ -3,11 +3,10 @@ import IVarDataVOBase from '../interfaces/IVarDataVOBase';
 import IVarDataParamVOBase from '../interfaces/IVarDataParamVOBase';
 import VarCacheBase from '../VarCacheBase';
 import VarsController from '../VarsController';
-import VarGroupConfVOBase from '../vos/VarGroupConfVOBase';
 import VarDataParamControllerBase from '../VarDataParamControllerBase';
 import IDateIndexedVarDataParam from '../interfaces/IDateIndexedVarDataParam';
 
-export default class VarGroupCumulWeekController<TData extends IVarDataVOBase, TDataParam extends IDateIndexedVarDataParam, TCache extends VarCacheBase> extends VarGroupControllerBase<TData, TDataParam, TCache> {
+export default class VarCumulWeekController<TData extends IVarDataVOBase, TDataParam extends IDateIndexedVarDataParam, TCache extends VarCacheBase> extends VarGroupControllerBase<TData, TDataParam, TCache> {
 
     protected cache: { [UID: number]: TCache } = {};
 
@@ -20,10 +19,10 @@ export default class VarGroupCumulWeekController<TData extends IVarDataVOBase, T
     public async initialize() {
 
         // On part de la conf de la data à cumuler et on en fait un cumul week
-        let varGroupConf: VarGroupConfVOBase = Object.assign({}, this.varGroupConf);
+        let varGroupConf: VarGroupConfVOBase = Object.assign({}, this.varConf);
         varGroupConf.id = null;
         varGroupConf.name =
-            this.varGroupConf = await VarsController.getInstance().registerVarGroup(this.varGroupConf, this);
+            this.varConf = await VarsController.getInstance().registerVarGroup(this.varConf, this);
         await this.registerVars();
     }
     public abstract async registerVars();

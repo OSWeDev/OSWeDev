@@ -1,7 +1,7 @@
 import INamedVO from '../../../interfaces/INamedVO';
 import IParameterizedVO from '../../../interfaces/IParameterizedVO';
 
-export default abstract class VarGroupConfVOBase implements INamedVO, IParameterizedVO {
+export default abstract class VarConfVOBase implements INamedVO, IParameterizedVO {
 
     public id: number;
     public abstract _type: string;

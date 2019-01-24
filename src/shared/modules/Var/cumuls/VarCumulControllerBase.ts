@@ -1,37 +1,37 @@
-import VarGroupControllerBase from '../VarGroupControllerBase';
 import IVarDataVOBase from '../interfaces/IVarDataVOBase';
 import IVarDataParamVOBase from '../interfaces/IVarDataParamVOBase';
 import VarCacheBase from '../VarCacheBase';
 import VarsController from '../VarsController';
-import VarGroupConfVOBase from '../vos/VarGroupConfVOBase';
 import VarDataParamControllerBase from '../VarDataParamControllerBase';
 import VarsCumulsController from './VarsCumulsController';
 import ISimpleNumberVarData from '../interfaces/ISimpleNumberVarData';
 import IDateIndexedVarDataParam from '../interfaces/IDateIndexedVarDataParam';
+import VarConfVOBase from '../vos/VarConfVOBase';
+import VarControllerBase from '../VarControllerBase';
 
-export default class VarGroupCumulControllerBase<TData extends ISimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam, TCache extends VarCacheBase> extends VarGroupControllerBase<TData, TDataParam, TCache> {
+export default class VarCumulControllerBase<TData extends ISimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam, TCache extends VarCacheBase> extends VarControllerBase<TData, TDataParam, TCache> {
 
     protected cache: { [UID: number]: TCache } = {};
 
     protected constructor(
-        varGroupConfToCumul: VarGroupConfVOBase,
+        varConfToCumulate: VarConfVOBase,
         protected cumulType: string,
         varDataParamController: VarDataParamControllerBase<TDataParam>) {
-        super(varGroupConfToCumul, varDataParamController);
+        super(varConfToCumulate, varDataParamController);
     }
 
     public async initialize() {
 
         // On part de la conf de la data à cumuler et on en fait un cumul week
-        let varGroupConf: VarGroupConfVOBase = Object.assign({}, this.varGroupConf);
-        varGroupConf.id = null;
-        varGroupConf.name = VarsCumulsController.getInstance().getCumulaticName(varGroupConf.name, this.cumulType);
+        let varConf: VarConfVOBase = Object.assign({}, this.varConf);
+        varConf.id = null;
+        varConf.name = VarsCumulsController.getInstance().getCumulaticName(varConf.name, this.cumulType);
 
         // TODO VARS : il faut déclarer les vos correspondants en base sur les modules serveurs, là c'est juste de la nommenclature....
-        varGroupConf.var_data_vo_type = VarsCumulsController.getInstance().getCumulaticName(varGroupConf.var_data_vo_type, this.cumulType);
-        varGroupConf.var_imported_data_vo_type = VarsCumulsController.getInstance().getCumulaticName(varGroupConf.var_imported_data_vo_type, this.cumulType);
+        varConf.var_data_vo_type = VarsCumulsController.getInstance().getCumulaticName(varConf.var_data_vo_type, this.cumulType);
+        varConf.var_imported_data_vo_type = VarsCumulsController.getInstance().getCumulaticName(varConf.var_imported_data_vo_type, this.cumulType);
 
-        this.varGroupConf = await VarsController.getInstance().registerVarGroup(varGroupConf, this);
+        this.varConf = await VarsController.getInstance().registerVar(varConf, this);
         await this.registerVars();
     }
 

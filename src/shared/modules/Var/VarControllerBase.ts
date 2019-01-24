@@ -3,28 +3,22 @@ import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import VarCacheBase from './VarCacheBase';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
-import VarGroupConfVOBase from './vos/VarGroupConfVOBase';
+import VarConfVOBase from './vos/VarConfVOBase';
 
-export default abstract class VarGroupControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase, TCache extends VarCacheBase> {
+export default abstract class VarControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase, TCache extends VarCacheBase> {
 
     protected cache: { [UID: number]: TCache } = {};
 
     protected constructor(
-        public varGroupConf: VarGroupConfVOBase,
+        public varConf: VarConfVOBase,
         public varDataParamController: VarDataParamControllerBase<TDataParam>) {
     }
 
     public async initialize() {
-        this.varGroupConf = await VarsController.getInstance().registerVarGroup(this.varGroupConf, this);
-        await this.registerVars();
+        this.varConf = await VarsController.getInstance().registerVar(this.varConf, this);
     }
-    public abstract async registerVars();
 
     public abstract getOrderedVarsNames(): string[];
-
-    get orderedVarsNames(): string[] {
-        return this.getOrderedVarsNames();
-    }
 
     public async abstract begin_batch(BATCH_UID: number, vars_params: TDataParam[]);
     public async abstract end_batch(BATCH_UID: number, vars_params: TDataParam[]);

@@ -1,5 +1,3 @@
-import VarGroupConfVOBase from '../vos/VarGroupConfVOBase';
-
 export default class VarsCumulsController {
 
     public static CUMUL_NAME_SEPARATOR: string = "__C_";

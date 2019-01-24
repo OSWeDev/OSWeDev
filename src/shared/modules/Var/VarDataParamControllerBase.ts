@@ -20,14 +20,14 @@ export default abstract class VarDataParamControllerBase<TDataParam extends IVar
 
     //     let res: string = "";
 
-    //     res += param.var_group_id;
+    //     res += param.var_id;
 
     //     if ((!!param.json_params) && (param.json_params != "")) {
     //         res += "__" + param.json_params.replace(/[^0-9a-zA-Z-_]/ig, '_');
     //     }
 
     //     for (let i in param) {
-    //         if ((i == 'var_group_id') || (i == 'json_params') || (i == 'id') || (i == '_type')) {
+    //         if ((i == 'var_id') || (i == 'json_params') || (i == 'id') || (i == '_type')) {
     //             continue;
     //         }
 
