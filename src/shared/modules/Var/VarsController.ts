@@ -255,9 +255,9 @@ export default class VarsController {
         }, 500);
     }
 
-    public getImportedVarsByIndexFromArray<TImportedData extends IImportedVarDataVOBase>(
-        compteursValeursImportees: TImportedData[]): { [var_id: number]: { [param_index: string]: TImportedData } } {
-        let res: { [var_id: number]: { [param_index: string]: TImportedData } } = {};
+    public getImportedVarsDatasByIndexFromArray<TImportedData extends IImportedVarDataVOBase>(
+        compteursValeursImportees: TImportedData[]): { [var_group_id: number]: { [param_index: string]: TImportedData } } {
+        let res: { [var_group_id: number]: { [param_index: string]: TImportedData } } = {};
 
         for (let i in compteursValeursImportees) {
             let importedData: TImportedData = compteursValeursImportees[i];
@@ -274,11 +274,11 @@ export default class VarsController {
                 importedData
             );
 
-            if (!res[importedData.var_id]) {
-                res[importedData.var_id] = {};
+            if (!res[importedData.var_group_id]) {
+                res[importedData.var_group_id] = {};
             }
 
-            res[importedData.var_id][param_index] = importedData;
+            res[importedData.var_group_id][param_index] = importedData;
         }
 
         return res;
