@@ -33,7 +33,7 @@ export default class VarsController {
     private registered_vars: { [name: string]: VarConfVOBase } = {};
     private registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
 
-    private registered_vars_controller: { [name: string]: VarControllerBase<any, any, any> } = {};
+    private registered_vars_controller: { [name: string]: VarControllerBase<any, any> } = {};
 
     private updateSemaphore: boolean = false;
 
@@ -288,11 +288,11 @@ export default class VarsController {
         return this.registered_vars ? (this.registered_vars[var_name] ? this.registered_vars[var_name] : null) : null;
     }
 
-    public getVarController(var_name: string): VarControllerBase<any, any, any> {
+    public getVarController(var_name: string): VarControllerBase<any, any> {
         return this.registered_vars_controller ? (this.registered_vars_controller[var_name] ? this.registered_vars_controller[var_name] : null) : null;
     }
 
-    public getVarControllerById(var_id: number): VarControllerBase<any, any, any> {
+    public getVarControllerById(var_id: number): VarControllerBase<any, any> {
         if ((!this.registered_vars_by_ids) || (!this.registered_vars_by_ids[var_id]) ||
             (!this.registered_vars_controller)) {
             return null;
@@ -302,7 +302,7 @@ export default class VarsController {
         return res ? res : null;
     }
 
-    public async registerVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any, any>): Promise<VarConfVOBase> {
+    public async registerVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>): Promise<VarConfVOBase> {
         if (this.registered_vars && this.registered_vars[varConf.name]) {
             return this.registered_vars[varConf.name];
         }
@@ -327,7 +327,7 @@ export default class VarsController {
         return varConf;
     }
 
-    private async setVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any, any>) {
+    private async setVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>) {
         this.registered_vars[varConf.name] = varConf;
         this.registered_vars_controller[varConf.name] = controller;
         this.registered_vars_by_ids[varConf.id] = varConf;
@@ -493,7 +493,7 @@ export default class VarsController {
 
                 // On peut vouloir faire des chargements de données groupés et les nettoyer après le calcul
                 let BATCH_UID: number = BATCH_UIDs_by_var_id[var_id];
-                let controller: VarControllerBase<any, any, any> = this.registered_vars_controller[this.registered_vars_by_ids[var_id].name];
+                let controller: VarControllerBase<any, any> = this.registered_vars_controller[this.registered_vars_by_ids[var_id].name];
                 await controller.begin_batch(BATCH_UID, vars_params);
 
                 for (let j in vars_params) {

@@ -64,7 +64,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     return;
                 }
 
-                let varController: VarControllerBase<any, any, any> = VarsController.getInstance().getVarControllerById(varData.var_id);
+                let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(varData.var_id);
                 if (!varController) {
                     return;
                 }
@@ -81,7 +81,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     return;
                 }
 
-                let varController: VarControllerBase<any, any, any> = VarsController.getInstance().getVarControllerById(varDataParam.var_id);
+                let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(varDataParam.var_id);
                 if (!varController) {
                     return;
                 }

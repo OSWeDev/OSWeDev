@@ -33,7 +33,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         for (let i in this.datas_params) {
             let data_params: IVarDataParamVOBase = this.datas_params[i];
 
-            let varController: VarControllerBase<any, any, any> = VarsController.getInstance().getVarControllerById(data_params.var_id);
+            let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(data_params.var_id);
 
             res[varController.varDataParamController.getIndex(data_params)] = data_params;
         }
@@ -51,7 +51,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         for (let i in this.datas_params) {
             let data_params: IVarDataParamVOBase = this.datas_params[i];
 
-            let varController: VarControllerBase<any, any, any> = VarsController.getInstance().getVarControllerById(data_params.var_id);
+            let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(data_params.var_id);
             let data_index: string = varController.varDataParamController.getIndex(data_params);
 
             res[data_index] = this.getVarDatas[data_index];
@@ -70,7 +70,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         for (let i in this.datas_params) {
             let data_params: IVarDataParamVOBase = this.datas_params[i];
 
-            let varController: VarControllerBase<any, any, any> = VarsController.getInstance().getVarControllerById(data_params.var_id);
+            let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(data_params.var_id);
             let data_index: string = varController.varDataParamController.getIndex(data_params);
 
             res.push(this.getVarDatas[data_index]);

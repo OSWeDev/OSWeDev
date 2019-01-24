@@ -5,9 +5,7 @@ import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
 
-export default abstract class VarControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase, TCache extends VarCacheBase> {
-
-    protected cache: { [UID: number]: TCache } = {};
+export default abstract class VarControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
 
     protected constructor(
         public varConf: VarConfVOBase,
@@ -17,8 +15,6 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     public async initialize() {
         this.varConf = await VarsController.getInstance().registerVar(this.varConf, this);
     }
-
-    public abstract getOrderedVarsNames(): string[];
 
     public async abstract begin_batch(BATCH_UID: number, vars_params: TDataParam[]);
     public async abstract end_batch(BATCH_UID: number, vars_params: TDataParam[]);
@@ -31,14 +27,4 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     public async abstract getDependencies(BATCH_UID: number, param: TDataParam): Promise<TDataParam[]>;
 
     public async abstract updateData(BATCH_UID: number, param: TDataParam);
-
-    protected startUpdateSoldes(UID: number): void {
-        this.cache[UID] = {} as TCache;
-    }
-    protected endUpdateSoldes(UID: number): void {
-        if (!!this.cache) {
-
-            delete this.cache[UID];
-        }
-    }
 }
