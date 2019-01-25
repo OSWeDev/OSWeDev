@@ -13,7 +13,7 @@ export default class ObjectHandler {
     private constructor() {
     }
 
-    public sortObjectByKey(obj: {}): {} {
+    public sortObjectByKey(obj: {}, sort_func = null): {} {
         var keys = [];
         var sorted_obj = {};
 
@@ -23,7 +23,11 @@ export default class ObjectHandler {
             }
         }
 
-        keys.sort();
+        if (!!sort_func) {
+            keys.sort(sort_func);
+        } else {
+            keys.sort();
+        }
 
         for (let i in keys) {
             let key = keys[i];

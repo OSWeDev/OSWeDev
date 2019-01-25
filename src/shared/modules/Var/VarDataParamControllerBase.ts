@@ -1,11 +1,12 @@
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
+import ObjectHandler from '../../tools/ObjectHandler';
 
 export default abstract class VarDataParamControllerBase<TDataParam extends IVarDataParamVOBase> {
 
     protected constructor() { }
 
-    public sortParams(params: IVarDataParamVOBase[]) {
-        params.sort(this.compareParams);
+    public sortParams(params: { [index: string]: IVarDataParamVOBase }) {
+        ObjectHandler.getInstance().sortObjectByKey(params, this.compareParams);
     }
 
     /**

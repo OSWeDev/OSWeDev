@@ -279,6 +279,7 @@ export default abstract class ModuleServiceBase {
             ModuleImage.getInstance(),
             ModuleTrigger.getInstance(),
             ModuleCron.getInstance(),
+            ModuleVar.getInstance(),
             ModulePushData.getInstance(),
             ModuleFormatDatesNombres.getInstance(),
             ModuleMailer.getInstance(),

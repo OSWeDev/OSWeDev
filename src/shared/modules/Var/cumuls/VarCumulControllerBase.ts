@@ -1,21 +1,17 @@
-import IVarDataVOBase from '../interfaces/IVarDataVOBase';
-import IVarDataParamVOBase from '../interfaces/IVarDataParamVOBase';
-import VarCacheBase from '../VarCacheBase';
-import VarsController from '../VarsController';
-import VarDataParamControllerBase from '../VarDataParamControllerBase';
-import VarsCumulsController from './VarsCumulsController';
-import ISimpleNumberVarData from '../interfaces/ISimpleNumberVarData';
-import IDateIndexedVarDataParam from '../interfaces/IDateIndexedVarDataParam';
-import VarConfVOBase from '../vos/VarConfVOBase';
-import VarControllerBase from '../VarControllerBase';
-import { Moment } from 'moment';
 import * as moment from 'moment';
-import { unitOfTime } from 'moment';
+import { Moment } from 'moment';
 import DateHandler from '../../../tools/DateHandler';
+import IDateIndexedVarDataParam from '../interfaces/IDateIndexedVarDataParam';
+import ISimpleNumberVarData from '../interfaces/ISimpleNumberVarData';
+import VarControllerBase from '../VarControllerBase';
+import VarDataParamControllerBase from '../VarDataParamControllerBase';
+import VarsController from '../VarsController';
+import VarConfVOBase from '../vos/VarConfVOBase';
+import VarsCumulsController from './VarsCumulsController';
 
 export default class VarCumulControllerBase<TData extends ISimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
 
-    protected constructor(
+    public constructor(
         protected varConfToCumulate: VarConfVOBase,
         protected cumulType: string,
         varDataParamController: VarDataParamControllerBase<TDataParam>) {
@@ -27,18 +23,26 @@ export default class VarCumulControllerBase<TData extends ISimpleNumberVarData, 
         // On part de la conf de la data à cumuler et on en fait un cumul week
         let varConf: VarConfVOBase = Object.assign({}, this.varConf);
         varConf.id = null;
-        varConf.name = VarsCumulsController.getInstance().getCumulaticName(varConf.name, this.cumulType);
+        varConf.name = VarsCumulsController.getInstance().getCumulativeName(varConf.name, this.cumulType);
 
         // TODO VARS : il faut déclarer les vos correspondants en base sur les modules serveurs, là c'est juste de la nommenclature....
-        varConf.var_data_vo_type = VarsCumulsController.getInstance().getCumulaticName(varConf.var_data_vo_type, this.cumulType);
-        varConf.var_imported_data_vo_type = VarsCumulsController.getInstance().getCumulaticName(varConf.var_imported_data_vo_type, this.cumulType);
+        varConf.var_data_vo_type = VarsCumulsController.getInstance().getCumulativeName(varConf.var_data_vo_type, this.cumulType);
+        varConf.var_imported_data_vo_type = VarsCumulsController.getInstance().getCumulativeName(varConf.var_imported_data_vo_type, this.cumulType);
 
         this.varConf = await VarsController.getInstance().registerVar(varConf, this);
     }
 
-    public async begin_batch(BATCH_UID: number, vars_params: TDataParam[]) { }
+    public async begin_batch(BATCH_UID: number, vars_params: { [index: string]: TDataParam }) { }
 
-    public async end_batch(BATCH_UID: number, vars_params: TDataParam[]) { }
+    public async end_batch(BATCH_UID: number, vars_params: { [index: string]: TDataParam }) { }
+
+    /**
+     * Returns the var_ids that we depend upon (or might depend)
+     * @param BATCH_UID
+     */
+    public async getVarsIdsDependencies(BATCH_UID: number): Promise<number[]> {
+        return [this.varConfToCumulate.id];
+    }
 
     /**
      * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
@@ -48,7 +52,7 @@ export default class VarCumulControllerBase<TData extends ISimpleNumberVarData, 
      * @param BATCH_UID
      * @param param
      */
-    public async getDependencies(BATCH_UID: number, param: TDataParam): Promise<TDataParam[]> {
+    public async getParamsDependencies(BATCH_UID: number, param: TDataParam): Promise<TDataParam[]> {
         let res: TDataParam[] = [];
 
         let start_date: Moment = moment(param.date_index);

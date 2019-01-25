@@ -14,7 +14,7 @@ export default class VarsCumulsController {
 
     private static instance: VarsCumulsController = null;
 
-    public getCumulaticName(initialName: string, cumulType: string): string {
+    public getCumulativeName(initialName: string, cumulType: string): string {
 
         let cumulName: string = null;
 
