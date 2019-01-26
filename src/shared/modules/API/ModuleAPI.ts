@@ -35,7 +35,7 @@ export default class ModuleAPI extends Module {
 
     public registerServerApiHandler<T, U>(api_name: string, SERVER_HANDLER: (translated_param: T) => Promise<U>) {
         if (!this.registered_apis[api_name]) {
-            throw new Error("Registering server API Handler on unknown API");
+            throw new Error("Registering server API Handler on unknown API:" + api_name);
         }
         this.registered_apis[api_name].SERVER_HANDLER = SERVER_HANDLER;
     }

@@ -8,13 +8,15 @@ import VarDataParamControllerBase from '../VarDataParamControllerBase';
 import VarsController from '../VarsController';
 import VarConfVOBase from '../vos/VarConfVOBase';
 import VarsCumulsController from './VarsCumulsController';
+import IDateIndexedSimpleNumberVarData from '../interfaces/IDateIndexedSimpleNumberVarData';
 
-export default class VarCumulControllerBase<TData extends ISimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
+export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
 
     public constructor(
         protected varConfToCumulate: VarConfVOBase,
         protected cumulType: string,
-        varDataParamController: VarDataParamControllerBase<TDataParam>) {
+        varDataParamController: VarDataParamControllerBase<TDataParam>,
+        protected varDataConstructor: () => TData) {
         super(varConfToCumulate, varDataParamController);
     }
 
@@ -88,8 +90,6 @@ export default class VarCumulControllerBase<TData extends ISimpleNumberVarData, 
     }
 
     public async updateData(BATCH_UID: number, param: TDataParam) {
-        let res: number = 0;
-
         let start_date: Moment = moment(param.date_index);
         let end_date: Moment = moment(param.date_index);
 
@@ -109,6 +109,12 @@ export default class VarCumulControllerBase<TData extends ISimpleNumberVarData, 
                 break;
         }
 
+        let res: TData = Object.assign(this.varDataConstructor(), param);
+        res.typesInfo = [];
+        res.var_id = this.varConf.id;
+        res.date_index = DateHandler.getInstance().formatDayForIndex(start_date);
+        res.value = 0;
+
         let date: Moment = moment(start_date);
         while (date.isSameOrBefore(end_date)) {
             let new_param: TDataParam = Object.assign({}, param);
@@ -116,10 +122,10 @@ export default class VarCumulControllerBase<TData extends ISimpleNumberVarData, 
             new_param.date_index = DateHandler.getInstance().formatDayForIndex(date);
             new_param.var_id = this.varConfToCumulate.id;
             let varData: ISimpleNumberVarData = VarsController.getInstance().getVarData(new_param, BATCH_UID) as ISimpleNumberVarData;
-            res += (varData ? varData.value : 0);
+            res.value += (varData ? varData.value : 0);
             date.add(1, 'day');
         }
 
-        return res;
+        VarsController.getInstance().setVarData(res, BATCH_UID);
     }
 }

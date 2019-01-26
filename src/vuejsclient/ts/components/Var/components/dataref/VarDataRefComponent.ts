@@ -15,89 +15,38 @@ import VarControllerBase from '../../../../../../shared/modules/Var/VarControlle
 export default class VarDataRefComponent extends VueComponentBase {
     @ModuleVarGetter
     public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
-    @ModuleVarGetter
-    public is_updating: boolean;
-    @ModuleVarAction
-    public setVarData: (varData: IVarDataVOBase) => void;
-    @ModuleVarAction
-    public removeVarData: (varDataParam: IVarDataParamVOBase) => void;
-    @ModuleVarAction
-    public setIsUpdating: (is_updating: boolean) => void;
 
     @Prop()
-    private datas_params: IVarDataParamVOBase[];
+    public var_param: IVarDataParamVOBase;
 
-    get datas_params_by_index(): { [index: string]: IVarDataParamVOBase } {
-        let res: { [index: string]: IVarDataParamVOBase } = {};
-
-        for (let i in this.datas_params) {
-            let data_params: IVarDataParamVOBase = this.datas_params[i];
-
-            let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(data_params.var_id);
-
-            res[varController.varDataParamController.getIndex(data_params)] = data_params;
-        }
-
-        return res;
+    public mounted() {
+        console.error('VarDataRefComponent:' + JSON.stringify(this.var_param));
     }
 
-    get datas_by_index(): { [index: string]: IVarDataVOBase } {
-        let res: { [index: string]: IVarDataVOBase } = {};
+    get var_data(): IVarDataVOBase {
 
-        if ((!this.getVarDatas) || (!this.datas_params)) {
+        console.error('VarDataRefComponent:var_data1:' + JSON.stringify(this.var_param));
+
+        if ((!this.getVarDatas) || (!this.var_param)) {
             return null;
         }
 
-        for (let i in this.datas_params) {
-            let data_params: IVarDataParamVOBase = this.datas_params[i];
-
-            let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(data_params.var_id);
-            let data_index: string = varController.varDataParamController.getIndex(data_params);
-
-            res[data_index] = this.getVarDatas[data_index];
-        }
-
-        return res;
+        let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+        let data_index: string = varController.varDataParamController.getIndex(this.var_param);
+        console.error('VarDataRefComponent:var_data2:' + JSON.stringify(this.getVarDatas[data_index]));
+        return this.getVarDatas[data_index];
     }
 
-    get datas_array(): IVarDataVOBase[] {
-        let res: IVarDataVOBase[] = [];
+    @Watch('var_param', { immediate: true })
+    private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+        console.error('VarDataRefComponent:var_param:' + JSON.stringify(this.var_param));
 
-        if ((!this.getVarDatas) || (!this.datas_params)) {
-            return null;
+        if (old_var_param) {
+            VarsController.getInstance().unregisterDataParam(old_var_param);
         }
 
-        for (let i in this.datas_params) {
-            let data_params: IVarDataParamVOBase = this.datas_params[i];
-
-            let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(data_params.var_id);
-            let data_index: string = varController.varDataParamController.getIndex(data_params);
-
-            res.push(this.getVarDatas[data_index]);
-        }
-
-        return res;
-    }
-
-    @Watch('dataParams', { immediate: true })
-    private onChangeDataParams(new_datas_params: IVarDataParamVOBase[], old_datas_params: IVarDataParamVOBase[]) {
-
-        if (old_datas_params && old_datas_params.length) {
-            for (let i in old_datas_params) {
-                let data_params: IVarDataParamVOBase = old_datas_params[i];
-
-                VarsController.getInstance().unregisterDataParam(data_params);
-            }
-        }
-
-        if (!this.datas_params) {
-            return;
-        }
-
-        for (let i in this.datas_params) {
-            let data_params: IVarDataParamVOBase = this.datas_params[i];
-
-            VarsController.getInstance().registerDataParam(data_params);
+        if (new_var_param) {
+            VarsController.getInstance().registerDataParam(new_var_param);
         }
     }
 }
