@@ -31,8 +31,9 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
      * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
      * @param BATCH_UID
      * @param param
+     * @param params_by_vars_ids gives awereness about the other datas being loaded, giving the possibility to reduce needed deps to the ones not already awaiting. There's no need to handle this, unless there's a clear impact if a data is present or not, changing the number of datas necessary. Best example is the Soldes d'heures where the simple fact that we are already awaiting yesterday's solde can save up to thousands of data deps.
      */
-    public async abstract getParamsDependencies(BATCH_UID: number, param: TDataParam): Promise<TDataParam[]>;
+    public async abstract getParamsDependencies(BATCH_UID: number, param: TDataParam, params_by_vars_ids: { [var_id: number]: { [index: string]: TDataParam } }): Promise<TDataParam[]>;
 
     public async abstract updateData(BATCH_UID: number, param: TDataParam);
 }

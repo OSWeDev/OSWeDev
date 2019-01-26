@@ -58,6 +58,21 @@ export default class ObjectHandler {
         return res;
     }
 
+    /**
+     * @param map The map of type {[index:number] : any} from which we want to extract the indexes as number[]
+     */
+    public getNumberMapIndexes(map: { [index: number]: any }): number[] {
+        let res: number[] = [];
+
+        for (let i in map) {
+            try {
+                res.push(parseInt(i.toString()));
+            } catch (error) {
+            }
+        }
+        return res;
+    }
+
     public hasData(object): boolean {
         return (object != null) && (typeof object != "undefined");
     }

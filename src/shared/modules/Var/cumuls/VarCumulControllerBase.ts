@@ -52,7 +52,7 @@ export default class VarCumulControllerBase<TData extends ISimpleNumberVarData, 
      * @param BATCH_UID
      * @param param
      */
-    public async getParamsDependencies(BATCH_UID: number, param: TDataParam): Promise<TDataParam[]> {
+    public async getParamsDependencies(BATCH_UID: number, param: TDataParam, params_by_vars_ids: { [var_id: number]: { [index: string]: TDataParam } }): Promise<TDataParam[]> {
         let res: TDataParam[] = [];
 
         let start_date: Moment = moment(param.date_index);

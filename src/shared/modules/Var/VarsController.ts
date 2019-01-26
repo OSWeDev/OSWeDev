@@ -69,13 +69,10 @@ export default class VarsController {
 
     public setVarData<T extends IVarDataVOBase>(varData: T, BATCH_UID: number = null) {
 
-        if ((!this.registered_vars_controller) || (!this.registered_vars_by_ids) ||
-            (!varData) || (!varData.var_id) || (!this.registered_vars_by_ids[varData.var_id])
-            || (!this.registered_vars_controller[this.registered_vars_by_ids[varData.var_id].name])
-            || (!this.registered_vars_controller[this.registered_vars_by_ids[varData.var_id].name].varDataParamController)) {
+        if ((!varData) || (!this.getVarControllerById(varData.var_id)) || (!this.getVarControllerById(varData.var_id).varDataParamController)) {
             return null;
         }
-        let index: string = this.registered_vars_controller[this.registered_vars_by_ids[varData.var_id].name].varDataParamController.getIndex(varData);
+        let index: string = this.getVarControllerById(varData.var_id).varDataParamController.getIndex(varData);
 
         // WARNING : Might be strange some day when the static cache is updated by a BATCH since it should only
         //  be updated after the end of the batch, but the batch sometimes uses methods that need data that
@@ -98,13 +95,10 @@ export default class VarsController {
 
     public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, BATCH_UID: number = null): T {
 
-        if ((!this.registered_vars_controller) || (!this.registered_vars_by_ids) ||
-            (!param) || (!param.var_id) || (!this.registered_vars_by_ids[param.var_id])
-            || (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name])
-            || (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController)) {
+        if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
             return null;
         }
-        let index: string = this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController.getIndex(param);
+        let index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
 
         if (BATCH_UID != null) {
             if (this.varDatasBATCHCache && this.varDatasBATCHCache[BATCH_UID] && this.varDatasBATCHCache[BATCH_UID][index]) {
@@ -148,16 +142,12 @@ export default class VarsController {
             this.waitingForUpdate = {};
         }
 
-        if ((!param) || (!param.var_id) || (!this.registered_vars_by_ids[param.var_id]) ||
-            (!this.registered_vars_by_ids[param.var_id].name) ||
-            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name]) ||
-            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController) ||
-            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController.getIndex)) {
+        if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController) ||
+            (!this.getVarControllerById(param.var_id).varDataParamController.getIndex)) {
             return;
         }
 
-        let param_controller: VarDataParamControllerBase<TDataParam> = this.registered_vars_controller[
-            this.registered_vars_by_ids[param.var_id].name].varDataParamController;
+        let param_controller: VarDataParamControllerBase<TDataParam> = this.getVarControllerById(param.var_id).varDataParamController;
         let param_index: string = param_controller.getIndex(param);
         if (!this.waitingForUpdate[param_index]) {
             this.waitingForUpdate[param_index] = param;
@@ -185,16 +175,12 @@ export default class VarsController {
             this.registeredDatasParams = {};
         }
 
-        if ((!param) || (!param.var_id) || (!this.registered_vars_by_ids[param.var_id]) ||
-            (!this.registered_vars_by_ids[param.var_id].name) ||
-            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name]) ||
-            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController) ||
-            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController.getIndex)) {
+        if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController) ||
+            (!this.getVarControllerById(param.var_id).varDataParamController.getIndex)) {
             return;
         }
 
-        let param_index: string = this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].
-            varDataParamController.getIndex(param);
+        let param_index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
         if (!this.registeredDatasParamsIndexes[param_index]) {
             this.registeredDatasParamsIndexes[param_index] = 1;
         } else {
@@ -212,16 +198,12 @@ export default class VarsController {
             return;
         }
 
-        if ((!param) || (!param.var_id) || (!this.registered_vars_by_ids[param.var_id]) ||
-            (!this.registered_vars_by_ids[param.var_id].name) ||
-            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name]) ||
-            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController) ||
-            (!this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].varDataParamController.getIndex)) {
+        if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController) ||
+            (!this.getVarControllerById(param.var_id).varDataParamController.getIndex)) {
             return;
         }
 
-        let param_index: string = this.registered_vars_controller[this.registered_vars_by_ids[param.var_id].name].
-            varDataParamController.getIndex(param);
+        let param_index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
         if ((this.registeredDatasParamsIndexes[param_index] == null) || (typeof this.registeredDatasParamsIndexes[param_index] == 'undefined')) {
             return;
         }
@@ -261,18 +243,14 @@ export default class VarsController {
         for (let i in compteursValeursImportees) {
             let importedData: TImportedData = compteursValeursImportees[i];
 
-            if ((!importedData) || (!importedData.var_id) || (!this.registered_vars_by_ids[importedData.var_id]) ||
-                (!this.registered_vars_by_ids[importedData.var_id].name) ||
-                (!this.registered_vars_controller[this.registered_vars_by_ids[importedData.var_id].name]) ||
-                (!this.registered_vars_controller[this.registered_vars_by_ids[importedData.var_id].name].varDataParamController) ||
-                (!this.registered_vars_controller[this.registered_vars_by_ids[importedData.var_id].name].varDataParamController.getIndex)) {
+            if ((!importedData) || (!this.getVarControllerById(importedData.var_id)) || (!this.getVarControllerById(importedData.var_id).varDataParamController) ||
+                (!this.getVarControllerById(importedData.var_id).varDataParamController.getIndex)) {
                 continue;
             }
 
-            let param_index: string = this.registered_vars_controller[this.registered_vars_by_ids[importedData.var_id].name].
-                varDataParamController.getIndex(
-                    importedData
-                );
+            let param_index: string = this.getVarControllerById(importedData.var_id).varDataParamController.getIndex(
+                importedData
+            );
 
             if (!res[importedData.var_id]) {
                 res[importedData.var_id] = {};
@@ -355,7 +333,7 @@ export default class VarsController {
 
         // On demande le chargement des datas par ordre inverse de dépendance et dès qu'on a chargé les datas sources
         //  on peut demander les dépendances du niveau suivant et avancer dans l'arbre
-        await this.loadDatasVars(ordered_params_by_vars_ids, deps_by_var_id, BATCH_UIDs_by_var_id);
+        await this.loadVarsDatasAndLoadParamsDeps(ordered_params_by_vars_ids, deps_by_var_id, BATCH_UIDs_by_var_id);
 
         this.sortDataParamsForUpdate(ordered_params_by_vars_ids);
 
@@ -400,14 +378,16 @@ export default class VarsController {
                 BATCH_UIDs_by_var_id[var_id] = VarsController.BATCH_UID++;
             }
 
-            if ((!this.registered_vars_by_ids[var_id]) ||
-                (!this.registered_vars_by_ids[var_id].name) ||
-                (!this.registered_vars_controller[this.registered_vars_by_ids[var_id].name])) {
-                continue;
+            if (!this.getVarControllerById(var_id)) {
+                throw new Error('solveVarsDependencies: Failed check controller:' + var_id);
             }
 
             let vars_dependencies_ids: number[] = await this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].
                 getVarsIdsDependencies(BATCH_UIDs_by_var_id[var_id]);
+
+            if (!deps_by_var_id[var_id]) {
+                deps_by_var_id[var_id] = [];
+            }
 
             for (let i in vars_dependencies_ids) {
                 let var_dependency_id: number = vars_dependencies_ids[i];
@@ -416,9 +396,6 @@ export default class VarsController {
                     needs_check_deps.push(var_dependency_id);
                 }
 
-                if (!deps_by_var_id[var_id]) {
-                    deps_by_var_id[var_id] = [];
-                }
                 if (deps_by_var_id[var_id].indexOf(var_dependency_id) < 0) {
                     deps_by_var_id[var_id].push(var_dependency_id);
                 }
@@ -441,7 +418,7 @@ export default class VarsController {
         return false;
     }
 
-    private async loadDatasVars(
+    private async loadVarsDatasAndLoadParamsDeps(
         ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
         deps_by_var_id: { [from_var_id: number]: number[] },
         BATCH_UIDs_by_var_id: { [var_id: number]: number }
@@ -466,8 +443,7 @@ export default class VarsController {
 
                 // Charger les datas et les params dépendants pour les ajouter à la liste en attente
                 if (!this.getVarControllerById(var_id)) {
-                    console.error('loadDatasVars: controller registering check failed:' + var_id);
-                    return null;
+                    throw new Error('loadDatasVars: controller registering check failed:' + var_id);
                 }
 
                 await this.getVarControllerById(var_id).begin_batch(
@@ -481,7 +457,8 @@ export default class VarsController {
 
                     let dependencies: IVarDataParamVOBase[] = await this.getVarControllerById(var_id).getParamsDependencies(
                         BATCH_UIDs_by_var_id[var_id],
-                        param
+                        param,
+                        ordered_params_by_vars_ids
                     );
 
                     for (let j in dependencies) {
@@ -498,8 +475,7 @@ export default class VarsController {
             deps_by_var_id_copy = next_deps_by_var_id_copy;
 
             if (!has_resolved_something) {
-                console.error('loadDatasVars: dep check failed:' + JSON.stringify(deps_by_var_id_copy));
-                return null;
+                throw new Error('loadDatasVars: dep check failed:' + JSON.stringify(deps_by_var_id_copy));
             }
         }
     }
@@ -525,17 +501,15 @@ export default class VarsController {
     private sortDataParamsForUpdate(params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
 
         // On demande l'ordre dans lequel résoudre les params
-        for (let var_id in params_by_vars_ids) {
-            let ordered_params: { [index: string]: IVarDataParamVOBase } = params_by_vars_ids[var_id];
+        for (let i in params_by_vars_ids) {
+            let ordered_params: { [index: string]: IVarDataParamVOBase } = params_by_vars_ids[i];
+            let var_id: number = parseInt(i.toString());
 
-            if ((!this.registered_vars_by_ids[var_id]) ||
-                (!this.registered_vars_by_ids[var_id].name) ||
-                (!this.registered_vars_controller[this.registered_vars_by_ids[var_id].name]) ||
-                (!this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].varDataParamController) ||
-                (!this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].varDataParamController.sortParams)) {
+            if ((!this.getVarControllerById(var_id)) || (!this.getVarControllerById(var_id).varDataParamController) ||
+                (!this.getVarControllerById(var_id).varDataParamController.sortParams)) {
                 continue;
             }
-            this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].varDataParamController.sortParams(ordered_params);
+            this.getVarControllerById(var_id).varDataParamController.sortParams(ordered_params);
         }
     }
 
@@ -545,7 +519,7 @@ export default class VarsController {
         BATCH_UIDs_by_var_id: { [var_id: number]: number }) {
 
         let solved_var_ids: number[] = [];
-        let vars_ids_to_solve: number[] = Object.keys(ordered_params_by_vars_ids) as any; // typing pb but should only be numbers by design
+        let vars_ids_to_solve: number[] = ObjectHandler.getInstance().getNumberMapIndexes(ordered_params_by_vars_ids);
 
         // On doit résoudre en respectant l'ordre des deps
         while (vars_ids_to_solve && vars_ids_to_solve.length) {
@@ -573,7 +547,7 @@ export default class VarsController {
 
                 // On peut vouloir faire des chargements de données groupés et les nettoyer après le calcul
                 let BATCH_UID: number = BATCH_UIDs_by_var_id[var_id];
-                let controller: VarControllerBase<any, any> = this.registered_vars_controller[this.registered_vars_by_ids[var_id].name];
+                let controller: VarControllerBase<any, any> = this.getVarControllerById(var_id);
 
                 for (let j in vars_params) {
                     let var_param: IVarDataParamVOBase = vars_params[j];
@@ -590,11 +564,10 @@ export default class VarsController {
 
             if (!solved_something) {
                 // Plus rien qu'on puisse résoudre mais reste des choses en attente ...
-                console.error('updateEachData:Dependencies check failed');
-                return;
+                throw new Error('updateEachData:Dependencies check failed');
             }
 
-            vars_ids_to_solve = Object.keys(ordered_params_by_vars_ids) as any; // typing pb but should only be numbers by design
+            vars_ids_to_solve = ObjectHandler.getInstance().getNumberMapIndexes(ordered_params_by_vars_ids);
         }
     }
 }
