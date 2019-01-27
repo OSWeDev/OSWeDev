@@ -46,6 +46,8 @@ export default class VarsController {
      */
     private varDatasBATCHCache: { [BATCH_UID: number]: { [index: string]: IVarDataVOBase } } = {};
 
+    private BATCH_UIDs_by_var_id: { [var_id: number]: number } = {};
+
     protected constructor() {
     }
 
@@ -67,7 +69,7 @@ export default class VarsController {
         delete this.varDatasBATCHCache[BATCH_UID];
     }
 
-    public setVarData<T extends IVarDataVOBase>(varData: T, BATCH_UID: number = null) {
+    public setVarData<T extends IVarDataVOBase>(varData: T, set_in_batch_cache: boolean = false) {
 
         if ((!varData) || (!this.getVarControllerById(varData.var_id)) || (!this.getVarControllerById(varData.var_id).varDataParamController)) {
             return null;
@@ -79,7 +81,14 @@ export default class VarsController {
         //  are being created by the batch itself.... if some funny datas are being calculated, you might want to check that thing
         this.varDatasStaticCache[index] = varData;
 
-        if (BATCH_UID != null) {
+        if (set_in_batch_cache) {
+            let BATCH_UID: number = this.BATCH_UIDs_by_var_id[varData.var_id];
+
+            if (!((BATCH_UID != null) && (typeof BATCH_UID != 'undefined'))) {
+                console.error('setVarData:Tried set data in unknown batch'); // est-ce si grave ?
+                return;
+            }
+
             if (!this.varDatasBATCHCache[BATCH_UID]) {
                 this.varDatasBATCHCache[BATCH_UID] = {};
             }
@@ -93,15 +102,20 @@ export default class VarsController {
         }
     }
 
-    public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, BATCH_UID: number = null): T {
+    public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, search_in_batch_cache: boolean = false): T {
 
         if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
             return null;
         }
         let index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
 
-        if (BATCH_UID != null) {
-            if (this.varDatasBATCHCache && this.varDatasBATCHCache[BATCH_UID] && this.varDatasBATCHCache[BATCH_UID][index]) {
+        if (search_in_batch_cache) {
+            // On sait qu'on doit chercher dans les datas des batchs actuels, mais en fait l'id du batch est intimement lié
+            //  au type de contenu demandé
+            let BATCH_UID: number = this.BATCH_UIDs_by_var_id[param.var_id];
+
+            if ((BATCH_UID != null) && (typeof BATCH_UID != 'undefined') && this.varDatasBATCHCache &&
+                this.varDatasBATCHCache[BATCH_UID] && this.varDatasBATCHCache[BATCH_UID][index]) {
                 return this.varDatasBATCHCache[BATCH_UID][index] as T;
             }
         }
@@ -323,34 +337,33 @@ export default class VarsController {
         //  et on réinitialise immédiatement les waiting for update, comme ça on peut voir ce qui a été demandé pendant qu'on
         //  mettait à jour (important pour éviter des bugs assez difficiles à identifier potentiellement)
         let params_copy: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate);
-        let BATCH_UIDs_by_var_id: { [var_id: number]: number } = {};
+        this.BATCH_UIDs_by_var_id = {};
         this.waitingForUpdate = {};
 
         // On résoud les deps par group_id avant de chercher à savoir de quel param exactement on dépend
-        let deps_by_var_id: { [from_var_id: number]: number[] } = await this.solveVarsDependencies(params_copy, BATCH_UIDs_by_var_id);
+        let deps_by_var_id: { [from_var_id: number]: number[] } = await this.solveVarsDependencies(params_copy);
 
         let ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } } = this.getDataParamsByVarId(params_copy);
 
         // On demande le chargement des datas par ordre inverse de dépendance et dès qu'on a chargé les datas sources
         //  on peut demander les dépendances du niveau suivant et avancer dans l'arbre
-        await this.loadVarsDatasAndLoadParamsDeps(ordered_params_by_vars_ids, deps_by_var_id, BATCH_UIDs_by_var_id);
+        await this.loadVarsDatasAndLoadParamsDeps(ordered_params_by_vars_ids, deps_by_var_id);
 
         this.sortDataParamsForUpdate(ordered_params_by_vars_ids);
 
         // Et une fois que tout est propre, on lance la mise à jour de chaque élément
-        await this.updateEachData(deps_by_var_id, ordered_params_by_vars_ids, BATCH_UIDs_by_var_id);
+        await this.updateEachData(deps_by_var_id, ordered_params_by_vars_ids);
 
         // Enfin quand toutes les datas sont à jour on pousse sur le store
-        for (let i in BATCH_UIDs_by_var_id) {
-            this.flushVarsDatas(BATCH_UIDs_by_var_id[i]);
+        for (let i in this.BATCH_UIDs_by_var_id) {
+            this.flushVarsDatas(this.BATCH_UIDs_by_var_id[i]);
         }
 
         this.setUpdatingDatas(false);
     }
 
     private async solveVarsDependencies(
-        params: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate),
-        BATCH_UIDs_by_var_id: { [var_id: number]: number }
+        params: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate)
     ): Promise<{ [from_var_id: number]: number[] }> {
         // On cherche les dépendances entre les variables uniquement
         // Et on construit en parralèle l'arbre de dépendances
@@ -374,8 +387,8 @@ export default class VarsController {
 
             let var_id: number = needs_check_deps.shift();
 
-            if (!BATCH_UIDs_by_var_id[var_id]) {
-                BATCH_UIDs_by_var_id[var_id] = VarsController.BATCH_UID++;
+            if (!this.BATCH_UIDs_by_var_id[var_id]) {
+                this.BATCH_UIDs_by_var_id[var_id] = VarsController.BATCH_UID++;
             }
 
             if (!this.getVarControllerById(var_id)) {
@@ -383,7 +396,7 @@ export default class VarsController {
             }
 
             let vars_dependencies_ids: number[] = await this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].
-                getVarsIdsDependencies(BATCH_UIDs_by_var_id[var_id]);
+                getVarsIdsDependencies(this.BATCH_UIDs_by_var_id[var_id]);
 
             if (!deps_by_var_id[var_id]) {
                 deps_by_var_id[var_id] = [];
@@ -420,8 +433,7 @@ export default class VarsController {
 
     private async loadVarsDatasAndLoadParamsDeps(
         ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
-        deps_by_var_id: { [from_var_id: number]: number[] },
-        BATCH_UIDs_by_var_id: { [var_id: number]: number }
+        deps_by_var_id: { [from_var_id: number]: number[] }
     ) {
 
         let deps_by_var_id_copy: { [from_var_id: number]: number[] } = Object.assign({}, deps_by_var_id);
@@ -447,7 +459,7 @@ export default class VarsController {
                 }
 
                 await this.getVarControllerById(var_id).begin_batch(
-                    BATCH_UIDs_by_var_id[var_id],
+                    this.BATCH_UIDs_by_var_id[var_id],
                     ordered_params_by_vars_ids[var_id]
                 );
 
@@ -456,7 +468,7 @@ export default class VarsController {
                     let param: IVarDataParamVOBase = ordered_params_by_vars_ids[var_id][i];
 
                     let dependencies: IVarDataParamVOBase[] = await this.getVarControllerById(var_id).getParamsDependencies(
-                        BATCH_UIDs_by_var_id[var_id],
+                        this.BATCH_UIDs_by_var_id[var_id],
                         param,
                         ordered_params_by_vars_ids
                     );
@@ -515,8 +527,7 @@ export default class VarsController {
 
     private async updateEachData(
         deps_by_var_id: { [from_var_id: number]: number[] },
-        ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
-        BATCH_UIDs_by_var_id: { [var_id: number]: number }) {
+        ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
 
         let solved_var_ids: number[] = [];
         let vars_ids_to_solve: number[] = ObjectHandler.getInstance().getNumberMapIndexes(ordered_params_by_vars_ids);
@@ -546,7 +557,7 @@ export default class VarsController {
                 let vars_params: { [index: string]: IVarDataParamVOBase } = ordered_params_by_vars_ids[var_id];
 
                 // On peut vouloir faire des chargements de données groupés et les nettoyer après le calcul
-                let BATCH_UID: number = BATCH_UIDs_by_var_id[var_id];
+                let BATCH_UID: number = this.BATCH_UIDs_by_var_id[var_id];
                 let controller: VarControllerBase<any, any> = this.getVarControllerById(var_id);
 
                 for (let j in vars_params) {

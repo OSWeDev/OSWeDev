@@ -19,13 +19,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop()
     public var_param: IVarDataParamVOBase;
 
-    public mounted() {
-        console.error('VarDataRefComponent:' + JSON.stringify(this.var_param));
-    }
-
     get var_data(): IVarDataVOBase {
-
-        console.error('VarDataRefComponent:var_data1:' + JSON.stringify(this.var_param));
 
         if ((!this.getVarDatas) || (!this.var_param)) {
             return null;
@@ -33,13 +27,11 @@ export default class VarDataRefComponent extends VueComponentBase {
 
         let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
         let data_index: string = varController.varDataParamController.getIndex(this.var_param);
-        console.error('VarDataRefComponent:var_data2:' + JSON.stringify(this.getVarDatas[data_index]));
         return this.getVarDatas[data_index];
     }
 
     @Watch('var_param', { immediate: true })
     private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
-        console.error('VarDataRefComponent:var_param:' + JSON.stringify(this.var_param));
 
         if (old_var_param) {
             VarsController.getInstance().unregisterDataParam(old_var_param);
