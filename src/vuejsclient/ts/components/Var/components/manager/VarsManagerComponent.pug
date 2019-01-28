@@ -1,4 +1,14 @@
-.vars_manager
-    i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true" v-if='isUpdating')
-    i.fa.fa-check-circle(aria-hidden="true" v-else)
+.vars_manager(:class="{'desc_mode': isDescMode}")
+
+    .icons
+        template(v-if='isDescMode')
+            i.fa.fa-2x.fa-search-plus.fa-fw(aria-hidden="true" v-if='!descOpened' @click='descOpened = true;')
+            i.fa.fa-2x.fa-search-minus.fa-fw(aria-hidden="true" v-if='descOpened' @click='descOpened = false;')
+        
+        i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true" v-if='isUpdating' :class="{'fa-2x': isDescMode}" @click='switchDescMode')
+        i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-else :class="{'fa-2x': isDescMode}" @click='switchDescMode')
+
+    .desc_window(v-if='isDescMode')
+        template(v-if='!!getDescSelectedIndex')
+            var-desc(:var_param='getVarDatas[getDescSelectedIndex]')
 

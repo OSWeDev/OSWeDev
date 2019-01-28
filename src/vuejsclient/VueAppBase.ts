@@ -49,6 +49,7 @@ import OnPageTranslationPlaceholder from './ts/components/OnPageTranslation/comp
 import AjaxCacheComponent from './ts/components/AjaxCache/component/AjaxCacheComponent';
 import AjaxCacheComponentPlaceholder from './ts/components/ajaxcache/component/AjaxCacheComponentPlaceholder';
 import VarDataRefComponent from './ts/components/Var/components/dataref/VarDataRefComponent';
+import VarDescComponent from './ts/components/Var/components/desc/VarDescComponent';
 
 export default abstract class VueAppBase {
 
@@ -292,6 +293,8 @@ export default abstract class VueAppBase {
         Vue.component('v-select', vSelect);
         Vue.component('vue-dropzone', vueDropzone);
         Vue.component('var-data', VarDataRefComponent);
+        Vue.component('var-desc', VarDescComponent);
+
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS)) {
             Vue.component('on-page-translation', OnPageTranslation);

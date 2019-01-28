@@ -15,9 +15,22 @@ import VarControllerBase from '../../../../../../shared/modules/Var/VarControlle
 export default class VarDataRefComponent extends VueComponentBase {
     @ModuleVarGetter
     public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
+    @ModuleVarAction
+    public setDescSelectedIndex: (desc_selected_index: string) => void;
 
     @Prop()
     public var_param: IVarDataParamVOBase;
+
+    @Prop({ default: true })
+    public load_on_mount: boolean;
+
+    get var_index(): string {
+        if (!this.var_param) {
+            return null;
+        }
+
+        return VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param);
+    }
 
     get var_data(): IVarDataVOBase {
 
@@ -25,9 +38,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return null;
         }
 
-        let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
-        let data_index: string = varController.varDataParamController.getIndex(this.var_param);
-        return this.getVarDatas[data_index];
+        return this.getVarDatas[this.var_index];
     }
 
     @Watch('var_param', { immediate: true })
@@ -38,7 +49,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (new_var_param) {
-            VarsController.getInstance().registerDataParam(new_var_param);
+            VarsController.getInstance().registerDataParam(new_var_param, this.load_on_mount);
         }
     }
 }

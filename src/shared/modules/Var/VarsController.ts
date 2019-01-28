@@ -8,6 +8,8 @@ import VarConfVOBase from './vos/VarConfVOBase';
 import * as debounce from 'lodash/debounce';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 import ObjectHandler from '../../tools/ObjectHandler';
+import ModuleTranslation from '../Translation/ModuleTranslation';
+import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 
 export default class VarsController {
 
@@ -18,9 +20,12 @@ export default class VarsController {
         return VarsController.instance;
     }
 
+    private static VARS_DESC_TRANSLATABLE_PREFIXES: string = "var.desc.";
     private static BATCH_UID: number = 0;
 
     private static instance: VarsController = null;
+
+    public last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
 
     private setVarData_: (varData: IVarDataVOBase) => void = null;
     private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
@@ -49,6 +54,18 @@ export default class VarsController {
     private BATCH_UIDs_by_var_id: { [var_id: number]: number } = {};
 
     protected constructor() {
+    }
+
+    public get_translatable_name_code(varConf: VarConfVOBase): string {
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_name.' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public get_translatable_description_code(varConf: VarConfVOBase): string {
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_description.' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public get_translatable_params_desc_code(varConf: VarConfVOBase): string {
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_params_desc.' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     /**
@@ -183,7 +200,7 @@ export default class VarsController {
         this.debouncedUpdateDatas();
     }
 
-    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
+    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, load_on_register: boolean = true) {
         if (!this.registeredDatasParamsIndexes) {
             this.registeredDatasParamsIndexes = {};
             this.registeredDatasParams = {};
@@ -202,7 +219,9 @@ export default class VarsController {
         }
         this.registeredDatasParams[param_index] = param;
 
-        this.stageUpdateData(param);
+        if (load_on_register) {
+            this.stageUpdateData(param);
+        }
     }
 
     public unregisterDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
@@ -247,7 +266,7 @@ export default class VarsController {
                 console.error(error);
             }
             this.updateSemaphore = false;
-        }, 500);
+        }, 100);
     }
 
     public getImportedVarsDatasByIndexFromArray<TImportedData extends IImportedVarDataVOBase>(
@@ -435,6 +454,7 @@ export default class VarsController {
         ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
         deps_by_var_id: { [from_var_id: number]: number[] }
     ) {
+        this.last_batch_dependencies_by_param = {};
 
         let deps_by_var_id_copy: { [from_var_id: number]: number[] } = Object.assign({}, deps_by_var_id);
         while (deps_by_var_id_copy && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_by_var_id_copy)) {
@@ -472,6 +492,8 @@ export default class VarsController {
                         param,
                         ordered_params_by_vars_ids
                     );
+
+                    this.last_batch_dependencies_by_param[this.getVarControllerById(var_id).varDataParamController.getIndex(param)] = dependencies;
 
                     for (let j in dependencies) {
                         let dependency: IVarDataParamVOBase = dependencies[j];

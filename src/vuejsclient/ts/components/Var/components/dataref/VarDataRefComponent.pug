@@ -1,11 +1,5 @@
-.var_data_ref
-    <slot v-bind:var_data="var_data">
+.var_data_ref(@click='setDescSelectedIndex(var_index)')
+    slot(v-bind:var_data="var_data")
         template(v-if="!!var_data") {{ var_data.value }}
         template(v-else)
             i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-    </slot>
-    //- slot(v-bind:var_data="var_data")
-    //-     template(v-if="!!var_data") {{ var_data.value }}
-    //-     template(v-else)
-    //-         i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-

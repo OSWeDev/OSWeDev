@@ -31,7 +31,7 @@ export default class APIDAORefFieldsParamsVO {
             return null;
         }
 
-        let field_name1: string = req.params.field_name1;
+        let field_name1: string = ((req.params.field_name1 != null) && (req.params.field_name1 != 'null') && (req.params.field_name1 != '') && (req.params.field_name1 != '_')) ? req.params.field_name1 : null;
         let ids1 = req.params.ids1.split('_');
         for (let i in ids1) {
             ids1[i] = parseInt(ids1[i]);
@@ -55,7 +55,7 @@ export default class APIDAORefFieldsParamsVO {
             }
         }
 
-        return new APIDAORefFieldsParamsVO(req.params.api_type_id, req.params.field_name1, ids1, req.params.field_name2, ids2, req.params.field_name3, ids3);
+        return new APIDAORefFieldsParamsVO(req.params.api_type_id, field_name1, ids1, field_name2, ids2, field_name3, ids3);
     }
 
     public constructor(

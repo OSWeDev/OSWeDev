@@ -1,0 +1,16 @@
+.var_desc
+    .card
+        .card-header {{ var_name }}
+        .card-body
+            h5.card-title {{ label('var.desc_mode.var_description') }}
+            p.card-text {{ var_description }}
+            h5.card-title {{ label('var.desc_mode.var_params') }}
+            p.card-text {{ var_params_desc }}
+            h5.card-title {{ label('var.desc_mode.var_data') }}
+            var-data(:var_param='var_param' :load_on_mount='false')
+    
+    template(v-if='(!!var_deps) && var_deps.length' )
+        h5 {{ label('var.desc_mode.var_deps') }}
+        template(v-for='var_dep in var_deps')
+            var-desc(:var_param='var_dep')
+

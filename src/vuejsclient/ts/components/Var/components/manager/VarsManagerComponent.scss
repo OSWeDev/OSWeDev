@@ -1,11 +1,35 @@
-.vars_manager {
+.vars_manager .icons {
     position: fixed;
     left: 10px;
     background: white;
     z-index: 5000;
     bottom: 10px;
-    padding: 2px 0px 2px 5px;
+    padding: 2px 3px 2px 3px;
     border-radius: 20px;
     box-shadow: -1px 3px 10px -3px black;
+
+    i.fa {
+        margin-right: 0 !important;
+    }
+}
+
+.vars_manager .icons.desc_mode {
+    background: royalblue;
+    box-shadow: 0px 0px 15px 0px #777;
+    color:white;
+}
+
+.vars_manager .desc_window {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    min-width: 580px;
+    min-height: 50px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 1px 1px 10px black;
+    z-index: 100000;
+    max-height: 900px;
+    overflow-y: scroll;
 }
 

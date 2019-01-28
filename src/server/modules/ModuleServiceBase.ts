@@ -49,6 +49,7 @@ import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
 import ModuleCMSServer from './CMS/ModuleCMSServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
+import ModuleVarServer from './Var/ModuleVarServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -307,6 +308,7 @@ export default abstract class ModuleServiceBase {
             ModuleFileServer.getInstance(),
             ModuleImageServer.getInstance(),
             ModuleCronServer.getInstance(),
+            ModuleVarServer.getInstance(),
             ModulePushDataServer.getInstance(),
             ModuleMailerServer.getInstance(),
             ModuleDataImportServer.getInstance(),

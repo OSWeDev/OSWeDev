@@ -13,6 +13,8 @@ export type VarContext = ActionContext<IVarState, any>;
 export interface IVarState {
     varDatas: { [index: string]: IVarDataVOBase };
     is_updating: boolean;
+    desc_mode: boolean;
+    desc_selected_index: string;
 }
 
 
@@ -40,7 +42,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
         this.state = {
             varDatas: {},
-            is_updating: false
+            is_updating: false,
+            desc_mode: false,
+            desc_selected_index: null
         };
 
 
@@ -50,13 +54,27 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             },
             isUpdating(state: IVarState): boolean {
                 return state.is_updating;
-            }
+            },
+            isDescMode(state: IVarState): boolean {
+                return state.desc_mode;
+            },
+            getDescSelectedIndex(state: IVarState): string {
+                return state.desc_selected_index;
+            },
         };
 
         this.mutations = {
 
             setIsUpdating(state: IVarState, is_updating: boolean) {
                 state.is_updating = is_updating;
+            },
+
+            setDescMode(state: IVarState, desc_mode: boolean) {
+                state.desc_mode = desc_mode;
+            },
+
+            setDescSelectedIndex(state: IVarState, desc_selected_index: string) {
+                state.desc_selected_index = desc_selected_index;
             },
 
             setVarData(state: IVarState, varData: IVarDataVOBase) {
@@ -102,6 +120,12 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setIsUpdating(context: VarContext, is_updating: boolean) {
                 commitSetIsUpdating(context, is_updating);
             },
+            setDescMode(context: VarContext, desc_mode: boolean) {
+                commitSetDescMode(context, desc_mode);
+            },
+            setDescSelectedIndex(context: VarContext, desc_selected_index: string) {
+                commitSetDescSelectedIndex(context, desc_selected_index);
+            },
             setVarData(context: VarContext, varData) {
                 commitSetVarData(context, varData);
             },
@@ -120,3 +144,5 @@ export const ModuleVarAction = namespace('VarStore', Action);
 export const commitSetVarData = commit(VarStore.getInstance().mutations.setVarData);
 export const commitRemoveVarData = commit(VarStore.getInstance().mutations.removeVarData);
 export const commitSetIsUpdating = commit(VarStore.getInstance().mutations.setIsUpdating);
+export const commitSetDescMode = commit(VarStore.getInstance().mutations.setDescMode);
+export const commitSetDescSelectedIndex = commit(VarStore.getInstance().mutations.setDescSelectedIndex);
