@@ -27,10 +27,6 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         varConf.id = null;
         varConf.name = VarsCumulsController.getInstance().getCumulativeName(varConf.name, this.cumulType);
 
-        varConf.translatable_description = VarsController.getInstance().get_translatable_description_code(varConf);
-        varConf.translatable_name = VarsController.getInstance().get_translatable_name_code(varConf);
-        varConf.translatable_description = VarsController.getInstance().get_translatable_description_code(varConf);
-
         this.varConf = await VarsController.getInstance().registerVar(varConf, this);
     }
 

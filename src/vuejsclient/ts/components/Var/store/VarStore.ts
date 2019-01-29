@@ -15,7 +15,11 @@ export interface IVarState {
     is_updating: boolean;
     desc_mode: boolean;
     desc_selected_index: string;
+    desc_opened: boolean;
+    desc_deps_opened: boolean;
+    desc_registrations_opened: boolean;
 }
+
 
 
 export default class VarStore implements IStoreModule<IVarState, VarContext> {
@@ -44,13 +48,25 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             varDatas: {},
             is_updating: false,
             desc_mode: false,
-            desc_selected_index: null
+            desc_selected_index: null,
+            desc_opened: false,
+            desc_deps_opened: false,
+            desc_registrations_opened: false,
         };
 
 
         this.getters = {
             getVarDatas(state: IVarState): { [index: string]: IVarDataVOBase } {
                 return state.varDatas;
+            },
+            isDescOpened(state: IVarState): boolean {
+                return state.desc_opened;
+            },
+            isDescDepsOpened(state: IVarState): boolean {
+                return state.desc_deps_opened;
+            },
+            isDescRegistrationsOpened(state: IVarState): boolean {
+                return state.desc_registrations_opened;
             },
             isUpdating(state: IVarState): boolean {
                 return state.is_updating;
@@ -69,12 +85,26 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 state.is_updating = is_updating;
             },
 
+            setDescOpened(state: IVarState, desc_opened: boolean) {
+                state.desc_opened = desc_opened;
+            },
+
+            setDescDepsOpened(state: IVarState, desc_deps_opened: boolean) {
+                state.desc_deps_opened = desc_deps_opened;
+            },
+
+            setDescRegistrationsOpened(state: IVarState, desc_registrations_opened: boolean) {
+                state.desc_registrations_opened = desc_registrations_opened;
+            },
+
             setDescMode(state: IVarState, desc_mode: boolean) {
                 state.desc_mode = desc_mode;
             },
 
             setDescSelectedIndex(state: IVarState, desc_selected_index: string) {
                 state.desc_selected_index = desc_selected_index;
+                state.desc_opened = true;
+                state.desc_deps_opened = false;
             },
 
             setVarData(state: IVarState, varData: IVarDataVOBase) {
@@ -123,6 +153,16 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setDescMode(context: VarContext, desc_mode: boolean) {
                 commitSetDescMode(context, desc_mode);
             },
+            setDescOpened(context: VarContext, desc_opened: boolean) {
+                commitSetDescOpened(context, desc_opened);
+            },
+            setDescDepsOpened(context: VarContext, desc_deps_opened: boolean) {
+                commitSetDescDepsOpened(context, desc_deps_opened);
+            },
+            setDescRegistrationsOpened(context: VarContext, desc_registrations_opened: boolean) {
+                commitSetDescRegistrationsOpened(context, desc_registrations_opened);
+            },
+
             setDescSelectedIndex(context: VarContext, desc_selected_index: string) {
                 commitSetDescSelectedIndex(context, desc_selected_index);
             },
@@ -145,4 +185,7 @@ export const commitSetVarData = commit(VarStore.getInstance().mutations.setVarDa
 export const commitRemoveVarData = commit(VarStore.getInstance().mutations.removeVarData);
 export const commitSetIsUpdating = commit(VarStore.getInstance().mutations.setIsUpdating);
 export const commitSetDescMode = commit(VarStore.getInstance().mutations.setDescMode);
+export const commitSetDescOpened = commit(VarStore.getInstance().mutations.setDescOpened);
+export const commitSetDescRegistrationsOpened = commit(VarStore.getInstance().mutations.setDescRegistrationsOpened);
+export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
 export const commitSetDescSelectedIndex = commit(VarStore.getInstance().mutations.setDescSelectedIndex);

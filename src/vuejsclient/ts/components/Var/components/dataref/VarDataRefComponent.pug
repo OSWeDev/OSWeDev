@@ -1,4 +1,4 @@
-.var_data_ref(@click='setDescSelectedIndex(var_index)')
+.var_data_ref(@click='selectVar' :class='{"selected_var":is_selected_var, "selectable_var":isDescMode}')
     slot(v-bind:var_data="var_data")
         template(v-if="!!var_data") {{ var_data.value }}
         template(v-else)

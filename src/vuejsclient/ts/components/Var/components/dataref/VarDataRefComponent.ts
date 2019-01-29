@@ -15,14 +15,25 @@ import VarControllerBase from '../../../../../../shared/modules/Var/VarControlle
 export default class VarDataRefComponent extends VueComponentBase {
     @ModuleVarGetter
     public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
+    @ModuleVarGetter
+    public getDescSelectedIndex: string;
     @ModuleVarAction
     public setDescSelectedIndex: (desc_selected_index: string) => void;
+    @ModuleVarGetter
+    public isDescMode: boolean;
 
     @Prop()
     public var_param: IVarDataParamVOBase;
 
     @Prop({ default: true })
-    public load_on_mount: boolean;
+    public reload_on_mount: boolean;
+
+    get is_selected_var(): boolean {
+        if (!this.isDescMode) {
+            return false;
+        }
+        return this.getDescSelectedIndex == this.var_index;
+    }
 
     get var_index(): string {
         if (!this.var_param) {
@@ -49,7 +60,15 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (new_var_param) {
-            VarsController.getInstance().registerDataParam(new_var_param, this.load_on_mount);
+            VarsController.getInstance().registerDataParam(new_var_param, this.reload_on_mount);
         }
+    }
+
+    private selectVar() {
+        if (!this.isDescMode) {
+            return;
+        }
+
+        this.setDescSelectedIndex(this.var_index);
     }
 }

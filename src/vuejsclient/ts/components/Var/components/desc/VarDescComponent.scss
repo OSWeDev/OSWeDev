@@ -1,0 +1,20 @@
+.var_desc {
+
+    padding: 10px;
+
+    .card {
+
+        .card-header {
+            font-size: 2em;
+            text-decoration: underline;
+        }
+
+        h5 {
+            font-weight: bold;
+        }
+    }
+
+    i {
+        cursor: pointer;
+    }
+}

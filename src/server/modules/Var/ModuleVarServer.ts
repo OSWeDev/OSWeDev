@@ -5,6 +5,7 @@ import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -19,6 +20,13 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleVar.getInstance().name);
+    }
+
+    public async configure() {
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Valeur' }, 'var.desc_mode.var_data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Description' }, 'var.desc_mode.var_description.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
     }
 
     /**

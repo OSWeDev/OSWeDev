@@ -9,9 +9,13 @@ import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
+import VarDescRegistrationsComponent from '../desc/registrations/VarDescRegistrationsComponent';
 
 @Component({
-    template: require('./VarsManagerComponent.pug')
+    template: require('./VarsManagerComponent.pug'),
+    components: {
+        "var-desc-registrations": VarDescRegistrationsComponent
+    }
 })
 export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarGetter
@@ -20,6 +24,10 @@ export default class VarsManagerComponent extends VueComponentBase {
     public isUpdating: boolean;
     @ModuleVarGetter
     public isDescMode: boolean;
+    @ModuleVarGetter
+    public isDescOpened: boolean;
+    @ModuleVarGetter
+    public isDescRegistrationsOpened: boolean;
     @ModuleVarGetter
     public getDescSelectedIndex: string;
     @ModuleVarAction
@@ -30,8 +38,10 @@ export default class VarsManagerComponent extends VueComponentBase {
     public setIsUpdating: (is_updating: boolean) => void;
     @ModuleVarAction
     public setDescMode: (desc_mode: boolean) => void;
-
-    private descOpened: boolean = false;
+    @ModuleVarAction
+    public setDescOpened: (desc_opened: boolean) => void;
+    @ModuleVarAction
+    public setDescRegistrationsOpened: (desc_registrations_opened: boolean) => void;
 
     public mounted() {
         VarsController.getInstance().registerStoreHandlers(this.getVarDatas, this.setVarData, this.setIsUpdating);

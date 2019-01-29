@@ -13,9 +13,6 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     }
 
     public async initialize() {
-        this.varConf.translatable_description = VarsController.getInstance().get_translatable_description_code(this.varConf);
-        this.varConf.translatable_name = VarsController.getInstance().get_translatable_name_code(this.varConf);
-        this.varConf.translatable_params_desc = VarsController.getInstance().get_translatable_params_desc_code(this.varConf);
         this.varConf = await VarsController.getInstance().registerVar(this.varConf, this);
         await this.configure_from_json_params();
     }

@@ -3,6 +3,7 @@ import ModuleTableField from '../ModuleTableField';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import ModuleTable from '../ModuleTable';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import DefaultTranslationManager from '../Translation/DefaultTranslationManager';
 
 export default class ModuleVar extends Module {
 

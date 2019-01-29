@@ -25,15 +25,15 @@ export default class VarsController {
 
     private static instance: VarsController = null;
 
+    public registeredDatasParamsIndexes: { [paramIndex: string]: number } = {};
+    public registeredDatasParams: { [paramIndex: string]: IVarDataParamVOBase } = {};
+
     public last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
 
     private setVarData_: (varData: IVarDataVOBase) => void = null;
     private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
 
     private waitingForUpdate: { [paramIndex: string]: IVarDataParamVOBase } = {};
-
-    private registeredDatasParamsIndexes: { [paramIndex: string]: number } = {};
-    private registeredDatasParams: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
     private registered_vars: { [name: string]: VarConfVOBase } = {};
     private registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
@@ -57,15 +57,15 @@ export default class VarsController {
     }
 
     public get_translatable_name_code(varConf: VarConfVOBase): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_name.' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_translatable_description_code(varConf: VarConfVOBase): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_description.' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_translatable_params_desc_code(varConf: VarConfVOBase): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_params_desc.' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     /**
@@ -200,7 +200,7 @@ export default class VarsController {
         this.debouncedUpdateDatas();
     }
 
-    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, load_on_register: boolean = true) {
+    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = true) {
         if (!this.registeredDatasParamsIndexes) {
             this.registeredDatasParamsIndexes = {};
             this.registeredDatasParams = {};
@@ -219,7 +219,8 @@ export default class VarsController {
         }
         this.registeredDatasParams[param_index] = param;
 
-        if (load_on_register) {
+        let actual_value = this.getVarData(param);
+        if (reload_on_register || (!actual_value)) {
             this.stageUpdateData(param);
         }
     }

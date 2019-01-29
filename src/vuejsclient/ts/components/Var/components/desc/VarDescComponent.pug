@@ -1,16 +1,20 @@
 .var_desc
     .card
         .card-header {{ var_name }}
+            i.fa.fa-eye-slash.fa-fw(aria-hidden="true" v-if='!is_selected_var' @click='select_var')
+            i.fa.fa-eye.fa-fw(aria-hidden="true" v-if='is_selected_var' @click='un_select_var')
         .card-body
             h5.card-title {{ label('var.desc_mode.var_description') }}
             p.card-text {{ var_description }}
             h5.card-title {{ label('var.desc_mode.var_params') }}
             p.card-text {{ var_params_desc }}
             h5.card-title {{ label('var.desc_mode.var_data') }}
-            var-data(:var_param='var_param' :load_on_mount='false')
+            var-data(:var_param='var_param' :reload_on_mount='false')
     
     template(v-if='(!!var_deps) && var_deps.length' )
         h5 {{ label('var.desc_mode.var_deps') }}
-        template(v-for='var_dep in var_deps')
+        i.fa.fa-2x.fa-search-plus.fa-fw(aria-hidden="true" v-if='!openDeps' @click='openDeps = true;')
+        i.fa.fa-2x.fa-search-minus.fa-fw(aria-hidden="true" v-if='openDeps' @click='openDeps = false;')
+        template(v-for='var_dep in var_deps' v-if='openDeps')
             var-desc(:var_param='var_dep')
 

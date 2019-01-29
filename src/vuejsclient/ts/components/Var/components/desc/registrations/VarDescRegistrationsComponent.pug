@@ -1,0 +1,3 @@
+.var_desc_registrations
+    ul
+        li(v-for='(num, index) in registered_indexes' @click='selectVar(index)' :class='{"selected_var":is_selected_var(index)}') {{ index_name(index) }} : {{ index_params(index) }} : {{ num }}x

@@ -1,0 +1,15 @@
+.var_desc_registrations {
+
+    padding: 10px;
+
+    li {
+        cursor: pointer;
+    }
+    
+    li.selected_var{
+        background: royalblue;
+        border-radius: 10px;
+        color: white;
+        font-weight: bolder;
+    }
+}
