@@ -4,6 +4,7 @@ import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import ModuleTable from '../ModuleTable';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import DefaultTranslationManager from '../Translation/DefaultTranslationManager';
+import VarsController from './VarsController';
 
 export default class ModuleVar extends Module {
 
@@ -11,6 +12,10 @@ export default class ModuleVar extends Module {
 
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleVar.MODULE_NAME;
 
+
+    public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_ACCESS';
+    public static POLICY_BO_VARCONF_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_VARCONF_ACCESS';
+    public static POLICY_BO_IMPORTED_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_IMPORTED_ACCESS';
     public static POLICY_DESC_MODE_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.DESC_MODE_ACCESS';
 
 
@@ -34,6 +39,16 @@ export default class ModuleVar extends Module {
         this.datatables = [];
 
         this.initializeSimpleVarConf();
+    }
+
+    public async hook_module_async_client_admin_initialization(): Promise<any> {
+        await VarsController.getInstance().initialize();
+        return true;
+    }
+
+    public async hook_module_configure(): Promise<boolean> {
+        await VarsController.getInstance().initialize();
+        return true;
     }
 
     private initializeSimpleVarConf() {

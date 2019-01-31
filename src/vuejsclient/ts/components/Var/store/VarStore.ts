@@ -18,6 +18,7 @@ export interface IVarState {
     desc_opened: boolean;
     desc_deps_opened: boolean;
     desc_registrations_opened: boolean;
+    updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } };
 }
 
 
@@ -52,6 +53,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             desc_opened: false,
             desc_deps_opened: false,
             desc_registrations_opened: false,
+            updating_params_by_vars_ids: {}
         };
 
 
@@ -76,6 +78,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             },
             getDescSelectedIndex(state: IVarState): string {
                 return state.desc_selected_index;
+            },
+            getUpdatingParamsByVarsIds(state: IVarState): { [var_id: number]: { [index: string]: IVarDataParamVOBase } } {
+                return state.updating_params_by_vars_ids;
             },
         };
 
@@ -142,6 +147,10 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
                 }
             },
+
+            setUpdatingParamsByVarsIds(state: IVarState, updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
+                state.updating_params_by_vars_ids = updating_params_by_vars_ids;
+            },
         };
 
 
@@ -171,7 +180,10 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             },
             removeVarData(context: VarContext, varDataParam: IVarDataParamVOBase) {
                 commitRemoveVarData(context, varDataParam);
-            }
+            },
+            setUpdatingParamsByVarsIds(context: VarContext, updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
+                commitSetUpdatingParamsByVarsIds(context, updating_params_by_vars_ids);
+            },
         };
     }
 }
@@ -188,4 +200,5 @@ export const commitSetDescMode = commit(VarStore.getInstance().mutations.setDesc
 export const commitSetDescOpened = commit(VarStore.getInstance().mutations.setDescOpened);
 export const commitSetDescRegistrationsOpened = commit(VarStore.getInstance().mutations.setDescRegistrationsOpened);
 export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
+export const commitSetUpdatingParamsByVarsIds = commit(VarStore.getInstance().mutations.setUpdatingParamsByVarsIds);
 export const commitSetDescSelectedIndex = commit(VarStore.getInstance().mutations.setDescSelectedIndex);

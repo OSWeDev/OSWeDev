@@ -50,6 +50,7 @@ import AjaxCacheComponent from './ts/components/AjaxCache/component/AjaxCacheCom
 import AjaxCacheComponentPlaceholder from './ts/components/ajaxcache/component/AjaxCacheComponentPlaceholder';
 import VarDataRefComponent from './ts/components/Var/components/dataref/VarDataRefComponent';
 import VarDescComponent from './ts/components/Var/components/desc/VarDescComponent';
+import VarsController from '../shared/modules/Var/VarsController';
 
 export default abstract class VueAppBase {
 

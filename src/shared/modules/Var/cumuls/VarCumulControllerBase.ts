@@ -10,14 +10,13 @@ import VarConfVOBase from '../vos/VarConfVOBase';
 import VarsCumulsController from './VarsCumulsController';
 import IDateIndexedSimpleNumberVarData from '../interfaces/IDateIndexedSimpleNumberVarData';
 
-export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
+export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumberVarData, TImportedData extends IDateIndexedSimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TImportedData, TDataParam> {
 
     public constructor(
         protected varConfToCumulate: VarConfVOBase,
         protected cumulType: string,
-        varDataParamController: VarDataParamControllerBase<TDataParam>,
         protected varDataConstructor: () => TData) {
-        super(varConfToCumulate, varDataParamController);
+        super(varConfToCumulate, VarsController.getInstance().getVarControllerById(varConfToCumulate.id).varDataParamController);
     }
 
     public async initialize() {

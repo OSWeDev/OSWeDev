@@ -30,6 +30,9 @@ export default class VarsManagerComponent extends VueComponentBase {
     public isDescRegistrationsOpened: boolean;
     @ModuleVarGetter
     public getDescSelectedIndex: string;
+    @ModuleVarGetter
+    public getUpdatingParamsByVarsIds: { [var_id: number]: { [index: string]: IVarDataParamVOBase } };
+
     @ModuleVarAction
     public setVarData: (varData: IVarDataVOBase) => void;
     @ModuleVarAction
@@ -42,9 +45,11 @@ export default class VarsManagerComponent extends VueComponentBase {
     public setDescOpened: (desc_opened: boolean) => void;
     @ModuleVarAction
     public setDescRegistrationsOpened: (desc_registrations_opened: boolean) => void;
+    @ModuleVarAction
+    public setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) => void;
 
     public mounted() {
-        VarsController.getInstance().registerStoreHandlers(this.getVarDatas, this.setVarData, this.setIsUpdating);
+        VarsController.getInstance().registerStoreHandlers(this.getVarDatas, this.setVarData, this.setIsUpdating, this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds);
     }
 
     private async switchDescMode() {

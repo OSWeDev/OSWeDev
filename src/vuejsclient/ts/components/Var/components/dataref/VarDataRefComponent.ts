@@ -8,6 +8,8 @@ import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVar
 import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarControllerBase from '../../../../../../shared/modules/Var/VarControllerBase';
+import IDateIndexedSimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/IDateIndexedSimpleNumberVarData';
+import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -21,12 +23,53 @@ export default class VarDataRefComponent extends VueComponentBase {
     public setDescSelectedIndex: (desc_selected_index: string) => void;
     @ModuleVarGetter
     public isDescMode: boolean;
+    @ModuleVarGetter
+    public getUpdatingParamsByVarsIds: { [var_id: number]: { [index: string]: IVarDataParamVOBase } };
 
     @Prop()
     public var_param: IVarDataParamVOBase;
 
-    @Prop({ default: true })
+    @Prop({ default: null })
+    public filter: () => any;
+
+    @Prop({ default: null })
+    public filter_additional_params: any[];
+
+    @Prop({ default: false })
     public reload_on_mount: boolean;
+
+    @Prop({ default: null })
+    public prefix: string;
+
+    @Prop({ default: null })
+    public suffix: string;
+
+    @Prop({ default: null })
+    public null_value_replacement: string;
+
+    get is_being_updated(): boolean {
+        return (!!this.getUpdatingParamsByVarsIds) && (!!this.var_param) && (!!this.getUpdatingParamsByVarsIds[this.var_param.var_id]) &&
+            (!!this.getUpdatingParamsByVarsIds[this.var_param.var_id][this.var_index]);
+    }
+
+    get filtered_value() {
+
+        if (!this.var_data) {
+            return null;
+        }
+
+        if (!this.filter) {
+            return null;
+        }
+
+        let params = [(this.var_data as ISimpleNumberVarData).value];
+
+        if (!!this.filter_additional_params) {
+            params = params.concat(this.filter_additional_params);
+        }
+
+        return this.filter.apply(null, params);
+    }
 
     get is_selected_var(): boolean {
         if (!this.isDescMode) {
@@ -36,7 +79,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     get var_index(): string {
-        if (!this.var_param) {
+        if ((!this.var_param) || (!VarsController.getInstance().getVarControllerById(this.var_param.var_id))) {
             return null;
         }
 

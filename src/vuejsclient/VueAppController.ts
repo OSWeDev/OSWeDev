@@ -3,6 +3,7 @@ import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
+import VarsController from '../shared/modules/Var/VarsController';
 
 export default abstract class VueAppController {
 

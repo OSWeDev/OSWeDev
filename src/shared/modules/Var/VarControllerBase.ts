@@ -4,8 +4,9 @@ import VarCacheBase from './VarCacheBase';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
+import IImportedVarDataVOBase from './interfaces/IImportedVarDataVOBase';
 
-export default abstract class VarControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
+export default abstract class VarControllerBase<TData extends IVarDataVOBase, TImportedData extends IImportedVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
 
     protected constructor(
         public varConf: VarConfVOBase,
@@ -18,8 +19,10 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     }
     public async configure_from_json_params() { }
 
-    public async abstract begin_batch(BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase });
-    public async abstract end_batch(BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase });
+    public async abstract begin_batch(
+        BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: TImportedData } });
+    public async abstract end_batch(
+        BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: TImportedData } });
 
     /**
      * Returns the var_ids that we depend upon (or might depend)
@@ -33,7 +36,11 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
      * @param param
      * @param params_by_vars_ids gives awereness about the other datas being loaded, giving the possibility to reduce needed deps to the ones not already awaiting. There's no need to handle this, unless there's a clear impact if a data is present or not, changing the number of datas necessary. Best example is the Soldes d'heures where the simple fact that we are already awaiting yesterday's solde can save up to thousands of data deps.
      */
-    public async abstract getParamsDependencies(BATCH_UID: number, param: TDataParam, params_by_vars_ids: { [var_id: number]: { [index: string]: TDataParam } }): Promise<TDataParam[]>;
+    public async abstract getParamsDependencies(
+        BATCH_UID: number,
+        param: TDataParam,
+        params_by_vars_ids: { [var_id: number]: { [index: string]: TDataParam } },
+        imported_datas: { [var_id: number]: { [param_index: string]: TImportedData } }): Promise<TDataParam[]>;
 
-    public async abstract updateData(BATCH_UID: number, param: TDataParam);
+    public async abstract updateData(BATCH_UID: number, param: TDataParam, imported_datas: { [var_id: number]: { [param_index: string]: TImportedData } });
 }

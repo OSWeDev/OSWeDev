@@ -1,5 +1,11 @@
 .var_data_ref(@click='selectVar' :class='{"selected_var":is_selected_var, "selectable_var":isDescMode}')
     slot(v-bind:var_data="var_data")
-        template(v-if="!!var_data") {{ var_data.value }}
+        template(v-if='!!var_data')
+            template(v-if='!!prefix') {{ prefix }}
+            template(v-if="filter") {{ filtered_value }}
+            template(v-if="(!filter)") {{ var_data.value }}
+            template(v-if='!!suffix') {{ suffix }}
         template(v-else)
-            i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+            template(v-if='is_being_updated')
+                i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+            template(v-else) {{ null_value_replacement }}
