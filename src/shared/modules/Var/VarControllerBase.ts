@@ -4,9 +4,8 @@ import VarCacheBase from './VarCacheBase';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
-import IImportedVarDataVOBase from './interfaces/IImportedVarDataVOBase';
 
-export default abstract class VarControllerBase<TData extends IVarDataVOBase, TImportedData extends IImportedVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
+export default abstract class VarControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
 
     protected constructor(
         public varConf: VarConfVOBase,
@@ -20,9 +19,9 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TI
     public async configure_from_json_params() { }
 
     public async abstract begin_batch(
-        BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: TImportedData } });
+        BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
     public async abstract end_batch(
-        BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: TImportedData } });
+        BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
 
     /**
      * Returns the var_ids that we depend upon (or might depend)
@@ -40,7 +39,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TI
         BATCH_UID: number,
         param: TDataParam,
         params_by_vars_ids: { [var_id: number]: { [index: string]: TDataParam } },
-        imported_datas: { [var_id: number]: { [param_index: string]: TImportedData } }): Promise<TDataParam[]>;
+        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<TDataParam[]>;
 
-    public async abstract updateData(BATCH_UID: number, param: TDataParam, imported_datas: { [var_id: number]: { [param_index: string]: TImportedData } });
+    public async abstract updateData(BATCH_UID: number, param: TDataParam, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
 }
