@@ -82,6 +82,41 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         return res;
     }
 
+    /**
+     * On a pas accès aux imports, mais en fait il sont chargés à cette étape et ça permettrait d'optimiser cette étape. à voir
+     * @param params
+     */
+    public getSelfImpacted(params: TDataParam[]): TDataParam[] {
+        let res: TDataParam[] = [];
+
+        for (let i in params) {
+            let param: TDataParam = params[i];
+
+            let start_date: Moment = this.getImpactedCADStartDate(param);
+            let end_date: Moment = this.getImpactedCADEndDate(param);
+
+            let date: Moment = moment(start_date);
+            while (date.isSameOrBefore(end_date)) {
+                let new_param: TDataParam = Object.assign({}, param);
+                let new_cumul_param: TDataParam = Object.assign({}, param);
+
+                new_cumul_param.date_index = DateHandler.getInstance().formatDayForIndex(date);
+                new_param.date_index = DateHandler.getInstance().formatDayForIndex(date);
+                new_param.var_id = this.varConfToCumulate.id;
+
+                // TODO FIXME Si on a un import, on peut ignorer le passé et demander les deps à partir de cette date uniquement
+                if (res.indexOf(new_param) < 0) {
+                    res.push(new_param);
+                }
+
+                date.add(1, 'day');
+            }
+
+        }
+
+        return res;
+    }
+
     public async updateData(BATCH_UID: number, param: TDataParam, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) {
         let start_date: Moment = this.getCADStartDate(param);
         let end_date: Moment = this.getCADEndDate(param);
@@ -134,16 +169,55 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
 
 
     private getCADEndDate(param: TDataParam): Moment {
+        return moment(param.date_index);
+    }
+
+    // TODO UnitTest TestUnit On doit renvoyer la date d'impact minimale si on modifie le param passé
+    // TODO gestion des imports, on devrait pas impacter après-demain si on a un import demain
+    private getImpactedCADStartDate(param: TDataParam): Moment {
         let start_date: Moment = moment(param.date_index);
+        let tomorrow: Moment = moment(param.date_index).add(1, 'days');
 
         switch (this.cumulType) {
             case VarsCumulsController.CUMUL_WEEK_NAME:
-                return moment.min(start_date, moment(start_date).endOf('isoWeek'));
+                tomorrow = moment.min(tomorrow, moment(start_date).endOf('isoWeek'));
             case VarsCumulsController.CUMUL_MONTH_NAME:
-                return moment.min(start_date, moment(start_date).endOf('month'));
+                tomorrow = moment.min(tomorrow, moment(start_date).endOf('month'));
             case VarsCumulsController.CUMUL_YEAR_NAME:
             default:
-                return moment.min(start_date, moment(start_date).endOf('year'));
+                tomorrow = moment.min(tomorrow, moment(start_date).endOf('year'));
         }
+
+        if (tomorrow.isSameOrBefore(start_date, 'days')) {
+            return null;
+        }
+        return tomorrow;
+    }
+
+
+    // TODO UnitTest TestUnit On doit renvoyer la date d'impact maximale si on modifie le param passé
+    // TODO gestion des imports, on devrait pas impacter après-demain si on a un import demain
+    private getImpactedCADEndDate(param: TDataParam): Moment {
+        if (!this.getImpactedCADStartDate(param)) {
+            return null;
+        }
+
+        let start_date: Moment = moment(param.date_index);
+        let last_impacted_day: Moment = moment(param.date_index).add(1, 'days');
+
+        switch (this.cumulType) {
+            case VarsCumulsController.CUMUL_WEEK_NAME:
+                last_impacted_day = moment.max(last_impacted_day, moment(start_date).endOf('isoWeek'));
+            case VarsCumulsController.CUMUL_MONTH_NAME:
+                last_impacted_day = moment.max(last_impacted_day, moment(start_date).endOf('month'));
+            case VarsCumulsController.CUMUL_YEAR_NAME:
+            default:
+                last_impacted_day = moment.max(last_impacted_day, moment(start_date).endOf('year'));
+        }
+
+        if (last_impacted_day.isSameOrBefore(start_date, 'days')) {
+            return null;
+        }
+        return last_impacted_day;
     }
 }

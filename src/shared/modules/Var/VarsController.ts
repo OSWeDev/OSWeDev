@@ -12,6 +12,7 @@ import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VOsTypesManager from '../VOsTypesManager';
 import ModuleVar from './ModuleVar';
+import ThreadHandler from '../../tools/ThreadHandler';
 
 export default class VarsController {
 
@@ -428,6 +429,7 @@ export default class VarsController {
 
         // On met à jour le store une première fois pour informer qu'on lance un update ciblé
         this.setUpdatingParamsByVarsIds(ordered_params_by_vars_ids);
+        await ThreadHandler.getInstance().sleep(1);
 
         // On demande le chargement des datas par ordre inverse de dépendance et dès qu'on a chargé les datas sources
         //  on peut demander les dépendances du niveau suivant et avancer dans l'arbre
@@ -437,6 +439,7 @@ export default class VarsController {
 
         // On met à jour le store une deuxième fois pour informer qu'on fait un update des datas impactées également
         this.setUpdatingParamsByVarsIds(ordered_params_by_vars_ids);
+        await ThreadHandler.getInstance().sleep(1);
 
         // Et une fois que tout est propre, on lance la mise à jour de chaque élément
         await this.updateEachData(deps_by_var_id, ordered_params_by_vars_ids, imported_datas);
@@ -491,7 +494,7 @@ export default class VarsController {
                 let var_id: number = parseInt(var_id_s.toString());
                 let params: IVarDataParamVOBase[] = todo_list_by_var_id[var_id];
 
-                let impacteds_self: IVarDataParamVOBase[] = this.getVarControllerById(var_id).getSelfImpacted(params, this.imp);
+                let impacteds_self: IVarDataParamVOBase[] = this.getVarControllerById(var_id).getSelfImpacted(params);
 
                 for (let i in impacteds_self) {
                     let impacted_self: IVarDataParamVOBase = impacteds_self[i];
