@@ -65,7 +65,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return VarsController.getInstance().last_batch_dependencies_by_param[
+        return VarsController.getInstance().dependencies_by_param[
             VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param)];
     }
 

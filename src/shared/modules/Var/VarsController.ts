@@ -30,7 +30,10 @@ export default class VarsController {
     public registeredDatasParamsIndexes: { [paramIndex: string]: number } = {};
     public registeredDatasParams: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
-    public last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
+    public dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
+    public impacts_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
+    private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
+    private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
     private setVarData_: (varData: IVarDataVOBase) => void = null;
     private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
@@ -409,6 +412,9 @@ export default class VarsController {
         this.BATCH_UIDs_by_var_id = {};
         this.waitingForUpdate = {};
 
+        // On ajoute au batch de mise à jour les calculs qui dépendent des vars actuellement prévues en mise à jour
+        params_copy = this.addDepsToBatch(params_copy);
+
         // On résoud les deps par group_id avant de chercher à savoir de quel param exactement on dépend
         let deps_by_var_id: { [from_var_id: number]: number[] } = await this.solveVarsDependencies(params_copy);
 
@@ -439,10 +445,100 @@ export default class VarsController {
         for (let i in this.BATCH_UIDs_by_var_id) {
             this.flushVarsDatas(this.BATCH_UIDs_by_var_id[i]);
         }
+        this.mergeDeps();
 
         this.setUpdatingParamsByVarsIds({});
 
         this.setUpdatingDatas(false);
+    }
+
+    private addDepsToBatch(params_copy: { [paramIndex: string]: IVarDataParamVOBase }): { [paramIndex: string]: IVarDataParamVOBase } {
+        let res: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, params_copy);
+        let todo_list: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, params_copy);
+
+        while (ObjectHandler.getInstance().hasAtLeastOneAttribute(todo_list)) {
+
+            let new_todo_list: { [paramIndex: string]: IVarDataParamVOBase } = {};
+            let todo_list_by_var_id: { [var_id: number]: IVarDataParamVOBase[] } = {};
+            for (let param_index in todo_list) {
+                let param: IVarDataParamVOBase = todo_list[param_index];
+
+                if (!todo_list_by_var_id[param.var_id]) {
+                    todo_list_by_var_id[param.var_id] = [];
+                }
+                todo_list_by_var_id[param.var_id].push(param);
+
+                if (this.impacts_by_param[param_index]) {
+                    for (let i in this.impacts_by_param[param_index]) {
+                        let impact_param: IVarDataParamVOBase = this.impacts_by_param[param_index][i];
+                        let impact_index: string = this.getVarControllerById(impact_param.var_id).varDataParamController.getIndex(impact_param);
+
+                        if (!res[impact_index]) {
+                            res[impact_index] = impact_param;
+                            new_todo_list[impact_index] = impact_param;
+                        }
+                    }
+                }
+            }
+
+            // TODO FIXME : à voir c'est peut-etre la meilleure solution, juste pas parfait sur le papier
+            //  on devrait savoir précisément qui dépend de quoi même en transverse.
+            //  ici on passe par la notion de daté et cumulé, et on demande alors parmis tous les éléments qui
+            //  sont en cache et dans le store si on doit recharger du coup ou pas
+            //  En fait on va demander au contrôleur, et lui peut utiliser des infos d'imports, ou de reset
+            //  pour décider de pas impacter toute la terre...
+            for (let var_id_s in todo_list_by_var_id) {
+                let var_id: number = parseInt(var_id_s.toString());
+                let params: IVarDataParamVOBase[] = todo_list_by_var_id[var_id];
+
+                let impacteds_self: IVarDataParamVOBase[] = this.getVarControllerById(var_id).getSelfImpacted(params, this.imp);
+
+                for (let i in impacteds_self) {
+                    let impacted_self: IVarDataParamVOBase = impacteds_self[i];
+                    let impacted_self_index: string = this.getVarControllerById(impacted_self.var_id).varDataParamController.getIndex(impacted_self);
+
+                    if (!res[impacted_self_index]) {
+                        res[impacted_self_index] = impacted_self;
+                        new_todo_list[impacted_self_index] = impacted_self;
+                    }
+                }
+            }
+
+            todo_list = new_todo_list;
+        }
+
+        return res;
+    }
+
+    /**
+     * On cherche à stocker toutes les deps connues, à la fois de param => deps nécessaires au calcul et param => calculs impactés
+     * TODO FIXME DIRTY : il faut aussi retirer les deps qui ne sont plus valides si on deregister des vars...
+     */
+    private mergeDeps() {
+
+        for (let param_index in this.last_batch_dependencies_by_param) {
+            let param_deps: IVarDataParamVOBase[] = this.last_batch_dependencies_by_param[param_index];
+            let param: IVarDataParamVOBase = this.last_batch_param_by_index[param_index];
+
+            for (let j in param_deps) {
+                let param_dep: IVarDataParamVOBase = param_deps[j];
+                let param_dep_index: string = this.getVarControllerById(param_dep.var_id).varDataParamController.getIndex(param_dep);
+
+                if (!this.dependencies_by_param[param_index]) {
+                    this.dependencies_by_param[param_index] = [];
+                }
+                if (this.dependencies_by_param[param_index].indexOf(param_dep) < 0) {
+                    this.dependencies_by_param[param_index].push(param_dep);
+                }
+
+                if (!this.impacts_by_param[param_dep_index]) {
+                    this.impacts_by_param[param_dep_index] = [];
+                }
+                if (this.impacts_by_param[param_dep_index].indexOf(param) < 0) {
+                    this.impacts_by_param[param_dep_index].push(param);
+                }
+            }
+        }
     }
 
     private async loadAllDatasImported(deps_by_var_id: { [from_var_id: number]: number[] }): Promise<{ [var_id: number]: { [param_index: string]: IVarDataVOBase } }> {
@@ -559,6 +655,7 @@ export default class VarsController {
         imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }
     ) {
         this.last_batch_dependencies_by_param = {};
+        this.last_batch_param_by_index = {};
 
         let deps_by_var_id_copy: { [from_var_id: number]: number[] } = Object.assign({}, deps_by_var_id);
         while (deps_by_var_id_copy && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_by_var_id_copy)) {
@@ -616,7 +713,9 @@ export default class VarsController {
                         ordered_params_by_vars_ids[dependency.var_id][dependency_index] = dependency;
                         cleaned_dependencies.push(dependency);
                     }
-                    this.last_batch_dependencies_by_param[this.getVarControllerById(var_id).varDataParamController.getIndex(param)] = cleaned_dependencies;
+                    let param_index: string = this.getVarControllerById(var_id).varDataParamController.getIndex(param);
+                    this.last_batch_param_by_index[param_index] = param;
+                    this.last_batch_dependencies_by_param[param_index] = cleaned_dependencies;
                 }
             }
             deps_by_var_id_copy = next_deps_by_var_id_copy;

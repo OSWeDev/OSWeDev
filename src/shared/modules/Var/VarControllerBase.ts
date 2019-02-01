@@ -41,5 +41,11 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
         params_by_vars_ids: { [var_id: number]: { [index: string]: TDataParam } },
         imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<TDataParam[]>;
 
+    /**
+     * FIXME TODO : on a pas accès aux imports, mais en fait il sont chargés à cette étape et ça permettrait d'optimiser cette étape. à voir
+     * @param params
+     */
+    public abstract getSelfImpacted(params: IVarDataParamVOBase[]): IVarDataParamVOBase[];
+
     public async abstract updateData(BATCH_UID: number, param: TDataParam, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
 }
