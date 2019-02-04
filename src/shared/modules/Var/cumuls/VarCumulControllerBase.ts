@@ -122,7 +122,7 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         let end_date: Moment = this.getCADEndDate(param);
 
         let res: TData = Object.assign(this.varDataConstructor(), param);
-        res.typesInfo = [];
+        res.types_info = [];
         res.var_id = this.varConf.id;
         res.date_index = DateHandler.getInstance().formatDayForIndex(end_date);
         res.value = 0;

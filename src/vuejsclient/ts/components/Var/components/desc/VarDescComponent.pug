@@ -13,8 +13,8 @@
     
     template(v-if='(!!var_deps) && var_deps.length' )
         h5 {{ label('var.desc_mode.var_deps') }}
-        i.fa.fa-2x.fa-search-plus.fa-fw(aria-hidden="true" v-if='!openDeps' @click='openDeps = true;')
-        i.fa.fa-2x.fa-search-minus.fa-fw(aria-hidden="true" v-if='openDeps' @click='openDeps = false;')
-        template(v-for='var_dep in var_deps' v-if='openDeps')
-            var-desc(:var_param='var_dep')
+        i.fa.fa-2x.fa-search-plus.fa-fw(aria-hidden="true" v-if='!isDescDepsOpened' @click='setDescDepsOpened(!isDescDepsOpened)')
+        i.fa.fa-2x.fa-search-minus.fa-fw(aria-hidden="true" v-if='isDescDepsOpened' @click='setDescDepsOpened(!isDescDepsOpened)')
+        template(v-for='var_dep in var_deps' v-if='isDescDepsOpened')
+            var-desc(:var_param='var_dep' :depth='depth + 1' :max_depth='max_depth')
 

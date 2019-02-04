@@ -459,6 +459,18 @@ export default class VarsController {
         let res: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, params_copy);
         let todo_list: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, params_copy);
 
+        // Il faut une map des datas registered pour voir parmis elles lesquelles sont à déclencher en tant que voisine.
+        let registeredDatasParams_by_var_id: { [var_id: number]: { [paramIndex: string]: IVarDataParamVOBase } } = {};
+        for (let index in this.registeredDatasParams) {
+            let registeredDatasParam: IVarDataParamVOBase = this.registeredDatasParams[index];
+
+            if (!registeredDatasParams_by_var_id[registeredDatasParam.var_id]) {
+                registeredDatasParams_by_var_id[registeredDatasParam.var_id] = {};
+            }
+            registeredDatasParams_by_var_id[registeredDatasParam.var_id][index] = registeredDatasParam;
+        }
+
+
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(todo_list)) {
 
             let new_todo_list: { [paramIndex: string]: IVarDataParamVOBase } = {};
@@ -494,7 +506,7 @@ export default class VarsController {
                 let var_id: number = parseInt(var_id_s.toString());
                 let params: IVarDataParamVOBase[] = todo_list_by_var_id[var_id];
 
-                let impacteds_self: IVarDataParamVOBase[] = this.getVarControllerById(var_id).getSelfImpacted(params);
+                let impacteds_self: IVarDataParamVOBase[] = this.getVarControllerById(var_id).getSelfImpacted(params, registeredDatasParams_by_var_id[var_id]);
 
                 for (let i in impacteds_self) {
                     let impacted_self: IVarDataParamVOBase = impacteds_self[i];

@@ -15,14 +15,21 @@ import { watch } from 'fs';
 })
 export default class VarDescComponent extends VueComponentBase {
 
-    @Prop()
-    public var_param: IVarDataParamVOBase;
     @ModuleVarGetter
     public getDescSelectedIndex: string;
     @ModuleVarAction
     public setDescSelectedIndex: (desc_selected_index: string) => void;
+    @ModuleVarGetter
+    public isDescDepsOpened: boolean;
+    @ModuleVarAction
+    public setDescDepsOpened: (desc_deps_opened: boolean) => void;
 
-    private openDeps: boolean = false;
+    @Prop()
+    public var_param: IVarDataParamVOBase;
+    @Prop({ default: 0 })
+    public depth: number;
+    @Prop({ default: 2 })
+    public max_depth: number;
 
     get is_selected_var(): boolean {
         return this.getDescSelectedIndex == this.var_index;
@@ -75,10 +82,5 @@ export default class VarDescComponent extends VueComponentBase {
 
     private un_select_var() {
         this.setDescSelectedIndex(null);
-    }
-
-    @Watch('var_param')
-    private on_change_param() {
-        this.openDeps = false;
     }
 }

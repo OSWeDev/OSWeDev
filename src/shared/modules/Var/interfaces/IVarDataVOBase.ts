@@ -7,5 +7,5 @@ import IVarDataValueBase from './IVarDataValueBase';
  */
 export default interface IVarDataVOBase extends IDistantVOBase, IVarDataParamVOBase, IVarDataValueBase {
 
-    typesInfo: number[];
+    types_info: number[];
 }
