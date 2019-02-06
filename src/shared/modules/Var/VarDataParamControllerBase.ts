@@ -45,7 +45,7 @@ export default abstract class VarDataParamControllerBase<TDataParam extends IVar
     //     return res;
     // }
 
-    public abstract getImpactedParamsList(paramUpdated: TDataParam, paramsRegisteredByIndex: { [index: string]: TDataParam }): TDataParam[];
+    public abstract getImpactedParamsList(paramUpdated: TDataParam, paramsRegisteredByIndex: { [index: string]: IVarDataParamVOBase }): TDataParam[];
 
     protected abstract compareParams(paramA: TDataParam, paramB: TDataParam);
 }

@@ -1,6 +1,5 @@
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
-import VarCacheBase from './VarCacheBase';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
@@ -38,14 +37,14 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     public async abstract getParamsDependencies(
         BATCH_UID: number,
         param: TDataParam,
-        params_by_vars_ids: { [var_id: number]: { [index: string]: TDataParam } },
-        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<TDataParam[]>;
+        params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
+        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<IVarDataParamVOBase[]>;
 
     /**
      * FIXME TODO : on a pas accès aux imports, mais en fait il sont chargés à cette étape et ça permettrait d'optimiser cette étape. à voir
      * @param params
      */
-    public getSelfImpacted(params: IVarDataParamVOBase[], registered: { [paramIndex: string]: IVarDataParamVOBase }): IVarDataParamVOBase[] {
+    public getSelfImpacted(params: TDataParam[], registered: { [paramIndex: string]: IVarDataParamVOBase }): TDataParam[] {
         return [];
     }
 
