@@ -37,6 +37,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                     return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
 
+                case ModuleTableField.FIELD_TYPE_month:
+                    return moment(field_value).format('MMM YYYY');
+
                 case ModuleTableField.FIELD_TYPE_daterange:
                     // On stocke au format day - day
                     if (!field_value) {
@@ -81,8 +84,10 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
-
                     return DateHandler.getInstance().formatDayForVO(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                case ModuleTableField.FIELD_TYPE_month:
+                    return DateHandler.getInstance().formatMonthFromVO(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+
 
                 default:
                     return SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo);
@@ -156,6 +161,8 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
                     return DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value), moduleTableField, false));
+                case ModuleTableField.FIELD_TYPE_month:
+                    return DateHandler.getInstance().formatDayForSQL(moment(value).startOf('month'));
 
                 default:
                     return value;

@@ -145,7 +145,8 @@ export default class DatatableComponent extends VueComponentBase {
 
                     if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day)) {
+                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month)) {
                         if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
 
                             this.preload_custom_filters.push(field.datatable_field_uid);
@@ -232,7 +233,8 @@ export default class DatatableComponent extends VueComponentBase {
             if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
                 (((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day))) {
+                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month))) {
                 res.push(field);
             }
         }
@@ -252,6 +254,7 @@ export default class DatatableComponent extends VueComponentBase {
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum)) {
                     continue;
@@ -376,6 +379,7 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_daterange:
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
+                    case ModuleTableField.FIELD_TYPE_month:
                         this.changeTextFilterValue(field.datatable_field_uid);
                         continue;
 
@@ -659,6 +663,24 @@ export default class DatatableComponent extends VueComponentBase {
                                     }
 
                                     let queryEnd_ = moment(query.end);
+                                    if (query.end && date.isAfter(queryEnd_)) {
+                                        return false;
+                                    }
+
+                                    return true;
+
+                                case ModuleTableField.FIELD_TYPE_month:
+                                    if ((!query) || ((!query.start) && (!query.end))) {
+                                        return true;
+                                    }
+
+                                    date = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(moment(row[field.datatable_field_uid], 'MMM YYYY'));
+                                    queryStart_ = moment(query.start);
+                                    if (query.start && date.isBefore(queryStart_)) {
+                                        return false;
+                                    }
+
+                                    queryEnd_ = moment(query.end);
                                     if (query.end && date.isAfter(queryEnd_)) {
                                         return false;
                                     }

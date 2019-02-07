@@ -165,7 +165,7 @@ export default class CRUDComponent extends VueComponentBase {
             (async () => {
                 let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<
                     IDistantVOBase
-                    >(datatable.API_TYPE_ID);
+                >(datatable.API_TYPE_ID);
                 self.storeDatas({
                     API_TYPE_ID: datatable.API_TYPE_ID,
                     vos: vos

@@ -34,6 +34,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_tsrange: string = 'tsrange';
     public static FIELD_TYPE_timestamp: string = 'timestamp';
     public static FIELD_TYPE_day: string = 'day';
+    public static FIELD_TYPE_month: string = 'month';
 
     public field_value: T;
     public field_loaded: boolean;
@@ -201,6 +202,7 @@ export default class ModuleTableField<T> {
                 return "bool";
 
             case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_date:
                 return "date";
 
@@ -266,6 +268,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_daterange:
             case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_float:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_geopoint:

@@ -36,6 +36,10 @@ export default class DateHandler {
         return date.format('YYYY-MM-DD');
     }
 
+    public formatMonthFromVO(date: Moment): string {
+        return date.format('YYYY-MM');
+    }
+
     public formatDayForApi(date: Moment): string {
         return date.format('YYYY-MM-DD');
     }
