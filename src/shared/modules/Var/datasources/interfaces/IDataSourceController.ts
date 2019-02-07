@@ -1,18 +1,18 @@
 import IVarDataVOBase from '../../interfaces/IVarDataVOBase';
 import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 
-export default interface IDateIndexedVarDataParam {
+export default interface IDateIndexedVarDataParam<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
 
     load_for_batch(
         BATCH_UID: number,
-        vars_params: { [index: string]: IVarDataParamVOBase },
+        vars_params: { [index: string]: TDataParam },
         imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<void>;
 
-    get_data(BATCH_UID: number, param: IVarDataParamVOBase): any;
+    get_data(BATCH_UID: number, param: TDataParam): any;
 
     clean_for_batch(
         BATCH_UID: number,
-        vars_params: { [index: string]: IVarDataParamVOBase },
+        vars_params: { [index: string]: TDataParam },
         imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<void>;
 }
     // TODO DATASOURCES : chargements plus intelligents mais qui nécessite une gestion très flexible des dépendances entre vars,
@@ -27,8 +27,8 @@ export default interface IDateIndexedVarDataParam {
     //  */
     // add_params_to_batch_loading(
     //     BATCH_UID: number,
-    //     vars_params: { [index: string]: IVarDataParamVOBase },
-    //     imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<void>;
+    //     vars_params: { [index: string]: TDataParam },
+    //     imported_datas: { [var_id: number]: { [param_index: string]: TData } }): Promise<void>;
 
     // /**
     //  * Fonction qui réalise effectivement le chargement des datas pour toutes les demandes du batch (indépendamment du var_id)
@@ -37,19 +37,19 @@ export default interface IDateIndexedVarDataParam {
     //  */
     // load_batch(
     //     BATCH_UID: number,
-    //     imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<void>;
+    //     imported_datas: { [var_id: number]: { [param_index: string]: TData } }): Promise<void>;
 
     // /**
     //  * Donne accès à la data chargée pour un param
     //  * @param BATCH_UID
     //  * @param param
     //  */
-    // get_data(BATCH_UID: number, param: IVarDataParamVOBase): any;
+    // get_data(BATCH_UID: number, param: TDataParam): any;
 
     // /**
     //  * Nettoyage des datas chargées
     //  */
     // clean_batch(
     //     BATCH_UID: number,
-    //     vars_params: { [index: string]: IVarDataParamVOBase },
-    //     imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<void>;
+    //     vars_params: { [index: string]: TDataParam },
+    //     imported_datas: { [var_id: number]: { [param_index: string]: TData } }): Promise<void>;
