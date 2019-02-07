@@ -209,7 +209,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
 
             if (field.field_type == ModuleTableField.FIELD_TYPE_int_array) {
-                e[field.field_id] = e[field.field_id].map(Number);
+                if (e[field.field_id]) {
+                    e[field.field_id] = e[field.field_id].map(Number);
+                }
             }
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_day) ||
