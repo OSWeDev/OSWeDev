@@ -3,6 +3,7 @@ import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
+import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
 
@@ -23,10 +24,14 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
         BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
 
     /**
-     * Returns the var_ids that we depend upon (or might depend)
-     * @param BATCH_UID
+     * Returns the datasources this var depends on
      */
-    public async abstract getVarsIdsDependencies(BATCH_UID: number): Promise<number[]>;
+    public abstract getDataSourcesDependencies(): Array<IDataSourceController<any, any>>;
+
+    /**
+     * Returns the var_ids that we depend upon (or might depend)
+     */
+    public abstract getVarsIdsDependencies(): number[];
 
     /**
      * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week

@@ -1,4 +1,4 @@
-import IDistantVOBase from '../modules/IDistantVOBase.1';
+import IDistantVOBase from '../modules/IDistantVOBase';
 
 export default class ObjectHandler {
     public static getInstance(): ObjectHandler {

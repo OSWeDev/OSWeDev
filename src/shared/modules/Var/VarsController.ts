@@ -1,18 +1,19 @@
+import * as debounce from 'lodash/debounce';
+import ObjectHandler from '../../tools/ObjectHandler';
+import ThreadHandler from '../../tools/ThreadHandler';
 import ModuleDAO from '../DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
-import VarControllerBase from './VarControllerBase';
+import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
+import DefaultTranslation from '../Translation/vos/DefaultTranslation';
+import VOsTypesManager from '../VOsTypesManager';
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
-import VarConfVOBase from './vos/VarConfVOBase';
-import * as debounce from 'lodash/debounce';
-import VarDataParamControllerBase from './VarDataParamControllerBase';
-import ObjectHandler from '../../tools/ObjectHandler';
-import ModuleTranslation from '../Translation/ModuleTranslation';
-import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
-import VOsTypesManager from '../VOsTypesManager';
-import ModuleVar from './ModuleVar';
-import ThreadHandler from '../../tools/ThreadHandler';
+import VarControllerBase from './VarControllerBase';
+import VarDataParamControllerBase from './VarDataParamControllerBase';
+import VarConfVOBase from './vos/VarConfVOBase';
+import IDistantVOBase from '../IDistantVOBase';
+import DataSourcesController from '../DataSource/DataSourcesController';
 
 export default class VarsController {
 
@@ -33,6 +34,9 @@ export default class VarsController {
 
     public dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
     public impacts_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
+
+    public datasource_deps_by_var_id: { [var_id: number]: Array<IDataSourceController<any, any>> } = {};
+
     private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
     private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
@@ -222,6 +226,19 @@ export default class VarsController {
         this.setUpdatingParamsByVarsIds = setUpdatingParamsByVarsIds;
     }
 
+    public stageUpdateVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase) {
+
+        let res: { [index: string]: IVarDataParamVOBase } = DataSourcesController.getInstance().getUpdatedParamsFromVoUpdate(vo_before_update, vo_after_update);
+
+        if (!res) {
+            return;
+        }
+
+        for (let i in res) {
+            this.stageUpdateData(res[i]);
+        }
+    }
+
     public stageUpdateData<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
         if (!this.waitingForUpdate) {
             this.waitingForUpdate = {};
@@ -396,6 +413,9 @@ export default class VarsController {
         this.registered_vars[varConf.name] = varConf;
         this.registered_vars_controller[varConf.name] = controller;
         this.registered_vars_by_ids[varConf.id] = varConf;
+
+        let datasources_names_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
+        this.datasource_deps_by_var_id[varConf.id] = (!!datasources_names_deps) ? datasources_names_deps : datasources_names_deps;
     }
 
     /**
@@ -628,8 +648,7 @@ export default class VarsController {
                 throw new Error('solveVarsDependencies: Failed check controller:' + var_id);
             }
 
-            let vars_dependencies_ids: number[] = await this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].
-                getVarsIdsDependencies(this.BATCH_UIDs_by_var_id[var_id]);
+            let vars_dependencies_ids: number[] = await this.registered_vars_controller[this.registered_vars_by_ids[var_id].name].getVarsIdsDependencies();
 
             if (!deps_by_var_id[var_id]) {
                 deps_by_var_id[var_id] = [];

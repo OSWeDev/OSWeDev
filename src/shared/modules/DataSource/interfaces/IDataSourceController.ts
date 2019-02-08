@@ -1,7 +1,8 @@
-import IVarDataVOBase from '../../interfaces/IVarDataVOBase';
-import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../../Var/interfaces/IVarDataVOBase';
+import IVarDataParamVOBase from '../../Var/interfaces/IVarDataParamVOBase';
+import IDistantVOBase from '../../IDistantVOBase';
 
-export default interface IDateIndexedVarDataParam<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
+export default interface IDataSourceController<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
 
     load_for_batch(
         BATCH_UID: number,
@@ -14,9 +15,13 @@ export default interface IDateIndexedVarDataParam<TData extends IVarDataVOBase, 
         BATCH_UID: number,
         vars_params: { [index: string]: TDataParam },
         imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<void>;
+
+    get_updated_params_from_vo_update(vo: IDistantVOBase): { [index: string]: IVarDataParamVOBase };
+
+    registerDataSource();
 }
     // TODO DATASOURCES : chargements plus intelligents mais qui nécessite une gestion très flexible des dépendances entre vars,
-    // pour le moment on doit charger les datasources pour savoir les dépendances, donc on peut pas regrouper tous les chargements 
+    // pour le moment on doit charger les datasources pour savoir les dépendances, donc on peut pas regrouper tous les chargements
     // comme ça c'est compliqué
     // /**
     //  * On veut pouvoir stocker toutes les demandes de chaque type de var, avant de lancer effectivement le chargement
