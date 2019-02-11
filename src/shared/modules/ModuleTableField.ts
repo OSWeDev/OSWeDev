@@ -39,6 +39,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_timestamp: string = 'timestamp';
     public static FIELD_TYPE_day: string = 'day';
     public static FIELD_TYPE_timewithouttimezone: string = 'timewithouttimezone';
+    public static FIELD_TYPE_month: string = 'month';
 
     public field_value: T;
     public field_loaded: boolean;
@@ -51,6 +52,17 @@ export default class ModuleTableField<T> {
     public field_label: DefaultTranslation;
     public manyToOne_target_moduletable: ModuleTable<any> = null;
     public default_label_field: ModuleTableField<any> = null;
+
+    /**
+     * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
+     * Sur daterange : idem si date fin du range
+     */
+    public is_inclusive_data: boolean = false;
+    /**
+     * Sur date : identifie si la date est utilisée dans l'ihm comme inclusive ou exclusive (le jour ciblé est inclus ou non)
+     * Sur daterange : idem si date fin du range
+     */
+    public is_inclusive_ihm: boolean = false;
 
     public enum_values: { [value: number]: string } = {};
 
@@ -87,6 +99,18 @@ export default class ModuleTableField<T> {
         this.target_database = null;
         this.target_table = null;
         this.target_field = null;
+    }
+
+    public setInclusiveData(): ModuleTableField<T> {
+        this.is_inclusive_data = true;
+
+        return this;
+    }
+
+    public setInclusiveIHM(): ModuleTableField<T> {
+        this.is_inclusive_ihm = true;
+
+        return this;
     }
 
     /**
@@ -184,6 +208,7 @@ export default class ModuleTableField<T> {
                 return "bool";
 
             case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_date:
                 return "date";
 
@@ -253,6 +278,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_daterange:
             case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_float:
             case ModuleTableField.FIELD_TYPE_foreign_key:
             case ModuleTableField.FIELD_TYPE_geopoint:

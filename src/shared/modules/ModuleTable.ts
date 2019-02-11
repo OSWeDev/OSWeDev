@@ -215,7 +215,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_day) ||
-                (field.field_type == ModuleTableField.FIELD_TYPE_date)) {
+                (field.field_type == ModuleTableField.FIELD_TYPE_date) ||
+                (field.field_type == ModuleTableField.FIELD_TYPE_month)) {
                 e[field.field_id] = (e[field.field_id]) ? DateHandler.getInstance().formatDayForIndex(moment(e[field.field_id])) : e[field.field_id];
             }
         }
