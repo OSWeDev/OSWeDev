@@ -47,6 +47,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: null })
     public null_value_replacement: string;
 
+    @Prop({ default: null })
+    public zero_value_replacement: string;
+
     get is_being_updated(): boolean {
         return (!!this.getUpdatingParamsByVarsIds) && (!!this.var_param) && (!!this.getUpdatingParamsByVarsIds[this.var_param.var_id]) &&
             (!!this.getUpdatingParamsByVarsIds[this.var_param.var_id][this.var_index]);

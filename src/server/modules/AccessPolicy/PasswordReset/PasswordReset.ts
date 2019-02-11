@@ -4,6 +4,8 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
+import ModulePushDataServer from '../../PushData/ModulePushDataServer';
 
 export default class PasswordReset {
 
@@ -38,10 +40,10 @@ export default class PasswordReset {
         try {
 
             let msg = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].getFieldFromId('password').validate(new_pwd1);
-            if ((!msg) || (msg == "")) {
-                return true;
+            if (!((!msg) || (msg == ""))) {
+
+                return false;
             }
-            return false;
         } catch (error) {
             return false;
         }

@@ -149,7 +149,8 @@ export default class DatatableComponent extends VueComponentBase {
 
                     if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day)) {
+                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month)) {
                         if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
 
                             this.preload_custom_filters.push(field.datatable_field_uid);
@@ -236,7 +237,8 @@ export default class DatatableComponent extends VueComponentBase {
             if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
                 (((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day))) {
+                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month))) {
                 res.push(field);
             }
         }
@@ -256,6 +258,7 @@ export default class DatatableComponent extends VueComponentBase {
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum)) {
                     continue;
@@ -386,6 +389,7 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_daterange:
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
+                    case ModuleTableField.FIELD_TYPE_month:
                         this.changeTextFilterValue(field.datatable_field_uid);
                         continue;
 
@@ -620,98 +624,133 @@ export default class DatatableComponent extends VueComponentBase {
             customFilters.push({
                 name: field.datatable_field_uid,
                 callback: function (row, query) {
-                    if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                        let simpleField: SimpleDatatableField<any, any> = field as SimpleDatatableField<any, any>;
+                    switch (field.type) {
+                        case DatatableField.SIMPLE_FIELD_TYPE:
+                            let simpleField: SimpleDatatableField<any, any> = field as SimpleDatatableField<any, any>;
 
-                        switch (simpleField.moduleTableField.field_type) {
-                            case ModuleTableField.FIELD_TYPE_boolean:
-                                let istrue: boolean = (query == 'VRAI');
-                                return (row[field.datatable_field_uid] && istrue) || ((!row[field.datatable_field_uid]) && !istrue);
+                            switch (simpleField.moduleTableField.field_type) {
+                                case ModuleTableField.FIELD_TYPE_boolean:
+                                    let istrue: boolean = (query == 'VRAI');
+                                    return (row[field.datatable_field_uid] && istrue) || ((!row[field.datatable_field_uid]) && !istrue);
 
-                            case ModuleTableField.FIELD_TYPE_daterange:
-                                if ((!query) || ((!query.start) && (!query.end))) {
-                                    return true;
-                                }
-
-                                let parts: string[] = row[field.datatable_field_uid].split('-');
-                                if ((!parts) || (parts.length <= 0)) {
-                                    return row[field.datatable_field_uid];
-                                }
-
-                                let dateStart: Moment = null;
-                                let dateEnd: Moment = null;
-                                if (parts[0] && parts[0].trim() && (parts[0].trim() != "")) {
-                                    dateStart = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[0].trim());
-                                }
-                                if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
-                                    dateEnd = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim());
-                                }
-
-                                let queryStart = moment(query.start);
-                                if (query.start && dateEnd && dateEnd.isBefore(queryStart)) {
-                                    return false;
-                                }
-
-                                let queryEnd = moment(query.end);
-                                if (query.end && dateStart && dateStart.isAfter(queryEnd)) {
-                                    return false;
-                                }
-
-                                return true;
-
-                            case ModuleTableField.FIELD_TYPE_date:
-                            case ModuleTableField.FIELD_TYPE_day:
-                                if ((!query) || ((!query.start) && (!query.end))) {
-                                    return true;
-                                }
-
-                                let date: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(row[field.datatable_field_uid]);
-
-                                let queryStart_ = moment(query.start);
-                                if (query.start && date.isBefore(queryStart_)) {
-                                    return false;
-                                }
-
-                                let queryEnd_ = moment(query.end);
-                                if (query.end && date.isAfter(queryEnd_)) {
-                                    return false;
-                                }
-
-                                return true;
-
-                            case ModuleTableField.FIELD_TYPE_enum:
-                                if ((!query) || (!query.length)) {
-                                    return true;
-                                }
-
-                                for (let i in query) {
-                                    if (query[i].value == row[field.datatable_field_uid]) {
+                                case ModuleTableField.FIELD_TYPE_daterange:
+                                    if ((!query) || ((!query.start) && (!query.end))) {
                                         return true;
                                     }
-                                }
-                                return false;
 
-                            default:
-                                if (!query) {
+                                    let parts: string[] = row[field.datatable_field_uid].split('-');
+                                    if ((!parts) || (parts.length <= 0)) {
+                                        return row[field.datatable_field_uid];
+                                    }
+
+                                    let dateStart: Moment = null;
+                                    let dateEnd: Moment = null;
+                                    if (parts[0] && parts[0].trim() && (parts[0].trim() != "")) {
+                                        dateStart = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[0].trim());
+                                    }
+                                    if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
+                                        dateEnd = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim());
+                                    }
+
+                                    let queryStart = moment(query.start);
+                                    if (query.start && dateEnd && dateEnd.isBefore(queryStart)) {
+                                        return false;
+                                    }
+
+                                    let queryEnd = moment(query.end);
+                                    if (query.end && dateStart && dateStart.isAfter(queryEnd)) {
+                                        return false;
+                                    }
+
                                     return true;
-                                }
 
-                                if (row[field.datatable_field_uid] && ((row[field.datatable_field_uid].toString().toLowerCase()).indexOf(query.toLowerCase()) >= 0)) {
+                                case ModuleTableField.FIELD_TYPE_date:
+                                case ModuleTableField.FIELD_TYPE_day:
+                                    if ((!query) || ((!query.start) && (!query.end))) {
+                                        return true;
+                                    }
+
+                                    let date: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(row[field.datatable_field_uid]);
+
+                                    let queryStart_ = moment(query.start);
+                                    if (query.start && date.isBefore(queryStart_)) {
+                                        return false;
+                                    }
+
+                                    let queryEnd_ = moment(query.end);
+                                    if (query.end && date.isAfter(queryEnd_)) {
+                                        return false;
+                                    }
+
                                     return true;
-                                }
-                                return false;
-                        }
-                    } else if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
-                        if ((!query) || (!query.length)) {
-                            return true;
-                        }
 
-                        for (let i in query) {
-                            if (query[i].value == row[field.datatable_field_uid]) {
+                                case ModuleTableField.FIELD_TYPE_month:
+                                    if ((!query) || ((!query.start) && (!query.end))) {
+                                        return true;
+                                    }
+
+                                    date = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(moment(row[field.datatable_field_uid], 'MMM YYYY'));
+                                    queryStart_ = moment(query.start);
+                                    if (query.start && date.isBefore(queryStart_)) {
+                                        return false;
+                                    }
+
+                                    queryEnd_ = moment(query.end);
+                                    if (query.end && date.isAfter(queryEnd_)) {
+                                        return false;
+                                    }
+
+                                    return true;
+
+                                case ModuleTableField.FIELD_TYPE_enum:
+                                    if ((!query) || (!query.length)) {
+                                        return true;
+                                    }
+
+                                    for (let i in query) {
+                                        if (query[i].value == row[field.datatable_field_uid]) {
+                                            return true;
+                                        }
+                                    }
+                                    return false;
+
+                                default:
+                                    if (!query) {
+                                        return true;
+                                    }
+
+                                    if (row[field.datatable_field_uid] && ((row[field.datatable_field_uid].toString().toLowerCase()).indexOf(query.toLowerCase()) >= 0)) {
+                                        return true;
+                                    }
+                                    return false;
+                            }
+                            break;
+
+                        case DatatableField.MANY_TO_ONE_FIELD_TYPE:
+                            if ((!query) || (!query.length)) {
                                 return true;
                             }
-                        }
-                        return false;
+
+                            for (let i in query) {
+                                if (query[i].value == row[field.datatable_field_uid]) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                            break;
+
+                        case DatatableField.COMPUTED_FIELD_TYPE:
+                            if (!query) {
+                                return true;
+                            }
+
+                            if (row[field.datatable_field_uid] && ((row[field.datatable_field_uid].toString().toLowerCase()).indexOf(query.toLowerCase()) >= 0)) {
+                                return true;
+                            }
+                            return false;
+
+                            break;
+                        default:
                     }
                 }
             });
