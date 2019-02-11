@@ -59,7 +59,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (!this.filter) {
-            return null;
+            return (this.var_data as ISimpleNumberVarData).value;
         }
 
         let params = [(this.var_data as ISimpleNumberVarData).value];
@@ -93,6 +93,11 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         return this.getVarDatas[this.var_index];
+    }
+
+    public destroyed() {
+
+        VarsController.getInstance().unregisterDataParam(this.var_param);
     }
 
     @Watch('var_param', { immediate: true })

@@ -1,0 +1,5 @@
+.var_data_if
+    template(v-if="condition_is_true" v-bind:var_data="var_data")
+        slot
+    template(v-else)
+        slot(name="else" v-bind:var_data="var_data")

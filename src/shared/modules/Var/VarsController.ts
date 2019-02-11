@@ -78,16 +78,16 @@ export default class VarsController {
         }
     }
 
-    public get_translatable_name_code(varConf: VarConfVOBase): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    public get_translatable_name_code(varConf_id: number): string {
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + this.getVarConfById(varConf_id).name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
-    public get_translatable_description_code(varConf: VarConfVOBase): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    public get_translatable_description_code(varConf_id: number): string {
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + this.getVarConfById(varConf_id).name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
-    public get_translatable_params_desc_code(varConf: VarConfVOBase): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + varConf.name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    public get_translatable_params_desc_code(varConf_id: number): string {
+        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + this.getVarConfById(varConf_id).name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     /**
@@ -367,8 +367,20 @@ export default class VarsController {
         return res;
     }
 
+    public getIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): string {
+        if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
+            return null;
+        }
+
+        return this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
+    }
+
     public getVarConf(var_name: string): VarConfVOBase {
         return this.registered_vars ? (this.registered_vars[var_name] ? this.registered_vars[var_name] : null) : null;
+    }
+
+    public getVarConfById(var_id: number): VarConfVOBase {
+        return this.registered_vars_by_ids ? (this.registered_vars_by_ids[var_id] ? this.registered_vars_by_ids[var_id] : null) : null;
     }
 
     public getVarController(var_name: string): VarControllerBase<any, any> {

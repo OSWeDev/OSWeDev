@@ -28,8 +28,7 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
 
     private index_name(paramIndex: string): string {
         try {
-            return this.t(VarsController.getInstance().get_translatable_name_code(
-                VarsController.getInstance().getVarControllerById(VarsController.getInstance().registeredDatasParams[paramIndex].var_id).varConf));
+            return this.t(VarsController.getInstance().get_translatable_name_code(VarsController.getInstance().registeredDatasParams[paramIndex].var_id));
         } catch (error) {
             console.error(error);
         }
@@ -39,8 +38,7 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
     private index_params(paramIndex: string): string {
         try {
             let param: IVarDataParamVOBase = VarsController.getInstance().registeredDatasParams[paramIndex];
-            return this.t(VarsController.getInstance().get_translatable_params_desc_code(
-                VarsController.getInstance().getVarControllerById(param.var_id).varConf), param);
+            return this.t(VarsController.getInstance().get_translatable_params_desc_code(param.var_id), param);
         } catch (error) {
             console.error(error);
         }
