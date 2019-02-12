@@ -14,6 +14,7 @@ import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import IDistantVOBase from '../IDistantVOBase';
 import DataSourcesController from '../DataSource/DataSourcesController';
+import PerfMonFunction from '../PerfMon/annotations/PerfMonFunction';
 
 export default class VarsController {
 
@@ -37,27 +38,28 @@ export default class VarsController {
 
     public datasource_deps_by_var_id: { [var_id: number]: Array<IDataSourceController<any, any>> } = {};
 
+    private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
+
     private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
     private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
     private setVarData_: (varData: IVarDataVOBase) => void = null;
     private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
 
-    private waitingForUpdate: { [paramIndex: string]: IVarDataParamVOBase } = {};
-
     private registered_vars: { [name: string]: VarConfVOBase } = {};
     private registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
 
     private registered_vars_controller: { [name: string]: VarControllerBase<any, any> } = {};
 
-    private updateSemaphore: boolean = false;
-
     private setUpdatingDatas: (updating: boolean) => void = null;
-
-    private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
 
     private getUpdatingParamsByVarsIds: { [var_id: number]: { [index: string]: IVarDataParamVOBase } } = null;
     private setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) => void = null;
+
+    private waitingForUpdate: { [paramIndex: string]: IVarDataParamVOBase } = {};
+
+    private updateSemaphore: boolean = false;
+    private updateSemaphore_needs_reload: boolean = false;
 
     /**
      * This is meant to handle the datas before sending it the store to avoid multiple overloading problems
@@ -68,6 +70,43 @@ export default class VarsController {
 
     protected constructor() {
     }
+
+    /**
+     * pour UnitTest TestUnit uniquement
+     */
+    get varDatasStaticCache_(): { [index: string]: IVarDataVOBase } {
+        return this.varDatasStaticCache;
+    }
+
+    /**
+     * pour UnitTest TestUnit uniquement
+     */
+    get waitingForUpdate_(): { [paramIndex: string]: IVarDataParamVOBase } {
+        return this.waitingForUpdate;
+    }
+
+    /**
+     * pour UnitTest TestUnit uniquement
+     */
+    get updateSemaphore_(): boolean {
+        return this.updateSemaphore;
+    }
+
+    /**
+     * pour UnitTest TestUnit uniquement
+     */
+    get varDatasBATCHCache_(): { [BATCH_UID: number]: { [index: string]: IVarDataVOBase } } {
+        return this.varDatasBATCHCache;
+    }
+
+    /**
+     * pour UnitTest TestUnit uniquement
+     */
+    get BATCH_UIDs_by_var_id_(): { [var_id: number]: number } {
+        return this.BATCH_UIDs_by_var_id;
+    }
+
+
 
     public async initialize() {
         this.registered_vars_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<SimpleVarConfVO>(SimpleVarConfVO.API_TYPE_ID));
@@ -111,7 +150,7 @@ export default class VarsController {
     public setVarData<T extends IVarDataVOBase>(varData: T, set_in_batch_cache: boolean = false) {
 
         if ((!varData) || (!this.getVarControllerById(varData.var_id)) || (!this.getVarControllerById(varData.var_id).varDataParamController)) {
-            return null;
+            return;
         }
         let index: string = this.getVarControllerById(varData.var_id).varDataParamController.getIndex(varData);
 
@@ -137,7 +176,9 @@ export default class VarsController {
         }
 
         if (!!this.registeredDatasParamsIndexes[index]) {
-            this.setVarData_(varData);
+            if (!!this.setVarData_) {
+                this.setVarData_(varData);
+            }
         }
     }
 
@@ -167,7 +208,9 @@ export default class VarsController {
             for (let j in imported_datas[var_id_s]) {
                 let imported_data: T = imported_datas[var_id_s][j];
                 if (!!this.registeredDatasParamsIndexes[this.getVarControllerById(imported_data.var_id).varDataParamController.getIndex(imported_data)]) {
-                    this.setVarData_(imported_data);
+                    if (!!this.setVarData_) {
+                        this.setVarData_(imported_data);
+                    }
                 }
             }
         }
@@ -321,6 +364,14 @@ export default class VarsController {
     }
 
     get debouncedUpdateDatas() {
+
+        if (this.updateSemaphore) {
+            // ça veut dire qu'on demande un update alors qu'un est déjà en cours.
+            // Il faut pouvoir revenir s'en occuper
+            this.updateSemaphore_needs_reload = true;
+            return;
+        }
+
         let self = this;
         return debounce(async () => {
             // Il faut stocker une info de type sémaphore pour refuser de lancer l'update pendant qu'il est en cours
@@ -331,13 +382,20 @@ export default class VarsController {
             if (this.updateSemaphore) {
                 return;
             }
+            this.updateSemaphore_needs_reload = false;
             this.updateSemaphore = true;
             try {
                 await self.updateDatas();
             } catch (error) {
                 console.error(error);
             }
+
             this.updateSemaphore = false;
+            if (this.updateSemaphore_needs_reload) {
+                // Si on a eu des demandes pendant ce calcul on relance le plus vite possible
+                this.updateSemaphore_needs_reload = false;
+                this.debouncedUpdateDatas();
+            }
         }, 100);
     }
 
@@ -398,9 +456,19 @@ export default class VarsController {
     }
 
     public async registerVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>): Promise<VarConfVOBase> {
+        if ((!varConf) || (!controller)) {
+            return null;
+        }
+
         if (this.registered_vars && this.registered_vars[varConf.name]) {
             this.setVar(this.registered_vars[varConf.name], controller);
             return this.registered_vars[varConf.name];
+        }
+
+        // Pour les tests unitaires, on fournit l'id du varconf directement pour éviter cette étape
+        if ((varConf.id != null) && (typeof varConf.id != 'undefined')) {
+            this.setVar(varConf, controller);
+            return varConf;
         }
 
         let daoVarConf: VarConfVOBase = await ModuleDAO.getInstance().getNamedVoByName<VarConfVOBase>(varConf._type, varConf.name);
@@ -421,73 +489,23 @@ export default class VarsController {
         return varConf;
     }
 
-    private setVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>) {
-        this.registered_vars[varConf.name] = varConf;
-        this.registered_vars_controller[varConf.name] = controller;
-        this.registered_vars_by_ids[varConf.id] = varConf;
-
-        let datasources_names_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
-        this.datasource_deps_by_var_id[varConf.id] = (!!datasources_names_deps) ? datasources_names_deps : datasources_names_deps;
+    /**
+     * Utilisé pour les tests unitaires
+     */
+    public unregisterVar(varConf: VarConfVOBase) {
+        if (this.registered_vars && varConf && this.registered_vars[varConf.name]) {
+            delete this.registered_vars[varConf.name];
+            delete this.registered_vars_controller[varConf.name];
+            delete this.registered_vars_by_ids[varConf.id];
+            delete this.datasource_deps_by_var_id[varConf.id];
+        }
     }
 
     /**
-     * On va chercher à dépiler toutes les demandes en attente,
-     *  et dans un ordre définit par le controller du type de var group
+     * Public pour TestUnit TODO TESTUNIT UNITTEST
      */
-    private async updateDatas() {
-
-        this.setUpdatingDatas(true);
-
-        // On passe par une copie pour ne pas dépendre des demandes de mise à jour en cours
-        //  et on réinitialise immédiatement les waiting for update, comme ça on peut voir ce qui a été demandé pendant qu'on
-        //  mettait à jour (important pour éviter des bugs assez difficiles à identifier potentiellement)
-        let params_copy: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate);
-        this.BATCH_UIDs_by_var_id = {};
-        this.waitingForUpdate = {};
-
-        // On ajoute au batch de mise à jour les calculs qui dépendent des vars actuellement prévues en mise à jour
-        params_copy = this.addDepsToBatch(params_copy);
-
-        // On résoud les deps par group_id avant de chercher à savoir de quel param exactement on dépend
-        let deps_by_var_id: { [from_var_id: number]: number[] } = await this.solveVarsDependencies(params_copy);
-
-        // FIXME TODO DATASOURCES : En attendant les datasources propres
-        //  On a besoin pour lister les params deps de imports de chaque type de vars
-        //  Quand on a toutes les deps a priori on peut charger les datas importées (a condition de pas s'intéresser aux params)
-        let imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } } = await this.loadAllDatasImported(deps_by_var_id);
-        this.setImportedDatas(imported_datas);
-
-        let ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } } = this.getDataParamsByVarId(params_copy, imported_datas);
-
-        // On met à jour le store une première fois pour informer qu'on lance un update ciblé
-        this.setUpdatingParamsByVarsIds(ordered_params_by_vars_ids);
-        await ThreadHandler.getInstance().sleep(1);
-
-        // On demande le chargement des datas par ordre inverse de dépendance et dès qu'on a chargé les datas sources
-        //  on peut demander les dépendances du niveau suivant et avancer dans l'arbre
-        await this.loadVarsDatasAndLoadParamsDeps(ordered_params_by_vars_ids, deps_by_var_id, imported_datas);
-
-        this.sortDataParamsForUpdate(ordered_params_by_vars_ids);
-
-        // On met à jour le store une deuxième fois pour informer qu'on fait un update des datas impactées également
-        this.setUpdatingParamsByVarsIds(ordered_params_by_vars_ids);
-        await ThreadHandler.getInstance().sleep(1);
-
-        // Et une fois que tout est propre, on lance la mise à jour de chaque élément
-        await this.updateEachData(deps_by_var_id, ordered_params_by_vars_ids, imported_datas);
-
-        // Enfin quand toutes les datas sont à jour on pousse sur le store
-        for (let i in this.BATCH_UIDs_by_var_id) {
-            this.flushVarsDatas(this.BATCH_UIDs_by_var_id[i]);
-        }
-        this.mergeDeps();
-
-        this.setUpdatingParamsByVarsIds({});
-
-        this.setUpdatingDatas(false);
-    }
-
-    private addDepsToBatch(params_copy: { [paramIndex: string]: IVarDataParamVOBase }): { [paramIndex: string]: IVarDataParamVOBase } {
+    @PerfMonFunction
+    public addDepsToBatch(params_copy: { [paramIndex: string]: IVarDataParamVOBase }): { [paramIndex: string]: IVarDataParamVOBase } {
         let res: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, params_copy);
         let todo_list: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, params_copy);
 
@@ -558,76 +576,23 @@ export default class VarsController {
     }
 
     /**
-     * On cherche à stocker toutes les deps connues, à la fois de param => deps nécessaires au calcul et param => calculs impactés
-     * TODO FIXME DIRTY : il faut aussi retirer les deps qui ne sont plus valides si on deregister des vars...
+     * TODO TU UnitTest
+     * La fonction renvoie true si le var_id est dépendant d'une autre var dans le deps by var
      */
-    private mergeDeps() {
-
-        for (let param_index in this.last_batch_dependencies_by_param) {
-            let param_deps: IVarDataParamVOBase[] = this.last_batch_dependencies_by_param[param_index];
-            let param: IVarDataParamVOBase = this.last_batch_param_by_index[param_index];
-
-            for (let j in param_deps) {
-                let param_dep: IVarDataParamVOBase = param_deps[j];
-                let param_dep_index: string = this.getVarControllerById(param_dep.var_id).varDataParamController.getIndex(param_dep);
-
-                if (!this.dependencies_by_param[param_index]) {
-                    this.dependencies_by_param[param_index] = [];
-                }
-                if (this.dependencies_by_param[param_index].indexOf(param_dep) < 0) {
-                    this.dependencies_by_param[param_index].push(param_dep);
-                }
-
-                if (!this.impacts_by_param[param_dep_index]) {
-                    this.impacts_by_param[param_dep_index] = [];
-                }
-                if (this.impacts_by_param[param_dep_index].indexOf(param) < 0) {
-                    this.impacts_by_param[param_dep_index].push(param);
-                }
-            }
-        }
-    }
-
-    private async loadAllDatasImported(deps_by_var_id: { [from_var_id: number]: number[] }): Promise<{ [var_id: number]: { [param_index: string]: IVarDataVOBase } }> {
-
-        // But : tout charger en un minimum de requête
-        // On récupère la liste des type de vos qu'il faut charger et pour ces types de données, on charge tout pour le moment.
-        // FIXME QUICK & DIRTY tout charger n'est certainement pas la bonne solution / pas idéale en tout cas
-        let var_imported_data_vo_types: string[] = [];
-        let var_ids_by_imported_data_vo_types: { [var_imported_data_vo_type: string]: number[] } = {};
+    @PerfMonFunction
+    public hasDependancy(var_id: number, deps_by_var_id: { [from_var_id: number]: number[] }): boolean {
         for (let i in deps_by_var_id) {
-            let var_id: number = parseInt(i.toString());
-
-            if (var_imported_data_vo_types.indexOf(this.registered_vars_by_ids[var_id].var_data_vo_type) < 0) {
-                var_imported_data_vo_types.push(this.registered_vars_by_ids[var_id].var_data_vo_type);
-                var_ids_by_imported_data_vo_types[this.registered_vars_by_ids[var_id].var_data_vo_type] = [];
-            }
-            var_ids_by_imported_data_vo_types[this.registered_vars_by_ids[var_id].var_data_vo_type].push(var_id);
-        }
-
-        let importedDatas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } } = {};
-
-        for (let i in var_imported_data_vo_types) {
-            let var_imported_data_vo_type: string = var_imported_data_vo_types[i];
-
-            let importeds: IVarDataVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVarDataVOBase>(
-                var_imported_data_vo_type, 'var_id', var_ids_by_imported_data_vo_types[var_imported_data_vo_type]);
-            if (importeds) {
-                for (let j in importeds) {
-                    let imported: IVarDataVOBase = importeds[j];
-
-                    if (!importedDatas[imported.var_id]) {
-                        importedDatas[imported.var_id] = {};
-                    }
-                    importedDatas[imported.var_id][this.getVarControllerById(imported.var_id).varDataParamController.getIndex(imported)] = imported;
-                }
+            if (deps_by_var_id[i] && (deps_by_var_id[i].indexOf(var_id) >= 0)) {
+                return true;
             }
         }
-
-        return importedDatas;
+        return false;
     }
 
-    private async solveVarsDependencies(
+    /**
+     * Public pour TestUnit TODO TESTUNIT UNITTEST
+     */
+    public async solveVarsDependencies(
         params: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate)
     ): Promise<{ [from_var_id: number]: number[] }> {
         // On cherche les dépendances entre les variables uniquement
@@ -683,19 +648,88 @@ export default class VarsController {
     }
 
     /**
-     * TODO TU UnitTest
-     * La fonction renvoie true si le var_id est dépendant d'une autre var dans le deps by var
+     * Public pour TestUnit TODO TESTUNIT UNITTEST
+     * On cherche à stocker toutes les deps connues, à la fois de param => deps nécessaires au calcul et param => calculs impactés
+     * TODO FIXME DIRTY : il faut aussi retirer les deps qui ne sont plus valides si on deregister des vars...
      */
-    private hasDependancy(var_id: number, deps_by_var_id: { [from_var_id: number]: number[] }): boolean {
-        for (let i in deps_by_var_id) {
-            if (deps_by_var_id[i] && (deps_by_var_id[i].indexOf(var_id) >= 0)) {
-                return true;
+    public mergeDeps() {
+
+        for (let param_index in this.last_batch_dependencies_by_param) {
+            let param_deps: IVarDataParamVOBase[] = this.last_batch_dependencies_by_param[param_index];
+            let param: IVarDataParamVOBase = this.last_batch_param_by_index[param_index];
+
+            for (let j in param_deps) {
+                let param_dep: IVarDataParamVOBase = param_deps[j];
+                let param_dep_index: string = this.getVarControllerById(param_dep.var_id).varDataParamController.getIndex(param_dep);
+
+                if (!this.dependencies_by_param[param_index]) {
+                    this.dependencies_by_param[param_index] = [];
+                }
+                if (this.dependencies_by_param[param_index].indexOf(param_dep) < 0) {
+                    this.dependencies_by_param[param_index].push(param_dep);
+                }
+
+                if (!this.impacts_by_param[param_dep_index]) {
+                    this.impacts_by_param[param_dep_index] = [];
+                }
+                if (this.impacts_by_param[param_dep_index].indexOf(param) < 0) {
+                    this.impacts_by_param[param_dep_index].push(param);
+                }
             }
         }
-        return false;
     }
 
-    private async loadVarsDatasAndLoadParamsDeps(
+
+    /**
+     * Public pour TestUnit TODO TESTUNIT UNITTEST
+     */
+    public getDataParamsByVarId(
+        params: { [paramIndex: string]: IVarDataParamVOBase },
+        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): { [var_id: number]: { [index: string]: IVarDataParamVOBase } } {
+        let ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } } = {};
+
+        // On organise un peu les datas
+        for (let paramIndex in params) {
+            let param: IVarDataParamVOBase = params[paramIndex];
+
+            if (imported_datas && imported_datas[param.var_id] && imported_datas[param.var_id][paramIndex]) {
+                // Si la data est importée, on a pas besoin de l'inclure dans le batch
+                continue;
+            }
+
+            let index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
+
+            if (!ordered_params_by_vars_ids[param.var_id]) {
+                ordered_params_by_vars_ids[param.var_id] = {};
+            }
+            ordered_params_by_vars_ids[param.var_id][index] = param;
+        }
+
+        return ordered_params_by_vars_ids;
+    }
+
+    /**
+     * Public pour TestUnit TODO TESTUNIT UNITTEST
+     */
+    public sortDataParamsForUpdate(params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
+
+        // On demande l'ordre dans lequel résoudre les params
+        for (let i in params_by_vars_ids) {
+            let ordered_params: { [index: string]: IVarDataParamVOBase } = params_by_vars_ids[i];
+            let var_id: number = parseInt(i.toString());
+
+            if ((!this.getVarControllerById(var_id)) || (!this.getVarControllerById(var_id).varDataParamController) ||
+                (!this.getVarControllerById(var_id).varDataParamController.sortParams)) {
+                continue;
+            }
+            this.getVarControllerById(var_id).varDataParamController.sortParams(ordered_params);
+        }
+    }
+
+    /**
+     * Public pour TestUnit TODO TESTUNIT UNITTEST
+     */
+    public async loadVarsDatasAndLoadParamsDeps(
         ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
         deps_by_var_id: { [from_var_id: number]: number[] },
         imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }
@@ -772,44 +806,121 @@ export default class VarsController {
         }
     }
 
-    private getDataParamsByVarId(
-        params: { [paramIndex: string]: IVarDataParamVOBase },
-        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): { [var_id: number]: { [index: string]: IVarDataParamVOBase } } {
-        let ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } } = {};
+    private setVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>) {
+        this.registered_vars[varConf.name] = varConf;
+        this.registered_vars_controller[varConf.name] = controller;
+        this.registered_vars_by_ids[varConf.id] = varConf;
 
-        // On organise un peu les datas
-        for (let paramIndex in params) {
-            let param: IVarDataParamVOBase = params[paramIndex];
-
-            if (imported_datas && imported_datas[param.var_id] && imported_datas[param.var_id][paramIndex]) {
-                // Si la data est importée, on a pas besoin de l'inclure dans le batch
-                continue;
-            }
-
-            let index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
-
-            if (!ordered_params_by_vars_ids[param.var_id]) {
-                ordered_params_by_vars_ids[param.var_id] = {};
-            }
-            ordered_params_by_vars_ids[param.var_id][index] = param;
-        }
-
-        return ordered_params_by_vars_ids;
+        let datasources_names_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
+        this.datasource_deps_by_var_id[varConf.id] = (!!datasources_names_deps) ? datasources_names_deps : datasources_names_deps;
     }
 
-    private sortDataParamsForUpdate(params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
+    /**
+     * On va chercher à dépiler toutes les demandes en attente,
+     *  et dans un ordre définit par le controller du type de var group
+     */
+    private async updateDatas() {
 
-        // On demande l'ordre dans lequel résoudre les params
-        for (let i in params_by_vars_ids) {
-            let ordered_params: { [index: string]: IVarDataParamVOBase } = params_by_vars_ids[i];
+        if (!!this.setUpdatingDatas) {
+            this.setUpdatingDatas(true);
+        }
+
+        // On passe par une copie pour ne pas dépendre des demandes de mise à jour en cours
+        //  et on réinitialise immédiatement les waiting for update, comme ça on peut voir ce qui a été demandé pendant qu'on
+        //  mettait à jour (important pour éviter des bugs assez difficiles à identifier potentiellement)
+        let params_copy: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate);
+        this.BATCH_UIDs_by_var_id = {};
+        this.waitingForUpdate = {};
+
+        // On ajoute au batch de mise à jour les calculs qui dépendent des vars actuellement prévues en mise à jour
+        params_copy = this.addDepsToBatch(params_copy);
+
+        // On résoud les deps par group_id avant de chercher à savoir de quel param exactement on dépend
+        let deps_by_var_id: { [from_var_id: number]: number[] } = await this.solveVarsDependencies(params_copy);
+
+        // FIXME TODO DATASOURCES : En attendant les datasources propres
+        //  On a besoin pour lister les params deps de imports de chaque type de vars
+        //  Quand on a toutes les deps a priori on peut charger les datas importées (a condition de pas s'intéresser aux params)
+        let imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } } = await this.loadAllDatasImported(deps_by_var_id);
+        this.setImportedDatas(imported_datas);
+
+        let ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } } = this.getDataParamsByVarId(params_copy, imported_datas);
+
+        // On met à jour le store une première fois pour informer qu'on lance un update ciblé
+        if (!!this.setUpdatingParamsByVarsIds) {
+            this.setUpdatingParamsByVarsIds(ordered_params_by_vars_ids);
+            // L'objectif en vrai c'est d'attendre le nexttick de vuejs, donc à voir comment on peut faire, le sleep 1 semble inefficace
+            await ThreadHandler.getInstance().sleep(1);
+        }
+
+        // On demande le chargement des datas par ordre inverse de dépendance et dès qu'on a chargé les datas sources
+        //  on peut demander les dépendances du niveau suivant et avancer dans l'arbre
+        await this.loadVarsDatasAndLoadParamsDeps(ordered_params_by_vars_ids, deps_by_var_id, imported_datas);
+
+        this.sortDataParamsForUpdate(ordered_params_by_vars_ids);
+
+        // On met à jour le store une deuxième fois pour informer qu'on fait un update des datas impactées également
+        if (!!this.setUpdatingParamsByVarsIds) {
+            this.setUpdatingParamsByVarsIds(ordered_params_by_vars_ids);
+            // L'objectif en vrai c'est d'attendre le nexttick de vuejs, donc à voir comment on peut faire, le sleep 1 semble inefficace
+            await ThreadHandler.getInstance().sleep(1);
+        }
+
+        // Et une fois que tout est propre, on lance la mise à jour de chaque élément
+        await this.updateEachData(deps_by_var_id, ordered_params_by_vars_ids, imported_datas);
+
+        // Enfin quand toutes les datas sont à jour on pousse sur le store
+        for (let i in this.BATCH_UIDs_by_var_id) {
+            this.flushVarsDatas(this.BATCH_UIDs_by_var_id[i]);
+        }
+        this.mergeDeps();
+
+        if (!!this.setUpdatingParamsByVarsIds) {
+            this.setUpdatingParamsByVarsIds({});
+        }
+
+        if (!!this.setUpdatingDatas) {
+            this.setUpdatingDatas(false);
+        }
+    }
+
+    private async loadAllDatasImported(deps_by_var_id: { [from_var_id: number]: number[] }): Promise<{ [var_id: number]: { [param_index: string]: IVarDataVOBase } }> {
+
+        // But : tout charger en un minimum de requête
+        // On récupère la liste des type de vos qu'il faut charger et pour ces types de données, on charge tout pour le moment.
+        // FIXME QUICK & DIRTY tout charger n'est certainement pas la bonne solution / pas idéale en tout cas
+        let var_imported_data_vo_types: string[] = [];
+        let var_ids_by_imported_data_vo_types: { [var_imported_data_vo_type: string]: number[] } = {};
+        for (let i in deps_by_var_id) {
             let var_id: number = parseInt(i.toString());
 
-            if ((!this.getVarControllerById(var_id)) || (!this.getVarControllerById(var_id).varDataParamController) ||
-                (!this.getVarControllerById(var_id).varDataParamController.sortParams)) {
-                continue;
+            if (var_imported_data_vo_types.indexOf(this.registered_vars_by_ids[var_id].var_data_vo_type) < 0) {
+                var_imported_data_vo_types.push(this.registered_vars_by_ids[var_id].var_data_vo_type);
+                var_ids_by_imported_data_vo_types[this.registered_vars_by_ids[var_id].var_data_vo_type] = [];
             }
-            this.getVarControllerById(var_id).varDataParamController.sortParams(ordered_params);
+            var_ids_by_imported_data_vo_types[this.registered_vars_by_ids[var_id].var_data_vo_type].push(var_id);
         }
+
+        let importedDatas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } } = {};
+
+        for (let i in var_imported_data_vo_types) {
+            let var_imported_data_vo_type: string = var_imported_data_vo_types[i];
+
+            let importeds: IVarDataVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVarDataVOBase>(
+                var_imported_data_vo_type, 'var_id', var_ids_by_imported_data_vo_types[var_imported_data_vo_type]);
+            if (importeds) {
+                for (let j in importeds) {
+                    let imported: IVarDataVOBase = importeds[j];
+
+                    if (!importedDatas[imported.var_id]) {
+                        importedDatas[imported.var_id] = {};
+                    }
+                    importedDatas[imported.var_id][this.getVarControllerById(imported.var_id).varDataParamController.getIndex(imported)] = imported;
+                }
+            }
+        }
+
+        return importedDatas;
     }
 
     private async updateEachData(

@@ -4,6 +4,8 @@ import PerfMonFuncStat from './vos/PerfMonFuncStat';
 
 export default class PerfMonController {
 
+    public static PERFMON_RUN: boolean = false;
+
     public static getInstance(): PerfMonController {
         if (!PerfMonController.instance) {
             PerfMonController.instance = new PerfMonController();
@@ -12,7 +14,6 @@ export default class PerfMonController {
     }
 
     private static PERFMON_UID: number = 0;
-    private static PERFMON_RUN: boolean = false;
 
     private static instance: PerfMonController = null;
 
@@ -53,7 +54,7 @@ export default class PerfMonController {
 
     public endPerfMon(perfMon_UID: string) {
 
-        if ((!PerfMonController.PERFMON_RUN) || (perfMon_UID)) {
+        if ((!PerfMonController.PERFMON_RUN) || (!perfMon_UID)) {
             return null;
         }
 
@@ -83,5 +84,13 @@ export default class PerfMonController {
                 (perfMonFuncStat.mean_duration.asMilliseconds() * (perfMonFuncStat.nb_calls - 1) + perfMonData.duration.asMilliseconds()) /
                 perfMonFuncStat.nb_calls, 'milliseconds');
         }
+    }
+
+    public getLastPerfMonFuncData(function_uid: string): PerfMonData {
+        return ((!!this.perfMonDataByFunctionUID[function_uid]) && (this.perfMonDataByFunctionUID[function_uid].length > 0)) ?
+            this.perfMonDataByFunctionUID[function_uid][this.perfMonDataByFunctionUID[function_uid].length - 1] : null;
+    }
+    public getPerfMonFuncStat(function_uid: string): PerfMonFuncStat {
+        return this.perfMonFuncStatByFunctionUID[function_uid];
     }
 }
