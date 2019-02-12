@@ -48,7 +48,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_name_code(VarsController.getInstance().getVarControllerById(this.var_param.var_id).varConf), this.var_param);
+        return this.t(VarsController.getInstance().get_translatable_name_code(this.var_param.var_id));
     }
 
     get var_description(): string {
@@ -56,7 +56,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_description_code(VarsController.getInstance().getVarControllerById(this.var_param.var_id).varConf), this.var_param);
+        return this.t(VarsController.getInstance().get_translatable_description_code(this.var_param.var_id));
     }
 
     get var_params_desc(): string {
@@ -64,7 +64,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_params_desc_code(VarsController.getInstance().getVarControllerById(this.var_param.var_id).varConf), this.var_param);
+        return this.t(VarsController.getInstance().get_translatable_params_desc_code(this.var_param.var_id), this.var_param);
     }
 
     get var_deps(): IVarDataParamVOBase[] {

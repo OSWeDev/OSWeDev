@@ -8,6 +8,7 @@ import VarControllerBase from '../VarControllerBase';
 import VarsController from '../VarsController';
 import VarConfVOBase from '../vos/VarConfVOBase';
 import VarsCumulsController from './VarsCumulsController';
+import IDataSourceController from '../../DataSource/interfaces/IDataSourceController';
 
 export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
 
@@ -33,10 +34,16 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
     public async end_batch(BATCH_UID: number, vars_params: { [index: string]: TDataParam }, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) { }
 
     /**
-     * Returns the var_ids that we depend upon (or might depend)
-     * @param BATCH_UID
+     * Returns the datasources this var depends on
      */
-    public async getVarsIdsDependencies(BATCH_UID: number): Promise<number[]> {
+    public getDataSourcesDependencies(): Array<IDataSourceController<any, any>> {
+        return [];
+    }
+
+    /**
+     * Returns the var_ids that we depend upon (or might depend)
+     */
+    public getVarsIdsDependencies(): number[] {
         return [this.varConfToCumulate.id];
     }
 

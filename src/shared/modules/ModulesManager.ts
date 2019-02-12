@@ -1,13 +1,11 @@
-import IModuleBase from "./IModuleBase";
-import ModuleWrapper from "./ModuleWrapper";
-import ModuleTable from './ModuleTable';
-import ModuleVO from './ModuleVO';
-import DefaultTranslation from './Translation/vos/DefaultTranslation';
-import ModuleTableField from './ModuleTableField';
 import IDistantVOBase from './IDistantVOBase';
-import ConversionHandler from '../tools/ConversionHandler';
-import VOsTypesManager from './VOsTypesManager';
+import IModuleBase from "./IModuleBase";
 import Module from './Module';
+import ModuleTable from './ModuleTable';
+import ModuleTableField from './ModuleTableField';
+import ModuleVO from './ModuleVO';
+import ModuleWrapper from "./ModuleWrapper";
+import DefaultTranslation from './Translation/vos/DefaultTranslation';
 
 export default class ModulesManager {
 

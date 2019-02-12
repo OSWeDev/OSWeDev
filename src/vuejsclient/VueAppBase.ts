@@ -51,6 +51,8 @@ import AjaxCacheComponentPlaceholder from './ts/components/ajaxcache/component/A
 import VarDataRefComponent from './ts/components/Var/components/dataref/VarDataRefComponent';
 import VarDescComponent from './ts/components/Var/components/desc/VarDescComponent';
 import VarsController from '../shared/modules/Var/VarsController';
+import VarDataIfComponent from './ts/components/Var/components/varif/VarDataIfComponent';
+import VarDataBarChartComponent from './ts/components/Var/components/databarchart/VarDataBarChartComponent';
 
 export default abstract class VueAppBase {
 
@@ -295,6 +297,8 @@ export default abstract class VueAppBase {
         Vue.component('vue-dropzone', vueDropzone);
         Vue.component('var-data', VarDataRefComponent);
         Vue.component('var-desc', VarDescComponent);
+        Vue.component('var-if', VarDataIfComponent);
+        Vue.component('var-bar-chart', VarDataBarChartComponent);
 
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS)) {

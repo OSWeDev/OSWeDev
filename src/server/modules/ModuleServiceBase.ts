@@ -50,6 +50,7 @@ import ModuleCMSServer from './CMS/ModuleCMSServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVarServer from './Var/ModuleVarServer';
+import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 
 export default abstract class ModuleServiceBase {
 
@@ -280,6 +281,7 @@ export default abstract class ModuleServiceBase {
             ModuleImage.getInstance(),
             ModuleTrigger.getInstance(),
             ModuleCron.getInstance(),
+            ModuleDataSource.getInstance(),
             ModuleVar.getInstance(),
             ModulePushData.getInstance(),
             ModuleFormatDatesNombres.getInstance(),
