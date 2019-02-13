@@ -1,10 +1,11 @@
 import PerfMonData from './vos/PerfMonData';
 import moment = require('moment');
 import PerfMonFuncStat from './vos/PerfMonFuncStat';
+import { debounce } from 'fullcalendar';
 
 export default class PerfMonController {
 
-    public static PERFMON_RUN: boolean = false;
+    public static PERFMON_RUN: boolean = true;
 
     public static getInstance(): PerfMonController {
         if (!PerfMonController.instance) {
@@ -20,6 +21,9 @@ export default class PerfMonController {
     public perfMonDataByFunctionUID: { [function_uid: string]: PerfMonData[] } = {};
     public perfMonDataByUID: { [uid: string]: PerfMonData } = {};
     public perfMonFuncStatByFunctionUID: { [function_uid: string]: PerfMonFuncStat } = {};
+    public setPerfMonFuncStats: (perfMonFuncStat: PerfMonFuncStat[]) => void = null;
+
+    private toUpdate_perfMonFuncStats: PerfMonFuncStat[] = [];
 
     private constructor() { }
 
@@ -64,6 +68,7 @@ export default class PerfMonController {
 
         if (!this.perfMonFuncStatByFunctionUID[perfMonData.function_uid]) {
             this.perfMonFuncStatByFunctionUID[perfMonData.function_uid] = new PerfMonFuncStat();
+            this.perfMonFuncStatByFunctionUID[perfMonData.function_uid].function_uid = perfMonData.function_uid;
         }
 
         let perfMonFuncStat: PerfMonFuncStat = this.perfMonFuncStatByFunctionUID[perfMonData.function_uid];
@@ -76,6 +81,11 @@ export default class PerfMonController {
         }
 
         perfMonFuncStat.nb_calls++;
+        if (!perfMonFuncStat.total_duration) {
+            perfMonFuncStat.total_duration = perfMonData.duration;
+        } else {
+            perfMonFuncStat.total_duration.add(perfMonData.duration);
+        }
 
         if (!perfMonFuncStat.mean_duration) {
             perfMonFuncStat.mean_duration = perfMonData.duration;
@@ -84,6 +94,23 @@ export default class PerfMonController {
                 (perfMonFuncStat.mean_duration.asMilliseconds() * (perfMonFuncStat.nb_calls - 1) + perfMonData.duration.asMilliseconds()) /
                 perfMonFuncStat.nb_calls, 'milliseconds');
         }
+
+        if (!!this.setPerfMonFuncStats) {
+            this.toUpdate_perfMonFuncStats.push(perfMonFuncStat);
+            this.debounced_setPerfMonFuncStat();
+        }
+    }
+
+    get debounced_setPerfMonFuncStat() {
+
+        let self = this;
+        return debounce(async () => {
+
+            if (!!self.setPerfMonFuncStats) {
+
+                self.setPerfMonFuncStats(self.toUpdate_perfMonFuncStats);
+            }
+        }, 500);
     }
 
     public getLastPerfMonFuncData(function_uid: string): PerfMonData {

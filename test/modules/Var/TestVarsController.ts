@@ -234,6 +234,15 @@ describe('VarsController', () => {
         expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
         expect(PerfMonController.getInstance().getLastPerfMonFuncData("hasDependancy").duration.asMilliseconds()).to.be.below(10);
 
+        deps_by_var_id = {
+            [2]: [],
+            [1]: [2],
+            [3]: [],
+            [4]: [],
+            [5]: [],
+            [6]: [],
+            [7]: [],
+        };
         expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
         expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
         expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);

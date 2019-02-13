@@ -1,15 +1,13 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
+import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
+import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VueComponentBase from '../../../VueComponentBase';
+import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
 import moment = require('moment');
-import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarGetter, ModuleVarAction } from '../../store/VarStore';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
-import VarControllerBase from '../../../../../../shared/modules/Var/VarControllerBase';
-import IDateIndexedSimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/IDateIndexedSimpleNumberVarData';
-import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -52,7 +50,7 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     get is_being_updated(): boolean {
         return (!!this.getUpdatingParamsByVarsIds) && (!!this.var_param) && (!!this.getUpdatingParamsByVarsIds[this.var_param.var_id]) &&
-            (!!this.getUpdatingParamsByVarsIds[this.var_param.var_id][this.var_index]);
+            (!!this.getUpdatingParamsByVarsIds[this.var_param.var_id][VarsController.getInstance().getIndex(this.var_param)]);
     }
 
     get filtered_value() {
@@ -78,15 +76,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (!this.isDescMode) {
             return false;
         }
-        return this.getDescSelectedIndex == this.var_index;
-    }
-
-    get var_index(): string {
-        if ((!this.var_param) || (!VarsController.getInstance().getVarControllerById(this.var_param.var_id))) {
-            return null;
-        }
-
-        return VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param);
+        return this.getDescSelectedIndex == VarsController.getInstance().getIndex(this.var_param);
     }
 
     get var_data(): IVarDataVOBase {
@@ -95,7 +85,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return null;
         }
 
-        return this.getVarDatas[this.var_index];
+        return this.getVarDatas[VarsController.getInstance().getIndex(this.var_param)];
     }
 
     public destroyed() {
@@ -105,6 +95,11 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     @Watch('var_param', { immediate: true })
     private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+
+        // On doit vérifier qu'ils sont bien différents
+        if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
+            return;
+        }
 
         if (old_var_param) {
             VarsController.getInstance().unregisterDataParam(old_var_param);
@@ -120,6 +115,6 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-        this.setDescSelectedIndex(this.var_index);
+        this.setDescSelectedIndex(VarsController.getInstance().getIndex(this.var_param));
     }
 }

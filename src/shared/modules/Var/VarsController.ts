@@ -132,6 +132,7 @@ export default class VarsController {
     /**
      * Pushes all BatchCached datas of this Batch_uid to the store and clears the cache
      */
+    @PerfMonFunction
     public flushVarsDatas(BATCH_UID: number) {
         if ((!this.varDatasBATCHCache) || (!this.varDatasBATCHCache[BATCH_UID])) {
             return;
@@ -147,6 +148,7 @@ export default class VarsController {
         delete this.varDatasBATCHCache[BATCH_UID];
     }
 
+    @PerfMonFunction
     public setVarData<T extends IVarDataVOBase>(varData: T, set_in_batch_cache: boolean = false) {
 
         if ((!varData) || (!this.getVarControllerById(varData.var_id)) || (!this.getVarControllerById(varData.var_id).varDataParamController)) {
@@ -186,6 +188,7 @@ export default class VarsController {
      * 2 objectifs : mettre à jour le cache du batch en cours, et mettre à jour le store pour les datas qui sont affichées
      * @param imported_datas
      */
+    @PerfMonFunction
     public setImportedDatas<T extends IVarDataVOBase>(imported_datas: { [var_id: number]: { [param_index: string]: T } }) {
 
         if (!imported_datas) {
@@ -216,6 +219,7 @@ export default class VarsController {
         }
     }
 
+    @PerfMonFunction
     public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, search_in_batch_cache: boolean = false): T {
 
         if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
@@ -269,6 +273,7 @@ export default class VarsController {
         this.setUpdatingParamsByVarsIds = setUpdatingParamsByVarsIds;
     }
 
+    @PerfMonFunction
     public stageUpdateVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase) {
 
         let res: { [index: string]: IVarDataParamVOBase } = DataSourcesController.getInstance().getUpdatedParamsFromVoUpdate(vo_before_update, vo_after_update);
@@ -282,6 +287,7 @@ export default class VarsController {
         }
     }
 
+    @PerfMonFunction
     public stageUpdateData<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
         if (!this.waitingForUpdate) {
             this.waitingForUpdate = {};
@@ -314,6 +320,7 @@ export default class VarsController {
         this.debouncedUpdateDatas();
     }
 
+    @PerfMonFunction
     public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = true) {
         if (!this.registeredDatasParamsIndexes) {
             this.registeredDatasParamsIndexes = {};
@@ -339,6 +346,7 @@ export default class VarsController {
         }
     }
 
+    @PerfMonFunction
     public unregisterDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
         if (!this.registeredDatasParamsIndexes) {
             this.registeredDatasParamsIndexes = {};
@@ -369,7 +377,7 @@ export default class VarsController {
             // ça veut dire qu'on demande un update alors qu'un est déjà en cours.
             // Il faut pouvoir revenir s'en occuper
             this.updateSemaphore_needs_reload = true;
-            return;
+            return () => { };
         }
 
         let self = this;
@@ -379,26 +387,27 @@ export default class VarsController {
             //  et si oui relancer une mise à jour.
             // ATTENTION : Risque d'explosion de la pile des appels si on a un temps trop élevé de résolution des variables, par rapport à une mise
             //  à jour automatique par exemple à intervale régulier, plus court que le temps de mise à jour.
-            if (this.updateSemaphore) {
+            if (self.updateSemaphore) {
                 return;
             }
-            this.updateSemaphore_needs_reload = false;
-            this.updateSemaphore = true;
+            self.updateSemaphore_needs_reload = false;
+            self.updateSemaphore = true;
             try {
                 await self.updateDatas();
             } catch (error) {
                 console.error(error);
             }
 
-            this.updateSemaphore = false;
-            if (this.updateSemaphore_needs_reload) {
+            self.updateSemaphore = false;
+            if (self.updateSemaphore_needs_reload) {
                 // Si on a eu des demandes pendant ce calcul on relance le plus vite possible
-                this.updateSemaphore_needs_reload = false;
-                this.debouncedUpdateDatas();
+                self.updateSemaphore_needs_reload = false;
+                self.debouncedUpdateDatas();
             }
         }, 100);
     }
 
+    @PerfMonFunction
     public getImportedVarsDatasByIndexFromArray<TImportedData extends IVarDataVOBase>(
         compteursValeursImportees: TImportedData[]): { [var_id: number]: { [param_index: string]: TImportedData } } {
         let res: { [var_id: number]: { [param_index: string]: TImportedData } } = {};
@@ -455,6 +464,7 @@ export default class VarsController {
         return res ? res : null;
     }
 
+    @PerfMonFunction
     public async registerVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>): Promise<VarConfVOBase> {
         if ((!varConf) || (!controller)) {
             return null;
@@ -492,6 +502,7 @@ export default class VarsController {
     /**
      * Utilisé pour les tests unitaires
      */
+    @PerfMonFunction
     public unregisterVar(varConf: VarConfVOBase) {
         if (this.registered_vars && varConf && this.registered_vars[varConf.name]) {
             delete this.registered_vars[varConf.name];
@@ -592,6 +603,7 @@ export default class VarsController {
     /**
      * Public pour TestUnit TODO TESTUNIT UNITTEST
      */
+    @PerfMonFunction
     public async solveVarsDependencies(
         params: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate)
     ): Promise<{ [from_var_id: number]: number[] }> {
@@ -652,6 +664,7 @@ export default class VarsController {
      * On cherche à stocker toutes les deps connues, à la fois de param => deps nécessaires au calcul et param => calculs impactés
      * TODO FIXME DIRTY : il faut aussi retirer les deps qui ne sont plus valides si on deregister des vars...
      */
+    @PerfMonFunction
     public mergeDeps() {
 
         for (let param_index in this.last_batch_dependencies_by_param) {
@@ -683,6 +696,7 @@ export default class VarsController {
     /**
      * Public pour TestUnit TODO TESTUNIT UNITTEST
      */
+    @PerfMonFunction
     public getDataParamsByVarId(
         params: { [paramIndex: string]: IVarDataParamVOBase },
         imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): { [var_id: number]: { [index: string]: IVarDataParamVOBase } } {
@@ -711,6 +725,7 @@ export default class VarsController {
     /**
      * Public pour TestUnit TODO TESTUNIT UNITTEST
      */
+    @PerfMonFunction
     public sortDataParamsForUpdate(params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
 
         // On demande l'ordre dans lequel résoudre les params
@@ -729,6 +744,7 @@ export default class VarsController {
     /**
      * Public pour TestUnit TODO TESTUNIT UNITTEST
      */
+    @PerfMonFunction
     public async loadVarsDatasAndLoadParamsDeps(
         ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
         deps_by_var_id: { [from_var_id: number]: number[] },
@@ -806,6 +822,42 @@ export default class VarsController {
         }
     }
 
+    /**
+     * Compare params. Return true if same
+     * @param p1
+     * @param p2
+     */
+    @PerfMonFunction
+    public isSameParam(p1: IVarDataParamVOBase, p2: IVarDataParamVOBase): boolean {
+        return VarsController.getInstance().getIndex(p1) == VarsController.getInstance().getIndex(p2);
+    }
+
+    /**
+     * Compare params. Return true if same and in same order
+     * @param ps1
+     * @param ps2
+     */
+    @PerfMonFunction
+    public isSameParamArray(ps1: IVarDataParamVOBase[], ps2: IVarDataParamVOBase[]): boolean {
+        ps1 = (!!ps1) ? ps1 : [];
+        ps2 = (!!ps2) ? ps2 : [];
+
+        if (ps1.length != ps2.length) {
+            return false;
+        }
+
+        for (let i in ps1) {
+            let p1: IVarDataParamVOBase = ps1[i];
+            let p2: IVarDataParamVOBase = ps2[i];
+
+            if (VarsController.getInstance().getIndex(p1) != VarsController.getInstance().getIndex(p2)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @PerfMonFunction
     private setVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>) {
         this.registered_vars[varConf.name] = varConf;
         this.registered_vars_controller[varConf.name] = controller;
@@ -819,6 +871,7 @@ export default class VarsController {
      * On va chercher à dépiler toutes les demandes en attente,
      *  et dans un ordre définit par le controller du type de var group
      */
+    @PerfMonFunction
     private async updateDatas() {
 
         if (!!this.setUpdatingDatas) {
@@ -884,6 +937,7 @@ export default class VarsController {
         }
     }
 
+    @PerfMonFunction
     private async loadAllDatasImported(deps_by_var_id: { [from_var_id: number]: number[] }): Promise<{ [var_id: number]: { [param_index: string]: IVarDataVOBase } }> {
 
         // But : tout charger en un minimum de requête
@@ -923,6 +977,7 @@ export default class VarsController {
         return importedDatas;
     }
 
+    @PerfMonFunction
     private async updateEachData(
         deps_by_var_id: { [from_var_id: number]: number[] },
         ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },

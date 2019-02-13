@@ -1,6 +1,10 @@
 import PerfMonController from '../PerfMonController';
 
 export default function PerfMonFunction(target, name, desc) {
+    if (!PerfMonController.PERFMON_RUN) {
+        return;
+    }
+
     var method = desc.value;
     desc.value = function () {
 

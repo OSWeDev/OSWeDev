@@ -1,6 +1,5 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
-import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
@@ -33,21 +32,13 @@ export default class VarDataIfComponent extends VueComponentBase {
     @Prop({ default: false })
     public reload_on_mount: boolean;
 
-    get var_index(): string {
-        if ((!this.var_param) || (!VarsController.getInstance().getVarControllerById(this.var_param.var_id))) {
-            return null;
-        }
-
-        return VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param);
-    }
-
     get var_data(): IVarDataVOBase {
 
         if ((!this.getVarDatas) || (!this.var_param)) {
             return null;
         }
 
-        return this.getVarDatas[this.var_index];
+        return this.getVarDatas[VarsController.getInstance().getIndex(this.var_param)];
     }
 
     public destroyed() {
@@ -57,6 +48,11 @@ export default class VarDataIfComponent extends VueComponentBase {
 
     @Watch('var_param', { immediate: true })
     private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+
+        // On doit vérifier qu'ils sont bien différents
+        if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
+            return;
+        }
 
         if (old_var_param) {
             VarsController.getInstance().unregisterDataParam(old_var_param);

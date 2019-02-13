@@ -93,8 +93,11 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
      * On a pas accès aux imports, mais en fait il sont chargés à cette étape et ça permettrait d'optimiser cette étape. à voir
      * @param params
      */
-    public getSelfImpacted(params: TDataParam[]): TDataParam[] {
+    public getSelfImpacted(params: TDataParam[], registered: { [paramIndex: string]: TDataParam }): TDataParam[] {
         let res: TDataParam[] = [];
+
+        let min_date: Moment = null;
+        let max_date: Moment = null;
 
         for (let i in params) {
             let param: TDataParam = params[i];
@@ -102,24 +105,49 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
             let start_date: Moment = this.getImpactedCADStartDate(param);
             let end_date: Moment = this.getImpactedCADEndDate(param);
 
-            let date: Moment = moment(start_date);
-            while (date.isSameOrBefore(end_date)) {
-                let new_param: TDataParam = Object.assign({}, param);
-                let new_cumul_param: TDataParam = Object.assign({}, param);
-
-                new_cumul_param.date_index = DateHandler.getInstance().formatDayForIndex(date);
-                new_param.date_index = DateHandler.getInstance().formatDayForIndex(date);
-                new_param.var_id = this.varConfToCumulate.id;
-
-                // TODO FIXME Si on a un import, on peut ignorer le passé et demander les deps à partir de cette date uniquement
-                if (res.indexOf(new_param) < 0) {
-                    res.push(new_param);
-                }
-
-                date.add(1, 'day');
+            if (((!min_date) || (start_date && min_date.isAfter(start_date)))) {
+                min_date = start_date;
             }
 
+            if (((!max_date) || (end_date && max_date.isBefore(end_date)))) {
+                max_date = end_date;
+            }
         }
+
+        for (let i in registered) {
+
+            if (moment(registered[i].date_index).isBetween(min_date, max_date, 'day', "[]")) {
+                res.push(registered[i]);
+            }
+        }
+
+        // for (let i in params) {
+        //     let param: TDataParam = params[i];
+
+        //     let start_date: Moment = this.getImpactedCADStartDate(param);
+        //     let end_date: Moment = this.getImpactedCADEndDate(param);
+
+        //     for (let i in )
+
+        //     let date: Moment = moment(start_date);
+        //     while (date.isSameOrBefore(end_date)) {
+        //         let new_param: TDataParam = Object.assign({}, param);
+        //         let new_cumul_param: TDataParam = Object.assign({}, param);
+
+        //         new_cumul_param.date_index = DateHandler.getInstance().formatDayForIndex(date);
+        //         new_param.date_index = DateHandler.getInstance().formatDayForIndex(date);
+        //         new_param.var_id = this.varConfToCumulate.id;
+
+        //         // On impact que si on a 
+        //         // TODO FIXME Si on a un import, on peut ignorer le passé et demander les deps à partir de cette date uniquement
+        //         if (res.indexOf(new_param) < 0) {
+        //             res.push(new_param);
+        //         }
+
+        //         date.add(1, 'day');
+        //     }
+
+        // }
 
         return res;
     }

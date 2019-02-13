@@ -19,6 +19,7 @@ export interface IVarState {
     desc_deps_opened: boolean;
     desc_registrations_opened: boolean;
     updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } };
+    desc_funcstats_opened: boolean;
 }
 
 
@@ -53,6 +54,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             desc_opened: false,
             desc_deps_opened: false,
             desc_registrations_opened: false,
+            desc_funcstats_opened: false,
             updating_params_by_vars_ids: {}
         };
 
@@ -69,6 +71,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             },
             isDescRegistrationsOpened(state: IVarState): boolean {
                 return state.desc_registrations_opened;
+            },
+            isDescFuncStatsOpened(state: IVarState): boolean {
+                return state.desc_funcstats_opened;
             },
             isUpdating(state: IVarState): boolean {
                 return state.is_updating;
@@ -100,6 +105,10 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
             setDescRegistrationsOpened(state: IVarState, desc_registrations_opened: boolean) {
                 state.desc_registrations_opened = desc_registrations_opened;
+            },
+
+            setDescFuncStatsOpened(state: IVarState, desc_funcstats_opened: boolean) {
+                state.desc_funcstats_opened = desc_funcstats_opened;
             },
 
             setDescMode(state: IVarState, desc_mode: boolean) {
@@ -171,7 +180,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setDescRegistrationsOpened(context: VarContext, desc_registrations_opened: boolean) {
                 commitSetDescRegistrationsOpened(context, desc_registrations_opened);
             },
-
+            setDescFuncStatsOpened(context: VarContext, desc_funcstats_opened: boolean) {
+                commitsetDescFuncStatsOpened(context, desc_funcstats_opened);
+            },
             setDescSelectedIndex(context: VarContext, desc_selected_index: string) {
                 commitSetDescSelectedIndex(context, desc_selected_index);
             },
@@ -199,6 +210,7 @@ export const commitSetIsUpdating = commit(VarStore.getInstance().mutations.setIs
 export const commitSetDescMode = commit(VarStore.getInstance().mutations.setDescMode);
 export const commitSetDescOpened = commit(VarStore.getInstance().mutations.setDescOpened);
 export const commitSetDescRegistrationsOpened = commit(VarStore.getInstance().mutations.setDescRegistrationsOpened);
+export const commitsetDescFuncStatsOpened = commit(VarStore.getInstance().mutations.setDescFuncStatsOpened);
 export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
 export const commitSetUpdatingParamsByVarsIds = commit(VarStore.getInstance().mutations.setUpdatingParamsByVarsIds);
 export const commitSetDescSelectedIndex = commit(VarStore.getInstance().mutations.setDescSelectedIndex);

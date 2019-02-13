@@ -50,6 +50,8 @@ export default class VarDataBarChartComponent extends VueComponentBase {
     @Prop({ default: false })
     public reload_on_mount: boolean;
 
+    private datasets: any[] = [];
+    private labels: string[] = [];
 
     public mounted() {
 
@@ -59,22 +61,32 @@ export default class VarDataBarChartComponent extends VueComponentBase {
     public destroyed() {
 
         for (let i in this.var_params) {
-            let var_param: IVarDataParamVOBase = this.var_params[i];
-            VarsController.getInstance().unregisterDataParam(var_param);
+
+            // sur chaque dimension
+            for (let j in this.var_dataset_descriptors) {
+                let var_dataset_descriptor: VarDataSetDescriptor = this.var_dataset_descriptors[j];
+
+                let var_param: IVarDataParamVOBase = Object.assign({}, this.var_params[i]);
+                var_param.var_id = var_dataset_descriptor.var_id;
+                VarsController.getInstance().unregisterDataParam(var_param);
+            }
         }
     }
 
     get all_data_loaded(): boolean {
 
+        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptors) || (!this.var_dataset_descriptors.length)) {
+            return false;
+        }
+
         for (let i in this.var_params) {
-            let var_param: IVarDataParamVOBase = this.var_params[i];
 
             for (let j in this.var_dataset_descriptors) {
                 let var_dataset_descriptor: VarDataSetDescriptor = this.var_dataset_descriptors[j];
 
-                let this_var_param: IVarDataParamVOBase = Object.assign({}, var_param);
-                this_var_param.var_id = var_dataset_descriptor.var_id;
-                let param_index: string = VarsController.getInstance().getIndex(this_var_param);
+                let var_param: IVarDataParamVOBase = Object.assign({}, this.var_params[i]);
+                var_param.var_id = var_dataset_descriptor.var_id;
+                let param_index: string = VarsController.getInstance().getIndex(var_param);
 
                 if ((!this.getVarDatas) || (!this.getVarDatas[param_index])) {
                     return false;
@@ -106,18 +118,92 @@ export default class VarDataBarChartComponent extends VueComponentBase {
     @Watch('var_params', { immediate: true })
     private onChangeVarParam(new_var_params: IVarDataParamVOBase[], old_var_params: IVarDataParamVOBase[]) {
 
+        // On doit vérifier qu'ils sont bien différents
+        if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
+            return;
+        }
+
         if (old_var_params) {
             for (let i in old_var_params) {
-                let old_var_param: IVarDataParamVOBase = old_var_params[i];
-                VarsController.getInstance().unregisterDataParam(old_var_param);
+
+                // sur chaque dimension
+                for (let j in this.var_dataset_descriptors) {
+                    let var_dataset_descriptor: VarDataSetDescriptor = this.var_dataset_descriptors[j];
+
+                    let var_param: IVarDataParamVOBase = Object.assign({}, old_var_params[i]);
+                    var_param.var_id = var_dataset_descriptor.var_id;
+                    VarsController.getInstance().unregisterDataParam(var_param);
+                }
             }
         }
 
         if (new_var_params) {
             for (let i in new_var_params) {
-                let new_var_param: IVarDataParamVOBase = new_var_params[i];
-                VarsController.getInstance().registerDataParam(new_var_param, this.reload_on_mount);
+
+                // sur chaque dimension
+                for (let j in this.var_dataset_descriptors) {
+                    let var_dataset_descriptor: VarDataSetDescriptor = this.var_dataset_descriptors[j];
+
+                    let var_param: IVarDataParamVOBase = Object.assign({}, new_var_params[i]);
+                    var_param.var_id = var_dataset_descriptor.var_id;
+                    VarsController.getInstance().registerDataParam(var_param);
+                }
             }
+        }
+
+        this.set_datasets();
+        this.set_labels();
+    }
+
+    @Watch('var_dataset_descriptors')
+    private onchange_descriptors(new_var_dataset_descriptors: VarDataSetDescriptor[], old_var_dataset_descriptors: VarDataSetDescriptor[]) {
+
+        // On doit vérifier qu'ils sont bien différents
+        new_var_dataset_descriptors = new_var_dataset_descriptors ? new_var_dataset_descriptors : [];
+        old_var_dataset_descriptors = old_var_dataset_descriptors ? old_var_dataset_descriptors : [];
+        let same: boolean = true;
+        for (let i in new_var_dataset_descriptors) {
+            if ((!old_var_dataset_descriptors[i]) || (new_var_dataset_descriptors[i].var_id != old_var_dataset_descriptors[i].var_id)) {
+                same = false;
+                break;
+            }
+        }
+        if (same) {
+            return;
+        }
+
+        for (let i in this.var_params) {
+
+            // sur chaque dimension
+            if (!!old_var_dataset_descriptors) {
+                for (let j in old_var_dataset_descriptors) {
+                    let var_dataset_descriptor: VarDataSetDescriptor = old_var_dataset_descriptors[j];
+
+                    let var_param: IVarDataParamVOBase = Object.assign({}, this.var_params[i]);
+                    var_param.var_id = var_dataset_descriptor.var_id;
+                    VarsController.getInstance().unregisterDataParam(var_param);
+                }
+            }
+            if (!!new_var_dataset_descriptors) {
+                for (let j in new_var_dataset_descriptors) {
+                    let var_dataset_descriptor: VarDataSetDescriptor = new_var_dataset_descriptors[j];
+
+                    let var_param: IVarDataParamVOBase = Object.assign({}, this.var_params[i]);
+                    var_param.var_id = var_dataset_descriptor.var_id;
+                    VarsController.getInstance().registerDataParam(var_param);
+                }
+            }
+        }
+
+        this.set_datasets();
+        this.set_labels();
+    }
+
+    @Watch("all_data_loaded")
+    private onchange_all_data_loaded() {
+        if (this.all_data_loaded) {
+            this.set_datasets();
+            this.set_labels();
         }
     }
 
@@ -140,8 +226,9 @@ export default class VarDataBarChartComponent extends VueComponentBase {
             this.options);
     }
 
-    get datasets(): any[] {
-        let res: any[] = [];
+    private set_datasets() {
+
+        this.datasets = [];
 
         if (!this.all_data_loaded) {
             return null;
@@ -157,7 +244,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
                 dataset_datas.push(this.get_filtered_value(this.getVarDatas[VarsController.getInstance().getIndex(var_param)] as ISimpleNumberVarData));
             }
 
-            res.push({
+            this.datasets.push({
                 label: (!!var_dataset_descriptor.label_translatable_code) ?
                     this.t(var_dataset_descriptor) :
                     this.t(VarsController.getInstance().get_translatable_name_code(var_dataset_descriptor.var_id)),
@@ -166,8 +253,6 @@ export default class VarDataBarChartComponent extends VueComponentBase {
                 yAxisID: var_dataset_descriptor.y_axis_id
             });
         }
-
-        return res;
     }
 
     private render_chart_js() {
@@ -189,13 +274,13 @@ export default class VarDataBarChartComponent extends VueComponentBase {
         this.render_chart_js();
     }
 
-    get labels(): string[] {
-        let res: string[] = [];
+    private set_labels(): string[] {
+        this.labels = [];
 
         for (let i in this.var_params) {
-            res.push(this.getlabel(this.var_params[i]));
+            this.labels.push(this.getlabel(this.var_params[i]));
         }
 
-        return res;
+        return this.labels;
     }
 }

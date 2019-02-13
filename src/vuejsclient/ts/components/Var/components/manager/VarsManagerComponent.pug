@@ -6,13 +6,19 @@
             i.fa.fa-2x.fa-search-minus.fa-fw(aria-hidden="true" v-if='isDescOpened' @click='setDescOpened(!isDescOpened)')
             
             i.fa.fa-2x.fa-list-alt.fa-fw(aria-hidden="true" @click='setDescRegistrationsOpened(!isDescRegistrationsOpened)')
+
+            i.fa.fa-2x.fa-clock-o.fa-fw(aria-hidden="true" @click='setDescFuncStatsOpened(!isDescFuncStatsOpened)')
+            
                     
         i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true" v-if='isUpdating' :class="{'fa-2x': isDescMode}")
         i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-else :class="{'fa-2x': isDescMode}" @click='switchDescMode')
 
     .desc_window(v-if='isDescMode && isDescOpened')
         template(v-if='!!getDescSelectedIndex')
-            var-desc(:var_param='getVarDatas[getDescSelectedIndex]')
+            var-desc(:var_param='selected_param')
 
     .desc_window(v-if='isDescMode && isDescRegistrationsOpened')
         var-desc-registrations
+
+    .desc_window(v-if='isDescMode && isDescFuncStatsOpened')
+        perfmon-funcstats

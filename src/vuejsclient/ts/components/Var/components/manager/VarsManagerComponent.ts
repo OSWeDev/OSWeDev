@@ -10,11 +10,13 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarDescRegistrationsComponent from '../desc/registrations/VarDescRegistrationsComponent';
+import FuncStatsComponent from '../../../PerfMon/components/funcStats/FuncStatsComponent';
 
 @Component({
     template: require('./VarsManagerComponent.pug'),
     components: {
-        "var-desc-registrations": VarDescRegistrationsComponent
+        "var-desc-registrations": VarDescRegistrationsComponent,
+        "perfmon-funcstats": FuncStatsComponent
     }
 })
 export default class VarsManagerComponent extends VueComponentBase {
@@ -28,6 +30,8 @@ export default class VarsManagerComponent extends VueComponentBase {
     public isDescOpened: boolean;
     @ModuleVarGetter
     public isDescRegistrationsOpened: boolean;
+    @ModuleVarGetter
+    public isDescFuncStatsOpened: boolean;
     @ModuleVarGetter
     public getDescSelectedIndex: string;
     @ModuleVarGetter
@@ -46,10 +50,22 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarAction
     public setDescRegistrationsOpened: (desc_registrations_opened: boolean) => void;
     @ModuleVarAction
+    public setDescFuncStatsOpened: (desc_funcstats_opened: boolean) => void;
+    @ModuleVarAction
     public setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) => void;
 
     public mounted() {
         VarsController.getInstance().registerStoreHandlers(this.getVarDatas, this.setVarData, this.setIsUpdating, this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds);
+    }
+
+    /**
+     * ATTENTION FIXME DIRTY ne marche que si on a soit une var registered sélectionnée, soit une var qui a une data (et qui est donc registered a priori)
+     */
+    get selected_param(): IVarDataParamVOBase {
+        return (!!this.getDescSelectedIndex) ?
+            ((!!VarsController.getInstance().registeredDatasParams[this.getDescSelectedIndex]) ?
+                VarsController.getInstance().registeredDatasParams[this.getDescSelectedIndex] :
+                VarsController.getInstance().getVarData[this.getDescSelectedIndex]) : null;
     }
 
     private async switchDescMode() {
