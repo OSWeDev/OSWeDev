@@ -565,12 +565,14 @@ export default class VueComponentBase extends Vue
         AppVuexStoreManager.getInstance().appVuexStore.commit("deactivateEdition");
     }
 
-    get isPrintable() {
+    get isPrintable(): boolean {
         return AppVuexStoreManager.getInstance().appVuexStore.getters.printable;
     }
-    get isExportableToXLSX() {
-        return AppVuexStoreManager.getInstance().appVuexStore.getters
-            .exportableToXLSX;
+    get isExportableToXLSX(): boolean {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.exportableToXLSX;
+    }
+    get printComponent(): any {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.print_component;
     }
 
     protected async export_to_xlsx() {

@@ -9,6 +9,7 @@ export interface IAppMainStoreState {
     editTime: number;
     printable: boolean;
     hook_export_data_to_XLSX: () => ExportDataToXLSXParamVO;
+    print_component: any;
 }
 
 export default class AppMainStoreModule implements IStoreModule<IAppMainStoreState, AppMainStoreContext> {
@@ -34,7 +35,8 @@ export default class AppMainStoreModule implements IStoreModule<IAppMainStoreSta
             editionMode: false,
             editTime: 0,
             printable: false,
-            hook_export_data_to_XLSX: null
+            hook_export_data_to_XLSX: null,
+            print_component: null,
         };
 
         this.getters = {
@@ -46,7 +48,10 @@ export default class AppMainStoreModule implements IStoreModule<IAppMainStoreSta
             },
             hook_export_data_to_XLSX(state: IAppMainStoreState): () => ExportDataToXLSXParamVO {
                 return state.hook_export_data_to_XLSX;
-            }
+            },
+            print_component(state: IAppMainStoreState): any {
+                return state.print_component;
+            },
         };
 
         this.mutations = {
@@ -68,7 +73,10 @@ export default class AppMainStoreModule implements IStoreModule<IAppMainStoreSta
             },
             register_hook_export_data_to_XLSX(state: IAppMainStoreState, hook: () => ExportDataToXLSXParamVO) {
                 state.hook_export_data_to_XLSX = hook;
-            }
+            },
+            register_print_component(state: IAppMainStoreState, print_component: any) {
+                state.print_component = print_component;
+            },
         };
 
         this.actions = {
@@ -80,6 +88,9 @@ export default class AppMainStoreModule implements IStoreModule<IAppMainStoreSta
             },
             register_hook_export_data_to_XLSX(context: AppMainStoreContext, hook: () => ExportDataToXLSXParamVO) {
                 context.commit("register_hook_export_data_to_XLSX", hook);
+            },
+            register_print_component(context: AppMainStoreContext, print_component: any) {
+                context.commit("register_print_component", print_component);
             }
         };
     }
