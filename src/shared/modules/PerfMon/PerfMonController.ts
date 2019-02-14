@@ -1,7 +1,7 @@
 import PerfMonData from './vos/PerfMonData';
 import moment = require('moment');
 import PerfMonFuncStat from './vos/PerfMonFuncStat';
-import { debounce } from 'fullcalendar';
+import * as debounce from 'lodash/debounce';
 
 export default class PerfMonController {
 
