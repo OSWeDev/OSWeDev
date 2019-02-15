@@ -68,6 +68,8 @@ export default class VarsController {
 
     private BATCH_UIDs_by_var_id: { [var_id: number]: number } = {};
 
+    private datasource_deps_defined: boolean = false;
+
     protected constructor() {
     }
 
@@ -107,6 +109,16 @@ export default class VarsController {
     }
 
 
+    /**
+     * TODO TestUnit : on doit indiquer si un impact va avoir lieu sur les registered quand on change un param
+     */
+    public impacts_registered_vars(param: IVarDataParamVOBase): boolean {
+
+        let index: string = this.getIndex(param);
+        if ((!!this.impacts_by_param[index]) && (this.impacts_by_param[index].length > 0)) {
+            return true;
+        }
+    }
 
     public async initialize() {
         this.registered_vars_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<SimpleVarConfVO>(SimpleVarConfVO.API_TYPE_ID));
@@ -273,8 +285,41 @@ export default class VarsController {
         this.setUpdatingParamsByVarsIds = setUpdatingParamsByVarsIds;
     }
 
+    public define_datasource_deps() {
+
+        if (!this.datasource_deps_defined) {
+
+            for (let i in this.registered_vars_controller) {
+                let registered_var_controller = this.registered_vars_controller[i];
+
+                let datasource_deps: Array<IDataSourceController<any, any>> = this.get_datasource_deps(registered_var_controller);
+                datasource_deps = (!!datasource_deps) ? datasource_deps : [];
+                this.datasource_deps_by_var_id[registered_var_controller.varConf.id] = datasource_deps;
+            }
+            this.datasource_deps_defined = true;
+        }
+    }
+
+    public get_datasource_deps(controller: VarControllerBase<any, any>): Array<IDataSourceController<any, any>> {
+        let datasource_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
+        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
+
+        // // On ajoute les deps des vars dont on est dep :
+        // let var_dep_ids: number[] = controller.getVarsIdsDependencies();
+
+        // for (let j in var_dep_ids) {
+        //     let var_dep_id: number = var_dep_ids[j];
+
+        //     let var_dep_datasource_deps: Array<IDataSourceController<any, any>> = this.get_datasource_deps(this.getVarControllerById(var_dep_id));
+        //     datasource_deps = datasource_deps.concat(var_dep_datasource_deps);
+        // }
+        return datasource_deps;
+    }
+
     @PerfMonFunction
     public stageUpdateVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase) {
+
+        this.define_datasource_deps();
 
         let res: { [index: string]: IVarDataParamVOBase } = DataSourcesController.getInstance().getUpdatedParamsFromVoUpdate(vo_before_update, vo_after_update);
 
@@ -863,8 +908,11 @@ export default class VarsController {
         this.registered_vars_controller[varConf.name] = controller;
         this.registered_vars_by_ids[varConf.id] = varConf;
 
-        let datasources_names_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
-        this.datasource_deps_by_var_id[varConf.id] = (!!datasources_names_deps) ? datasources_names_deps : datasources_names_deps;
+        let datasource_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
+        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
+        datasource_deps.forEach((datasource_dep) => {
+            datasource_dep.registerDataSource();
+        });
     }
 
     /**
