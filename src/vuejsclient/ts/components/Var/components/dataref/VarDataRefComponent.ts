@@ -22,7 +22,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     @ModuleVarGetter
     public isDescMode: boolean;
     @ModuleVarGetter
-    public getUpdatingParamsByVarsIds: { [var_id: number]: { [index: string]: IVarDataParamVOBase } };
+    public getUpdatingParamsByVarsIds: { [index: string]: boolean };
 
     @Prop()
     public var_param: IVarDataParamVOBase;
@@ -49,8 +49,8 @@ export default class VarDataRefComponent extends VueComponentBase {
     public zero_value_replacement: string;
 
     get is_being_updated(): boolean {
-        return (!!this.getUpdatingParamsByVarsIds) && (!!this.var_param) && (!!this.getUpdatingParamsByVarsIds[this.var_param.var_id]) &&
-            (!!this.getUpdatingParamsByVarsIds[this.var_param.var_id][VarsController.getInstance().getIndex(this.var_param)]);
+        return (!!this.getUpdatingParamsByVarsIds) && (!!this.var_param) &&
+            (!!this.getUpdatingParamsByVarsIds[VarsController.getInstance().getIndex(this.var_param)]);
     }
 
     get filtered_value() {

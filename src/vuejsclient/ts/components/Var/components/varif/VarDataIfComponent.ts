@@ -20,8 +20,6 @@ export default class VarDataIfComponent extends VueComponentBase {
     public setDescSelectedIndex: (desc_selected_index: string) => void;
     @ModuleVarGetter
     public isDescMode: boolean;
-    @ModuleVarGetter
-    public getUpdatingParamsByVarsIds: { [var_id: number]: { [index: string]: IVarDataParamVOBase } };
 
     @Prop()
     public var_param: IVarDataParamVOBase;

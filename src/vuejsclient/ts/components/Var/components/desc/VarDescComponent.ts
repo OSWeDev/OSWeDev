@@ -9,6 +9,7 @@ import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarControllerBase from '../../../../../../shared/modules/Var/VarControllerBase';
 import { watch } from 'fs';
+import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
 
 @Component({
     template: require('./VarDescComponent.pug')
@@ -67,13 +68,13 @@ export default class VarDescComponent extends VueComponentBase {
         return this.t(VarsController.getInstance().get_translatable_params_desc_code(this.var_param.var_id), this.var_param);
     }
 
-    get var_deps(): IVarDataParamVOBase[] {
+    get var_deps(): { [name: string]: VarDAGNode } {
         if (!this.var_param) {
             return null;
         }
 
-        return VarsController.getInstance().dependencies_by_param[
-            VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param)];
+        return VarsController.getInstance().varDAG.nodes[
+            VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param)].outgoing;
     }
 
     private select_var() {

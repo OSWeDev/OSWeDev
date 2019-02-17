@@ -18,7 +18,7 @@ export interface IVarState {
     desc_opened: boolean;
     desc_deps_opened: boolean;
     desc_registrations_opened: boolean;
-    updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } };
+    updating_params_by_vars_ids: { [index: string]: boolean };
     desc_funcstats_opened: boolean;
 }
 
@@ -84,7 +84,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             getDescSelectedIndex(state: IVarState): string {
                 return state.desc_selected_index;
             },
-            getUpdatingParamsByVarsIds(state: IVarState): { [var_id: number]: { [index: string]: IVarDataParamVOBase } } {
+            getUpdatingParamsByVarsIds(state: IVarState): { [index: string]: boolean } {
                 return state.updating_params_by_vars_ids;
             },
         };
@@ -157,7 +157,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 }
             },
 
-            setUpdatingParamsByVarsIds(state: IVarState, updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
+            setUpdatingParamsByVarsIds(state: IVarState, updating_params_by_vars_ids: { [index: string]: boolean }) {
                 state.updating_params_by_vars_ids = updating_params_by_vars_ids;
             },
         };
@@ -192,7 +192,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             removeVarData(context: VarContext, varDataParam: IVarDataParamVOBase) {
                 commitRemoveVarData(context, varDataParam);
             },
-            setUpdatingParamsByVarsIds(context: VarContext, updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
+            setUpdatingParamsByVarsIds(context: VarContext, updating_params_by_vars_ids: { [index: string]: boolean }) {
                 commitSetUpdatingParamsByVarsIds(context, updating_params_by_vars_ids);
             },
         };

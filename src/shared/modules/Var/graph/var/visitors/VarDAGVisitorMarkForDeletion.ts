@@ -1,14 +1,15 @@
 import DAGNode from '../../dag/DAGNode';
 import DAGVisitorBase from '../../dag/DAGVisitorBase';
+import VarDAG from '../VarDAG';
 
-export default class VarDAGVisitorMarkForDeletion extends DAGVisitorBase {
+export default class VarDAGVisitorMarkForDeletion extends DAGVisitorBase<VarDAG> {
 
     // On check toujours en top => bottom, on part du principe que l'arbre est cohérent (les liens top / bottom sont isos bottom top)
-    public constructor(protected marker_for_deletion: string) {
-        super(true);
+    public constructor(protected marker_for_deletion: string, dag: VarDAG) {
+        super(true, dag);
     }
 
-    public visit(node: DAGNode, path: string[]): boolean {
+    public async visit(node: DAGNode, path: string[]): Promise<boolean> {
 
         if ((!!node.incomingNames) || (node.incomingNames.length > 0)) {
 
@@ -29,7 +30,7 @@ export default class VarDAGVisitorMarkForDeletion extends DAGVisitorBase {
             }
         }
 
-        node.addMarker(this.marker_for_deletion);
+        node.addMarker(this.marker_for_deletion, this.dag);
         return true;
     }
 }

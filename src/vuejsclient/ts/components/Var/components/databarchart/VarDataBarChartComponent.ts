@@ -23,8 +23,6 @@ export default class VarDataBarChartComponent extends VueComponentBase {
     public setDescSelectedIndex: (desc_selected_index: string) => void;
     @ModuleVarGetter
     public isDescMode: boolean;
-    @ModuleVarGetter
-    public getUpdatingParamsByVarsIds: { [var_id: number]: { [index: string]: IVarDataParamVOBase } };
 
     /**
      * TODO FIXME DIRTY : cas particulier des vars_params où l'on ne veut pas trimballer le var_id, on veut juste identifier les segments sur axis

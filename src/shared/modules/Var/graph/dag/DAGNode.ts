@@ -1,4 +1,5 @@
 import DAGVisitorBase from './DAGVisitorBase';
+import DAG from './DAG';
 
 export default class DAGNode {
 
@@ -14,6 +15,12 @@ export default class DAGNode {
 
     public markers: { [marker_id: string]: number } = {};
 
+    public constructor(dag: DAG<any>) { }
+
+    public initializeNode(dag: DAG<any>) {
+    }
+    public prepare_for_deletion(dag: DAG<any>) {
+    }
 
     public hasMarker(marker: string): boolean {
         return (!!this.markers[marker]);
@@ -22,9 +29,14 @@ export default class DAGNode {
     /**
      * Si un marker existe déjà, on l'incrémente
      */
-    public addMarker(marker: string) {
+    public addMarker(marker: string, dag: DAG<any>) {
         if (!this.markers[marker]) {
             this.markers[marker] = 0;
+
+            if (!dag.marked_nodes_names[marker]) {
+                dag.marked_nodes_names[marker] = [];
+            }
+            dag.marked_nodes_names[marker].push(name);
         }
         this.markers[marker]++;
     }
@@ -32,7 +44,7 @@ export default class DAGNode {
     /**
      * Si un marker atteint 0 on le supprime
      */
-    public removeMarker(marker: string) {
+    public removeMarker(marker: string, dag: DAG<any>) {
         if (!this.markers[marker]) {
             console.error('Incohérence de DAG :' + this.name + ':removeMarker:' + marker + ':inexistant');
             return;
@@ -40,6 +52,11 @@ export default class DAGNode {
         this.markers[marker]--;
         if (this.markers[marker] <= 0) {
             delete this.markers[marker];
+
+            let indexof = dag.marked_nodes_names[marker].indexOf(marker);
+            if (indexof >= 0) {
+                dag.marked_nodes_names[marker].splice(indexof, 1);
+            }
         }
     }
 
@@ -86,7 +103,7 @@ export default class DAGNode {
     /**
      * TODO TestUnit le but est de visiter d'un vertex vers le haut donc en suivant les deps de to vers from (incoming)
      */
-    public visit(visitor: DAGVisitorBase, visited?, path?: string[]) {
+    public visit(visitor: DAGVisitorBase<any>, visited?, path?: string[]) {
         let name = this.name;
         let vertices: { [name: string]: DAGNode } = visitor.top_down ? this.outgoing : this.incoming;
         let names: string[] = visitor.top_down ? this.outgoingNames : this.incomingNames;

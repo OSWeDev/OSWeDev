@@ -35,7 +35,7 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarGetter
     public getDescSelectedIndex: string;
     @ModuleVarGetter
-    public getUpdatingParamsByVarsIds: { [var_id: number]: { [index: string]: IVarDataParamVOBase } };
+    public getUpdatingParamsByVarsIds: { [index: string]: boolean };
 
     @ModuleVarAction
     public setVarData: (varData: IVarDataVOBase) => void;
@@ -52,7 +52,7 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarAction
     public setDescFuncStatsOpened: (desc_funcstats_opened: boolean) => void;
     @ModuleVarAction
-    public setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) => void;
+    public setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [index: string]: boolean }) => void;
 
     public mounted() {
         VarsController.getInstance().registerStoreHandlers(this.getVarDatas, this.setVarData, this.setIsUpdating, this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds);
@@ -63,8 +63,8 @@ export default class VarsManagerComponent extends VueComponentBase {
      */
     get selected_param(): IVarDataParamVOBase {
         return (!!this.getDescSelectedIndex) ?
-            ((!!VarsController.getInstance().registeredDatasParams[this.getDescSelectedIndex]) ?
-                VarsController.getInstance().registeredDatasParams[this.getDescSelectedIndex] :
+            ((!!VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex]) ?
+                VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex].param :
                 VarsController.getInstance().getVarData[this.getDescSelectedIndex]) : null;
     }
 
