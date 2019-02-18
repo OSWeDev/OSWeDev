@@ -38,10 +38,11 @@ export default class VarDAGVisitorDefineDeps extends DAGVisitorBase<VarDAG> {
             let dep: IVarDataParamVOBase = deps[i];
             let dep_index: string = VarsController.getInstance().getVarControllerById(dep.var_id).varDataParamController.getIndex(dep);
 
-            this.dag.addEdge(node.name, dep_index);
-            if (!this.dag.nodes[dep_index].param) {
-                this.dag.nodes[dep_index].param = dep;
+            if (!this.dag.nodes[dep_index]) {
+                this.dag.add(dep_index, dep);
             }
+
+            this.dag.addEdge(node.name, dep_index);
         }
 
         node.addMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, this.dag);

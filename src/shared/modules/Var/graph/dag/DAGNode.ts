@@ -1,9 +1,8 @@
 import DAGVisitorBase from './DAGVisitorBase';
 import DAG from './DAG';
+import ObjectHandler from '../../../../tools/ObjectHandler';
 
 export default class DAGNode {
-
-    public name: string;
 
     public incoming = {};
     public incomingNames: string[] = [];
@@ -15,11 +14,17 @@ export default class DAGNode {
 
     public markers: { [marker_id: string]: number } = {};
 
-    public constructor(dag: DAG<any>) { }
+    public constructor(public name: string, dag: DAG<any>) { }
 
     public initializeNode(dag: DAG<any>) {
     }
     public prepare_for_deletion(dag: DAG<any>) {
+
+        while (ObjectHandler.getInstance().hasAtLeastOneAttribute(this.markers)) {
+            let marker = ObjectHandler.getInstance().getFirstAttributeName(this.markers);
+
+            this.removeMarker(marker, dag, true);
+        }
     }
 
     public hasMarker(marker: string): boolean {
@@ -36,7 +41,7 @@ export default class DAGNode {
             if (!dag.marked_nodes_names[marker]) {
                 dag.marked_nodes_names[marker] = [];
             }
-            dag.marked_nodes_names[marker].push(name);
+            dag.marked_nodes_names[marker].push(this.name);
         }
         this.markers[marker]++;
     }
@@ -44,16 +49,24 @@ export default class DAGNode {
     /**
      * Si un marker atteint 0 on le supprime
      */
-    public removeMarker(marker: string, dag: DAG<any>) {
+    public removeMarker(marker: string, dag: DAG<any>, force_deletion: boolean = false) {
         if (!this.markers[marker]) {
             console.error('Incohérence de DAG :' + this.name + ':removeMarker:' + marker + ':inexistant');
             return;
         }
-        this.markers[marker]--;
+
+        if (force_deletion) {
+
+            this.markers[marker] = 0;
+        } else {
+
+            this.markers[marker]--;
+        }
+
         if (this.markers[marker] <= 0) {
             delete this.markers[marker];
 
-            let indexof = dag.marked_nodes_names[marker].indexOf(marker);
+            let indexof = dag.marked_nodes_names[marker].indexOf(this.name);
             if (indexof >= 0) {
                 dag.marked_nodes_names[marker].splice(indexof, 1);
             }
@@ -103,7 +116,7 @@ export default class DAGNode {
     /**
      * TODO TestUnit le but est de visiter d'un vertex vers le haut donc en suivant les deps de to vers from (incoming)
      */
-    public visit(visitor: DAGVisitorBase<any>, visited?, path?: string[]) {
+    public async visit(visitor: DAGVisitorBase<any>, visited?, path?: string[]) {
         let name = this.name;
         let vertices: { [name: string]: DAGNode } = visitor.top_down ? this.outgoing : this.incoming;
         let names: string[] = visitor.top_down ? this.outgoingNames : this.incomingNames;
@@ -121,10 +134,10 @@ export default class DAGNode {
         path.push(name);
         visited[name] = true;
 
-        if (visitor.visit(this, path)) {
+        if (await visitor.visit(this, path)) {
 
             for (let i = 0; i < len; i++) {
-                vertices[names[i]].visit(visitor, visited, path);
+                await vertices[names[i]].visit(visitor, visited, path);
             }
         }
         path.pop();

@@ -57,7 +57,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
 
                     // Suppression en 2 étapes, on marque pour suppression et on demande la suppression des noeuds marqués
                     node.visit(new VarDAGVisitorMarkForDeletion(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION, this));
-                    this.deletedMarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION);
+                    this.deleteMarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION);
                 }
             }
         }

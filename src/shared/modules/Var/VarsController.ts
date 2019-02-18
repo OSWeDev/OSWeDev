@@ -37,7 +37,7 @@ export default class VarsController {
 
     private static instance: VarsController = null;
 
-    public varDAG: VarDAG = new VarDAG((dag: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(dag, param));
+    public varDAG: VarDAG = new VarDAG((name: string, dag: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(name, dag, param));
 
     // public registeredDatasParamsIndexes: { [paramIndex: string]: number } = {};
     // public registeredDatasParams: { [paramIndex: string]: IVarDataParamVOBase } = {};
@@ -951,34 +951,34 @@ export default class VarsController {
 
         // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
         //  ou manuellement en éditant le noeud du varDAG)
-        this.loadImportedDatas();
+        await this.loadImportedDatas();
 
         // Si des deps restent à résoudre, on les gère à ce niveau. On part du principe maintenant qu'on interdit une dep à un datasource pour le
         //  chargement des deps. ça va permettre de booster très fortement les chargements de données. Si un switch impact une dep de var, il
         //  faut l'avoir en param d'un constructeur de var et le changement du switch sera à prendre en compte dans la var au cas par cas.
         // TODO FIXME VARS les deps on les charge quand on ajoute des vars en fait c'est pas mieux ici et on devrait pas avoir à reparcourir l'arbre
         // à ce stade
-        this.solveDeps();
+        await this.solveDeps();
 
         // Une fois les deps à jour, on propage la demande de mise à jour à travers les deps
-        this.propagateUpdateRequest();
+        await this.propagateUpdateRequest();
 
         // On indique dans le store la mise à jour des vars
         this.setUpdatingParamsToStore();
 
         // La demande est propagée jusqu'aux feuilles, on peut demander le chargement de toutes les datas nécessaires, en visitant des feuilles vers le top
-        this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorLoadDataSources(dag));
+        await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorLoadDataSources(dag));
 
         // On visite pour résoudre les calculs
-        this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorCompute(dag));
+        await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorCompute(dag));
 
         // Enfin on décharge les datasources
-        this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorUnloadDataSources(dag));
+        await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorUnloadDataSources(dag));
 
         // On peut nettoyer directement le graph des markers de chargement de visite
-        this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_BATCH_DATASOURCE_LOADED, true));
-        this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_BATCH_DATASOURCE_UNLOADED, true));
-        this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_COMPUTED, true));
+        await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_BATCH_DATASOURCE_LOADED, true));
+        await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_BATCH_DATASOURCE_UNLOADED, true));
+        await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_COMPUTED, true));
 
         if (!!this.setUpdatingParamsByVarsIds) {
             this.setUpdatingParamsByVarsIds({});
@@ -986,7 +986,7 @@ export default class VarsController {
 
         // On supprime le marquage ongoing update et si on a des vars qui sont en attente de mise à jour pour next update, on les passe en attente normale
         //  avant de lancer la récursion
-        this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_ONGOING_UPDATE, true));
+        await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_ONGOING_UPDATE, true));
 
         let needs_new_batch: boolean = false;
         for (let i in this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE]) {
@@ -1159,24 +1159,26 @@ export default class VarsController {
     // }
 
     @PerfMonFunction
-    private solveDeps() {
+    private async solveDeps() {
 
-        if (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length) {
+        if (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
+            (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) {
             // tout est déjà chargé
             return;
         }
 
         // On charge les deps de toutes les roots
-        this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorDefineDeps(dag));
+        await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorDefineDeps(dag));
 
-        if (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length != this.varDAG.nodes_names.length) {
+        if ((!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED]) ||
+            (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length != this.varDAG.nodes_names.length)) {
             console.error('VARDAG incohérence : Le nombre de noeuds chargés est différent du nombre de noeuds total:' +
                 this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length + ":" + this.varDAG.nodes_names.length);
         }
     }
 
     @PerfMonFunction
-    private propagateUpdateRequest() {
+    private async propagateUpdateRequest() {
 
         if (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE]) {
             return;
@@ -1186,8 +1188,8 @@ export default class VarsController {
             let marked_for_update: VarDAGNode = this.varDAG.nodes[this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE][i]];
 
             // On visit dans les 2 sens (bottom/up et up/bottom) puisqu'on veut les deps mais aussi les impacts
-            marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, true, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true));
-            marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, false, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true));
+            await marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, true, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true));
+            await marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, false, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true));
         }
     }
 }

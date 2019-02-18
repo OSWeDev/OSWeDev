@@ -15,25 +15,23 @@ export default class DAG<TNode extends DAGNode> {
 
     public marked_nodes_names: { [marker: string]: string[] } = {};
 
-    public constructor(protected node_constructor: (dag: DAG<TNode>, ...params) => TNode) { }
+    public constructor(protected node_constructor: (name: string, dag: DAG<TNode>, ...params) => TNode) { }
 
     public add(name: string, ...params): TNode {
         if (!name) { return; }
         if (this.nodes.hasOwnProperty(name)) {
             return this.nodes[name];
         }
-        var node: TNode = this.node_constructor.apply(this, params);
-        node.name = name;
+        var node: TNode = this.node_constructor.apply(this, [name, this].concat(params));
+        node.initializeNode(this);
+
         this.nodes[name] = node;
         this.nodes_names.push(name);
 
-        node.initializeNode(this);
+        this.leafs[name] = node;
+        this.roots[name] = node;
 
         return node;
-    }
-
-    public map(name: string, value: any) {
-        this.add(name).value = value;
     }
 
     public addEdge(fromName: string, toName: string) {
@@ -41,8 +39,13 @@ export default class DAG<TNode extends DAGNode> {
             return;
         }
 
-        let from: TNode = this.add(fromName);
-        let to: TNode = this.add(toName);
+        if ((!this.nodes[fromName]) || (!this.nodes[toName])) {
+            console.error('Lien entre noeuds inexistants');
+            return;
+        }
+
+        let from: TNode = this.nodes[fromName];
+        let to: TNode = this.nodes[toName];
 
         if (to.incoming.hasOwnProperty(fromName)) {
             return;
@@ -61,12 +64,19 @@ export default class DAG<TNode extends DAGNode> {
 
         to.incoming[fromName] = from;
         to.incomingNames.push(fromName);
+
+        if (!!this.leafs[fromName]) {
+            delete this.leafs[fromName];
+        }
+        if (!!this.roots[toName]) {
+            delete this.roots[toName];
+        }
     }
 
     /**
      * Supprime tous les noeuds portants un marker spécifique
      */
-    public deletedMarkedNodes(marker: string) {
+    public deleteMarkedNodes(marker: string) {
         let nodes_names: string[] = this.nodes_names.slice();
         for (let i in nodes_names) {
             let node_name: string = nodes_names[i];
@@ -105,6 +115,14 @@ export default class DAG<TNode extends DAGNode> {
 
         this.nodes[node_name].prepare_for_deletion(this);
         delete this.nodes[node_name];
+
+        if (!!this.leafs[node_name]) {
+            delete this.leafs[node_name];
+        }
+        if (!!this.roots[node_name]) {
+            delete this.roots[node_name];
+        }
+
         let indexof = this.nodes_names.indexOf(node_name);
         if (indexof >= 0) {
             this.nodes_names.splice(indexof, 1);
@@ -114,7 +132,7 @@ export default class DAG<TNode extends DAGNode> {
     /**
      * Pour visiter tout l'arbre très facilement en partant des extrémités
      */
-    public visitAllFromRootsOrLeafs(visitor_factory: (dag: DAG<TNode>) => DAGVisitorBase<any>) {
+    public async visitAllFromRootsOrLeafs(visitor_factory: (dag: DAG<TNode>) => DAGVisitorBase<any>) {
         if (!visitor_factory) {
             return;
         }
@@ -123,15 +141,15 @@ export default class DAG<TNode extends DAGNode> {
         let testVisitor: DAGVisitorBase<any> = visitor_factory(this);
         if (testVisitor.top_down) {
             for (let i in this.leafs) {
-                let root: TNode = this.leafs[i];
+                let leaf: TNode = this.leafs[i];
 
-                root.visit(visitor_factory(this));
+                await leaf.visit(visitor_factory(this));
             }
         } else {
             for (let i in this.roots) {
                 let root: TNode = this.roots[i];
 
-                root.visit(visitor_factory(this));
+                await root.visit(visitor_factory(this));
             }
         }
     }
@@ -140,7 +158,7 @@ export default class DAG<TNode extends DAGNode> {
      * Pour visiter tout l'arbre très facilement en utilisant un marker mis à jour par le visiteur
      * @param visit_all_marked_nodes si true on continue tant que des nodes marqué avec marker existent, sinon on continue tant qu des nodes ne sont pas marqués. Attention aux perfs dans le second cas...
      */
-    public visitAllMarkedOrUnmarkedNodes(marker: string, visit_all_marked_nodes: boolean, visitor_factory: (dag: DAG<TNode>) => DAGVisitorBase<any>) {
+    public async visitAllMarkedOrUnmarkedNodes(marker: string, visit_all_marked_nodes: boolean, visitor_factory: (dag: DAG<TNode>) => DAGVisitorBase<any>) {
         if (!visitor_factory) {
             return;
         }
@@ -160,7 +178,7 @@ export default class DAG<TNode extends DAGNode> {
                 return;
             }
 
-            this.nodes[node_name].visit(visitor_factory(this));
+            await this.nodes[node_name].visit(visitor_factory(this));
         }
     }
 }

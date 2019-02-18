@@ -104,4 +104,16 @@ export default class ObjectHandler {
 
         return null;
     }
+
+    /**
+     * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a var we delete right next ...
+     * @param object
+     */
+    public getFirstAttributeName(object): any {
+        for (let i in object) {
+            return i;
+        }
+
+        return null;
+    }
 }
