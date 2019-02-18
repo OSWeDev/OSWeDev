@@ -4,6 +4,8 @@ import IDistantVOBase from '../../IDistantVOBase';
 
 export default interface IDataSourceController<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
 
+    name: string;
+
     load_for_batch(
         BATCH_UID: number,
         vars_params: { [index: string]: TDataParam },

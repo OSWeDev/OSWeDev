@@ -24,15 +24,14 @@ export default class DataSourcesController {
     }
 
     public registerDataSource(
-        name: string,
         dataSourcesController: IDataSourceController<any, any>,
         vo_type_deps: string[]) {
 
-        if (!!this.registeredDataSourcesController[name]) {
+        if (!!this.registeredDataSourcesController[dataSourcesController.name]) {
             return;
         }
 
-        this.registeredDataSourcesController[name] = dataSourcesController;
+        this.registeredDataSourcesController[dataSourcesController.name] = dataSourcesController;
         for (let i in vo_type_deps) {
             let vo_type_dep: string = vo_type_deps[i];
 

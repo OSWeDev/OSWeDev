@@ -11,6 +11,7 @@ import VarsCumulsController from './VarsCumulsController';
 import IDataSourceController from '../../DataSource/interfaces/IDataSourceController';
 import VarDAG from '../graph/var/VarDAG';
 import IVarDataParamVOBase from '../interfaces/IVarDataParamVOBase';
+import VarDAGNode from '../graph/var/VarDAGNode';
 
 export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
 
@@ -95,10 +96,11 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
      * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
      */
     public async getParamDependencies(
-        param: TDataParam,
+        varDAGNode: VarDAGNode,
         varDAG: VarDAG): Promise<IVarDataParamVOBase[]> {
 
         let res: TDataParam[] = [];
+        let param: TDataParam = (varDAGNode.param as TDataParam);
 
         let param_calc_segment: TDataParam = Object.assign({}, param);
         param_calc_segment.var_id = this.varConfToCumulate.id;
@@ -177,8 +179,9 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
     //     return res;
     // }
 
-    public async updateData(BATCH_UID: number, param: TDataParam) {
+    public async updateData(BATCH_UID: number, varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
+        let param: TDataParam = varDAGNode.param as TDataParam;
         let index: string = VarsController.getInstance().getIndex(param);
 
         // Cumul => si importé, on renvoie la valeur importée, sinon veille (si meme segment) + jour*

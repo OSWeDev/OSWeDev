@@ -11,6 +11,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
     public static VARDAG_MARKER_IMPORTED_DATA: string = 'IMPORTED_DATA';
 
     public static VARDAG_MARKER_VAR_ID: string = 'VAR_ID_';
+    public static VARDAG_MARKER_DATASOURCE_NAME: string = 'DATASOURCE_NAME_';
 
     public static VARDAG_MARKER_DEPS_LOADED: string = 'DEPS_LOADED';
 

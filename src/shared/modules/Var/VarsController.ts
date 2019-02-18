@@ -953,7 +953,7 @@ export default class VarsController {
         //  ou manuellement en éditant le noeud du varDAG)
         this.loadImportedDatas();
 
-        // Si des deps restent à résoudre, on les gère à ce niveau. On par du principe maintenant qu'on interdit une dep à un datasource pour le
+        // Si des deps restent à résoudre, on les gère à ce niveau. On part du principe maintenant qu'on interdit une dep à un datasource pour le
         //  chargement des deps. ça va permettre de booster très fortement les chargements de données. Si un switch impact une dep de var, il
         //  faut l'avoir en param d'un constructeur de var et le changement du switch sera à prendre en compte dans la var au cas par cas.
         // TODO FIXME VARS les deps on les charge quand on ajoute des vars en fait c'est pas mieux ici et on devrait pas avoir à reparcourir l'arbre
@@ -1185,7 +1185,9 @@ export default class VarsController {
         for (let i in this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE]) {
             let marked_for_update: VarDAGNode = this.varDAG.nodes[this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE][i]];
 
+            // On visit dans les 2 sens (bottom/up et up/bottom) puisqu'on veut les deps mais aussi les impacts
             marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, true, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true));
+            marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, false, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true));
         }
     }
 }

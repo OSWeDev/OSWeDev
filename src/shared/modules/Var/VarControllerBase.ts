@@ -5,6 +5,7 @@ import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
 import VarDAG from './graph/var/VarDAG';
+import VarDAGNode from './graph/var/VarDAGNode';
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
 
@@ -50,7 +51,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
      * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
      */
     public async abstract getParamDependencies(
-        param: TDataParam,
+        varDAGNode: VarDAGNode,
         varDAG: VarDAG): Promise<IVarDataParamVOBase[]>;
 
     // /**
@@ -61,5 +62,5 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     //     return [];
     // }
 
-    public async abstract updateData(BATCH_UID: number, param: TDataParam);
+    public async abstract updateData(BATCH_UID: number, varDAGNode: VarDAGNode, varDAG: VarDAG);
 }

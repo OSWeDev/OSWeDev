@@ -3,6 +3,8 @@ import VarsController from '../../../VarsController';
 import DAGVisitorBase from '../../dag/DAGVisitorBase';
 import VarDAG from '../VarDAG';
 import VarDAGNode from '../VarDAGNode';
+import DataSourcesController from '../../../../DataSource/DataSourcesController';
+import IDataSourceController from '../../../../DataSource/interfaces/IDataSourceController';
 
 /**
  * Visiteur qui doit charger les deps de voisinage et down pour les ajouter / relier dans l'arbre.
@@ -21,8 +23,16 @@ export default class VarDAGVisitorDefineDeps extends DAGVisitorBase<VarDAG> {
             return false;
         }
 
-        // On demande les deps
-        let deps: IVarDataParamVOBase[] = await VarsController.getInstance().getVarControllerById(node.param.var_id).getParamDependencies(node.param, this.dag);
+        // On demande les deps de datasources
+        let deps_ds: Array<IDataSourceController<any, any>> = await VarsController.getInstance().getVarControllerById(node.param.var_id).getDataSourcesDependencies();
+        for (let i in deps_ds) {
+            let dep_ds = deps_ds[i];
+
+            node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCE_NAME + dep_ds.name, this.dag);
+        }
+
+        // On demande les deps de vars
+        let deps: IVarDataParamVOBase[] = await VarsController.getInstance().getVarControllerById(node.param.var_id).getParamDependencies(node, this.dag);
 
         for (let i in deps) {
             let dep: IVarDataParamVOBase = deps[i];
