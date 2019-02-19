@@ -32,9 +32,9 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         this.varConf = await VarsController.getInstance().registerVar(varConf, this);
     }
 
-    public async begin_batch(BATCH_UID: number, vars_params: { [index: string]: TDataParam }, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) { }
+    public async begin_batch(vars_params: { [index: string]: TDataParam }, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) { }
 
-    public async end_batch(BATCH_UID: number, vars_params: { [index: string]: TDataParam }, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) { }
+    public async end_batch(vars_params: { [index: string]: TDataParam }, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) { }
 
     /**
      * Returns the datasources this var depends on
@@ -179,7 +179,7 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
     //     return res;
     // }
 
-    public async updateData(BATCH_UID: number, varDAGNode: VarDAGNode, varDAG: VarDAG) {
+    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
         let param: TDataParam = varDAGNode.param as TDataParam;
         let index: string = VarsController.getInstance().getIndex(param);
@@ -258,10 +258,12 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
                 if (date.isoWeekday() > 1) {
                     return DateHandler.getInstance().formatDayForIndex(date.add(-1, 'day'));
                 }
+                break;
             case VarsCumulsController.CUMUL_MONTH_NAME:
                 if (date.date() > 1) {
                     return DateHandler.getInstance().formatDayForIndex(date.add(-1, 'day'));
                 }
+                break;
             case VarsCumulsController.CUMUL_YEAR_NAME:
             default:
                 if (date.dayOfYear() > 1) {

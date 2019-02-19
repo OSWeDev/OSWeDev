@@ -21,9 +21,9 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     public async configure_from_json_params() { }
 
     public async abstract begin_batch(
-        BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
+        vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
     public async abstract end_batch(
-        BATCH_UID: number, vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
+        vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
 
     /**
      * Returns the datasources this var depends on
@@ -62,5 +62,5 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     //     return [];
     // }
 
-    public async abstract updateData(BATCH_UID: number, varDAGNode: VarDAGNode, varDAG: VarDAG);
+    public async abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG);
 }

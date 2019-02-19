@@ -27,7 +27,7 @@ export default class VarDAGVisitorCompute extends DAGVisitorBase<VarDAG> {
         if (!node.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED)) {
 
             await VarsController.getInstance().getVarControllerById(node.param.var_id).updateData(
-                VarsController.getInstance().BATCH_UIDs_by_var_id[node.param.var_id],
+                // VarsController.getInstance().BATCH_UIDs_by_var_id[node.param.var_id],
                 node,
                 this.dag);
             node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.dag);

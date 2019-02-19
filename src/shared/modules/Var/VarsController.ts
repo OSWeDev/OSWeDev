@@ -46,7 +46,7 @@ export default class VarsController {
     // public impacts_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
 
     public datasource_deps_by_var_id: { [var_id: number]: Array<IDataSourceController<any, any>> } = {};
-    public BATCH_UIDs_by_var_id: { [var_id: number]: number } = {};
+    // public BATCH_UIDs_by_var_id: { [var_id: number]: number } = {};
 
     private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
 
@@ -74,7 +74,7 @@ export default class VarsController {
     /**
      * This is meant to handle the datas before sending it the store to avoid multiple overloading problems
      */
-    private varDatasBATCHCache: { [BATCH_UID: number]: { [index: string]: IVarDataVOBase } } = {};
+    private varDatasBATCHCache: { [index: string]: IVarDataVOBase } = {};
 
 
     private datasource_deps_defined: boolean = false;
@@ -183,17 +183,14 @@ export default class VarsController {
         this.varDatasStaticCache[index] = varData;
 
         if (set_in_batch_cache) {
-            let BATCH_UID: number = this.BATCH_UIDs_by_var_id[varData.var_id];
+            // let BATCH_UID: number = this.BATCH_UIDs_by_var_id[varData.var_id];
 
-            if (!((BATCH_UID != null) && (typeof BATCH_UID != 'undefined'))) {
-                console.error('setVarData:Tried set data in unknown batch'); // est-ce si grave ?
-                return;
-            }
+            // if (!((BATCH_UID != null) && (typeof BATCH_UID != 'undefined'))) {
+            //     console.error('setVarData:Tried set data in unknown batch'); // est-ce si grave ?
+            //     return;
+            // }
 
-            if (!this.varDatasBATCHCache[BATCH_UID]) {
-                this.varDatasBATCHCache[BATCH_UID] = {};
-            }
-            this.varDatasBATCHCache[BATCH_UID][index] = varData;
+            this.varDatasBATCHCache[index] = varData;
 
             return;
         }
@@ -219,14 +216,14 @@ export default class VarsController {
         for (let var_id_s in imported_datas) {
             let var_id: number = parseInt(var_id_s.toString());
 
-            let BATCH_UID: number = this.BATCH_UIDs_by_var_id[var_id];
+            // let BATCH_UID: number = this.BATCH_UIDs_by_var_id[var_id];
 
-            if (!((BATCH_UID != null) && (typeof BATCH_UID != 'undefined'))) {
-                console.error('setImportedDatasInBatchCache:Tried set datas in unknown batch');
-                return;
-            }
+            // if (!((BATCH_UID != null) && (typeof BATCH_UID != 'undefined'))) {
+            //     console.error('setImportedDatasInBatchCache:Tried set datas in unknown batch');
+            //     return;
+            // }
 
-            this.varDatasBATCHCache[BATCH_UID] = imported_datas[var_id_s];
+            this.varDatasBATCHCache = imported_datas[var_id_s];
 
             // On met à jour le store pour l'affichage directement ici par ce qu'on peut déjà afficher les datas issues d'un import
             for (let j in imported_datas[var_id_s]) {
@@ -249,14 +246,16 @@ export default class VarsController {
         let index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
 
         if (search_in_batch_cache) {
-            // On sait qu'on doit chercher dans les datas des batchs actuels, mais en fait l'id du batch est intimement lié
-            //  au type de contenu demandé
-            let BATCH_UID: number = this.BATCH_UIDs_by_var_id[param.var_id];
+            // // On sait qu'on doit chercher dans les datas des batchs actuels, mais en fait l'id du batch est intimement lié
+            // //  au type de contenu demandé
+            // let BATCH_UID: number = this.BATCH_UIDs_by_var_id[param.var_id];
 
-            if ((BATCH_UID != null) && (typeof BATCH_UID != 'undefined') && this.varDatasBATCHCache &&
-                this.varDatasBATCHCache[BATCH_UID] && this.varDatasBATCHCache[BATCH_UID][index]) {
-                return this.varDatasBATCHCache[BATCH_UID][index] as T;
+            // if ((BATCH_UID != null) && (typeof BATCH_UID != 'undefined') && this.varDatasBATCHCache &&
+            //     this.varDatasBATCHCache[BATCH_UID] && this.varDatasBATCHCache[BATCH_UID][index]) {
+            if (!!this.varDatasBATCHCache[index]) {
+                return this.varDatasBATCHCache[index] as T;
             }
+            // }
         }
 
         // Si on doit l'afficher il faut que ce soit synchro dans le store, sinon on utilise le cache static
@@ -947,7 +946,8 @@ export default class VarsController {
             node.addMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG);
         }
 
-        this.BATCH_UIDs_by_var_id = {};
+        // this.BATCH_UIDs_by_var_id = {};
+        this.varDatasBATCHCache = {};
 
         // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
         //  ou manuellement en éditant le noeud du varDAG)
@@ -1187,7 +1187,7 @@ export default class VarsController {
         for (let i in this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE]) {
             let marked_for_update: VarDAGNode = this.varDAG.nodes[this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE][i]];
 
-            // On visit dans les 2 sens (bottom/up et up/bottom) puisqu'on veut les deps mais aussi les impacts
+            // On visite dans les 2 sens (bottom/up et up/bottom) puisqu'on veut les deps mais aussi les impacts
             await marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, true, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true));
             await marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, false, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true));
         }

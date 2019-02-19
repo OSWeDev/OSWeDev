@@ -114,13 +114,11 @@ export default class DAGNode {
     }
 
     /**
-     * TODO TestUnit le but est de visiter d'un vertex vers le haut donc en suivant les deps de to vers from (incoming)
+     * TODO TestUnit le but est de visiter d'un node vers le haut ou vers le bas suivant donc en suivant les deps de to vers from (incoming)
      */
     public async visit(visitor: DAGVisitorBase<any>, visited?, path?: string[]) {
         let name = this.name;
         let vertices: { [name: string]: DAGNode } = visitor.top_down ? this.outgoing : this.incoming;
-        let names: string[] = visitor.top_down ? this.outgoingNames : this.incomingNames;
-        let len = names.length;
 
         if (!visited) {
             visited = {};
@@ -136,8 +134,17 @@ export default class DAGNode {
 
         if (await visitor.visit(this, path)) {
 
-            for (let i = 0; i < len; i++) {
-                await vertices[names[i]].visit(visitor, visited, path);
+            let names: string[] = visitor.top_down ? this.outgoingNames : this.incomingNames;
+            let old_names: string[] = [];
+
+            while ((!!names) && (names.length > 0)) {
+
+                for (let i = 0; i < names.length; i++) {
+                    await vertices[names[i]].visit(visitor, visited, path);
+                }
+
+                old_names = old_names.concat(names);
+                names = (visitor.top_down ? this.outgoingNames : this.incomingNames).filter((nname: string) => old_names.indexOf(nname) < 0);
             }
         }
         path.pop();

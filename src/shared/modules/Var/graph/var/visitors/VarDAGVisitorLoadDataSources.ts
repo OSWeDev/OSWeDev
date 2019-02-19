@@ -50,7 +50,7 @@ export default class VarDAGVisitorLoadDataSources extends DAGVisitorBase<VarDAG>
 
             // On demande le chargement pour ce var_id
             await VarsController.getInstance().getVarControllerById(node.param.var_id).begin_batch(
-                VarsController.getInstance().BATCH_UIDs_by_var_id[node.param.var_id],
+                // VarsController.getInstance().BATCH_UIDs_by_var_id[node.param.var_id],
                 params_by_index,
                 imported_datas);
 

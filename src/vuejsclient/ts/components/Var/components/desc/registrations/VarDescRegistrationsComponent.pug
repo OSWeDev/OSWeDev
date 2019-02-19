@@ -1,3 +1,6 @@
 .var_desc_registrations
-    ul
-        li(v-for='(node, index) in registered_indexes' @click='selectVar(index)' :class='{"selected_var":is_selected_var(index)}') {{ index_name(index) }} : {{ index_params(index) }}
+    button.btn.btn-sm.btn-secondary.pull-right(@click="createGraph")
+        i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+        | {{ label('var_desc.create_graph') }}
+    svg(width=960 height=800)
+        g
