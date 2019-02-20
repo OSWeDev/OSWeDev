@@ -73,12 +73,27 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
             .setGraph({})
             .setDefaultEdgeLabel(function () { return {}; });
 
+        let graph_params_obj = ((!!this.graph_params) && (this.graph_params != "")) ? JSON.parse(this.graph_params) : null;
 
         // On crée les vars_ids
         let groups: { [var_id: number]: boolean } = {};
         let groups_links: { [var_id: number]: number[] } = {};
         for (let i in VarsController.getInstance().varDAG.nodes) {
             let node: VarDAGNode = VarsController.getInstance().varDAG.nodes[i];
+
+            // On filtre sur les filtres fournis
+            if (graph_params_obj) {
+                let filtered: boolean = false;
+                for (let field_name in graph_params_obj) {
+                    if ((!!node.param[field_name]) && (node.param[field_name] != graph_params_obj[field_name])) {
+                        filtered = true;
+                        break;
+                    }
+                }
+                if (filtered) {
+                    continue;
+                }
+            }
 
             if (!groups[node.param.var_id]) {
                 groups[node.param.var_id] = true;
@@ -92,7 +107,6 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
 
 
         let descriptions: { [index: string]: string } = {};
-        let graph_params_obj = ((!!this.graph_params) && (this.graph_params != "")) ? JSON.parse(this.graph_params) : null;
         let existingNodes: { [name: string]: boolean } = {};
         for (let i in VarsController.getInstance().varDAG.nodes) {
             let node: VarDAGNode = VarsController.getInstance().varDAG.nodes[i];
