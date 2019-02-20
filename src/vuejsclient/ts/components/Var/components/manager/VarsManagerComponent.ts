@@ -25,6 +25,10 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarGetter
     public isUpdating: boolean;
     @ModuleVarGetter
+    public isWaiting: boolean;
+    @ModuleVarGetter
+    public isStepping: boolean;
+    @ModuleVarGetter
     public isDescMode: boolean;
     @ModuleVarGetter
     public isDescOpened: boolean;
@@ -44,6 +48,8 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarAction
     public setIsUpdating: (is_updating: boolean) => void;
     @ModuleVarAction
+    public setIsWaiting: (is_waiting: boolean) => void;
+    @ModuleVarAction
     public setDescMode: (desc_mode: boolean) => void;
     @ModuleVarAction
     public setDescOpened: (desc_opened: boolean) => void;
@@ -55,7 +61,9 @@ export default class VarsManagerComponent extends VueComponentBase {
     public setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [index: string]: boolean }) => void;
 
     public mounted() {
-        VarsController.getInstance().registerStoreHandlers(this.getVarDatas, this.setVarData, this.setIsUpdating, this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds);
+        VarsController.getInstance().registerStoreHandlers(
+            this.getVarDatas, this.setVarData, this.setIsUpdating, this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds,
+            this.setIsWaiting);
     }
 
     /**

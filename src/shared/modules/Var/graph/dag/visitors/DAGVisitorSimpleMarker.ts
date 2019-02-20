@@ -32,5 +32,8 @@ export default class DAGVisitorSimpleMarker<TDag extends DAG<any>> extends DAGVi
         if (this.stop_if_other_node_marked && node.hasMarker(this.marker)) {
             return false;
         }
+
+        node.addMarker(this.marker, this.dag);
+        return true;
     }
 }

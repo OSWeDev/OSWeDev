@@ -68,6 +68,14 @@ export default class VarDescComponent extends VueComponentBase {
         return this.t(VarsController.getInstance().get_translatable_params_desc_code(this.var_param.var_id), this.var_param);
     }
 
+    get var_markers(): string {
+        if (!this.var_param) {
+            return null;
+        }
+
+        return JSON.stringify(VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex].markers);
+    }
+
     get var_deps(): { [name: string]: VarDAGNode } {
         if (!this.var_param) {
             return null;

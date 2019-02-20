@@ -30,6 +30,20 @@ export default class PerfMonController {
     public async initialize() {
     }
 
+    public setPerfMonFuncStatsStoreFunc(setPerfMonFuncStats: (perfMonFuncStat: PerfMonFuncStat[]) => void) {
+        this.setPerfMonFuncStats = setPerfMonFuncStats;
+
+        if (!!this.setPerfMonFuncStats) {
+
+            this.toUpdate_perfMonFuncStats = [];
+
+            for (let i in this.perfMonFuncStatByFunctionUID) {
+                this.toUpdate_perfMonFuncStats.push(this.perfMonFuncStatByFunctionUID[i]);
+            }
+            this.setPerfMonFuncStats(this.toUpdate_perfMonFuncStats);
+        }
+    }
+
     /**
      * Returns the UID of this tracker
      */

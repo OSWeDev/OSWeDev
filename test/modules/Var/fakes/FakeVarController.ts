@@ -43,13 +43,13 @@ export default class FakeVarController extends VarCumulableControllerBase<FakeDa
         ];
     }
 
-    /**
-     * Returns the var_ids that we depend upon (or might depend)
-     * @param BATCH_UID
-     */
-    public getVarsIdsDependencies(): number[] {
-        return null;
-    }
+    // /**
+    //  * Returns the var_ids that we depend upon (or might depend)
+    //  * @param BATCH_UID
+    //  */
+    // public getVarsIdsDependencies(): number[] {
+    //     return null;
+    // }
 
 
     /**

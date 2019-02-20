@@ -1,6 +1,31 @@
 .var_desc_registrations
-    button.btn.btn-sm.btn-secondary.pull-right(@click="createGraph")
-        i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
-        | {{ label('var_desc.create_graph') }}
-    svg(width=960 height=800)
-        g
+    .row
+        .col-md-9
+            svg(width=1200 height=800)
+                g
+        .col-md-3
+            .row
+                .col-md-12(v-if='!is_stepping')
+                    button.btn.btn-sm.btn-secondary.pull-right(@click="switch_stepper")
+                        i.fa.fa-pause.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('var_desc.pause') }}
+                .col-md-12(v-if='is_stepping && is_waiting')
+                    button.btn.btn-sm.btn-secondary.pull-right(@click="continue_stepper")
+                        i.fa.fa-play.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('var_desc.next') }}
+                .col-md-12(v-if='is_stepping')
+                    button.btn.btn-sm.btn-secondary.pull-right(@click="switch_stepper")
+                        i.fa.fa-forward.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('var_desc.play') }}
+            .row
+                .col-md-12
+                    var-desc(:var_param='descSelectedParam')
+                    //- .hover_desc {{ hover_desc }}
+            .row
+                .col-md-12
+                    textarea(rows=6, cols=30, id="graph_params", v-model="graph_params")
+            .row
+                .col-md-12
+                    button.btn.btn-sm.btn-secondary.pull-right(@click="createGraph")
+                        i.fa.fa-refresh.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('var_desc.create_graph') }}

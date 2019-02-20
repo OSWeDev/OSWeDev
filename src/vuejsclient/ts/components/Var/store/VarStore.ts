@@ -12,6 +12,8 @@ export type VarContext = ActionContext<IVarState, any>;
 
 export interface IVarState {
     varDatas: { [index: string]: IVarDataVOBase };
+    is_waiting: boolean;
+    is_stepping: boolean;
     is_updating: boolean;
     desc_mode: boolean;
     desc_selected_index: string;
@@ -49,6 +51,8 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
         this.state = {
             varDatas: {},
             is_updating: false,
+            is_stepping: false,
+            is_waiting: false,
             desc_mode: false,
             desc_selected_index: null,
             desc_opened: false,
@@ -62,6 +66,12 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
         this.getters = {
             getVarDatas(state: IVarState): { [index: string]: IVarDataVOBase } {
                 return state.varDatas;
+            },
+            isStepping(state: IVarState): boolean {
+                return state.is_stepping;
+            },
+            isWaiting(state: IVarState): boolean {
+                return state.is_waiting;
             },
             isDescOpened(state: IVarState): boolean {
                 return state.desc_opened;
@@ -93,6 +103,16 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
             setIsUpdating(state: IVarState, is_updating: boolean) {
                 state.is_updating = is_updating;
+            },
+
+            setIsWaiting(state: IVarState, is_waiting: boolean) {
+                state.is_waiting = is_waiting;
+                VarsController.getInstance().is_waiting = is_waiting;
+            },
+
+            setIsStepping(state: IVarState, is_stepping: boolean) {
+                state.is_stepping = is_stepping;
+                VarsController.getInstance().is_stepping = is_stepping;
             },
 
             setDescOpened(state: IVarState, desc_opened: boolean) {
@@ -168,6 +188,12 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setIsUpdating(context: VarContext, is_updating: boolean) {
                 commitSetIsUpdating(context, is_updating);
             },
+            setIsWaiting(context: VarContext, is_waiting: boolean) {
+                commitSetIsWaiting(context, is_waiting);
+            },
+            setIsStepping(context: VarContext, is_stepping: boolean) {
+                commitSetIsStepping(context, is_stepping);
+            },
             setDescMode(context: VarContext, desc_mode: boolean) {
                 commitSetDescMode(context, desc_mode);
             },
@@ -214,3 +240,5 @@ export const commitsetDescFuncStatsOpened = commit(VarStore.getInstance().mutati
 export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
 export const commitSetUpdatingParamsByVarsIds = commit(VarStore.getInstance().mutations.setUpdatingParamsByVarsIds);
 export const commitSetDescSelectedIndex = commit(VarStore.getInstance().mutations.setDescSelectedIndex);
+export const commitSetIsWaiting = commit(VarStore.getInstance().mutations.setIsWaiting);
+export const commitSetIsStepping = commit(VarStore.getInstance().mutations.setIsStepping);

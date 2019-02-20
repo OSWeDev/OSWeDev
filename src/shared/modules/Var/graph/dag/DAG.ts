@@ -139,17 +139,23 @@ export default class DAG<TNode extends DAGNode> {
 
         // Utilisé juste pour savoir dans quelle direction on doit visiter
         let testVisitor: DAGVisitorBase<any> = visitor_factory(this);
-        if (testVisitor.top_down) {
+        if (!testVisitor.top_down) {
             for (let i in this.leafs) {
                 let leaf: TNode = this.leafs[i];
 
-                await leaf.visit(visitor_factory(this));
+                // La visite peut changer la liste de roots ou de leafs
+                if (!!leaf) {
+                    await leaf.visit(visitor_factory(this));
+                }
             }
         } else {
             for (let i in this.roots) {
                 let root: TNode = this.roots[i];
 
-                await root.visit(visitor_factory(this));
+                // La visite peut changer la liste de roots ou de leafs
+                if (!!root) {
+                    await root.visit(visitor_factory(this));
+                }
             }
         }
     }
