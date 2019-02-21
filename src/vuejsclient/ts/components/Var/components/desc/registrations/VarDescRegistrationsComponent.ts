@@ -27,8 +27,12 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
     public setIsWaiting: (is_waiting: boolean) => void;
     @ModuleVarAction
     public setIsStepping: (is_stepping: boolean) => void;
+    @ModuleVarAction
+    public setStepNumber: (step_number: number) => void;
     @ModuleVarGetter
     public isWaiting: boolean;
+    @ModuleVarGetter
+    public isUpdating: boolean;
     @ModuleVarGetter
     public isStepping: boolean;
 
@@ -59,6 +63,8 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
 
         if (!this.isStepping) {
             this.setIsWaiting(false);
+        } else {
+            this.setStepNumber(1);
         }
     }
 

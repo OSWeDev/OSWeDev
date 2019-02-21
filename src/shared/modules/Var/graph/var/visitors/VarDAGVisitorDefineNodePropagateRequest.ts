@@ -38,6 +38,9 @@ export default class VarDAGVisitorDefineNodePropagateRequest extends DAGVisitorB
             }
 
             incoming.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.dag);
+            if (incoming.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE)) {
+                incoming.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, this.dag, true);
+            }
         }
 
         // On demande les deps, si elles sont pas déjà calculées
@@ -57,6 +60,9 @@ export default class VarDAGVisitorDefineNodePropagateRequest extends DAGVisitorB
             }
 
             outgoing.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.dag);
+            if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE)) {
+                outgoing.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, this.dag, true);
+            }
         }
 
         node.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.dag, true);
