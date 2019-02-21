@@ -1,16 +1,23 @@
 .var_desc {
 
     padding: 10px;
+    max-width: 32em;
+    word-break: break-all;
 
     .card {
 
         .card-header {
-            font-size: 2em;
+            font-size: 1.2em;
             text-decoration: underline;
         }
 
         h5 {
             font-weight: bold;
+        }
+
+        .fa {
+            font-size: larger;
+            margin-left: 6px;
         }
     }
 

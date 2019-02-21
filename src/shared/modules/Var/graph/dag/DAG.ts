@@ -98,14 +98,14 @@ export default class DAG<TNode extends DAGNode> {
 
         // On supprime le noeud des incomings, et des outgoings
         for (let i in this.nodes[node_name].incoming) {
-            let incoming: TNode = this.nodes[node_name].incoming[i];
+            let incoming: TNode = this.nodes[node_name].incoming[i] as TNode;
 
             incoming.removeNodeFromOutgoing(node_name);
         }
 
         // On supprime le noeud des incomings, et des outgoings
         for (let i in this.nodes[node_name].outgoing) {
-            let outgoing: TNode = this.nodes[node_name].outgoing[i];
+            let outgoing: TNode = this.nodes[node_name].outgoing[i] as TNode;
 
             outgoing.removeNodeFromIncoming(node_name);
         }
@@ -164,8 +164,8 @@ export default class DAG<TNode extends DAGNode> {
      * Pour visiter tout l'arbre très facilement en utilisant un marker mis à jour par le visiteur
      * @param visit_all_marked_nodes si true on continue tant que des nodes marqué avec marker existent, sinon on continue tant qu des nodes ne sont pas marqués. Attention aux perfs dans le second cas...
      */
-    public async visitAllMarkedOrUnmarkedNodes(marker: string, visit_all_marked_nodes: boolean, visitor_factory: (dag: DAG<TNode>) => DAGVisitorBase<any>) {
-        if (!visitor_factory) {
+    public async visitAllMarkedOrUnmarkedNodes(marker: string, visit_all_marked_nodes: boolean, visitor: DAGVisitorBase<any>) {
+        if (!visitor) {
             return;
         }
 
@@ -184,7 +184,7 @@ export default class DAG<TNode extends DAGNode> {
                 return;
             }
 
-            await this.nodes[node_name].visit(visitor_factory(this));
+            await this.nodes[node_name].visit(visitor);
         }
     }
 }

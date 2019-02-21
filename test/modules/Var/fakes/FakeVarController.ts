@@ -43,14 +43,6 @@ export default class FakeVarController extends VarCumulableControllerBase<FakeDa
         ];
     }
 
-    // /**
-    //  * Returns the var_ids that we depend upon (or might depend)
-    //  * @param BATCH_UID
-    //  */
-    // public getVarsIdsDependencies(): number[] {
-    //     return null;
-    // }
-
 
     /**
      * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
@@ -83,15 +75,5 @@ export default class FakeVarController extends VarCumulableControllerBase<FakeDa
         res.value = 42;
 
         VarsController.getInstance().setVarData(res, true);
-    }
-
-    public async begin_batch(
-        BATCH_UID: number, vars_params: { [index: string]: FakeDataParamVO },
-        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }) {
-    }
-
-    public async end_batch(
-        BATCH_UID: number, vars_params: { [index: string]: FakeDataParamVO },
-        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }) {
     }
 }

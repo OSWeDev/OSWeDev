@@ -22,8 +22,32 @@
         fill:lightgoldenrodyellow;
     }
 
+    g.marker_COMPUTED_AT_LEAST_ONCE > rect {
+        stroke: blue;
+        stroke-width: 3;
+    }
+
+    g.marker_NEEDS_DEPS_LOADING > rect {
+        fill: lightcoral !important;
+    }
+
+    g.marker_MARKED_FOR_NEXT_UPDATE > rect {
+        stroke: lightcoral !important;
+        stroke-width: 3;
+    }
+
+    g.marker_MARKED_FOR_UPDATE > rect {
+        stroke: red !important;
+        stroke-width: 3;
+    }
+
     g.marker_ONGOING_UPDATE > rect {
-        stroke: red;
+        stroke: orange !important;
+        stroke-width: 3;
+    }
+
+    g.marker_COMPUTED > rect {
+        stroke: green !important;
         stroke-width: 3;
     }
 

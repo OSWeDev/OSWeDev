@@ -245,7 +245,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
 
             this.datasets.push({
                 label: (!!var_dataset_descriptor.label_translatable_code) ?
-                    this.t(var_dataset_descriptor) :
+                    this.t(var_dataset_descriptor.label_translatable_code) :
                     this.t(VarsController.getInstance().get_translatable_name_code(var_dataset_descriptor.var_id)),
                 backgroundColor: var_dataset_descriptor.bg_color,
                 data: dataset_datas,

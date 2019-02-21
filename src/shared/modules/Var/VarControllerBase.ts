@@ -20,10 +20,10 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     }
     public async configure_from_json_params() { }
 
-    public async abstract begin_batch(
-        vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
-    public async abstract end_batch(
-        vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
+    // public async abstract begin_batch(
+    //     vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
+    // public async abstract end_batch(
+    //     vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
 
     /**
      * Returns the datasources this var depends on

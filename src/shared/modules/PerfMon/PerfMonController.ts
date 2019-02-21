@@ -21,7 +21,7 @@ export default class PerfMonController {
     public perfMonDataByFunctionUID: { [function_uid: string]: PerfMonData[] } = {};
     public perfMonDataByUID: { [uid: string]: PerfMonData } = {};
     public perfMonFuncStatByFunctionUID: { [function_uid: string]: PerfMonFuncStat } = {};
-    public setPerfMonFuncStats: (perfMonFuncStat: PerfMonFuncStat[]) => void = null;
+    private setPerfMonFuncStats: (perfMonFuncStat: PerfMonFuncStat[]) => void = null;
 
     private toUpdate_perfMonFuncStats: PerfMonFuncStat[] = [];
 

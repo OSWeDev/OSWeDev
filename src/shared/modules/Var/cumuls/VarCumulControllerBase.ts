@@ -32,9 +32,9 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         this.varConf = await VarsController.getInstance().registerVar(varConf, this);
     }
 
-    public async begin_batch(vars_params: { [index: string]: TDataParam }, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) { }
+    // public async begin_batch(vars_params: { [index: string]: TDataParam }, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) { }
 
-    public async end_batch(vars_params: { [index: string]: TDataParam }, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) { }
+    // public async end_batch(vars_params: { [index: string]: TDataParam }, imported_datas: { [var_id: number]: { [param_index: string]: TData } }) { }
 
     /**
      * Returns the datasources this var depends on
@@ -274,24 +274,24 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         return null;
     }
 
-    private getCADStartDate(param: TDataParam): Moment {
-        let start_date: Moment = moment(param.date_index);
+    // private getCADStartDate(param: TDataParam): Moment {
+    //     let start_date: Moment = moment(param.date_index);
 
-        switch (this.cumulType) {
-            case VarsCumulsController.CUMUL_WEEK_NAME:
-                return moment(start_date).startOf('isoWeek');
-            case VarsCumulsController.CUMUL_MONTH_NAME:
-                return moment(start_date).startOf('month');
-            case VarsCumulsController.CUMUL_YEAR_NAME:
-            default:
-                return moment(start_date).startOf('year');
-        }
-    }
+    //     switch (this.cumulType) {
+    //         case VarsCumulsController.CUMUL_WEEK_NAME:
+    //             return moment(start_date).startOf('isoWeek');
+    //         case VarsCumulsController.CUMUL_MONTH_NAME:
+    //             return moment(start_date).startOf('month');
+    //         case VarsCumulsController.CUMUL_YEAR_NAME:
+    //         default:
+    //             return moment(start_date).startOf('year');
+    //     }
+    // }
 
 
-    private getCADEndDate(param: TDataParam): Moment {
-        return moment(param.date_index);
-    }
+    // private getCADEndDate(param: TDataParam): Moment {
+    //     return moment(param.date_index);
+    // }
 
     // // TODO UnitTest TestUnit On doit renvoyer la date d'impact minimale si on modifie le param passé
     // // TODO gestion des imports, on devrait pas impacter après-demain si on a un import demain

@@ -82,7 +82,7 @@ export default class VarDescComponent extends VueComponentBase {
         }
 
         return VarsController.getInstance().varDAG.nodes[
-            VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param)].outgoing;
+            VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param)].outgoing as { [name: string]: VarDAGNode };
     }
 
     private select_var() {

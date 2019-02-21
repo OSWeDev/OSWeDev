@@ -14,6 +14,7 @@ export interface IVarState {
     varDatas: { [index: string]: IVarDataVOBase };
     is_waiting: boolean;
     is_stepping: boolean;
+    step_number: number;
     is_updating: boolean;
     desc_mode: boolean;
     desc_selected_index: string;
@@ -51,8 +52,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
         this.state = {
             varDatas: {},
             is_updating: false,
-            is_stepping: false,
-            is_waiting: false,
+            is_stepping: true,
+            step_number: 1,
+            is_waiting: true,
             desc_mode: false,
             desc_selected_index: null,
             desc_opened: false,
@@ -69,6 +71,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             },
             isStepping(state: IVarState): boolean {
                 return state.is_stepping;
+            },
+            getStepNumber(state: IVarState): number {
+                return state.step_number;
             },
             isWaiting(state: IVarState): boolean {
                 return state.is_waiting;
@@ -103,6 +108,11 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
             setIsUpdating(state: IVarState, is_updating: boolean) {
                 state.is_updating = is_updating;
+            },
+
+            setStepNumber(state: IVarState, step_number: number) {
+                state.step_number = step_number;
+                VarsController.getInstance().step_number = step_number;
             },
 
             setIsWaiting(state: IVarState, is_waiting: boolean) {
@@ -197,6 +207,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setDescMode(context: VarContext, desc_mode: boolean) {
                 commitSetDescMode(context, desc_mode);
             },
+            setStepNumber(context: VarContext, step_number: boolean) {
+                commitSetStepNumber(context, step_number);
+            },
             setDescOpened(context: VarContext, desc_opened: boolean) {
                 commitSetDescOpened(context, desc_opened);
             },
@@ -242,3 +255,4 @@ export const commitSetUpdatingParamsByVarsIds = commit(VarStore.getInstance().mu
 export const commitSetDescSelectedIndex = commit(VarStore.getInstance().mutations.setDescSelectedIndex);
 export const commitSetIsWaiting = commit(VarStore.getInstance().mutations.setIsWaiting);
 export const commitSetIsStepping = commit(VarStore.getInstance().mutations.setIsStepping);
+export const commitSetStepNumber = commit(VarStore.getInstance().mutations.setStepNumber);

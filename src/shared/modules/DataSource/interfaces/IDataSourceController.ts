@@ -6,15 +6,11 @@ export default interface IDataSourceController<TData extends IVarDataVOBase, TDa
 
     name: string;
 
-    load_for_batch(
-        vars_params: { [index: string]: TDataParam },
-        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<void>;
+    load_for_batch(vars_params: { [index: string]: TDataParam }): Promise<void>;
 
     get_data(param: TDataParam): any;
 
-    clean_for_batch(
-        vars_params: { [index: string]: TDataParam },
-        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<void>;
+    // clean_for_batch(vars_params: { [index: string]: TDataParam }): Promise<void>;
 
     get_updated_params_from_vo_update(vo: IDistantVOBase): { [index: string]: IVarDataParamVOBase };
 

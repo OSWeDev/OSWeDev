@@ -1,6 +1,4 @@
 import * as debounce from 'lodash/debounce';
-import ObjectHandler from '../../tools/ObjectHandler';
-import ThreadHandler from '../../tools/ThreadHandler';
 import ModuleDAO from '../DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
 import DataSourcesController from '../DataSource/DataSourcesController';
@@ -9,20 +7,17 @@ import IDistantVOBase from '../IDistantVOBase';
 import PerfMonFunction from '../PerfMon/annotations/PerfMonFunction';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
-import DAGVisitorSimpleMarker from './graph/dag/visitors/DAGVisitorSimpleMarker';
-import DAGVisitorSimpleUnmarker from './graph/dag/visitors/DAGVisitorSimpleUnmarker';
 import VarDAG from './graph/var/VarDAG';
 import VarDAGNode from './graph/var/VarDAGNode';
-import VarDAGVisitorCompute from './graph/var/visitors/VarDAGVisitorCompute';
-import VarDAGVisitorDefineDeps from './graph/var/visitors/VarDAGVisitorDefineDeps';
-import VarDAGVisitorLoadDataSources from './graph/var/visitors/VarDAGVisitorLoadDataSources';
+import VarDAGVisitorDefineNodeDeps from './graph/var/visitors/VarDAGVisitorDefineNodeDeps';
+import VarDAGVisitorDefineNodePropagateRequest from './graph/var/visitors/VarDAGVisitorDefineNodePropagateRequest';
+import VarDAGVisitorMarkForNextUpdate from './graph/var/visitors/VarDAGVisitorMarkForNextUpdate';
+import VarDAGVisitorUnmarkComputed from './graph/var/visitors/VarDAGVisitorUnmarkComputed';
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
-import VarDAGVisitorUnloadDataSources from './graph/var/visitors/VarDAGVisitorUnloadDataSources';
-import VarDAGVisitorMarkForOngoingUpdate from './graph/var/visitors/VarDAGVisitorMarkForOngoingUpdate';
 
 export default class VarsController {
 
@@ -49,9 +44,13 @@ export default class VarsController {
     public datasource_deps_by_var_id: { [var_id: number]: Array<IDataSourceController<any, any>> } = {};
     // public BATCH_UIDs_by_var_id: { [var_id: number]: number } = {};
 
-    public step_number: number = null;
-    public is_stepping: boolean = null;
-    public is_waiting: boolean = null;
+    public steps_names: { [step_number: number]: string } = {
+        1: ''
+    };
+
+    public step_number: number = 1;
+    public is_stepping: boolean = true;
+    public is_waiting: boolean = true;
 
     private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
 
@@ -59,6 +58,7 @@ export default class VarsController {
     // private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
     private setVarData_: (varData: IVarDataVOBase) => void = null;
+    private setStepNumber: (step_number: number) => void = null;
     private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
 
     private registered_vars: { [name: string]: VarConfVOBase } = {};
@@ -295,7 +295,8 @@ export default class VarsController {
         setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [index: string]: boolean }) => void,
         // isStepping: boolean,
         // isWaiting: boolean,
-        setIsWaiting: (isWaiting: boolean) => void) {
+        setIsWaiting: (isWaiting: boolean) => void,
+        setStepNumber: (step_number: number) => void) {
         this.varDatas = getVarData;
         this.setVarData_ = setVarData;
         this.setUpdatingDatas = setUpdatingDatas;
@@ -305,6 +306,8 @@ export default class VarsController {
         // this.isStepping = isStepping;
         // this.isWaiting = isWaiting;
         this.setIsWaiting = setIsWaiting;
+
+        this.setStepNumber = setStepNumber;
     }
 
     public define_datasource_deps() {
@@ -354,7 +357,7 @@ export default class VarsController {
         }
     }
 
-    @PerfMonFunction
+    // @PerfMonFunction
     // public stageUpdateData<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
     //     if (!this.waitingForUpdate) {
     //         this.waitingForUpdate = {};
@@ -397,7 +400,7 @@ export default class VarsController {
 
         let node = this.varDAG.nodes[index];
         // Si en cours d'update, on marque pour le prochain batch et on ne demande pas la mise à jour ça sert à rien
-        if (node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) {
+        if (this.step_number != 1) {
             node.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, this.varDAG);
         } else {
             node.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.varDAG);
@@ -958,31 +961,36 @@ export default class VarsController {
             default:
             case null:
             case 1:
+                let marked_for_updates = this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE];
+                if ((!marked_for_updates) || (!marked_for_updates.length)) {
+                    return;
+                }
+
                 if (!!this.setUpdatingDatas) {
                     this.setUpdatingDatas(true);
                 }
 
-                // On marque tous les noeuds en attente comme en cours d'update, pour que les prochaines demandes d'update indiquent
-                //  une demande pour le prochain batch
-                this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, true, (dag: VarDAG) => new VarDAGVisitorMarkForOngoingUpdate(dag));
+            // // On marque tous les noeuds en attente comme en cours d'update, pour que les prochaines demandes d'update indiquent
+            // //  une demande pour le prochain batch
+            // await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, true, (dag: VarDAG) => new VarDAGVisitorMarkForOngoingUpdate(dag));
 
-                // this.BATCH_UIDs_by_var_id = {};
-                this.varDatasBATCHCache = {};
+            // // this.BATCH_UIDs_by_var_id = {};
+            // this.varDatasBATCHCache = {};
 
-                if (!!this.is_stepping) {
-                    this.setIsWaiting(true);
-                    this.step_number = 2;
-                    break;
-                }
+            // if ((!!this.is_stepping) && this.setStepNumber) {
+            //     this.setIsWaiting(true);
+            //     this.setStepNumber(2);
+            //     break;
+            // }
 
             case 2:
                 // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
                 //  ou manuellement en éditant le noeud du varDAG)
                 await this.loadImportedDatas();
 
-                if (!!this.is_stepping) {
+                if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.step_number = 3;
+                    this.setStepNumber(3);
                     break;
                 }
 
@@ -994,9 +1002,9 @@ export default class VarsController {
                 // à ce stade
                 await this.solveDeps();
 
-                if (!!this.is_stepping) {
+                if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.step_number = 4;
+                    this.setStepNumber(4);
                     break;
                 }
 
@@ -1007,112 +1015,125 @@ export default class VarsController {
                 // On indique dans le store la mise à jour des vars
                 this.setUpdatingParamsToStore();
 
-                if (!!this.is_stepping) {
+                if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.step_number = 5;
+                    this.setStepNumber(5);
                     break;
                 }
 
             case 5:
                 // La demande est propagée jusqu'aux feuilles, on peut demander le chargement de toutes les datas nécessaires, en visitant des feuilles vers le top
-                await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorLoadDataSources(dag));
+                await this.loadDatasources();
+                // await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorLoadDataSources(dag));
 
-                if (!!this.is_stepping) {
+                if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.step_number = 6;
+                    this.setStepNumber(6);
                     break;
                 }
 
             case 6:
-                // On visite pour résoudre les calculs
-                await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorCompute(dag));
+                // // On visite pour résoudre les calculs
+                // await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorCompute(dag));
 
-                if (!!this.is_stepping) {
+                for (let i in this.varDAG.roots) {
+                    await this.computeNode(this.varDAG.roots[i]);
+                }
+
+                if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.step_number = 7;
+                    this.setStepNumber(10);
                     break;
                 }
 
-            case 7:
-                // Enfin on décharge les datasources
-                await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorUnloadDataSources(dag));
+            // case 7:
+            //     // Enfin on décharge les datasources
+            //     await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorUnloadDataSources(dag));
 
-                if (!!this.is_stepping) {
-                    this.setIsWaiting(true);
-                    this.step_number = 8;
-                    break;
-                }
+            //     if (!!this.is_stepping) && this.setStepNumber) {
+            //         this.setIsWaiting(true);
+            //         this.setStepNumber(8;
+            //         break;
+            //     }
 
-            case 8:
-                // On peut nettoyer directement le graph des markers de chargement de visite
-                await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_BATCH_DATASOURCE_LOADED, true));
+            // case 8:
+            //     // On peut nettoyer directement le graph des markers de chargement de visite
+            //     await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_BATCH_DATASOURCE_LOADED, true));
 
-                if (!!this.is_stepping) {
-                    this.setIsWaiting(true);
-                    this.step_number = 9;
-                    break;
-                }
+            //     if (!!this.is_stepping) && this.setStepNumber) {
+            //         this.setIsWaiting(true);
+            //         this.setStepNumber(9;
+            //         break;
+            //     }
 
-            case 9:
-                await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_BATCH_DATASOURCE_UNLOADED, true));
+            // case 9:
+            //     await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_BATCH_DATASOURCE_UNLOADED, true));
 
-                if (!!this.is_stepping) {
-                    this.setIsWaiting(true);
-                    this.step_number = 10;
-                    break;
-                }
+            //     if (!!this.is_stepping) && this.setStepNumber) {
+            //         this.setIsWaiting(true);
+            //         this.setStepNumber(10;
+            //         break;
+            //     }
 
             case 10:
-                await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_COMPUTED, true));
+                await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_COMPUTED, true, new VarDAGVisitorUnmarkComputed(this.varDAG));
 
-                if (!!this.is_stepping) {
+                if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.step_number = 11;
+                    this.setStepNumber(13);
                     break;
                 }
 
-            case 11:
                 if (!!this.setUpdatingParamsByVarsIds) {
                     this.setUpdatingParamsByVarsIds({});
                 }
+            // case 11:
 
-                // On supprime le marquage ongoing update et si on a des vars qui sont en attente de mise à jour pour next update, on les passe en attente normale
-                //  avant de lancer la récursion
-                await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new DAGVisitorSimpleUnmarker(dag, true, VarDAG.VARDAG_MARKER_ONGOING_UPDATE, true));
+            // // On supprime le marquage ongoing update et si on a des vars qui sont en attente de mise à jour pour next update, on les passe en attente normale
+            // //  avant de lancer la récursion
+            // await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, true, new DAGVisitorSimpleUnmarker(this.varDAG, true, VarDAG.VARDAG_MARKER_ONGOING_UPDATE, true));
 
-                if (!!this.is_stepping) {
-                    this.setIsWaiting(true);
-                    this.step_number = 12;
-                    break;
-                }
+            // if ((!!this.is_stepping) && this.setStepNumber) {
+            //     this.setIsWaiting(true);
+            //     this.setStepNumber(12);
+            //     break;
+            // }
 
-            case 12:
-                let needs_new_batch: boolean = false;
-                for (let i in this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE]) {
-                    let node: VarDAGNode = this.varDAG.nodes[this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE][i]];
-
-                    node.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, this.varDAG);
-                    node.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.varDAG);
-                    needs_new_batch = true;
-                }
-
-                if (!!this.is_stepping) {
-                    this.setIsWaiting(true);
-                    this.step_number = 13;
-                    break;
-                }
+            // case 12:
+            //     if ((!!this.is_stepping) && this.setStepNumber) {
+            //         this.setIsWaiting(true);
+            //         this.setStepNumber(13);
+            //         break;
+            //     }
 
             case 13:
                 this.flushVarsDatas();
 
-                if (!!this.is_stepping) {
+                if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.step_number = 14;
+                    this.setStepNumber(14);
                     break;
                 }
 
             case 14:
+
+                if ((!!this.is_stepping) && this.setStepNumber) {
+                    this.setIsWaiting(true);
+                    this.setStepNumber(1);
+                }
+
+                let needs_new_batch: boolean = false;
+
+                if ((!!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE]) &&
+                    (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE].length > 0)) {
+
+                    await this.varDAG.visitAllMarkedOrUnmarkedNodes(
+                        VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, true, new VarDAGVisitorMarkForNextUpdate(this.varDAG));
+                    needs_new_batch = true;
+                }
+
                 if (needs_new_batch) {
+
                     await this.updateDatas();
                 }
                 //
@@ -1147,6 +1168,10 @@ export default class VarsController {
             let node: VarDAGNode = this.varDAG.nodes[i];
             let param: IVarDataParamVOBase = node.param;
             let varConf: VarConfVOBase = this.getVarConfById(param.var_id);
+
+            if (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE)) {
+                continue;
+            }
 
             if (var_imported_data_vo_types.indexOf(varConf.var_data_vo_type) < 0) {
                 var_imported_data_vo_types.push(varConf.var_data_vo_type);
@@ -1277,38 +1302,135 @@ export default class VarsController {
     //     }
     // }
 
+    // @PerfMonFunction
+    // private async solveDeps() {
+
+    //     if (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
+    //         (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) {
+    //         // tout est déjà chargé
+    //         return;
+    //     }
+
+    //     // On charge les deps de toutes les roots
+    //     await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorDefineDeps(dag));
+
+    //     if ((!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED]) ||
+    //         (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length != this.varDAG.nodes_names.length)) {
+    //         console.error('VARDAG incohérence : Le nombre de noeuds chargés est différent du nombre de noeuds total:' +
+    //             this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length + ":" + this.varDAG.nodes_names.length);
+    //     }
+    // }
+
     @PerfMonFunction
     private async solveDeps() {
 
-        if (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
-            (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) {
+        if ((this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
+            (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) ||
+            ((!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING]) ||
+                (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING].length))) {
             // tout est déjà chargé
             return;
         }
 
-        // On charge les deps de toutes les roots
-        await this.varDAG.visitAllFromRootsOrLeafs((dag: VarDAG) => new VarDAGVisitorDefineDeps(dag));
-
-        if ((!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED]) ||
-            (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length != this.varDAG.nodes_names.length)) {
-            console.error('VARDAG incohérence : Le nombre de noeuds chargés est différent du nombre de noeuds total:' +
-                this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length + ":" + this.varDAG.nodes_names.length);
-        }
+        await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, true, new VarDAGVisitorDefineNodeDeps(this.varDAG));
     }
+
+    // @PerfMonFunction
+    // private async propagateUpdateRequest() {
+
+    //     if (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE]) {
+    //         return;
+    //     }
+
+    //     let markeds_for_update: string[] = Array.from(this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE]);
+    //     for (let i in markeds_for_update) {
+    //         let marked_for_update: VarDAGNode = this.varDAG.nodes[markeds_for_update[i]];
+
+    //         // On visite dans les 2 sens (bottom/up et up/bottom) puisqu'on veut les deps mais aussi les impacts
+    //         // Les impacts sont toujours marqués, alors que les deps ne sont marquées que si pas encore computed
+    //         //  (on a pas demandé un update sur la dep donc pourquoi la recompiler ?)
+    //         await marked_for_update.visit(new DAGVisitorSimpleMarker(
+    //             this.varDAG, true, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true, VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE));
+    //         await marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, false, VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, false, marked_for_update.name, true));
+    //     }
+    // }
 
     @PerfMonFunction
     private async propagateUpdateRequest() {
 
-        if (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE]) {
+        if (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE]) {
             return;
         }
 
-        for (let i in this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE]) {
-            let marked_for_update: VarDAGNode = this.varDAG.nodes[this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE][i]];
+        await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, true, new VarDAGVisitorDefineNodePropagateRequest(this.varDAG));
+    }
 
-            // On visite dans les 2 sens (bottom/up et up/bottom) puisqu'on veut les deps mais aussi les impacts
-            await marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, true, VarDAG.VARDAG_MARKER_ONGOING_UPDATE, false, marked_for_update.name, true));
-            await marked_for_update.visit(new DAGVisitorSimpleMarker(this.varDAG, false, VarDAG.VARDAG_MARKER_ONGOING_UPDATE, false, marked_for_update.name, true));
+    /**
+     * On charge les datas, en considérant tout l'arbre à plat, aucune dépendance et pas d'ordre de chargement
+     */
+    @PerfMonFunction
+    private async loadDatasources() {
+
+        // On doit charger toutes les datas dont dépendent les ongoing_update
+        let node_names: string[] = Array.from(this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE]);
+        let source_deps_by_node_names: { [node_name: string]: string[] } = {};
+        let var_params_by_source_deps: { [ds_name: string]: IVarDataParamVOBase[] } = {};
+
+        for (let i in node_names) {
+            let node_name: string = node_names[i];
+            let node: VarDAGNode = this.varDAG.nodes[node_name];
+            let controller: VarControllerBase<any, any> = this.getVarControllerById(node.param.var_id);
+            let datasource_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
+
+            source_deps_by_node_names[node_name] = [];
+            for (let j in datasource_deps) {
+                let datasource_dep: IDataSourceController<any, any> = datasource_deps[j];
+
+                if (!var_params_by_source_deps[datasource_dep.name]) {
+                    var_params_by_source_deps[datasource_dep.name] = [];
+                }
+                source_deps_by_node_names[node_name].push(datasource_dep.name);
+                var_params_by_source_deps[datasource_dep.name].push(node.param);
+            }
         }
+
+        let promises: Array<Promise<any>> = [];
+        for (let ds_name in var_params_by_source_deps) {
+            let ds_controller: IDataSourceController<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name];
+
+            promises.push(ds_controller.load_for_batch(var_params_by_source_deps[ds_name]));
+        }
+        await Promise.all(promises);
+    }
+
+    @PerfMonFunction
+    private async computeNode(node: VarDAGNode) {
+
+        // Si le noeud est pas noté en ongoing update, on a rien à foutre ici
+        if (!node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) {
+            return;
+        }
+
+        // On peut compute un noeud si tous les outgoing sont soit computed, soit pas ongoing et computed_once
+        // si un outgoing répond pas à ce descriptif, on doit le compute
+        for (let i in node.outgoing) {
+            let outgoing: VarDAGNode = node.outgoing[i] as VarDAGNode;
+
+            if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED)) {
+                continue;
+            }
+
+            if ((!outgoing.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) && (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE))) {
+                continue;
+            }
+
+            await this.computeNode(outgoing);
+        }
+
+        // On doit pouvoir compute à ce stade
+        await VarsController.getInstance().getVarControllerById(node.param.var_id).updateData(node, this.varDAG);
+
+        node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
+        node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
     }
 }

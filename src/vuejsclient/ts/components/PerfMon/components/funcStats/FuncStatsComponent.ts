@@ -19,12 +19,12 @@ export default class FuncStatsComponent extends VueComponentBase {
 
     public mounted() {
         PerfMonController.PERFMON_RUN = true;
-        PerfMonController.getInstance().setPerfMonFuncStats = this.setPerfMonFuncStats;
+        PerfMonController.getInstance().setPerfMonFuncStatsStoreFunc(this.setPerfMonFuncStats);
     }
 
     public destroyed() {
         PerfMonController.PERFMON_RUN = false;
-        PerfMonController.getInstance().setPerfMonFuncStats = null;
+        PerfMonController.getInstance().setPerfMonFuncStatsStoreFunc(null);
     }
 
     get datatable_datas(): any[] {

@@ -32,6 +32,9 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
     @ModuleVarGetter
     public isStepping: boolean;
 
+    @ModuleVarGetter
+    public getStepNumber: number;
+
     private graph_params: string = null;
     private hover_desc: string = null;
 
@@ -53,6 +56,10 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
 
     public switch_stepper() {
         this.setIsStepping(!this.isStepping);
+
+        if (!this.isStepping) {
+            this.setIsWaiting(false);
+        }
     }
 
     public continue_stepper() {

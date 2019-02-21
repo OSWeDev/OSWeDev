@@ -11,6 +11,7 @@ export default class VarDAGNode extends DAGNode {
 
     public constructor(name: string, dag: VarDAG, public param: IVarDataParamVOBase) {
         super(name, dag);
+        this.addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, dag);
     }
 
     public setImportedData(imported: IVarDataVOBase, dag: VarDAG) {

@@ -59,11 +59,13 @@ export default class VarsManagerComponent extends VueComponentBase {
     public setDescFuncStatsOpened: (desc_funcstats_opened: boolean) => void;
     @ModuleVarAction
     public setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [index: string]: boolean }) => void;
+    @ModuleVarAction
+    public setStepNumber: (step_number: number) => void;
 
     public mounted() {
         VarsController.getInstance().registerStoreHandlers(
             this.getVarDatas, this.setVarData, this.setIsUpdating, this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds,
-            this.setIsWaiting);
+            this.setIsWaiting, this.setStepNumber);
     }
 
     /**

@@ -4,10 +4,10 @@ import ObjectHandler from '../../../../tools/ObjectHandler';
 
 export default class DAGNode {
 
-    public incoming = {};
+    public incoming: { [node_name: string]: DAGNode } = {};
     public incomingNames: string[] = [];
 
-    public outgoing = {};
+    public outgoing: { [node_name: string]: DAGNode } = {};
     public outgoingNames: string[] = [];
 
     public value = null;
