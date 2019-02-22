@@ -171,6 +171,47 @@ export default class ModuleAPI extends Module {
         }
     }
 
+    public requestUrlMatchesApiUrl(requestUrl: string, apiUrl: string): boolean {
+        let pattern: string = apiUrl.replace(/(:[^:\/]+)/ig, '[^/]*');
+
+        return new RegExp(pattern, "ig").test(requestUrl);
+    }
+
+    /**
+     * Used for calling translateFromREQ functions from simple url:string. Returns object of form request.params.{}
+     * @param requestUrl
+     * @param apiUrl
+     */
+    public getFakeRequestParamsFromUrl(requestUrl: string, apiUrl: string): any {
+        let pattern: string = apiUrl.replace(/(:[^:\/]+)/ig, '([^/]*)');
+
+        let urlMembers: string[] = Array.from(new RegExp(pattern, "ig").exec(requestUrl));
+        let res = { params: {} };
+
+        if ((!urlMembers) || (urlMembers.length <= 1)) {
+            return res;
+        }
+        urlMembers.shift();
+
+        let i = 0;
+        let apiRegExp = /:([^:\/]+)/ig;
+        let apiMember = apiRegExp.exec(apiUrl);
+
+        while (apiMember) {
+
+            if ((!urlMembers[i]) || (!apiMember[1])) {
+                console.error('Incohérence getFakeRequestParamsFromUrl :' + urlMembers[i] + ":" + apiMember[1] + ":");
+                return res;
+            }
+
+            res.params[apiMember[1]] = urlMembers[i];
+            apiMember = apiRegExp.exec(apiUrl);
+            i++;
+        }
+
+        return res;
+    }
+
     public initialize() {
         this.fields = [];
         this.datatables = [];

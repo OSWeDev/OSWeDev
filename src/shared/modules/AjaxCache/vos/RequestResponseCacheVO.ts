@@ -19,6 +19,8 @@ export default class RequestResponseCacheVO {
 
     public tries: number = 0;
 
+    public wrappable_request: boolean = false;
+
     public api_types_involved: string[] = [];
 
     public constructor(url: string, api_types_involved: string[]) {

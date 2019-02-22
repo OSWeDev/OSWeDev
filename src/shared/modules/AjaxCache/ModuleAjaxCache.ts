@@ -10,6 +10,9 @@ import CacheInvalidationRegexpRuleVO from './vos/CacheInvalidationRegexpRuleVO';
 import CacheInvalidationRulesVO from './vos/CacheInvalidationRulesVO';
 import { Duration } from 'moment';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import RequestsWrapperResult from './vos/RequestsWrapperResult';
+import ModuleAPI from '../API/ModuleAPI';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 
 export default class ModuleAjaxCache extends Module {
 
@@ -18,6 +21,8 @@ export default class ModuleAjaxCache extends Module {
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleAjaxCache.MODULE_NAME;
 
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAjaxCache.MODULE_NAME + ".FO_ACCESS";
+
+    public static APINAME_REQUESTS_WRAPPER: string = "REQUESTS_WRAPPER";
 
     public static getInstance(): ModuleAjaxCache {
         if (!ModuleAjaxCache.instance) {
@@ -41,6 +46,13 @@ export default class ModuleAjaxCache extends Module {
 
         super("ajax_cache", ModuleAjaxCache.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    public registerApis() {
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<RequestResponseCacheVO[], RequestsWrapperResult>(
+            ModuleAjaxCache.APINAME_REQUESTS_WRAPPER,
+            []
+        ));
     }
 
     public async get(url: string, api_types_involved: string[]) {
@@ -85,7 +97,7 @@ export default class ModuleAjaxCache extends Module {
     }
 
     public post(
-        url: string, api_types_involved: string[], postdatas = null, dataType = 'json',
+        url: string, api_types_involved: string[], postdatas = null, dataType: string = 'json',
         contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null) {
 
         let self = this;
@@ -203,6 +215,12 @@ export default class ModuleAjaxCache extends Module {
             this.cache.requestResponseCaches[url] = new RequestResponseCacheVO(url, api_types_involved);
             this.cache.requestResponseCaches[url].resolve_callbacks.push(resolve);
             this.cache.requestResponseCaches[url].reject_callbacks.push(reject);
+
+            // On indique si on peut stacker ou pas
+            //  pour l'instant on essaie de stacker tout ce qui part vers les apis
+            if (url.match(/^\/api_handler\/.*/ig)) {
+                this.cache.requestResponseCaches[url].wrappable_request = true;
+            }
         }
 
         return this.cache.requestResponseCaches[url];
@@ -312,12 +330,46 @@ export default class ModuleAjaxCache extends Module {
 
         let self = this;
 
-        if (self.waitingForRequest && self.waitingForRequest.length > 0) {
+        // On a 1 ou plusieurs requêtes. Ce qu'on veut idéalement c'est pouvoir gérer directement toutes les requêtes en attente
+        //  en 1 seul batch, et recevoir une seule réponse qui encapsule toutes les questions.
+        // On doit pouvoir faire ça pour les gets sans trop de difficultés
 
-            // On a 1 ou plusieurs requêtes. Ce qu'on veut idéalement c'est pouvoir gérer directement toutes les requêtes en attente
-            //  en 1 seul batch, et recevoir une seule réponse qui encapsule toutes les questions.
-            // On doit pouvoir faire ça pour les gets sans trop de difficultés
+        if (self.waitingForRequest && (self.waitingForRequest.length > 1)) {
 
+            let requests: RequestResponseCacheVO[] = Array.from(self.waitingForRequest).filter((req) => req.wrappable_request);
+            if (requests && (requests.length > 1)) {
+
+                let everything_went_well: boolean = true;
+
+                // On encapsule les gets dans une requête de type post
+                try {
+                    let results: RequestsWrapperResult = await this.post("/api_handler/requests_wrapper", [], JSON.stringify(requests)) as RequestsWrapperResult;
+
+                    if ((!results) || (!results.requests_results)) {
+                        throw new Error('Pas de résultat pour la requête groupée.');
+                    }
+
+                    for (let i in requests) {
+                        let wrapped_request = requests[i];
+
+                        if ((!wrapped_request.url) || (typeof results.requests_results[wrapped_request.url] === 'undefined')) {
+                            throw new Error('Pas de résultat pour la requête :' + wrapped_request.url + ":");
+                        }
+
+                        self.resolve_request(wrapped_request, results.requests_results[wrapped_request.url]);
+                    }
+                } catch (error) {
+                    // Si ça échoue, on utilise juste le système normal de requêtage individuel.
+                    console.error("Echec de requête groupée : " + error);
+                    everything_went_well = false;
+                }
+                if (everything_went_well) {
+                    self.waitingForRequest = self.waitingForRequest.filter((req: RequestResponseCacheVO) => (requests.indexOf(req) < 0));
+                }
+            }
+        }
+
+        if (self.waitingForRequest && (self.waitingForRequest.length > 0)) {
             let request: RequestResponseCacheVO = self.waitingForRequest.shift();
 
             // TODO fixme en cas d'erreur les post renvoient des GET ... pas valide...
@@ -331,18 +383,7 @@ export default class ModuleAjaxCache extends Module {
                 $.get(
                     request.url,
                     (datas) => {
-                        request.datas = datas;
-                        request.datasDate = moment();
-                        request.state = RequestResponseCacheVO.STATE_RESOLVED;
-
-                        while (request.resolve_callbacks && request.resolve_callbacks.length) {
-                            let resolve_callback = request.resolve_callbacks.shift();
-
-                            // Make the calls asynchronous to call them all at the same time
-                            setTimeout(() => {
-                                resolve_callback(datas);
-                            }, 10);
-                        }
+                        self.resolve_request(request, datas);
                     })
                     .fail((err) => {
                         self.traitementFailRequest(err, request);
@@ -356,5 +397,20 @@ export default class ModuleAjaxCache extends Module {
         setTimeout((async () => {
             self.processRequests();
         }), self.timerProcessRequests);
+    }
+
+    private resolve_request(request, datas) {
+        request.datas = datas;
+        request.datasDate = moment();
+        request.state = RequestResponseCacheVO.STATE_RESOLVED;
+
+        while (request.resolve_callbacks && request.resolve_callbacks.length) {
+            let resolve_callback = request.resolve_callbacks.shift();
+
+            // Make the calls asynchronous to call them all at the same time
+            setTimeout(() => {
+                resolve_callback(datas);
+            }, 10);
+        }
     }
 }
