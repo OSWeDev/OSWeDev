@@ -314,8 +314,11 @@ export default class ModuleAjaxCache extends Module {
 
         if (self.waitingForRequest && self.waitingForRequest.length > 0) {
 
-            let request: RequestResponseCacheVO = self.waitingForRequest.shift();
+            // On a 1 ou plusieurs requêtes. Ce qu'on veut idéalement c'est pouvoir gérer directement toutes les requêtes en attente
+            //  en 1 seul batch, et recevoir une seule réponse qui encapsule toutes les questions.
+            // On doit pouvoir faire ça pour les gets sans trop de difficultés
 
+            let request: RequestResponseCacheVO = self.waitingForRequest.shift();
 
             // TODO fixme en cas d'erreur les post renvoient des GET ... pas valide...
             if ($.ajaxSetup) {

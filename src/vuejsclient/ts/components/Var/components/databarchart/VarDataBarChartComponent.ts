@@ -48,7 +48,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
     @Prop({ default: false })
     public reload_on_mount: boolean;
 
-    private datasets: any[] = [];
+    // private datasets: any[] = [];
     private labels: string[] = [];
 
     public mounted() {
@@ -149,7 +149,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
             }
         }
 
-        this.set_datasets();
+        // this.set_datasets();
         this.set_labels();
     }
 
@@ -193,14 +193,14 @@ export default class VarDataBarChartComponent extends VueComponentBase {
             }
         }
 
-        this.set_datasets();
+        // this.set_datasets();
         this.set_labels();
     }
 
     @Watch("all_data_loaded")
     private onchange_all_data_loaded() {
         if (this.all_data_loaded) {
-            this.set_datasets();
+            // this.set_datasets();
             this.set_labels();
         }
     }
@@ -224,9 +224,9 @@ export default class VarDataBarChartComponent extends VueComponentBase {
             this.options);
     }
 
-    private set_datasets() {
+    get datasets(): any[] {
 
-        this.datasets = [];
+        let res: any[] = [];
 
         if (!this.all_data_loaded) {
             return null;
@@ -243,7 +243,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
                 dataset_datas.push(this.get_filtered_value(this.getVarDatas[VarsController.getInstance().getIndex(var_param)] as ISimpleNumberVarData));
             }
 
-            this.datasets.push({
+            res.push({
                 label: (!!var_dataset_descriptor.label_translatable_code) ?
                     this.t(var_dataset_descriptor.label_translatable_code) :
                     this.t(VarsController.getInstance().get_translatable_name_code(var_dataset_descriptor.var_id)),
@@ -252,6 +252,8 @@ export default class VarDataBarChartComponent extends VueComponentBase {
                 yAxisID: var_dataset_descriptor.y_axis_id
             });
         }
+
+        return res;
     }
 
     private render_chart_js() {

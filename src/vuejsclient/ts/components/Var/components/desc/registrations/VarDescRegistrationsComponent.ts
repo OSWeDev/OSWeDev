@@ -75,9 +75,9 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
     public createGraph() {
 
         // Cleanup old graph
-        let oldsvg = d3.select("svg > g");
-        if (!!oldsvg) {
-            d3.select("svg").nodes()[0].innerHTML = "";
+        let oldsvg = d3.select(this.$el).select("svg > g");
+        if ((!!oldsvg) && (!!d3.select(this.$el).select("svg").nodes()[0])) {
+            d3.select(this.$el).select("svg").nodes()[0].innerHTML = "";
         }
 
         // Create the input graph
@@ -186,7 +186,7 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
         }
 
         // Set up an SVG group so that we can translate the final graph.
-        let svg = d3.select("svg");
+        let svg = d3.select(this.$el).select("svg");
         let svgGroup = svg.append("g");
 
         // Simple function to style the tooltip for the given node.

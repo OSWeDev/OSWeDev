@@ -16,6 +16,11 @@ import moment = require('moment');
 export default class VarDescComponent extends VueComponentBase {
 
     @ModuleVarGetter
+    public getStepNumber: number;
+    @ModuleVarGetter
+    public isStepping: number;
+
+    @ModuleVarGetter
     public getDescSelectedIndex: string;
     @ModuleVarAction
     public setDescSelectedIndex: (desc_selected_index: string) => void;
@@ -30,6 +35,8 @@ export default class VarDescComponent extends VueComponentBase {
     public depth: number;
     @Prop({ default: 2 })
     public max_depth: number;
+
+    private step_number: number = 0;
 
     get is_selected_var(): boolean {
         return this.getDescSelectedIndex == this.var_index;
@@ -87,9 +94,9 @@ export default class VarDescComponent extends VueComponentBase {
 
     public cleanUpGraph() {
         // Cleanup old graph
-        let oldsvg = d3.select("svg > g");
-        if (!!oldsvg) {
-            d3.select("svg").nodes()[0].innerHTML = "";
+        let oldsvg = d3.select(this.$el).select("svg > g");
+        if ((!!oldsvg) && (!!d3.select(this.$el).select("svg").nodes()[0])) {
+            d3.select(this.$el).select("svg").nodes()[0].innerHTML = "";
         }
     }
 
@@ -98,7 +105,7 @@ export default class VarDescComponent extends VueComponentBase {
      */
     public createGraph() {
 
-        // this.cleanUpGraph();
+        this.cleanUpGraph();
 
         // Create the input graph
         let g = new dagreD3.graphlib.Graph()
@@ -129,7 +136,7 @@ export default class VarDescComponent extends VueComponentBase {
         });
 
         // Set up an SVG group so that we can translate the final graph.
-        let svg = d3.select("svg");
+        let svg = d3.select(this.$el).select("svg");
         let svgGroup = svg.append("g");
 
         // Set up zoom support
@@ -170,12 +177,31 @@ export default class VarDescComponent extends VueComponentBase {
         }
 
         if (old_var_param) {
-            this.cleanUpGraph();
         }
 
         if (new_var_param) {
             this.createGraph();
         }
+    }
+
+    @Watch('getStepNumber')
+    private onStepNumber(new_var_param: number, old_var_param: number) {
+
+        // On refresh le graph automatiquement si le step_number change et que l'on est en train de step
+        if (new_var_param == old_var_param) {
+            return;
+        }
+
+        if (new_var_param == this.step_number) {
+            return;
+        }
+
+        if (!this.isStepping) {
+            return;
+        }
+
+        this.step_number = new_var_param;
+        this.createGraph();
     }
 
     private select_var() {
