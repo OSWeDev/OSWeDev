@@ -8,3 +8,17 @@
 .var_data_ref.selectable_var{
     cursor: pointer;
 }
+
+.var_data_ref.selected_var_dependency{
+    background: orangered;
+    border-radius: 10px;
+    color: white;
+    font-weight: bolder;
+}
+
+.var_data_ref.selected_var_dependent{
+    background: green;
+    border-radius: 10px;
+    color: white;
+    font-weight: bolder;
+}

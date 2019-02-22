@@ -13,10 +13,7 @@
             h5.card-title {{ label('var.desc_mode.var_data') }}
             var-data(:var_param='var_param')
     
-    template(v-if='(!!var_deps) && var_deps.length' )
-        h5 {{ label('var.desc_mode.var_deps') }}
-        i.fa.fa-2x.fa-search-plus.fa-fw(aria-hidden="true" v-if='!isDescDepsOpened' @click='setDescDepsOpened(!isDescDepsOpened)')
-        i.fa.fa-2x.fa-search-minus.fa-fw(aria-hidden="true" v-if='isDescDepsOpened' @click='setDescDepsOpened(!isDescDepsOpened)')
-        template(v-for='var_dag_node in var_deps' v-if='isDescDepsOpened')
-            var-desc(:var_param='var_dag_node.param' :depth='depth + 1' :max_depth='max_depth')
+            .row
+                .col-md-12
+                    svg(width=400 height=300)
 

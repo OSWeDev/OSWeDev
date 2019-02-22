@@ -9,8 +9,8 @@ import moment = require('moment');
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDAG from '../../../../../../../shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../../../../../shared/modules/Var/graph/var/VarDAGNode';
-import 'tipsy/src/javascripts/jquery.tipsy.js';
-import 'tipsy/src/stylesheets/tipsy.css';
+// import 'tipsy/src/javascripts/jquery.tipsy.js';
+// import 'tipsy/src/stylesheets/tipsy.css';
 import IVarDataParamVOBase from '../../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 
 @Component({
@@ -77,7 +77,7 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
         // Cleanup old graph
         let oldsvg = d3.select("svg > g");
         if (!!oldsvg) {
-            oldsvg.selectAll("*").remove();
+            d3.select("svg").nodes()[0].innerHTML = "";
         }
 
         // Create the input graph
@@ -139,21 +139,7 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
                 }
             }
 
-            // let d3node = { label: node_name + " " + JSON.stringify(node.markers) };
-
-            let d3node = { label: node_name.split('_').splice(1, 100).join(' ') };
-            if (!node.hasIncoming) {
-                d3node['class'] = "type_leaf";
-            }
-            if (!node.hasOutgoing) {
-                d3node['class'] = "type_root";
-            }
-
-            for (let marker in node.markers) {
-                d3node['class'] = ((!!d3node['class']) ? d3node['class'] : "") + " marker_" + marker;
-            }
-
-            g.setNode(node_name, d3node);
+            g.setNode(node_name, node.getD3NodeDefinition());
             existingNodes[node_name] = true;
             g.setParent(node_name, node.param.var_id.toString());
             descriptions[node_name] = JSON.stringify(node.markers).replace(/,/g, ",\n");

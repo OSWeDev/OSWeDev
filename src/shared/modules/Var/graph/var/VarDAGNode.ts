@@ -3,6 +3,8 @@ import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../interfaces/IVarDataVOBase';
 import VarDAG from './VarDAG';
 import VarsController from '../../VarsController';
+import VueAppController from '../../../../../vuejsclient/VueAppController';
+import LocaleManager from '../../../../tools/LocaleManager';
 
 export default class VarDAGNode extends DAGNode {
 
@@ -25,5 +27,26 @@ export default class VarDAGNode extends DAGNode {
     public initializeNode(dag: VarDAG) {
         super.initializeNode(dag);
         this.addMarker(VarDAG.VARDAG_MARKER_VAR_ID + this.param.var_id, dag);
+    }
+
+    public getD3NodeDefinition(use_var_name_as_label: boolean = false): any {
+        let label: string = this.name.split('_').splice(1, 100).join(' ');
+
+        if (use_var_name_as_label) {
+            label = LocaleManager.getInstance().i18n.t(VarsController.getInstance().get_translatable_name_code(this.param.var_id));
+        }
+        let d3node = { label: label };
+        if (!this.hasIncoming) {
+            d3node['class'] = "type_leaf";
+        }
+        if (!this.hasOutgoing) {
+            d3node['class'] = "type_root";
+        }
+
+        for (let marker in this.markers) {
+            d3node['class'] = ((!!d3node['class']) ? d3node['class'] : "") + " marker_" + marker;
+        }
+
+        return d3node;
     }
 }

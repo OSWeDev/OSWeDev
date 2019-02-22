@@ -49,8 +49,8 @@ export default class VarsController {
     };
 
     public step_number: number = 1;
-    public is_stepping: boolean = true;
-    public is_waiting: boolean = true;
+    public is_stepping: boolean = false;
+    public is_waiting: boolean = false;
 
     private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
 

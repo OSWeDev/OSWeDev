@@ -19,6 +19,69 @@
             font-size: larger;
             margin-left: 6px;
         }
+
+
+
+        svg {
+            margin: 10px;
+        }
+
+        g.type_leaf > rect {
+            fill: #00ffd0;
+        }
+        g.type_root > rect {
+            fill:lightgoldenrodyellow;
+        }
+
+        g.marker_COMPUTED_AT_LEAST_ONCE > rect {
+            stroke: blue;
+            stroke-width: 3;
+        }
+
+        g.marker_NEEDS_DEPS_LOADING > rect {
+            fill: lightcoral !important;
+        }
+
+        g.marker_MARKED_FOR_NEXT_UPDATE > rect {
+            stroke: lightcoral !important;
+            stroke-width: 3;
+        }
+
+        g.marker_MARKED_FOR_UPDATE > rect {
+            stroke: red !important;
+            stroke-width: 3;
+        }
+
+        g.marker_ONGOING_UPDATE > rect {
+            stroke: orange !important;
+            stroke-width: 3;
+        }
+
+        g.marker_COMPUTED > rect {
+            stroke: green !important;
+            stroke-width: 3;
+        }
+
+        .cluster rect {
+            fill: lightgrey;
+        }
+
+        text {
+            font-weight: 300;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        .node rect {
+            stroke: #999;
+            fill: #fff;
+            stroke-width: 1.5px;
+        }
+
+        .edgePath path {
+            stroke: #333;
+            stroke-width: 1.5px;
+        }
     }
 
     i {
