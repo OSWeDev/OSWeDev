@@ -15,7 +15,9 @@ export default class DAG<TNode extends DAGNode> {
 
     public marked_nodes_names: { [marker: string]: string[] } = {};
 
-    public constructor(protected node_constructor: (name: string, dag: DAG<TNode>, ...params) => TNode) { }
+    public constructor(
+        protected node_constructor: (name: string, dag: DAG<TNode>, ...params) => TNode,
+        protected on_node_removal: (dagNode: TNode, ...params) => void = null) { }
 
     public add(name: string, ...params): TNode {
         if (!name) { return; }
@@ -113,6 +115,9 @@ export default class DAG<TNode extends DAGNode> {
         // FIXME TODO Qu'est-ce qu'il se passe quand un noeud n'a plus de outgoing alors qu'il en avait ?
         // Est-ce que c'est possible dans notre cas ? Est-ce que c'est possible dans d'autres cas ? Est-ce qu'il faut le gérer ?
 
+        if (!!this.on_node_removal) {
+            this.on_node_removal(this.nodes[node_name]);
+        }
         this.nodes[node_name].prepare_for_deletion(this);
         delete this.nodes[node_name];
 

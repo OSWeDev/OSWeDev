@@ -17,8 +17,6 @@ import moment = require('moment');
 export default class VarDataBarChartComponent extends VueComponentBase {
     @ModuleVarGetter
     public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
-    @ModuleVarGetter
-    public getDescSelectedIndex: string;
     @ModuleVarAction
     public setDescSelectedIndex: (desc_selected_index: string) => void;
     @ModuleVarGetter

@@ -97,7 +97,10 @@ export default class VarDataRefComponent extends VueComponentBase {
     public is_selected_var_dependency_rec(selectedNode: VarDAGNode, test_node: VarDAGNode, test_incoming: boolean): boolean {
         // On traverse les deps de même var_id en considérant que c'est à plat. Ca permet de voir une
         //  dep de type cumul au complet et pas juste le jour de demande du cumul
-        if (test_incoming) {
+        if ((!test_node) || (!selectedNode)) {
+            return false;
+        }
+        if (!!test_incoming) {
 
             if ((!!test_node.incomingNames) && (test_node.incomingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
                 return true;

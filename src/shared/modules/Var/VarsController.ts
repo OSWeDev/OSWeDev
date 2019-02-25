@@ -33,7 +33,9 @@ export default class VarsController {
 
     private static instance: VarsController = null;
 
-    public varDAG: VarDAG = new VarDAG((name: string, dag: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(name, dag, param));
+    public varDAG: VarDAG = new VarDAG(
+        (name: string, dag: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(name, dag, param),
+        this.onVarDAGNodeRemoval.bind(this));
 
     // public registeredDatasParamsIndexes: { [paramIndex: string]: number } = {};
     // public registeredDatasParams: { [paramIndex: string]: IVarDataParamVOBase } = {};
@@ -52,12 +54,15 @@ export default class VarsController {
     public is_stepping: boolean = false;
     public is_waiting: boolean = false;
 
+    public registered_var_data_api_types: { [api_type: string]: boolean } = {};
+
     private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
 
     // private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
     // private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
     private setVarData_: (varData: IVarDataVOBase) => void = null;
+    private removeVarData: (varDataParam: IVarDataParamVOBase) => void = null;
     private setStepNumber: (step_number: number) => void = null;
     private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
 
@@ -139,9 +144,11 @@ export default class VarsController {
     public async initialize() {
         this.registered_vars_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<SimpleVarConfVO>(SimpleVarConfVO.API_TYPE_ID));
         this.registered_vars = {};
+        this.registered_var_data_api_types = {};
 
         for (let i in this.registered_vars_by_ids) {
             this.registered_vars[this.registered_vars_by_ids[i].name] = this.registered_vars_by_ids[i];
+            this.registered_var_data_api_types[this.registered_vars_by_ids[i].var_data_vo_type] = true;
         }
     }
 
@@ -190,12 +197,6 @@ export default class VarsController {
         this.varDatasStaticCache[index] = varData;
 
         if (set_in_batch_cache) {
-            // let BATCH_UID: number = this.BATCH_UIDs_by_var_id[varData.var_id];
-
-            // if (!((BATCH_UID != null) && (typeof BATCH_UID != 'undefined'))) {
-            //     console.error('setVarData:Tried set data in unknown batch'); // est-ce si grave ?
-            //     return;
-            // }
 
             this.varDatasBATCHCache[index] = varData;
 
@@ -290,6 +291,7 @@ export default class VarsController {
     public registerStoreHandlers<TData extends IVarDataVOBase>(
         getVarData: { [paramIndex: string]: TData },
         setVarData: (varData: IVarDataVOBase) => void,
+        removeVarData: (varDataParam: IVarDataParamVOBase) => void,
         setUpdatingDatas: (updating: boolean) => void,
         getUpdatingParamsByVarsIds: { [index: string]: boolean },
         setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [index: string]: boolean }) => void,
@@ -299,6 +301,7 @@ export default class VarsController {
         setStepNumber: (step_number: number) => void) {
         this.varDatas = getVarData;
         this.setVarData_ = setVarData;
+        this.removeVarData = removeVarData;
         this.setUpdatingDatas = setUpdatingDatas;
         this.getUpdatingParamsByVarsIds = getUpdatingParamsByVarsIds;
         this.setUpdatingParamsByVarsIds = setUpdatingParamsByVarsIds;
@@ -411,32 +414,6 @@ export default class VarsController {
         }
     }
 
-    // @PerfMonFunction
-    // public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = true) {
-    //     if (!this.registeredDatasParamsIndexes) {
-    //         this.registeredDatasParamsIndexes = {};
-    //         this.registeredDatasParams = {};
-    //     }
-
-    //     if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController) ||
-    //         (!this.getVarControllerById(param.var_id).varDataParamController.getIndex)) {
-    //         return;
-    //     }
-
-    //     let param_index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
-    //     if (!this.registeredDatasParamsIndexes[param_index]) {
-    //         this.registeredDatasParamsIndexes[param_index] = 1;
-    //     } else {
-    //         this.registeredDatasParamsIndexes[param_index]++;
-    //     }
-    //     this.registeredDatasParams[param_index] = param;
-
-    //     let actual_value = this.getVarData(param);
-    //     if (reload_on_register || (!actual_value)) {
-    //         this.stageUpdateData(param);
-    //     }
-    // }
-
     @PerfMonFunction
     public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false) {
 
@@ -448,30 +425,20 @@ export default class VarsController {
         }
     }
 
-    // @PerfMonFunction
-    // public unregisterDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
-    //     if (!this.registeredDatasParamsIndexes) {
-    //         this.registeredDatasParamsIndexes = {};
-    //         this.registeredDatasParams = {};
-    //         return;
-    //     }
+    public onVarDAGNodeRemoval(node: VarDAGNode) {
 
-    //     if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController) ||
-    //         (!this.getVarControllerById(param.var_id).varDataParamController.getIndex)) {
-    //         return;
-    //     }
+        if ((!node) || (!node.param)) {
+            return;
+        }
+        let index: string = this.getIndex(node.param);
 
-    //     let param_index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
-    //     if ((this.registeredDatasParamsIndexes[param_index] == null) || (typeof this.registeredDatasParamsIndexes[param_index] == 'undefined')) {
-    //         return;
-    //     }
-
-    //     this.registeredDatasParamsIndexes[param_index]--;
-    //     if (this.registeredDatasParamsIndexes[param_index] <= 0) {
-    //         delete this.registeredDatasParamsIndexes[param_index];
-    //         delete this.registeredDatasParams[param_index];
-    //     }
-    // }
+        if (!!this.varDatasStaticCache[index]) {
+            delete this.varDatasStaticCache[index];
+        }
+        if (!!this.setVarData_) {
+            this.removeVarData(node.param);
+        }
+    }
 
     @PerfMonFunction
     public unregisterDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
@@ -875,6 +842,7 @@ export default class VarsController {
         this.registered_vars[varConf.name] = varConf;
         this.registered_vars_controller[varConf.name] = controller;
         this.registered_vars_by_ids[varConf.id] = varConf;
+        this.registered_var_data_api_types[varConf.var_data_vo_type] = true;
 
         let datasource_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
         datasource_deps = (!!datasource_deps) ? datasource_deps : [];

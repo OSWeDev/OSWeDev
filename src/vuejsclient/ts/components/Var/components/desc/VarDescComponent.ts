@@ -79,7 +79,13 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return JSON.stringify(VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex].markers);
+        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
+
+        if (!selectedNode) {
+            return null;
+        }
+
+        return JSON.stringify(selectedNode.markers);
     }
 
     get var_deps(): { [name: string]: VarDAGNode } {
@@ -115,6 +121,11 @@ export default class VarDescComponent extends VueComponentBase {
         // On s'intéresse au noeud sélectionné et aux incommings et outgoings de ce noeud et c'est tout
         let node_name: string = this.getDescSelectedIndex;
         let node: VarDAGNode = VarsController.getInstance().varDAG.nodes[node_name];
+
+        if (!node) {
+            return;
+        }
+
         g.setNode(node_name, node.getD3NodeDefinition(true));
 
         for (let i in node.outgoing) {

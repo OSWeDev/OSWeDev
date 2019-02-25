@@ -64,7 +64,8 @@ export default class VarsManagerComponent extends VueComponentBase {
 
     public mounted() {
         VarsController.getInstance().registerStoreHandlers(
-            this.getVarDatas, this.setVarData, this.setIsUpdating, this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds,
+            this.getVarDatas, this.setVarData, this.removeVarData, this.setIsUpdating,
+            this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds,
             this.setIsWaiting, this.setStepNumber);
     }
 

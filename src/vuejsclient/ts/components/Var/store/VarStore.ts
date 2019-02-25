@@ -181,7 +181,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 let index: string = varController.varDataParamController.getIndex(varDataParam);
 
                 try {
-                    Vue.delete(state.varDatas, index);
+                    if (!!state.varDatas[index]) {
+                        Vue.delete(state.varDatas, index);
+                    }
                 } catch (error) {
 
                 }

@@ -45,7 +45,13 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
 
     get descSelectedParam(): IVarDataParamVOBase {
         if (!!this.getDescSelectedIndex) {
-            return VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex].param;
+            let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
+
+            if (!selectedNode) {
+                return null;
+            }
+
+            return selectedNode.param;
         }
         return null;
     }

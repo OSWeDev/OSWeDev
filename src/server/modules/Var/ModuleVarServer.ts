@@ -7,6 +7,10 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import VarsController from '../../../shared/modules/Var/VarsController';
+import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -28,6 +32,16 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Description' }, 'var.desc_mode.var_description.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
+
+        // Tentative de trigger pour mettre à jour en ato l'imported existant avec la nouvelle valeur si pârams isos mais ça marche que pour simplevar et c'est pas le but
+        // let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        // let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+
+        // for (let api_type in VarsController.getInstance().registered_var_data_api_types){
+
+        //     preCreateTrigger.registerHandler(api_type, this.onCreateVarData.bind(this));
+        //     preUpdateTrigger.registerHandler(api_type, this.onUpdateVarData.bind(this));
+        // }
     }
 
     /**

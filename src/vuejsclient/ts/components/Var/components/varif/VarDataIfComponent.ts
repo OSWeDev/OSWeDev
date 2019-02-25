@@ -30,6 +30,9 @@ export default class VarDataIfComponent extends VueComponentBase {
     @Prop({ default: false })
     public reload_on_mount: boolean;
 
+    @Prop({ default: false })
+    public preload_content: boolean;
+
     get var_data(): IVarDataVOBase {
 
         if ((!this.getVarDatas) || (!this.var_param)) {
