@@ -53,14 +53,6 @@ export default class VarDAG extends DAG<VarDAGNode> {
 
             if (!!node) {
                 node.removeMarker(VarDAG.VARDAG_MARKER_REGISTERED, this);
-
-                // Si on est plus marqué et qu'on est un top élément (root), on supprime le noeud et on lance le visiteur pour supprimer tous les suivants
-                if (!node.hasMarker(VarDAG.VARDAG_MARKER_REGISTERED)) {
-
-                    // Suppression en 2 étapes, on marque pour suppression et on demande la suppression des noeuds marqués
-                    node.visit(new VarDAGVisitorMarkForDeletion(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION, this));
-                    this.deleteMarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION);
-                }
             }
         }
     }

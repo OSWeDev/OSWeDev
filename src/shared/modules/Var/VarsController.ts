@@ -18,6 +18,7 @@ import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
+import VarDAGVisitorMarkForDeletion from './graph/var/visitors/VarDAGVisitorMarkForDeletion';
 
 export default class VarsController {
 
@@ -942,6 +943,8 @@ export default class VarsController {
                     this.setUpdatingDatas(true);
                 }
 
+                this.clean_var_dag();
+
                 // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
                 //  ou manuellement en éditant le noeud du varDAG)
                 await this.loadImportedDatas();
@@ -1347,5 +1350,21 @@ export default class VarsController {
 
         node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
         node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
+    }
+
+    @PerfMonFunction
+    private clean_var_dag() {
+        // On va commencer par nettoyer l'arbre, en supprimant tous les noeuds non registered
+        for (let i in this.varDAG.nodes) {
+            let node: VarDAGNode = this.varDAG.nodes[i];
+
+            // Si on est plus marqué et qu'on est un top élément (root), on supprime le noeud et on lance le visiteur pour supprimer tous les suivants
+            if (!node.hasMarker(VarDAG.VARDAG_MARKER_REGISTERED)) {
+
+                // Suppression en 2 étapes, on marque pour suppression et on demande la suppression des noeuds marqués
+                node.visit(new VarDAGVisitorMarkForDeletion(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION, this.varDAG));
+            }
+        }
+        this.varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION);
     }
 }
