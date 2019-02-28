@@ -27,7 +27,7 @@ export default class PeriodHandler {
 
         let split = this.split(period);
 
-        if ((!split[2]) || (split[2] == '')) {
+        if ((!split) || (!split[2]) || (split[2] == '')) {
             return null;
         }
 
@@ -37,6 +37,10 @@ export default class PeriodHandler {
     public split(period: string, return_null_values: boolean = false): string[] {
         let regexpPeriod = /(\(|\[)(.*),(.*)(\)|\])/i;
         let res = period.match(regexpPeriod);
+
+        if (!res) {
+            return null;
+        }
 
         if (res[2] == "") {
             res[2] = return_null_values ? null : "1900-01-01";
@@ -58,7 +62,7 @@ export default class PeriodHandler {
 
         let split = this.split(period);
 
-        if ((!split[3]) || (split[3] == '')) {
+        if ((!split) || (!split[3]) || (split[3] == '')) {
             return null;
         }
 
@@ -69,14 +73,14 @@ export default class PeriodHandler {
 
         let split = this.split(period, true);
 
-        return !((!split[3]) || (split[3] == ''));
+        return !((!split) || (!split[3]) || (split[3] == ''));
     }
 
     public hasLower(period: string, base: unitOfTime.Base = 'days'): boolean {
 
         let split = this.split(period, true);
 
-        return !((!split[2]) || (split[2] == ''));
+        return !((!split) || (!split[2]) || (split[2] == ''));
     }
 
     public isDateInPeriod(date: Moment, period: string, base: unitOfTime.Base = 'days'): boolean {

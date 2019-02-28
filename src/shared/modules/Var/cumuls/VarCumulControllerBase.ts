@@ -43,12 +43,12 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         return [];
     }
 
-    // /**
-    //  * Returns the var_ids that we depend upon (or might depend)
-    //  */
-    // public getVarsIdsDependencies(): number[] {
-    //     return [this.varConfToCumulate.id];
-    // }
+    /**
+     * Returns the var_ids that we depend upon (or might depend)
+     */
+    public getVarsIdsDependencies(): number[] {
+        return [this.varConfToCumulate.id];
+    }
 
     // /**
     //  * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week

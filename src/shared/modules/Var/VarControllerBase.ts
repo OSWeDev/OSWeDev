@@ -30,10 +30,10 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
      */
     public abstract getDataSourcesDependencies(): Array<IDataSourceController<any, any>>;
 
-    // /**
-    //  * Returns the var_ids that we depend upon (or might depend)
-    //  */
-    // public abstract getVarsIdsDependencies(): number[];
+    /**
+     * Returns the var_ids that we depend upon (or might depend)
+     */
+    public abstract getVarsIdsDependencies(): number[];
 
     // /**
     //  * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week

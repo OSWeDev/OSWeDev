@@ -56,6 +56,8 @@ export default class VarsController {
     public is_waiting: boolean = false;
 
     public registered_var_data_api_types: { [api_type: string]: boolean } = {};
+    public imported_datas_by_index: { [index: string]: IVarDataVOBase } = {};
+    public imported_datas_by_var_id: { [var_id: number]: { [index: string]: IVarDataVOBase } } = {};
 
     private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
 
@@ -943,19 +945,17 @@ export default class VarsController {
                     this.setUpdatingDatas(true);
                 }
 
-                this.clean_var_dag();
-
                 // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
                 //  ou manuellement en éditant le noeud du varDAG)
                 await this.loadImportedDatas();
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.setStepNumber(2);
+                    this.setStepNumber(20);
                     break;
                 }
 
-            case 2:
+            case 20:
 
                 // Si des deps restent à résoudre, on les gère à ce niveau. On part du principe maintenant qu'on interdit une dep à un datasource pour le
                 //  chargement des deps. ça va permettre de booster très fortement les chargements de données. Si un switch impact une dep de var, il
@@ -966,11 +966,11 @@ export default class VarsController {
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.setStepNumber(3);
+                    this.setStepNumber(30);
                     break;
                 }
 
-            case 3:
+            case 30:
 
                 // Une fois les deps à jour, on propage la demande de mise à jour à travers les deps
                 await this.propagateUpdateRequest();
@@ -980,22 +980,35 @@ export default class VarsController {
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.setStepNumber(4);
+                    this.setStepNumber(40);
                     break;
                 }
 
-            case 4:
+            case 40:
+
+                this.clean_var_dag();
+
+                // On indique dans le store la mise à jour des vars
+                this.setUpdatingParamsToStore();
+
+                if ((!!this.is_stepping) && this.setStepNumber) {
+                    this.setIsWaiting(true);
+                    this.setStepNumber(50);
+                    break;
+                }
+
+            case 50:
 
                 // La demande est propagée jusqu'aux feuilles, on peut demander le chargement de toutes les datas nécessaires, en visitant des feuilles vers le top
                 await this.loadDatasources();
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.setStepNumber(5);
+                    this.setStepNumber(60);
                     break;
                 }
 
-            case 5:
+            case 60:
 
                 // // On visite pour résoudre les calculs
                 for (let i in this.varDAG.roots) {
@@ -1004,21 +1017,21 @@ export default class VarsController {
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.setStepNumber(6);
+                    this.setStepNumber(70);
                     break;
                 }
 
-            case 6:
+            case 70:
 
                 await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_COMPUTED, true, new VarDAGVisitorUnmarkComputed(this.varDAG));
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.setStepNumber(7);
+                    this.setStepNumber(80);
                     break;
                 }
 
-            case 7:
+            case 80:
 
                 this.flushVarsDatas();
 
@@ -1028,11 +1041,11 @@ export default class VarsController {
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
-                    this.setStepNumber(8);
+                    this.setStepNumber(90);
                     break;
                 }
 
-            case 8:
+            case 90:
 
                 let needs_new_batch: boolean = false;
 
@@ -1075,29 +1088,54 @@ export default class VarsController {
     }
 
     @PerfMonFunction
+    private populateListVarIds(current_var_id: number, var_id_list: number[]) {
+
+        let controller: VarControllerBase<any, any> = this.getVarControllerById(current_var_id);
+
+        let deps_ids: number[] = controller.getVarsIdsDependencies();
+
+        for (let i in deps_ids) {
+            let dep_id = deps_ids[i];
+
+            if (var_id_list.indexOf(dep_id) < 0) {
+                var_id_list.push(dep_id);
+                this.populateListVarIds(dep_id, var_id_list);
+            }
+        }
+    }
+
+    /**
+     * Troisième version : on charge toutes les datas de toutes les var_ids présentent dans l'arbre ou dont dépendent des éléments de l'arbre
+     */
+    @PerfMonFunction
     private async loadImportedDatas() {
 
-        // But : tout charger en un minimum de requête
-        // On récupère la liste des type de vos qu'il faut charger et pour ces types de données, on charge tout pour le moment.
-        // FIXME QUICK & DIRTY tout charger n'est certainement pas la bonne solution / pas idéale en tout cas
-        let var_imported_data_vo_types: string[] = [];
-        let var_ids_by_imported_data_vo_types: { [var_imported_data_vo_type: string]: number[] } = {};
-        for (let i in this.varDAG.nodes) {
-            let node: VarDAGNode = this.varDAG.nodes[i];
-            let param: IVarDataParamVOBase = node.param;
-            let varConf: VarConfVOBase = this.getVarConfById(param.var_id);
-
-            if (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE)) {
+        let var_ids: number[] = [];
+        for (let marker_name in this.varDAG.marked_nodes_names) {
+            if (!marker_name.startsWith(VarDAG.VARDAG_MARKER_VAR_ID)) {
                 continue;
             }
+
+            let var_id: number = parseInt(marker_name.replace(VarDAG.VARDAG_MARKER_VAR_ID, ""));
+            if (var_ids.indexOf(var_id) < 0) {
+                var_ids.push(var_id);
+                this.populateListVarIds(var_id, var_ids);
+            }
+        }
+
+        let var_imported_data_vo_types: string[] = [];
+        let var_ids_by_imported_data_vo_types: { [var_imported_data_vo_type: string]: number[] } = {};
+        for (let i in var_ids) {
+            let varConf: VarConfVOBase = this.getVarConfById(var_ids[i]);
 
             if (var_imported_data_vo_types.indexOf(varConf.var_data_vo_type) < 0) {
                 var_imported_data_vo_types.push(varConf.var_data_vo_type);
                 var_ids_by_imported_data_vo_types[varConf.var_data_vo_type] = [];
             }
 
-            if (var_ids_by_imported_data_vo_types[varConf.var_data_vo_type].indexOf(param.var_id) < 0) {
-                var_ids_by_imported_data_vo_types[varConf.var_data_vo_type].push(param.var_id);
+            if (var_ids_by_imported_data_vo_types[varConf.var_data_vo_type].indexOf(var_ids[i]) < 0) {
+
+                var_ids_by_imported_data_vo_types[varConf.var_data_vo_type].push(var_ids[i]);
             }
         }
 
@@ -1112,14 +1150,68 @@ export default class VarsController {
                     let imported: IVarDataVOBase = importeds[j];
                     let importedIndex: string = this.getIndex(imported);
 
-                    // On importe potentiellement des choses inutiles, on les stocke pas
+                    // Stocke tout et si on peut on met à jour les nodes existants
                     if (!!this.varDAG.nodes[importedIndex]) {
                         this.varDAG.nodes[importedIndex].setImportedData(imported, this.varDAG);
                     }
+
+                    if (!this.imported_datas_by_var_id[imported.var_id]) {
+                        this.imported_datas_by_var_id[imported.var_id] = {};
+                    }
+                    this.imported_datas_by_var_id[imported.var_id][importedIndex] = imported;
+                    this.imported_datas_by_index[importedIndex] = imported;
                 }
             }
         }
     }
+
+    // @PerfMonFunction
+    // private async loadImportedDatas() {
+
+    //     // But : tout charger en un minimum de requête
+    //     // On récupère la liste des type de vos qu'il faut charger et pour ces types de données, on charge tout pour le moment.
+    //     // FIXME QUICK & DIRTY tout charger n'est certainement pas la bonne solution / pas idéale en tout cas
+    //     let var_imported_data_vo_types: string[] = [];
+    //     let var_ids_by_imported_data_vo_types: { [var_imported_data_vo_type: string]: number[] } = {};
+    //     for (let i in this.varDAG.nodes) {
+    //         let node: VarDAGNode = this.varDAG.nodes[i];
+    //         let param: IVarDataParamVOBase = node.param;
+    //         let varConf: VarConfVOBase = this.getVarConfById(param.var_id);
+
+    //         // A cette étape on ne sait pas qui doit être chargé ou pas
+    //         // if (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE)) {
+    //         //     continue;
+    //         // }
+
+    //         if (var_imported_data_vo_types.indexOf(varConf.var_data_vo_type) < 0) {
+    //             var_imported_data_vo_types.push(varConf.var_data_vo_type);
+    //             var_ids_by_imported_data_vo_types[varConf.var_data_vo_type] = [];
+    //         }
+
+    //         if (var_ids_by_imported_data_vo_types[varConf.var_data_vo_type].indexOf(param.var_id) < 0) {
+    //             var_ids_by_imported_data_vo_types[varConf.var_data_vo_type].push(param.var_id);
+    //         }
+    //     }
+
+    //     for (let i in var_imported_data_vo_types) {
+    //         let var_imported_data_vo_type: string = var_imported_data_vo_types[i];
+
+    //         let importeds: IVarDataVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVarDataVOBase>(
+    //             var_imported_data_vo_type, 'var_id', var_ids_by_imported_data_vo_types[var_imported_data_vo_type]);
+
+    //         if (importeds) {
+    //             for (let j in importeds) {
+    //                 let imported: IVarDataVOBase = importeds[j];
+    //                 let importedIndex: string = this.getIndex(imported);
+
+    //                 // On importe potentiellement des choses inutiles, on les stocke pas
+    //                 if (!!this.varDAG.nodes[importedIndex]) {
+    //                     this.varDAG.nodes[importedIndex].setImportedData(imported, this.varDAG);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     // @PerfMonFunction
     // private async loadAllDatasImported(deps_by_var_id: { [from_var_id: number]: number[] }): Promise<{ [var_id: number]: { [param_index: string]: IVarDataVOBase } }> {
@@ -1358,8 +1450,11 @@ export default class VarsController {
         for (let i in this.varDAG.nodes) {
             let node: VarDAGNode = this.varDAG.nodes[i];
 
-            // Si on est plus marqué et qu'on est un top élément (root), on supprime le noeud et on lance le visiteur pour supprimer tous les suivants
-            if (!node.hasMarker(VarDAG.VARDAG_MARKER_REGISTERED)) {
+            //  On peut supprimer un noeud à condition qu'il soit :
+            //      - Pas registered
+            //      - Un root
+            if ((!node.hasMarker(VarDAG.VARDAG_MARKER_REGISTERED)) &&
+                (!node.hasIncoming)) {
 
                 // Suppression en 2 étapes, on marque pour suppression et on demande la suppression des noeuds marqués
                 node.visit(new VarDAGVisitorMarkForDeletion(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION, this.varDAG));

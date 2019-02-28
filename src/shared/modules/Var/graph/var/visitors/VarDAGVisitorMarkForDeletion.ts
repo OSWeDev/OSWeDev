@@ -30,6 +30,14 @@ export default class VarDAGVisitorMarkForDeletion extends DAGVisitorBase<VarDAG>
             }
         }
 
+
+        //  On peut supprimer un noeud à condition qu'il soit :
+        //      - Pas registered
+        if (!node.hasMarker(VarDAG.VARDAG_MARKER_REGISTERED)) {
+
+            return false;
+        }
+
         node.addMarker(this.marker_for_deletion, this.dag);
         return true;
     }

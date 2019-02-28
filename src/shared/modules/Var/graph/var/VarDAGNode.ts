@@ -27,6 +27,9 @@ export default class VarDAGNode extends DAGNode {
     public initializeNode(dag: VarDAG) {
         super.initializeNode(dag);
         this.addMarker(VarDAG.VARDAG_MARKER_VAR_ID + this.param.var_id, dag);
+        if (VarsController.getInstance().imported_datas_by_index[this.name]) {
+            this.setImportedData(VarsController.getInstance().imported_datas_by_index[this.name], dag);
+        }
     }
 
     public getD3NodeDefinition(use_var_name_as_label: boolean = false): any {
