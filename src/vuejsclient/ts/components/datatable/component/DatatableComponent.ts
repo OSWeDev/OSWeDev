@@ -787,9 +787,39 @@ export default class DatatableComponent extends VueComponentBase {
             },
             // pagination: { chunk: 10, dropdown: false },
             headings: this.datatable_columns_labels,
-            skin: 'table-striped table-hover'
+            skin: 'table-striped table-hover',
+            customSorting: this.customSorting
         };
+    }
 
+    /**
+     * CustomSorting pour les champs de type date ...
+     */
+    get customSorting(): {} {
+        let res = {};
+
+        for (let i in this.date_filtered_fields) {
+            let date_field = this.date_filtered_fields[i];
+
+            res[date_field.datatable_field_uid] = this.getCustomSortingDateColumn(date_field);
+        }
+
+        return res;
+    }
+
+    private getCustomSortingDateColumn(date_field: DatatableField<any, any>) {
+        return function (ascending) {
+            return function (a, b) {
+                let dateA: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(a[date_field.datatable_field_uid]);
+                let dateB: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(b[date_field.datatable_field_uid]);
+
+                if (ascending) {
+                    return dateA.diff(dateB);
+                }
+
+                return -dateA.diff(dateB);
+            };
+        };
     }
 
     @Watch("selected_datas", { deep: true })
