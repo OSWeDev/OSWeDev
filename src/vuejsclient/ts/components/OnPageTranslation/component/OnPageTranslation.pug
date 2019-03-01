@@ -9,21 +9,48 @@
 
     .on_page_translation_module_wrapper(v-if="isOpened")
         template(v-for='editable_translation in editable_translations')
-            .row
-                .col-md-4
-                    label(:for="editable_translation.translation_code") {{ editable_translation.translation_code }}
-                .col-md-6
-                    input.form-control(
-                        :class="{'bg-warning': !editable_translation.translation}" 
-                        :name="editable_translation.translation_code" 
-                        type="text" 
-                        size="100" 
-                        v-model="editable_translation.editable_translation"
-                        @keyup.13="save_translation(editable_translation)" )
-                .col-md-2
-                    button.btn.btn-secondary(v-if="updated_translation(editable_translation)" type="button" @click='rollback_translation(editable_translation)')
-                        i.fa.fa-undo.fa-lg.btn_icon(aria-hidden="true")
-                        | {{ label('on_page_translation.rollback_button') }}
-                    button.btn.btn-success(v-if="updated_translation(editable_translation)" type="button" @click='save_translation(editable_translation)')
-                        i.fa.fa-check.fa-lg.btn_icon(aria-hidden="true")
-                        | {{ label('on_page_translation.save_button') }}
+            .row.editable_translation
+                .col-md-12
+                    .row
+                        .col-md-4
+                            label(:for="editable_translation.translation_code") {{ editable_translation.translation_code }}
+                        .col-md-5
+                            input.form-control(
+                                :class="{'bg-warning': !editable_translation.translation}" 
+                                :name="editable_translation.translation_code" 
+                                type="text" 
+                                size="100" 
+                                v-model="editable_translation.editable_translation"
+                                @keyup.13="save_translation(editable_translation)" )
+                        .col-md-3
+                            toggle-button(
+                                @change="switch_show_other_langs(editable_translation)" 
+                                :value="show_other_langs[editable_translation.translation_code]" 
+                                :sync="true"
+                                :width="120"
+                                :labels="{checked: label('on_page_translation.show_other_langs'), unchecked: label('on_page_translation.hide_other_langs')}")
+                            button.btn.btn-secondary(v-if="updated_translation(editable_translation)" type="button" @click='rollback_translation(editable_translation)')
+                                i.fa.fa-undo.fa-lg.btn_icon(aria-hidden="true")
+                                | {{ label('on_page_translation.rollback_button') }}
+                            button.btn.btn-success(v-if="updated_translation(editable_translation)" type="button" @click='save_translation(editable_translation)')
+                                i.fa.fa-check.fa-lg.btn_icon(aria-hidden="true")
+                                | {{ label('on_page_translation.save_button') }}
+                    template(v-if="show_other_langs[editable_translation.translation_code]")
+                        template(v-for="lang in other_langs")
+                            template(v-if="(!translations_loaded[lang.code_lang]) || (!translations_loaded[lang.code_lang][editable_translation.translation_code])")
+                                .row.other_langs
+                                    .col-md-4.lang-col
+                                        .lang {{ lang.code_lang }}
+                                    .col-md-5.translated-col
+                                        .translated
+                                            i.fa.fa-spinner.fa-spin
+                                    .col-md-3
+                            template(v-else)
+                                .row.other_langs(v-if="(!!translations[lang.code_lang][editable_translation.translation_code])")
+                                    .col-md-4.lang-col
+                                        .lang {{ lang.code_lang }}
+                                    .col-md-5.translated-col
+                                        .translated {{ translations[lang.code_lang][editable_translation.translation_code].translated }}
+                                    .col-md-3
+
+

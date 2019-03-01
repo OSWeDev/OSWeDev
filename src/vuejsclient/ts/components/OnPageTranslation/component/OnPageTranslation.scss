@@ -34,4 +34,27 @@
     input.form-control.bg-warning {
         background-color: #fcf8e3;
     }
+
+    .row.editable_translation{
+        padding: 5px;
+        margin-bottom: 5px;
+        border:solid 2px #DDD;
+        border-radius: 10px;
+
+        .vue-js-switch{
+            margin-right: 5px;
+        }
+
+        .btn.btn-secondary {
+            margin-right: 5px;
+        }
+    }
+
+    .other_langs .lang-col {
+
+        text-align: right;
+        background: #888;
+        color: white;
+        text-transform: uppercase;
+    }
 }

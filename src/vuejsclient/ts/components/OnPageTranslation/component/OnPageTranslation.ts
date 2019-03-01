@@ -1,4 +1,4 @@
-import { Component, Watch } from "vue-property-decorator";
+import { Component, Watch, Vue } from "vue-property-decorator";
 import ModuleAccessPolicy from "../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
 import ModuleTranslation from "../../../../../shared/modules/Translation/ModuleTranslation";
 import VueComponentBase from "../../../../ts/components/VueComponentBase";
@@ -40,6 +40,12 @@ export default class OnPageTranslation extends VueComponentBase {
 
     private translations_by_code: { [translation_code: string]: TranslationVO } = {};
     private translatables_by_code: { [translation_code: string]: TranslatableTextVO } = {};
+
+    private show_other_langs: { [translation_code: string]: boolean } = {};
+    private translations: { [lang: string]: { [translation_code: string]: TranslationVO } } = {};
+    private translations_loaded: { [lang: string]: { [translation_code: string]: boolean } } = {};
+
+    private other_langs: LangVO[] = null;
 
     // Pas idéal mais en attendant de gérer les trads en interne.
     private lang_id: number = null;
@@ -276,5 +282,54 @@ export default class OnPageTranslation extends VueComponentBase {
         }
         this.updateData(editable_translation.translation);
         this.snotify.success(this.label('on_page_translation.save_translation.ok'));
+    }
+
+    private async switch_show_other_langs(editable_translation: EditablePageTranslationItem) {
+
+        Vue.set(this.show_other_langs, editable_translation.translation_code, !this.show_other_langs[editable_translation.translation_code]);
+
+        if (this.show_other_langs[editable_translation.translation_code]) {
+
+            if (!this.other_langs) {
+                this.other_langs = [];
+                let langs: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
+
+                for (let i in langs) {
+                    if (langs[i].id == this.lang_id) {
+                        continue;
+                    }
+
+                    this.other_langs.push(langs[i]);
+                }
+            }
+
+            if ((!this.other_langs) || (this.other_langs.length <= 0)) {
+                return;
+            }
+
+            for (let l in this.other_langs) {
+                let other_lang: LangVO = this.other_langs[l];
+
+                if (!this.translations[other_lang.code_lang]) {
+                    Vue.set(this.translations, other_lang.code_lang, {});
+                    Vue.set(this.translations_loaded, other_lang.code_lang, {});
+                }
+
+                if (!this.translations_loaded[other_lang.code_lang][editable_translation.translation_code]) {
+
+                    Vue.set(this.translations_loaded[other_lang.code_lang], editable_translation.translation_code, true);
+
+                    if (!this.translatables_by_code[editable_translation.translation_code]) {
+                        continue;
+                    }
+
+                    let translation: TranslationVO = await ModuleTranslation.getInstance().getTranslation(
+                        other_lang.id,
+                        this.translatables_by_code[editable_translation.translation_code].id);
+                    Vue.set(this.translations[other_lang.code_lang], editable_translation.translation_code, translation);
+                    Vue.set(this.translations_loaded[other_lang.code_lang], editable_translation.translation_code, true);
+                }
+            }
+        }
     }
 }
