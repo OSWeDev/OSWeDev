@@ -101,8 +101,10 @@ export default class CRUDComponentManager {
             });
         }
 
-        menuPointer.leaf.target = new MenuLeafRouteTarget(route_name);
-        menuPointer.addToMenu();
+        if (!!menuPointer) {
+            menuPointer.leaf.target = new MenuLeafRouteTarget(route_name);
+            menuPointer.addToMenu();
+        }
     }
 
 

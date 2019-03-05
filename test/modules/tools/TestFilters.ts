@@ -138,6 +138,8 @@ describe('TestFilters', () => {
         ModuleFormatDatesNombres.getInstance().actif = true;
 
         expect(hourFilter.read(null)).to.equal(null);
+        expect(hourFilter.read(-0.1, false, true, true, false, 15)).to.equal("0h");
+        expect(hourFilter.read(-0.1)).to.equal("0h");
         expect(hourFilter.read("0")).to.equal("0h");
         expect(hourFilter.read(0)).to.equal("0h");
         expect(hourFilter.read(10)).to.equal("10h");

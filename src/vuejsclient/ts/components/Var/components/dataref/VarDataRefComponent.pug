@@ -2,10 +2,13 @@
     slot(v-bind:var_data="var_data")
         template(v-if='(!!var_data) && ((var_data.value != 0) || (!consider_zero_value_as_null))')
             template(v-if='!!prefix') {{ prefix }}
-            template(v-if='var_data.value === 0 && zero_value_replacement')
+
+            template(v-if='(var_data.value === 0) && zero_value_replacement')
                 template {{ zero_value_replacement }}
-            template(v-if="filter") {{ filtered_value }}
-            template(v-if="(!filter)") {{ var_data.value }}
+            template(v-if='(var_data.value !== 0) || ((var_data.value === 0) && (!zero_value_replacement))')
+                template(v-if="filter") {{ filtered_value }}
+                template(v-if="(!filter)") {{ var_data.value }}
+
             template(v-if='!!suffix') {{ suffix }}
         template(v-else)
             template(v-if='is_being_updated')

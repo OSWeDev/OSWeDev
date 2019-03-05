@@ -58,10 +58,12 @@ export let hourFilter = new FilterObj(
             }
         }
 
-        let prefixSign = positiveSign && value > 0 ? "+" : "";
+        let prefixSign = (positiveSign && (value > 0)) ? "+" : "";
 
         if (value < 0) {
-            prefixSign = "-";
+            if (!((minutes == 0) && (heuresTxt == '0'))) {
+                prefixSign = "-";
+            }
         }
 
         return (

@@ -1,7 +1,8 @@
 import IDataSourceController from '../../../../src/shared/modules/DataSource/interfaces/IDataSourceController';
 import VarsCumulsController from '../../../../src/shared/modules/Var/cumuls/VarsCumulsController';
+import VarDAG from '../../../../src/shared/modules/Var/graph/var/VarDAG';
+import VarDAGNode from '../../../../src/shared/modules/Var/graph/var/VarDAGNode';
 import IVarDataParamVOBase from '../../../../src/shared/modules/Var/interfaces/IVarDataParamVOBase';
-import IVarDataVOBase from '../../../../src/shared/modules/Var/interfaces/IVarDataVOBase';
 import SimpleVarConfVO from '../../../../src/shared/modules/Var/simple_vars/SimpleVarConfVO';
 import VarCumulableControllerBase from '../../../../src/shared/modules/Var/VarCumulableControllerBase';
 import VarsController from '../../../../src/shared/modules/Var/VarsController';
@@ -35,6 +36,12 @@ export default class FakeVarController extends VarCumulableControllerBase<FakeDa
             () => new FakeDataVO());
     }
 
+
+    public getVarsIdsDependencies(): number[] {
+        return [];
+    }
+
+
     /**
      * Returns the datasources this var depends on
      */
@@ -49,9 +56,9 @@ export default class FakeVarController extends VarCumulableControllerBase<FakeDa
      * @param BATCH_UID
      * @param param
      */
-    public async getParamsDependencies(
-        BATCH_UID: number, param: FakeDataParamVO, params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
-        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<FakeDataParamVO[]> {
+    public async getParamDependencies(
+        varDAGNode: VarDAGNode,
+        varDAG: VarDAG): Promise<IVarDataParamVOBase[]> {
         return null;
     }
 
@@ -59,10 +66,9 @@ export default class FakeVarController extends VarCumulableControllerBase<FakeDa
     /**
      * Fonction qui prépare la mise à jour d'une data
      */
-    public async updateData(
-        BATCH_UID: number, param: FakeDataParamVO,
-        imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }) {
+    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
+        let param: FakeDataParamVO = varDAGNode.param as FakeDataParamVO;
         let res: FakeDataVO = new FakeDataVO();
         res.types_info = [];
 

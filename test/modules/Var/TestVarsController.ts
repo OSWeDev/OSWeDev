@@ -73,190 +73,190 @@ describe('VarsController', () => {
         VarsController.getInstance().unregisterVar(varConf);
     });
 
-    it('registerDataParam/unregisterDataParam', () => {
+    // it('registerDataParam/unregisterDataParam', () => {
 
-        let var_name: string = "varConf";
-        let varConf: SimpleVarConfVO = new SimpleVarConfVO();
-        varConf.id = 1;
-        varConf.json_params = "{}";
-        varConf.name = "varConf";
-        varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
-
-
-        VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
-        expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({});
-        expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({});
-
-        let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
-        let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
-
-        VarsController.getInstance().registerDataParam(fakeDataParam);
-        expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({ [fakeDataParamIndex]: 1 });
-        expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
-
-        VarsController.getInstance().registerDataParam(fakeDataParam);
-        expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({ [fakeDataParamIndex]: 2 });
-        expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
-
-        VarsController.getInstance().unregisterDataParam(fakeDataParam);
-        expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({ [fakeDataParamIndex]: 1 });
-        expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
-
-        VarsController.getInstance().unregisterDataParam(fakeDataParam);
-        expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({});
-        expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({});
-
-        VarsController.getInstance().unregisterVar(varConf);
-    });
-
-    it('stageUpdateData/waitingForUpdate_/debounce_update', async () => {
-
-        let var_name: string = "varConf";
-        let varConf: SimpleVarConfVO = new SimpleVarConfVO();
-        varConf.id = 1;
-        varConf.json_params = "{}";
-        varConf.name = "varConf";
-        varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
+    //     let var_name: string = "varConf";
+    //     let varConf: SimpleVarConfVO = new SimpleVarConfVO();
+    //     varConf.id = 1;
+    //     varConf.json_params = "{}";
+    //     varConf.name = "varConf";
+    //     varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
 
-        VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
+    //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
+    //     expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({});
+    //     expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({});
 
-        let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
-        let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
+    //     let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
+    //     let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
 
-        expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
-        VarsController.getInstance().registerDataParam(fakeDataParam);
-        expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
+    //     VarsController.getInstance().registerDataParam(fakeDataParam);
+    //     expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({ [fakeDataParamIndex]: 1 });
+    //     expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
 
-        let i: number = 0;
-        await ThreadHandler.getInstance().sleep(200);
-        while (VarsController.getInstance().updateSemaphore_) {
-            await ThreadHandler.getInstance().sleep(50);
-            expect(i++).to.be.below(10);
-        }
-        expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
-        expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
+    //     VarsController.getInstance().registerDataParam(fakeDataParam);
+    //     expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({ [fakeDataParamIndex]: 2 });
+    //     expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
 
-        VarsController.getInstance().stageUpdateData(fakeDataParam);
-        expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
+    //     VarsController.getInstance().unregisterDataParam(fakeDataParam);
+    //     expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({ [fakeDataParamIndex]: 1 });
+    //     expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
 
-        // Normalement si on attend 100ms le batch se lance et après 10ms grand max on a le résultat
-        i = 0;
-        await ThreadHandler.getInstance().sleep(200);
-        while (VarsController.getInstance().updateSemaphore_) {
-            await ThreadHandler.getInstance().sleep(50);
-            expect(i++).to.be.below(10);
-        }
-        expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
-        expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
+    //     VarsController.getInstance().unregisterDataParam(fakeDataParam);
+    //     expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({});
+    //     expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({});
 
+    //     VarsController.getInstance().unregisterVar(varConf);
+    // });
 
-        let fakeDataParam2: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 15, '2019-05-21');
-        let fakeDataParamIndex2: string = VarsController.getInstance().getIndex(fakeDataParam);
+    // it('stageUpdateData/waitingForUpdate_/debounce_update', async () => {
 
-        expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
-        expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
-        VarsController.getInstance().stageUpdateData(fakeDataParam);
-        expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
-        VarsController.getInstance().stageUpdateData(fakeDataParam2);
-        expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam, [fakeDataParamIndex2]: fakeDataParam2 });
-
-        // Normalement si on attend 100ms le batch se lance et après 10ms grand max on a le résultat
-        i = 0;
-        await ThreadHandler.getInstance().sleep(200);
-        while (VarsController.getInstance().updateSemaphore_) {
-            await ThreadHandler.getInstance().sleep(50);
-            expect(i++).to.be.below(10);
-        }
-        expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
-        expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
-
-        VarsController.getInstance().unregisterVar(varConf);
-    });
-
-    it('simple addDepsToBatch + perfs', async () => {
-        let var_name: string = "varConf";
-        let varConf: SimpleVarConfVO = new SimpleVarConfVO();
-        varConf.id = 1;
-        varConf.json_params = "{}";
-        varConf.name = "varConf";
-        varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
+    //     let var_name: string = "varConf";
+    //     let varConf: SimpleVarConfVO = new SimpleVarConfVO();
+    //     varConf.id = 1;
+    //     varConf.json_params = "{}";
+    //     varConf.name = "varConf";
+    //     varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
 
-        VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
+    //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
-        let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
-        let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
+    //     let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
+    //     let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
 
-        PerfMonController.PERFMON_RUN = true;
-        expect(VarsController.getInstance().addDepsToBatch({ [fakeDataParamIndex]: fakeDataParam })).to.deep.equal({
-            [fakeDataParamIndex]: fakeDataParam
-        });
-        expect(PerfMonController.getInstance().getLastPerfMonFuncData("addDepsToBatch").duration.asMilliseconds()).to.be.below(10);
+    //     expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
+    //     VarsController.getInstance().registerDataParam(fakeDataParam);
+    //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
 
-        expect(VarsController.getInstance().addDepsToBatch({ [fakeDataParamIndex]: fakeDataParam })).to.deep.equal({
-            [fakeDataParamIndex]: fakeDataParam
-        });
-        expect(VarsController.getInstance().addDepsToBatch({ [fakeDataParamIndex]: fakeDataParam })).to.deep.equal({
-            [fakeDataParamIndex]: fakeDataParam
-        });
-        expect(VarsController.getInstance().addDepsToBatch({ [fakeDataParamIndex]: fakeDataParam })).to.deep.equal({
-            [fakeDataParamIndex]: fakeDataParam
-        });
-        expect(PerfMonController.getInstance().getPerfMonFuncStat("addDepsToBatch").max_duration.asMilliseconds()).to.be.below(10);
-    });
+    //     let i: number = 0;
+    //     await ThreadHandler.getInstance().sleep(200);
+    //     while (VarsController.getInstance().updateSemaphore_) {
+    //         await ThreadHandler.getInstance().sleep(50);
+    //         expect(i++).to.be.below(10);
+    //     }
+    //     expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
+    //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
+
+    //     VarsController.getInstance().stageUpdateData(fakeDataParam);
+    //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
+
+    //     // Normalement si on attend 100ms le batch se lance et après 10ms grand max on a le résultat
+    //     i = 0;
+    //     await ThreadHandler.getInstance().sleep(200);
+    //     while (VarsController.getInstance().updateSemaphore_) {
+    //         await ThreadHandler.getInstance().sleep(50);
+    //         expect(i++).to.be.below(10);
+    //     }
+    //     expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
+    //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
 
 
-    it('simple hasDependancy + perfs', async () => {
-        let var_name: string = "varConf";
-        let varConf: SimpleVarConfVO = new SimpleVarConfVO();
-        varConf.id = 1;
-        varConf.json_params = "{}";
-        varConf.name = "varConf";
-        varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
+    //     let fakeDataParam2: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 15, '2019-05-21');
+    //     let fakeDataParamIndex2: string = VarsController.getInstance().getIndex(fakeDataParam);
+
+    //     expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
+    //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
+    //     VarsController.getInstance().stageUpdateData(fakeDataParam);
+    //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam });
+    //     VarsController.getInstance().stageUpdateData(fakeDataParam2);
+    //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({ [fakeDataParamIndex]: fakeDataParam, [fakeDataParamIndex2]: fakeDataParam2 });
+
+    //     // Normalement si on attend 100ms le batch se lance et après 10ms grand max on a le résultat
+    //     i = 0;
+    //     await ThreadHandler.getInstance().sleep(200);
+    //     while (VarsController.getInstance().updateSemaphore_) {
+    //         await ThreadHandler.getInstance().sleep(50);
+    //         expect(i++).to.be.below(10);
+    //     }
+    //     expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
+    //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
+
+    //     VarsController.getInstance().unregisterVar(varConf);
+    // });
+
+    // it('simple addDepsToBatch + perfs', async () => {
+    //     let var_name: string = "varConf";
+    //     let varConf: SimpleVarConfVO = new SimpleVarConfVO();
+    //     varConf.id = 1;
+    //     varConf.json_params = "{}";
+    //     varConf.name = "varConf";
+    //     varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
 
-        VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
+    //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
-        let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
-        let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
+    //     let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
+    //     let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
 
-        PerfMonController.PERFMON_RUN = true;
+    //     PerfMonController.PERFMON_RUN = true;
+    //     expect(VarsController.getInstance().addDepsToBatch({ [fakeDataParamIndex]: fakeDataParam })).to.deep.equal({
+    //         [fakeDataParamIndex]: fakeDataParam
+    //     });
+    //     expect(PerfMonController.getInstance().getLastPerfMonFuncData("addDepsToBatch").duration.asMilliseconds()).to.be.below(10);
 
-        let deps_by_var_id: { [from_var_id: number]: number[] } = {};
-        expect(VarsController.getInstance().hasDependancy(1, null)).to.equal(false);
-        expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(false);
-        expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
-        expect(PerfMonController.getInstance().getLastPerfMonFuncData("hasDependancy").duration.asMilliseconds()).to.be.below(10);
+    //     expect(VarsController.getInstance().addDepsToBatch({ [fakeDataParamIndex]: fakeDataParam })).to.deep.equal({
+    //         [fakeDataParamIndex]: fakeDataParam
+    //     });
+    //     expect(VarsController.getInstance().addDepsToBatch({ [fakeDataParamIndex]: fakeDataParam })).to.deep.equal({
+    //         [fakeDataParamIndex]: fakeDataParam
+    //     });
+    //     expect(VarsController.getInstance().addDepsToBatch({ [fakeDataParamIndex]: fakeDataParam })).to.deep.equal({
+    //         [fakeDataParamIndex]: fakeDataParam
+    //     });
+    //     expect(PerfMonController.getInstance().getPerfMonFuncStat("addDepsToBatch").max_duration.asMilliseconds()).to.be.below(10);
+    // });
 
-        deps_by_var_id = { [1]: [2] };
-        expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
-        expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
-        expect(PerfMonController.getInstance().getLastPerfMonFuncData("hasDependancy").duration.asMilliseconds()).to.be.below(10);
 
-        deps_by_var_id = {
-            [2]: [],
-            [1]: [2],
-            [3]: [],
-            [4]: [],
-            [5]: [],
-            [6]: [],
-            [7]: [],
-        };
-        expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
-        expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
-        expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
-        expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
-        expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
-        expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
-        expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
-        expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
-        expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
-        expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
-        expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
-        expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
-        expect(PerfMonController.getInstance().getPerfMonFuncStat("hasDependancy").max_duration.asMilliseconds()).to.be.below(10);
-    });
+    // it('simple hasDependancy + perfs', async () => {
+    //     let var_name: string = "varConf";
+    //     let varConf: SimpleVarConfVO = new SimpleVarConfVO();
+    //     varConf.id = 1;
+    //     varConf.json_params = "{}";
+    //     varConf.name = "varConf";
+    //     varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
+
+
+    //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
+
+    //     let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
+    //     let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
+
+    //     PerfMonController.PERFMON_RUN = true;
+
+    //     let deps_by_var_id: { [from_var_id: number]: number[] } = {};
+    //     expect(VarsController.getInstance().hasDependancy(1, null)).to.equal(false);
+    //     expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(false);
+    //     expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
+    //     expect(PerfMonController.getInstance().getLastPerfMonFuncData("hasDependancy").duration.asMilliseconds()).to.be.below(10);
+
+    //     deps_by_var_id = { [1]: [2] };
+    //     expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
+    //     expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
+    //     expect(PerfMonController.getInstance().getLastPerfMonFuncData("hasDependancy").duration.asMilliseconds()).to.be.below(10);
+
+    //     deps_by_var_id = {
+    //         [2]: [],
+    //         [1]: [2],
+    //         [3]: [],
+    //         [4]: [],
+    //         [5]: [],
+    //         [6]: [],
+    //         [7]: [],
+    //     };
+    //     expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
+    //     expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
+    //     expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
+    //     expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
+    //     expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
+    //     expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
+    //     expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
+    //     expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
+    //     expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
+    //     expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
+    //     expect(VarsController.getInstance().hasDependancy(2, deps_by_var_id)).to.equal(true);
+    //     expect(VarsController.getInstance().hasDependancy(1, deps_by_var_id)).to.equal(false);
+    //     expect(PerfMonController.getInstance().getPerfMonFuncStat("hasDependancy").max_duration.asMilliseconds()).to.be.below(10);
+    // });
 
     it('mergeDeps', async () => {
     });
