@@ -71,6 +71,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_string_array:
                     return field_value;
 
+                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                    return field_value;
+
                 default:
                     return field_value.toString();
             }

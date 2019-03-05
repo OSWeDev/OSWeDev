@@ -288,6 +288,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_timewithouttimezone:
             default:
                 return null;
         }
