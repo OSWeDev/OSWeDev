@@ -18,6 +18,8 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModulesManagerServer from '../ModulesManagerServer';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -32,6 +34,14 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleTranslation.getInstance().name);
+    }
+
+    public async configure() {
+        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreCreateTranslatableTextVO.bind(this));
+
+        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO.bind(this));
     }
 
     /**
@@ -196,5 +206,51 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             }
         }
         return res;
+    }
+
+    private async onPreCreateTranslatableTextVO(vo: TranslatableTextVO): Promise<boolean> {
+        if ((!vo) || (!vo.code_text)) {
+            return false;
+        }
+        return await this.isCodeOk(vo.code_text);
+    }
+
+    private async onPreUpdateTranslatableTextVO(vo: TranslatableTextVO): Promise<boolean> {
+
+        if ((!vo) || (!vo.code_text)) {
+            return false;
+        }
+        return await this.isCodeOk(vo.code_text);
+    }
+
+    private async isCodeOk(code_text: string) {
+
+        // On vérifie qu'il existe pas en base un code conflictuel. Sinon on refuse l'insert
+        let something_longer: TranslatableTextVO[] = await ModuleDAOServer.getInstance().selectAll<TranslatableTextVO>(
+            TranslatableTextVO.API_TYPE_ID,
+            " WHERE t.code_text like '" + code_text + ".%'");
+
+        if ((!!something_longer) && (something_longer.length > 0)) {
+            return false;
+        }
+
+        let shorter_code: string = code_text;
+        let segments: string[] = shorter_code.split('.');
+
+        while ((!!segments) && (segments.length > 1)) {
+
+            segments.pop();
+            shorter_code = segments.join('.');
+
+            let something_shorter: TranslatableTextVO[] = await ModuleDAOServer.getInstance().selectAll<TranslatableTextVO>(
+                TranslatableTextVO.API_TYPE_ID,
+                " WHERE t.code_text = $1", [shorter_code]);
+
+            if ((!!something_shorter) && (something_shorter.length > 0)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
