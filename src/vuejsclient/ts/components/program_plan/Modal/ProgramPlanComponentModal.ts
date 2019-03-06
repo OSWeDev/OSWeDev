@@ -16,6 +16,8 @@ import VueComponentBase from '../../VueComponentBase';
 import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
 import ProgramPlanComponentTargetInfos from '../TargetInfos/ProgramPlanComponentTargetInfos';
 import "./ProgramPlanComponentModal.scss";
+import IPlanTargetContact from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetContact';
+import IPlanContact from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
 
 @Component({
     template: require('./ProgramPlanComponentModal.pug'),
@@ -60,10 +62,23 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
     private custom_cr_read_component = ProgramPlanControllerBase.getInstance().customCRReadComponent;
     private custom_cr_update_component = ProgramPlanControllerBase.getInstance().customCRUpdateComponent;
 
+    private target_contacts: IPlanContact[] = [];
+
     @Watch('selected_rdv', { immediate: true })
-    private onChangeSelectedRDV() {
+    private async onChangeSelectedRDV() {
         // Vérifier le statut et mettre à jour le flag RDV_confirmed
         this.rdv_confirmed = (this.selected_rdv && (this.selected_rdv.state != ModuleProgramPlanBase.RDV_STATE_CREATED));
+
+        let target_contact_links: IPlanTargetContact[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanTargetContact>(
+            ModuleProgramPlanBase.getInstance().target_contact_type_id, "target_id", [this.selected_rdv.target_id]);
+        let contacts_ids: number[] = [];
+
+        for (let i in target_contact_links) {
+            let target_contact_link = target_contact_links[i];
+            contacts_ids.push(target_contact_link.contact_id);
+        }
+        this.target_contacts = await ModuleDAO.getInstance().getVosByIds<IPlanContact>(
+            ModuleProgramPlanBase.getInstance().contact_type_id, contacts_ids);
     }
 
     @Watch('rdv_confirmed')
@@ -219,8 +234,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
             return null;
         }
 
-        let target: IPlanTarget = this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][this.selected_rdv.target_id] as IPlanTarget;
-        let contactInfos: string = ProgramPlanControllerBase.getInstance().getContactInfosHTMLFromTarget(target);
+        let contactInfos: string = ProgramPlanControllerBase.getInstance().getContactInfosHTMLFromTarget(this.target_contacts);
         return contactInfos;
     }
 

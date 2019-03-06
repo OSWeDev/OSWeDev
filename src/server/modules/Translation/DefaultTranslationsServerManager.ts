@@ -49,7 +49,7 @@ export default class DefaultTranslationsServerManager {
 
                 let code_b: TranslatableTextVO = codes[j];
 
-                if (code_b.code_text.startsWith(code_a.code_text)) {
+                if (code_b.code_text.startsWith(code_a.code_text) && (code_b.code_text.lastIndexOf('.') != code_a.code_text.lastIndexOf('.'))) {
 
                     console.error('TranslatableText : REMOVE :' + code_a.code_text);
                     codes_to_deletes.push(code_a);

@@ -46,6 +46,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public partner_type_id: string;
     public manager_type_id: string;
     public enseigne_type_id: string;
+    public contact_type_id: string;
     public target_type_id: string;
     public rdv_cr_type_id: string;
     public rdv_type_id: string;
@@ -53,6 +54,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public program_facilitator_type_id: string;
     public program_manager_type_id: string;
     public program_target_type_id: string;
+    public target_contact_type_id: string;
+
 
     protected constructor(
         name: string,
@@ -63,6 +66,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         partner_type_id: string,
         manager_type_id: string,
         enseigne_type_id: string,
+        contact_type_id: string,
         target_type_id: string,
         rdv_cr_type_id: string,
         rdv_type_id: string,
@@ -70,6 +74,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         program_facilitator_type_id: string,
         program_manager_type_id: string,
         program_target_type_id: string,
+        target_contact_type_id: string,
 
         specificImportPath: string = null) {
 
