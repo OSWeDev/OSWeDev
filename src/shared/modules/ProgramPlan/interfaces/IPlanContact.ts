@@ -1,6 +1,7 @@
 import IDistantVOBase from '../../IDistantVOBase';
+import IUserLinkedItem from '../../../tools/interfaces/IUserLinkedItem';
 
-export default interface IPlanContact extends IDistantVOBase {
+export default interface IPlanContact extends IDistantVOBase, IUserLinkedItem {
 
     firstname: string;
     lastname: string;

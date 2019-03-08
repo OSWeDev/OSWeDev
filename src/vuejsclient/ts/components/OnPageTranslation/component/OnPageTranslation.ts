@@ -47,6 +47,8 @@ export default class OnPageTranslation extends VueComponentBase {
 
     private other_langs: LangVO[] = null;
 
+    private imported_translations: string = '';
+
     // Pas idéal mais en attendant de gérer les trads en interne.
     private lang_id: number = null;
 
@@ -330,6 +332,59 @@ export default class OnPageTranslation extends VueComponentBase {
                     Vue.set(this.translations_loaded[other_lang.code_lang], editable_translation.translation_code, true);
                 }
             }
+        }
+    }
+
+    /**
+     * Goal is to get a JSON and fill the empty translations in the page and save them all
+     */
+    private async import_translations() {
+
+        try {
+            if (!this.imported_translations) {
+                return;
+            }
+
+            let object = JSON.parse(this.imported_translations);
+
+            if (!object) {
+                return;
+            }
+
+            // On essaie de faire chaque trad
+            for (let i in this.editable_translations) {
+                let editable_translation = this.editable_translations[i];
+
+                if (!!editable_translation.translation) {
+                    continue;
+                }
+
+                let parts: string[] = editable_translation.translation_code.split('.');
+                let obj = object;
+                let failed: boolean = false;
+                for (let j in parts) {
+                    obj = obj[parts[j]];
+
+                    if (!obj) {
+                        failed = true;
+                        break;
+                    }
+                }
+
+                if (failed) {
+                    continue;
+                }
+
+                if (!!obj) {
+                    editable_translation.editable_translation = obj;
+                    await this.save_translation(editable_translation);
+                }
+            }
+
+            this.snotify.success('Import de trads OK, recharger.');
+        } catch (error) {
+            console.error(error);
+            this.snotify.error(error);
         }
     }
 }

@@ -56,6 +56,14 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
             this.routes);
 
         CRUDComponentManager.getInstance().registerCRUD(
+            ModuleProgramPlanBase.getInstance().facilitator_region_type_id,
+            null,
+            new MenuPointer(
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().facilitator_region_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
+                menuBranch),
+            this.routes);
+
+        CRUDComponentManager.getInstance().registerCRUD(
             ModuleProgramPlanBase.getInstance().enseigne_type_id,
             null,
             new MenuPointer(
@@ -64,10 +72,26 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
             this.routes);
 
         CRUDComponentManager.getInstance().registerCRUD(
+            ModuleProgramPlanBase.getInstance().contact_type_id,
+            null,
+            new MenuPointer(
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().contact_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
+                menuBranch),
+            this.routes);
+
+        CRUDComponentManager.getInstance().registerCRUD(
             ModuleProgramPlanBase.getInstance().target_type_id,
             null,
             new MenuPointer(
                 new MenuLeaf(ModuleProgramPlanBase.getInstance().target_type_id, MenuElementBase.PRIORITY_HIGH + 1, "fa-bullseye"),
+                menuBranch),
+            this.routes);
+
+        CRUDComponentManager.getInstance().registerCRUD(
+            ModuleProgramPlanBase.getInstance().target_contact_type_id,
+            null,
+            new MenuPointer(
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().target_contact_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
                 menuBranch),
             this.routes);
 

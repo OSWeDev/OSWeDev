@@ -8,6 +8,22 @@
             button.btn.btn-success(type="button" @click='closeModule()') {{ label('on_page_translation.close_button_title') }}
 
     .on_page_translation_module_wrapper(v-if="isOpened")
+        .row.import_translations
+            .col-md-4
+                label(:for="imported_translations") {{ label('on_page_translation.import_translations') }}
+            .col-md-5
+                input.form-control(
+                    class="bg-info" 
+                    :name="imported_translations" 
+                    type="text" 
+                    size="100" 
+                    v-model="imported_translations"
+                    @keyup.13="import_translations" )
+            .col-md-3
+                button.btn.btn-success(v-if="(!!imported_translations) && (imported_translations != '')" type="button" @click='import_translations')
+                    i.fa.fa-check.btn_icon(aria-hidden="true")
+                    | {{ label('on_page_translation.import_translations_action') }}
+
         template(v-for='editable_translation in editable_translations')
             .row.editable_translation
                 .col-md-12
