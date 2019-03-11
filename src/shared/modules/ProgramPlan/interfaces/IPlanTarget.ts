@@ -12,4 +12,6 @@ export default interface IPlanTarget extends IDistantVOBase {
 
     // Composants d'infos sur le contact en établissement
     infos_horaires: string;
+
+    activated: boolean;
 }

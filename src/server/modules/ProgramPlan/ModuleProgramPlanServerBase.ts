@@ -10,6 +10,14 @@ import DateHandler from '../../../shared/tools/DateHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default abstract class ModuleProgramPlanServerBase extends ModuleServerBase {
 
@@ -27,6 +35,52 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleProgramPlanBase.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
+    }
+
+
+    /**
+     * On définit les droits d'accès du module
+     */
+    public async registerAccessPolicies(): Promise<void> {
+        let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        group.translatable_name = ModuleProgramPlanBase.POLICY_GROUP;
+        group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
+            fr: 'ProgramPlan'
+        }));
+
+        let bo_access: AccessPolicyVO = new AccessPolicyVO();
+        bo_access.group_id = group.id;
+        bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        bo_access.translatable_name = ModuleProgramPlanBase.POLICY_BO_ACCESS;
+        bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
+            fr: 'Administration du ProgramPlan'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        admin_access_dependency.src_pol_id = bo_access.id;
+        admin_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleAccessPolicy.POLICY_BO_ACCESS).id;
+        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
+
+        let fo_access: AccessPolicyVO = new AccessPolicyVO();
+        fo_access.group_id = group.id;
+        fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        fo_access.translatable_name = ModuleProgramPlanBase.POLICY_FO_ACCESS;
+        fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
+            fr: 'Accès au ProgramPlan'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let fo_edit: AccessPolicyVO = new AccessPolicyVO();
+        fo_edit.group_id = group.id;
+        fo_edit.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        fo_edit.translatable_name = ModuleProgramPlanBase.POLICY_FO_EDIT;
+        fo_edit = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_edit, new DefaultTranslation({
+            fr: 'Edition du ProgramPlan'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        front_access_dependency.src_pol_id = fo_edit.id;
+        front_access_dependency.depends_on_pol_id = fo_access.id;
+        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
     }
 
     public async getCRsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDVCR[]> {

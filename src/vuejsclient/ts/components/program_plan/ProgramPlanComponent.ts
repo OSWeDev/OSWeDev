@@ -270,31 +270,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return null;
         }
 
-        let etablissement: IPlanTarget = null;
-
-        for (let i in this.targets) {
-            let _etablissement: IPlanTarget = this.targets[i];
-
-            if (_etablissement.id == rdv.target_id) {
-                etablissement = _etablissement;
-            }
-        }
-
+        let etablissement: IPlanTarget = this.targets[rdv.target_id];
         if (!etablissement) {
             // on a un RDV en base qui est orphelin on ignore
             return null;
         }
 
-        let enseigne: IPlanEnseigne = null;
-
-        for (let i in this.enseignes) {
-            let ens = this.enseignes[i];
-
-            if (ens.id == etablissement.enseigne_id) {
-                enseigne = ens;
-            }
-        }
-
+        let enseigne: IPlanEnseigne = this.enseignes[etablissement.enseigne_id];
         if (!enseigne) {
             // on a un RDV en base qui est orphelin on ignore
             return null;
@@ -408,6 +390,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
 
             if ((!this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id]) || (!this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][pt.target_id])) {
+                continue;
+            }
+
+            if (!(this.getStoredDatas[ModuleProgramPlanBase.getInstance().target_type_id][pt.target_id] as IPlanTarget).activated) {
                 continue;
             }
 

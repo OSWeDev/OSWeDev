@@ -7,4 +7,6 @@ export default interface IPlanFacilitator extends IDistantVOBase, IUserLinkedIte
     manager_id: number;
     partner_id: number;
     region_id: number;
+
+    activated: boolean;
 }
