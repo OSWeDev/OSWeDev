@@ -10,6 +10,10 @@ import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/
 import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
 import { ModuleDAOGetter } from '../../dao/store/DaoStore';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';
+import IPlanManager from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
+import IPlanRDVCR from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
+import IPlanPartner from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanPartner';
 
 @Component({
     template: require('./ProgramPlanComponentImpression.pug'),
@@ -22,14 +26,26 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
 
-    @Prop()
-    private enseignes: IPlanEnseigne[];
-    @Prop()
-    private targets: IPlanTarget[];
-    @Prop()
-    private facilitators: IPlanFacilitator[];
-    @Prop()
-    private rdvs: IPlanRDV[];
+    @ModuleProgramPlanGetter
+    public getEnseignesByIds: { [id: number]: IPlanEnseigne };
+
+    @ModuleProgramPlanGetter
+    public getTargetsByIds: { [id: number]: IPlanTarget };
+
+    @ModuleProgramPlanGetter
+    public getFacilitatorsByIds: { [id: number]: IPlanFacilitator };
+
+    @ModuleProgramPlanGetter
+    public getManagersByIds: { [id: number]: IPlanManager };
+
+    @ModuleProgramPlanGetter
+    public getRdvsByIds: { [id: number]: IPlanRDV };
+
+    @ModuleProgramPlanGetter
+    public getCrsByIds: { [id: number]: IPlanRDVCR };
+
+    @ModuleProgramPlanGetter
+    public getPartnersByIds: { [id: number]: IPlanPartner };
 
     private printform_filter_date_debut = moment().day(1).format("Y-MM-DD");
     private printform_filter_date_fin = moment().day(1).add(6, 'days').format("Y-MM-DD");
@@ -84,7 +100,7 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
             week_begin = moment(d);
             week_end = moment(d).add(6, 'days');
 
-            let week: any = {};
+            week = {};
             week.days = this.get_printable_table_days(week_begin, week_end);
             week.rows = this.printform_filter_clientformat ? this.get_printable_table_rows_clientformat(week_begin, week_end) : this.get_printable_table_rows(week_begin, week_end);
             res.push(week);
@@ -97,9 +113,9 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
     private get_printable_table_rows(date_debut, date_fin) {
         let res = [];
 
-        for (let i in this.facilitators) {
+        for (let i in this.getFacilitatorsByIds) {
             let datas_animateur = [];
-            let facilitator = this.facilitators[i];
+            let facilitator = this.getFacilitatorsByIds[i];
 
             // Remplir le tableau en fonction des dates, à vide.
             /*let date_debut = moment(this.printform_filter_date_debut).day() == 1 ? moment(this.printform_filter_date_debut) : moment(this.printform_filter_date_debut).day(1);
@@ -126,8 +142,8 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
             }
 
             // Positionner les évènements
-            for (let j in this.rdvs) {
-                let rdv = this.rdvs[j];
+            for (let j in this.getRdvsByIds) {
+                let rdv = this.getRdvsByIds[j];
 
                 if (rdv.facilitator_id == facilitator.id) {
 
@@ -141,7 +157,7 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                             for (let ei in this.printform_filter_enseignes) {
                                 let printform_filter_enseigne = this.printform_filter_enseignes[ei];
 
-                                if (printform_filter_enseigne == this.targets[rdv.target_id].enseigne_id) {
+                                if (printform_filter_enseigne == this.getTargetsByIds[rdv.target_id].enseigne_id) {
                                     is_enseigne_ok = true;
                                 }
                             }
@@ -172,13 +188,15 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                         datas_animateur[offset_start_halfdays] = {
                             isrdv: true,
                             nb_slots: (offset_end_halfdays - offset_start_halfdays),
-                            short_name: this.targets[rdv.target_id].name,
+                            short_name: this.getTargetsByIds[rdv.target_id].name,
                             target_id: rdv.target_id,
                             resourceId: facilitator.id,
-                            title: this.targets[rdv.target_id].name
+                            title: this.getTargetsByIds[rdv.target_id].name
                         };
 
-                        ProgramPlanControllerBase.getInstance().populateCalendarEvent(datas_animateur[offset_start_halfdays], this.getStoredDatas);
+                        ProgramPlanControllerBase.getInstance().populateCalendarEvent(
+                            datas_animateur[offset_start_halfdays],
+                            this.getEnseignesByIds, this.getTargetsByIds, this.getFacilitatorsByIds, this.getManagersByIds, this.getRdvsByIds, this.getCrsByIds);
                     }
                 }
             }
@@ -236,10 +254,10 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
         let res;
 
         let rows_number = 20;
-        let unplacedEvents: IPlanRDV[] = null;
+        let unplacedEvents: { [id: number]: IPlanRDV } = null;
         let hasUnplacedEvents = true;
 
-        let events: IPlanRDV[] = $.extend({}, this.rdvs);
+        let events: { [id: number]: IPlanRDV } = $.extend({}, this.getRdvsByIds);
 
         for (let j in events) {
             let rdv: IPlanRDV = events[j];
@@ -252,7 +270,7 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                 continue;
             }
 
-            if ((!this.targets[rdv.target_id]) || (!this.enseignes[this.targets[rdv.target_id].enseigne_id])) {
+            if ((!this.getTargetsByIds[rdv.target_id]) || (!this.getEnseignesByIds[this.getTargetsByIds[rdv.target_id].enseigne_id])) {
                 delete events[rdv.id];
                 continue;
             }
@@ -262,7 +280,7 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                 for (let ei in this.printform_filter_enseignes) {
                     let printform_filter_enseigne = this.printform_filter_enseignes[ei];
 
-                    if (printform_filter_enseigne == this.targets[rdv.target_id].enseigne_id) {
+                    if (printform_filter_enseigne == this.getTargetsByIds[rdv.target_id].enseigne_id) {
                         is_enseigne_ok = true;
                     }
                 }
@@ -306,10 +324,10 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                 }
 
                 // Positionner les évènements
-                let events: IPlanRDV[] = $.extend({}, unplacedEvents);
+                let events_: { [id: number]: IPlanRDV } = $.extend({}, unplacedEvents);
                 hasUnplacedEvents = false;
-                for (let j in events) {
-                    let animation_rdv = events[j];
+                for (let j in events_) {
+                    let animation_rdv = events_[j];
 
                     // Calculer l'index
                     let offset_start = moment(animation_rdv.start_time).diff(moment(date_debut), 'hours');
@@ -366,11 +384,13 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                     datas_row[offset_start_halfdays] = {
                         isrdv: true,
                         nb_slots: (this.printform_filter_slotsize ? (offset_end_halfdays - offset_start_halfdays) : ((offset_end_halfdays - offset_start_halfdays) * 2)),
-                        short_name: this.targets[animation_rdv.target_id].name,
+                        short_name: this.getTargetsByIds[animation_rdv.target_id].name,
                         target_id: animation_rdv.target_id,
-                        title: this.targets[animation_rdv.target_id].name
+                        title: this.getTargetsByIds[animation_rdv.target_id].name
                     };
-                    ProgramPlanControllerBase.getInstance().populateCalendarEvent(datas_row[offset_start_halfdays], this.getStoredDatas);
+                    ProgramPlanControllerBase.getInstance().populateCalendarEvent(
+                        datas_row[offset_start_halfdays],
+                        this.getEnseignesByIds, this.getTargetsByIds, this.getFacilitatorsByIds, this.getManagersByIds, this.getRdvsByIds, this.getCrsByIds);
                 }
 
                 // Regrouper les evenements et les cases vides

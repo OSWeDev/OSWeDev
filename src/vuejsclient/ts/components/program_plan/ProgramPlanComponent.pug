@@ -2,9 +2,9 @@ include ../../../views/mixins/loading.pug
 
 .rootElt#program-plan
     +loading()
-        program-plan-component-impression(:enseignes="enseignes", :targets="targets", :facilitators="facilitators", :rdvs="rdvs")
+        program-plan-component-impression
 
-        program-plan-component-target-listing.hidden-print(:targets="targets", v-if="can_edit_planning", :enseignes="enseignes")
+        program-plan-component-target-listing.hidden-print(:targets="getTargetsByIds", v-if="can_edit_planning", :enseignes="getEnseignesByIds")
         full-calendar.hidden-print(
             :events="fcEvents" 
             :config="fcConfig"
@@ -19,9 +19,9 @@ include ../../../views/mixins/loading.pug
 
         #rdv_modal.modal.fade.in(ref="rdv_modal", tabindex='-1', role='dialog')
             .modal-dialog.modal-lg(role='document')
-                .modal-content(v-if="selected_rdv && targets && targets[selected_rdv.target_id]")
+                .modal-content(v-if="selected_rdv && getTargetsByIds && getTargetsByIds[selected_rdv.target_id]")
                     .modal-header
-                        h4.modal-title {{ targets[selected_rdv.target_id].name }}
+                        h4.modal-title {{ getTargetsByIds[selected_rdv.target_id].name }}
                         router-link.btn.close(:to="route_path") &times;
                     
                     .modal-body

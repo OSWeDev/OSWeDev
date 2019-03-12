@@ -7,6 +7,12 @@ import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/
 import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
 import { ModuleDAOGetter } from '../../dao/store/DaoStore';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';
+import IPlanFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
+import IPlanManager from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
+import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import IPlanRDVCR from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
+import IPlanPartner from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanPartner';
 
 @Component({
     template: require('./ProgramPlanComponentRDV.pug')
@@ -15,6 +21,27 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
 
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
+
+    @ModuleProgramPlanGetter
+    public getEnseignesByIds: { [id: number]: IPlanEnseigne };
+
+    @ModuleProgramPlanGetter
+    public getTargetsByIds: { [id: number]: IPlanTarget };
+
+    @ModuleProgramPlanGetter
+    public getFacilitatorsByIds: { [id: number]: IPlanFacilitator };
+
+    @ModuleProgramPlanGetter
+    public getManagersByIds: { [id: number]: IPlanManager };
+
+    @ModuleProgramPlanGetter
+    public getRdvsByIds: { [id: number]: IPlanRDV };
+
+    @ModuleProgramPlanGetter
+    public getCrsByIds: { [id: number]: IPlanRDVCR };
+
+    @ModuleProgramPlanGetter
+    public getPartnersByIds: { [id: number]: IPlanPartner };
 
     @Prop()
     private target: IPlanTarget;
@@ -36,7 +63,10 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
 
         event.stick = true; // maintain when user navigates (see docs on the renderEvent method)
 
-        ProgramPlanControllerBase.getInstance().populateDroppableItem(event, $(this.$el), this.getStoredDatas);
+        ProgramPlanControllerBase.getInstance().populateDroppableItem(
+            event,
+            $(this.$el),
+            this.getEnseignesByIds, this.getTargetsByIds, this.getFacilitatorsByIds, this.getManagersByIds, this.getRdvsByIds, this.getCrsByIds);
 
         $(this.$el).data('event', event);
 

@@ -8,7 +8,7 @@ include ../../../../views/mixins/table.pug
                 .form.row
                     .col-md-6
                         select.form-control(v-model="printform_filter_enseignes", set_value_in="printform_filter_enseignes", multiple, v-select2="", :data-placeholder="t('client.planning-store-visits.printform.filtrer.enseignes')")
-                            option(v-for="(enseigne, i) in enseignes", :value='enseigne.id') {{enseigne.name}}
+                            option(v-for="(enseigne, i) in getEnseignesByIds", :value='enseigne.id') {{enseigne.name}}
                         label {{ t('client.planning-store-visits.printform.filtrer.clientformat') }}
                             input(type="checkbox", v-model="printform_filter_clientformat", set_value_in="printform_filter_clientformat")
                     .col-md-6

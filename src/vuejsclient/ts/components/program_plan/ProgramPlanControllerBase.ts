@@ -3,6 +3,10 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import IPlanContact from '../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
+import IPlanEnseigne from '../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
+import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
+import IPlanManager from '../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
+import IPlanRDVCR from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -16,6 +20,7 @@ export default abstract class ProgramPlanControllerBase {
         public customCRCreateComponent,
         public customCRReadComponent,
         public customCRUpdateComponent,
+        public slot_interval: number = 12
     ) {
         ProgramPlanControllerBase.instance = this;
     }
@@ -36,7 +41,15 @@ export default abstract class ProgramPlanControllerBase {
      *       state: rdv.state
      *   }
      */
-    public populateCalendarEvent(event: EventObjectInput, getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } }) {
+    public populateCalendarEvent(
+        event: EventObjectInput,
+        getEnseignesByIds: { [id: number]: IPlanEnseigne },
+        getTargetsByIds: { [id: number]: IPlanTarget },
+        getFacilitatorsByIds: { [id: number]: IPlanFacilitator },
+        getManagersByIds: { [id: number]: IPlanManager },
+        getRdvsByIds: { [id: number]: IPlanRDV },
+        getCrsByIds: { [id: number]: IPlanRDVCR }
+    ) {
     }
 
     /**
@@ -44,7 +57,15 @@ export default abstract class ProgramPlanControllerBase {
      * @param event droppable item infos
      * @param elt jquery elt
      */
-    public populateDroppableItem(event: EventObjectInput, elt, getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } }) {
+    public populateDroppableItem(
+        event: EventObjectInput, elt,
+        getEnseignesByIds: { [id: number]: IPlanEnseigne },
+        getTargetsByIds: { [id: number]: IPlanTarget },
+        getFacilitatorsByIds: { [id: number]: IPlanFacilitator },
+        getManagersByIds: { [id: number]: IPlanManager },
+        getRdvsByIds: { [id: number]: IPlanRDV },
+        getCrsByIds: { [id: number]: IPlanRDVCR }
+    ) {
     }
 
     /**
