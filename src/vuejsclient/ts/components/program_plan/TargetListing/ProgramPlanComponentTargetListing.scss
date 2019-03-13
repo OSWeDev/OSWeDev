@@ -5,19 +5,26 @@
     background: $main_box_body_bg_color;
     border: solid 1px #CCC;
 
-    .droppable_targets {
-        overflow: hidden;
+    .no-padding {
+        padding: 0;
     }
 
     .filter{
         margin: 5px 0px;
 
         .btn {
-            margin-right: 2px;
+            vertical-align: middle;
+            margin: 0;
+            padding: 0;
+
+            i {
+                padding: 0px;
+            }
         }
 
-        input, .btn {
+        input {
             vertical-align: middle;
+            color: initial;
         }
     }
     
@@ -27,6 +34,12 @@
 
         .btn {
             margin: 0px -10px 5px 0px;
+
+            i {
+                padding: 0px;
+                margin-top: 4px;
+                margin-right: -16px;
+            }
         }
     }
 
@@ -38,5 +51,9 @@
         border: none;
         border-radius: 0;
         text-align: center;
+
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
 }

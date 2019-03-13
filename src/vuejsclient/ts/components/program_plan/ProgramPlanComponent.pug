@@ -2,7 +2,9 @@ include ../../../views/mixins/loading.pug
 
 .rootElt#program-plan
     +loading()
-        program-plan-component-impression
+        program-plan-component-impression(
+            :printform_filter_date_debut="printform_filter_date_debut"
+            :printform_filter_date_fin="printform_filter_date_fin")
 
         program-plan-component-target-listing.hidden-print(:targets="getTargetsByIds", v-if="can_edit_planning", :enseignes="getEnseignesByIds")
         full-calendar.hidden-print(

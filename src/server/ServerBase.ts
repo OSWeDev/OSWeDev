@@ -286,7 +286,10 @@ export default abstract class ServerBase {
             proxy: true,
             resave: false,
             saveUninitialized: false,
-            store: new FileStore()
+            store: new FileStore(),
+            cookie: {
+                maxAge: Date.now() + (30 * 86400 * 1000)
+            }
         });
         this.app.use(this.session);
 

@@ -72,9 +72,11 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
 
         // make the event draggable using jQuery UI
         $(this.$el).draggable({
+            cursor: "pointer",
             zIndex: 10000,
             revert: true, // will cause the event to go back to its
-            revertDuration: 0 //  original position after the drag
+            revertDuration: 0, //  original position after the drag
+            cursorAt: { top: -5, left: -5 }
         });
     }
 }

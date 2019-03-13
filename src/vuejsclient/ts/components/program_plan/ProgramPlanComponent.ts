@@ -123,16 +123,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public program_id: number;
 
     public selected_rdv: IPlanRDV = null;
-
     public fcSegment: TimeSegment = null;
-
     private user = VueAppController.getInstance().data_user;
-
     private can_edit_planning: boolean = false;
-
     private program: IPlanProgram = null;
-
     private fcEvents: EventObjectInput[] = [];
+    private printform_filter_date_debut: moment.Moment = null;
+    private printform_filter_date_fin: moment.Moment = null;
 
     get route_path(): string {
         return this.global_route_path + this.program_id;
@@ -511,8 +508,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return;
         }
 
-        let segment = this.fcSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(view.intervalStart, TimeSegment.TYPE_MONTH);
-        if (TimeSegmentHandler.getInstance().segmentsAreEquivalent(segment, this.fcSegment)) {
+        let segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(view.intervalStart, TimeSegment.TYPE_MONTH);
+        if (!TimeSegmentHandler.getInstance().segmentsAreEquivalent(segment, this.fcSegment)) {
             this.fcSegment = segment;
         }
     }
@@ -590,20 +587,21 @@ export default class ProgramPlanComponent extends VueComponentBase {
             header: {
                 left: 'today prev,next',
                 center: 'title',
-                right: 'timelineWeek,timelineMonth'
+                // right: 'timelineWeek,timelineMonth'
+                right: 'timelineWeek'
             },
             defaultView: 'timelineWeek',
 
             views: {
-                timelineMonth: {
-                    slotWidth: 150 / (24 / ProgramPlanControllerBase.getInstance().slot_interval),
-                    slotLabelInterval: {
-                        hours: ProgramPlanControllerBase.getInstance().slot_interval
-                    },
-                    slotDuration: {
-                        hours: ProgramPlanControllerBase.getInstance().slot_interval
-                    },
-                },
+                // timelineMonth: {
+                //     slotWidth: 150 / (24 / ProgramPlanControllerBase.getInstance().slot_interval),
+                //     slotLabelInterval: {
+                //         hours: ProgramPlanControllerBase.getInstance().slot_interval
+                //     },
+                //     slotDuration: {
+                //         hours: ProgramPlanControllerBase.getInstance().slot_interval
+                //     },
+                // },
                 timelineWeek: {
                     slotWidth: 150 / (24 / ProgramPlanControllerBase.getInstance().slot_interval),
                     slotLabelInterval: {
@@ -659,6 +657,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
         })());
 
         await Promise.all(promises);
+
+
+        this.printform_filter_date_debut = this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment) : null;
+        this.printform_filter_date_fin = this.fcSegment ? TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment) : null;
     }
 
     /**
