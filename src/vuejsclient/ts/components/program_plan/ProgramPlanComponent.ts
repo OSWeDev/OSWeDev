@@ -774,28 +774,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
     }
 
     private onFCEventRender(event: EventObjectInput, element, view: View) {
-        // Définir l'état et donc l'icone
-        let icon = null;
-
-        if ((!event) || (!event.id) || (!this.getRdvsByIds[event.id])) {
-            return;
-        }
-
-        let rdv: IPlanRDV = this.getRdvsByIds[event.id];
-
-        switch (rdv.state) {
-            case ModuleProgramPlanBase.RDV_STATE_CONFIRMED:
-                icon = "fa-square";
-                break;
-            case ModuleProgramPlanBase.RDV_STATE_CR_OK:
-                icon = "fa-envelope-square";
-                break;
-            case ModuleProgramPlanBase.RDV_STATE_CREATED:
-            default:
-                icon = "fa-square-o";
-        }
-
-        var i = $('<i class="fa ' + icon + ' fa-2x" aria-hidden="true"/>');
-        element.find('div.fc-content').prepend(i);
+        ProgramPlanControllerBase.getInstance().onFCEventRender(
+            event, element, view,
+            this.getEnseignesByIds,
+            this.getTargetsByIds,
+            this.getFacilitatorsByIds,
+            this.getManagersByIds,
+            this.getRdvsByIds,
+            this.getCrsByIds);
     }
 }

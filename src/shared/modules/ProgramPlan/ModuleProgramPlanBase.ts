@@ -28,15 +28,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
         'programplan.rdv.states.created', 'programplan.rdv.states.confirmed', 'programplan.rdv.states.prep_ok', 'programplan.rdv.states.cr_ok'
     ];
     public static RDV_STATE_CREATED: number = 0;
-    public static RDV_STATE_CONFIRMED: number = 10;
-    public static RDV_STATE_PREP_OK: number = 20;
-    public static RDV_STATE_CR_OK: number = 30;
+    public static RDV_STATE_CONFIRMED: number = 1;
+    public static RDV_STATE_PREP_OK: number = 2;
+    public static RDV_STATE_CR_OK: number = 3;
 
     public static PROGRAM_TARGET_STATE_LABELS: string[] = ['programplan.program.target.created', 'programplan.program.target.ongoing', 'programplan.program.target.closed', 'programplan.program.target.late'];
     public static PROGRAM_TARGET_STATE_CREATED: number = 0;
-    public static PROGRAM_TARGET_STATE_ONGOING: number = 10;
-    public static PROGRAM_TARGET_STATE_CLOSED: number = 20;
-    public static PROGRAM_TARGET_STATE_LATE: number = 30;
+    public static PROGRAM_TARGET_STATE_ONGOING: number = 1;
+    public static PROGRAM_TARGET_STATE_CLOSED: number = 2;
+    public static PROGRAM_TARGET_STATE_LATE: number = 3;
 
     public static getInstance(): ModuleProgramPlanBase {
         return ModuleProgramPlanBase.instance;
@@ -357,7 +357,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
     protected abstract callInitializePlanRDV();
-    protected initializePlanRDV(additional_fields: Array<ModuleTableField<any>>) {
+    protected initializePlanRDV(states: { [state_id: number]: string }, additional_fields: Array<ModuleTableField<any>>) {
+
+        states = states ? states : {
+            [ModuleProgramPlanBase.RDV_STATE_CREATED]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CREATED],
+            [ModuleProgramPlanBase.RDV_STATE_CONFIRMED]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CONFIRMED],
+            [ModuleProgramPlanBase.RDV_STATE_PREP_OK]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_PREP_OK],
+            [ModuleProgramPlanBase.RDV_STATE_CR_OK]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CR_OK]
+        };
 
         let program_id = new ModuleTableField('program_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Programme', false);
         let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', false);
@@ -370,11 +377,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
             target_id,
             label_field,
             new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_timestamp, 'Fin', false),
-            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, ' Statut', true, true, ModuleProgramPlanBase.RDV_STATE_CREATED).setEnumValues({
-                [ModuleProgramPlanBase.RDV_STATE_CREATED]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CREATED],
-                [ModuleProgramPlanBase.RDV_STATE_CONFIRMED]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CONFIRMED],
-                [ModuleProgramPlanBase.RDV_STATE_CR_OK]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CR_OK]
-            })
+            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, ' Statut', true, true, ModuleProgramPlanBase.RDV_STATE_CREATED).setEnumValues(
+                states)
         );
 
         let datatable = new ModuleTable(this, this.rdv_type_id, additional_fields, null, "RDVs");

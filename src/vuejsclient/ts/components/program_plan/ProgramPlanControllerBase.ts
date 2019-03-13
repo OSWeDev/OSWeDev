@@ -1,4 +1,4 @@
-import { EventObjectInput } from 'fullcalendar';
+import { EventObjectInput, View } from 'fullcalendar';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
@@ -7,6 +7,7 @@ import IPlanEnseigne from '../../../../shared/modules/ProgramPlan/interfaces/IPl
 import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
 import IPlanRDVCR from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
+import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -66,6 +67,51 @@ export default abstract class ProgramPlanControllerBase {
         getRdvsByIds: { [id: number]: IPlanRDV },
         getCrsByIds: { [id: number]: IPlanRDVCR }
     ) {
+    }
+
+    /**
+     * Fonction qui permet d'avoir la main sur le RDV rendu dans FC pour mettre une icone de statut par exemple
+     * @param event
+     * @param element
+     * @param view
+     */
+    public onFCEventRender(
+        event: EventObjectInput,
+        element,
+        view: View,
+        getEnseignesByIds: { [id: number]: IPlanEnseigne },
+        getTargetsByIds: { [id: number]: IPlanTarget },
+        getFacilitatorsByIds: { [id: number]: IPlanFacilitator },
+        getManagersByIds: { [id: number]: IPlanManager },
+        getRdvsByIds: { [id: number]: IPlanRDV },
+        getCrsByIds: { [id: number]: IPlanRDVCR }) {
+
+        // Définir l'état et donc l'icone
+        let icon = null;
+
+        if ((!event) || (!event.id) || (!getRdvsByIds[event.id])) {
+            return;
+        }
+
+        let rdv: IPlanRDV = getRdvsByIds[event.id];
+
+        switch (rdv.state) {
+            case ModuleProgramPlanBase.RDV_STATE_CONFIRMED:
+                icon = "fa-circle rdv-state-confirmed";
+                break;
+            case ModuleProgramPlanBase.RDV_STATE_CR_OK:
+                icon = "fa-circle rdv-state-crok";
+                break;
+            case ModuleProgramPlanBase.RDV_STATE_PREP_OK:
+                icon = "fa-circle rdv-state-prepok";
+                break;
+            case ModuleProgramPlanBase.RDV_STATE_CREATED:
+            default:
+                icon = "fa-circle rdv-state-created";
+        }
+
+        let i = $('<i class="fa ' + icon + '" aria-hidden="true"/>');
+        element.find('div.fc-content').prepend(i);
     }
 
     /**
