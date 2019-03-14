@@ -53,10 +53,10 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
     // private printform_filter_clientformat = false;
 
     @Prop({ default: moment().day(1).format("Y-MM-DD") })
-    private printform_filter_date_debut: moment.Moment;
+    private printform_filter_date_debut: string;
 
     @Prop({ default: moment().day(1).add(6, 'days').format("Y-MM-DD") })
-    private printform_filter_date_fin: moment.Moment;
+    private printform_filter_date_fin: string;
 
     private printable_table_weeks = {};
 

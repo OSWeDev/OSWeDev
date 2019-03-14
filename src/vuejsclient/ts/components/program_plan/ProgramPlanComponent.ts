@@ -128,8 +128,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private can_edit_planning: boolean = false;
     private program: IPlanProgram = null;
     private fcEvents: EventObjectInput[] = [];
-    private printform_filter_date_debut: moment.Moment = null;
-    private printform_filter_date_fin: moment.Moment = null;
+    private printform_filter_date_debut: string = null;
+    private printform_filter_date_fin: string = null;
 
     get route_path(): string {
         return this.global_route_path + this.program_id;
@@ -508,7 +508,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return;
         }
 
-        let segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(view.intervalStart, TimeSegment.TYPE_MONTH);
+        let segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+            view.intervalStart,
+            (view.name == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
         if (!TimeSegmentHandler.getInstance().segmentsAreEquivalent(segment, this.fcSegment)) {
             this.fcSegment = segment;
         }
@@ -659,8 +661,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
         await Promise.all(promises);
 
 
-        this.printform_filter_date_debut = this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment) : null;
-        this.printform_filter_date_fin = this.fcSegment ? TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment) : null;
+        this.printform_filter_date_debut = this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment).format("Y-MM-DD") : null;
+        this.printform_filter_date_fin = this.fcSegment ? TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment).add(-1, 'day').format("Y-MM-DD") : null;
     }
 
     /**

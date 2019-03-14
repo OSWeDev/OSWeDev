@@ -12,19 +12,20 @@
         }    
     }
 
+    
+    .cr_previsite {
+        color: #b3003c;
+    }
+
+    .cr_visite {
+        color: #58F;
+    }
+
     .crsandnew {
         margin-top: 10px;
 
         label input {
             margin-left: 1em;
-        }
-
-        .cr_previsite {
-            color: #b3003c;
-        }
-
-        .cr_visite {
-            color: #58F;
         }
 
         .newcr, .updatecr {
