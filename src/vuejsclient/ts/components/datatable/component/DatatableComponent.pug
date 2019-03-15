@@ -1,4 +1,5 @@
 v-client-table(
+        ref="vclienttable"
         :data="datatable_data",
         :columns="datatable_columns",
         :options="datatable_options"
@@ -43,6 +44,8 @@ v-client-table(
             template(v-else-if="field.moduleTableField.field_type == 'text[]'")
                 ul.multi-input(v-if="props.row[field.datatable_field_uid]")
                     li(v-for="value in props.row[field.datatable_field_uid]") {{ value }}
+            template(v-else-if="field.moduleTableField.field_type == 'html'")
+                code {{ props.row[field.datatable_field_uid] }}
             template(v-else)
                 span {{ props.row[field.datatable_field_uid] }}
         template(v-else-if="field.type == 'ManyToOne'")

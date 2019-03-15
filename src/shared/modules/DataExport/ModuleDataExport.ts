@@ -20,6 +20,7 @@ export default class ModuleDataExport extends Module {
     private constructor() {
 
         super("data_export", "DataExport");
+        this.forceActivationOnInstallation();
     }
 
     public async exportDataToXLSX(exportDataToXLSXParamVO: ExportDataToXLSXParamVO): Promise<any> {

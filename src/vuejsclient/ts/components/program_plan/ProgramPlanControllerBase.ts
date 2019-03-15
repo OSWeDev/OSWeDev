@@ -21,7 +21,8 @@ export default abstract class ProgramPlanControllerBase {
         public customCRCreateComponent,
         public customCRReadComponent,
         public customCRUpdateComponent,
-        public slot_interval: number = 12
+        public slot_interval: number = 12,
+        public month_view: boolean = true
     ) {
         ProgramPlanControllerBase.instance = this;
     }

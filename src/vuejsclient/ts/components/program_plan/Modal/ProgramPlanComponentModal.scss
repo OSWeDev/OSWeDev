@@ -27,50 +27,50 @@
         label input {
             margin-left: 1em;
         }
+    }
 
-        .newcr, .updatecr {
+    .newcr, .updatecr {
 
-            max-height: auto;
-            overflow: hidden;
+        max-height: auto;
+        overflow: hidden;
 
-            textarea {
-                width: 100%;
-            }
+        textarea {
+            width: 100%;
+        }
 
-            >h3 {
-                color: $main_menu_bg_color;
-                text-transform: uppercase;
-            }
+        >h3 {
+            color: $main_menu_bg_color;
+            text-transform: uppercase;
+        }
 
-            >i {
-                padding: 6px 8px;
-                padding-bottom: 5px;
-                background: $main_menu_bg_color;
-                color: $main_menu_text_color;
-            }
+        >i {
+            padding: 6px 8px;
+            padding-bottom: 5px;
+            background: $main_menu_bg_color;
+            color: $main_menu_text_color;
+        }
 
-            >h3,
-            >i {
-                display: inline-block;
-            }
+        >h3,
+        >i {
+            display: inline-block;
+        }
 
-            >i {
-                margin-right: 10px;
-            }
+        >i {
+            margin-right: 10px;
+        }
 
-            .newcr_seeless,
-            .updatecr_seeless {
-                max-height: 55px;
-            }
-         
-            .newcr_seemorl,
-            .updatecr_seemorl {
-                font-size: 2em;
-                display: inline-block;
-                cursor: pointer;
-            }
+        .newcr_seemorl,
+        .updatecr_seemorl {
+            font-size: 2em;
+            display: inline-block;
+            cursor: pointer;
         }
     }
+
+    .newcr.newcr_seeless,
+    .updatecr.updatecr_seeless {
+        max-height: 55px;
+    } 
 
     .cr {
         padding: 10px;
@@ -121,17 +121,6 @@
 
     .seeless {
         max-height: 80px;
-    }
-
-    .ba-infos-content {
-        background-color: white;
-        border-top-right-radius: 8px;
-        border-bottom-right-radius: 8px;
-        border: solid 1px #d2d6de;
-        color: black;
-        padding-left: 12px;
-        padding-top: 8px;
-        margin-bottom: 15px;
     }
 
     .seemorl {

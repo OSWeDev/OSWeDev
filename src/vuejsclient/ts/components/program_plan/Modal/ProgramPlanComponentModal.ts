@@ -279,12 +279,12 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
 
     private editCR(cr) {
         this.edited_cr = cr;
-        this.newcr_seemore = true;
+        this.updatecr_seemore = true;
     }
 
     private cancelEditCR() {
         this.edited_cr = null;
-        this.newcr_seemore = false;
+        this.updatecr_seemore = false;
     }
 
     /**
@@ -394,7 +394,7 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
      */
     private async cancel_edition(cr: IPlanRDVCR) {
 
-        this.snotify.success(this.label('programplan.update_cr.cancel'));
+        this.snotify.info(this.label('programplan.update_cr.cancel'));
         this.edited_cr = null;
     }
 

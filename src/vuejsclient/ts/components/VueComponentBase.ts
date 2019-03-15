@@ -578,11 +578,11 @@ export default class VueComponentBase extends Vue
 
     protected async export_to_xlsx() {
         if (this.isExportableToXLSX) {
-            this.startLoading();
+            // this.startLoading();
             await ModuleDataExport.getInstance().exportDataToXLSX(
                 await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX()
             );
-            this.stopLoading();
+            // this.stopLoading();
         }
     }
 

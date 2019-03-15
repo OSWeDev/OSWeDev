@@ -266,11 +266,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let partner_id = new ModuleTableField('partner_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Partenaire', false);
         let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let region_id = new ModuleTableField('region_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Région', false);
 
         additional_fields.unshift(
             user_id,
             manager_id,
             partner_id,
+            region_id,
             new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field,
             new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true)
@@ -280,6 +282,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         manager_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
         partner_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.partner_type_id]);
+        region_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_region_type_id]);
         this.datatables.push(datatable);
     }
 

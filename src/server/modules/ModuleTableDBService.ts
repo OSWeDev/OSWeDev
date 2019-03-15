@@ -1,6 +1,8 @@
 import ModuleTable from '../../shared/modules/ModuleTable';
 import DefaultTranslationsServerManager from './Translation/DefaultTranslationsServerManager';
 import ConfigurationService from '../env/ConfigurationService';
+import ModuleTableField from '../../shared/modules/ModuleTableField';
+import TableColumnDescriptor from './TableColumnDescriptor';
 
 export default class ModuleTableDBService {
 
@@ -40,31 +42,167 @@ export default class ModuleTableDBService {
         // On doit entre autre ajouter la table en base qui gère les fields
         if (moduleTable.fields && (moduleTable.fields.length > 0)) {
 
-            let first_install = false;
+            // Changement radical, si on a une table déjà en place on vérifie la structure, principalement pour ajouter des champs supplémentaires
+            //  et alerter si il y a des champs en base que l'on ne connait pas dans la structure métier
 
-            let pgSQL: string = 'CREATE TABLE IF NOT EXISTS ' + moduleTable.full_name + ' (';
-            pgSQL += 'id bigserial NOT NULL';
-            for (let i = 0; i < moduleTable.fields.length; i++) {
-                let field = moduleTable.fields[i];
+            let table_cols_sql: string = 'select column_name, column_default, is_nullable, data_type from INFORMATION_SCHEMA.COLUMNS ' +
+                'where table_schema = \'' + moduleTable.database + '\' and table_name = \'' + moduleTable.name + '\';';
+            let table_cols: TableColumnDescriptor[] = await this.db.query(table_cols_sql);
 
-                pgSQL += ', ' + field.getPGSqlFieldDescription();
+            if ((!table_cols) || (!table_cols.length)) {
+                await this.create_new_datatable(moduleTable);
+            } else {
+                await this.check_datatable_structure(moduleTable, table_cols);
             }
 
-            pgSQL += ', CONSTRAINT ' + moduleTable.name + '_pkey PRIMARY KEY (id)';
-            for (let i = 0; i < moduleTable.fields.length; i++) {
-                let field = moduleTable.fields[i];
-
-                if (field.has_relation) {
-                    pgSQL += ', ' + field.getPGSqlFieldConstraint();
-                }
-            }
-            pgSQL += ');';
-
-            await this.db.none(pgSQL);
             await this.create_datatable_view_for_nga(moduleTable);
         } else {
             this.datatable_install_end(moduleTable);
         }
+    }
+
+    private async check_datatable_structure(moduleTable: ModuleTable<any>, table_cols: TableColumnDescriptor[]) {
+
+        let fields_by_field_id: { [field_id: string]: ModuleTableField<any> } = {};
+        for (let i in moduleTable.fields) {
+            let field = moduleTable.fields[i];
+            fields_by_field_id[field.field_id] = field;
+        }
+
+        let table_cols_by_name: { [col_name: string]: TableColumnDescriptor } = {};
+        for (let i in table_cols) {
+            let table_col = table_cols[i];
+            table_cols_by_name[table_col.column_name] = table_col;
+        }
+
+        await this.checkMissingInTS(moduleTable, fields_by_field_id, table_cols_by_name);
+        await this.checkMissingInDB(moduleTable, fields_by_field_id, table_cols_by_name);
+        await this.checkColumnsStrutInDB(moduleTable, fields_by_field_id, table_cols_by_name);
+    }
+
+    /**
+     * On cherche les colonnes en trop dans la base et on log en erreur si il y en a
+     * @param moduleTable
+     * @param fields_by_field_id
+     * @param table_cols_by_name
+     */
+    private async checkMissingInTS(
+        moduleTable: ModuleTable<any>,
+        fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
+        table_cols_by_name: { [col_name: string]: TableColumnDescriptor }) {
+
+        for (let i in table_cols_by_name) {
+
+            // On ignore les ids qui sont jamais dans nos descripteurs logiciel
+            if (i.toLowerCase() == 'id') {
+                continue;
+            }
+
+            if (!fields_by_field_id[i]) {
+                console.error('-');
+                console.error('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + moduleTable.full_name + ':');
+                console.error('ACTION: AUCUNE, résoudre manuellement');
+                console.error('---');
+            }
+        }
+    }
+
+    /**
+     * On cherche les colonnes qui manquent pour les ajouter en base et informer de l'ajout
+     * @param moduleTable
+     * @param fields_by_field_id
+     * @param table_cols_by_name
+     */
+    private async checkMissingInDB(
+        moduleTable: ModuleTable<any>,
+        fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
+        table_cols_by_name: { [col_name: string]: TableColumnDescriptor }) {
+
+        for (let i in moduleTable.fields) {
+            let field = moduleTable.fields[i];
+
+            if (!table_cols_by_name[field.field_id]) {
+                console.error('-');
+                console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_id + ':table:' + moduleTable.full_name + ':');
+                console.error('ACTION: Création automatique...');
+
+                try {
+                    let pgSQL: string = 'ALTER TABLE ' + moduleTable.full_name + ' ADD COLUMN ' + field.getPGSqlFieldDescription() + ';';
+                    await this.db.none(pgSQL);
+                    console.error('ACTION: OK');
+                } catch (error) {
+                    console.error(error);
+                }
+                console.error('---');
+            }
+        }
+    }
+
+    /**
+     * On cherche les colonnes dont la structure diffère pour les ajuster ou simplement informer
+     * @param moduleTable
+     * @param fields_by_field_id
+     * @param table_cols_by_name
+     */
+    private async checkColumnsStrutInDB(
+        moduleTable: ModuleTable<any>,
+        fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
+        table_cols_by_name: { [col_name: string]: TableColumnDescriptor }) {
+
+        for (let i in moduleTable.fields) {
+            let field = moduleTable.fields[i];
+
+            if (!table_cols_by_name[field.field_id]) {
+                continue;
+            }
+
+            let table_col = table_cols_by_name[field.field_id];
+
+            // On check les infos récupérées de la base : column_default, is_nullable, data_type
+            if (field.field_required == (table_col.is_nullable != TableColumnDescriptor.IS_NOT_NULLABLE_VALUE)) {
+                console.error('-');
+                console.error('INFO  : Les propriétés isNullable et fieldRequired ne devraient pas être égales. BDD isNullable:' + table_col.is_nullable + ':moduleTableField:' + field.field_required + ':table:' + moduleTable.full_name + ':');
+                console.error('ACTION: Aucune. Résoudre manuellement');
+                console.error('---');
+            }
+
+            // // En même temps ça parait pas gravissime
+            // if (field.field_default == table_col.column_default) {
+            //     console.error('-');
+            //     console.error('INFO  : Les valeurs par défaut devraient être égales. BDD column_default:' + table_col.column_default + ':moduleTableField:' + field.field_default + ':table:' + moduleTable.full_name + ':');
+            //     console.error('ACTION: Aucune. Résoudre manuellement');
+            //     console.error('---');
+            // }
+
+            if (!field.isAcceptableCurrentDBType(table_col.data_type)) {
+                console.error('-');
+                console.error('INFO  : Les types devraient être identiques. BDD data_type:' + table_col.data_type + ':moduleTableField:' + field.getPGSqlFieldType() + ':table:' + moduleTable.full_name + ':');
+                console.error('ACTION: Aucune. Résoudre manuellement');
+                console.error('---');
+            }
+        }
+    }
+
+    private async create_new_datatable(moduleTable: ModuleTable<any>) {
+        let pgSQL: string = 'CREATE TABLE IF NOT EXISTS ' + moduleTable.full_name + ' (';
+        pgSQL += 'id bigserial NOT NULL';
+        for (let i = 0; i < moduleTable.fields.length; i++) {
+            let field = moduleTable.fields[i];
+
+            pgSQL += ', ' + field.getPGSqlFieldDescription();
+        }
+
+        pgSQL += ', CONSTRAINT ' + moduleTable.name + '_pkey PRIMARY KEY (id)';
+        for (let i = 0; i < moduleTable.fields.length; i++) {
+            let field = moduleTable.fields[i];
+
+            if (field.has_relation) {
+                pgSQL += ', ' + field.getPGSqlFieldConstraint();
+            }
+        }
+        pgSQL += ');';
+
+        await this.db.none(pgSQL);
     }
 
     // ETAPE 2 de l'installation

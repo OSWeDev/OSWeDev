@@ -1,3 +1,4 @@
+import './ProgramPlanComponentImpression.scss';
 import * as $ from 'jquery';
 import * as moment from 'moment';
 import select2 from '../../../directives/select2/select2';
@@ -138,17 +139,15 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
 
             while (d <= moment(date_fin)) {
 
-                // am / pm
-                datas_animateur.push({
-                    isrdv: false,
-                    nb_slots: 1
-                });
-                datas_animateur.push({
-                    isrdv: false,
-                    nb_slots: 1
-                });
+                // am / pm ou am / am, pm / pm
+                for (let day_slice = 0; day_slice < this.nb_day_slices; day_slice++) {
+                    datas_animateur.push({
+                        isrdv: false,
+                        nb_slots: 1
+                    });
+                }
                 d.add(1, 'days');
-                nb_offsets += 2;
+                nb_offsets += this.nb_day_slices;
             }
 
             // Positionner les évènements
@@ -178,14 +177,14 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
 
                         // Calculer l'index
                         let offset_start = moment(rdv.start_time).diff(moment(date_debut), 'hours');
-                        let offset_start_halfdays = Math.round(offset_start / 12);
+                        let offset_start_halfdays = Math.round(offset_start / (24 / this.nb_day_slices));
 
                         if (offset_start_halfdays < 0) {
                             offset_start_halfdays = 0;
                         }
 
                         let offset_end = moment(rdv.end_time).diff(moment(date_debut), 'hours');
-                        let offset_end_halfdays = Math.round(offset_end / 12);
+                        let offset_end_halfdays = Math.round(offset_end / (24 / this.nb_day_slices));
 
                         if (offset_end_halfdays >= nb_offsets) {
                             offset_end_halfdays = nb_offsets - 1;
@@ -259,6 +258,11 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
 
         return res;
     }
+
+    get nb_day_slices() {
+        return Math.floor(24 / ProgramPlanControllerBase.getInstance().slot_interval);
+    }
+
 
     // private get_printable_table_rows_clientformat(date_debut, date_fin) {
     //     let res;

@@ -6,6 +6,8 @@ import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import DateHandler from '../../../../shared/tools/DateHandler';
+import moment = require('moment');
 
 export default class ProgramPlanAdminVueModule extends VueModuleBase {
 
@@ -140,6 +142,25 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
             null,
             new MenuPointer(
                 new MenuLeaf(ModuleProgramPlanBase.getInstance().program_manager_type_id, MenuElementBase.PRIORITY_MEDIUM + 1, "fa-sitemap"),
+                menuBranch),
+            this.routes);
+
+        CRUDComponentManager.getInstance().registerCRUD(
+            ModuleProgramPlanBase.getInstance().rdv_type_id,
+            null,
+            new MenuPointer(
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().rdv_type_id, MenuElementBase.PRIORITY_ULTRALOW, "fa-calendar-o"),
+                menuBranch),
+            this.routes,
+            {
+                FILTER__start_time: moment().year().toString(),
+            });
+
+        CRUDComponentManager.getInstance().registerCRUD(
+            ModuleProgramPlanBase.getInstance().rdv_cr_type_id,
+            null,
+            new MenuPointer(
+                new MenuLeaf(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, MenuElementBase.PRIORITY_ULTRALOW + 1, "fa-calendar-check-o"),
                 menuBranch),
             this.routes);
     }

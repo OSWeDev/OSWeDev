@@ -140,18 +140,34 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.$nextTick(async () => {
 
             await self.reloadAsyncData();
-            setTimeout(() => {
-                self.handle_modal_show_hide();
-                $("#rdv_modal").on("hidden.bs.modal", function () {
-                    self.$router.push(self.route_path);
-                });
-            }, 100);
+
+            // On limite à 20 tentatives
+            let timeout: number = 20;
+            async function tryOpenModal() {
+
+                if ((!!self.getRdvsByIds) && (ObjectHandler.getInstance().hasAtLeastOneAttribute(self.getRdvsByIds))) {
+                    await self.handle_modal_show_hide();
+                    $("#rdv_modal").on("hidden.bs.modal", function () {
+                        self.$router.push(self.route_path);
+                    });
+                    return;
+                }
+
+                timeout--;
+                if (timeout < 0) {
+                    return;
+                }
+
+                setTimeout(tryOpenModal, 100);
+            }
+
+            self.$nextTick(tryOpenModal);
         });
     }
 
     @Watch("$route")
     public async onrouteChange() {
-        this.handle_modal_show_hide();
+        await this.handle_modal_show_hide();
     }
 
     protected async handle_modal_show_hide() {
@@ -589,21 +605,20 @@ export default class ProgramPlanComponent extends VueComponentBase {
             header: {
                 left: 'today prev,next',
                 center: 'title',
-                // right: 'timelineWeek,timelineMonth'
-                right: 'timelineWeek'
+                right: ProgramPlanControllerBase.getInstance().month_view ? 'timelineWeek,timelineMonth' : 'timelineWeek'
             },
             defaultView: 'timelineWeek',
 
             views: {
-                // timelineMonth: {
-                //     slotWidth: 150 / (24 / ProgramPlanControllerBase.getInstance().slot_interval),
-                //     slotLabelInterval: {
-                //         hours: ProgramPlanControllerBase.getInstance().slot_interval
-                //     },
-                //     slotDuration: {
-                //         hours: ProgramPlanControllerBase.getInstance().slot_interval
-                //     },
-                // },
+                timelineMonth: {
+                    slotWidth: 150 / (24 / ProgramPlanControllerBase.getInstance().slot_interval),
+                    slotLabelInterval: {
+                        hours: ProgramPlanControllerBase.getInstance().slot_interval
+                    },
+                    slotDuration: {
+                        hours: ProgramPlanControllerBase.getInstance().slot_interval
+                    },
+                },
                 timelineWeek: {
                     slotWidth: 150 / (24 / ProgramPlanControllerBase.getInstance().slot_interval),
                     slotLabelInterval: {
