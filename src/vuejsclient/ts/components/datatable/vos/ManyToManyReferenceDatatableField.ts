@@ -20,7 +20,7 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
         this.moduleTable = moduleTable;
 
         if (!this.translatable_title) {
-            this.translatable_title = this.interModuleTable.label.code_text;
+            this.translatable_title = this.targetModuleTable.label.code_text;
         }
         if (this.module_table_field_id != this.datatable_field_uid) {
             this.translatable_title = this.translatable_title.substr(0, this.translatable_title.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;

@@ -615,7 +615,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                             for (let desti in dest_ids) {
                                 resData[field.datatable_field_uid].push({
-                                    id: desti,
+                                    id: dest_ids[desti],
                                     label: manyToManyField.dataToHumanReadable(this.getStoredDatas[manyToManyField.targetModuleTable.vo_type][dest_ids[desti]])
                                 });
                             }

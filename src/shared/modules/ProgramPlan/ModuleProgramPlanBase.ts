@@ -32,11 +32,11 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public static RDV_STATE_PREP_OK: number = 2;
     public static RDV_STATE_CR_OK: number = 3;
 
-    public static PROGRAM_TARGET_STATE_LABELS: string[] = ['programplan.program.target.created', 'programplan.program.target.ongoing', 'programplan.program.target.closed', 'programplan.program.target.late'];
-    public static PROGRAM_TARGET_STATE_CREATED: number = 0;
-    public static PROGRAM_TARGET_STATE_ONGOING: number = 1;
-    public static PROGRAM_TARGET_STATE_CLOSED: number = 2;
-    public static PROGRAM_TARGET_STATE_LATE: number = 3;
+    // public static PROGRAM_TARGET_STATE_LABELS: string[] = ['programplan.program.target.created', 'programplan.program.target.ongoing', 'programplan.program.target.closed', 'programplan.program.target.late'];
+    // public static PROGRAM_TARGET_STATE_CREATED: number = 0;
+    // public static PROGRAM_TARGET_STATE_ONGOING: number = 1;
+    // public static PROGRAM_TARGET_STATE_CLOSED: number = 2;
+    // public static PROGRAM_TARGET_STATE_LATE: number = 3;
 
     public static getInstance(): ModuleProgramPlanBase {
         return ModuleProgramPlanBase.instance;
@@ -60,6 +60,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public program_target_type_id: string;
     public target_contact_type_id: string;
 
+    public showProgramAdministration: boolean = true;
 
     protected constructor(
         name: string,
@@ -431,12 +432,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.unshift(
             target_id,
             program_id,
-            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Statut', true, true, ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CREATED).setEnumValues({
-                [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CREATED]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CREATED],
-                [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_ONGOING]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_ONGOING],
-                [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CLOSED]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CLOSED],
-                [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LATE]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LATE]
-            })
+            // new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, 'Statut', true, true, ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CREATED).setEnumValues({
+            //     [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CREATED]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CREATED],
+            //     [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_ONGOING]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_ONGOING],
+            //     [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CLOSED]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_CLOSED],
+            //     [ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LATE]: ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LABELS[ModuleProgramPlanBase.PROGRAM_TARGET_STATE_LATE]
+            // })
         );
 
         let datatable = new ModuleTable(this, this.program_target_type_id, additional_fields, null, "Etablissements par programme");
