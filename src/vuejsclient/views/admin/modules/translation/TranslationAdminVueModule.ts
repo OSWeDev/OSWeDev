@@ -14,6 +14,7 @@ import MenuPointer from '../../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';
 import VueAppController from '../../../../VueAppController';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 
 export default class TranslationAdminVueModule extends VueModuleBase {
 
@@ -88,6 +89,9 @@ export default class TranslationAdminVueModule extends VueModuleBase {
             ]
         ));
         crud.readDatatable.pushField(new SimpleDatatableField("translated"));
+
+        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
 
         return crud;
     }

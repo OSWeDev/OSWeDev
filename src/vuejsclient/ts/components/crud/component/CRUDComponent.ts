@@ -25,6 +25,7 @@ import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxC
 import ImageComponent from '../../image/ImageComponent';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import MultiInputComponent from '../../multiinput/MultiInputComponent';
+import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -233,14 +234,14 @@ export default class CRUDComponent extends VueComponentBase {
         if (load_from_datatable_field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
             let reference: ManyToManyReferenceDatatableField<any, any> = load_from_datatable_field as ManyToManyReferenceDatatableField<any, any>;
 
-            if (self.api_types_involved.indexOf(reference.targetModuleTable.vo_type) < 0) {
-                self.api_types_involved.push(reference.targetModuleTable.vo_type);
+            if (self.api_types_involved.indexOf(reference.interModuleTable.vo_type) < 0) {
+                self.api_types_involved.push(reference.interModuleTable.vo_type);
 
                 res.push(
                     (async () => {
                         let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos<IDistantVOBase>(reference.interModuleTable.vo_type);
                         self.storeDatas({
-                            API_TYPE_ID: reference.targetModuleTable.vo_type,
+                            API_TYPE_ID: reference.interModuleTable.vo_type,
                             vos: vos
                         });
                     })()
@@ -294,8 +295,10 @@ export default class CRUDComponent extends VueComponentBase {
                 continue;
             }
 
-            if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
-                let newOptions = [];
+            if ((field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+                (field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+                (field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
+                let newOptions: number[] = [];
 
                 let manyToOne: ReferenceDatatableField<any> = (field as ReferenceDatatableField<any>);
                 let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
@@ -408,7 +411,7 @@ export default class CRUDComponent extends VueComponentBase {
         for (let i in options) {
             let option = options[i];
 
-            if (manyToOne.dataToHumanReadable(option).match(query)) {
+            if (manyToOne.dataToHumanReadable(option).match(new RegExp(query, 'i'))) {
                 newOptions.push(option.id);
             }
         }
@@ -543,6 +546,10 @@ export default class CRUDComponent extends VueComponentBase {
                 continue;
             }
 
+            if ((field.type == ReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE) || (field.type == ReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE)) {
+                continue;
+            }
+
             if (isUpdate) {
 
                 res[field.datatable_field_uid] = field.UpdateIHMToData(res[field.datatable_field_uid], res);
@@ -593,6 +600,10 @@ export default class CRUDComponent extends VueComponentBase {
                 return;
             }
 
+            // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
+            await this.updateManyToMany(this.newVO, this.crud.createDatatable, createdVO);
+            await this.updateOneToMany(this.newVO, this.crud.createDatatable, createdVO);
+
             this.storeData(createdVO);
         } catch (error) {
             this.snotify.error(this.label('crud.create.errors.create_failure') + ": " + error);
@@ -604,6 +615,142 @@ export default class CRUDComponent extends VueComponentBase {
         this.$router.push(this.getCRUDLink(this.api_type_id));
         this.creating_vo = false;
     }
+
+
+    /**
+     * Méthode qui prend tous les champs ManyToMany de la table et met à jour les tables intermédiaires si besoin
+     * @param vo
+     */
+    private async updateOneToMany(datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase) {
+        try {
+
+            for (let i in datatable.fields) {
+
+                if (datatable.fields[i].type != ReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE) {
+                    continue;
+                }
+
+                let field: OneToManyReferenceDatatableField<any> = datatable.fields[i] as OneToManyReferenceDatatableField<any>;
+                let actual_links: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(field.targetModuleTable.vo_type, field.destField.field_id, [db_vo.id]);
+                let new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
+
+                let need_update_links: IDistantVOBase[] = [];
+
+                for (let j in actual_links) {
+                    let actual_link = actual_links[j];
+
+                    if (new_links_target_ids.indexOf(actual_link.id) < 0) {
+
+                        actual_link[field.destField.field_id] = null;
+                        need_update_links.push(actual_link);
+                        continue;
+                    }
+
+                    new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link.id), 1);
+                }
+
+                for (let j in new_links_target_ids) {
+                    let new_link_target_id = new_links_target_ids[j];
+
+                    if ((!this.getStoredDatas[field.targetModuleTable.vo_type]) || (!this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
+                        continue;
+                    }
+                    this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
+                    need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
+                }
+
+                if (need_update_links.length > 0) {
+
+                    await ModuleDAO.getInstance().insertOrUpdateVOs(need_update_links);
+                    for (let linki in need_update_links) {
+
+                        this.updateData(need_update_links[linki]);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+
+    /**
+     * Méthode qui prend tous les champs ManyToMany de la table et met à jour les tables intermédiaires si besoin
+     * @param vo
+     */
+    private async updateManyToMany(datatable_vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>, db_vo: IDistantVOBase) {
+        try {
+
+            for (let i in datatable.fields) {
+
+                if (datatable.fields[i].type != ReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE) {
+                    continue;
+                }
+
+                let field: ManyToManyReferenceDatatableField<any, any> = datatable.fields[i] as ManyToManyReferenceDatatableField<any, any>;
+                let interSrcRefField = field.interModuleTable.getRefFieldFromTargetVoType(db_vo._type);
+                let actual_links: IDistantVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds(field.interModuleTable.vo_type, interSrcRefField.field_id, [db_vo.id]);
+                let interDestRefField = field.interModuleTable.getRefFieldFromTargetVoType(field.targetModuleTable.vo_type);
+                let new_links_target_ids: number[] = datatable_vo[field.module_table_field_id];
+
+                let need_add_links: IDistantVOBase[] = [];
+                let need_delete_links: IDistantVOBase[] = [];
+
+                let sample_vo: IDistantVOBase = {
+                    id: undefined,
+                    _type: field.interModuleTable.vo_type,
+                    [interSrcRefField.field_id]: db_vo.id
+                };
+
+                for (let j in actual_links) {
+                    let actual_link = actual_links[j];
+
+                    if (new_links_target_ids.indexOf(actual_link[interDestRefField.field_id]) < 0) {
+
+                        need_delete_links.push(actual_link);
+                        continue;
+                    }
+
+                    new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link[interDestRefField.field_id]), 1);
+                }
+
+                for (let j in new_links_target_ids) {
+                    let new_link_target_id = new_links_target_ids[j];
+
+                    let link_vo: IDistantVOBase = Object.assign({}, sample_vo);
+
+                    link_vo[interDestRefField.field_id] = new_link_target_id;
+
+                    need_add_links.push(link_vo);
+                }
+
+                if (need_add_links.length > 0) {
+                    for (let linki in need_add_links) {
+
+                        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(need_add_links[linki]);
+                        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                            this.snotify.error(this.label('crud.create.errors.many_to_many_failure'));
+                            continue;
+                        }
+                        need_add_links[linki].id = parseInt(insertOrDeleteQueryResult.id.toString());
+                        this.storeData(need_add_links[linki]);
+                    }
+                }
+                if (need_delete_links.length > 0) {
+                    await ModuleDAO.getInstance().deleteVOs(need_delete_links);
+                    for (let linki in need_delete_links) {
+                        this.removeData({
+                            API_TYPE_ID: field.interModuleTable.vo_type,
+                            id: need_delete_links[linki].id
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
 
     private async updateVO() {
         this.snotify.info(this.label('crud.update.starting'));
@@ -645,6 +792,10 @@ export default class CRUDComponent extends VueComponentBase {
                 this.updating_vo = false;
                 return;
             }
+
+            // On doit mettre à jour les OneToMany, et ManyToMany dans les tables correspondantes
+            await this.updateManyToMany(this.editableVO, this.crud.createDatatable, updatedVO);
+            await this.updateOneToMany(this.editableVO, this.crud.createDatatable, updatedVO);
 
             this.updateData(updatedVO);
         } catch (error) {

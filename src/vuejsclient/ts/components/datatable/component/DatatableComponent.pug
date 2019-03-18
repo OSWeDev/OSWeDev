@@ -54,11 +54,11 @@ v-client-table(
                     router-link.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, props.row[field.datatable_field_uid + '___id___'])" target='_blank') {{ props.row[field.datatable_field_uid] }}
                 template(v-else)
                     span {{ props.row[field.datatable_field_uid] }}
-        template(v-else-if="field.type == 'ManyToMany'")
+        template(v-else-if="(field.type == 'ManyToMany') || (field.type == 'OneToMany')")
             template(v-if="props.row[field.datatable_field_uid]")
                 template(v-for="e in props.row[field.datatable_field_uid]")
                     template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id))")
-                        router-link.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id)" target='_blank') {{ e.label }}
+                        router-link.many-router-links.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id)" target='_blank') {{ e.label }}
                     template(v-else)
                         span {{ e.label }}
         template(v-else)

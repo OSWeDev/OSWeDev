@@ -229,7 +229,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeUser() {
-        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ fr: 'Langue' }), true);
+        let field_lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ fr: 'Langue' }), false);
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Nom' }), true);
         let datatable_fields = [
             label_field,
@@ -247,6 +247,7 @@ export default class ModuleAccessPolicy extends Module {
         let datatable: ModuleTable<any> = new ModuleTable(this, UserVO.API_TYPE_ID, datatable_fields, label_field, new DefaultTranslation({ fr: "Utilisateurs" }));
         field_lang_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
         datatable.set_bdd_ref('ref', 'user');
+        this.datatables.push(datatable);
     }
 
     private initializeRole() {

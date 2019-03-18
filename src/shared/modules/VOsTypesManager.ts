@@ -1,5 +1,6 @@
 import ModuleTable from './ModuleTable';
 import IDistantVOBase from './IDistantVOBase';
+import ModuleTableField from './ModuleTableField';
 
 export default class VOsTypesManager {
     public static getInstance() {
@@ -32,5 +33,89 @@ export default class VOsTypesManager {
         }
 
         return res;
+    }
+
+    public isManyToManyModuleTable(moduleTable: ModuleTable<any>): boolean {
+
+        let manyToOne1: ModuleTable<any> = null;
+        let field_num: number = 0;
+        let isManyToMany: boolean = false;
+        for (let j in moduleTable.fields) {
+            let field: ModuleTableField<any> = moduleTable.fields[j];
+
+            // On ignore les 2 fields de service
+            if (field.field_id == "id") {
+                continue;
+            }
+            if (field.field_id == "_type") {
+                continue;
+            }
+
+            // On défini une table many to many comme une table ayant 2 fields, de type manyToOne vers 2 moduletables différents
+            if (!field.manyToOne_target_moduletable) {
+                isManyToMany = false;
+                break;
+            }
+
+            field_num++;
+            if (field_num > 2) {
+                isManyToMany = false;
+                break;
+            }
+
+            if (!manyToOne1) {
+                manyToOne1 = field.manyToOne_target_moduletable;
+                continue;
+            }
+
+            if (manyToOne1.full_name == field.manyToOne_target_moduletable.full_name) {
+                isManyToMany = false;
+                break;
+            }
+
+            isManyToMany = true;
+        }
+
+        return isManyToMany;
+    }
+
+    get manyToManyModuleTables(): Array<ModuleTable<any>> {
+        let res: Array<ModuleTable<any>> = [];
+
+        for (let i in this.moduleTables_by_voType) {
+            let moduleTable = this.moduleTables_by_voType[i];
+
+            if (this.isManyToManyModuleTable(moduleTable)) {
+                res.push(moduleTable);
+            }
+        }
+
+        return res;
+    }
+
+    public getManyToManyOtherField(manyToManyModuleTable: ModuleTable<any>, firstField: ModuleTableField<any>): ModuleTableField<any> {
+
+        for (let j in manyToManyModuleTable.fields) {
+            let field: ModuleTableField<any> = manyToManyModuleTable.fields[j];
+
+            // On ignore les 2 fields de service
+            if (field.field_id == "id") {
+                continue;
+            }
+            if (field.field_id == "_type") {
+                continue;
+            }
+
+            if (!field.manyToOne_target_moduletable) {
+                break;
+            }
+
+            if (firstField.manyToOne_target_moduletable.full_name == field.manyToOne_target_moduletable.full_name) {
+                continue;
+            }
+
+            return field;
+        }
+        return null;
     }
 }

@@ -140,6 +140,9 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_expiration"));
         }
 
+        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+
         return crud;
     }
 }

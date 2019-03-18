@@ -4,6 +4,9 @@ import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import Datatable from '../../datatable/vos/Datatable';
 import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
+import ModuleTable from '../../../../../shared/modules/ModuleTable';
+import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
+import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 
 
 export default class CRUD<T extends IDistantVOBase> {
@@ -44,7 +47,130 @@ export default class CRUD<T extends IDistantVOBase> {
             }
         }
 
+        // Une fois qu'on a fait le tour des fields, on s'intéresse aux manyToMany et oneToMany potentiels
+        //  Donc on fait le tour des tables existantes pour identifier les manyToOne qui font référence à cette table
+        CRUD.addManyToManyFields(crud, moduleTable);
+        CRUD.addOneToManyFields(crud, moduleTable);
+
         return crud;
+    }
+
+    public static addManyToManyFields<T extends IDistantVOBase>(
+        crud: CRUD<T>,
+        moduleTable: ModuleTable<any>) {
+
+        //  On fait le tour des tables manyToMany pour identifier les fields qui font référence à cette table
+        for (let i in VOsTypesManager.getInstance().manyToManyModuleTables) {
+            let otherModuleTable: ModuleTable<any> = VOsTypesManager.getInstance().manyToManyModuleTables[i];
+
+            if ((!otherModuleTable.module) || (!otherModuleTable.module.actif)) {
+                continue;
+            }
+
+            if (otherModuleTable.full_name == moduleTable.full_name) {
+                continue;
+            }
+
+            for (let j in otherModuleTable.fields) {
+                let field: ModuleTableField<any> = otherModuleTable.fields[j];
+
+                // On ignore les 2 fields de service
+                if (field.field_id == "id") {
+                    continue;
+                }
+                if (field.field_id == "_type") {
+                    continue;
+                }
+
+                if (!field.manyToOne_target_moduletable) {
+                    continue;
+                }
+
+                if (field.manyToOne_target_moduletable.full_name != moduleTable.full_name) {
+                    continue;
+                }
+
+                let otherField: ModuleTableField<any> = VOsTypesManager.getInstance().getManyToManyOtherField(field.module_table, field);
+
+                if ((!otherField) || (!otherField.manyToOne_target_moduletable)) {
+                    continue;
+                }
+
+                let default_target_label_field = otherField.manyToOne_target_moduletable.default_label_field;
+
+                if (!default_target_label_field) {
+                    continue;
+                }
+
+                let newField = new ManyToManyReferenceDatatableField<any, any>(
+                    field.module_table.full_name,
+                    otherField.manyToOne_target_moduletable,
+                    field.module_table,
+                    [
+                        new SimpleDatatableField(default_target_label_field.field_id)
+                    ]
+                );
+                crud.readDatatable.pushField(newField);
+            }
+        }
+    }
+
+    public static addOneToManyFields<T extends IDistantVOBase>(
+        crud: CRUD<T>,
+        moduleTable: ModuleTable<any>) {
+
+        //  On fait le tour des autres tables existantes pour identifier les manyToOne qui font référence à cette table (hors manytomany)
+        for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
+            let otherModuleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[i];
+
+            if ((!otherModuleTable.module) || (!otherModuleTable.module.actif)) {
+                continue;
+            }
+
+            if (otherModuleTable.full_name == moduleTable.full_name) {
+                continue;
+            }
+
+            if (VOsTypesManager.getInstance().isManyToManyModuleTable(otherModuleTable)) {
+                continue;
+            }
+
+            for (let j in otherModuleTable.fields) {
+                let field: ModuleTableField<any> = otherModuleTable.fields[j];
+
+                // On ignore les 2 fields de service
+                if (field.field_id == "id") {
+                    continue;
+                }
+                if (field.field_id == "_type") {
+                    continue;
+                }
+
+                if (!field.manyToOne_target_moduletable) {
+                    continue;
+                }
+
+                if (field.manyToOne_target_moduletable.full_name != moduleTable.full_name) {
+                    continue;
+                }
+
+                let default_target_label_field = field.module_table.default_label_field;
+
+                if (!default_target_label_field) {
+                    continue;
+                }
+
+                let newField = new OneToManyReferenceDatatableField<any>(
+                    field.module_table.full_name,
+                    field.module_table,
+                    field,
+                    [
+                        new SimpleDatatableField(default_target_label_field.field_id)
+                    ]
+                );
+                crud.readDatatable.pushField(newField);
+            }
+        }
     }
 
     /**
