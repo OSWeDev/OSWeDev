@@ -389,6 +389,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
         program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
         facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
+
+        // En fait un label sur cette table c'est une erreur. // TODO FIXME PB de label qui doit pouvoir utiliser les liens...
+        // datatable.define_default_label_function(
+        //     (vo: IPlanRDV) => vo.facilitator_id + "-" + vo.target_id + "-" + vo.start_time,
+        //     ["facilitator_id", "target_id", "start_time"]);
+
         this.datatables.push(datatable);
     }
 

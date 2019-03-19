@@ -33,6 +33,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public forceNumerics: (es: T[]) => T[] = null;
 
     public default_label_field: ModuleTableField<any> = null;
+    public table_label_function: (vo: T) => string = null;
+    public table_label_function_field_ids_deps: string[] = null;
     public importable: boolean = false;
     public isModuleParamTable: boolean = false;
 
@@ -78,6 +80,16 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
+    }
+
+    public define_default_label_function(
+        table_label_function: (vo: T) => string,
+        table_label_function_field_ids_deps: string[]): ModuleTable<any> {
+
+        this.table_label_function = table_label_function;
+        this.table_label_function_field_ids_deps = table_label_function_field_ids_deps;
+
+        return this;
     }
 
     public defineVOConstructor(voConstructor: () => T) {

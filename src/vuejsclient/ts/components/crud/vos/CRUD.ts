@@ -7,6 +7,8 @@ import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
+import ComputedDatatableField from '../../datatable/vos/ComputedDatatableField';
+import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
 
 
 export default class CRUD<T extends IDistantVOBase> {
@@ -31,15 +33,27 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_foreign_key) || (field.field_type == ModuleTableField.FIELD_TYPE_file_ref)) {
+            if (field.field_type == ReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE) {
+                continue;
+            }
 
-                let default_target_label_field_id = field.default_label_field;
+            if (field.field_type == ReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE) {
+                continue;
+            }
 
-                if (default_target_label_field_id) {
+            if (field.manyToOne_target_moduletable) {
+
+                if (field.manyToOne_target_moduletable.default_label_field) {
                     crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
                         field.field_id,
                         VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
-                            new SimpleDatatableField(default_target_label_field_id.field_id)
+                            new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id)
+                        ]));
+                } else if (field.manyToOne_target_moduletable.table_label_function) {
+                    crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+                        field.field_id,
+                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
+                            new ComputedDatatableField(field.field_id + '__target_label', field.manyToOne_target_moduletable.table_label_function)
                         ]));
                 }
             } else {
@@ -96,21 +110,30 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let default_target_label_field = otherField.manyToOne_target_moduletable.default_label_field;
-
-                if (!default_target_label_field) {
+                if (otherField.manyToOne_target_moduletable.default_label_field) {
+                    crud.readDatatable.pushField(new ManyToManyReferenceDatatableField<any, any>(
+                        field.module_table.full_name,
+                        otherField.manyToOne_target_moduletable,
+                        field.module_table,
+                        [
+                            new SimpleDatatableField(otherField.manyToOne_target_moduletable.default_label_field.field_id)
+                        ]
+                    ));
                     continue;
                 }
 
-                let newField = new ManyToManyReferenceDatatableField<any, any>(
-                    field.module_table.full_name,
-                    otherField.manyToOne_target_moduletable,
-                    field.module_table,
-                    [
-                        new SimpleDatatableField(default_target_label_field.field_id)
-                    ]
-                );
-                crud.readDatatable.pushField(newField);
+                if (field.manyToOne_target_moduletable.table_label_function) {
+                    crud.readDatatable.pushField(new ManyToManyReferenceDatatableField<any, any>(
+                        field.module_table.full_name,
+                        otherField.manyToOne_target_moduletable,
+                        field.module_table,
+                        [
+                            new ComputedDatatableField(
+                                otherField.manyToOne_target_moduletable.default_label_field.field_id + '__target_label',
+                                otherField.manyToOne_target_moduletable.table_label_function)
+                        ]));
+                    continue;
+                }
             }
         }
     }
@@ -154,21 +177,31 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                let default_target_label_field = field.module_table.default_label_field;
 
-                if (!default_target_label_field) {
+                if (field.module_table.default_label_field) {
+                    crud.readDatatable.pushField(new OneToManyReferenceDatatableField<any>(
+                        field.module_table.full_name,
+                        field.module_table,
+                        field,
+                        [
+                            new SimpleDatatableField(field.module_table.default_label_field.field_id)
+                        ]
+                    ));
                     continue;
                 }
 
-                let newField = new OneToManyReferenceDatatableField<any>(
-                    field.module_table.full_name,
-                    field.module_table,
-                    field,
-                    [
-                        new SimpleDatatableField(default_target_label_field.field_id)
-                    ]
-                );
-                crud.readDatatable.pushField(newField);
+                if (field.module_table.table_label_function) {
+                    crud.readDatatable.pushField(new OneToManyReferenceDatatableField<any>(
+                        field.module_table.full_name,
+                        field.module_table,
+                        field,
+                        [
+                            new ComputedDatatableField(
+                                field.module_table.default_label_field.field_id + '__target_label',
+                                field.module_table.table_label_function)
+                        ]));
+                    continue;
+                }
             }
         }
     }

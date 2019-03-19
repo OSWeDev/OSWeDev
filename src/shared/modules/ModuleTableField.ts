@@ -51,7 +51,6 @@ export default class ModuleTableField<T> {
     public module_table: ModuleTable<any> = null;
     public field_label: DefaultTranslation;
     public manyToOne_target_moduletable: ModuleTable<any> = null;
-    public default_label_field: ModuleTableField<any> = null;
 
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
@@ -174,11 +173,10 @@ export default class ModuleTableField<T> {
             'ON UPDATE NO ACTION ON DELETE CASCADE';
     }
 
-    public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTable<U>, default_label_field: ModuleTableField<any> = null) {
+    public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTable<U>) {
         this.manyToOne_target_moduletable = target_database;
         this.target_database = target_database.database;
         this.target_table = target_database.name;
-        this.default_label_field = default_label_field ? default_label_field : target_database.default_label_field;
         this.target_field = 'id';
         this.has_relation = true;
     }
