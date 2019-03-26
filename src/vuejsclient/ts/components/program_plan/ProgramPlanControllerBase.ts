@@ -1,13 +1,9 @@
 import { EventObjectInput, View } from 'fullcalendar';
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import IPlanContact from '../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
-import IPlanContact from '../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
-import IPlanEnseigne from '../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
-import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
-import IPlanManager from '../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
-import IPlanRDVCR from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import VueAppBase from '../../../VueAppBase';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -18,6 +14,9 @@ export default abstract class ProgramPlanControllerBase {
     private static instance: ProgramPlanControllerBase = null;
 
     protected constructor(
+        public customPrepCreateComponent,
+        public customPrepReadComponent,
+        public customPrepUpdateComponent,
         public customCRCreateComponent,
         public customCRReadComponent,
         public customCRUpdateComponent,
@@ -43,15 +42,7 @@ export default abstract class ProgramPlanControllerBase {
      *       state: rdv.state
      *   }
      */
-    public populateCalendarEvent(
-        event: EventObjectInput,
-        getEnseignesByIds: { [id: number]: IPlanEnseigne },
-        getTargetsByIds: { [id: number]: IPlanTarget },
-        getFacilitatorsByIds: { [id: number]: IPlanFacilitator },
-        getManagersByIds: { [id: number]: IPlanManager },
-        getRdvsByIds: { [id: number]: IPlanRDV },
-        getCrsByIds: { [id: number]: IPlanRDVCR }
-    ) {
+    public populateCalendarEvent(event: EventObjectInput) {
     }
 
     /**
@@ -59,15 +50,7 @@ export default abstract class ProgramPlanControllerBase {
      * @param event droppable item infos
      * @param elt jquery elt
      */
-    public populateDroppableItem(
-        event: EventObjectInput, elt,
-        getEnseignesByIds: { [id: number]: IPlanEnseigne },
-        getTargetsByIds: { [id: number]: IPlanTarget },
-        getFacilitatorsByIds: { [id: number]: IPlanFacilitator },
-        getManagersByIds: { [id: number]: IPlanManager },
-        getRdvsByIds: { [id: number]: IPlanRDV },
-        getCrsByIds: { [id: number]: IPlanRDVCR }
-    ) {
+    public populateDroppableItem(event: EventObjectInput, elt) {
     }
 
     /**
@@ -79,13 +62,9 @@ export default abstract class ProgramPlanControllerBase {
     public onFCEventRender(
         event: EventObjectInput,
         element,
-        view: View,
-        getEnseignesByIds: { [id: number]: IPlanEnseigne },
-        getTargetsByIds: { [id: number]: IPlanTarget },
-        getFacilitatorsByIds: { [id: number]: IPlanFacilitator },
-        getManagersByIds: { [id: number]: IPlanManager },
-        getRdvsByIds: { [id: number]: IPlanRDV },
-        getCrsByIds: { [id: number]: IPlanRDVCR }) {
+        view: View) {
+
+        let getRdvsByIds: { [id: number]: IPlanRDV } = VueAppBase.instance_.vueInstance.$store.getters['ProgramPlanStore/getRdvsByIds'];
 
         // Définir l'état et donc l'icone
         let icon = null;

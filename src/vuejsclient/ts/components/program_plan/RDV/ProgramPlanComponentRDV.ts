@@ -63,10 +63,7 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
 
         event.stick = true; // maintain when user navigates (see docs on the renderEvent method)
 
-        ProgramPlanControllerBase.getInstance().populateDroppableItem(
-            event,
-            $(this.$el),
-            this.getEnseignesByIds, this.getTargetsByIds, this.getFacilitatorsByIds, this.getManagersByIds, this.getRdvsByIds, this.getCrsByIds);
+        ProgramPlanControllerBase.getInstance().populateDroppableItem(event, $(this.$el));
 
         $(this.$el).data('event', event);
 

@@ -54,6 +54,11 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
     public dataToReadIHM(e: number, vo: IDistantVOBase): any {
 
         let dest_ids: number[] = [];
+
+        if (!vo.id) {
+            return dest_ids;
+        }
+
         let interTargetRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.targetModuleTable.vo_type);
         let interSrcRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.moduleTable.vo_type);
         let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];

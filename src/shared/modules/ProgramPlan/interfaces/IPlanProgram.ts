@@ -8,7 +8,7 @@ export default interface IPlanProgram extends IDistantVOBase, IWeightedItem {
 
     description: string;
 
-    category_id: number;
+    category_id?: number;
     weight: number;
 
     days_by_target: number;

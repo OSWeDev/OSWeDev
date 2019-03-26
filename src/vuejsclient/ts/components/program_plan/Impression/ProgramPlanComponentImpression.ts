@@ -204,8 +204,7 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                         };
 
                         ProgramPlanControllerBase.getInstance().populateCalendarEvent(
-                            datas_animateur[offset_start_halfdays],
-                            this.getEnseignesByIds, this.getTargetsByIds, this.getFacilitatorsByIds, this.getManagersByIds, this.getRdvsByIds, this.getCrsByIds);
+                            datas_animateur[offset_start_halfdays]);
                     }
                 }
             }

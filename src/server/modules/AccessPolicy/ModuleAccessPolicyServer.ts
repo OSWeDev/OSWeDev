@@ -294,6 +294,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return dependency;
     }
 
+    public getLoggedUser(): Promise<UserVO> {
+
+        try {
+
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            let session = httpContext ? httpContext.get('SESSION') : null;
+
+            if (session && session.user) {
+                return session.user;
+            }
+            return null;
+        } catch (error) {
+            return null;
+        }
+    }
+
     private async togglePolicy(params: ToggleAccessParamVO): Promise<boolean> {
         if ((!params.policy_id) || (!params.role_id)) {
             return false;
@@ -947,18 +963,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     //         res.redirect("/");
     //     }
     // }
-
-    private getLoggedUser(): Promise<UserVO> {
-
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let session = httpContext ? httpContext.get('SESSION') : null;
-
-        if (session && session.user) {
-            return session.user;
-        }
-        return null;
-    }
-
 
     private async filterPolicyByActivModules(datatable: ModuleTable<AccessPolicyVO>, vos: AccessPolicyVO[], uid: number, user_data: IUserData): Promise<AccessPolicyVO[]> {
         let res: AccessPolicyVO[] = [];

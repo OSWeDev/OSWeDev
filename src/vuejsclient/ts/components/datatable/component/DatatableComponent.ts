@@ -156,6 +156,7 @@ export default class DatatableComponent extends VueComponentBase {
                     if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month)) {
                         if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
 
@@ -254,6 +255,7 @@ export default class DatatableComponent extends VueComponentBase {
             if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
                 (((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
+                    ((field as SimpleDatatableField<AnalyserNode, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month))) {
                 res.push(field);
@@ -272,6 +274,7 @@ export default class DatatableComponent extends VueComponentBase {
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
                 let simpleField = (field as SimpleDatatableField<any, any>);
                 if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean) ||
+                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
@@ -440,6 +443,7 @@ export default class DatatableComponent extends VueComponentBase {
                         this.changeBooleanFilterValue(field.datatable_field_uid);
                         continue;
 
+                    case ModuleTableField.FIELD_TYPE_timestamp:
                     case ModuleTableField.FIELD_TYPE_daterange:
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
@@ -760,6 +764,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                                 case ModuleTableField.FIELD_TYPE_date:
                                 case ModuleTableField.FIELD_TYPE_day:
+                                case ModuleTableField.FIELD_TYPE_timestamp:
                                     if ((!query) || ((!query.start) && (!query.end))) {
                                         return true;
                                     }

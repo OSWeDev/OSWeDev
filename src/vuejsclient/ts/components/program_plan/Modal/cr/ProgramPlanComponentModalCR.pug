@@ -1,0 +1,32 @@
+#rdv_modal_cr
+
+    .row(v-if='!!selected_rdv_cr')
+        .col-md-12.crsandnew
+            .crs(v-if="!edited_cr")
+                .cr
+                    i.fa.fa-trash(aria-hidden="true", @click="delete_cr(selected_rdv_cr)" v-if='can_edit')
+                    i.fa.fa-pencil(aria-hidden="true", @click="editCR(selected_rdv_cr)" v-if='can_edit')
+                    .custom_cr_read_component(:is="custom_cr_read_component" :rdv='selected_rdv' :cr='selected_rdv_cr')
+                    
+    .row(v-if="selected_rdv && selected_rdv.id && canaddcr")
+        .col-md-12.newcr
+            .custom_cr_create_component(:is="custom_cr_create_component" :rdv='selected_rdv' :create_cr="create_cr")
+  
+    //- .row
+    //-     .col-md-12.crsandnew
+    //-         .crs(v-if="!edited_cr")
+    //-             .cr(v-for="(cr, i) in older_crs", :class="(newcr_seemore ? '' : 'newcr_seeless')")
+    //-                 template(v-if='i < 10')
+    //-                     button.btn.btn-primary(v-show="!newcr_seemore" @click="newcr_seemore = !newcr_seemore" type="button")
+    //-                         i.newcr_seemorl.fa.fa-expand(aria-hidden="true")
+    //-                         | {{ label('programplan.rdv_modal.newcr_seemorl.expand') }}
+    //-                     button.btn.btn-secondary(v-show="newcr_seemore" @click="newcr_seemore = !newcr_seemore" type="button")
+    //-                         i.newcr_seemorl.fa.fa-compress(aria-hidden="true")
+    //-                         | {{ label('programplan.rdv_modal.newcr_seemorl.compress') }}
+    //-                     i.fa.fa-trash(aria-hidden="true", @click="delete_cr(cr)")
+    //-                     i.fa.fa-pencil(aria-hidden="true", @click="editCR(cr)")
+    //-                     .custom_cr_read_component(:is="custom_cr_read_component" :rdv='selected_rdv' :cr='cr')
+                                
+    .row(v-if="selected_rdv && selected_rdv.id && edited_cr && can_edit")
+        .col-md-12.updatecr
+            .custom_cr_update_component(:is="custom_cr_update_component" :rdv='selected_rdv' :cr='edited_cr' :update_cr='update_cr' :cancel_edition='cancel_edition')

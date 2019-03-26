@@ -32,8 +32,12 @@ export default class OneToManyReferenceDatatableField<Target extends IDistantVOB
     public dataToReadIHM(e: number, vo: IDistantVOBase): any {
 
         let res: number[] = [];
-        let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
+        if (!vo.id) {
+            return res;
+        }
+
+        let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (let oneToManyTargetId in vos[this.targetModuleTable.vo_type]) {
             let targetVo = vos[this.targetModuleTable.vo_type][oneToManyTargetId];

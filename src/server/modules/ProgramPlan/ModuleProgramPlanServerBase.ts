@@ -18,6 +18,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModulesManagerServer from '../ModulesManagerServer';
+import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
 
 export default abstract class ModuleProgramPlanServerBase extends ModuleServerBase {
 
@@ -35,6 +36,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleProgramPlanBase.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleProgramPlanBase.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
     }
 
 
@@ -83,6 +85,19 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency);
     }
 
+    public async getPrepsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDVPrep[]> {
+        let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(params);
+        if (!rdvs) {
+            return null;
+        }
+
+        let ids: number[] = [];
+        for (let i in rdvs) {
+            ids.push(rdvs[i].id);
+        }
+        return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', ids);
+    }
+
     public async getCRsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDVCR[]> {
         let rdvs: IPlanRDV[] = await this.getRDVsOfProgramSegment(params);
         if (!rdvs) {
@@ -100,12 +115,20 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let program_id: number = params.program_id;
         let timeSegment: TimeSegment = params.timeSegment;
 
-        if ((!timeSegment) || (!program_id)) {
+        if (!timeSegment) {
             return null;
         }
 
         let start_time: Moment = TimeSegmentHandler.getInstance().getStartTimeSegment(timeSegment);
         let end_time: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(timeSegment);
+
+        if (!ModuleProgramPlanBase.getInstance().program_type_id) {
+
+            return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
+                ModuleProgramPlanBase.getInstance().rdv_type_id,
+                ' where start_time < $2 and end_time >= $1',
+                [DateHandler.getInstance().formatDateTimeForBDD(start_time), DateHandler.getInstance().formatDateTimeForBDD(end_time)]);
+        }
 
         return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
             ModuleProgramPlanBase.getInstance().rdv_type_id,

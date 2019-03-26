@@ -2,137 +2,16 @@
 
 #rdv_modal {
 
-    .infos {
-        padding: 10px;
-        background: $main_menu_bg_color;
-        color: $main_menu_text_color;
-
-        .target-infos-content.form-control {
-            height: auto;
-        }    
+    .nav-pills>li{
+        cursor:pointer;
+        margin-bottom: 2px;
     }
-
     
-    .cr_previsite {
-        color: #b3003c;
+    .nav-pills>li.active>a, .nav-pills>li.active>a:focus, .nav-pills>li.active>a:hover {
+        color: #fff;
+        background-color: $button_primary_bg_color;
     }
-
-    .cr_visite {
-        color: #58F;
+    .nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {
+        border-top-color: $button_primary_bg_color;
     }
-
-    .crsandnew {
-        margin-top: 10px;
-
-        label input {
-            margin-left: 1em;
-        }
-    }
-
-    .newcr, .updatecr {
-
-        max-height: auto;
-        overflow: hidden;
-
-        textarea {
-            width: 100%;
-        }
-
-        >h3 {
-            color: $main_menu_bg_color;
-            text-transform: uppercase;
-        }
-
-        >i {
-            padding: 6px 8px;
-            padding-bottom: 5px;
-            background: $main_menu_bg_color;
-            color: $main_menu_text_color;
-        }
-
-        >h3,
-        >i {
-            display: inline-block;
-        }
-
-        >i {
-            margin-right: 10px;
-        }
-
-        .newcr_seemorl,
-        .updatecr_seemorl {
-            font-size: 2em;
-            display: inline-block;
-            cursor: pointer;
-        }
-    }
-
-    .newcr.newcr_seeless,
-    .updatecr.updatecr_seeless {
-        max-height: 55px;
-    } 
-
-    .cr {
-        padding: 10px;
-        background: $main_sidebar_bg_color;
-        margin-bottom: 12px;
-        text-align: left;
-
-        pre {
-            white-space: pre-wrap;
-            white-space: -moz-pre-wrap;
-            white-space: -pre-wrap;
-            white-space: -o-pre-wrap;
-            word-wrap: break-word;
-        }
-
-        b {
-            display: block;
-            font-size: 1.1em;
-        }
-        
-        span {
-            font-size: 1em;
-        }
-
-        >div {
-            margin-bottom: 10px;
-        }
-
-        i.fa-trash {
-            color: $danger_color;
-            cursor: pointer;
-            float: right;
-            font-size: 1.5em;
-        }
-
-        i.fa-pencil {
-            cursor: pointer;
-            float: right;
-            margin-right: 1em;
-            font-size: 1.5em;
-        }
-    }
-
-    .infosContener {
-        max-height: auto;
-        overflow: hidden;
-    }
-
-    .seeless {
-        max-height: 80px;
-    }
-
-    .seemorl {
-        font-size: 2em;
-        position: absolute;
-        right: 12px;
-        top: 12px;
-        cursor: pointer;
-    }
-
-    /*.adresse,
-    .contact {
-        max-width: 296px;
-    }*/
 }
