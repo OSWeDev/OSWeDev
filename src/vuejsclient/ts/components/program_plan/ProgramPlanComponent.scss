@@ -5,5 +5,39 @@
         >i, >.fc-title{
             vertical-align: middle;
         }
+
+        i.fa.fa-circle:before {
+            margin: 0;
+            padding: 0;
+        }
+
+        i.fa.fa-circle {
+            border: solid 2px #EEE;
+            border-radius: 30px;
+            margin: 0;
+            padding: 0;
+            margin-right: 2px;
+            line-height: 11px;
+        }
+
+        .rdv-state-bg {
+            color: white;
+        }
+
+        .rdv-state-confirmed {
+            color: orange;
+        }
+
+        .rdv-state-crok {
+            color: green;
+        }
+
+        .rdv-state-prepok {
+            color: yellow;
+        }
+        
+        .rdv-state-created {
+            color: red;
+        }
     }
 }

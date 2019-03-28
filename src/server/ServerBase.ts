@@ -32,6 +32,7 @@ import ModuleCronServer from './modules/Cron/ModuleCronServer';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
+import ModuleFileServer from './modules/File/ModuleFileServer';
 
 export default abstract class ServerBase {
 
@@ -68,6 +69,8 @@ export default abstract class ServerBase {
     public abstract getHttpContext();
 
     public async initializeNodeServer() {
+
+        await this.createMandatoryFolders();
 
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
         this.version = this.getVersion();
@@ -286,7 +289,10 @@ export default abstract class ServerBase {
             proxy: true,
             resave: false,
             saveUninitialized: false,
-            store: new FileStore()
+            store: new FileStore(),
+            cookie: {
+                maxAge: Date.now() + (30 * 86400 * 1000)
+            }
         });
         this.app.use(this.session);
 
@@ -621,5 +627,15 @@ export default abstract class ServerBase {
     }
 
     protected registerApis(app) {
+    }
+
+    /**
+     * On s'assure de la création des dossiers nécessaires au bon fonctionnement de l'application
+     */
+    protected async createMandatoryFolders() {
+        await ModuleFileServer.getInstance().makeSureThisFolderExists('./temp');
+        await ModuleFileServer.getInstance().makeSureThisFolderExists('./files');
+        await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/upload');
+        await ModuleFileServer.getInstance().makeSureThisFolderExists('./logs');
     }
 }

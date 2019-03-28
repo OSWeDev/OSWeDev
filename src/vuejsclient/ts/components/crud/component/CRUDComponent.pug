@@ -98,6 +98,33 @@ mixin manytoone_input(vo)
             @search-change="asyncLoadOptions",
             @input="onChangeField("+vo+", field)")
 
+
+mixin onetomany_input(vo)
+    .form-group
+        label {{ t(field.translatable_title) }}
+        .btn-group.link_ref
+            router-link.btn.btn-sm.btn-success(:to="getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
+                i.fa.fa-plus-circle
+        multiselect(
+            v-model=vo+"[field.datatable_field_uid]",
+            
+            
+            :custom-label="field.voIdToHumanReadable",
+            
+            
+            :options="select_options[field.datatable_field_uid]",
+            :placeholder="t(field.translatable_place_holder)",
+            :loading="isLoadingOptions[field.datatable_field_uid]",
+            :id="field.datatable_field_uid",
+            :searchable="true",
+            :internal-search="false",
+            :allow-empty="true",
+            :preselectFirst="false",
+            @search-change="asyncLoadOptions",
+            @input="onChangeField("+vo+", field)",
+            :multiple="true")
+
+
 .crud-wrapper
     +loading()
         .crud-table-wrapper
@@ -146,6 +173,9 @@ mixin manytoone_input(vo)
                                         template(v-else-if="field.type == 'ManyToOne'")
                                             +manytoone_input('newVO')
 
+                                        template(v-else-if="(field.type == 'OneToMany') || (field.type == 'ManyToMany')")
+                                            +onetomany_input('newVO')
+
                             template(v-else)
                                 p {{ label('crud.create.modal.content.newvo_failure') }}
                         .modal-footer
@@ -173,6 +203,9 @@ mixin manytoone_input(vo)
                                         template(v-else-if="field.type == 'ManyToOne'")
                                             +manytoone_input('editableVO')
 
+                                        template(v-else-if="(field.type == 'OneToMany') || (field.type == 'ManyToMany')")
+                                            +onetomany_input('editableVO')
+                                            
                             template(v-else)
                                 p {{ label('crud.update.modal.content.selection_failure') }}
                         .modal-footer

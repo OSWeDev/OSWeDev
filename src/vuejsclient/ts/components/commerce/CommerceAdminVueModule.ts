@@ -262,6 +262,9 @@ export default class CommerceAdminVueModule extends VueModuleBase {
                     ])
             ]));
 
+        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
+
         return crud;
     }
 
@@ -286,6 +289,9 @@ export default class CommerceAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("prix_unitaire"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("quantite"));
 
+        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[LigneCommandeVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[LigneCommandeVO.API_TYPE_ID]);
+
         return crud;
     }
 
@@ -304,6 +310,9 @@ export default class CommerceAdminVueModule extends VueModuleBase {
             ]));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("statut"));
 
+        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[PaiementVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[PaiementVO.API_TYPE_ID]);
+
         return crud;
     }
 
@@ -321,6 +330,9 @@ export default class CommerceAdminVueModule extends VueModuleBase {
                 new SimpleDatatableField("titre")
             ]));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("par_defaut"));
+
+        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[FacturationProduitVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[FacturationProduitVO.API_TYPE_ID]);
 
         return crud;
     }

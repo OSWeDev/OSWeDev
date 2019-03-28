@@ -15,9 +15,36 @@ export default class MenuController {
     private static instance: MenuController;
 
     public menuElementsToAdd: Array<{ menuElement: MenuElementBase, parent: MenuBranch }> = [];
+    public menuElementsToIgnore: string[] = [];
+
+    /**
+     * Supprime un noeud de menu, s'il n'est pas encore ajouté à l'affichage, et stocke l'info s'il n'est pas encore enregistré
+     */
+    public removeMenuElement(UID: string) {
+        if (!UID) {
+            return null;
+        }
+
+        for (let i in this.menuElementsToAdd) {
+            let menuElement: {
+                menuElement: MenuElementBase;
+                parent: MenuBranch;
+            } = this.menuElementsToAdd[i];
+
+            if (menuElement.menuElement.UID == UID) {
+                this.menuElementsToAdd.splice(parseInt(i.toString()), 1);
+                return;
+            }
+        }
+
+        this.menuElementsToIgnore.push(UID);
+    }
 
     public addMenuElement(menuElement: MenuElementBase, parent: MenuBranch) {
 
+        if ((!!menuElement) && (this.menuElementsToIgnore.indexOf(menuElement.UID) >= 0)) {
+            return;
+        }
         this.menuElementsToAdd.push({ menuElement: menuElement, parent: parent });
     }
 

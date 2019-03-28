@@ -51,7 +51,6 @@ export default class ModuleTableField<T> {
     public module_table: ModuleTable<any> = null;
     public field_label: DefaultTranslation;
     public manyToOne_target_moduletable: ModuleTable<any> = null;
-    public default_label_field: ModuleTableField<any> = null;
 
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
@@ -174,16 +173,78 @@ export default class ModuleTableField<T> {
             'ON UPDATE NO ACTION ON DELETE CASCADE';
     }
 
-    public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTable<U>, default_label_field: ModuleTableField<any> = null) {
+    public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTable<U>) {
         this.manyToOne_target_moduletable = target_database;
         this.target_database = target_database.database;
         this.target_table = target_database.name;
-        this.default_label_field = default_label_field ? default_label_field : target_database.default_label_field;
         this.target_field = 'id';
         this.has_relation = true;
     }
 
-    private getPGSqlFieldType() {
+    public isAcceptableCurrentDBType(db_type: string): boolean {
+        switch (this.field_type) {
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableField.FIELD_TYPE_file_ref:
+            case ModuleTableField.FIELD_TYPE_image_ref:
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+                return (db_type == "int8") || (db_type == "bigint");
+
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                return (db_type == "float8") || (db_type == "double precision");
+
+            case ModuleTableField.FIELD_TYPE_string_array:
+                return db_type == "text[]";
+
+            case ModuleTableField.FIELD_TYPE_int_array:
+                return db_type == "bigint[]";
+
+            case ModuleTableField.FIELD_TYPE_boolean:
+                return db_type == "boolean";
+
+            case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_month:
+            case ModuleTableField.FIELD_TYPE_date:
+                return db_type == "date";
+
+            case ModuleTableField.FIELD_TYPE_geopoint:
+                return db_type == "point";
+
+            case ModuleTableField.FIELD_TYPE_timestamp:
+                return (db_type == "timestamp") || (db_type == "timestamp without time zone");
+
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+            case "ref.hours":
+                return db_type == "ref.hours";
+
+            case ModuleTableField.FIELD_TYPE_daterange:
+                return db_type == "daterange";
+
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                return db_type == "tsrange";
+
+            case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                return db_type == "time without time zone";
+
+            case ModuleTableField.FIELD_TYPE_prct:
+                return db_type == "ref.pct";
+
+            case 'real':
+                return db_type == "real";
+
+            case ModuleTableField.FIELD_TYPE_html:
+            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_password:
+            case ModuleTableField.FIELD_TYPE_file_field:
+            case ModuleTableField.FIELD_TYPE_image_field:
+            default:
+                return db_type == 'text';
+        }
+    }
+
+    public getPGSqlFieldType() {
         switch (this.field_type) {
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_enum:
@@ -205,7 +266,7 @@ export default class ModuleTableField<T> {
                 return "bigint[]";
 
             case ModuleTableField.FIELD_TYPE_boolean:
-                return "bool";
+                return "boolean";
 
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_month:

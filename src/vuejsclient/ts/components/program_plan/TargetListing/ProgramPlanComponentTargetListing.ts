@@ -20,8 +20,11 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
 
     private filtre_etablissement = null;
 
-    private width: number = 300;
-    private height: number = 400;
+    private width: number = 250;
+    private height: number = 395;
+    private unusable_height: number = 75;
+    private target_height: number = 40;
+    private nb_targets: number = Math.floor((this.height - this.unusable_height) / this.target_height);
 
     get filtered_ordered_targets(): IPlanTarget[] {
         let res: IPlanTarget[] = [];
@@ -48,8 +51,8 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
             return 0;
         });
 
-        if (res.length > 9) {
-            res.splice(9, res.length - 9);
+        if (res.length > this.nb_targets) {
+            res.splice(this.nb_targets, res.length - this.nb_targets);
         }
 
         return res;
@@ -67,6 +70,8 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
         this.width = width;
         this.height = height;
 
-        (this.$refs.droppable_targets as any).style.maxHeight = "" + (this.height - 90) + "px";
+        (this.$refs.droppable_targets as any).style.maxHeight = "" + (this.height - this.unusable_height) + "px";
+
+        this.nb_targets = Math.floor((this.height - this.unusable_height) / this.target_height);
     }
 }

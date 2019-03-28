@@ -1,0 +1,16 @@
+@import 'skin-variables.scss';
+
+#rdv_modal_target_infos {
+    padding: 10px;
+    background: $main_menu_bg_color;
+    color: $main_menu_text_color;
+
+    .target-infos-content.form-control {
+        height: auto;
+    }    
+}
+
+.infosContener {
+    max-height: auto;
+    overflow: hidden;
+}

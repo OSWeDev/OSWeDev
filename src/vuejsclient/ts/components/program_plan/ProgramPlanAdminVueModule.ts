@@ -6,6 +6,17 @@ import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import DateHandler from '../../../../shared/tools/DateHandler';
+import moment = require('moment');
+import CRUD from '../crud/vos/CRUD';
+import ComputedDatatableField from '../datatable/vos/ComputedDatatableField';
+import ManyToOneReferenceDatatableField from '../datatable/vos/ManyToOneReferenceDatatableField';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
+import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import TimeHandler from '../../../../shared/tools/TimeHandler';
+import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 
 export default class ProgramPlanAdminVueModule extends VueModuleBase {
 
@@ -39,108 +50,244 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
 
         let menuBranch: MenuBranch = ProgramPlanAdminVueModule.DEFAULT_MENU_BRANCH;
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().program_category_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().program_category_type_id, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-list"),
-                menuBranch),
-            this.routes);
+        if (ModuleProgramPlanBase.getInstance().showProgramAdministration) {
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().program_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().program_type_id, MenuElementBase.PRIORITY_ULTRAHIGH + 1, "fa-list"),
-                menuBranch),
-            this.routes);
+            if (!!ModuleProgramPlanBase.getInstance().program_category_type_id) {
+                CRUDComponentManager.getInstance().registerCRUD(
+                    ModuleProgramPlanBase.getInstance().program_category_type_id,
+                    null,
+                    new MenuPointer(
+                        new MenuLeaf(ModuleProgramPlanBase.getInstance().program_category_type_id, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-list"),
+                        menuBranch),
+                    this.routes);
+            }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().facilitator_region_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().facilitator_region_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
-                menuBranch),
-            this.routes);
+            if (!!ModuleProgramPlanBase.getInstance().program_type_id) {
+                CRUDComponentManager.getInstance().registerCRUD(
+                    ModuleProgramPlanBase.getInstance().program_type_id,
+                    null,
+                    new MenuPointer(
+                        new MenuLeaf(ModuleProgramPlanBase.getInstance().program_type_id, MenuElementBase.PRIORITY_ULTRAHIGH + 1, "fa-list"),
+                        menuBranch),
+                    this.routes);
+            }
+        }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().enseigne_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().enseigne_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
-                menuBranch),
-            this.routes);
+        if (!!ModuleProgramPlanBase.getInstance().facilitator_region_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().facilitator_region_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().facilitator_region_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
+                    menuBranch),
+                this.routes);
+        }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().contact_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().contact_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
-                menuBranch),
-            this.routes);
+        if (!!ModuleProgramPlanBase.getInstance().enseigne_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().enseigne_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().enseigne_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
+                    menuBranch),
+                this.routes);
+        }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().target_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().target_type_id, MenuElementBase.PRIORITY_HIGH + 1, "fa-bullseye"),
-                menuBranch),
-            this.routes);
+        if (!!ModuleProgramPlanBase.getInstance().contact_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().contact_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().contact_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
+                    menuBranch),
+                this.routes);
+        }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().target_contact_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().target_contact_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
-                menuBranch),
-            this.routes);
+        if (!!ModuleProgramPlanBase.getInstance().target_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().target_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().target_type_id, MenuElementBase.PRIORITY_HIGH + 1, "fa-bullseye"),
+                    menuBranch),
+                this.routes);
+        }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().program_target_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().program_target_type_id, MenuElementBase.PRIORITY_HIGH + 2, "fa-bullseye"),
-                menuBranch),
-            this.routes);
+        if (!!ModuleProgramPlanBase.getInstance().partner_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().partner_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().partner_type_id, MenuElementBase.PRIORITY_MEDIUM - 1, "fa-sitemap"),
+                    menuBranch),
+                this.routes);
+        }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().partner_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().partner_type_id, MenuElementBase.PRIORITY_MEDIUM - 1, "fa-sitemap"),
-                menuBranch),
-            this.routes);
+        if (!!ModuleProgramPlanBase.getInstance().manager_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().manager_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().manager_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-sitemap"),
+                    menuBranch),
+                this.routes);
+        }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().manager_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().manager_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-sitemap"),
-                menuBranch),
-            this.routes);
+        if (!!ModuleProgramPlanBase.getInstance().facilitator_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().facilitator_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().facilitator_type_id, MenuElementBase.PRIORITY_LOW, "fa-user-circle"),
+                    menuBranch),
+                this.routes);
+        }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().facilitator_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().facilitator_type_id, MenuElementBase.PRIORITY_LOW, "fa-user-circle"),
-                menuBranch),
-            this.routes);
+        if (!!ModuleProgramPlanBase.getInstance().rdv_type_id) {
+            let rdv_crud = CRUD.getNewCRUD(ModuleProgramPlanBase.getInstance().rdv_type_id);
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().program_facilitator_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().program_facilitator_type_id, MenuElementBase.PRIORITY_LOW + 1, "fa-user-circle"),
-                menuBranch),
-            this.routes);
+            // On ajoute l'enseigne
+            if (!!ModuleProgramPlanBase.getInstance().enseigne_type_id) {
+                rdv_crud.readDatatable.pushField(
+                    new ManyToOneReferenceDatatableField(
+                        'target_id',
+                        VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().target_type_id],
+                        [
+                            new ManyToOneReferenceDatatableField(
+                                'enseigne_id',
+                                VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().enseigne_type_id],
+                                [
+                                    new SimpleDatatableField('name')
+                                ])
+                        ]
+                    ).setUID_for_readDuplicateOnly('rdv_enseigne_id'));
+            }
 
-        CRUDComponentManager.getInstance().registerCRUD(
-            ModuleProgramPlanBase.getInstance().program_manager_type_id,
-            null,
-            new MenuPointer(
-                new MenuLeaf(ModuleProgramPlanBase.getInstance().program_manager_type_id, MenuElementBase.PRIORITY_MEDIUM + 1, "fa-sitemap"),
-                menuBranch),
-            this.routes);
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().rdv_type_id,
+                rdv_crud,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().rdv_type_id, MenuElementBase.PRIORITY_ULTRALOW, "fa-calendar-o"),
+                    menuBranch),
+                this.routes);
+            //     ,
+            // {
+            //     FILTER__start_time: moment().year().toString(),
+            //     }
+        }
+
+        if (!!ModuleProgramPlanBase.getInstance().rdv_prep_type_id) {
+            let prep_crud = CRUD.getNewCRUD(ModuleProgramPlanBase.getInstance().rdv_prep_type_id);
+
+            // On ajoute le RDV avec la date - cible - consultant
+            prep_crud.readDatatable.pushField(
+                new ManyToOneReferenceDatatableField(
+                    'rdv_id',
+                    VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().rdv_type_id],
+                    [
+                        new ComputedDatatableField(
+                            'rdv_date',
+                            (rdv: IPlanRDV) => ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(rdv.start_time)) + ' ' + TimeHandler.getInstance().formatMomentMinutePrecisionTime(moment(rdv.start_time)))
+                    ]
+                ).setUID_for_readDuplicateOnly('rdv_prep_date'));
+
+            // On ajoute le RDV avec la cible - consultant
+            prep_crud.readDatatable.pushField(
+                new ManyToOneReferenceDatatableField(
+                    'rdv_id',
+                    VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().rdv_type_id],
+                    [
+                        new ManyToOneReferenceDatatableField(
+                            'target_id',
+                            VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().target_type_id],
+                            [
+                                new SimpleDatatableField('name')
+                            ])
+                    ]
+                ).setUID_for_readDuplicateOnly('rdv_prep_target'));
+
+            // On ajoute le RDV avec la date - cible - consultant
+            prep_crud.readDatatable.pushField(
+                new ManyToOneReferenceDatatableField(
+                    'rdv_id',
+                    VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().rdv_type_id],
+                    [
+                        new ManyToOneReferenceDatatableField(
+                            'facilitator_id',
+                            VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().facilitator_type_id],
+                            [
+                                new ComputedDatatableField(
+                                    'facilitator_name',
+                                    (facilitator: IPlanFacilitator) => facilitator.firstname + ' ' + facilitator.lastname)
+                            ]
+                        )
+                    ]
+                ).setUID_for_readDuplicateOnly('rdv_prep_facilitator'));
+
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().rdv_prep_type_id,
+                prep_crud,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, MenuElementBase.PRIORITY_ULTRALOW + 1, "fa-calendar-check-o"),
+                    menuBranch),
+                this.routes);
+        }
+
+        if (!!ModuleProgramPlanBase.getInstance().rdv_cr_type_id) {
+            let cr_crud = CRUD.getNewCRUD(ModuleProgramPlanBase.getInstance().rdv_cr_type_id);
+
+            // On ajoute le RDV avec la date - cible - consultant
+            cr_crud.readDatatable.pushField(
+                new ManyToOneReferenceDatatableField(
+                    'rdv_id',
+                    VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().rdv_type_id],
+                    [
+                        new ComputedDatatableField(
+                            'rdv_date',
+                            (rdv: IPlanRDV) => ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(rdv.start_time)) + ' ' + TimeHandler.getInstance().formatMomentMinutePrecisionTime(moment(rdv.start_time)))
+                    ]
+                ).setUID_for_readDuplicateOnly('rdv_cr_date'));
+
+            // On ajoute le RDV avec la cible - consultant
+            cr_crud.readDatatable.pushField(
+                new ManyToOneReferenceDatatableField(
+                    'rdv_id',
+                    VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().rdv_type_id],
+                    [
+                        new ManyToOneReferenceDatatableField(
+                            'target_id',
+                            VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().target_type_id],
+                            [
+                                new SimpleDatatableField('name')
+                            ])
+                    ]
+                ).setUID_for_readDuplicateOnly('rdv_cr_target'));
+
+            // On ajoute le RDV avec la date - cible - consultant
+            cr_crud.readDatatable.pushField(
+                new ManyToOneReferenceDatatableField(
+                    'rdv_id',
+                    VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().rdv_type_id],
+                    [
+                        new ManyToOneReferenceDatatableField(
+                            'facilitator_id',
+                            VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().facilitator_type_id],
+                            [
+                                new ComputedDatatableField(
+                                    'facilitator_name',
+                                    (facilitator: IPlanFacilitator) => facilitator.firstname + ' ' + facilitator.lastname)
+                            ]
+                        )
+                    ]
+                ).setUID_for_readDuplicateOnly('rdv_cr_facilitator'));
+
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().rdv_cr_type_id,
+                cr_crud,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, MenuElementBase.PRIORITY_ULTRALOW + 1, "fa-calendar-check-o"),
+                    menuBranch),
+                this.routes);
+        }
     }
 }

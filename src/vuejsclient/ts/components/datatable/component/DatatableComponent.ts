@@ -22,6 +22,7 @@ import ManyToManyReferenceDatatableField from '../vos/ManyToManyReferenceDatatab
 import DaoStoreTypeWatcherDefinition from '../../dao/vos/DaoStoreTypeWatcherDefinition';
 import * as debounce from 'lodash/debounce';
 import './DatatableComponent.scss';
+import OneToManyReferenceDatatableField from '../vos/OneToManyReferenceDatatableField';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -83,6 +84,8 @@ export default class DatatableComponent extends VueComponentBase {
     private preload_custom_filters: string[] = [];
     private custom_filters_options: { [field_id: string]: any[] } = {};
 
+    private exportable_datatable_data: any[] = [];
+
     private watcherLoaded: boolean = false;
 
     get isModuleParamTable() {
@@ -126,7 +129,10 @@ export default class DatatableComponent extends VueComponentBase {
         for (let i in this.datatable.fields) {
             let field: DatatableField<any, any> = this.datatable.fields[i];
 
-            if ((field.type != DatatableField.SIMPLE_FIELD_TYPE) && (field.type != DatatableField.MANY_TO_ONE_FIELD_TYPE)) {
+            if ((field.type != DatatableField.SIMPLE_FIELD_TYPE) &&
+                (field.type != DatatableField.MANY_TO_ONE_FIELD_TYPE) &&
+                (field.type != DatatableField.ONE_TO_MANY_FIELD_TYPE) &&
+                (field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
                 continue;
             }
 
@@ -150,6 +156,7 @@ export default class DatatableComponent extends VueComponentBase {
                     if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
+                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month)) {
                         if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
 
@@ -177,10 +184,14 @@ export default class DatatableComponent extends VueComponentBase {
 
                     this.preload_custom_filters.push(field.datatable_field_uid);
 
-                    for (let k in this.custom_filters_options[field.datatable_field_uid]) {
-                        if (this.custom_filters_options[field.datatable_field_uid][k] && this.custom_filters_options[field.datatable_field_uid][k].value == this.$route.query[j]) {
-                            this.custom_filters_values[field.datatable_field_uid] = [this.custom_filters_options[field.datatable_field_uid][k]];
+                    if ((!!this.custom_filters_options) && (!!this.custom_filters_options[field.datatable_field_uid])) {
+                        for (let k in this.custom_filters_options[field.datatable_field_uid]) {
+                            if (this.custom_filters_options[field.datatable_field_uid][k] && this.custom_filters_options[field.datatable_field_uid][k].value == this.$route.query[j]) {
+                                this.custom_filters_values[field.datatable_field_uid] = [this.custom_filters_options[field.datatable_field_uid][k]];
+                            }
                         }
+                    } else {
+                        this.custom_filters_values[field.datatable_field_uid] = this.$route.query[j];
                     }
                 }
             }
@@ -193,6 +204,7 @@ export default class DatatableComponent extends VueComponentBase {
 
     private get_export_params_for_xlsx(): ExportDataToXLSXParamVO {
 
+        this.set_exportable_datatable_data();
         return new ExportDataToXLSXParamVO(
             "Export-" + this.datatable.API_TYPE_ID + ".xlsx",
             this.exportable_datatable_data,
@@ -201,16 +213,22 @@ export default class DatatableComponent extends VueComponentBase {
         );
     }
 
-    get exportable_datatable_data(): any[] {
-        let res: any[] = [];
+    private set_exportable_datatable_data(): any[] {
+        this.exportable_datatable_data = [];
 
-        for (let i in this.datatable_data) {
-            res.push(this.datatable_data[i]);
-            delete res[res.length - 1][DatatableComponent.MULTISELECT_COLUMN_ID];
-            delete res[res.length - 1][DatatableComponent.ACTIONS_COLUMN_ID];
+        for (let i in (this.$refs.vclienttable as any).allFilteredData) {
+            let cloned_data = Object.assign({}, (this.$refs.vclienttable as any).allFilteredData[i]);
+
+            if (!!cloned_data[DatatableComponent.MULTISELECT_COLUMN_ID]) {
+                delete cloned_data[DatatableComponent.MULTISELECT_COLUMN_ID];
+            }
+            if (!!cloned_data[DatatableComponent.ACTIONS_COLUMN_ID]) {
+                delete cloned_data[DatatableComponent.ACTIONS_COLUMN_ID];
+            }
+            this.exportable_datatable_data.push(cloned_data);
         }
 
-        return res;
+        return this.exportable_datatable_data;
     }
 
     get exportable_datatable_columns(): string[] {
@@ -237,6 +255,7 @@ export default class DatatableComponent extends VueComponentBase {
             if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
                 (((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
+                    ((field as SimpleDatatableField<AnalyserNode, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month))) {
                 res.push(field);
@@ -255,6 +274,7 @@ export default class DatatableComponent extends VueComponentBase {
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
                 let simpleField = (field as SimpleDatatableField<any, any>);
                 if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean) ||
+                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
@@ -265,6 +285,9 @@ export default class DatatableComponent extends VueComponentBase {
                 }
             }
             if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+                continue;
+            }
+            if (field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
                 continue;
             }
             if (field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
@@ -291,6 +314,8 @@ export default class DatatableComponent extends VueComponentBase {
                     res.push(field);
                 }
             } else if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+                res.push(field);
+            } else if (field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
                 res.push(field);
             } else if (field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
                 res.push(field);
@@ -328,31 +353,63 @@ export default class DatatableComponent extends VueComponentBase {
         }];
     }
 
-    private setMultiSelectFilterOptions(datatable_field_uid: string) {
+    private setMultiSelectFilterOptions(datatable_field: DatatableField<any, any>) {
 
-        this.custom_filters_options[datatable_field_uid] = [];
+        this.custom_filters_options[datatable_field.datatable_field_uid] = [];
 
-        console.info('setMultiSelectFilterOptions: ' + datatable_field_uid);
+        console.info('setMultiSelectFilterOptions: ' + datatable_field.datatable_field_uid);
 
         let field_values: string[] = [];
 
         for (let i in this.datatable_data) {
             let data = this.datatable_data[i];
-            let field_value = data[datatable_field_uid];
+            let field_value = data[datatable_field.datatable_field_uid];
 
-            if (field_values.indexOf(field_value) < 0) {
-                field_values.push(field_value);
+            switch (datatable_field.type) {
+                case OneToManyReferenceDatatableField.MANY_TO_ONE_FIELD_TYPE:
+                    if (field_values.indexOf(field_value) < 0) {
+                        field_values.push(field_value);
+                    }
+                    break;
+                case ManyToOneReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE:
+                case ManyToManyReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE:
+
+                    if ((!field_value) || (!field_value.length)) {
+                        break;
+                    }
+
+                    for (let j in field_value) {
+
+                        if (field_values.indexOf(field_value[j]) < 0) {
+                            field_values.push(field_value[j]);
+                        }
+                    }
+                    break;
             }
         }
 
         field_values.sort();
 
         for (let i in field_values) {
-            this.custom_filters_options[datatable_field_uid].push({
-                label: (field_values[i] && field_values[i] != '') ? field_values[i] : '-',
-                value: field_values[i],
-                datatable_field_uid: datatable_field_uid
-            });
+
+            switch (datatable_field.type) {
+                case OneToManyReferenceDatatableField.MANY_TO_ONE_FIELD_TYPE:
+                    this.custom_filters_options[datatable_field.datatable_field_uid].push({
+                        label: (field_values[i] && field_values[i] != '') ? field_values[i] : '-',
+                        value: field_values[i],
+                        datatable_field_uid: datatable_field.datatable_field_uid
+                    });
+                    break;
+                case ManyToOneReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE:
+                case ManyToManyReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE:
+
+                    this.custom_filters_options[datatable_field.datatable_field_uid].push({
+                        label: (field_values[i] && field_values[i] != '') ? field_values[i]['label'] : '-',
+                        value: field_values[i]['id'],
+                        datatable_field_uid: datatable_field.datatable_field_uid
+                    });
+                    break;
+            }
         }
     }
 
@@ -386,6 +443,7 @@ export default class DatatableComponent extends VueComponentBase {
                         this.changeBooleanFilterValue(field.datatable_field_uid);
                         continue;
 
+                    case ModuleTableField.FIELD_TYPE_timestamp:
                     case ModuleTableField.FIELD_TYPE_daterange:
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
@@ -480,8 +538,34 @@ export default class DatatableComponent extends VueComponentBase {
                 try {
 
                     switch (field.type) {
+
                         case DatatableField.SIMPLE_FIELD_TYPE:
-                            resData[field.datatable_field_uid] = field.dataToReadIHM(baseData[(field as SimpleDatatableField<any, any>).moduleTableField.field_id], baseData);
+                            let simpleField: SimpleDatatableField<any, any> = (field) as SimpleDatatableField<any, any>;
+
+                            let value = field.dataToReadIHM(baseData[simpleField.moduleTableField.field_id], baseData);
+                            // Limite à 300 cars si c'est du html et strip html
+                            if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
+                                try {
+
+                                    value = value.replace(/&nbsp;/gi, ' ');
+                                    value = value.replace(/<\/div>/gi, '\n');
+                                    value = value.replace(/<\/span>/gi, '\n');
+                                    value = value.replace(/<\/ul>/gi, '\n');
+                                    value = value.replace(/<\/li>/gi, '\n');
+                                    value = value.replace(/<\/p>/gi, '\n');
+                                    value = value.replace(/<br>/gi, '\n');
+                                    value = value.replace(/<(?:.|\n)*?>/gm, '');
+                                    // value = $("<p>" + value + "</p>").text();
+                                } catch (error) {
+                                    value = value;
+                                }
+
+                                if (value.length > 300) {
+                                    value = value.substring(0, 300) + '...';
+                                }
+                            }
+
+                            resData[field.datatable_field_uid] = value;
                             break;
 
                         case DatatableField.COMPUTED_FIELD_TYPE:
@@ -499,7 +583,23 @@ export default class DatatableComponent extends VueComponentBase {
                             }
                             break;
 
-                        // case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                        case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                            let oneToManyField: OneToManyReferenceDatatableField<any> = (field) as OneToManyReferenceDatatableField<any>;
+
+                            resData[field.datatable_field_uid] = [];
+
+                            for (let oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
+                                let targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
+
+                                if ((!!targetVo) && (targetVo[oneToManyField.destField.field_id] == baseData.id)) {
+
+                                    resData[field.datatable_field_uid].push({
+                                        id: oneToManyTargetId,
+                                        label: oneToManyField.dataToHumanReadable(targetVo)
+                                    });
+                                }
+                            }
+                            break;
 
                         case DatatableField.MANY_TO_MANY_FIELD_TYPE:
                             let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (field) as ManyToManyReferenceDatatableField<any, any>;
@@ -519,7 +619,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                             for (let desti in dest_ids) {
                                 resData[field.datatable_field_uid].push({
-                                    id: desti,
+                                    id: dest_ids[desti],
                                     label: manyToManyField.dataToHumanReadable(this.getStoredDatas[manyToManyField.targetModuleTable.vo_type][dest_ids[desti]])
                                 });
                             }
@@ -545,7 +645,7 @@ export default class DatatableComponent extends VueComponentBase {
             this.setBooleanFilterOptions(this.boolean_filtered_fields[i].datatable_field_uid);
         }
         for (let i in this.multiselect_filtered_fields) {
-            this.setMultiSelectFilterOptions(this.multiselect_filtered_fields[i].datatable_field_uid);
+            this.setMultiSelectFilterOptions(this.multiselect_filtered_fields[i]);
         }
         for (let i in this.date_filtered_fields) {
             this.custom_filters_values[this.date_filtered_fields[i].datatable_field_uid] = {
@@ -555,9 +655,7 @@ export default class DatatableComponent extends VueComponentBase {
         }
         this.handle_filters_preload();
 
-        for (let i in this.preload_custom_filters) {
-            this.onChangeFilterValue();
-        }
+        this.onChangeFilterValue();
     }
 
     get datatable_columns_labels(): any {
@@ -597,13 +695,13 @@ export default class DatatableComponent extends VueComponentBase {
             if (field.type == DatatableField.INPUT_FIELD_TYPE) {
                 continue;
             }
-            if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField: SimpleDatatableField<any, any> = this.datatable.fields[i] as SimpleDatatableField<any, any>;
+            // if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+            //     let simpleField: SimpleDatatableField<any, any> = this.datatable.fields[i] as SimpleDatatableField<any, any>;
 
-                if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
-                    continue;
-                }
-            }
+            //     if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
+            //         continue;
+            //     }
+            // }
 
             res.push(field.datatable_field_uid);
         }
@@ -666,6 +764,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                                 case ModuleTableField.FIELD_TYPE_date:
                                 case ModuleTableField.FIELD_TYPE_day:
+                                case ModuleTableField.FIELD_TYPE_timestamp:
                                     if ((!query) || ((!query.start) && (!query.end))) {
                                         return true;
                                     }
@@ -724,7 +823,6 @@ export default class DatatableComponent extends VueComponentBase {
                                     }
                                     return false;
                             }
-                            break;
 
                         case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                             if ((!query) || (!query.length)) {
@@ -737,7 +835,26 @@ export default class DatatableComponent extends VueComponentBase {
                                 }
                             }
                             return false;
-                            break;
+
+                        case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+                        case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                            if ((!query) || (!query.length)) {
+                                return true;
+                            }
+
+                            if ((!row[field.datatable_field_uid]) || (!row[field.datatable_field_uid].length)) {
+                                return false;
+                            }
+
+                            for (let i in query) {
+
+                                for (let k in row[field.datatable_field_uid]) {
+                                    if (row[field.datatable_field_uid][k].id == query[i].value) {
+                                        return true;
+                                    }
+                                }
+                            }
+                            return false;
 
                         case DatatableField.COMPUTED_FIELD_TYPE:
                             if (!query) {
@@ -748,9 +865,8 @@ export default class DatatableComponent extends VueComponentBase {
                                 return true;
                             }
                             return false;
-
-                            break;
                         default:
+                            return false;
                     }
                 }
             });

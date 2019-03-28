@@ -40,6 +40,10 @@ export default class TimeSegmentHandler {
                 date = date.startOf('month');
                 stop_at = stop_at.startOf('month');
                 break;
+            case TimeSegment.TYPE_WEEK:
+                date = date.startOf('isoWeek');
+                stop_at = stop_at.startOf('isoWeek');
+                break;
             case TimeSegment.TYPE_DAY:
             default:
                 date = date.startOf('day');
@@ -59,6 +63,9 @@ export default class TimeSegmentHandler {
                     break;
                 case TimeSegment.TYPE_MONTH:
                     date = date.add(1, 'month');
+                    break;
+                case TimeSegment.TYPE_WEEK:
+                    date = date.add(1, 'week');
                     break;
                 case TimeSegment.TYPE_DAY:
                 default:
@@ -84,6 +91,10 @@ export default class TimeSegmentHandler {
                 // Impossible de gérer ce cas;
                 return null;
             case TimeSegment.TYPE_MONTH:
+                res.type = TimeSegment.TYPE_YEAR;
+                date_segment = date_segment.startOf('year');
+                break;
+            case TimeSegment.TYPE_WEEK:
                 res.type = TimeSegment.TYPE_YEAR;
                 date_segment = date_segment.startOf('year');
                 break;
@@ -149,6 +160,9 @@ export default class TimeSegmentHandler {
                 break;
             case TimeSegment.TYPE_MONTH:
                 res = res.add(1, 'month');
+                break;
+            case TimeSegment.TYPE_WEEK:
+                res = res.add(1, 'week');
                 break;
             case TimeSegment.TYPE_DAY:
             default:
@@ -217,6 +231,9 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_MONTH:
                 date_segment = date_segment.add(-offset, 'month');
                 break;
+            case TimeSegment.TYPE_WEEK:
+                date_segment = date_segment.add(-offset, 'week');
+                break;
             case TimeSegment.TYPE_DAY:
             default:
                 date_segment = date_segment.add(-offset, 'day');
@@ -237,6 +254,9 @@ export default class TimeSegmentHandler {
                 break;
             case TimeSegment.TYPE_MONTH:
                 date_segment = date_segment.startOf('month');
+                break;
+            case TimeSegment.TYPE_WEEK:
+                date_segment = date_segment.startOf('isoWeek');
                 break;
             case TimeSegment.TYPE_DAY:
             default:
@@ -266,6 +286,9 @@ export default class TimeSegmentHandler {
                 break;
             case TimeSegment.TYPE_MONTH:
                 end = moment(start).add(1, 'month');
+                break;
+            case TimeSegment.TYPE_WEEK:
+                end = moment(start).add(1, 'week');
                 break;
             case TimeSegment.TYPE_DAY:
             default:
@@ -301,6 +324,10 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_MONTH:
                 start = start.startOf('month');
                 end = moment(start).add(1, 'month');
+                break;
+            case TimeSegment.TYPE_WEEK:
+                start = start.startOf('isoWeek');
+                end = moment(start).add(1, 'week');
                 break;
             case TimeSegment.TYPE_DAY:
             default:

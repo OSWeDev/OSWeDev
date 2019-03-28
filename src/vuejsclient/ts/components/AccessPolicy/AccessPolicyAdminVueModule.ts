@@ -58,15 +58,15 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
                 this.routes);
         }
 
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
-            CRUDComponentManager.getInstance().registerCRUD(
-                UserRoleVO.API_TYPE_ID,
-                null,
-                new MenuPointer(
-                    new MenuLeaf("UserRoleVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-shield"),
-                    accessPolicyMenuBranch),
-                this.routes);
-        }
+        // if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
+        //     CRUDComponentManager.getInstance().registerCRUD(
+        //         UserRoleVO.API_TYPE_ID,
+        //         null,
+        //         new MenuPointer(
+        //             new MenuLeaf("UserRoleVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-shield"),
+        //             accessPolicyMenuBranch),
+        //         this.routes);
+        // }
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS)) {
             let url: string = "/access_managment";
@@ -139,6 +139,9 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_challenge"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_expiration"));
         }
+
+        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         return crud;
     }

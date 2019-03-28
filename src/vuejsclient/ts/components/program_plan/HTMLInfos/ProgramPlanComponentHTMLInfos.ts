@@ -3,9 +3,9 @@ import * as $ from 'jquery';
 import VueComponentBase from '../../VueComponentBase';
 
 @Component({
-    template: require('./ProgramPlanComponentTargetInfos.pug')
+    template: require('./ProgramPlanComponentHTMLInfos.pug')
 })
-export default class ProgramPlanComponentTargetInfos extends VueComponentBase {
+export default class ProgramPlanComponentHTMLInfos extends VueComponentBase {
 
     @Prop()
     private title;

@@ -20,7 +20,7 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
         this.moduleTable = moduleTable;
 
         if (!this.translatable_title) {
-            this.translatable_title = this.interModuleTable.label.code_text;
+            this.translatable_title = this.targetModuleTable.label.code_text;
         }
         if (this.module_table_field_id != this.datatable_field_uid) {
             this.translatable_title = this.translatable_title.substr(0, this.translatable_title.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
@@ -49,5 +49,28 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
             res += (res != "") ? " " + thisvalue : thisvalue;
         }
         return res;
+    }
+
+    public dataToReadIHM(e: number, vo: IDistantVOBase): any {
+
+        let dest_ids: number[] = [];
+
+        if (!vo.id) {
+            return dest_ids;
+        }
+
+        let interTargetRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.targetModuleTable.vo_type);
+        let interSrcRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.moduleTable.vo_type);
+        let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+
+        for (let interi in vos[this.interModuleTable.vo_type]) {
+            let intervo = vos[this.interModuleTable.vo_type][interi];
+
+            if (intervo && (intervo[interSrcRefField.field_id] == vo.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
+                dest_ids.push(intervo[interTargetRefField.field_id]);
+            }
+        }
+
+        return dest_ids;
     }
 }

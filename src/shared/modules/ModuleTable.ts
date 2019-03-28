@@ -1,13 +1,12 @@
-import EnumerableProperty from '../tools/annotations/EnumerableProperty';
+import * as moment from 'moment';
+import ConversionHandler from '../tools/ConversionHandler';
+import DateHandler from '../tools/DateHandler';
 import IDistantVOBase from './IDistantVOBase';
 import Module from './Module';
-import * as moment from 'moment';
 import { default as ModuleDBField, default as ModuleTableField } from './ModuleTableField';
+import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
-import ConversionHandler from '../tools/ConversionHandler';
-import DefaultTranslationManager from './Translation/DefaultTranslationManager';
-import DateHandler from '../tools/DateHandler';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -33,10 +32,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public forceNumerics: (es: T[]) => T[] = null;
 
     public default_label_field: ModuleTableField<any> = null;
+    public table_label_function: (vo: T) => string = null;
+    public table_label_function_field_ids_deps: string[] = null;
     public importable: boolean = false;
     public isModuleParamTable: boolean = false;
 
     public voConstructor: () => T = null;
+
+    private vo_interfaces: { [interface_name: string]: boolean } = {};
 
     constructor(
         tmp_module: Module,
@@ -78,6 +81,32 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
+    }
+
+    public hasVOInterface(interface_name: string): boolean {
+
+        return this.vo_interfaces[interface_name];
+    }
+
+    public defineVOInterfaces(interface_names: string[]): ModuleTable<any> {
+
+        for (let i in interface_names) {
+            let interface_name = interface_names[i];
+
+            this.vo_interfaces[interface_name] = true;
+        }
+
+        return this;
+    }
+
+    public define_default_label_function(
+        table_label_function: (vo: T) => string,
+        table_label_function_field_ids_deps: string[]): ModuleTable<any> {
+
+        this.table_label_function = table_label_function;
+        this.table_label_function_field_ids_deps = table_label_function_field_ids_deps;
+
+        return this;
     }
 
     public defineVOConstructor(voConstructor: () => T) {

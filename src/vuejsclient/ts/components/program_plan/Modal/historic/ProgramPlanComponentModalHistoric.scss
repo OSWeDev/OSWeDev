@@ -1,0 +1,14 @@
+@import 'skin-variables.scss';
+
+#rdv_modal_historic {
+    padding: 10px;
+    background: $main_menu_bg_color;
+    color: $main_menu_text_color;
+
+    .historic_rdv{
+        border-bottom: solid 8px #AAA;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        padding-bottom: 10px;
+    }
+}

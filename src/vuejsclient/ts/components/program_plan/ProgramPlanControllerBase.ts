@@ -1,8 +1,9 @@
-import { EventObjectInput } from 'fullcalendar';
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import { EventObjectInput, View } from 'fullcalendar';
+import IPlanContact from '../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
-import IPlanContact from '../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
+import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import VueAppBase from '../../../VueAppBase';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -13,9 +14,14 @@ export default abstract class ProgramPlanControllerBase {
     private static instance: ProgramPlanControllerBase = null;
 
     protected constructor(
+        public customPrepCreateComponent,
+        public customPrepReadComponent,
+        public customPrepUpdateComponent,
         public customCRCreateComponent,
         public customCRReadComponent,
         public customCRUpdateComponent,
+        public slot_interval: number = 12,
+        public month_view: boolean = true
     ) {
         ProgramPlanControllerBase.instance = this;
     }
@@ -36,7 +42,7 @@ export default abstract class ProgramPlanControllerBase {
      *       state: rdv.state
      *   }
      */
-    public populateCalendarEvent(event: EventObjectInput, getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } }) {
+    public populateCalendarEvent(event: EventObjectInput) {
     }
 
     /**
@@ -44,7 +50,48 @@ export default abstract class ProgramPlanControllerBase {
      * @param event droppable item infos
      * @param elt jquery elt
      */
-    public populateDroppableItem(event: EventObjectInput, elt, getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } }) {
+    public populateDroppableItem(event: EventObjectInput, elt) {
+    }
+
+    /**
+     * Fonction qui permet d'avoir la main sur le RDV rendu dans FC pour mettre une icone de statut par exemple
+     * @param event
+     * @param element
+     * @param view
+     */
+    public onFCEventRender(
+        event: EventObjectInput,
+        element,
+        view: View) {
+
+        let getRdvsByIds: { [id: number]: IPlanRDV } = VueAppBase.instance_.vueInstance.$store.getters['ProgramPlanStore/getRdvsByIds'];
+
+        // Définir l'état et donc l'icone
+        let icon = null;
+
+        if ((!event) || (!event.id) || (!getRdvsByIds[event.id])) {
+            return;
+        }
+
+        let rdv: IPlanRDV = getRdvsByIds[event.id];
+
+        switch (rdv.state) {
+            case ModuleProgramPlanBase.RDV_STATE_CONFIRMED:
+                icon = "fa-circle rdv-state-confirmed";
+                break;
+            case ModuleProgramPlanBase.RDV_STATE_CR_OK:
+                icon = "fa-circle rdv-state-crok";
+                break;
+            case ModuleProgramPlanBase.RDV_STATE_PREP_OK:
+                icon = "fa-circle rdv-state-prepok";
+                break;
+            case ModuleProgramPlanBase.RDV_STATE_CREATED:
+            default:
+                icon = "fa-circle rdv-state-created";
+        }
+
+        let i = $('<i class="fa ' + icon + '" aria-hidden="true"/>');
+        element.find('div.fc-content').prepend(i);
     }
 
     /**

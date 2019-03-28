@@ -51,6 +51,8 @@ import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
+import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
+import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -296,7 +298,8 @@ export default abstract class ModuleServiceBase {
             ModuleCommande.getInstance(),
             ModuleAbonnement.getInstance(),
             ModulePaiement.getInstance(),
-            ModuleCMS.getInstance()
+            ModuleCMS.getInstance(),
+            ModuleVersioned.getInstance()
         ];
     }
 
@@ -323,7 +326,8 @@ export default abstract class ModuleServiceBase {
             ModuleCommandeServer.getInstance(),
             ModuleAbonnementServer.getInstance(),
             ModulePaiementServer.getInstance(),
-            ModuleCMSServer.getInstance()
+            ModuleCMSServer.getInstance(),
+            ModuleVersionedServer.getInstance()
         ];
     }
 }

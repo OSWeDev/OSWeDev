@@ -260,6 +260,7 @@ export default class VueComponentBase extends Vue
 
     public segment_type_year: number = TimeSegment.TYPE_YEAR;
     public segment_type_month: number = TimeSegment.TYPE_MONTH;
+    public segment_type_week: number = TimeSegment.TYPE_WEEK;
     public segment_type_day: number = TimeSegment.TYPE_DAY;
 
     protected data_user = VueAppController.getInstance().data_user;
@@ -577,11 +578,11 @@ export default class VueComponentBase extends Vue
 
     protected async export_to_xlsx() {
         if (this.isExportableToXLSX) {
-            this.startLoading();
+            // this.startLoading();
             await ModuleDataExport.getInstance().exportDataToXLSX(
                 await AppVuexStoreManager.getInstance().appVuexStore.getters.hook_export_data_to_XLSX()
             );
-            this.stopLoading();
+            // this.stopLoading();
         }
     }
 

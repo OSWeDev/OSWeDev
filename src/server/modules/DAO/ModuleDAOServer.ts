@@ -551,6 +551,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         continue;
                     }
 
+                    if (datatable.table_label_function_field_ids_deps && datatable.table_label_function_field_ids_deps.length &&
+                        (datatable.table_label_function_field_ids_deps.indexOf(field.field_id) > 0)) {
+                        continue;
+                    }
+
                     delete vo[field.field_id];
                 }
             }
@@ -591,6 +596,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 if (datatable.default_label_field &&
                     (field.field_id == datatable.default_label_field.field_id)) {
+                    continue;
+                }
+
+                if (datatable.table_label_function_field_ids_deps && datatable.table_label_function_field_ids_deps.length &&
+                    (datatable.table_label_function_field_ids_deps.indexOf(field.field_id) > 0)) {
                     continue;
                 }
 
