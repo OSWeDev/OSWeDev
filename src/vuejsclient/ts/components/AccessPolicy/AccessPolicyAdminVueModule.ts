@@ -125,17 +125,17 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("name"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password"));
+        crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+            "lang_id",
+            VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID], [
+                new SimpleDatatableField("code_lang")
+            ]));
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password_change_date"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("reminded_pwd_1"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("reminded_pwd_2"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("invalidated"));
-            crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
-                "lang_id",
-                VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID], [
-                    new SimpleDatatableField("code_lang")
-                ]));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_challenge"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_expiration"));
         }

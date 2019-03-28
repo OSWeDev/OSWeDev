@@ -5,9 +5,8 @@
             template(slot="option", slot-scope="option")
                 i.fa.fa-object-group(aria-hidden='true')
                 span {{ option.label }}
-    .col-md-1
-        button.selectall.action-button(@click="select_all")
+    div
+        button.selectall.action-button.float-left(@click="select_all")
             i.fa.fa-list(aria-hidden="true")
-    .col-md-1
-        button.deselectall.action-button(@click="deselect_all")
+        button.deselectall.action-button.float-left(@click="deselect_all")
             i.fa.fa-trash(aria-hidden="true")

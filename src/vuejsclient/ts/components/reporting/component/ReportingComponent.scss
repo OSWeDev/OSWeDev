@@ -5,6 +5,9 @@ table.VueTables__table {
                 background: white;
                 padding: 10px;
                 vertical-align: top;
+                // position: sticky;
+                // top: 0;
+                // z-index: 1000;
 
                 & .VueTables__sort-icon {
                     float: none !important;
@@ -96,6 +99,18 @@ table.VueTables__table {
                     font-size: smaller;
                 }
             }
+        // &:first-child td {
+        //     position: sticky;
+        //     top: 123px;
+        //     z-index: 1000;
+        //     background-color: #aaa;
+        // }
+        // &:nth-child(2) td {
+        //     position: sticky;
+        //     top: 161px;
+        //     z-index: 1000;
+        //     background-color: #aaa;
+        // }
         }
     }
 
