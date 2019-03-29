@@ -644,6 +644,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        if ((!apiDAOParamsVO.ids) || (!apiDAOParamsVO.ids.length)) {
+            return null;
+        }
+
         let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t WHERE " + datatable.getFieldFromId(apiDAOParamsVO.field_name).field_id + " in (" + apiDAOParamsVO.ids + ");") as T[]);
 
         // On filtre suivant les droits d'accès
@@ -672,12 +676,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        if ((!apiDAOParamsVO.ids1) || (!apiDAOParamsVO.ids1.length)) {
+            return null;
+        }
+
         let request: string = "SELECT t.* FROM " + datatable.full_name + " t WHERE " +
             datatable.getFieldFromId(apiDAOParamsVO.field_name1).field_id + " in (" + apiDAOParamsVO.ids1 + ")";
-        if (apiDAOParamsVO.field_name2) {
+        if (apiDAOParamsVO.field_name2 && ((!!apiDAOParamsVO.ids2) && (apiDAOParamsVO.ids2.length > 0))) {
             request += " AND " + datatable.getFieldFromId(apiDAOParamsVO.field_name2).field_id + " in (" + apiDAOParamsVO.ids2 + ")";
         }
-        if (apiDAOParamsVO.field_name3) {
+        if (apiDAOParamsVO.field_name3 && ((!!apiDAOParamsVO.ids3) && (apiDAOParamsVO.ids3.length > 0))) {
             request += " AND " + datatable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in (" + apiDAOParamsVO.ids3 + ")";
         }
 
@@ -697,6 +705,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On vérifie qu'on peut faire un select
         if (!await this.checkAccess(datatable, ModuleDAOServer.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        if ((!apiDAOParamsVO.ids) || (!apiDAOParamsVO.ids.length)) {
             return null;
         }
 

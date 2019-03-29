@@ -20,7 +20,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME;
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_ACCESS';
+
+    public static POLICY_FO_SEE_ALL_TEAMS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_SEE_ALL_TEAMS';
+    public static POLICY_FO_SEE_OWN_TEAM: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_SEE_OWN_TEAM';
+
     public static POLICY_FO_EDIT: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT';
+
+    public static POLICY_FO_EDIT_OWN_RDVS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT_OWN_RDVS';
+    public static POLICY_FO_EDIT_OWN_TEAM_RDVS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT_OWN_TEAM_RDVS';
+    public static POLICY_FO_EDIT_ALL_RDVS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT_ALL_RDVS';
 
     public static APINAME_GET_RDVS_OF_PROGRAM_SEGMENT = "GET_RDVS_OF_PROGRAM_SEGMENT";
     public static APINAME_GET_CRS_OF_PROGRAM_SEGMENT = "GET_CRS_OF_PROGRAM_SEGMENT";

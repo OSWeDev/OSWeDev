@@ -27,6 +27,10 @@ export interface IProgramPlanState {
     crs_by_ids: { [id: number]: IPlanRDVCR };
     preps_by_ids: { [id: number]: IPlanRDVPrep };
     partners_by_ids: { [id: number]: IPlanPartner };
+    can_edit_any: boolean;
+    can_edit_all: boolean;
+    can_edit_own_team: boolean;
+    can_edit_self: boolean;
 }
 
 
@@ -62,11 +66,19 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             rdvs_by_ids: {},
             crs_by_ids: {},
             preps_by_ids: {},
-            partners_by_ids: {}
+            partners_by_ids: {},
+            can_edit_any: false,
+            can_edit_all: false,
+            can_edit_own_team: false,
+            can_edit_self: false
         };
 
 
         this.getters = {
+            can_edit_any: (state: IProgramPlanState): boolean => state.can_edit_any,
+            can_edit_all: (state: IProgramPlanState): boolean => state.can_edit_all,
+            can_edit_own_team: (state: IProgramPlanState): boolean => state.can_edit_own_team,
+            can_edit_self: (state: IProgramPlanState): boolean => state.can_edit_self,
             get_task_types_by_ids(state: IProgramPlanState): { [id: number]: IPlanTaskType } {
                 return state.task_types_by_ids;
             },
@@ -100,6 +112,11 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
         };
 
         this.mutations = {
+
+            set_can_edit_any: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_any = can_edit,
+            set_can_edit_all: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_all = can_edit,
+            set_can_edit_own_team: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_own_team = can_edit,
+            set_can_edit_self: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_self = can_edit,
 
             set_task_types_by_ids(state: IProgramPlanState, task_types_by_ids: { [id: number]: IPlanTaskType }) {
                 state.task_types_by_ids = task_types_by_ids;
@@ -314,6 +331,12 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
                     commitSetPrepById(context, prep);
                 }
             },
+
+            set_can_edit_any: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_edit_any(context, can_edit),
+            set_can_edit_all: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_edit_all(context, can_edit),
+            set_can_edit_own_team: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_edit_own_team(context, can_edit),
+            set_can_edit_self: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_edit_self(context, can_edit),
+
         };
     }
 }
@@ -344,3 +367,8 @@ export const commitUpdateCr = commit(ProgramPlanStore.getInstance().mutations.up
 export const commitSetPrepById = commit(ProgramPlanStore.getInstance().mutations.setPrepById);
 export const commitRemovePrep = commit(ProgramPlanStore.getInstance().mutations.removePrep);
 export const commitUpdatePrep = commit(ProgramPlanStore.getInstance().mutations.updatePrep);
+
+export const comit_set_can_edit_any = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_any);
+export const comit_set_can_edit_all = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_all);
+export const comit_set_can_edit_own_team = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_own_team);
+export const comit_set_can_edit_self = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_self);

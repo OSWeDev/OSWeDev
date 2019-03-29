@@ -19,6 +19,7 @@ import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanCom
 import "./ProgramPlanComponentModalPrep.scss";
 import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
+import VueAppController from '../../../../../VueAppController';
 
 @Component({
     template: require('./ProgramPlanComponentModalPrep.pug'),
@@ -28,6 +29,15 @@ import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/
     }
 })
 export default class ProgramPlanComponentModalPrep extends VueComponentBase {
+
+    @ModuleProgramPlanGetter
+    public can_edit_any: boolean;
+    @ModuleProgramPlanGetter
+    public can_edit_all: boolean;
+    @ModuleProgramPlanGetter
+    public can_edit_own_team: boolean;
+    @ModuleProgramPlanGetter
+    public can_edit_self: boolean;
 
     @ModuleProgramPlanGetter
     public getCrsByIds: { [id: number]: IPlanRDVCR };
@@ -72,9 +82,11 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
     @Prop({
         default: false
     })
-    private can_edit: boolean;
+    private block_edition: boolean;
 
     private rdv_confirmed: boolean = false;
+
+    private user = VueAppController.getInstance().data_user;
 
     // Modal
     private newprep_seemore: boolean = false;
@@ -104,6 +116,48 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             }
         }
         return null;
+    }
+
+    get user_s_facilitators(): IPlanFacilitator[] {
+        if (!this.user) {
+            return null;
+        }
+
+        if (!this.getFacilitatorsByIds) {
+            return null;
+        }
+
+        let res: IPlanFacilitator[] = [];
+        for (let i in this.getFacilitatorsByIds) {
+            let facilitator = this.getFacilitatorsByIds[i];
+
+            if (facilitator.user_id == this.user.id) {
+                res.push(facilitator);
+            }
+        }
+
+        return (res && res.length) ? res : null;
+    }
+
+    get user_s_managers(): IPlanManager[] {
+        if (!this.user) {
+            return null;
+        }
+
+        if (!this.getManagersByIds) {
+            return null;
+        }
+
+        let res: IPlanManager[] = [];
+        for (let i in this.getManagersByIds) {
+            let manager = this.getManagersByIds[i];
+
+            if (manager.user_id == this.user.id) {
+                res.push(manager);
+            }
+        }
+
+        return (res && res.length) ? res : null;
     }
 
     @Watch('rdv_confirmed')
@@ -236,6 +290,63 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
         }
 
         return ProgramPlanControllerBase.getInstance().getResourceName(manager.firstname, manager.lastname);
+    }
+
+    get can_edit(): boolean {
+        if (this.block_edition) {
+            return false;
+        }
+
+        if (!this.can_edit_any) {
+            return false;
+        }
+
+        if (!this.can_edit_all) {
+            if (!this.can_edit_own_team) {
+                if (!this.can_edit_self) {
+                    return false;
+                } else {
+                    // Peut modifier ses Rdvs
+                    if ((!!this.selected_rdv.facilitator_id) && (this.getFacilitatorsByIds[this.selected_rdv.facilitator_id]) &&
+                        (!!this.user) &&
+                        (this.getFacilitatorsByIds[this.selected_rdv.facilitator_id].user_id == this.user.id)) {
+                        //OK
+                    } else {
+                        return false;
+                    }
+                }
+            } else {
+                // Peut modifier les Rdvs de son équipe
+                if ((!!this.selected_rdv.facilitator_id) && (this.getFacilitatorsByIds[this.selected_rdv.facilitator_id])) {
+
+                    // Test si user est facilitator
+                    if ((!!this.user_s_facilitators) && (this.user_s_facilitators.length > 0)) {
+                        for (let i in this.user_s_facilitators) {
+                            let facilitator = this.user_s_facilitators[i];
+
+                            if (this.getFacilitatorsByIds[this.selected_rdv.facilitator_id].manager_id == facilitator.manager_id) {
+                                return true;
+                            }
+
+                        }
+                    }
+
+                    // Test si user est manager
+                    if ((!!this.user_s_managers) && (this.user_s_managers.length > 0)) {
+                        for (let i in this.user_s_managers) {
+                            let manager = this.user_s_managers[i];
+
+                            if (this.getFacilitatorsByIds[this.selected_rdv.facilitator_id].manager_id == manager.id) {
+                                return true;
+                            }
+
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+        return true;
     }
 
     get canaddprep(): boolean {

@@ -6,7 +6,7 @@ include ../../../views/mixins/loading.pug
             :printform_filter_date_debut="printform_filter_date_debut"
             :printform_filter_date_fin="printform_filter_date_fin")
 
-        program-plan-component-target-listing.hidden-print(v-show='show_targets' :targets="getTargetsByIds", v-if="can_edit_planning", :enseignes="getEnseignesByIds")
+        program-plan-component-target-listing.hidden-print(v-show='show_targets' :targets="getTargetsByIds", v-if="can_edit_any", :enseignes="getEnseignesByIds")
         full-calendar.hidden-print(
             :events="fcEvents" 
             :config="fcConfig"
@@ -27,8 +27,8 @@ include ../../../views/mixins/loading.pug
                         router-link.btn.close(:to="route_path") &times;
                     
                     .modal-body
-                        program-plan-component-modal(:selected_rdv="selected_rdv" :key='selected_rdv.id' :can_edit='can_edit_planning')
+                        program-plan-component-modal(:selected_rdv="selected_rdv" :key='selected_rdv.id')
 
                     .modal-footer
-                        button.btn.btn-danger(type='button', @click="deleteSelectedEvent()", v-if="can_edit_planning") {{ label('programplan.rdv_modal.delete_rdv') }}
+                        button.btn.btn-danger(type='button', @click="deleteSelectedEvent()", v-if="can_edit_any") {{ label('programplan.rdv_modal.delete_rdv') }}
                         router-link.btn.btn-default(:to="route_path") {{ label('programplan.rdv_modal.close') }}

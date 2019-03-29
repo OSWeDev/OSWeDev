@@ -49,6 +49,15 @@ import IPlanRDVPrep from '../../../../shared/modules/ProgramPlan/interfaces/IPla
 export default class ProgramPlanComponent extends VueComponentBase {
 
     @ModuleProgramPlanGetter
+    public can_edit_any: boolean;
+    @ModuleProgramPlanGetter
+    public can_edit_all: boolean;
+    @ModuleProgramPlanGetter
+    public can_edit_own_team: boolean;
+    @ModuleProgramPlanGetter
+    public can_edit_self: boolean;
+
+    @ModuleProgramPlanGetter
     public getEnseignesByIds: { [id: number]: IPlanEnseigne };
 
     @ModuleProgramPlanGetter
@@ -74,6 +83,16 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     @ModuleProgramPlanGetter
     public get_tasks_by_ids: { [id: number]: IPlanTask };
+
+    @ModuleProgramPlanAction
+    public set_can_edit_any: (can_edit: boolean) => void;
+    @ModuleProgramPlanAction
+    public set_can_edit_all: (can_edit: boolean) => void;
+    @ModuleProgramPlanAction
+    public set_can_edit_own_team: (can_edit: boolean) => void;
+    @ModuleProgramPlanAction
+    public set_can_edit_self: (can_edit: boolean) => void;
+
 
     @ModuleProgramPlanAction
     public set_task_types_by_ids: (task_types_by_ids: { [id: number]: IPlanTaskType }) => void;
@@ -143,7 +162,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public selected_rdv: IPlanRDV = null;
     public fcSegment: TimeSegment = null;
     private user = VueAppController.getInstance().data_user;
-    private can_edit_planning: boolean = false;
     private fcEvents: EventObjectInput[] = [];
     private printform_filter_date_debut: string = null;
     private printform_filter_date_fin: string = null;
@@ -158,7 +176,24 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let self = this;
         this.$nextTick(async () => {
 
-            await self.reloadAsyncData();
+            // On va vérifier qu'on a le droit de faire cette action
+            let promises: Array<Promise<any>> = [];
+
+            promises.push((async () => {
+                self.set_can_edit_any(await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_EDIT));
+            })());
+            promises.push((async () => {
+                self.set_can_edit_all(await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_EDIT_ALL_RDVS));
+            })());
+            promises.push((async () => {
+                self.set_can_edit_own_team(await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_EDIT_OWN_TEAM_RDVS));
+            })());
+            promises.push((async () => {
+                self.set_can_edit_self(await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_EDIT_OWN_RDVS));
+            })());
+            promises.push(self.reloadAsyncData());
+
+            await Promise.all(promises);
 
             // On limite à 20 tentatives
             let timeout: number = 20;
@@ -215,10 +250,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.startLoading();
 
         let promises = [];
-
-        promises.push((async () => {
-            self.can_edit_planning = await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_EDIT);
-        })());
 
         if ((!!ModuleProgramPlanBase.getInstance().partner_type_id) ||
             (ModuleProgramPlanBase.getInstance().program_manager_type_id) ||
@@ -553,8 +584,14 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let tmp_start: string = rdv.start_time;
         let tmp_end: string = rdv.end_time;
         let tmp_facilitator_id: number = rdv.facilitator_id;
+        let new_facilitator_id: number = parseInt(event.resourceId);
 
         try {
+
+            if (!this.can_edit_rdv(tmp_facilitator_id, new_facilitator_id)) {
+                this.snotify.error(this.label('programplan.fc.update.denied'));
+                throw new Error('Pas le droit');
+            }
 
             rdv.start_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.start));
             rdv.end_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.end));
@@ -627,8 +664,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
             now: moment().format('Y-MM-DD'),
             schedulerLicenseKey: '0801712196-fcs-1461229306',
-            editable: this.can_edit_planning,
-            droppable: this.can_edit_planning,
+            editable: this.can_edit_any,
+            droppable: this.can_edit_any,
             aspectRatio: 3,
             forceEventDuration: true, // Pour forcer la création du end.
             scrollTime: '00:00',
@@ -742,6 +779,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         try {
 
+            if (!this.can_edit_rdv(rdv.facilitator_id)) {
+                this.snotify.error(this.label('programplan.fc.create.denied'));
+                throw new Error('Interdit');
+            }
+
             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
 
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
@@ -752,6 +794,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         } catch (error) {
             console.error(error);
             this.snotify.error(this.label('programplan.fc.create.error'));
+            this.setRdvById({ id: 0 } as any);
             return;
         }
 
@@ -759,8 +802,75 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.snotify.success(this.label('programplan.fc.create.ok'));
     }
 
+    private can_edit_rdv(facilitator_id: number, new_facilitator_id: number = null): boolean {
+        if (!this.can_edit_any) {
+            return false;
+        }
+
+        if (this.can_edit_all) {
+            return true;
+        }
+
+        if (!this.can_edit_own_team) {
+            if (!this.can_edit_self) {
+                return false;
+            }
+
+            // Peut modifier ses Rdvs
+            if ((!!facilitator_id) && (this.getFacilitatorsByIds[facilitator_id]) &&
+                (!!this.user) &&
+                (this.getFacilitatorsByIds[facilitator_id].user_id == this.user.id)) {
+
+                if ((!new_facilitator_id) || this.can_edit_rdv(new_facilitator_id)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Peut modifier les Rdvs de son équipe
+        if ((!facilitator_id) || (!this.getFacilitatorsByIds[facilitator_id])) {
+            return false;
+        }
+
+        // Test si user est facilitator
+        if ((!!this.user_s_facilitators) && (this.user_s_facilitators.length > 0)) {
+            for (let i in this.user_s_facilitators) {
+                let facilitator = this.user_s_facilitators[i];
+
+                if (this.getFacilitatorsByIds[facilitator_id].manager_id == facilitator.manager_id) {
+
+                    if ((!new_facilitator_id) || this.can_edit_rdv(new_facilitator_id)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // Test si user est manager
+        if ((!!this.user_s_managers) && (this.user_s_managers.length > 0)) {
+            for (let i in this.user_s_managers) {
+                let manager = this.user_s_managers[i];
+
+                if (this.getFacilitatorsByIds[facilitator_id].manager_id == manager.id) {
+                    if ((!new_facilitator_id) || this.can_edit_rdv(new_facilitator_id)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     private deleteSelectedEvent() {
         if (!this.selected_rdv) {
+            return;
+        }
+
+        if (!this.can_edit_rdv(this.selected_rdv.facilitator_id)) {
+            this.snotify.error(this.label('programplan.fc.delete.denied'));
             return;
         }
 
@@ -828,5 +938,47 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     private onFCEventRender(event: EventObjectInput, element, view: View) {
         ProgramPlanControllerBase.getInstance().onFCEventRender(event, element, view);
+    }
+
+    get user_s_facilitators(): IPlanFacilitator[] {
+        if (!this.user) {
+            return null;
+        }
+
+        if (!this.getFacilitatorsByIds) {
+            return null;
+        }
+
+        let res: IPlanFacilitator[] = [];
+        for (let i in this.getFacilitatorsByIds) {
+            let facilitator = this.getFacilitatorsByIds[i];
+
+            if (facilitator.user_id == this.user.id) {
+                res.push(facilitator);
+            }
+        }
+
+        return (res && res.length) ? res : null;
+    }
+
+    get user_s_managers(): IPlanManager[] {
+        if (!this.user) {
+            return null;
+        }
+
+        if (!this.getManagersByIds) {
+            return null;
+        }
+
+        let res: IPlanManager[] = [];
+        for (let i in this.getManagersByIds) {
+            let manager = this.getManagersByIds[i];
+
+            if (manager.user_id == this.user.id) {
+                res.push(manager);
+            }
+        }
+
+        return (res && res.length) ? res : null;
     }
 }

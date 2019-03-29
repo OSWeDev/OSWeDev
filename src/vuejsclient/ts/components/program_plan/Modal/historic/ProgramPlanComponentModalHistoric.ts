@@ -127,16 +127,16 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
         return res;
     }
 
-    get facilitatorAndManagerName() {
-        return this.facilitatorName + (this.managerName ? " / " + this.managerName : "");
+    private facilitatorAndManagerName(rdv_historic: IPlanRDV): string {
+        return this.facilitatorName(rdv_historic) + (this.managerName(rdv_historic) ? " / " + this.managerName(rdv_historic) : "");
     }
 
-    get facilitatorName() {
-        if (!this.selected_rdv) {
+    private facilitatorName(rdv_historic: IPlanRDV): string {
+        if (!rdv_historic) {
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[rdv_historic.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }
@@ -144,12 +144,12 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
         return ProgramPlanControllerBase.getInstance().getResourceName(facilitator.firstname, facilitator.lastname);
     }
 
-    get managerName() {
-        if (!this.selected_rdv) {
+    private managerName(rdv_historic: IPlanRDV): string {
+        if (!rdv_historic) {
             return null;
         }
 
-        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[this.selected_rdv.facilitator_id] as IPlanFacilitator;
+        let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[rdv_historic.facilitator_id] as IPlanFacilitator;
         if (!facilitator) {
             return null;
         }

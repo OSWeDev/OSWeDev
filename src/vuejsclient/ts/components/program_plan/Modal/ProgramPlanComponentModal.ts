@@ -24,10 +24,6 @@ export default class ProgramPlanComponentModal extends VueComponentBase {
         default: null
     })
     private selected_rdv: IPlanRDV;
-    @Prop({
-        default: false
-    })
-    private can_edit: boolean;
 
     private active_view: string = 'rdv_target_infos';
 
