@@ -55,6 +55,8 @@ export default class VarsController {
     public is_stepping: boolean = false;
     public is_waiting: boolean = false;
 
+    public registered_var_callbacks_once: { [index: string]: Array<(varData: IVarDataVOBase) => void> } = {};
+
     public registered_var_data_api_types: { [api_type: string]: boolean } = {};
     public imported_datas_by_index: { [index: string]: IVarDataVOBase } = {};
     public imported_datas_by_var_id: { [var_id: number]: { [index: string]: IVarDataVOBase } } = {};
@@ -418,14 +420,38 @@ export default class VarsController {
     }
 
     @PerfMonFunction
-    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false) {
+    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false, var_callback_once: (varData: IVarDataVOBase) => void = null) {
 
         this.varDAG.registerParams([param]);
+
+        if (!this.registered_var_callbacks_once[this.getIndex(param)]) {
+            this.registered_var_callbacks_once[this.getIndex(param)] = [];
+        }
+        this.registered_var_callbacks_once[this.getIndex(param)].push(var_callback_once);
 
         let actual_value = this.getVarData(param);
         if (reload_on_register || (!actual_value)) {
             this.stageUpdateData(param);
         }
+    }
+
+    public async registerDataParamAndReturnVarData<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false): Promise<IVarDataVOBase> {
+
+        let self = this;
+        return new Promise<IVarDataVOBase>((accept, reject) => {
+
+            try {
+
+                let var_callback_once: (varData: IVarDataVOBase) => void = (varData: IVarDataVOBase) => {
+                    accept(varData);
+                };
+
+                self.registerDataParam(param, reload_on_register, var_callback_once);
+            } catch (error) {
+                console.error(error);
+                reject(error);
+            }
+        });
     }
 
     public onVarDAGNodeRemoval(node: VarDAGNode) {
@@ -1084,7 +1110,9 @@ export default class VarsController {
             res[index] = true;
         }
 
-        this.setUpdatingParamsByVarsIds(res);
+        if (!!this.setUpdatingParamsByVarsIds) {
+            this.setUpdatingParamsByVarsIds(res);
+        }
     }
 
     @PerfMonFunction
@@ -1421,7 +1449,7 @@ export default class VarsController {
             return;
         }
 
-        // On peut compute un noeud si tous les outgoing sont soit computed, soit pas ongoing et computed_once
+        // On peut compute un noeud si tous les outgoing sont soit computed, soit pas ongoing et computed_once[]
         // si un outgoing répond pas à ce descriptif, on doit le compute
         for (let i in node.outgoing) {
             let outgoing: VarDAGNode = node.outgoing[i] as VarDAGNode;
@@ -1439,6 +1467,17 @@ export default class VarsController {
 
         // On doit pouvoir compute à ce stade
         await VarsController.getInstance().getVarControllerById(node.param.var_id).updateData(node, this.varDAG);
+
+        if (this.registered_var_callbacks_once[node.name] && this.registered_var_callbacks_once[node.name].length) {
+            for (let i in this.registered_var_callbacks_once[node.name]) {
+                let callback = this.registered_var_callbacks_once[node.name][i];
+
+                if (callback) {
+                    callback(this.getVarData(node.param, true));
+                }
+            }
+            this.registered_var_callbacks_once[node.name] = null;
+        }
 
         node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
         node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
