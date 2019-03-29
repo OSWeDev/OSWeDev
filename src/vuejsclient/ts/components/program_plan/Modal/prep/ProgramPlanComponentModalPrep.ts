@@ -75,10 +75,9 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
     @ModuleProgramPlanAction
     public removePrep: (id: number) => void;
 
-    @Prop({
-        default: null
-    })
-    private selected_rdv: IPlanRDV;
+    @ModuleProgramPlanGetter
+    public selected_rdv: IPlanRDV;
+
     @Prop({
         default: false
     })

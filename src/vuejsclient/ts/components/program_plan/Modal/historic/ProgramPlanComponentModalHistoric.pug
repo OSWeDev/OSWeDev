@@ -1,7 +1,7 @@
 .row#rdv_modal_historic
     .col-md-12
-        template(v-if='(!!rdv_historics) && rdv_historics.length')
-            .historic_rdv(v-for='rdv_historic in rdv_historics')
+        template(v-if='(!!selected_rdv_historics) && selected_rdv_historics.length')
+            .historic_rdv(v-for='rdv_historic in selected_rdv_historics')
                 .row
                     .col-md-6
                         VueFieldComponent(isreadonly="true", :name="label('programplan.rdv_modal.rdv_date')", :value="formatDate_FullyearMonthDay(rdv_historic.start_time)")

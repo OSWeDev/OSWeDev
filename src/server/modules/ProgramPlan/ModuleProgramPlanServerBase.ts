@@ -492,7 +492,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     private async filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
-        let res: IPlanRDVCR[] | IPlanRDVPrep[] = [];
+        let res = [];
 
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
             await ModuleDAO.getInstance().getVos<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id)
@@ -500,7 +500,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         for (let i in vos) {
             let vo = vos[i];
             if ((!!vo) && (!!vo.rdv_id) && (!!rdvs_by_ids[vo.rdv_id])) {
-                res.push(vo);
+                res.push(vo as any);
             }
         }
         return res;

@@ -30,6 +30,9 @@ import "./ProgramPlanComponentModalHistoric.scss";
 export default class ProgramPlanComponentModalHistoric extends VueComponentBase {
 
     @ModuleProgramPlanGetter
+    public selected_rdv_historics: IPlanRDV[];
+
+    @ModuleProgramPlanGetter
     public getEnseignesByIds: { [id: number]: IPlanEnseigne };
 
     @ModuleProgramPlanGetter
@@ -50,82 +53,9 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
     @ModuleProgramPlanGetter
     public getPrepsByIds: { [id: number]: IPlanRDVCR };
 
-    @ModuleProgramPlanAction
-    public addRdvsByIds: (rdvs_by_ids: { [id: number]: IPlanRDV }) => void;
 
-    @ModuleProgramPlanAction
-    public addCrsByIds: (crs_by_ids: { [id: number]: IPlanRDVCR }) => void;
-
-    @ModuleProgramPlanAction
-    public addPrepsByIds: (preps_by_ids: { [id: number]: IPlanRDVPrep }) => void;
-
-
-    @Prop({
-        default: null
-    })
-    private selected_rdv: IPlanRDV;
     @Prop()
     private can_edit: boolean;
-
-    @Watch('selected_rdv', { immediate: true })
-    private async onChangeSelectedRDV() {
-
-        if (!this.selected_rdv) {
-            return;
-        }
-
-        let self = this;
-
-        let rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, 'target_id', [this.selected_rdv.target_id]);
-
-        if (rdvs.length > 5) {
-            rdvs.splice(5, rdvs.length);
-        }
-
-        let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(rdvs);
-        self.addRdvsByIds(rdvs_by_ids);
-        let rdvs_ids: number[] = ObjectHandler.getInstance().getNumberMapIndexes(rdvs_by_ids);
-
-        let promises: Array<Promise<any>> = [];
-
-        promises.push((async () => {
-            let vos: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', rdvs_ids);
-            self.addPrepsByIds(vos);
-        })());
-        promises.push((async () => {
-            let vos: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', rdvs_ids);
-            self.addCrsByIds(vos);
-        })());
-
-        await Promise.all(promises);
-    }
-
-    get rdv_historics(): IPlanRDV[] {
-
-        if (!this.selected_rdv) {
-            return [];
-        }
-
-        let res: IPlanRDV[] = [];
-
-        for (let i in this.getRdvsByIds) {
-            let rdv = this.getRdvsByIds[i];
-
-            if (rdv.target_id != this.selected_rdv.target_id) {
-                continue;
-            }
-
-            if (moment(rdv.start_time).isSameOrAfter(this.selected_rdv.start_time)) {
-                continue;
-            }
-
-            res.push(rdv);
-        }
-
-        res.sort((a: IPlanRDV, b: IPlanRDV) => moment(b.start_time).diff(moment(a.start_time)));
-
-        return res;
-    }
 
     private facilitatorAndManagerName(rdv_historic: IPlanRDV): string {
         return this.facilitatorName(rdv_historic) + (this.managerName(rdv_historic) ? " / " + this.managerName(rdv_historic) : "");

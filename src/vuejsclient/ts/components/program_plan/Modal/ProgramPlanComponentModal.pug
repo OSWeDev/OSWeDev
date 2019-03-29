@@ -13,10 +13,10 @@
             
         .tab-content
             #rdv_target_infos(v-show="active_view == 'rdv_target_infos'")
-                ProgramPlanComponentModalTargetInfos(:selected_rdv='selected_rdv')
+                ProgramPlanComponentModalTargetInfos
             #rdv_prep(v-show="active_view == 'rdv_prep'")
-                ProgramPlanComponentModalPrep(:selected_rdv="selected_rdv")
+                ProgramPlanComponentModalPrep
             #rdv_cr(v-show="active_view == 'rdv_cr'")
-                ProgramPlanComponentModalCR(:selected_rdv="selected_rdv")
+                ProgramPlanComponentModalCR
             #rdv_historic(v-show="active_view == 'rdv_historic'")
-                ProgramPlanComponentModalHistoric(:selected_rdv="selected_rdv")
+                ProgramPlanComponentModalHistoric

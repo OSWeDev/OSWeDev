@@ -27,7 +27,7 @@ include ../../../views/mixins/loading.pug
                         router-link.btn.close(:to="route_path") &times;
                     
                     .modal-body
-                        program-plan-component-modal(:selected_rdv="selected_rdv" :key='selected_rdv.id')
+                        program-plan-component-modal(:key='selected_rdv.id')
 
                     .modal-footer
                         button.btn.btn-danger(type='button', @click="deleteSelectedEvent()", v-if="can_edit_any") {{ label('programplan.rdv_modal.delete_rdv') }}

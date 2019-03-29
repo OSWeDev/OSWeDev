@@ -58,6 +58,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public can_edit_self: boolean;
 
     @ModuleProgramPlanGetter
+    public selected_rdv: IPlanRDV;
+
+    @ModuleProgramPlanGetter
     public getEnseignesByIds: { [id: number]: IPlanEnseigne };
 
     @ModuleProgramPlanGetter
@@ -83,6 +86,15 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     @ModuleProgramPlanGetter
     public get_tasks_by_ids: { [id: number]: IPlanTask };
+
+    @ModuleProgramPlanAction
+    public addRdvsByIds: (rdvs_by_ids: { [id: number]: IPlanRDV }) => void;
+
+    @ModuleProgramPlanAction
+    public addCrsByIds: (crs_by_ids: { [id: number]: IPlanRDVCR }) => void;
+
+    @ModuleProgramPlanAction
+    public addPrepsByIds: (preps_by_ids: { [id: number]: IPlanRDVPrep }) => void;
 
     @ModuleProgramPlanAction
     public set_can_edit_any: (can_edit: boolean) => void;
@@ -125,6 +137,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public setPrepsByIds: (preps_by_ids: { [id: number]: IPlanRDVPrep }) => void;
 
     @ModuleProgramPlanAction
+    public set_selected_rdv: (selected_rdv: IPlanRDV) => void;
+
+    @ModuleProgramPlanAction
     public setRdvById: (rdv: IPlanRDV) => void;
 
     @ModuleProgramPlanAction
@@ -159,7 +174,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
     @Prop({ default: null })
     public program_id: number;
 
-    public selected_rdv: IPlanRDV = null;
     public fcSegment: TimeSegment = null;
     private user = VueAppController.getInstance().data_user;
     private fcEvents: EventObjectInput[] = [];
@@ -236,7 +250,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 this.show_targets = true;
                 return;
             }
-            this.selected_rdv = this.getRdvsByIds[this.selected_rdv_id];
+            this.set_selected_rdv(this.getRdvsByIds[this.selected_rdv_id]);
             this.show_targets = false;
             $('#rdv_modal').modal('show');
             return;
@@ -920,7 +934,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             return;
                         }
                         self.removeRdv(self.selected_rdv.id);
-                        self.selected_rdv = null;
+                        self.set_selected_rdv(null);
                         self.snotify.success(self.label('programplan.delete.ok'));
                         self.$router.push(self.route_path);
                     },
@@ -980,5 +994,38 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
 
         return (res && res.length) ? res : null;
+    }
+
+    @Watch('selected_rdv', { immediate: true })
+    private async onChangeSelectedRDV() {
+
+        if (!this.selected_rdv) {
+            return;
+        }
+
+        let self = this;
+
+        let rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, 'target_id', [this.selected_rdv.target_id]);
+
+        if (rdvs.length > 5) {
+            rdvs.splice(5, rdvs.length);
+        }
+
+        let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(rdvs);
+        self.addRdvsByIds(rdvs_by_ids);
+        let rdvs_ids: number[] = ObjectHandler.getInstance().getNumberMapIndexes(rdvs_by_ids);
+
+        let promises: Array<Promise<any>> = [];
+
+        promises.push((async () => {
+            let vos: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', rdvs_ids);
+            self.addPrepsByIds(vos);
+        })());
+        promises.push((async () => {
+            let vos: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', rdvs_ids);
+            self.addCrsByIds(vos);
+        })());
+
+        await Promise.all(promises);
     }
 }

@@ -7,6 +7,7 @@ import ProgramPlanComponentModalPrep from './prep/ProgramPlanComponentModalPrep'
 import "./ProgramPlanComponentModal.scss";
 import ProgramPlanComponentModalTargetInfos from './target_infos/ProgramPlanComponentModalTargetInfos';
 import ProgramPlanComponentModalHistoric from './historic/ProgramPlanComponentModalHistoric';
+import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';
 
 @Component({
     template: require('./ProgramPlanComponentModal.pug'),
@@ -19,11 +20,6 @@ import ProgramPlanComponentModalHistoric from './historic/ProgramPlanComponentMo
     }
 })
 export default class ProgramPlanComponentModal extends VueComponentBase {
-
-    @Prop({
-        default: null
-    })
-    private selected_rdv: IPlanRDV;
 
     private active_view: string = 'rdv_target_infos';
 

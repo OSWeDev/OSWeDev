@@ -64,10 +64,8 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
     @ModuleProgramPlanAction
     public removeCr: (id: number) => void;
 
-    @Prop({
-        default: null
-    })
-    private selected_rdv: IPlanRDV;
+    @ModuleProgramPlanGetter
+    public selected_rdv: IPlanRDV;
 
     private rdv_confirmed: boolean = false;
 

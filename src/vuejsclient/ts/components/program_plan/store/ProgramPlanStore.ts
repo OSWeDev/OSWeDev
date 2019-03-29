@@ -13,6 +13,7 @@ import IPlanPartner from '../../../../../shared/modules/ProgramPlan/interfaces/I
 import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import IPlanRDVPrep from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
+import moment = require('moment');
 
 export type ProgramPlanContext = ActionContext<IProgramPlanState, any>;
 
@@ -31,6 +32,7 @@ export interface IProgramPlanState {
     can_edit_all: boolean;
     can_edit_own_team: boolean;
     can_edit_self: boolean;
+    selected_rdv: IPlanRDV;
 }
 
 
@@ -70,7 +72,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_edit_any: false,
             can_edit_all: false,
             can_edit_own_team: false,
-            can_edit_self: false
+            can_edit_self: false,
+            selected_rdv: null
         };
 
 
@@ -79,6 +82,36 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_edit_all: (state: IProgramPlanState): boolean => state.can_edit_all,
             can_edit_own_team: (state: IProgramPlanState): boolean => state.can_edit_own_team,
             can_edit_self: (state: IProgramPlanState): boolean => state.can_edit_self,
+
+            selected_rdv: (state: IProgramPlanState): IPlanRDV => state.selected_rdv,
+
+            selected_rdv_historics: (state: IProgramPlanState): IPlanRDV[] => {
+
+                if (!state.selected_rdv) {
+                    return [];
+                }
+
+                let res: IPlanRDV[] = [];
+
+                for (let i in state.rdvs_by_ids) {
+                    let rdv = state.rdvs_by_ids[i];
+
+                    if (rdv.target_id != state.selected_rdv.target_id) {
+                        continue;
+                    }
+
+                    if (moment(rdv.start_time).isSameOrAfter(state.selected_rdv.start_time)) {
+                        continue;
+                    }
+
+                    res.push(rdv);
+                }
+
+                res.sort((a: IPlanRDV, b: IPlanRDV) => moment(b.start_time).diff(moment(a.start_time)));
+
+                return res;
+            },
+
             get_task_types_by_ids(state: IProgramPlanState): { [id: number]: IPlanTaskType } {
                 return state.task_types_by_ids;
             },
@@ -117,6 +150,9 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             set_can_edit_all: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_all = can_edit,
             set_can_edit_own_team: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_own_team = can_edit,
             set_can_edit_self: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_self = can_edit,
+
+            set_selected_rdv: (state: IProgramPlanState, selected_rdv: IPlanRDV) => state.selected_rdv = selected_rdv,
+
 
             set_task_types_by_ids(state: IProgramPlanState, task_types_by_ids: { [id: number]: IPlanTaskType }) {
                 state.task_types_by_ids = task_types_by_ids;
@@ -249,6 +285,9 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             set_task_types_by_ids(context: ProgramPlanContext, task_types_by_ids: { [id: number]: IPlanTaskType }) {
                 commit_set_task_types_by_ids(context, task_types_by_ids);
             },
+            set_selected_rdv(context: ProgramPlanContext, selected_rdv: IPlanRDV) {
+                commit_set_selected_rdv(context, selected_rdv);
+            },
             setEnseignesByIds(context: ProgramPlanContext, enseignes_by_ids: { [id: number]: IPlanEnseigne }) {
                 commitSetEnseignesByIds(context, enseignes_by_ids);
             },
@@ -367,6 +406,8 @@ export const commitUpdateCr = commit(ProgramPlanStore.getInstance().mutations.up
 export const commitSetPrepById = commit(ProgramPlanStore.getInstance().mutations.setPrepById);
 export const commitRemovePrep = commit(ProgramPlanStore.getInstance().mutations.removePrep);
 export const commitUpdatePrep = commit(ProgramPlanStore.getInstance().mutations.updatePrep);
+
+export const commit_set_selected_rdv = commit(ProgramPlanStore.getInstance().mutations.set_selected_rdv);
 
 export const comit_set_can_edit_any = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_any);
 export const comit_set_can_edit_all = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_all);
