@@ -1,60 +1,38 @@
 import * as $ from 'jquery';
 import 'jqueryui';
 import { Component, Prop } from 'vue-property-decorator';
+import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueComponentBase from '../../VueComponentBase';
-import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
-import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
 import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
-import { ModuleDAOGetter } from '../../dao/store/DaoStore';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';
-import IPlanFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
-import IPlanManager from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
-import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
-import IPlanRDVCR from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
-import IPlanPartner from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanPartner';
+import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
+import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 
 @Component({
     template: require('./ProgramPlanComponentRDV.pug')
 })
 export default class ProgramPlanComponentRDV extends VueComponentBase {
 
-    @ModuleDAOGetter
-    public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
-
-    @ModuleProgramPlanGetter
-    public getEnseignesByIds: { [id: number]: IPlanEnseigne };
-
-    @ModuleProgramPlanGetter
-    public getTargetsByIds: { [id: number]: IPlanTarget };
-
-    @ModuleProgramPlanGetter
-    public getFacilitatorsByIds: { [id: number]: IPlanFacilitator };
-
-    @ModuleProgramPlanGetter
-    public getManagersByIds: { [id: number]: IPlanManager };
-
-    @ModuleProgramPlanGetter
-    public getRdvsByIds: { [id: number]: IPlanRDV };
-
-    @ModuleProgramPlanGetter
-    public getCrsByIds: { [id: number]: IPlanRDVCR };
-
-    @ModuleProgramPlanGetter
-    public getPartnersByIds: { [id: number]: IPlanPartner };
-
     @Prop()
-    private target: IPlanTarget;
+    private event_name: string;
     @Prop()
-    private enseigne: IPlanEnseigne;
+    private event_id: number;
+    @Prop()
+    private event_type: string;
 
     private mounted() {
 
         // store data so the calendar knows to render an event upon drop
         let event: any = {};
 
-        event.title = this.target.name;
-        event.target_id = this.target.id;
+        event.title = this.event_name;
+        event._type = this.event_type;
+
+        if (!!ModuleProgramPlanBase.getInstance().task_type_id) {
+            event.task_id = this.event_id;
+        } else {
+            event.target_id = this.event_id;
+        }
 
         event.allDay = false;
         event.editable = true;

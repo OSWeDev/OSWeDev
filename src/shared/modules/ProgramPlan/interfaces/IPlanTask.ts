@@ -1,14 +1,10 @@
 import IDistantVOBase from '../../IDistantVOBase';
 import INamedVO from '../../../interfaces/INamedVO';
+import IWeightedItem from '../../../tools/interfaces/IWeightedItem';
 
-export default interface IPlanTask extends IDistantVOBase, INamedVO {
+export default interface IPlanTask extends IDistantVOBase, INamedVO, IWeightedItem {
 
     task_type_id?: number;
-
-    /**
-     * Poids par rapport aux autres tâches pour identifier l'ordre dans lequel on doit poser les tâches
-     */
-    weight: number;
 
     /**
      * Le nombre max de RDVs liés à cette tache sur une target

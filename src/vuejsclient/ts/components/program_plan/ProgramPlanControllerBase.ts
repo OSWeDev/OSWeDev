@@ -4,6 +4,7 @@ import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueAppBase from '../../../VueAppBase';
+import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -28,6 +29,14 @@ export default abstract class ProgramPlanControllerBase {
 
     public getResourceName(first_name, name) {
         return name + ' ' + first_name.substring(0, 1) + '.';
+    }
+
+    /**
+     * Renvoie true pour cacher les taches de ce type.
+     * @param task
+     */
+    public hide_task(task: IPlanTask): boolean {
+        return false;
     }
 
     /**

@@ -3,7 +3,6 @@ import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/Acc
 import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
-import UserRoleVO from '../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
@@ -16,8 +15,8 @@ import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
 import MenuBranch from '../menu/vos/MenuBranch';
 import MenuElementBase from '../menu/vos/MenuElementBase';
 import MenuLeaf from '../menu/vos/MenuLeaf';
-import MenuPointer from '../menu/vos/MenuPointer';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
+import MenuPointer from '../menu/vos/MenuPointer';
 import AccessPolicyComponent from './AccessPolicyComponent';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {

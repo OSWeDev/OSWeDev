@@ -452,6 +452,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
             label_field
         );
 
+        additional_fields.push(
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
+
         let datatable = new ModuleTable(this, this.task_type_type_id, additional_fields, label_field, "Type de tâche");
         this.datatables.push(datatable);
     }
@@ -473,6 +476,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
             task_type_id = new ModuleTableField('task_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type de tâche', false);
             additional_fields.unshift(task_type_id);
         }
+
+        additional_fields.push(
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
 
         let datatable = new ModuleTable(this, this.task_type_id, additional_fields, label_field, "Tâche");
         if (!!this.task_type_type_id) {

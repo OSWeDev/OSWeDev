@@ -1,7 +1,8 @@
 import IDistantVOBase from '../../IDistantVOBase';
 import INamedVO from '../../../interfaces/INamedVO';
+import IWeightedItem from '../../../tools/interfaces/IWeightedItem';
 
-export default interface IPlanTaskType extends IDistantVOBase, INamedVO {
+export default interface IPlanTaskType extends IDistantVOBase, INamedVO, IWeightedItem {
 
     /**
      * Paramètre qui remplace la tache par le type de tache dans la liste des actions positionnables dans le planning

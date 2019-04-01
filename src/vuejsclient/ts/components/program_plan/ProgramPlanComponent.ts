@@ -36,6 +36,7 @@ import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import IPlanTaskType from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import IPlanRDVPrep from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
+import WeightHandler from '../../../../shared/tools/WeightHandler';
 
 
 @Component({
@@ -346,7 +347,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!ModuleProgramPlanBase.getInstance().task_type_type_id) {
             promises.push((async () => {
                 let task_types: IPlanTaskType[] = await ModuleDAO.getInstance().getVos<IPlanTaskType>(ModuleProgramPlanBase.getInstance().task_type_type_id);
-                self.set_task_types_by_ids(task_types);
+                self.set_task_types_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(task_types));
             })());
         }
 
@@ -354,7 +355,16 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!ModuleProgramPlanBase.getInstance().task_type_id) {
             promises.push((async () => {
                 let tasks: IPlanTask[] = await ModuleDAO.getInstance().getVos<IPlanTask>(ModuleProgramPlanBase.getInstance().task_type_id);
-                self.set_tasks_by_ids(tasks);
+                let tmps: IPlanTask[] = [];
+
+                for (let i in tasks) {
+                    let task = tasks[i];
+
+                    if (!ProgramPlanControllerBase.getInstance().hide_task(task)) {
+                        tmps.push(task);
+                    }
+                }
+                self.set_tasks_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(tmps));
             })());
         }
 
@@ -652,7 +662,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 labelText: this.label('programplan.fc.target.name'),
                 field: 'target_title'
             });
-            facilitator_column.group = true;
+            //facilitator_column.group = true;
         }
 
         resourceColumns.push(facilitator_column);
@@ -672,6 +682,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
             });
         }
 
+        let slotLabelFormat = [
+            'ddd D/M'
+        ];
+
+        if (ProgramPlanControllerBase.getInstance().slot_interval < 24) {
+            slotLabelFormat.push('a');
+        }
 
         return {
             locale: 'fr',
@@ -717,10 +734,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             eventOverlap: false,
             resourceAreaWidth: '400px',
             resourceLabelText: this.label('programplan.fc.resourcelabeltext.name'),
-            slotLabelFormat: [
-                'ddd D/M',
-                'a'
-            ],
+            slotLabelFormat,
             resourceColumns,
             resources: this.getPlanningResources(),
         };
@@ -774,8 +788,95 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
 
             if (!!ModuleProgramPlanBase.getInstance().task_type_id) {
-                rdv.task_id = event.task_id;
+
+                // Soit on est sur un task_id et on prend son id,
+                // soit on est sur un type de task et on doit définir la task_id a assigner
                 rdv.target_id = parseInt(event.resourceId);
+
+                if (event._type == ModuleProgramPlanBase.getInstance().task_type_id) {
+                    rdv.task_id = event.task_id;
+                } else {
+                    // On doit choisir le RDV à poser
+                    // Dépend de l'historique des Tasks déjà posées sur cette target
+                    let task_type: IPlanTaskType = this.get_task_types_by_ids[event.task_type_id];
+
+                    if (!task_type.order_tasks_on_same_target) {
+                        // Pas normal...
+                        this.snotify.error(this.label('programplan.fc.create.error'));
+                        console.error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
+                        return;
+                    }
+
+                    // il faut faire un chargement de tous les RDVs de cette target et de ce task_type_id
+                    // dans le cas d'un choix auto on interdit de remettre un RDV avant un RDV existant
+                    let all_rdvs: IPlanRDV[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDV>(
+                        ModuleProgramPlanBase.getInstance().rdv_type_id,
+                        'target_id', [rdv.target_id]);
+
+                    let max_weight: number = -1;
+                    let max_weight_task: IPlanTask = null;
+                    let nb_maxed_weight: number = 0;
+
+                    for (let i in all_rdvs) {
+                        let all_rdv = all_rdvs[i];
+                        let all_rdv_task = this.get_tasks_by_ids[all_rdv.task_id];
+
+                        if (!all_rdv_task) {
+                            continue;
+                        }
+
+                        if (all_rdv_task.task_type_id != task_type.id) {
+                            continue;
+                        }
+
+                        if (moment(all_rdv.start_time).isBefore(moment(rdv.start_time))) {
+                            this.snotify.error(this.label('programplan.fc.create.has_more_recent_task__denied'));
+                            return;
+                        }
+
+                        if (all_rdv_task.weight > max_weight) {
+                            max_weight = all_rdv_task.weight;
+                            max_weight_task = all_rdv_task;
+                            nb_maxed_weight = 0;
+                        }
+                        nb_maxed_weight++;
+                    }
+
+                    // Il nous faut toutes les tâches possible dans ce type par poids
+                    let task_type_tasks: IPlanTask[] = [];
+                    for (let j in this.get_tasks_by_ids) {
+                        let task_ = this.get_tasks_by_ids[j];
+
+                        if (task_.task_type_id == task_type.id) {
+                            task_type_tasks.push(task_);
+                        }
+                    }
+                    WeightHandler.getInstance().sortByWeight(task_type_tasks);
+
+                    if ((!task_type_tasks) || (!task_type_tasks.length)) {
+                        this.snotify.error(this.label('programplan.fc.create.error'));
+                        console.error("!task_type_tasks.length");
+                        return;
+                    }
+
+                    let task: IPlanTask = null;
+                    if (max_weight < 0) {
+                        task = task_type_tasks[0];
+                    } else {
+
+                        if (max_weight_task.limit_on_same_target <= nb_maxed_weight) {
+                            task = WeightHandler.getInstance().findNextHeavierItemByWeight(task_type_tasks, max_weight);
+                        }
+                    }
+
+                    if (!task) {
+                        this.snotify.error(this.label('programplan.fc.create.no_task_left'));
+                        console.error("!task");
+                        return;
+                    }
+
+                    rdv.task_id = task.id;
+                }
             } else {
                 rdv.facilitator_id = parseInt(event.resourceId);
                 rdv.target_id = event.target_id;

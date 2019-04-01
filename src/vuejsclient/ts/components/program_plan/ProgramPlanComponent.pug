@@ -6,7 +6,7 @@ include ../../../views/mixins/loading.pug
             :printform_filter_date_debut="printform_filter_date_debut"
             :printform_filter_date_fin="printform_filter_date_fin")
 
-        program-plan-component-target-listing.hidden-print(v-show='show_targets' :targets="getTargetsByIds", v-if="can_edit_any", :enseignes="getEnseignesByIds")
+        program-plan-component-target-listing.hidden-print(v-show='show_targets' v-if="can_edit_any")
         full-calendar.hidden-print(
             :events="fcEvents" 
             :config="fcConfig"

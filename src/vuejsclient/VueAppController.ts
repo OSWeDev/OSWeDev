@@ -18,6 +18,7 @@ export default abstract class VueAppController {
 
     public data_ui_debug;
     public data_user;
+    public data_user_roles: RoleVO[] = null;
     // public data_base_api_url;
     public data_default_locale;
     public data_is_dev: boolean;
@@ -41,6 +42,10 @@ export default abstract class VueAppController {
         promises.push(ModuleAjaxCache.getInstance().get('/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED).then((d) => {
             datas = JSON.parse(d as string);
         }));
+
+        promises.push((async () => {
+            self.data_user_roles = await ModuleAccessPolicy.getInstance().getMyRoles();
+        })());
 
         promises.push((async () => {
             self.ALL_LOCALES = await ModuleTranslation.getInstance().getALL_LOCALES();
