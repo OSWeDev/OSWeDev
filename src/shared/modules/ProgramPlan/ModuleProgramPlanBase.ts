@@ -159,7 +159,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDV[]>(
             ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
-            [this.rdv_type_id],
+            () => [this.rdv_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
             ProgramSegmentParamVO.translateToURL,
@@ -168,7 +168,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVCR[]>(
             ModuleProgramPlanBase.APINAME_GET_CRS_OF_PROGRAM_SEGMENT,
-            [this.rdv_type_id, this.rdv_cr_type_id],
+            () => [this.rdv_type_id, this.rdv_cr_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
             ProgramSegmentParamVO.translateToURL,
@@ -177,7 +177,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVPrep[]>(
             ModuleProgramPlanBase.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
-            [this.rdv_type_id, this.rdv_prep_type_id],
+            () => [this.rdv_type_id, this.rdv_prep_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
             ProgramSegmentParamVO.translateToURL,
