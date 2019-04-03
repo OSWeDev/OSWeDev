@@ -2,7 +2,7 @@
     .row
         .col-md-12.rdv_confirmed
             label 
-                input(type="checkbox", v-model="rdv_confirmed", :disabled='!can_edit')
+                input(type="checkbox", v-model="rdv_confirmed", :disabled='!can_edit' @change='onChangeRDVConfirmed')
                 | {{ label('programplan.rdv_modal.confirmed') }}
 
 
@@ -10,9 +10,13 @@
         .col-md-12.prepsandnew
             .preps(v-if="!edited_prep")
                 .prep
-                    i.fa.fa-trash(aria-hidden="true", @click="delete_prep(selected_rdv_prep)" v-if='can_edit')
-                    i.fa.fa-pencil(aria-hidden="true", @click="editPrep(selected_rdv_prep)" v-if='can_edit')
-                    .custom_prep_read_component(:is="custom_prep_read_component" :rdv='selected_rdv' :prep='selected_rdv_prep')
+                    .row
+                        .col-md-12
+                            i.fa.fa-trash(aria-hidden="true", @click="delete_prep(selected_rdv_prep)" v-if='can_edit')
+                            i.fa.fa-pencil(aria-hidden="true", @click="editPrep(selected_rdv_prep)" v-if='can_edit')
+                    .row
+                        .col-md-12
+                            .custom_prep_read_component(:is="custom_prep_read_component" :rdv='selected_rdv' :prep='selected_rdv_prep')
 
     .row(v-if="selected_rdv && selected_rdv.id && canaddprep")
         .col-md-12.newprep

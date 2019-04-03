@@ -200,7 +200,8 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
                             short_name: this.getTargetsByIds[rdv.target_id].name,
                             target_id: rdv.target_id,
                             resourceId: facilitator.id,
-                            title: this.getTargetsByIds[rdv.target_id].name
+                            title: this.getTargetsByIds[rdv.target_id].name,
+                            task_id: rdv.task_id
                         };
 
                         ProgramPlanControllerBase.getInstance().populateCalendarEvent(

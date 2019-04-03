@@ -78,11 +78,11 @@ export default abstract class ProgramPlanControllerBase {
         // Définir l'état et donc l'icone
         let icon = null;
 
-        if ((!event) || (!event.id) || (!getRdvsByIds[event.id])) {
+        if ((!event) || (!event.rdv_id) || (!getRdvsByIds[event.rdv_id])) {
             return;
         }
 
-        let rdv: IPlanRDV = getRdvsByIds[event.id];
+        let rdv: IPlanRDV = getRdvsByIds[event.rdv_id];
 
         switch (rdv.state) {
             case ModuleProgramPlanBase.RDV_STATE_CONFIRMED:

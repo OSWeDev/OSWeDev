@@ -25,7 +25,7 @@ include ../../../../views/mixins/table.pug
             tr
                 th(:colspan="nb_day_slices", v-for="(printable_table_day, i) in printable_table_week.days").th-colspan.text-left {{printable_table_day}}
             //- tr(v-if="printform_filter_slotsize")
-            tr
+            tr(v-if="nb_day_slices > 1")
                 template(v-for="i in printable_table_week.days")
                     template(v-for="j in nb_day_slices")
                         th.th-colspan.text-left(v-if="j <= (nb_day_slices/2)") {{ t('client.planning-store-visits.printform.am') }}

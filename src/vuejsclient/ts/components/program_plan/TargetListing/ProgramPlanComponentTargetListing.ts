@@ -118,6 +118,10 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
             }
         }
 
+        if (res.length > this.nb_targets) {
+            res.splice(this.nb_targets, res.length - this.nb_targets);
+        }
+
         return res;
     }
 }

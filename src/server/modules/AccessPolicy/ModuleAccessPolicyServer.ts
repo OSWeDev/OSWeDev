@@ -177,7 +177,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public registerAccessHooks(): void {
 
-        ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAOServer.DAO_ACCESS_TYPE_READ, this.filterPolicyByActivModules.bind(this));
+        ModuleDAOServer.getInstance().registerAccessHook(AccessPolicyVO.API_TYPE_ID, ModuleDAO.DAO_ACCESS_TYPE_READ, this.filterPolicyByActivModules.bind(this));
     }
 
     public async configure() {

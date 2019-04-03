@@ -28,8 +28,10 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
         event.title = this.event_name;
         event._type = this.event_type;
 
-        if (!!ModuleProgramPlanBase.getInstance().task_type_id) {
+        if (event._type == ModuleProgramPlanBase.getInstance().task_type_id) {
             event.task_id = this.event_id;
+        } else if (event._type == ModuleProgramPlanBase.getInstance().task_type_type_id) {
+            event.task_type_id = this.event_id;
         } else {
             event.target_id = this.event_id;
         }

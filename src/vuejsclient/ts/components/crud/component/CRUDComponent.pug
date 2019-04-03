@@ -153,8 +153,8 @@ mixin onetomany_input(vo)
                 :load_datas="false")
 
         <!-- Create Modal HTML -->
-        #createData.modal.fade(v-if='!isModuleParamTable')
-            .modal-dialog
+        #createData.modal.fade.in(v-if='!isModuleParamTable', ref="rdv_modal", tabindex='-1', role='dialog')
+            .modal-dialog.modal-lg(role='document')
                 .modal-content
                     form(v-on:submit.prevent="createVO")
                         .modal-header

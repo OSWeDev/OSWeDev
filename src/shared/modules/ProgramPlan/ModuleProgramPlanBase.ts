@@ -72,6 +72,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public program_target_type_id: string;
     public target_contact_type_id: string;
     public rdv_prep_type_id: string;
+    public target_facilitator_type_id: string;
 
     public showProgramAdministration: boolean = true;
 
@@ -97,6 +98,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         target_contact_type_id: string,
         task_type_type_id: string,
         task_type_id: string,
+        target_facilitator_type_id: string,
 
         specificImportPath: string = null) {
 
@@ -120,6 +122,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.task_type_type_id = task_type_type_id;
         this.task_type_id = task_type_id;
         this.rdv_prep_type_id = rdv_prep_type_id;
+        this.target_facilitator_type_id = target_facilitator_type_id;
 
         ModuleProgramPlanBase.instance = this;
 
@@ -153,13 +156,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.callInitializePlanProgramManager();
         this.callInitializePlanTargetContact();
         this.callInitializePlanProgramTarget();
+        this.callInitializePlanTargetFacilitator();
     }
 
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDV[]>(
             ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
-            () => [this.rdv_type_id],
+            () => [ModuleProgramPlanBase.getInstance().rdv_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
             ProgramSegmentParamVO.translateToURL,
@@ -168,7 +172,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVCR[]>(
             ModuleProgramPlanBase.APINAME_GET_CRS_OF_PROGRAM_SEGMENT,
-            () => [this.rdv_type_id, this.rdv_cr_type_id],
+            () => [ModuleProgramPlanBase.getInstance().rdv_type_id, ModuleProgramPlanBase.getInstance().rdv_cr_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
             ProgramSegmentParamVO.translateToURL,
@@ -177,7 +181,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVPrep[]>(
             ModuleProgramPlanBase.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
-            () => [this.rdv_type_id, this.rdv_prep_type_id],
+            () => [ModuleProgramPlanBase.getInstance().rdv_type_id, ModuleProgramPlanBase.getInstance().rdv_prep_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
             ProgramSegmentParamVO.translateToURL,
@@ -453,6 +457,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         additional_fields.push(
+            new ModuleTableField('order_tasks_on_same_target', ModuleTableField.FIELD_TYPE_boolean, 'Choix automatique de la tâche', true, true, false));
+        additional_fields.push(
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
 
         let datatable = new ModuleTable(this, this.task_type_type_id, additional_fields, label_field, "Type de tâche");
@@ -477,6 +483,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
             additional_fields.unshift(task_type_id);
         }
 
+        additional_fields.push(
+            new ModuleTableField('is_facilitator_specific', ModuleTableField.FIELD_TYPE_boolean, 'Tâche liée à l\'animateur/admin', true, true, false));
+        additional_fields.push(
+            new ModuleTableField('limit_on_same_target', ModuleTableField.FIELD_TYPE_int, 'Nombre max de RDV de ce type', false));
         additional_fields.push(
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
 
@@ -640,6 +650,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
                 task_id);
         }
 
+        additional_fields.push(new ModuleTableField('target_validation', ModuleTableField.FIELD_TYPE_boolean, 'RDV confirmé', false));
+
         let datatable = new ModuleTable(this, this.rdv_type_id, additional_fields, null, "RDVs");
 
         if (!!this.task_type_id) {
@@ -748,4 +760,28 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let datatable = new ModuleTable(this, this.partner_type_id, additional_fields, label_field, "Partenaires");
         this.datatables.push(datatable);
     }
+
+    protected callInitializePlanTargetFacilitator() {
+        this.initializePlanTargetFacilitator([]);
+    }
+
+    protected initializePlanTargetFacilitator(additional_fields: Array<ModuleTableField<any>>) {
+        if (!this.target_facilitator_type_id) {
+            return;
+        }
+
+        let target_id = new ModuleTableField('target_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Etablissement', true);
+        let facilitator_id = new ModuleTableField('facilitator_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Animateur', true);
+
+        additional_fields.unshift(
+            target_id,
+            facilitator_id
+        );
+
+        let datatable = new ModuleTable(this, this.target_facilitator_type_id, additional_fields, null, "Animateurs par établissements");
+        target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
+        facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
+        this.datatables.push(datatable);
+    }
+
 }

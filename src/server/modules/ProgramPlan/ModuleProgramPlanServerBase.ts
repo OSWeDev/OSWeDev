@@ -1,30 +1,31 @@
 import { Moment } from 'moment';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
-import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
-import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import ProgramSegmentParamVO from '../../../shared/modules/ProgramPlan/vos/ProgramSegmentParamVO';
-import DateHandler from '../../../shared/tools/DateHandler';
-import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ModuleServerBase from '../ModuleServerBase';
-import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModulesManagerServer from '../ModulesManagerServer';
-import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
-import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import IPlanFacilitator from '../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import IPlanManager from '../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
+import IPlanRDV from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import IPlanRDVCR from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
+import IPlanRDVPrep from '../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
+import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import ProgramSegmentParamVO from '../../../shared/modules/ProgramPlan/vos/ProgramSegmentParamVO';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import DateHandler from '../../../shared/tools/DateHandler';
+import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleServerBase from '../ModuleServerBase';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default abstract class ModuleProgramPlanServerBase extends ModuleServerBase {
 
@@ -37,6 +38,27 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     protected constructor(name: string) {
         super(name);
         ModuleProgramPlanServerBase.instance = this;
+    }
+
+    public async configure() {
+
+        // On ajoute les triggers pour le statut des RDVs en fonction des Preps / CRs et confirmation
+
+        // Cycle de vie :
+        //  Création de RDV on a un statut created ou confirmed si il est créé confirmed
+        //  Mise à jour du RDV : On demande à recalculer le statut du RDV
+        //  Ajout / Suppression de CR ou Prep : On demande à recalculer le statut du RDV
+        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
+
+        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
+
+        preCreateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, this.handleTriggerPreCreateCr.bind(this));
+        preCreateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, this.handleTriggerPreCreatePrep.bind(this));
+        let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        preDeleteTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, this.handleTriggerPreDeleteCr.bind(this));
+        preDeleteTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, this.handleTriggerPreDeletePrep.bind(this));
     }
 
     public registerServerApiHandlers() {
@@ -52,7 +74,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         // READ team ou tous
         ModuleDAOServer.getInstance().registerAccessHook(
             ModuleProgramPlanBase.getInstance().manager_type_id,
-            ModuleDAOServer.DAO_ACCESS_TYPE_READ,
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterManagerByIdByAccess.bind(this));
 
         // IPlanFacilitator
@@ -60,7 +82,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         // READ team ou tous
         ModuleDAOServer.getInstance().registerAccessHook(
             ModuleProgramPlanBase.getInstance().facilitator_type_id,
-            ModuleDAOServer.DAO_ACCESS_TYPE_READ,
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterIPlanFacilitatorByManagerByAccess.bind(this));
 
         // IPlanRDV
@@ -68,20 +90,20 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         // READ team ou tous(en fonction du manager lié au facilitator_id du RDV ...)
         ModuleDAOServer.getInstance().registerAccessHook(
             ModuleProgramPlanBase.getInstance().rdv_type_id,
-            ModuleDAOServer.DAO_ACCESS_TYPE_READ,
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterRDVsByFacilitatorIdByAccess.bind(this));
         // et CREATE / UPDATE / DELETE own / team / tous => on part du principe que c'est l'interface qui bloque à ce niveau
 
         // IPlanRDVCR => en fonction du IPlanRDV sur CRUD
         ModuleDAOServer.getInstance().registerAccessHook(
             ModuleProgramPlanBase.getInstance().rdv_cr_type_id,
-            ModuleDAOServer.DAO_ACCESS_TYPE_READ,
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
 
         // IPlanRDVPrep => en fonction du IPlanRDV sur CRUD
         ModuleDAOServer.getInstance().registerAccessHook(
             ModuleProgramPlanBase.getInstance().rdv_prep_type_id,
-            ModuleDAOServer.DAO_ACCESS_TYPE_READ,
+            ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
     }
 
@@ -504,5 +526,161 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             }
         }
         return res;
+    }
+
+    private getRDVState(rdv: IPlanRDV, prep: IPlanRDVPrep, cr: IPlanRDVCR): number {
+
+        if (!rdv) {
+            return null;
+        }
+
+        if (!rdv.target_validation) {
+            return ModuleProgramPlanBase.RDV_STATE_CREATED;
+        }
+
+        if (!prep) {
+            return ModuleProgramPlanBase.RDV_STATE_CONFIRMED;
+        }
+
+        if (!cr) {
+            return ModuleProgramPlanBase.RDV_STATE_PREP_OK;
+        }
+
+        return ModuleProgramPlanBase.RDV_STATE_CR_OK;
+    }
+
+    private async handleTriggerSetStateRDV(rdv: IPlanRDV): Promise<boolean> {
+        if (!rdv) {
+            return true;
+        }
+
+        if (!rdv.id) {
+            rdv.state = this.getRDVState(rdv, null, null);
+            return true;
+        }
+
+        // Si on est sur une modification on veut juste tester le confirmed, surtout pas les preps et crs ici qui sont gérés sur les triggers des vos en question
+        if ((rdv.state >= ModuleProgramPlanBase.RDV_STATE_CONFIRMED) && (!rdv.target_validation)) {
+            rdv.state = ModuleProgramPlanBase.RDV_STATE_CREATED;
+            return true;
+        }
+        if ((rdv.state == ModuleProgramPlanBase.RDV_STATE_CREATED) && (rdv.target_validation)) {
+
+            let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', [rdv.id]);
+            let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', [rdv.id]);
+
+            let prep = preps ? preps[0] : null;
+            let cr = crs ? crs[0] : null;
+
+            let state = this.getRDVState(rdv, prep, cr);
+
+            if (rdv.state != state) {
+                rdv.state = state;
+                await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+            }
+        }
+
+        return true;
+    }
+
+    private async handleTriggerPreCreateCr(cr: IPlanRDVCR): Promise<boolean> {
+
+        if (!cr) {
+            return true;
+        }
+
+        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
+
+        if ((!rdv) || (!rdv.id)) {
+            return true;
+        }
+
+        let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', [rdv.id]);
+
+        let prep = preps ? preps[0] : null;
+
+        let state = this.getRDVState(rdv, prep, cr);
+
+        if (rdv.state != state) {
+            rdv.state = state;
+            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+        }
+
+        return true;
+    }
+
+    private async handleTriggerPreCreatePrep(prep: IPlanRDVPrep): Promise<boolean> {
+        if (!prep) {
+            return true;
+        }
+
+        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
+
+        if ((!rdv) || (!rdv.id)) {
+            return true;
+        }
+
+        let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', [rdv.id]);
+
+        let cr = crs ? crs[0] : null;
+
+        let state = this.getRDVState(rdv, prep, cr);
+
+        if (rdv.state != state) {
+            rdv.state = state;
+            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+        }
+
+        return true;
+    }
+
+    private async handleTriggerPreDeleteCr(cr: IPlanRDVCR): Promise<boolean> {
+        if ((!cr) || (!cr.id)) {
+            return true;
+        }
+
+        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
+
+        if ((!rdv) || (!rdv.id)) {
+            return true;
+        }
+
+        let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', [rdv.id]);
+
+        let prep = preps ? preps[0] : null;
+
+        let state = this.getRDVState(rdv, prep, null);
+
+        if (rdv.state != state) {
+            rdv.state = state;
+            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+        }
+
+        return true;
+    }
+
+    private async handleTriggerPreDeletePrep(prep: IPlanRDVPrep): Promise<boolean> {
+        if ((!prep) || (!prep.id)) {
+            return true;
+        }
+
+        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
+
+        if ((!rdv) || (!rdv.id)) {
+            return true;
+        }
+
+        let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', [rdv.id]);
+
+        let cr = crs ? crs[0] : null;
+
+        let state = this.getRDVState(rdv, null, cr);
+
+        if (rdv.state != state) {
+            rdv.state = state;
+            await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
+        }
+
+        return true;
     }
 }

@@ -8,4 +8,5 @@ export default interface IPlanRDV extends IDistantVOBase {
     state: number;
     target_id: number;
     facilitator_id: number;
+    target_validation: boolean;
 }

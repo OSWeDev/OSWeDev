@@ -1,4 +1,8 @@
 # Gestion des droits V2
+
+ * BREAKING change sur le program plan : ajout de target_validation dans le RDV pour définit le state plus facilement via triggers
+
+ * 
     ALTER TABLE ref.module_access_policy_accpolgrp ADD COLUMN weight bigint NOT NULL DEFAULT 0;
     ALTER TABLE ref.module_access_policy_accpol ADD COLUMN weight bigint NOT NULL DEFAULT 0;
     ALTER TABLE ref.module_access_policy_role ADD COLUMN weight bigint NOT NULL DEFAULT 0;

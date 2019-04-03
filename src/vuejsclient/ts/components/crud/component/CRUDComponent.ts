@@ -74,6 +74,9 @@ export default class CRUDComponent extends VueComponentBase {
     @Prop({ default: null })
     private read_query: any;
 
+    @Prop({ default: false })
+    private bootstrap_3_modal_fallback: boolean;
+
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
 

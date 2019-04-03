@@ -20,6 +20,7 @@ import "./ProgramPlanComponentModalPrep.scss";
 import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import VueAppController from '../../../../../VueAppController';
+import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 @Component({
     template: require('./ProgramPlanComponentModalPrep.pug'),
@@ -75,7 +76,10 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
     @ModuleProgramPlanAction
     public removePrep: (id: number) => void;
 
-    @ModuleProgramPlanGetter
+    @ModuleProgramPlanAction
+    public updateRdv: (rdv: IPlanRDV) => void;
+
+    @Prop()
     public selected_rdv: IPlanRDV;
 
     @Prop({
@@ -99,7 +103,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
     @Watch('selected_rdv', { immediate: true })
     private async onChangeSelectedRDV() {
         // Vérifier le statut et mettre à jour le flag RDV_confirmed
-        this.rdv_confirmed = (this.selected_rdv && (this.selected_rdv.state != ModuleProgramPlanBase.RDV_STATE_CREATED));
+        this.rdv_confirmed = (this.selected_rdv && (this.selected_rdv.target_validation));
     }
 
     get selected_rdv_cr(): IPlanRDVCR {
@@ -159,29 +163,26 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
         return (res && res.length) ? res : null;
     }
 
-    @Watch('rdv_confirmed')
     private async onChangeRDVConfirmed() {
+
         // On doit changer le statut du RDV
         if (!this.selected_rdv) {
             return;
         }
 
-        if (this.rdv_confirmed && (this.selected_rdv.state != ModuleProgramPlanBase.RDV_STATE_CREATED)) {
-            return;
-        }
-
-        if ((!this.rdv_confirmed) && (this.selected_rdv.state == ModuleProgramPlanBase.RDV_STATE_CREATED)) {
-            return;
-        }
-
-        this.selected_rdv.state = (this.rdv_confirmed ? (this.selected_rdv_cr ? ModuleProgramPlanBase.RDV_STATE_CR_OK : ModuleProgramPlanBase.RDV_STATE_CONFIRMED) : ModuleProgramPlanBase.RDV_STATE_CREATED);
         this.snotify.info(this.label('programplan.rdv_modal.update_rdv.start'));
         try {
 
+            this.selected_rdv.target_validation = this.rdv_confirmed;
             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.selected_rdv);
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
                 throw new Error('Erreur serveur');
             }
+
+            // TODO passer par une synchro via les notifs de dao ...
+            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([ModuleProgramPlanBase.getInstance().rdv_type_id]);
+            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, this.selected_rdv.id);
+            this.updateRdv(rdv);
         } catch (error) {
             console.error(error);
             this.snotify.error(this.label('programplan.rdv_modal.update_rdv.error'));
@@ -400,6 +401,11 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                             }
                             prep.id = parseInt(insertOrDeleteQueryResult.id);
                             self.setPrepById(prep);
+
+                            // TODO passer par une synchro via les notifs de dao ...
+                            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([ModuleProgramPlanBase.getInstance().rdv_type_id]);
+                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
+                            self.updateRdv(rdv);
                         } catch (error) {
                             console.error(error);
                             self.snotify.error(self.label('programplan.create_prep.error'));
@@ -449,6 +455,11 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                                 throw new Error('Erreur serveur');
                             }
                             self.updatePrep(prep);
+
+                            // TODO passer par une synchro via les notifs de dao ...
+                            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([ModuleProgramPlanBase.getInstance().rdv_type_id]);
+                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
+                            self.updateRdv(rdv);
                         } catch (error) {
                             console.error(error);
                             self.snotify.error(self.label('programplan.update_prep.error'));

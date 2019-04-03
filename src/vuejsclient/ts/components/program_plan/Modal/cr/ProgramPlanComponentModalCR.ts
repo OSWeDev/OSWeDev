@@ -18,6 +18,8 @@ import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/Pr
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalCR.scss";
 import VueAppController from '../../../../../VueAppController';
+import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 @Component({
     template: require('./ProgramPlanComponentModalCR.pug'),
@@ -70,10 +72,12 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
     @ModuleProgramPlanAction
     public removeCr: (id: number) => void;
 
-    @Prop({
-        default: null
-    })
-    private selected_rdv: IPlanRDV;
+    @ModuleProgramPlanAction
+    public updateRdv: (rdv: IPlanRDV) => void;
+
+    @Prop()
+    public selected_rdv: IPlanRDV;
+
     @Prop({
         default: false
     })
@@ -112,49 +116,6 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
         }
         return null;
     }
-
-    // /**
-    //  * L'idée est de charger les CRs de cet établissement
-    //  * classés par ordre antéchrono
-    //  */
-    // get older_crs(): IPlanRDVCR[] {
-    //     let res: IPlanRDVCR[] = [];
-
-    //     if (!this.selected_rdv) {
-    //         return res;
-    //     }
-
-    //     for (let i in this.getCrsByIds) {
-    //         let cr: IPlanRDVCR = this.getCrsByIds[i] as IPlanRDVCR;
-
-    //         if (!this.getRdvsByIds[cr.rdv_id]) {
-    //             continue;
-    //         }
-
-    //         if (cr.rdv_id == this.selected_rdv.id) {
-    //             continue;
-    //         }
-
-    //         let rdv: IPlanRDV = this.getRdvsByIds[cr.rdv_id] as IPlanRDV;
-
-    //         if (rdv.target_id != this.selected_rdv.target_id) {
-    //             continue;
-    //         }
-
-    //         res.push(cr);
-    //     }
-
-    //     let self = this;
-
-    //     res.sort(function (a: IPlanRDVCR, b: IPlanRDVCR) {
-    //         let rdva: IPlanRDV = self.getRdvsByIds[a.rdv_id] as IPlanRDV;
-    //         let rdvb: IPlanRDV = self.getRdvsByIds[b.rdv_id] as IPlanRDV;
-
-    //         return moment(rdvb.start_time).diff(moment(rdva.start_time));
-    //     });
-
-    //     return res;
-    // }
 
     get facilitatorAndManagerName() {
         return this.facilitatorName + (this.managerName ? " / " + this.managerName : "");
@@ -344,6 +305,11 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                             }
                             cr.id = parseInt(insertOrDeleteQueryResult.id);
                             self.setCrById(cr);
+
+                            // TODO passer par une synchro via les notifs de dao ...
+                            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([ModuleProgramPlanBase.getInstance().rdv_type_id]);
+                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
+                            self.updateRdv(rdv);
                         } catch (error) {
                             console.error(error);
                             self.snotify.error(self.label('programplan.create_cr.error'));
@@ -393,6 +359,11 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                                 throw new Error('Erreur serveur');
                             }
                             self.updateCr(cr);
+
+                            // TODO passer par une synchro via les notifs de dao ...
+                            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([ModuleProgramPlanBase.getInstance().rdv_type_id]);
+                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
+                            self.updateRdv(rdv);
                         } catch (error) {
                             console.error(error);
                             self.snotify.error(self.label('programplan.update_cr.error'));
@@ -453,6 +424,11 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                                 throw new Error('Erreur serveur');
                             }
                             self.removeCr(cr.id);
+
+                            // TODO passer par une synchro via les notifs de dao ...
+                            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([ModuleProgramPlanBase.getInstance().rdv_type_id]);
+                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
+                            self.updateRdv(rdv);
                         } catch (error) {
                             console.error(error);
                             self.snotify.error(self.label('programplan.delete_cr.error'));

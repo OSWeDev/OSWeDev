@@ -12,6 +12,7 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import INamedVO from '../../interfaces/INamedVO';
 import APIDAONamedParamVO from './vos/APIDAONamedParamVO';
 import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
+import VOsTypesManager from '../VOsTypesManager';
 
 export default class ModuleDAO extends Module {
 
@@ -32,6 +33,14 @@ export default class ModuleDAO extends Module {
     public static APINAME_GET_VOS_BY_REFFIELD_IDS = "GET_VOS_BY_REFFIELD_IDS";
     public static APINAME_GET_VOS_BY_REFFIELDS_IDS = "GET_VOS_BY_REFFIELDS_IDS";
     public static APINAME_GET_NAMED_VO_BY_NAME = "GET_NAMED_VO_BY_NAME";
+
+    public static DAO_ACCESS_TYPE_LIST_LABELS: string = "LIST_LABELS";
+    // inherit DAO_ACCESS_TYPE_LIST_LABELS
+    public static DAO_ACCESS_TYPE_READ: string = "READ";
+    // inherit DAO_ACCESS_TYPE_READ
+    public static DAO_ACCESS_TYPE_INSERT_OR_UPDATE: string = "INSERT_OR_UPDATE";
+    // inherit DAO_ACCESS_TYPE_READ
+    public static DAO_ACCESS_TYPE_DELETE: string = "DELETE";
 
     public static getInstance() {
         if (!ModuleDAO.instance) {
@@ -183,5 +192,10 @@ export default class ModuleDAO extends Module {
     public initialize() {
         this.fields = [];
         this.datatables = [];
+    }
+
+    public getAccessPolicyName(access_type: string, vo_type: string): string {
+        let isModulesParams: boolean = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].isModuleParamTable;
+        return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }
 }

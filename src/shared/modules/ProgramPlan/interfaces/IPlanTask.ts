@@ -10,4 +10,6 @@ export default interface IPlanTask extends IDistantVOBase, INamedVO, IWeightedIt
      * Le nombre max de RDVs liés à cette tache sur une target
      */
     limit_on_same_target: number;
+
+    is_facilitator_specific: boolean;
 }

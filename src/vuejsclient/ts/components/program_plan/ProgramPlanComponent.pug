@@ -30,5 +30,5 @@ include ../../../views/mixins/loading.pug
                         program-plan-component-modal(:key='selected_rdv.id')
 
                     .modal-footer
-                        button.btn.btn-danger(type='button', @click="deleteSelectedEvent()", v-if="can_edit_any") {{ label('programplan.rdv_modal.delete_rdv') }}
+                        button.btn.btn-danger(type='button', @click="deleteSelectedEvent", v-if="can_edit_any") {{ label('programplan.rdv_modal.delete_rdv') }}
                         router-link.btn.btn-default(:to="route_path") {{ label('programplan.rdv_modal.close') }}

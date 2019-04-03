@@ -14,6 +14,7 @@ import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/
 import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import IPlanRDVPrep from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
 import moment = require('moment');
+import IPlanTargetFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetFacilitator';
 
 export type ProgramPlanContext = ActionContext<IProgramPlanState, any>;
 
@@ -23,6 +24,7 @@ export interface IProgramPlanState {
     enseignes_by_ids: { [id: number]: IPlanEnseigne };
     targets_by_ids: { [id: number]: IPlanTarget };
     facilitators_by_ids: { [id: number]: IPlanFacilitator };
+    targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator };
     managers_by_ids: { [id: number]: IPlanManager };
     rdvs_by_ids: { [id: number]: IPlanRDV };
     crs_by_ids: { [id: number]: IPlanRDVCR };
@@ -73,7 +75,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_edit_all: false,
             can_edit_own_team: false,
             can_edit_self: false,
-            selected_rdv: null
+            selected_rdv: null,
+            targets_facilitators_by_ids: {}
         };
 
 
@@ -82,6 +85,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_edit_all: (state: IProgramPlanState): boolean => state.can_edit_all,
             can_edit_own_team: (state: IProgramPlanState): boolean => state.can_edit_own_team,
             can_edit_self: (state: IProgramPlanState): boolean => state.can_edit_self,
+
+            get_targets_facilitators_by_ids: (state: IProgramPlanState): { [id: number]: IPlanTargetFacilitator } => state.targets_facilitators_by_ids,
 
             selected_rdv: (state: IProgramPlanState): IPlanRDV => state.selected_rdv,
 
@@ -145,6 +150,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
         };
 
         this.mutations = {
+
+            set_targets_facilitators_by_ids: (state: IProgramPlanState, targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator }) => state.targets_facilitators_by_ids = targets_facilitators_by_ids,
 
             set_can_edit_any: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_any = can_edit,
             set_can_edit_all: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_all = can_edit,
@@ -279,6 +286,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
 
         this.actions = {
+            set_targets_facilitators_by_ids: (context: ProgramPlanContext, targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator }) => commit_set_targets_facilitators_by_ids(context, targets_facilitators_by_ids),
+
             set_tasks_by_ids(context: ProgramPlanContext, tasks_by_ids: { [id: number]: IPlanTask }) {
                 commit_set_tasks_by_ids(context, tasks_by_ids);
             },
@@ -408,6 +417,8 @@ export const commitRemovePrep = commit(ProgramPlanStore.getInstance().mutations.
 export const commitUpdatePrep = commit(ProgramPlanStore.getInstance().mutations.updatePrep);
 
 export const commit_set_selected_rdv = commit(ProgramPlanStore.getInstance().mutations.set_selected_rdv);
+
+export const commit_set_targets_facilitators_by_ids = commit(ProgramPlanStore.getInstance().mutations.set_targets_facilitators_by_ids);
 
 export const comit_set_can_edit_any = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_any);
 export const comit_set_can_edit_all = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_all);
