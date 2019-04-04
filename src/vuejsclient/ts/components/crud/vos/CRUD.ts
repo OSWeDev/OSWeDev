@@ -9,9 +9,31 @@ import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyRef
 import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 import ComputedDatatableField from '../../datatable/vos/ComputedDatatableField';
 import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
+import IVersionedVO from '../../../../../shared/modules/Versioned/interfaces/IVersionedVO';
 
 
 export default class CRUD<T extends IDistantVOBase> {
+
+    public static getDefaultCRUDDatatable<V extends IVersionedVO>(api_type_id: string): CRUD<V> {
+        let moduleTable: ModuleTable<V> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let crud: CRUD<V> = CRUD.getNewCRUD(moduleTable.vo_type);
+
+        crud.readDatatable.removeFields(['version_num', 'trashed', 'parent_id']);
+
+        crud.updateDatatable = Object.assign(new Datatable(api_type_id), crud.readDatatable);
+        crud.createDatatable = Object.assign(new Datatable(api_type_id), crud.readDatatable);
+
+        crud.updateDatatable.removeFields([
+            'version_num', 'trashed', 'parent_id',
+            'version_edit_author_id', 'version_author_id',
+            'version_edit_timestamp', 'version_timestamp']);
+        crud.createDatatable.removeFields([
+            'version_num', 'trashed', 'parent_id',
+            'version_edit_author_id', 'version_author_id',
+            'version_edit_timestamp', 'version_timestamp']);
+
+        return crud;
+    }
 
     /**
      * Fonction pour créer un datatable à iso du moduletable sans plus de paramétrage

@@ -12,6 +12,20 @@ export default class Datatable<T extends IDistantVOBase> {
         this.sortedFields.push(field);
     }
 
+    public removeFields(module_table_field_ids: string[]) {
+
+        let fields: Array<DatatableField<any, any>> = [];
+
+        for (let i in this.fields) {
+            let field: DatatableField<any, any> = this.sortedFields[i];
+
+            if (module_table_field_ids.indexOf(field.module_table_field_id) < 0) {
+                fields.push(field);
+            }
+        }
+        this.sortedFields = fields;
+    }
+
     get fields(): Array<DatatableField<any, any>> {
         return this.sortedFields;
     }

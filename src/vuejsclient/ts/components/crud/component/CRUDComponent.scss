@@ -1,3 +1,5 @@
+@import 'skin-variables.scss';
+
 .crud-wrapper {
 
     .select2-container .select2-selection--single {
@@ -109,3 +111,13 @@
         }
     }
 }
+
+/**
+ * CRUD sur le front
+ */
+#app .crud-wrapper .crud_datatable .table-responsive table tr th.VueTables__sortable {
+    background: $button_primary_bg_color;
+    color: white;
+    padding: 5px;
+}
+

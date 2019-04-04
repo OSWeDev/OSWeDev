@@ -100,6 +100,12 @@ export default class ModuleTableField<T> {
         this.target_field = null;
     }
 
+    public setModuleTable(moduleTable: ModuleTable<any>): ModuleTableField<T> {
+        this.module_table = moduleTable;
+
+        return this;
+    }
+
     public setInclusiveData(): ModuleTableField<T> {
         this.is_inclusive_data = true;
 

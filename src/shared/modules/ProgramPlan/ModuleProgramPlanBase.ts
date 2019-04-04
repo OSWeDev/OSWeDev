@@ -74,6 +74,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public rdv_prep_type_id: string;
     public target_facilitator_type_id: string;
 
+    public target_group_type_id: string;
+    public target_region_type_id: string;
+    public target_zone_type_id: string;
+
     public showProgramAdministration: boolean = true;
 
     protected constructor(
@@ -99,6 +103,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
         task_type_type_id: string,
         task_type_id: string,
         target_facilitator_type_id: string,
+        target_group_type_id: string,
+        target_region_type_id: string,
+        target_zone_type_id: string,
 
         specificImportPath: string = null) {
 
@@ -123,6 +130,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.task_type_id = task_type_id;
         this.rdv_prep_type_id = rdv_prep_type_id;
         this.target_facilitator_type_id = target_facilitator_type_id;
+        this.target_group_type_id = target_group_type_id;
+        this.target_region_type_id = target_region_type_id;
+        this.target_zone_type_id = target_zone_type_id;
 
         ModuleProgramPlanBase.instance = this;
 
@@ -138,6 +148,9 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.fields = [];
         this.datatables = [];
 
+        this.callInitializePlanTargetGroup();
+        this.callInitializePlanTargetRegion();
+        this.callInitializePlanTargetZone();
         this.callInitializePlanProgramCategory();
         this.callInitializePlanProgram();
         this.callInitializePlanEnseigne();
@@ -242,10 +255,87 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
 
         additional_fields.unshift(
-            label_field,
+            label_field
         );
 
         let datatable = new ModuleTable(this, this.facilitator_region_type_id, additional_fields, label_field, "Régions des animateurs");
+        this.datatables.push(datatable);
+    }
+
+    protected callInitializePlanTargetGroup() {
+        this.initializePlanTargetgroup([]);
+    }
+    protected initializePlanTargetgroup(additional_fields: Array<ModuleTableField<any>>) {
+        if (!this.target_group_type_id) {
+            return;
+        }
+
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let user_uid = new ModuleTableField('user_uid', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+
+        additional_fields.unshift(
+            label_field,
+            user_uid
+        );
+
+        let datatable = new ModuleTable(this, this.target_group_type_id, additional_fields, label_field, "Groupe d'établissements");
+
+        user_uid.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        this.datatables.push(datatable);
+    }
+
+    protected callInitializePlanTargetRegion() {
+        this.initializePlanTargetRegion([]);
+    }
+    protected initializePlanTargetRegion(additional_fields: Array<ModuleTableField<any>>) {
+        if (!this.target_region_type_id) {
+            return;
+        }
+
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let region_director_uid = new ModuleTableField('region_director_uid', ModuleTableField.FIELD_TYPE_foreign_key, 'Directeur de région', false);
+
+
+        additional_fields.unshift(
+            label_field,
+            region_director_uid
+        );
+
+        let datatable = new ModuleTable(this, this.target_region_type_id, additional_fields, label_field, "Régions d'établissements");
+
+
+        region_director_uid.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        this.datatables.push(datatable);
+    }
+
+    protected callInitializePlanTargetZone() {
+        this.initializePlanTargetZone([]);
+    }
+    protected initializePlanTargetZone(additional_fields: Array<ModuleTableField<any>>) {
+        if (!this.target_zone_type_id) {
+            return;
+        }
+
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let zone_manager_uid = new ModuleTableField('zone_manager_uid', ModuleTableField.FIELD_TYPE_foreign_key, 'Manager de Zone', false);
+
+        let region_id;
+
+        if (!!this.target_region_type_id) {
+            region_id = new ModuleTableField('region_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Région', false);
+            additional_fields.unshift(region_id);
+        }
+
+        additional_fields.unshift(
+            label_field,
+            zone_manager_uid
+        );
+
+        let datatable = new ModuleTable(this, this.target_zone_type_id, additional_fields, label_field, "Zones d'établissements");
+        if (!!this.target_region_type_id) {
+            region_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_region_type_id]);
+        }
+        zone_manager_uid.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -507,8 +597,18 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let enseigne_id;
+        let zone_id;
+        let group_id;
         additional_fields.unshift(label_field);
 
+        if (!!this.target_zone_type_id) {
+            zone_id = new ModuleTableField('zone_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Zone', false);
+            additional_fields.unshift(zone_id);
+        }
+        if (!!this.target_group_type_id) {
+            group_id = new ModuleTableField('group_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Groupe', false);
+            additional_fields.unshift(group_id);
+        }
         if (!!this.enseigne_type_id) {
             enseigne_id = new ModuleTableField('enseigne_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Enseigne', false);
             additional_fields.unshift(enseigne_id);
@@ -528,6 +628,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         if (!!this.enseigne_type_id) {
             enseigne_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.enseigne_type_id]);
+        }
+        if (!!this.target_group_type_id) {
+            group_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_group_type_id]);
+        }
+        if (!!this.target_zone_type_id) {
+            zone_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_zone_type_id]);
         }
 
         this.datatables.push(datatable);

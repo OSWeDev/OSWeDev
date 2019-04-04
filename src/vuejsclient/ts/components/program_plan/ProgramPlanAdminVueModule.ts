@@ -73,32 +73,43 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
             }
         }
 
-        if (!!ModuleProgramPlanBase.getInstance().facilitator_region_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
-                ModuleProgramPlanBase.getInstance().facilitator_region_type_id,
-                null,
-                new MenuPointer(
-                    new MenuLeaf(ModuleProgramPlanBase.getInstance().facilitator_region_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
-                    menuBranch),
-                this.routes);
-        }
-
         if (!!ModuleProgramPlanBase.getInstance().enseigne_type_id) {
             CRUDComponentManager.getInstance().registerCRUD(
                 ModuleProgramPlanBase.getInstance().enseigne_type_id,
                 null,
                 new MenuPointer(
-                    new MenuLeaf(ModuleProgramPlanBase.getInstance().enseigne_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().enseigne_type_id, MenuElementBase.PRIORITY_HIGH - 4, "fa-bullseye"),
                     menuBranch),
                 this.routes);
         }
 
-        if (!!ModuleProgramPlanBase.getInstance().contact_type_id) {
+        if (!!ModuleProgramPlanBase.getInstance().target_group_type_id) {
             CRUDComponentManager.getInstance().registerCRUD(
-                ModuleProgramPlanBase.getInstance().contact_type_id,
+                ModuleProgramPlanBase.getInstance().target_group_type_id,
                 null,
                 new MenuPointer(
-                    new MenuLeaf(ModuleProgramPlanBase.getInstance().contact_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().target_group_type_id, MenuElementBase.PRIORITY_HIGH - 3, "fa-bullseye"),
+                    menuBranch),
+                this.routes);
+        }
+
+        if (!!ModuleProgramPlanBase.getInstance().target_zone_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().target_zone_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().target_zone_type_id, MenuElementBase.PRIORITY_HIGH - 2, "fa-bullseye"),
+                    menuBranch),
+                this.routes);
+        }
+
+
+        if (!!ModuleProgramPlanBase.getInstance().target_region_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().target_region_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().target_region_type_id, MenuElementBase.PRIORITY_HIGH - 1, "fa-bullseye"),
                     menuBranch),
                 this.routes);
         }
@@ -108,7 +119,17 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
                 ModuleProgramPlanBase.getInstance().target_type_id,
                 null,
                 new MenuPointer(
-                    new MenuLeaf(ModuleProgramPlanBase.getInstance().target_type_id, MenuElementBase.PRIORITY_HIGH + 1, "fa-bullseye"),
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().target_type_id, MenuElementBase.PRIORITY_HIGH, "fa-bullseye"),
+                    menuBranch),
+                this.routes);
+        }
+
+        if (!!ModuleProgramPlanBase.getInstance().contact_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().contact_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().contact_type_id, MenuElementBase.PRIORITY_HIGH + 1, "fa-bullseye"),
                     menuBranch),
                 this.routes);
         }
@@ -129,6 +150,16 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
                 null,
                 new MenuPointer(
                     new MenuLeaf(ModuleProgramPlanBase.getInstance().manager_type_id, MenuElementBase.PRIORITY_MEDIUM, "fa-sitemap"),
+                    menuBranch),
+                this.routes);
+        }
+
+        if (!!ModuleProgramPlanBase.getInstance().facilitator_region_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().facilitator_region_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().facilitator_region_type_id, MenuElementBase.PRIORITY_LOW - 1, "fa-user-circle"),
                     menuBranch),
                 this.routes);
         }

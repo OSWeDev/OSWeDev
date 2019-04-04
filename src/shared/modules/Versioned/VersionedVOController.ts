@@ -1,11 +1,11 @@
+import CRUD from '../../../vuejsclient/ts/components/crud/vos/CRUD';
 import IVOController from '../../interfaces/IVOController';
-import ModuleDAO from '../../modules/DAO/ModuleDAO';
 import ModuleTable from '../../modules/ModuleTable';
-import DateHandler from '../../tools/DateHandler';
-import moment = require('moment');
 import ModuleTableField from '../ModuleTableField';
-import ModuleVersioned from './ModuleVersioned';
 import VOsTypesManager from '../VOsTypesManager';
+import IVersionedVO from './interfaces/IVersionedVO';
+import moment = require('moment');
+import UserVO from '../AccessPolicy/vos/UserVO';
 
 export default class VersionedVOController implements IVOController {
 
@@ -33,8 +33,29 @@ export default class VersionedVOController implements IVOController {
 
         this.registeredModuleTables.push(moduleTable);
 
+        let version_edit_author_id = new ModuleTableField('version_edit_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Modificateur', true);
+        version_edit_author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        version_edit_author_id.setModuleTable(moduleTable);
+        let version_author_id = new ModuleTableField('version_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Créateur', true);
+        version_author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        version_author_id.setModuleTable(moduleTable);
 
-        // On copie les champs, pour les 3 tables à créer automatiquement : 
+        moduleTable.fields.unshift((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de modification', false)).setModuleTable(moduleTable));
+        moduleTable.fields.unshift(version_edit_author_id);
+
+        moduleTable.fields.push(version_author_id);
+        moduleTable.fields.push((new ModuleTableField('version_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de création', false)).setModuleTable(moduleTable));
+
+        moduleTable.fields.push((new ModuleTableField('version_num', ModuleTableField.FIELD_TYPE_int, 'Numéro de version', false)).setModuleTable(moduleTable));
+
+        moduleTable.fields.push((new ModuleTableField('trashed', ModuleTableField.FIELD_TYPE_boolean, 'Supprimé', false)).setModuleTable(moduleTable));
+
+        let parent_id = new ModuleTableField('parent_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Parent', false);
+        parent_id.addManyToOneRelation(moduleTable);
+        parent_id.setModuleTable(moduleTable);
+        moduleTable.fields.push(parent_id);
+
+        // On copie les champs, pour les 3 tables à créer automatiquement :
         //  - La table versioned
         //  - La table trashed
         //  - La table trashed versioned
@@ -59,12 +80,26 @@ export default class VersionedVOController implements IVOController {
             for (let i in moduleTable.fields) {
                 let vofield = moduleTable.fields[i];
 
-                fields.push(Object.assign(new ModuleTableField<any>(vofield.field_id, vofield.field_type, vofield.field_label, vofield.field_required, vofield.has_default, vofield.field_default), vofield));
+                let cloned_field = new ModuleTableField<any>(vofield.field_id, vofield.field_type, vofield.field_label, vofield.field_required, vofield.has_default, vofield.field_default);
+                cloned_field.enum_values = vofield.enum_values;
+                cloned_field.is_inclusive_data = vofield.is_inclusive_data;
+                cloned_field.is_inclusive_ihm = vofield.is_inclusive_ihm;
+                fields.push(cloned_field);
             }
 
             let importTable: ModuleTable<any> = new ModuleTable<any>(moduleTable.module, vo_type, fields, null, vo_type);
             importTable.set_bdd_ref(database, moduleTable.name);
-            importTable.getFieldFromId('parent_id').addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[moduleTable.vo_type]);
+
+            for (let i in moduleTable.fields) {
+                let vofield = moduleTable.fields[i];
+
+                if (!vofield.has_relation) {
+                    continue;
+                }
+
+                importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(vofield.manyToOne_target_moduletable);
+            }
+
             moduleTable.module.datatables.push(importTable);
         }
     }

@@ -64,7 +64,8 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         vo.parent_id = null;
         vo.trashed = false;
 
-        let ts = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        // TODO : ATTENTION par défaut c'est du without timezone en base, hors sur le serveur on a un timezone par défaut et sur les fullcalendar on est en without timezone par défaut ....
+        let ts = DateHandler.getInstance().formatDateTimeForBDD(moment().utc());
         let user: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
 
         vo.version_author_id = user ? user.id : null;
@@ -89,7 +90,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         let user: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
 
         vo.version_edit_author_id = user ? user.id : null;
-        vo.version_edit_timestamp = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        vo.version_edit_timestamp = DateHandler.getInstance().formatDateTimeForBDD(moment().utc());
 
         vo.version_num++;
 

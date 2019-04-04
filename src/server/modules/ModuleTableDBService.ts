@@ -161,7 +161,7 @@ export default class ModuleTableDBService {
             // On check les infos récupérées de la base : column_default, is_nullable, data_type
             if (field.field_required == (table_col.is_nullable != TableColumnDescriptor.IS_NOT_NULLABLE_VALUE)) {
                 console.error('-');
-                console.error('INFO  : Les propriétés isNullable et fieldRequired ne devraient pas être égales. BDD isNullable:' + table_col.is_nullable + ':moduleTableField:' + field.field_required + ':table:' + moduleTable.full_name + ':');
+                console.error('INFO  : Les propriétés isNullable et fieldRequired ne devraient pas être égales. BDD isNullable:' + table_col.is_nullable + ':moduleTableField:' + field.field_required + ':field:' + field.field_id + ':table:' + moduleTable.full_name + ':');
                 console.error('ACTION: Aucune. Résoudre manuellement');
                 console.error('---');
             }
@@ -176,7 +176,7 @@ export default class ModuleTableDBService {
 
             if (!field.isAcceptableCurrentDBType(table_col.data_type)) {
                 console.error('-');
-                console.error('INFO  : Les types devraient être identiques. BDD data_type:' + table_col.data_type + ':moduleTableField:' + field.getPGSqlFieldType() + ':table:' + moduleTable.full_name + ':');
+                console.error('INFO  : Les types devraient être identiques. BDD data_type:' + table_col.data_type + ':moduleTableField:' + field.getPGSqlFieldType() + ':field:' + field.field_id + ':table:' + moduleTable.full_name + ':');
                 console.error('ACTION: Aucune. Résoudre manuellement');
                 console.error('---');
             }
