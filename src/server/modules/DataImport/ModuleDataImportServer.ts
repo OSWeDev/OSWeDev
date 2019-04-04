@@ -314,7 +314,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
             let pre_validation_formattedDatasStats: FormattedDatasStats = this.countValidatedDataAndColumns(datas, moduleTable, format.id);
             let prevalidation_datas = datas;
-            datas = await postTraitementModule.validate_formatted_data(datas, importHistoric);
+            datas = await postTraitementModule.validate_formatted_data(datas, importHistoric, format);
 
             has_datas = has_datas || (datas && (datas.length > 0));
             all_formats_datas[format.id] = datas;
