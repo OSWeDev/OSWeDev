@@ -10,6 +10,7 @@ export interface IAppMainStoreState {
     printable: boolean;
     hook_export_data_to_XLSX: () => ExportDataToXLSXParamVO;
     print_component: any;
+    onprint: () => void;
 }
 
 export default class AppMainStoreModule implements IStoreModule<IAppMainStoreState, AppMainStoreContext> {
@@ -37,11 +38,15 @@ export default class AppMainStoreModule implements IStoreModule<IAppMainStoreSta
             printable: false,
             hook_export_data_to_XLSX: null,
             print_component: null,
+            onprint: null,
         };
 
         this.getters = {
             printable(state: IAppMainStoreState): boolean {
                 return state.printable;
+            },
+            onprint(state: IAppMainStoreState): () => void {
+                return state.onprint;
             },
             exportableToXLSX(state: IAppMainStoreState): boolean {
                 return !!state.hook_export_data_to_XLSX;
@@ -71,6 +76,9 @@ export default class AppMainStoreModule implements IStoreModule<IAppMainStoreSta
             PRINT_DISABLE(state: IAppMainStoreState) {
                 state.printable = false;
             },
+            set_onprint(state: IAppMainStoreState, onprint: () => void) {
+                state.onprint = onprint;
+            },
             register_hook_export_data_to_XLSX(state: IAppMainStoreState, hook: () => ExportDataToXLSXParamVO) {
                 state.hook_export_data_to_XLSX = hook;
             },
@@ -85,6 +93,9 @@ export default class AppMainStoreModule implements IStoreModule<IAppMainStoreSta
             },
             PRINT_DISABLE(context: AppMainStoreContext) {
                 context.commit("PRINT_DISABLE");
+            },
+            set_onprint(context: AppMainStoreContext, onprint: () => void) {
+                context.commit("set_onprint", onprint);
             },
             register_hook_export_data_to_XLSX(context: AppMainStoreContext, hook: () => ExportDataToXLSXParamVO) {
                 context.commit("register_hook_export_data_to_XLSX", hook);

@@ -256,6 +256,7 @@ export default abstract class VueAppBase {
             AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_DISABLE');
             AppVuexStoreManager.getInstance().appVuexStore.commit('register_hook_export_data_to_XLSX', null);
             AppVuexStoreManager.getInstance().appVuexStore.commit('register_print_component', null);
+            AppVuexStoreManager.getInstance().appVuexStore.commit('set_onprint', null);
 
             // On nettoie les traductions de la page
             AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/clear');

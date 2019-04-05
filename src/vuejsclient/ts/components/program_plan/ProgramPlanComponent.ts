@@ -1,7 +1,7 @@
 import { EventObjectInput, View } from 'fullcalendar';
 import * as $ from 'jquery';
 import * as moment from 'moment';
-import { Component, Prop, Watch } from 'vue-property-decorator';
+import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
@@ -19,6 +19,9 @@ import IPlanRDVCR from '../../../../shared/modules/ProgramPlan/interfaces/IPlanR
 import IPlanRDVPrep from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import IPlanTargetFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetFacilitator';
+import IPlanTargetGroup from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetGroup';
+import IPlanTargetRegion from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetRegion';
+import IPlanTargetZone from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetZone';
 import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import IPlanTaskType from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
@@ -28,6 +31,7 @@ import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppController from '../../../VueAppController';
+import AppVuexStoreManager from '../../store/AppVuexStoreManager';
 import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
 import VueComponentBase from '../VueComponentBase';
 import ProgramPlanComponentImpression from './Impression/ProgramPlanComponentImpression';
@@ -47,6 +51,12 @@ import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanCompon
     }
 })
 export default class ProgramPlanComponent extends VueComponentBase {
+
+    @ModuleProgramPlanGetter
+    public filter_date_debut: moment.Moment;
+
+    @ModuleProgramPlanGetter
+    public filter_date_fin: moment.Moment;
 
     @ModuleProgramPlanGetter
     public can_edit_any: boolean;
@@ -91,6 +101,15 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public get_targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator };
 
     @ModuleProgramPlanAction
+    public set_targets_regions_by_ids: (targets_regions_by_ids: { [id: number]: IPlanTargetRegion }) => void;
+
+    @ModuleProgramPlanAction
+    public set_targets_zones_by_ids: (targets_zones_by_ids: { [id: number]: IPlanTargetZone }) => void;
+
+    @ModuleProgramPlanAction
+    public set_targets_groups_by_ids: (targets_groups_by_ids: { [id: number]: IPlanTargetGroup }) => void;
+
+    @ModuleProgramPlanAction
     public addRdvsByIds: (rdvs_by_ids: { [id: number]: IPlanRDV }) => void;
 
     @ModuleProgramPlanAction
@@ -98,6 +117,15 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     @ModuleProgramPlanAction
     public addPrepsByIds: (preps_by_ids: { [id: number]: IPlanRDVPrep }) => void;
+
+    @ModuleProgramPlanAction
+    public set_filter_date_debut: (filter_date_debut: moment.Moment) => void;
+
+    @ModuleProgramPlanAction
+    public set_filter_date_fin: (filter_date_fin: moment.Moment) => void;
+
+    @ModuleProgramPlanGetter
+    public set_printable_table_weeks: (printable_table_weeks: any) => void;
 
     @ModuleProgramPlanAction
     public set_can_edit_any: (can_edit: boolean) => void;
@@ -182,10 +210,16 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public fcSegment: TimeSegment = null;
     private user = VueAppController.getInstance().data_user;
     private fcEvents: EventObjectInput[] = [];
-    private printform_filter_date_debut: string = null;
-    private printform_filter_date_fin: string = null;
+
+    private custom_filter_component = ProgramPlanControllerBase.getInstance().customFilterComponent;
 
     private show_targets: boolean = true;
+
+    private valid_targets: IPlanTarget[] = [];
+    private valid_facilitators: IPlanFacilitator[] = [];
+    private valid_rdvs: IPlanRDV[] = [];
+
+    private calendar_key: number = 1;
 
     get route_path(): string {
         return this.global_route_path + ((!!this.program_id) ? this.program_id : 'g');
@@ -263,7 +297,16 @@ export default class ProgramPlanComponent extends VueComponentBase {
     }
 
     private async reloadAsyncData() {
+
         let self = this;
+
+        AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_ENABLE');
+        AppVuexStoreManager.getInstance().appVuexStore.commit('set_onprint', () => {
+            self.set_printable_table_weeks(self.get_printable_table_weeks());
+            self.$nextTick(function () {
+                window['print']();
+            });
+        });
 
         this.nbLoadingSteps = 3;
         this.startLoading();
@@ -273,12 +316,33 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if ((!!ModuleProgramPlanBase.getInstance().partner_type_id) ||
             (ModuleProgramPlanBase.getInstance().program_manager_type_id) ||
             (ModuleProgramPlanBase.getInstance().program_facilitator_type_id) ||
-            (ModuleProgramPlanBase.getInstance().program_target_type_id)) {
+            (ModuleProgramPlanBase.getInstance().program_target_type_id) ||
+            (ModuleProgramPlanBase.getInstance().target_region_type_id) ||
+            (ModuleProgramPlanBase.getInstance().target_zone_type_id) ||
+            (ModuleProgramPlanBase.getInstance().target_group_type_id)) {
 
             // partenaires (on charge tous les partenaires ça parait pas être voué à exploser comme donnée mais à suivre)
             if (!!ModuleProgramPlanBase.getInstance().partner_type_id) {
                 promises.push((async () => {
                     self.setPartnersByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<IPlanPartner>(ModuleProgramPlanBase.getInstance().partner_type_id)));
+                })());
+            }
+
+            if (!!ModuleProgramPlanBase.getInstance().target_region_type_id) {
+                promises.push((async () => {
+                    self.set_targets_regions_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<IPlanTargetRegion>(ModuleProgramPlanBase.getInstance().target_region_type_id)));
+                })());
+            }
+
+            if (!!ModuleProgramPlanBase.getInstance().target_zone_type_id) {
+                promises.push((async () => {
+                    self.set_targets_zones_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<IPlanTargetZone>(ModuleProgramPlanBase.getInstance().target_zone_type_id)));
+                })());
+            }
+
+            if (!!ModuleProgramPlanBase.getInstance().target_group_type_id) {
+                promises.push((async () => {
+                    self.set_targets_groups_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<IPlanTargetGroup>(ModuleProgramPlanBase.getInstance().target_group_type_id)));
                 })());
             }
 
@@ -506,7 +570,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return ProgramPlanControllerBase.getInstance().getResourceName(first_name, name);
     }
 
-    private getPlanningResources() {
+    get planningResources() {
         // On veut un tableau avec des éléments de ce type:
         // {
         //   id: 1,
@@ -518,8 +582,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         if (!!ModuleProgramPlanBase.getInstance().target_facilitator_type_id) {
 
-            for (let i in this.getTargetsByIds) {
-                let target: IPlanTarget = this.getTargetsByIds[i];
+            for (let i in this.valid_targets) {
+                let target: IPlanTarget = this.valid_targets[i];
 
                 for (let j in this.get_targets_facilitators_by_ids) {
 
@@ -529,7 +593,16 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         continue;
                     }
 
-                    let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[target_facilitator.facilitator_id];
+                    let facilitator: IPlanFacilitator = null;
+                    for (let k in this.valid_facilitators) {
+                        if (this.valid_facilitators[k].id == target_facilitator.facilitator_id) {
+                            facilitator = this.valid_facilitators[k];
+                        }
+                    }
+                    if (!facilitator) {
+                        continue;
+                    }
+
                     let manager: IPlanManager = this.getManagersByIds[facilitator.manager_id];
                     let partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
 
@@ -543,8 +616,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 }
             }
         } else {
-            for (let i in this.getFacilitatorsByIds) {
-                let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[i];
+            for (let i in this.valid_facilitators) {
+                let facilitator: IPlanFacilitator = this.valid_facilitators[i];
+
                 let manager: IPlanManager = this.getManagersByIds[facilitator.manager_id];
                 let partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
 
@@ -581,10 +655,22 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
         }
 
-        let target: IPlanTarget = this.getTargetsByIds[rdv.target_id];
+        let target: IPlanTarget = null;
+        for (let i in this.valid_targets) {
+            if (this.valid_targets[i].id == rdv.target_id) {
+                target = this.valid_targets[i];
+            }
+        }
         if (!target) {
-            // on a un RDV en base qui est orphelin on ignore
-            return null;
+            // on a un RDV en base qui est orphelin on ignore, sauf si tache admin
+            if (!!ModuleProgramPlanBase.getInstance().task_type_id) {
+                let task: IPlanTask = this.get_tasks_by_ids[rdv.task_id];
+                if ((!task) || (!task.is_facilitator_specific)) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
         }
 
         let res: EventObjectInput[] = [];
@@ -597,7 +683,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             resourceId: undefined,
             start: rdv.start_time,
             end: rdv.end_time,
-            title: target.name,
+            title: null,
             state: rdv.state
         };
         if (!!ModuleProgramPlanBase.getInstance().target_facilitator_type_id) {
@@ -645,7 +731,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 }
             }
         } else {
-            event_item.resourceId = rdv.facilitator_id.toString();
+            event_item.title = target.name,
+                event_item.resourceId = rdv.facilitator_id.toString();
             res.push(event_item);
         }
 
@@ -656,13 +743,15 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return res;
     }
 
-    @Watch('getRdvsByIds', { immediate: true, deep: true })
+    @Watch('valid_rdvs', { immediate: true, deep: true })
     private onchange_rdvsByIds() {
         this.fcEvents = [];
 
-        for (let i in this.getRdvsByIds) {
+        for (let i in this.valid_rdvs) {
 
-            let es: EventObjectInput[] = this.getPlanningEventFromRDV(this.getRdvsByIds[i]);
+            let rdv = this.valid_rdvs[i];
+
+            let es: EventObjectInput[] = this.getPlanningEventFromRDV(rdv);
 
             if ((!!es) && (es.length > 0)) {
                 this.fcEvents = this.fcEvents.concat(es);
@@ -902,7 +991,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             views: {
                 timelineMonth: {
-                    slotWidth: 150 / (24 / ProgramPlanControllerBase.getInstance().slot_interval),
+                    slotWidth: 150 / this.nb_day_slices,
                     slotLabelInterval: {
                         hours: ProgramPlanControllerBase.getInstance().slot_interval
                     },
@@ -911,7 +1000,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     },
                 },
                 timelineWeek: {
-                    slotWidth: 150 / (24 / ProgramPlanControllerBase.getInstance().slot_interval),
+                    slotWidth: 150 / this.nb_day_slices,
                     slotLabelInterval: {
                         hours: ProgramPlanControllerBase.getInstance().slot_interval
                     },
@@ -929,7 +1018,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             resourceLabelText: this.label('programplan.fc.resourcelabeltext.name'),
             slotLabelFormat,
             resourceColumns,
-            resources: this.getPlanningResources(),
+            resources: this.planningResources,
         };
     }
 
@@ -957,9 +1046,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         await Promise.all(promises);
 
+        this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment) : null);
+        this.set_filter_date_fin(this.fcSegment ? TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment).add(-1, 'day') : null);
 
-        this.printform_filter_date_debut = this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment).format("Y-MM-DD") : null;
-        this.printform_filter_date_fin = this.fcSegment ? TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment).add(-1, 'day').format("Y-MM-DD") : null;
+        this.filter_changed();
     }
 
     /**
@@ -1385,5 +1475,219 @@ export default class ProgramPlanComponent extends VueComponentBase {
         })());
 
         await Promise.all(promises);
+    }
+
+
+    private get_printable_table_weeks() {
+        let res = [];
+
+        let date_debut = moment(this.filter_date_debut).day() == 1 ? moment(this.filter_date_debut) : moment(this.filter_date_debut).day(1);
+        let date_fin = moment(this.filter_date_fin).day() == 0 ? moment(this.filter_date_fin) : moment(this.filter_date_fin).day(7);
+
+        let d = moment(date_debut);
+
+        let week_begin = moment(d);
+        let week_end = moment(d).add(6, 'days');
+
+        let week: any = {};
+        week.days = this.get_printable_table_days(week_begin, week_end);
+        // week.rows = this.printform_filter_clientformat ? this.get_printable_table_rows_clientformat(week_begin, week_end) : this.get_printable_table_rows(week_begin, week_end);
+        week.rows = this.get_printable_table_rows(week_begin, week_end);
+        res.push(week);
+        d.add(7, 'days');
+
+        while (d <= moment(date_fin)) {
+
+
+            week_begin = moment(d);
+            week_end = moment(d).add(6, 'days');
+
+            week = {};
+            week.days = this.get_printable_table_days(week_begin, week_end);
+            // week.rows = this.printform_filter_clientformat ? this.get_printable_table_rows_clientformat(week_begin, week_end) : this.get_printable_table_rows(week_begin, week_end);
+            week.rows = this.get_printable_table_rows(week_begin, week_end);
+            res.push(week);
+
+            d.add(7, 'days');
+        }
+        return res;
+    }
+
+    private get_printable_table_days(date_debut, date_fin) {
+        let res = [];
+
+        let d = moment(date_debut);
+
+        while (d <= moment(date_fin)) {
+
+            res.push(d.format('DD/MM'));
+            d.add(1, 'days');
+        }
+
+        return res;
+    }
+
+    private get_printable_table_rows(date_debut, date_fin) {
+        let res = [];
+
+        for (let i in this.valid_facilitators) {
+            let datas_animateur = [];
+            let facilitator = this.valid_facilitators[i];
+
+            // Remplir le tableau en fonction des dates, à vide.
+            /*let date_debut = moment(this.printform_filter_date_debut).day() == 1 ? moment(this.printform_filter_date_debut) : moment(this.printform_filter_date_debut).day(1);
+            let date_fin = moment(this.printform_filter_date_fin).day() == 0 ? moment(this.printform_filter_date_fin) : moment(this.printform_filter_date_fin).day(7);
+            */
+
+            let d = moment(date_debut);
+
+            let nb_offsets = 0;
+
+            while (d <= moment(date_fin)) {
+
+                // am / pm ou am / am, pm / pm
+                for (let day_slice = 0; day_slice < this.nb_day_slices; day_slice++) {
+                    datas_animateur.push({
+                        isrdv: false,
+                        nb_slots: 1
+                    });
+                }
+                d.add(1, 'days');
+                nb_offsets += this.nb_day_slices;
+            }
+
+            // Positionner les évènements
+            for (let j in this.valid_rdvs) {
+                let rdv = this.valid_rdvs[j];
+
+                if (rdv.facilitator_id == facilitator.id) {
+
+                    if (((moment(rdv.start_time) < moment(this.filter_date_fin).add(1, 'days')) &&
+                        (moment(rdv.start_time) >= moment(this.filter_date_debut))) ||
+                        ((moment(rdv.end_time) <= moment(this.filter_date_fin).add(1, 'days')) &&
+                            (moment(rdv.end_time) > moment(this.filter_date_debut)))) {
+
+                        // Calculer l'index
+                        let offset_start = moment(rdv.start_time).diff(moment(date_debut), 'hours');
+                        let offset_start_halfdays = Math.round(offset_start / (24 / this.nb_day_slices));
+
+                        if (offset_start_halfdays < 0) {
+                            offset_start_halfdays = 0;
+                        }
+
+                        let offset_end = moment(rdv.end_time).diff(moment(date_debut), 'hours');
+                        let offset_end_halfdays = Math.round(offset_end / (24 / this.nb_day_slices));
+
+                        if (offset_end_halfdays >= nb_offsets) {
+                            offset_end_halfdays = nb_offsets - 1;
+                        }
+
+                        if ((offset_end_halfdays - offset_start_halfdays) < 0) {
+                            continue;
+                        }
+
+                        datas_animateur[offset_start_halfdays] = {
+                            isrdv: true,
+                            nb_slots: (offset_end_halfdays - offset_start_halfdays),
+                            short_name: this.getTargetsByIds[rdv.target_id].name,
+                            target_id: rdv.target_id,
+                            resourceId: facilitator.id,
+                            title: this.getTargetsByIds[rdv.target_id].name,
+                            task_id: rdv.task_id
+                        };
+
+                        ProgramPlanControllerBase.getInstance().populateCalendarEvent(
+                            datas_animateur[offset_start_halfdays]);
+                    }
+                }
+            }
+
+            // Regrouper les evenements et les cases vides
+            let res_datas_animateur = [];
+            let ignore_next_indexes = 0;
+            let combine = 0;
+            let last_res_data = null;
+
+            // Les lignes vides ne sont pas imprimées
+            let emptyrow = true;
+
+            for (let k in datas_animateur) {
+                let data_animateur = datas_animateur[k];
+
+                if (ignore_next_indexes) {
+                    ignore_next_indexes--;
+                    continue;
+                }
+
+                if (last_res_data && (!last_res_data.isrdv) && (!data_animateur.isrdv)) {
+                    last_res_data.nb_slots++;
+                    continue;
+                }
+
+                last_res_data = {
+                    isrdv: data_animateur.isrdv,
+                    nb_slots: data_animateur.nb_slots,
+                    color: data_animateur.color,
+                    bgcolor: data_animateur.bgcolor,
+                    short_name: data_animateur.short_name
+                };
+
+                if (data_animateur.isrdv) {
+                    emptyrow = false;
+                }
+
+                res_datas_animateur.push(last_res_data);
+
+                if (data_animateur.nb_slots > 1) {
+                    ignore_next_indexes = data_animateur.nb_slots - 1;
+                }
+            }
+
+            if (!emptyrow) {
+                res.push(res_datas_animateur);
+            }
+        }
+
+        return res;
+    }
+
+    get nb_day_slices() {
+        return Math.floor(24 / ProgramPlanControllerBase.getInstance().slot_interval);
+    }
+
+    private filter_changed() {
+
+        this.valid_targets = [];
+        for (let i in this.getTargetsByIds) {
+            let target: IPlanTarget = this.getTargetsByIds[i];
+
+            if ((!!ProgramPlanControllerBase.getInstance().is_valid_target) && (!ProgramPlanControllerBase.getInstance().is_valid_target(target))) {
+                continue;
+            }
+            this.valid_targets.push(target);
+        }
+
+        this.valid_facilitators = [];
+        for (let i in this.getFacilitatorsByIds) {
+            let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[i];
+
+            if ((!!ProgramPlanControllerBase.getInstance().is_valid_facilitator) && (!ProgramPlanControllerBase.getInstance().is_valid_facilitator(facilitator))) {
+                continue;
+            }
+            this.valid_facilitators.push(facilitator);
+        }
+
+        this.valid_rdvs = [];
+        for (let i in this.getRdvsByIds) {
+            let rdv: IPlanRDV = this.getRdvsByIds[i];
+
+            if ((!!ProgramPlanControllerBase.getInstance().is_valid_rdv) && (!ProgramPlanControllerBase.getInstance().is_valid_rdv(rdv))) {
+                continue;
+            }
+            this.valid_rdvs.push(rdv);
+        }
+
+        // (this.$refs.fullcalendar as any).$forceUpdate();
+        this.calendar_key++;
     }
 }

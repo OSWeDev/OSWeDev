@@ -569,6 +569,9 @@ export default class VueComponentBase extends Vue
     get isPrintable(): boolean {
         return AppVuexStoreManager.getInstance().appVuexStore.getters.printable;
     }
+    get onprint(): () => void {
+        return AppVuexStoreManager.getInstance().appVuexStore.getters.onprint;
+    }
     get isExportableToXLSX(): boolean {
         return AppVuexStoreManager.getInstance().appVuexStore.getters.exportableToXLSX;
     }

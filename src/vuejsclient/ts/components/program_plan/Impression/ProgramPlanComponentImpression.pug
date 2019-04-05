@@ -2,23 +2,6 @@ include ../../../../views/mixins/box.pug
 include ../../../../views/mixins/table.pug
 
 .root
-    .printform.hidden-print
-        div.col-md-12
-            +box("{{t('client.planning-store-visits.printform.title')}}", 'fa-filter')
-                .form.row
-                    .col-md-6
-                        v-select.v-select-multiple(v-model="printform_filter_enseignes", multiple, :options="enseignes", label="name", :placeholder="t('client.planning-store-visits.printform.filtrer.enseignes')")
-                        //- label {{ t('client.planning-store-visits.printform.filtrer.clientformat') }}
-                        //-     input(type="checkbox", v-model="printform_filter_clientformat", set_value_in="printform_filter_clientformat")
-                    //- .col-md-3
-                    //-     input(type="date", v-model="printform_filter_date_debut", set_value_in="printform_filter_date_debut", :data-placeholder="t('client.planning-store-visits.printform.filtrer.begindate')")
-                    //-     input(type="date", v-model="printform_filter_date_fin", set_value_in="printform_filter_date_fin", :data-placeholder="t('client.planning-store-visits.printform.filtrer.enddate')")
-                        //- label {{ t('client.planning-store-visits.printform.filtrer.slotsize') }}
-                        //-     input(type="checkbox", v-model="printform_filter_slotsize", set_value_in="printform_filter_slotsize")
-                    .col-md-6
-                        button.btn.pull-right.btn-secondary(type="button", @click="printPlanning()")
-                            span {{ t('client.planning-store-visits.printform.go') }}
-
     .printable.hidden-noprint
 
         mixin print-planning-headers(printable_table_week)

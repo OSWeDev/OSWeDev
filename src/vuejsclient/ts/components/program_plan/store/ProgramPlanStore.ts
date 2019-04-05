@@ -1,20 +1,23 @@
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors, GetterHandler } from "vuex-typescript";
-import IStoreModule from '../../../store/IStoreModule';
-import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
-import IPlanManager from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
-import IPlanFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
-import IPlanRDVCR from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
-import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import { getStoreAccessors } from "vuex-typescript";
 import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
+import IPlanFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
+import IPlanManager from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
 import IPlanPartner from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanPartner';
-import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
-import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
+import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import IPlanRDVCR from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanRDVPrep from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
-import moment = require('moment');
+import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import IPlanTargetFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetFacilitator';
+import IPlanTargetGroup from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetGroup';
+import IPlanTargetRegion from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetRegion';
+import IPlanTargetZone from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetZone';
+import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
+import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
+import IStoreModule from '../../../store/IStoreModule';
+import moment = require('moment');
 
 export type ProgramPlanContext = ActionContext<IProgramPlanState, any>;
 
@@ -24,6 +27,9 @@ export interface IProgramPlanState {
     enseignes_by_ids: { [id: number]: IPlanEnseigne };
     targets_by_ids: { [id: number]: IPlanTarget };
     facilitators_by_ids: { [id: number]: IPlanFacilitator };
+    targets_regions_by_ids: { [id: number]: IPlanTargetRegion };
+    targets_zones_by_ids: { [id: number]: IPlanTargetZone };
+    targets_groups_by_ids: { [id: number]: IPlanTargetGroup };
     targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator };
     managers_by_ids: { [id: number]: IPlanManager };
     rdvs_by_ids: { [id: number]: IPlanRDV };
@@ -35,6 +41,9 @@ export interface IProgramPlanState {
     can_edit_own_team: boolean;
     can_edit_self: boolean;
     selected_rdv: IPlanRDV;
+    filter_date_debut: moment.Moment;
+    filter_date_fin: moment.Moment;
+    printable_table_weeks: any;
 }
 
 
@@ -62,6 +71,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
 
         this.state = {
+            targets_regions_by_ids: {},
+            targets_zones_by_ids: {},
             task_types_by_ids: {},
             tasks_by_ids: {},
             targets_by_ids: {},
@@ -76,11 +87,25 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_edit_own_team: false,
             can_edit_self: false,
             selected_rdv: null,
-            targets_facilitators_by_ids: {}
+            targets_facilitators_by_ids: {},
+            filter_date_debut: null,
+            filter_date_fin: null,
+            printable_table_weeks: {},
+            targets_groups_by_ids: {}
         };
 
 
         this.getters = {
+            targets_groups_by_ids: (state: IProgramPlanState): any => state.targets_groups_by_ids,
+
+            targets_regions_by_ids: (state: IProgramPlanState): any => state.targets_regions_by_ids,
+            targets_zones_by_ids: (state: IProgramPlanState): any => state.targets_zones_by_ids,
+
+            printable_table_weeks: (state: IProgramPlanState): any => state.printable_table_weeks,
+
+            filter_date_debut: (state: IProgramPlanState): moment.Moment => state.filter_date_debut,
+            filter_date_fin: (state: IProgramPlanState): moment.Moment => state.filter_date_fin,
+
             can_edit_any: (state: IProgramPlanState): boolean => state.can_edit_any,
             can_edit_all: (state: IProgramPlanState): boolean => state.can_edit_all,
             can_edit_own_team: (state: IProgramPlanState): boolean => state.can_edit_own_team,
@@ -150,6 +175,15 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
         };
 
         this.mutations = {
+            set_targets_groups_by_ids: (state: IProgramPlanState, targets_groups_by_ids: { [id: number]: IPlanTargetGroup }): any => state.targets_groups_by_ids = targets_groups_by_ids,
+
+            set_targets_regions_by_ids: (state: IProgramPlanState, targets_regions_by_ids: { [id: number]: IPlanTargetRegion }) => state.targets_regions_by_ids = targets_regions_by_ids,
+            set_targets_zones_by_ids: (state: IProgramPlanState, targets_zones_by_ids: { [id: number]: IPlanTargetZone }) => state.targets_zones_by_ids = targets_zones_by_ids,
+
+            set_printable_table_weeks: (state: IProgramPlanState, printable_table_weeks: any) => state.printable_table_weeks = printable_table_weeks,
+
+            set_filter_date_debut: (state: IProgramPlanState, filter_date_debut: moment.Moment) => state.filter_date_debut = filter_date_debut,
+            set_filter_date_fin: (state: IProgramPlanState, filter_date_fin: moment.Moment) => state.filter_date_fin = filter_date_fin,
 
             set_targets_facilitators_by_ids: (state: IProgramPlanState, targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator }) => state.targets_facilitators_by_ids = targets_facilitators_by_ids,
 
@@ -286,6 +320,16 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
 
         this.actions = {
+            set_targets_groups_by_ids: (context: ProgramPlanContext, targets_groups_by_ids: { [id: number]: IPlanTargetGroup }): any => commit_set_targets_groups_by_ids(context, targets_groups_by_ids),
+
+            set_targets_regions_by_ids: (context: ProgramPlanContext, targets_regions_by_ids: { [id: number]: IPlanTargetRegion }) => commit_set_targets_regions_by_ids(context, targets_regions_by_ids),
+            set_targets_zones_by_ids: (context: ProgramPlanContext, targets_zones_by_ids: { [id: number]: IPlanTargetZone }) => commit_set_targets_zones_by_ids(context, targets_zones_by_ids),
+
+            set_printable_table_weeks: (context: ProgramPlanContext, printable_table_weeks: any) => commit_set_printable_table_weeks(context, printable_table_weeks),
+
+            set_filter_date_debut: (context: ProgramPlanContext, filter_date_debut: moment.Moment) => commit_set_filter_date_debut(context, filter_date_debut),
+            set_filter_date_fin: (context: ProgramPlanContext, filter_date_fin: moment.Moment) => commit_set_filter_date_fin(context, filter_date_fin),
+
             set_targets_facilitators_by_ids: (context: ProgramPlanContext, targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator }) => commit_set_targets_facilitators_by_ids(context, targets_facilitators_by_ids),
 
             set_tasks_by_ids(context: ProgramPlanContext, tasks_by_ids: { [id: number]: IPlanTask }) {
@@ -406,6 +450,9 @@ export const commitSetCrsByIds = commit(ProgramPlanStore.getInstance().mutations
 export const commit_set_task_types_by_ids = commit(ProgramPlanStore.getInstance().mutations.set_task_types_by_ids);
 export const commit_set_tasks_by_ids = commit(ProgramPlanStore.getInstance().mutations.set_tasks_by_ids);
 
+export const commit_set_filter_date_debut = commit(ProgramPlanStore.getInstance().mutations.set_filter_date_debut);
+export const commit_set_filter_date_fin = commit(ProgramPlanStore.getInstance().mutations.set_filter_date_fin);
+
 export const commitSetRdvById = commit(ProgramPlanStore.getInstance().mutations.setRdvById);
 export const commitSetCrById = commit(ProgramPlanStore.getInstance().mutations.setCrById);
 export const commitRemoveRdv = commit(ProgramPlanStore.getInstance().mutations.removeRdv);
@@ -418,7 +465,14 @@ export const commitUpdatePrep = commit(ProgramPlanStore.getInstance().mutations.
 
 export const commit_set_selected_rdv = commit(ProgramPlanStore.getInstance().mutations.set_selected_rdv);
 
+export const commit_set_targets_groups_by_ids = commit(ProgramPlanStore.getInstance().mutations.set_targets_groups_by_ids);
+
+export const commit_set_printable_table_weeks = commit(ProgramPlanStore.getInstance().mutations.set_printable_table_weeks);
+
 export const commit_set_targets_facilitators_by_ids = commit(ProgramPlanStore.getInstance().mutations.set_targets_facilitators_by_ids);
+
+export const commit_set_targets_regions_by_ids = commit(ProgramPlanStore.getInstance().mutations.set_targets_regions_by_ids);
+export const commit_set_targets_zones_by_ids = commit(ProgramPlanStore.getInstance().mutations.set_targets_zones_by_ids);
 
 export const comit_set_can_edit_any = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_any);
 export const comit_set_can_edit_all = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_all);

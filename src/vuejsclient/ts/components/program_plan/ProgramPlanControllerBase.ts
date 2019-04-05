@@ -1,10 +1,11 @@
 import { EventObjectInput, View } from 'fullcalendar';
 import IPlanContact from '../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
+import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
+import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueAppBase from '../../../VueAppBase';
-import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -14,6 +15,10 @@ export default abstract class ProgramPlanControllerBase {
 
     private static instance: ProgramPlanControllerBase = null;
 
+    public is_valid_rdv: (rdv: IPlanRDV) => boolean;
+    public is_valid_target: (target: IPlanTarget) => boolean;
+    public is_valid_facilitator: (facilitator: IPlanFacilitator) => boolean;
+
     protected constructor(
         public customPrepCreateComponent,
         public customPrepReadComponent,
@@ -21,6 +26,7 @@ export default abstract class ProgramPlanControllerBase {
         public customCRCreateComponent,
         public customCRReadComponent,
         public customCRUpdateComponent,
+        public customFilterComponent,
         public slot_interval: number = 12,
         public month_view: boolean = true
     ) {

@@ -2,12 +2,17 @@ include ../../../views/mixins/loading.pug
 
 .rootElt#program-plan
     +loading()
-        program-plan-component-impression(
-            :printform_filter_date_debut="printform_filter_date_debut"
-            :printform_filter_date_fin="printform_filter_date_fin")
+        program-plan-component-impression
+
+        .row
+            .col-md-12
+                .custom_filter_component(:is="custom_filter_component" @filter_changed="filter_changed" v-if="!!custom_filter_component")
 
         program-plan-component-target-listing.hidden-print(v-show='show_targets' v-if="can_edit_any")
+
         full-calendar.hidden-print(
+            :key="calendar_key"
+
             :events="fcEvents" 
             :config="fcConfig"
             
