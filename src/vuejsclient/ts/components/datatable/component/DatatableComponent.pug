@@ -46,6 +46,8 @@ v-client-table(
                     li(v-for="value in props.row[field.datatable_field_uid]") {{ value }}
             template(v-else-if="field.moduleTableField.field_type == 'html'")
                 code {{ props.row[field.datatable_field_uid] }}
+            template(v-else-if="field.moduleTableField.field_type == 'enum'")
+                span(:class="transliterate_enum_value_to_class_name(props.row[field.datatable_field_uid])") {{ props.row[field.datatable_field_uid] }}
             template(v-else)
                 span {{ props.row[field.datatable_field_uid] }}
         template(v-else-if="field.type == 'ManyToOne'")

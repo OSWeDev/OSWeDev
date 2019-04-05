@@ -26,6 +26,7 @@ import ImageComponent from '../../image/ImageComponent';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import MultiInputComponent from '../../multiinput/MultiInputComponent';
 import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
+import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -287,6 +288,7 @@ export default class CRUDComponent extends VueComponentBase {
 
         // On passe la traduction en IHM sur les champs
         this.newVO = this.dataToIHM(obj, this.crud.createDatatable, false);
+        this.onChangeVO(this.newVO, this.crud.createDatatable);
     }
 
     private prepare_select_options() {
@@ -306,11 +308,19 @@ export default class CRUDComponent extends VueComponentBase {
                 let manyToOne: ReferenceDatatableField<any> = (field as ReferenceDatatableField<any>);
                 let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
 
+                if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+                    let manyToOneField: ManyToOneReferenceDatatableField<any> = (field as ManyToOneReferenceDatatableField<any>);
+                    if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
+                        options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(null, options);
+                    }
+                }
+
                 for (let j in options) {
                     let option = options[j];
 
                     newOptions.push(option.id);
                 }
+
                 this.isLoadingOptions[field.datatable_field_uid] = false;
                 Vue.set(this.select_options, field.datatable_field_uid, newOptions);
                 continue;
@@ -484,6 +494,7 @@ export default class CRUDComponent extends VueComponentBase {
 
         // On passe la traduction en IHM sur les champs
         this.editableVO = this.dataToIHM(this.getSelectedVOs[0], this.crud.updateDatatable, true);
+        this.onChangeVO(this.editableVO, this.crud.updateDatatable);
     }
 
     private dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
@@ -893,7 +904,37 @@ export default class CRUDComponent extends VueComponentBase {
         this[vo][field.datatable_field_uid] = values;
     }
 
-    private onChangeField(vo: IDistantVOBase, field: DatatableField<any, any>) {
+    private onChangeVO(vo: IDistantVOBase, datatable: Datatable<any>) {
+
+
+        for (let i in datatable.fields) {
+            let field: DatatableField<any, any> = datatable.fields[i];
+
+
+            if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+
+                let manyToOneField: ManyToOneReferenceDatatableField<any> = (field as ManyToOneReferenceDatatableField<any>);
+                let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+
+                if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
+                    options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
+                }
+
+                let newOptions: number[] = [];
+                for (let j in options) {
+                    let option = options[j];
+
+                    newOptions.push(option.id);
+                }
+                Vue.set(this.select_options, field.datatable_field_uid, newOptions);
+            }
+        }
+    }
+
+    private onChangeField(vo: IDistantVOBase, datatable: Datatable<any>, field: DatatableField<any, any>) {
+
+        this.onChangeVO(vo, datatable);
+
         if (!field.onChange) {
             return;
         }

@@ -1,6 +1,6 @@
 include ../../../../views/mixins/loading.pug
 
-mixin simple_input_types(vo, field_type)
+mixin simple_input_types(vo, datatable, field_type)
     .form-group(:class=field_type)
         label {{ t(field.translatable_title) }}
             template(v-if="field.is_required")
@@ -66,14 +66,14 @@ mixin simple_input_types(vo, field_type)
                 :disabled="field.is_readonly",
                 :preselectFirst="field.is_required",
                 @search-change="asyncLoadEnumOptions",
-                @input="onChangeField("+vo+", field)")
+                @input="onChangeField("+vo+", "+datatable+", field)")
         template(v-else-if=field_type+" == 'number[]'")
             multi-input(:field_value=vo+"[field.datatable_field_uid]", :vo="'" + vo + "'", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="number", @input="validateMultiInput")
         template(v-else-if=field_type+" == 'text[]'")
             multi-input(:field_value=vo+"[field.datatable_field_uid]", :vo="'" + vo + "'", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input="validateMultiInput")
 
 
-mixin manytoone_input(vo)
+mixin manytoone_input(vo, datatable)
     .form-group
         label {{ t(field.translatable_title) }}
             template(v-if="field.is_required")
@@ -96,10 +96,10 @@ mixin manytoone_input(vo)
             :allow-empty="!field.is_required",
             :preselectFirst="field.is_required",
             @search-change="asyncLoadOptions",
-            @input="onChangeField("+vo+", field)")
+            @input="onChangeField("+vo+", "+datatable+", field)")
 
 
-mixin onetomany_input(vo)
+mixin onetomany_input(vo, datatable)
     .form-group
         label {{ t(field.translatable_title) }}
         .btn-group.link_ref
@@ -121,7 +121,7 @@ mixin onetomany_input(vo)
             :allow-empty="true",
             :preselectFirst="false",
             @search-change="asyncLoadOptions",
-            @input="onChangeField("+vo+", field)",
+            @input="onChangeField("+vo+", "+datatable+", field)",
             :multiple="true")
 
 
@@ -165,16 +165,16 @@ mixin onetomany_input(vo)
                                 template(v-for="field in crud.createDatatable.fields")
                                     template(v-if="((field.type == 'INPUT') || (field.datatable_field_uid == field.module_table_field_id)) && (field.isVisibleUpdateOrCreate(newVO))")
                                         template(v-if="field.type == 'Simple'")
-                                            +simple_input_types('newVO', 'field.moduleTableField.field_type')
+                                            +simple_input_types('newVO', 'crud.createDatatable', 'field.moduleTableField.field_type')
 
                                         template(v-else-if="field.type == 'INPUT'")
-                                            +simple_input_types('newVO', 'field.field_type')
+                                            +simple_input_types('newVO', 'crud.createDatatable', 'field.field_type')
 
                                         template(v-else-if="field.type == 'ManyToOne'")
-                                            +manytoone_input('newVO')
+                                            +manytoone_input('newVO', 'crud.createDatatable')
 
                                         template(v-else-if="(field.type == 'OneToMany') || (field.type == 'ManyToMany')")
-                                            +onetomany_input('newVO')
+                                            +onetomany_input('newVO', 'crud.createDatatable')
 
                             template(v-else)
                                 p {{ label('crud.create.modal.content.newvo_failure') }}
@@ -195,16 +195,16 @@ mixin onetomany_input(vo)
                                 template(v-for="field in crud.updateDatatable.fields")
                                     template(v-if="((field.type == 'INPUT') || (field.datatable_field_uid == field.module_table_field_id)) && (field.isVisibleUpdateOrCreate(editableVO))")
                                         template(v-if="field.type == 'Simple'")
-                                            +simple_input_types('editableVO', 'field.moduleTableField.field_type')
+                                            +simple_input_types('editableVO', 'crud.updateDatatable', 'field.moduleTableField.field_type')
 
                                         template(v-else-if="field.type == 'INPUT'")
-                                            +simple_input_types('editableVO', 'field.field_type')
+                                            +simple_input_types('editableVO', 'crud.updateDatatable', 'field.field_type')
 
                                         template(v-else-if="field.type == 'ManyToOne'")
-                                            +manytoone_input('editableVO')
+                                            +manytoone_input('editableVO', 'crud.updateDatatable')
 
                                         template(v-else-if="(field.type == 'OneToMany') || (field.type == 'ManyToMany')")
-                                            +onetomany_input('editableVO')
+                                            +onetomany_input('editableVO', 'crud.updateDatatable')
                                             
                             template(v-else)
                                 p {{ label('crud.update.modal.content.selection_failure') }}

@@ -7,6 +7,17 @@ export default class Datatable<T extends IDistantVOBase> {
     protected sortedFields: Array<DatatableField<any, any>> = [];
     constructor(public API_TYPE_ID: string) { }
 
+    public getFieldByDatatableFieldUID(datatable_field_uid: string): DatatableField<any, any> {
+
+        for (let i in this.fields) {
+            let field = this.fields[i];
+
+            if (field.datatable_field_uid == datatable_field_uid) {
+                return field;
+            }
+        }
+    }
+
     public pushField(field: DatatableField<any, any>) {
         field.setModuleTable(VOsTypesManager.getInstance().moduleTables_by_voType[this.API_TYPE_ID]);
         this.sortedFields.push(field);

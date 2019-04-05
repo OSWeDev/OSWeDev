@@ -42,7 +42,8 @@ export default class CRUDComponentManager {
         crud: CRUD<T>,
         menuPointer: MenuPointer,
         routes: RouteConfig[],
-        read_query: any = null) {
+        read_query: any = null,
+        routes_meta: any = null) {
 
         let url: string = CRUDHandler.getCRUDLink(API_TYPE_ID);
         let route_name: string = 'Manage ' + API_TYPE_ID;
@@ -61,7 +62,8 @@ export default class CRUDComponentManager {
                 crud: crud,
                 key: '__manage__' + API_TYPE_ID,
                 read_query: read_query
-            })
+            }),
+            meta: routes_meta ? routes_meta : undefined
         });
 
         routes.push({
@@ -73,7 +75,8 @@ export default class CRUDComponentManager {
                 key: '__manage__' + API_TYPE_ID,
                 modal_show_update: true,
                 modal_vo_id: parseInt(route.params.id)
-            })
+            }),
+            meta: routes_meta ? routes_meta : undefined
         });
 
         if (!VOsTypesManager.getInstance().moduleTables_by_voType[crud.readDatatable.API_TYPE_ID].isModuleParamTable) {
@@ -85,7 +88,8 @@ export default class CRUDComponentManager {
                     crud: crud,
                     key: '__manage__' + API_TYPE_ID,
                     modal_show_create: true
-                })
+                }),
+                meta: routes_meta ? routes_meta : undefined
             });
 
             routes.push({
@@ -97,7 +101,8 @@ export default class CRUDComponentManager {
                     key: '__manage__' + API_TYPE_ID,
                     modal_show_delete: true,
                     modal_vo_id: parseInt(route.params.id)
-                })
+                }),
+                meta: routes_meta ? routes_meta : undefined
             });
         }
 

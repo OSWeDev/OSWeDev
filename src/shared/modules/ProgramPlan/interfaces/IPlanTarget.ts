@@ -4,6 +4,7 @@ export default interface IPlanTarget extends IDistantVOBase {
     name: string;
     enseigne_id?: number;
     zone_id?: number;
+    group_id?: number;
 
     // Composants d'adresse
     address: string;
