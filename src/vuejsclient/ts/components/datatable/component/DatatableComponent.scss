@@ -8,3 +8,11 @@ ul.multi-input {
 .many-router-links {
     margin: 1px;
 }
+
+@media print
+{    
+    .d-print-none, .d-print-none *
+    {
+        display: none !important;
+    }
+}

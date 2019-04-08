@@ -40,8 +40,8 @@ export default class VersionedVOController implements IVOController {
         version_author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         version_author_id.setModuleTable(moduleTable);
 
-        moduleTable.fields.unshift((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de modification', false)).setModuleTable(moduleTable));
-        moduleTable.fields.unshift(version_edit_author_id);
+        moduleTable.fields.push(version_edit_author_id);
+        moduleTable.fields.push((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de modification', false)).setModuleTable(moduleTable));
 
         moduleTable.fields.push(version_author_id);
         moduleTable.fields.push((new ModuleTableField('version_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de création', false)).setModuleTable(moduleTable));

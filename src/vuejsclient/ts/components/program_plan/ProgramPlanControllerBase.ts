@@ -26,6 +26,7 @@ export default abstract class ProgramPlanControllerBase {
         public customCRCreateComponent,
         public customCRReadComponent,
         public customCRUpdateComponent,
+        public customTargetInfosComponent,
         public customFilterComponent,
         public slot_interval: number = 12,
         public month_view: boolean = true

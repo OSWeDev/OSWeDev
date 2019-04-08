@@ -174,16 +174,6 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
                 this.routes);
         }
 
-        if (!!ModuleProgramPlanBase.getInstance().target_facilitator_type_id) {
-            CRUDComponentManager.getInstance().registerCRUD(
-                ModuleProgramPlanBase.getInstance().target_facilitator_type_id,
-                null,
-                new MenuPointer(
-                    new MenuLeaf(ModuleProgramPlanBase.getInstance().target_facilitator_type_id, MenuElementBase.PRIORITY_LOW + 1, "fa-user-circle"),
-                    menuBranch),
-                this.routes);
-        }
-
         if (!!ModuleProgramPlanBase.getInstance().task_type_type_id) {
             CRUDComponentManager.getInstance().registerCRUD(
                 ModuleProgramPlanBase.getInstance().task_type_type_id,

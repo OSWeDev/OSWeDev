@@ -5,7 +5,7 @@ v-client-table(
         :options="datatable_options"
     )
 
-    div(slot="filter____multiselect_column__")
+    div.hidden-print(slot="filter____multiselect_column__")
         input.d-print-none.form-control(type="checkbox" v-model="allselected_chck" @click.prevent="selectAll()")
     
     div(slot="__multiselect_column__" slot-scope="props")

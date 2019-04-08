@@ -66,16 +66,14 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
 
     @ModuleProgramPlanGetter
     public selected_rdv: IPlanRDV;
-
-    private rdv_confirmed: boolean = false;
-
     private target_contacts: IPlanContact[] = [];
+
+    get customTargetInfosComponent() {
+        return ProgramPlanControllerBase.getInstance().customTargetInfosComponent;
+    }
 
     @Watch('selected_rdv', { immediate: true })
     private async onChangeSelectedRDV() {
-        // Vérifier le statut et mettre à jour le flag RDV_confirmed
-        this.rdv_confirmed = (this.selected_rdv && (this.selected_rdv.state != ModuleProgramPlanBase.RDV_STATE_CREATED));
-
         let target_contact_links: IPlanTargetContact[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanTargetContact>(
             ModuleProgramPlanBase.getInstance().target_contact_type_id, "target_id", [this.selected_rdv.target_id]);
         let contacts_ids: number[] = [];
@@ -86,21 +84,6 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
         }
         this.target_contacts = await ModuleDAO.getInstance().getVosByIds<IPlanContact>(
             ModuleProgramPlanBase.getInstance().contact_type_id, contacts_ids);
-    }
-
-    get selected_rdv_cr(): IPlanRDVCR {
-        if (!this.selected_rdv) {
-            return null;
-        }
-
-        for (let i in this.getCrsByIds) {
-            let cr: IPlanRDVCR = this.getCrsByIds[i] as IPlanRDVCR;
-
-            if (cr.rdv_id == this.selected_rdv.id) {
-                return cr;
-            }
-        }
-        return null;
     }
 
     get target(): IPlanTarget {

@@ -78,11 +78,11 @@ mixin manytoone_input(vo, datatable)
         label {{ t(field.translatable_title) }}
             template(v-if="field.is_required")
                 i.fa.fa-asterisk.mandatory
-        .btn-group.link_ref
+        .btn-group.link_ref.hidden-print
             template(v-if=vo+"[field.datatable_field_uid]")
-                router-link.btn.btn-sm.btn-primary(:to="getCRUDUpdateLink(field.targetModuleTable.vo_type, "+vo+"[field.datatable_field_uid])" target='_blank')
+                a.btn.btn-sm.btn-primary(:href="'/admin#' + getCRUDUpdateLink(field.targetModuleTable.vo_type, "+vo+"[field.datatable_field_uid])" target='_blank')
                     i.fa.fa-pencil
-            router-link.btn.btn-sm.btn-success(:to="getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
+            a.btn.btn-sm.btn-success(:href="'/admin#' + getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
                 i.fa.fa-plus-circle
         multiselect(
             v-model=vo+"[field.datatable_field_uid]",

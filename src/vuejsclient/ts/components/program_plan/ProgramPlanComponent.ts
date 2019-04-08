@@ -935,16 +935,19 @@ export default class ProgramPlanComponent extends VueComponentBase {
         let facilitator_column = {
             labelText: this.label('programplan.fc.facilitator.name'),
             field: 'title',
-            group: undefined
+            group: undefined,
+            width: undefined
         };
 
         if (!!ModuleProgramPlanBase.getInstance().target_facilitator_type_id) {
             resourceColumns.push({
                 labelText: this.label('programplan.fc.target.name'),
                 field: 'target_name',
-                group: true
+                group: true,
+                width: '65%'
             });
             //facilitator_column.group = true;
+            facilitator_column.width = '35%';
         }
 
         resourceColumns.push(facilitator_column);
@@ -976,6 +979,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             locale: 'fr',
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
             now: moment().format('Y-MM-DD'),
+            defaultDate: this.fcSegment ? this.fcSegment.dateIndex : moment().format('Y-MM-DD'),
             schedulerLicenseKey: '0801712196-fcs-1461229306',
             editable: this.can_edit_any,
             droppable: this.can_edit_any,
@@ -987,8 +991,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 center: 'title',
                 right: ProgramPlanControllerBase.getInstance().month_view ? 'timelineWeek,timelineMonth' : 'timelineWeek'
             },
-            defaultView: 'timelineWeek',
-
+            defaultView: this.fcSegment && (this.fcSegment.type == TimeSegment.TYPE_MONTH) ? 'timelineMonth' : 'timelineWeek',
             views: {
                 timelineMonth: {
                     slotWidth: 150 / this.nb_day_slices,
@@ -1022,6 +1025,19 @@ export default class ProgramPlanComponent extends VueComponentBase {
         };
     }
 
+    get is_facilitator_specific(): boolean {
+
+        if (!this.selected_rdv) {
+            return false;
+        }
+
+        if (!this.get_tasks_by_ids[this.selected_rdv.task_id]) {
+            return false;
+        }
+
+        return this.get_tasks_by_ids[this.selected_rdv.task_id].is_facilitator_specific;
+    }
+
     @Watch('fcSegment')
     private async onChangeFCSegment() {
 
@@ -1049,7 +1065,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.set_filter_date_debut(this.fcSegment ? TimeSegmentHandler.getInstance().getStartTimeSegment(this.fcSegment) : null);
         this.set_filter_date_fin(this.fcSegment ? TimeSegmentHandler.getInstance().getEndTimeSegment(this.fcSegment).add(-1, 'day') : null);
 
-        this.filter_changed();
+        // this.filter_changed();
     }
 
     /**
@@ -1655,8 +1671,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return Math.floor(24 / ProgramPlanControllerBase.getInstance().slot_interval);
     }
 
-    private filter_changed() {
-
+    @Watch('getTargetsByIds', { deep: true, immediate: true })
+    private reset_targets() {
         this.valid_targets = [];
         for (let i in this.getTargetsByIds) {
             let target: IPlanTarget = this.getTargetsByIds[i];
@@ -1666,7 +1682,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
             this.valid_targets.push(target);
         }
+    }
 
+    @Watch('getFacilitatorsByIds', { deep: true, immediate: true })
+    private reset_facilitators() {
         this.valid_facilitators = [];
         for (let i in this.getFacilitatorsByIds) {
             let facilitator: IPlanFacilitator = this.getFacilitatorsByIds[i];
@@ -1676,7 +1695,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
             this.valid_facilitators.push(facilitator);
         }
+    }
 
+    @Watch('getRdvsByIds', { deep: true, immediate: true })
+    private reset_rdvs() {
         this.valid_rdvs = [];
         for (let i in this.getRdvsByIds) {
             let rdv: IPlanRDV = this.getRdvsByIds[i];
@@ -1686,8 +1708,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
             this.valid_rdvs.push(rdv);
         }
+    }
 
-        // (this.$refs.fullcalendar as any).$forceUpdate();
+    private filter_changed() {
+
+        this.reset_targets();
+        this.reset_facilitators();
+        this.reset_rdvs();
         this.calendar_key++;
     }
 }
