@@ -33,6 +33,7 @@ export default class ModuleDAO extends Module {
     public static APINAME_GET_VOS_BY_REFFIELD_IDS = "GET_VOS_BY_REFFIELD_IDS";
     public static APINAME_GET_VOS_BY_REFFIELDS_IDS = "GET_VOS_BY_REFFIELDS_IDS";
     public static APINAME_GET_NAMED_VO_BY_NAME = "GET_NAMED_VO_BY_NAME";
+    public static APINAME_GET_BASE_URL = "GET_BASE_URL";
 
     public static DAO_ACCESS_TYPE_LIST_LABELS: string = "LIST_LABELS";
     // inherit DAO_ACCESS_TYPE_LIST_LABELS
@@ -147,6 +148,15 @@ export default class ModuleDAO extends Module {
             StringParamVO.translateToURL,
             StringParamVO.translateFromREQ
         ));
+
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, string>(
+            ModuleDAO.APINAME_GET_BASE_URL,
+            []
+        ));
+    }
+
+    public async getBaseUrl(): Promise<string> {
+        return await ModuleAPI.getInstance().handleAPI<void, string>(ModuleDAO.APINAME_GET_BASE_URL);
     }
 
     public async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {

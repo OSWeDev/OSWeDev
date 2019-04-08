@@ -124,7 +124,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     @ModuleProgramPlanAction
     public set_filter_date_fin: (filter_date_fin: moment.Moment) => void;
 
-    @ModuleProgramPlanGetter
+    @ModuleProgramPlanAction
     public set_printable_table_weeks: (printable_table_weeks: any) => void;
 
     @ModuleProgramPlanAction
@@ -1575,6 +1575,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
             // Positionner les évènements
             for (let j in this.valid_rdvs) {
                 let rdv = this.valid_rdvs[j];
+
+                // if ((!!rdv.task_id) && (!!this.get_tasks_by_ids[rdv.task_id]) && (this.get_tasks_by_ids[rdv.task_id].is_facilitator_specific)) {
+                //     // On ignore les taches d'admin
+                //     continue;
+                // }
 
                 if (rdv.facilitator_id == facilitator.id) {
 

@@ -92,6 +92,7 @@
         "web-push": "3.3.2",
         "winston": "2.4.1",
         "winston-daily-rotate-file": "1.7.2",
+        "wkhtmltopdf": "^0.3.4",
         "xlsx": "0.12.2"
     },
     "devDependencies": {

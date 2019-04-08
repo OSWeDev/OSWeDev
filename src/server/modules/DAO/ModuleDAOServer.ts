@@ -36,6 +36,8 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 import APIDAONamedParamVO from '../../../shared/modules/DAO/vos/APIDAONamedParamVO';
 import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsParamsVO';
+import EnvParam from '../../env/EnvParam';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -247,6 +249,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS, this.getVosByRefFieldsIds.bind(this));
 
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, this.getNamedVoByName.bind(this));
+
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_BASE_URL, this.getBaseUrl.bind(this));
     }
 
     public async truncate(api_type_id: string) {
@@ -618,6 +622,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On filtre suivant les droits d'accès
         return await this.filterVOAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
+    }
+
+    private async getBaseUrl(): Promise<string> {
+        return ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
     }
 
     private async getVosByRefFieldIds<T extends IDistantVOBase>(apiDAOParamsVO: APIDAORefFieldParamsVO): Promise<T[]> {

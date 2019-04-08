@@ -1,9 +1,9 @@
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
+import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
-import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
-import VarsController from '../shared/modules/Var/VarsController';
 
 export default abstract class VueAppController {
 
@@ -24,6 +24,7 @@ export default abstract class VueAppController {
     public data_is_dev: boolean;
     public ALL_LOCALES: any;
     public SERVER_HEADERS;
+    public base_url: string;
 
     /**
      * Module un peu spécifique qui peut avoir un impact sur les perfs donc on gère son accès le plus vite possible
@@ -38,6 +39,10 @@ export default abstract class VueAppController {
         let promises = [];
         let self = this;
         let datas;
+
+        promises.push((async () => {
+            self.base_url = await ModuleDAO.getInstance().getBaseUrl();
+        })());
 
         promises.push(ModuleAjaxCache.getInstance().get('/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED).then((d) => {
             datas = JSON.parse(d as string);

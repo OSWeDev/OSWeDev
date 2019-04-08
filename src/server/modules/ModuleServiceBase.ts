@@ -53,6 +53,8 @@ import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
+import ModuleGeneratePDF from '../../shared/modules/GeneratePDF/ModuleGeneratePDF';
+import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -268,7 +270,7 @@ export default abstract class ModuleServiceBase {
             ModuleFormatDatesNombres.getInstance(),
             ModuleMailer.getInstance(),
             ModuleSASSSkinConfigurator.getInstance(),
-            ModuleVar.getInstance()
+            ModuleVar.getInstance(),
         ];
     }
 
@@ -299,7 +301,8 @@ export default abstract class ModuleServiceBase {
             ModuleAbonnement.getInstance(),
             ModulePaiement.getInstance(),
             ModuleCMS.getInstance(),
-            ModuleVersioned.getInstance()
+            ModuleVersioned.getInstance(),
+            ModuleGeneratePDF.getInstance(),
         ];
     }
 
@@ -327,7 +330,8 @@ export default abstract class ModuleServiceBase {
             ModuleAbonnementServer.getInstance(),
             ModulePaiementServer.getInstance(),
             ModuleCMSServer.getInstance(),
-            ModuleVersionedServer.getInstance()
+            ModuleVersionedServer.getInstance(),
+            ModuleGeneratePDFServer.getInstance(),
         ];
     }
 }
