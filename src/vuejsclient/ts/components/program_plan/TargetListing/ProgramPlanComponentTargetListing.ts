@@ -93,13 +93,17 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
 
     get filtered_ordered_tasks_or_tasks_types(): Array<IPlanTask | IPlanTaskType> {
         let res: Array<IPlanTask | IPlanTaskType> = [];
+        let tester = (this.filtre_etablissement ? new RegExp('.*' + this.filtre_etablissement + '.*', 'i') : new RegExp('.*', 'i'));
 
         let ordered_task_types: IPlanTaskType[] = WeightHandler.getInstance().getSortedListFromWeightedVosByIds(this.get_task_types_by_ids);
         for (let i in ordered_task_types) {
             let ordered_task_type = ordered_task_types[i];
 
             if (ordered_task_type.order_tasks_on_same_target) {
-                res.push(ordered_task_type);
+                if (tester.test(ordered_task_type.name)) {
+                    res.push(ordered_task_type);
+                }
+
                 continue;
             }
 
@@ -108,7 +112,10 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
                 let task_ = this.get_tasks_by_ids[j];
 
                 if (task_.task_type_id == ordered_task_type.id) {
-                    task_type_tasks.push(task_);
+
+                    if (tester.test(task_.name)) {
+                        task_type_tasks.push(task_);
+                    }
                 }
             }
             WeightHandler.getInstance().sortByWeight(task_type_tasks);

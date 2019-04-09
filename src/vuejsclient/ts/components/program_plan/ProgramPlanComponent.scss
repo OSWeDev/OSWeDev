@@ -41,3 +41,13 @@
         }
     }
 }
+
+@media print {
+
+    #program-plan {
+
+        .fc-left, .fc-right {
+            display: none;
+        }
+    }
+}

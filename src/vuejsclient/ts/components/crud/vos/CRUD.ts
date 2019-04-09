@@ -10,6 +10,7 @@ import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyRefer
 import ComputedDatatableField from '../../datatable/vos/ComputedDatatableField';
 import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
 import IVersionedVO from '../../../../../shared/modules/Versioned/interfaces/IVersionedVO';
+import DatatableField from '../../datatable/vos/DatatableField';
 
 
 export default class CRUD<T extends IDistantVOBase> {
@@ -63,23 +64,36 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
+            if (!field.is_visible_datatable) {
+                continue;
+            }
+
+            let dt_field: DatatableField<any, any> = null;
             if (field.manyToOne_target_moduletable) {
 
                 if (field.manyToOne_target_moduletable.default_label_field) {
-                    crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+                    dt_field = new ManyToOneReferenceDatatableField<any>(
                         field.field_id,
                         VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
                             new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id)
-                        ]));
+                        ]);
                 } else if (field.manyToOne_target_moduletable.table_label_function) {
-                    crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
+                    dt_field = new ManyToOneReferenceDatatableField<any>(
                         field.field_id,
                         VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
                             new ComputedDatatableField(field.field_id + '__target_label', field.manyToOne_target_moduletable.table_label_function)
-                        ]));
+                        ]);
                 }
             } else {
-                crud.readDatatable.pushField(new SimpleDatatableField(field.field_id));
+                dt_field = new SimpleDatatableField(field.field_id);
+            }
+
+            if ((!!dt_field) && field.hidden_print) {
+                dt_field.hide_print();
+            }
+
+            if (!!dt_field) {
+                crud.readDatatable.pushField(dt_field);
             }
         }
 
@@ -109,6 +123,10 @@ export default class CRUD<T extends IDistantVOBase> {
 
             for (let j in otherModuleTable.fields) {
                 let field: ModuleTableField<any> = otherModuleTable.fields[j];
+
+                if (!field.is_visible_datatable) {
+                    continue;
+                }
 
                 // On ignore les 2 fields de service
                 if (field.field_id == "id") {
@@ -183,6 +201,10 @@ export default class CRUD<T extends IDistantVOBase> {
             for (let j in otherModuleTable.fields) {
                 let field: ModuleTableField<any> = otherModuleTable.fields[j];
 
+                if (!field.is_visible_datatable) {
+                    continue;
+                }
+
                 // On ignore les 2 fields de service
                 if (field.field_id == "id") {
                     continue;
@@ -219,7 +241,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         field,
                         [
                             new ComputedDatatableField(
-                                field.module_table.default_label_field.field_id + '__target_label',
+                                field.field_id + '__target_label',
                                 field.module_table.table_label_function)
                         ]));
                     continue;
@@ -227,6 +249,8 @@ export default class CRUD<T extends IDistantVOBase> {
             }
         }
     }
+
+    public forced_readonly: boolean = false;
 
     /**
      * La fonction doit retourner le code_text du label d'erreur ou null. Si erreur, l'update n'aura pas lieu
@@ -248,6 +272,13 @@ export default class CRUD<T extends IDistantVOBase> {
         this.updateDatatable = this.updateDatatable ? this.updateDatatable : (this.createDatatable ? this.createDatatable : this.readDatatable);
         this.preUpdate = null;
     }
+
+    public force_readonly(): CRUD<T> {
+        this.forced_readonly = true;
+
+        return this;
+    }
+
 
     /**
      *

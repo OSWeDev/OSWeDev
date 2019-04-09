@@ -37,6 +37,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_daterange: string = 'daterange';
     public static FIELD_TYPE_tsrange: string = 'tsrange';
     public static FIELD_TYPE_timestamp: string = 'timestamp';
+    // public static FIELD_TYPE_timestamp_with_time_zone: string = 'timestamp with time zone';
     public static FIELD_TYPE_day: string = 'day';
     public static FIELD_TYPE_timewithouttimezone: string = 'timewithouttimezone';
     public static FIELD_TYPE_month: string = 'month';
@@ -63,7 +64,12 @@ export default class ModuleTableField<T> {
      */
     public is_inclusive_ihm: boolean = false;
 
+    public is_visible_datatable: boolean = true;
+
     public enum_values: { [value: number]: string } = {};
+
+    public hidden_print: boolean = false;
+
 
     /**
      * Renvoie null ou "" si ok, sinon le code_text traduisible de l'erreur
@@ -98,6 +104,20 @@ export default class ModuleTableField<T> {
         this.target_database = null;
         this.target_table = null;
         this.target_field = null;
+    }
+
+
+    public hide_print(): ModuleTableField<T> {
+        this.hidden_print = true;
+
+        return this;
+    }
+
+
+    public hide_from_datatable(): ModuleTableField<T> {
+        this.is_visible_datatable = false;
+
+        return this;
     }
 
     public setModuleTable(moduleTable: ModuleTable<any>): ModuleTableField<T> {

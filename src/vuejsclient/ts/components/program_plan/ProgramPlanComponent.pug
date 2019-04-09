@@ -10,7 +10,7 @@ include ../../../views/mixins/loading.pug
 
         program-plan-component-target-listing.hidden-print(v-show='show_targets' v-if="can_edit_any")
 
-        full-calendar.hidden-print(
+        full-calendar(
             :key="calendar_key"
 
             :events="fcEvents" 
@@ -22,6 +22,8 @@ include ../../../views/mixins/loading.pug
             @event-receive="onFCEventReceive"
             @event-selected="onFCEventSelected"
             @event-render="onFCEventRender"
+
+            :class="{'hidden-print': use_print_component}"
         )
 
         #rdv_modal.modal.fade.in(ref="rdv_modal", tabindex='-1', role='dialog')

@@ -11,7 +11,8 @@ ul.multi-input {
 
 @media print
 {    
-    .d-print-none, .d-print-none *
+    .d-print-none, .d-print-none *,
+    .VueTables__sort-icon, .VueTables__sort-icon *
     {
         display: none !important;
     }

@@ -513,6 +513,12 @@ export default class DatatableComponent extends VueComponentBase {
                 continue;
             }
 
+            if (!!this.datatable.conditional_show) {
+                if (!this.datatable.conditional_show(baseData)) {
+                    continue;
+                }
+            }
+
             let resData: IDistantVOBase = {
                 id: baseData.id,
                 _type: baseData._type
@@ -874,12 +880,27 @@ export default class DatatableComponent extends VueComponentBase {
         return customFilters;
     }
 
+    get columnsClasses(): { [field_id: string]: string } {
+        let res: { [field_id: string]: string } = {};
+
+        for (let i in this.datatable.fields) {
+            let field: DatatableField<any, any> = this.datatable.fields[i];
+
+            if (field.hidden_print) {
+                res[field.datatable_field_uid] = 'hidden-print';
+            }
+        }
+
+        return res;
+    }
+
     get datatable_options(): any {
         // if (!this.preloadFilter) {
         //     this.handle_filters_preload();
         // }
 
         return {
+            columnsClasses: this.columnsClasses,
             filterByColumn: true,
             filterable: [],
             perPage: 15,

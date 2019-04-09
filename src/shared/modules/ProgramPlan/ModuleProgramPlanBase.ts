@@ -73,6 +73,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public target_contact_type_id: string;
     public rdv_prep_type_id: string;
     public target_facilitator_type_id: string;
+    public contact_type_type_id: string;
 
     public target_group_type_id: string;
     public target_region_type_id: string;
@@ -106,6 +107,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         target_group_type_id: string,
         target_region_type_id: string,
         target_zone_type_id: string,
+        contact_type_type_id: string,
 
         specificImportPath: string = null) {
 
@@ -133,6 +135,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.target_group_type_id = target_group_type_id;
         this.target_region_type_id = target_region_type_id;
         this.target_zone_type_id = target_zone_type_id;
+        this.contact_type_type_id = contact_type_type_id;
 
         ModuleProgramPlanBase.instance = this;
 
@@ -148,6 +151,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.fields = [];
         this.datatables = [];
 
+        this.callInitializePlanContactType();
         this.callInitializePlanTargetGroup();
         this.callInitializePlanTargetRegion();
         this.callInitializePlanTargetZone();
@@ -241,6 +245,24 @@ export default abstract class ModuleProgramPlanBase extends Module {
         );
 
         let datatable = new ModuleTable(this, this.program_category_type_id, additional_fields, label_field, "Catégories de programmes");
+        this.datatables.push(datatable);
+    }
+
+    protected callInitializePlanContactType() {
+        this.initializePlanContactType([]);
+    }
+    protected initializePlanContactType(additional_fields: Array<ModuleTableField<any>>) {
+        if (!this.contact_type_type_id) {
+            return;
+        }
+
+        let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Type de contact', true);
+
+        additional_fields.unshift(
+            label_field
+        );
+
+        let datatable = new ModuleTable(this, this.contact_type_type_id, additional_fields, label_field, "Types de contact");
         this.datatables.push(datatable);
     }
 
@@ -350,17 +372,29 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let label_field = new ModuleTableField('lastname', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
+        let contact_type_id = null;
+
+        if (!!this.contact_type_type_id) {
+            contact_type_id = new ModuleTableField('contact_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type de contact', true);
+            additional_fields.unshift(contact_type_id);
+        }
+
         additional_fields.unshift(
             user_id,
             new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field,
             new ModuleTableField('mail', ModuleTableField.FIELD_TYPE_string, 'Mail', false),
             new ModuleTableField('mobile', ModuleTableField.FIELD_TYPE_string, 'Portable', false),
-            new ModuleTableField('infos', ModuleTableField.FIELD_TYPE_string, 'Infos', false),
+            new ModuleTableField('infos', ModuleTableField.FIELD_TYPE_string, 'Infos', false)
         );
 
         let datatable = new ModuleTable(this, this.contact_type_id, additional_fields, label_field, "Contacts");
         user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+
+        if (!!this.contact_type_type_id) {
+            contact_type_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.contact_type_type_id]);
+        }
+
         this.datatables.push(datatable);
     }
 

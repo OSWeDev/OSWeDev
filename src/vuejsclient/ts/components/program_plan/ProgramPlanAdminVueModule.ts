@@ -27,9 +27,9 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
         []
     );
 
-    public static getInstance(): ProgramPlanAdminVueModule {
+    public static getInstance(post_initialization_hook: () => Promise<void> = null): ProgramPlanAdminVueModule {
         if (!ProgramPlanAdminVueModule.instance) {
-            ProgramPlanAdminVueModule.instance = new ProgramPlanAdminVueModule();
+            ProgramPlanAdminVueModule.instance = new ProgramPlanAdminVueModule(post_initialization_hook);
         }
 
         return ProgramPlanAdminVueModule.instance;
@@ -37,9 +37,12 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
 
     private static instance: ProgramPlanAdminVueModule = null;
 
-    private constructor() {
+    private post_initialization_hook: () => Promise<void> = null;
+
+    private constructor(post_initialization_hook: () => Promise<void> = null) {
 
         super(ModuleProgramPlanBase.getInstance().name);
+        this.post_initialization_hook = post_initialization_hook;
     }
 
     public async initializeAsync() {
@@ -124,12 +127,22 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
                 this.routes);
         }
 
+        if (!!ModuleProgramPlanBase.getInstance().contact_type_type_id) {
+            CRUDComponentManager.getInstance().registerCRUD(
+                ModuleProgramPlanBase.getInstance().contact_type_type_id,
+                null,
+                new MenuPointer(
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().contact_type_type_id, MenuElementBase.PRIORITY_HIGH + 1, "fa-bullseye"),
+                    menuBranch),
+                this.routes);
+        }
+
         if (!!ModuleProgramPlanBase.getInstance().contact_type_id) {
             CRUDComponentManager.getInstance().registerCRUD(
                 ModuleProgramPlanBase.getInstance().contact_type_id,
                 null,
                 new MenuPointer(
-                    new MenuLeaf(ModuleProgramPlanBase.getInstance().contact_type_id, MenuElementBase.PRIORITY_HIGH + 1, "fa-bullseye"),
+                    new MenuLeaf(ModuleProgramPlanBase.getInstance().contact_type_id, MenuElementBase.PRIORITY_HIGH + 2, "fa-bullseye"),
                     menuBranch),
                 this.routes);
         }
@@ -339,6 +352,10 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
                     new MenuLeaf(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, MenuElementBase.PRIORITY_ULTRALOW + 1, "fa-calendar-check-o"),
                     menuBranch),
                 this.routes);
+        }
+
+        if (!!this.post_initialization_hook) {
+            await this.post_initialization_hook();
         }
     }
 }

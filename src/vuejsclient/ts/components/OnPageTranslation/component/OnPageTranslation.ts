@@ -45,6 +45,8 @@ export default class OnPageTranslation extends VueComponentBase {
     private translations: { [lang: string]: { [translation_code: string]: TranslationVO } } = {};
     private translations_loaded: { [lang: string]: { [translation_code: string]: boolean } } = {};
 
+    private show_quill_editor: { [translation_code: string]: boolean } = {};
+
     private other_langs: LangVO[] = null;
 
     private imported_translations: string = '';
@@ -285,6 +287,12 @@ export default class OnPageTranslation extends VueComponentBase {
         this.updateData(editable_translation.translation);
         this.snotify.success(this.label('on_page_translation.save_translation.ok'));
     }
+
+    private switch_show_quill_editor(editable_translation: EditablePageTranslationItem) {
+
+        Vue.set(this.show_quill_editor, editable_translation.translation_code, !this.show_quill_editor[editable_translation.translation_code]);
+    }
+
 
     private async switch_show_other_langs(editable_translation: EditablePageTranslationItem) {
 

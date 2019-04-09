@@ -46,6 +46,8 @@ export default abstract class DatatableField<T, U> {
     public onChange: (vo: IDistantVOBase) => void;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
+    public hidden_print: boolean = false;
+
     /**
      *
      * @param type Pour identifier hors contexte typescript le type réel de l'objet...
@@ -57,6 +59,12 @@ export default abstract class DatatableField<T, U> {
         this.validate = null;
         this.onChange = null;
         this.isVisibleUpdateOrCreate = () => true;
+    }
+
+    public hide_print(): DatatableField<T, U> {
+        this.hidden_print = true;
+
+        return this;
     }
 
     public setIsVisibleUpdateOrCreate(isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean): DatatableField<T, U> {

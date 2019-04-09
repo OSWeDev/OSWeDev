@@ -4,7 +4,13 @@ import DatatableField from './DatatableField';
 
 export default class Datatable<T extends IDistantVOBase> {
 
+    /**
+     * La fonction doit true pour accepter l'affichage ou false pour refuser
+     */
+    public conditional_show: (dataVO: IDistantVOBase) => boolean;
+
     protected sortedFields: Array<DatatableField<any, any>> = [];
+
     constructor(public API_TYPE_ID: string) { }
 
     public getFieldByDatatableFieldUID(datatable_field_uid: string): DatatableField<any, any> {
@@ -16,6 +22,12 @@ export default class Datatable<T extends IDistantVOBase> {
                 return field;
             }
         }
+    }
+
+    public set_conditional_show(conditional_show: (dataVO: IDistantVOBase) => boolean): Datatable<T> {
+        this.conditional_show = conditional_show;
+
+        return this;
     }
 
     public unshiftField(field: DatatableField<any, any>) {
@@ -40,6 +52,24 @@ export default class Datatable<T extends IDistantVOBase> {
             }
         }
         this.sortedFields = fields;
+    }
+
+    public define_fields_order_by_datatableFieldUIDs(datatable_field_uids: string[]) {
+
+        if ((!datatable_field_uids) || (!this.fields) || (datatable_field_uids.length != this.fields.length)) {
+            return;
+        }
+
+        let new_field_list: Array<DatatableField<any, any>> = [];
+
+        for (let i in datatable_field_uids) {
+            let datatable_field_uid: string = datatable_field_uids[i];
+
+            new_field_list.push(this.getFieldByDatatableFieldUID(datatable_field_uid));
+        }
+        this.sortedFields = new_field_list;
+
+        return;
     }
 
     get fields(): Array<DatatableField<any, any>> {

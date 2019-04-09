@@ -29,7 +29,8 @@ export default abstract class ProgramPlanControllerBase {
         public customTargetInfosComponent,
         public customFilterComponent,
         public slot_interval: number = 12,
-        public month_view: boolean = true
+        public month_view: boolean = true,
+        public use_print_component: boolean = true
     ) {
         ProgramPlanControllerBase.instance = this;
     }

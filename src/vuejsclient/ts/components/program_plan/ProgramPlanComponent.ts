@@ -40,6 +40,7 @@ import './ProgramPlanComponent.scss';
 import ProgramPlanControllerBase from './ProgramPlanControllerBase';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from './store/ProgramPlanStore';
 import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanComponentTargetListing';
+import ModuleTable from '../../../../shared/modules/ModuleTable';
 
 
 @Component({
@@ -275,6 +276,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     @Watch("$route")
     public async onrouteChange() {
+
+        this.init_print();
+
         await this.handle_modal_show_hide();
     }
 
@@ -296,17 +300,29 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
     }
 
+    get use_print_component(): boolean {
+        return ProgramPlanControllerBase.getInstance().use_print_component;
+    }
+
+    private init_print() {
+        let self = this;
+
+        AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_ENABLE');
+        if (this.use_print_component) {
+            AppVuexStoreManager.getInstance().appVuexStore.commit('set_onprint', () => {
+                self.set_printable_table_weeks(self.get_printable_table_weeks());
+                self.$nextTick(function () {
+                    window['print']();
+                });
+            });
+        }
+    }
+
     private async reloadAsyncData() {
 
         let self = this;
 
-        AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_ENABLE');
-        AppVuexStoreManager.getInstance().appVuexStore.commit('set_onprint', () => {
-            self.set_printable_table_weeks(self.get_printable_table_weeks());
-            self.$nextTick(function () {
-                window['print']();
-            });
-        });
+        this.init_print();
 
         this.nbLoadingSteps = 3;
         this.startLoading();
@@ -606,12 +622,20 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     let manager: IPlanManager = this.getManagersByIds[facilitator.manager_id];
                     let partner: IPlanPartner = this.getPartnersByIds[facilitator.partner_id];
 
+                    let target_name: string = (!!target) ? target.name : "";
+                    let target_table: ModuleTable<IPlanTarget> = VOsTypesManager.getInstance().moduleTables_by_voType[ModuleProgramPlanBase.getInstance().target_type_id];
+                    if (target_table && target_table.default_label_field) {
+                        target_name = (!!target) ? target[target_table.default_label_field.field_id] : "";
+                    } else if (target_table && target_table.table_label_function) {
+                        target_name = (!!target) ? target_table.table_label_function(target) : "";
+                    }
+
                     res.push({
                         id: target_facilitator.id,
                         title: this.getResourceName(facilitator.firstname, facilitator.lastname),
                         manager_title: (!!manager) ? this.getResourceName(manager.firstname, manager.lastname) : "",
                         partner_name: (!!partner) ? partner.name : "",
-                        target_name: (!!target) ? target.name : ""
+                        target_name
                     });
                 }
             }
@@ -977,6 +1001,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         return {
             locale: 'fr',
+            timeZone: 'locale',
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
             now: moment().format('Y-MM-DD'),
             defaultDate: this.fcSegment ? this.fcSegment.dateIndex : moment().format('Y-MM-DD'),
@@ -1305,12 +1330,19 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return;
         }
 
+        let confirmation_content_code: string = 'programplan.delete.confirmation.body';
+
         // On check qu'on peut supprimer dans le cas d'un enchaînement de taches
-        if (!!ModuleProgramPlanBase.getInstance().target_facilitator_type_id) {
+        if (!!ModuleProgramPlanBase.getInstance().task_type_id) {
             let task = this.get_tasks_by_ids[this.selected_rdv.task_id];
             if (!task) {
                 console.error('Impossible de retrouver le type de tache');
                 return;
+            }
+
+            // Si on est sur une tache admin, on veut un texte différent
+            if (task.is_facilitator_specific) {
+                confirmation_content_code = 'programplan.delete.confirmation.facilitator_specific.body';
             }
 
             let task_type = this.get_task_types_by_ids[task.task_type_id];
@@ -1356,7 +1388,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         // On demande confirmation avant toute chose.
         // si on valide, on lance la suppression des CRs en premier lieu puis du rdv
-        self.snotify.confirm(self.label('programplan.delete.confirmation.body'), self.label('programplan.delete.confirmation.title'), {
+        self.snotify.confirm(self.label(confirmation_content_code), self.label('programplan.delete.confirmation.title'), {
             timeout: 10000,
             showProgressBar: true,
             closeOnClick: false,

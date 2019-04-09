@@ -103,6 +103,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         table_label_function: (vo: T) => string,
         table_label_function_field_ids_deps: string[]): ModuleTable<any> {
 
+        this.default_label_field = null;
         this.table_label_function = table_label_function;
         this.table_label_function_field_ids_deps = table_label_function_field_ids_deps;
 
@@ -221,7 +222,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
             let field = this.fields[i];
 
             if (field.field_type == ModuleTableField.FIELD_TYPE_timestamp) {
-                e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:SS.sss') + 'Z' : e[field.field_id];
+                // A priori c'est without time zone du coup....
+                // e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:SS.sss') + 'Z' : e[field.field_id];
+                e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:SS.sss') : e[field.field_id];
             }
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_float) ||
