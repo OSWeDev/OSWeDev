@@ -337,15 +337,6 @@ export default class VarsController {
         let datasource_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
         datasource_deps = (!!datasource_deps) ? datasource_deps : [];
 
-        // // On ajoute les deps des vars dont on est dep :
-        // let var_dep_ids: number[] = controller.getVarsIdsDependencies();
-
-        // for (let j in var_dep_ids) {
-        //     let var_dep_id: number = var_dep_ids[j];
-
-        //     let var_dep_datasource_deps: Array<IDataSourceController<any, any>> = this.get_datasource_deps(this.getVarControllerById(var_dep_id));
-        //     datasource_deps = datasource_deps.concat(var_dep_datasource_deps);
-        // }
         return datasource_deps;
     }
 
