@@ -984,6 +984,6 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private transliterate_enum_value_to_class_name(val: string): string {
-        return val.replace(/[^a-zA-Z0-9-_]/ig, '_');
+        return ((val) ? val.replace(/[^a-zA-Z0-9-_]/ig, '_') : val);
     }
 }
