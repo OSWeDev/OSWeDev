@@ -259,6 +259,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'Type de donnée', true),
             new ModuleTableField('mandatory', ModuleTableField.FIELD_TYPE_boolean, 'Obligatoire', true, true, false),
             new ModuleTableField('vo_field_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Vo)', true),
+            new ModuleTableField('other_column_labels', ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', true, true, [])
         ];
         this.datatable_column = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, datatable_fields, label_field, "Colonnes importées");
         field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
@@ -294,7 +295,8 @@ export default class ModuleDataImport extends Module {
                 [TimeSegment.TYPE_YEAR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_YEAR],
                 [TimeSegment.TYPE_MONTH]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MONTH],
                 [TimeSegment.TYPE_DAY]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_DAY],
-                [TimeSegment.TYPE_WEEK]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_WEEK]
+                [TimeSegment.TYPE_WEEK]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_WEEK],
+                [TimeSegment.TYPE_ROLLING_YEAR_MONTH_START]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_ROLLING_YEAR_MONTH_START],
             }),
             new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_timestamp, 'Modification', false),
             new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de fin', false),
