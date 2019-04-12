@@ -27,10 +27,10 @@ export default class ImportTypeXLSXHandler {
     protected constructor() { }
 
     /**
-     * 
-     * @param dataImportFormat 
-     * @param dataImportColumns 
-     * @param historic 
+     *
+     * @param dataImportFormat
+     * @param dataImportColumns
+     * @param historic
      * @param muted Par défaut on mute cette fonction pour éviter de spammer des logs quand on test les différents formats....
      */
     public async importFile(dataImportFormat: DataImportFormatVO, dataImportColumns: DataImportColumnVO[], historic: DataImportHistoricVO, muted: boolean = true): Promise<IImportedData[]> {
@@ -116,16 +116,36 @@ export default class ImportTypeXLSXHandler {
 
                             if ((!!titre) && (isString(titre))) {
                                 titre = titre.trim();
-                                for (let i in dataImportColumns) {
-                                    if (dataImportColumns[i].title && (dataImportColumns[i].title.toLowerCase() == titre.toLowerCase())) {
 
-                                        if (dataImportColumns[i].column_index != null) {
+                                //on ignore les retours à la ligne
+                                titre = titre.replace(/\n/ig, '');
+                                titre = titre.replace(/\r/ig, '');
+
+                                for (let i in dataImportColumns) {
+                                    let dataImportColumn = dataImportColumns[i];
+
+                                    let found: boolean = (dataImportColumn.title && (dataImportColumn.title.toLowerCase() == titre.toLowerCase()));
+
+                                    if (!found) {
+                                        for (let other_column_labels_i in dataImportColumn.other_column_labels) {
+                                            let other_column_label: string = dataImportColumn.other_column_labels[other_column_labels_i];
+
+                                            if (other_column_label && (other_column_label.toLowerCase() == titre.toLowerCase())) {
+                                                found = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (found) {
+
+                                        if (dataImportColumn.column_index != null) {
                                             if (!muted) {
-                                                ImportLogger.getInstance().log(historic, dataImportFormat, 'Ce titre de colonne existe en double :' + dataImportColumns[i].title + '.', DataImportLogVO.LOG_LEVEL_WARN);
+                                                ImportLogger.getInstance().log(historic, dataImportFormat, 'Ce titre de colonne existe en double :' + dataImportColumn.title + '.', DataImportLogVO.LOG_LEVEL_WARN);
                                             }
                                             break;
                                         }
-                                        dataImportColumns[i].column_index = column_index;
+                                        dataImportColumn.column_index = column_index;
                                         break;
                                     }
                                 }

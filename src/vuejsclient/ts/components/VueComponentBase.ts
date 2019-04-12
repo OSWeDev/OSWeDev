@@ -258,6 +258,7 @@ export default class VueComponentBase extends Vue
 
     public $snotify: any;
 
+    public segment_type_rolling_year_month_start: number = TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
     public segment_type_year: number = TimeSegment.TYPE_YEAR;
     public segment_type_month: number = TimeSegment.TYPE_MONTH;
     public segment_type_week: number = TimeSegment.TYPE_WEEK;
