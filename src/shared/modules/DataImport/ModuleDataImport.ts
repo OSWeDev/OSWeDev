@@ -259,7 +259,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('type', ModuleTableField.FIELD_TYPE_string, 'Type de donnée', true),
             new ModuleTableField('mandatory', ModuleTableField.FIELD_TYPE_boolean, 'Obligatoire', true, true, false),
             new ModuleTableField('vo_field_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Vo)', true),
-            new ModuleTableField('other_column_labels', ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', true, true, [])
+            new ModuleTableField('other_column_labels', ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', true, true, "{}")
         ];
         this.datatable_column = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, datatable_fields, label_field, "Colonnes importées");
         field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
@@ -312,7 +312,7 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('nb_row_unvalidated', ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes invalidées', false),
             new ModuleTableField('autovalidate', ModuleTableField.FIELD_TYPE_boolean, 'Validation automatique', false, true, false),
         ];
-        this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, datatable_fields, label_field, "Historiques d'importation");
+        this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, datatable_fields, label_field, "Historiques d'importation").hideAnyToManyByDefault();
         field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
         field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
@@ -338,7 +338,7 @@ export default class ModuleDataImport extends Module {
                 [DataImportLogVO.LOG_LEVEL_FATAL]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_FATAL],
             })
         ];
-        this.datatable_log = new ModuleTable(this, DataImportLogVO.API_TYPE_ID, datatable_fields, label_field, "Logs d'importation");
+        this.datatable_log = new ModuleTable(this, DataImportLogVO.API_TYPE_ID, datatable_fields, label_field, "Logs d'importation").hideAnyToManyByDefault();
         field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
         field_data_import_historic_id.addManyToOneRelation(this.datatable_historic);
         this.datatables.push(this.datatable_log);

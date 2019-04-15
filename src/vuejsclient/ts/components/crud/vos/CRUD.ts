@@ -121,6 +121,10 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
+            if (!otherModuleTable.any_to_many_default_behaviour_show) {
+                continue;
+            }
+
             for (let j in otherModuleTable.fields) {
                 let field: ModuleTableField<any> = otherModuleTable.fields[j];
 
@@ -195,6 +199,10 @@ export default class CRUD<T extends IDistantVOBase> {
             }
 
             if (VOsTypesManager.getInstance().isManyToManyModuleTable(otherModuleTable)) {
+                continue;
+            }
+
+            if (!otherModuleTable.any_to_many_default_behaviour_show) {
                 continue;
             }
 

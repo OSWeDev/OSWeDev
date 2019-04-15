@@ -37,6 +37,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public importable: boolean = false;
     public isModuleParamTable: boolean = false;
 
+    public any_to_many_default_behaviour_show: boolean = true;
+
     public voConstructor: () => T = null;
 
     private vo_interfaces: { [interface_name: string]: boolean } = {};
@@ -81,6 +83,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
+    }
+
+    public hideAnyToManyByDefault(): ModuleTable<any> {
+        this.any_to_many_default_behaviour_show = false;
+        return this;
     }
 
     public hasVOInterface(interface_name: string): boolean {
