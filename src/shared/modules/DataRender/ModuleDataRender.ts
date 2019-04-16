@@ -343,6 +343,32 @@ export default class ModuleDataRender extends Module {
         return null;
     }
 
+    public getCumulSegment<T extends IRenderedData>(
+        cumulSegment: TimeSegment, type_segmentation: number, resource_id: number, field_name: string, segment_id: number,
+        renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
+
+        let value: number = 0;
+
+        let current_cumulSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(cumulSegment.dateIndex), type_segmentation);
+        let end_cumul_dateindex: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(cumulSegment);
+        while (end_cumul_dateindex.isSameOrAfter(TimeSegmentHandler.getInstance().getEndTimeSegment(current_cumulSegment))) {
+
+            if ((!renderedDatasBySegmentAndResourceId) || (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex]) ||
+                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id]) ||
+                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id][segment_id]) ||
+                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id][segment_id][field_name])) {
+                current_cumulSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
+                continue;
+            }
+            let segment_value: number = renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id][segment_id][field_name];
+            value += segment_value;
+
+            current_cumulSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
+        }
+
+        return value;
+    }
+
     public getValueFromRendererData<T extends IRenderedData>(
         timeSegment: TimeSegment, resource_id: number, field_name: string, segment_id: number,
         renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {

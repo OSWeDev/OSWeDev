@@ -1,4 +1,4 @@
-import { isBoolean, isNull, isNumber } from 'util';
+import { isBoolean, isNull, isNumber, isArray } from 'util';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
@@ -184,7 +184,8 @@ export default class ModuleTableField<T> {
 
         let default_value: string = this.field_default as any;
 
-        if (!(isNull(this.field_default) || isNumber(this.field_default) || isBoolean(this.field_default))) {
+        if (!((typeof default_value === 'undefined') || isArray(default_value) ||
+            isNull(default_value) || isNumber(default_value) || isBoolean(default_value))) {
             default_value = "'" + default_value.replace(/'/ig, "''") + "'";
         }
         return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '');
@@ -222,7 +223,7 @@ export default class ModuleTableField<T> {
                 return (db_type == "float8") || (db_type == "double precision");
 
             case ModuleTableField.FIELD_TYPE_string_array:
-                return db_type == "text[]";
+                return (db_type == "text[]") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_int_array:
                 return db_type == "bigint[]";

@@ -44,6 +44,10 @@ export default class TimeSegmentHandler {
                 date = date.startOf('isoWeek');
                 stop_at = stop_at.startOf('isoWeek');
                 break;
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                date = date.startOf('month');
+                stop_at = stop_at.startOf('month');
+                break;
             case TimeSegment.TYPE_DAY:
             default:
                 date = date.startOf('day');
@@ -59,6 +63,7 @@ export default class TimeSegmentHandler {
 
             switch (time_segment_type) {
                 case TimeSegment.TYPE_YEAR:
+                case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                     date = date.add(1, 'year');
                     break;
                 case TimeSegment.TYPE_MONTH:
@@ -88,6 +93,7 @@ export default class TimeSegmentHandler {
 
         switch (timeSegment.type) {
             case TimeSegment.TYPE_YEAR:
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                 // Impossible de gérer ce cas;
                 return null;
             case TimeSegment.TYPE_MONTH:
@@ -156,6 +162,7 @@ export default class TimeSegmentHandler {
 
         switch (timeSegment.type) {
             case TimeSegment.TYPE_YEAR:
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                 res = res.add(1, 'year');
                 break;
             case TimeSegment.TYPE_MONTH:
@@ -226,6 +233,7 @@ export default class TimeSegmentHandler {
 
         switch (type) {
             case TimeSegment.TYPE_YEAR:
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                 date_segment = date_segment.add(-offset, 'year');
                 break;
             case TimeSegment.TYPE_MONTH:
@@ -251,6 +259,9 @@ export default class TimeSegmentHandler {
         switch (type) {
             case TimeSegment.TYPE_YEAR:
                 date_segment = date_segment.startOf('year');
+                break;
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                date_segment = date_segment.startOf('month');
                 break;
             case TimeSegment.TYPE_MONTH:
                 date_segment = date_segment.startOf('month');
@@ -282,6 +293,7 @@ export default class TimeSegmentHandler {
 
         switch (time_segment.type) {
             case TimeSegment.TYPE_YEAR:
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                 end = moment(start).add(1, 'year');
                 break;
             case TimeSegment.TYPE_MONTH:
@@ -319,6 +331,10 @@ export default class TimeSegmentHandler {
         switch (type) {
             case TimeSegment.TYPE_YEAR:
                 start = start.startOf('year');
+                end = moment(start).add(1, 'year');
+                break;
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                start = start.startOf('month');
                 end = moment(start).add(1, 'year');
                 break;
             case TimeSegment.TYPE_MONTH:

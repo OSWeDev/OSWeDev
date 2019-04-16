@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.7.6",
+    "version": "0.7.9",
     "description": "",
     "scripts": {
         "test": "nyc mocha",
@@ -92,7 +92,7 @@
         "web-push": "3.3.2",
         "winston": "2.4.1",
         "winston-daily-rotate-file": "1.7.2",
-        "wkhtmltopdf": "^0.3.4",
+        "wkhtmltopdf": "0.3.4",
         "xlsx": "0.12.2"
     },
     "devDependencies": {
@@ -149,6 +149,7 @@
         "web-push": "3.3.2",
         "mkdirp": "0.5.1",
         "lodash": "4.17.11",
+        "wkhtmltopdf": "0.3.4",
         "vuedraggable": "2.16.0"
     },
     "_dependencies": {

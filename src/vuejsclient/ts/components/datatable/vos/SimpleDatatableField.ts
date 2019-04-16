@@ -20,7 +20,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         try {
             switch (moduleTableField.field_type) {
                 case ModuleTableField.FIELD_TYPE_prct:
-                    return VueComponentBase.const_filters.percent.read(field_value);
+                    return VueComponentBase.const_filters.percent.read(field_value, 2);
 
                 case ModuleTableField.FIELD_TYPE_amount:
                     return VueComponentBase.const_filters.amount.read(field_value);

@@ -13,9 +13,10 @@ export default class DataImportColumnVO implements IDistantVOBase {
     public column_index: number;
     public vo_field_name: string;
     public mandatory: boolean;
+    public other_column_labels: string[];
 
     /**
-     * 
+     *
      * @param column_index 0 indexed
      * @param title The title as found in the imported file
      * @param vo_field_name The corresponding field_name in the corresponding vo
@@ -28,7 +29,14 @@ export default class DataImportColumnVO implements IDistantVOBase {
         public type: string = DataImportColumnVO.TYPE_STRING
     ) {
         this.vo_field_name = title;
+        this.other_column_labels = [];
         this.mandatory = false;
+    }
+
+    public addColumnLabels(column_labels: string[]): DataImportColumnVO {
+        this.other_column_labels = this.other_column_labels.concat(column_labels);
+
+        return this;
     }
 
     public setIndex(column_index: number): DataImportColumnVO {
