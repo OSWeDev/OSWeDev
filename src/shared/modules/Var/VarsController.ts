@@ -1432,46 +1432,103 @@ export default class VarsController {
         await Promise.all(promises);
     }
 
+    // @PerfMonFunction
+    // private async computeNode(node: VarDAGNode) {
+
+    //     // Si le noeud est pas noté en ongoing update, on a rien à foutre ici
+    //     if (!node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) {
+    //         return;
+    //     }
+
+    //     // On peut compute un noeud si tous les outgoing sont soit computed, soit pas ongoing et computed_once[]
+    //     // si un outgoing répond pas à ce descriptif, on doit le compute
+    //     for (let i in node.outgoing) {
+    //         let outgoing: VarDAGNode = node.outgoing[i] as VarDAGNode;
+
+    //         if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED)) {
+    //             continue;
+    //         }
+
+    //         if ((!outgoing.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) && (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE))) {
+    //             continue;
+    //         }
+
+    //         await this.computeNode(outgoing);
+    //     }
+
+    //     // On doit pouvoir compute à ce stade
+    //     await VarsController.getInstance().getVarControllerById(node.param.var_id).updateData(node, this.varDAG);
+
+    //     if (this.registered_var_callbacks_once[node.name] && this.registered_var_callbacks_once[node.name].length) {
+    //         for (let i in this.registered_var_callbacks_once[node.name]) {
+    //             let callback = this.registered_var_callbacks_once[node.name][i];
+
+    //             if (callback) {
+    //                 callback(this.getVarData(node.param, true));
+    //             }
+    //         }
+    //         this.registered_var_callbacks_once[node.name] = null;
+    //     }
+
+    //     node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
+    //     node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
+    // }
+
     @PerfMonFunction
     private async computeNode(node: VarDAGNode) {
 
-        // Si le noeud est pas noté en ongoing update, on a rien à foutre ici
-        if (!node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) {
-            return;
-        }
+        let actual_node: VarDAGNode = node;
+        let nodes_path: VarDAGNode[] = [];
+        let continue_compilation: boolean = true;
 
-        // On peut compute un noeud si tous les outgoing sont soit computed, soit pas ongoing et computed_once[]
-        // si un outgoing répond pas à ce descriptif, on doit le compute
-        for (let i in node.outgoing) {
-            let outgoing: VarDAGNode = node.outgoing[i] as VarDAGNode;
+        while (continue_compilation) {
 
-            if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED)) {
-                continue;
-            }
+            continue_compilation = false;
+            let go_further: boolean = false;
+            do {
 
-            if ((!outgoing.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) && (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE))) {
-                continue;
-            }
+                go_further = false;
+                for (let i in actual_node.outgoing) {
+                    let outgoing: VarDAGNode = actual_node.outgoing[i] as VarDAGNode;
 
-            await this.computeNode(outgoing);
-        }
+                    if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED)) {
+                        continue;
+                    }
 
-        // On doit pouvoir compute à ce stade
-        await VarsController.getInstance().getVarControllerById(node.param.var_id).updateData(node, this.varDAG);
+                    if ((!outgoing.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) && (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE))) {
+                        continue;
+                    }
 
-        if (this.registered_var_callbacks_once[node.name] && this.registered_var_callbacks_once[node.name].length) {
-            for (let i in this.registered_var_callbacks_once[node.name]) {
-                let callback = this.registered_var_callbacks_once[node.name][i];
-
-                if (callback) {
-                    callback(this.getVarData(node.param, true));
+                    // On doit compute un noeud, on s'en occuppe
+                    nodes_path.unshift(actual_node);
+                    actual_node = outgoing;
+                    go_further = true;
+                    break;
                 }
-            }
-            this.registered_var_callbacks_once[node.name] = null;
-        }
+            } while (go_further);
 
-        node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
-        node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
+            // On doit pouvoir compute à ce stade
+            await VarsController.getInstance().getVarControllerById(actual_node.param.var_id).updateData(actual_node, this.varDAG);
+
+            if (this.registered_var_callbacks_once[actual_node.name] && this.registered_var_callbacks_once[actual_node.name].length) {
+                for (let i in this.registered_var_callbacks_once[actual_node.name]) {
+                    let callback = this.registered_var_callbacks_once[actual_node.name][i];
+
+                    if (callback) {
+                        callback(this.getVarData(actual_node.param, true));
+                    }
+                }
+                this.registered_var_callbacks_once[actual_node.name] = null;
+            }
+
+            actual_node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
+            actual_node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
+
+            if (nodes_path.length > 0) {
+                actual_node = nodes_path.shift();
+                continue_compilation = true;
+            }
+        }
     }
 
     @PerfMonFunction
