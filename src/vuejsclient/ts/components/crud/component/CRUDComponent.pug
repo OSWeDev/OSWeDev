@@ -6,53 +6,53 @@ mixin simple_input_types(vo, datatable, field_type)
             template(v-if="field.is_required")
                 i.fa.fa-asterisk.mandatory
         template(v-if=field_type+" == 'password'")
-            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-if=field_type+" == 'text'")
-            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'boolean'")
             template(v-if="field.is_required")
-                input.form-control(type="checkbox" v-model=vo+"[field.datatable_field_uid]" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+                input.form-control(type="checkbox" v-model=vo+"[field.datatable_field_uid]" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
             template(v-else)
                 .form-check
-                    input.form-check-input(type="radio" v-model=vo+"[field.datatable_field_uid]" :value="null" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___N_A'" @input="validateInput($event.target, field)")
+                    input.form-check-input(type="radio" v-model=vo+"[field.datatable_field_uid]" :value="null" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___N_A'" @input="validateInput($event.target, field, "+vo+")")
                     label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___N_A'") {{ label('crud.field.boolean.n_a') }}
                 .form-check
-                    input.form-check-input(type="radio" v-model=vo+"[field.datatable_field_uid]" :value="true" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___TRUE'" @input="validateInput($event.target, field)")
+                    input.form-check-input(type="radio" v-model=vo+"[field.datatable_field_uid]" :value="true" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___TRUE'" @input="validateInput($event.target, field, "+vo+")")
                     label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___TRUE'") {{ label('crud.field.boolean.true') }}
                 .form-check
-                    input.form-check-input(type="radio" v-model=vo+"[field.datatable_field_uid]" :value="false" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___FALSE'" @input="validateInput($event.target, field)")
+                    input.form-check-input(type="radio" v-model=vo+"[field.datatable_field_uid]" :value="false" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___FALSE'" @input="validateInput($event.target, field, "+vo+")")
                     label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___FALSE'") {{ label('crud.field.boolean.false') }}
         template(v-else-if=field_type+" == 'number'")
-            input.form-control(type="number" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="number" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'amount'")
-            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'float'")
-            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'pct'")
-            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'HourAndMinuteWithoutLimit'")
-            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'HourAndMinute'")
-            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if="("+field_type+" == 'date') || ("+field_type+" == 'day')")
-            input.form-control(type="date" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="date" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'month'")
-            input.form-control(type="month" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="month" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'daterange'")
-            input.form-control(type="date" v-model=vo+"[field.datatable_field_uid + '_start']" :disabled="field.is_readonly" @change="updateDateRange("+vo+", field)" @input="validateInput($event.target, field)")
-            input.form-control(type="date" v-model=vo+"[field.datatable_field_uid + '_end']" :disabled="field.is_readonly" @change="updateDateRange("+vo+", field)" @input="validateInput($event.target, field)")
+            input.form-control(type="date" v-model=vo+"[field.datatable_field_uid + '_start']" :disabled="field.is_readonly" @change="updateDateRange("+vo+", field)" @input="validateInput($event.target, field, "+vo+")")
+            input.form-control(type="date" v-model=vo+"[field.datatable_field_uid + '_end']" :disabled="field.is_readonly" @change="updateDateRange("+vo+", field)" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'tsrange'")
-            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'timestamp'")
-            input.form-control(type="number" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="number" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'html'")
-            quill-editor(v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            quill-editor(v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if="(" +field_type+" == 'file')&&("+vo+"._type == 'file')")
             fileinput(:filevo=vo @uploaded="uploadedFile("+vo+", field, ...arguments)")
         template(v-else-if="(" +field_type+" == 'image')&&("+vo+"._type == 'image')")
             imageinput(:filevo=vo @uploaded="uploadedFile("+vo+", field, ...arguments)")
         template(v-else-if=field_type+" == 'timewithouttimezone'")
-            input.form-control(type="time" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field)")
+            input.form-control(type="time" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'enum'")
             multiselect(
                 v-model=vo+"[field.datatable_field_uid]"
@@ -161,6 +161,7 @@ mixin onetomany_input(vo, datatable)
                             h4.modal-title {{ label('crud.create.modal.title') }}
                             router-link.btn.close(:to="getCRUDLink(api_type_id)") &times;
                         .modal-body
+                            .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
                             template(v-if="newVO")
                                 template(v-for="field in crud.createDatatable.fields")
                                     template(v-if="((field.type == 'INPUT') || (field.datatable_field_uid == field.module_table_field_id)) && (field.isVisibleUpdateOrCreate(newVO))")
@@ -180,7 +181,7 @@ mixin onetomany_input(vo, datatable)
                                 p {{ label('crud.create.modal.content.newvo_failure') }}
                         .modal-footer
                             router-link.btn.btn-default(:to="getCRUDLink(api_type_id)" v-if="!creating_vo") {{ label('crud.create.modal.cancel') }}
-                            template(v-if="newVO && !creating_vo")
+                            template(v-if="newVO && !creating_vo && !is_only_readable")
                                 input.btn.btn-primary(type="submit" :value="label('crud.create.modal.add')")
         <!-- Edit Modal HTML -->
         #updateData.modal.fade.in(tabindex='-1', role='dialog')
@@ -191,6 +192,7 @@ mixin onetomany_input(vo, datatable)
                             h4.modal-title {{ label('crud.update.modal.title') }}
                             router-link.btn.close(:to="getCRUDLink(api_type_id)") &times;
                         .modal-body
+                            .alert.alert-danger(v-if="is_only_readable") {{ label('crud.update.modal.readonly') }}
                             template(v-if="selectedVO && editableVO")
                                 template(v-for="field in crud.updateDatatable.fields")
                                     template(v-if="((field.type == 'INPUT') || (field.datatable_field_uid == field.module_table_field_id)) && (field.isVisibleUpdateOrCreate(editableVO))")
@@ -210,7 +212,7 @@ mixin onetomany_input(vo, datatable)
                                 p {{ label('crud.update.modal.content.selection_failure') }}
                         .modal-footer
                             router-link.btn.btn-default(:to="getCRUDLink(api_type_id)" v-if="!updating_vo") {{ label('crud.update.modal.cancel') }}
-                            template(v-if="selectedVO && editableVO && !updating_vo")
+                            template(v-if="selectedVO && editableVO && !updating_vo && !is_only_readable")
                                 input.btn.btn-primary(type="submit" :value="label('crud.update.modal.save')")
 
         #deleteData.modal.fade.in(v-if='!isModuleParamTable', tabindex='-1', role='dialog')
@@ -221,6 +223,7 @@ mixin onetomany_input(vo, datatable)
                             h4.modal-title {{ label('crud.delete.modal.title') }}
                             router-link.btn.close(:to="getCRUDLink(api_type_id)") &times;
                         .modal-body
+                            .alert.alert-danger(v-if="is_only_readable") {{ label('crud.delete.modal.readonly') }}
                             template(v-if="selectedVO")
                                 p {{ label('crud.delete.modal.content') }}
                                     .text-warning
@@ -229,5 +232,5 @@ mixin onetomany_input(vo, datatable)
                                 p {{ label('crud.delete.modal.content.selection_failure') }}
                         .modal-footer
                             router-link.btn.btn-default(:to="getCRUDLink(api_type_id)" v-if="!deleting_vo") {{ label('crud.delete.modal.cancel') }}
-                            template(v-if="selectedVO && !deleting_vo")
+                            template(v-if="selectedVO && !deleting_vo && !is_only_readable")
                                 input.btn.btn-danger(type="submit" :value="label('crud.delete.modal.delete')")

@@ -90,6 +90,8 @@ export default class CRUDComponent extends VueComponentBase {
     private updating_vo: boolean = false;
     private deleting_vo: boolean = false;
 
+    private is_only_readable: boolean = false;
+
     get isModuleParamTable() {
         return VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID] ?
             VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
@@ -859,7 +861,7 @@ export default class CRUDComponent extends VueComponentBase {
         this.deleting_vo = false;
     }
 
-    private validateInput(input, field: DatatableField<any, any>) {
+    private validateInput(input, field: DatatableField<any, any>, vo: IDistantVOBase) {
         // - @input="(value, id) => validateInput({value:value, id:id}, field)",
 
         if (field.required) {
@@ -898,6 +900,10 @@ export default class CRUDComponent extends VueComponentBase {
             msg = this.t(error);
         }
         input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
+
+        if (this.crud && this.crud.isReadOnlyData) {
+            this.is_only_readable = this.crud.isReadOnlyData(vo);
+        }
     }
 
     private validateMultiInput(values: any[], field: DatatableField<any, any>, vo: string) {
@@ -928,6 +934,10 @@ export default class CRUDComponent extends VueComponentBase {
                 }
                 Vue.set(this.select_options, field.datatable_field_uid, newOptions);
             }
+        }
+
+        if (this.crud && this.crud.isReadOnlyData) {
+            this.is_only_readable = this.crud.isReadOnlyData(vo);
         }
     }
 
