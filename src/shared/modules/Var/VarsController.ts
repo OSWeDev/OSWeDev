@@ -548,6 +548,31 @@ export default class VarsController {
         return this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
     }
 
+    public getParam<TDataParam extends IVarDataParamVOBase>(param_index: string): TDataParam {
+
+        if (!param_index) {
+            return null;
+        }
+
+        let regexp = /^([0-9]+)_.*$/;
+        if (!regexp.test(param_index)) {
+            return null;
+        }
+
+        let res = regexp.exec(param_index);
+        try {
+
+            let var_id: number = res && res.length ? parseInt(res[0]) : null;
+            if (var_id == null) {
+                return null;
+            }
+
+            return this.getVarControllerById(var_id).varDataParamController.getParam(param_index);
+        } catch (error) {
+        }
+        return null;
+    }
+
     public getVarConf(var_name: string): VarConfVOBase {
         return this.registered_vars ? (this.registered_vars[var_name] ? this.registered_vars[var_name] : null) : null;
     }
@@ -1124,7 +1149,7 @@ export default class VarsController {
     }
 
     /**
-     * Troisième version : on charge toutes les datas de toutes les var_ids présentent dans l'arbre ou dont dépendent des éléments de l'arbre
+     * Troisième version : on charge toutes les datas de toutes les var_ids présents dans l'arbre ou dont dépendent des éléments de l'arbre
      */
     @PerfMonFunction
     private async loadImportedDatas() {
@@ -1137,6 +1162,7 @@ export default class VarsController {
 
             let var_id: number = parseInt(marker_name.replace(VarDAG.VARDAG_MARKER_VAR_ID, ""));
             if (var_ids.indexOf(var_id) < 0) {
+
                 var_ids.push(var_id);
                 this.populateListVarIds(var_id, var_ids);
             }
