@@ -32,7 +32,7 @@ export default class TimeHandler {
 
             time = time.replace(/h/gi, ':');
 
-            if (time.match(/^(24:00)|(2[0-3]:[0-5][0-9])|([0-1][0-9]:[0-5][0-9])$/)) {
+            if (time.match(/^(24:00|2[0-3]:[0-5][0-9]|[0-1][0-9]:[0-5][0-9])$/)) {
                 return time;
             }
 
