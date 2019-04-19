@@ -8,4 +8,5 @@ export default interface IPlanContact extends IDistantVOBase, IUserLinkedItem {
     mail: string;
     mobile: string;
     infos: string;
+    contact_type_id?: number;
 }

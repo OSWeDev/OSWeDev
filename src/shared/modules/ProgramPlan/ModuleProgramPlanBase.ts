@@ -206,6 +206,27 @@ export default abstract class ModuleProgramPlanBase extends Module {
         ));
     }
 
+    public getRDVState(rdv: IPlanRDV, prep: IPlanRDVPrep, cr: IPlanRDVCR): number {
+
+        if (!rdv) {
+            return null;
+        }
+
+        if (!rdv.target_validation) {
+            return ModuleProgramPlanBase.RDV_STATE_CREATED;
+        }
+
+        if (!prep) {
+            return ModuleProgramPlanBase.RDV_STATE_CONFIRMED;
+        }
+
+        if (!cr) {
+            return ModuleProgramPlanBase.RDV_STATE_PREP_OK;
+        }
+
+        return ModuleProgramPlanBase.RDV_STATE_CR_OK;
+    }
+
     public async getRDVsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDV[]> {
         return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDV[]>(ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
     }

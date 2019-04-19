@@ -26,6 +26,8 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import UpdateRDVStatesCronWorker from './workers/UpdateRDVStates/UpdateRDVStatesCronWorker';
+import UpdateRDVStatesCronWorkersHandler from './UpdateRDVStatesCronWorkersHandler';
 
 export default abstract class ModuleProgramPlanServerBase extends ModuleServerBase {
 
@@ -180,6 +182,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             ids.push(rdvs[i].id);
         }
         return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', ids);
+    }
+
+    public registerCrons(): void {
+        UpdateRDVStatesCronWorkersHandler.getInstance();
     }
 
     public async getRDVsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDV[]> {
@@ -528,34 +534,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         return res;
     }
 
-    private getRDVState(rdv: IPlanRDV, prep: IPlanRDVPrep, cr: IPlanRDVCR): number {
-
-        if (!rdv) {
-            return null;
-        }
-
-        if (!rdv.target_validation) {
-            return ModuleProgramPlanBase.RDV_STATE_CREATED;
-        }
-
-        if (!prep) {
-            return ModuleProgramPlanBase.RDV_STATE_CONFIRMED;
-        }
-
-        if (!cr) {
-            return ModuleProgramPlanBase.RDV_STATE_PREP_OK;
-        }
-
-        return ModuleProgramPlanBase.RDV_STATE_CR_OK;
-    }
-
     private async handleTriggerSetStateRDV(rdv: IPlanRDV): Promise<boolean> {
         if (!rdv) {
             return true;
         }
 
         if (!rdv.id) {
-            rdv.state = this.getRDVState(rdv, null, null);
+            rdv.state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, null, null);
             return true;
         }
 
@@ -572,7 +557,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             let prep = preps ? preps[0] : null;
             let cr = crs ? crs[0] : null;
 
-            let state = this.getRDVState(rdv, prep, cr);
+            let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, prep, cr);
 
             if (rdv.state != state) {
                 rdv.state = state;
@@ -599,7 +584,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         let prep = preps ? preps[0] : null;
 
-        let state = this.getRDVState(rdv, prep, cr);
+        let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, prep, cr);
 
         if (rdv.state != state) {
             rdv.state = state;
@@ -624,7 +609,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         let cr = crs ? crs[0] : null;
 
-        let state = this.getRDVState(rdv, prep, cr);
+        let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, prep, cr);
 
         if (rdv.state != state) {
             rdv.state = state;
@@ -649,7 +634,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         let prep = preps ? preps[0] : null;
 
-        let state = this.getRDVState(rdv, prep, null);
+        let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, prep, null);
 
         if (rdv.state != state) {
             rdv.state = state;
@@ -674,7 +659,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         let cr = crs ? crs[0] : null;
 
-        let state = this.getRDVState(rdv, null, cr);
+        let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, null, cr);
 
         if (rdv.state != state) {
             rdv.state = state;

@@ -45,20 +45,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate.bind(this));
     }
 
-    private async handleNotificationCreation(notif: NotificationVO): Promise<boolean> {
-        notif.creation_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
-        return true;
-    }
 
-    private async handleNotificationUpdate(notif: NotificationVO): Promise<boolean> {
-
-        let enbase: NotificationVO = await ModuleDAO.getInstance().getVoById<NotificationVO>(NotificationVO.API_TYPE_ID, notif.id);
-
-        if ((!enbase.read) && notif.read) {
-            notif.read_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
-        }
-        return true;
-    }
 
     public registerSocket(userId: number, sessId: string, socket: socketIO.Socket) {
         // No user or session, don't save this socket
@@ -148,37 +135,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         return res;
     }
 
-    private async notify(notification: NotificationVO) {
 
-        try {
-
-            if (!notification.user_id) {
-                return;
-            }
-
-            // Broadcast to user's sessions or save in DB if no session available
-            let socketWrappers: SocketWrapper[] = this.getUserSockets(notification.user_id);
-            notification.read = false;
-            if (socketWrappers && socketWrappers.length) {
-                for (let i in socketWrappers) {
-                    let socketWrapper: SocketWrapper = socketWrappers[i];
-                    socketWrapper.socket.emit(NotificationVO.TYPE_NAMES[notification.notification_type], notification);
-                }
-                // if sent then consider it read
-                notification.read = true;
-            }
-
-            // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
-            if (notification.notification_type != NotificationVO.TYPE_NOTIF_SIMPLE) {
-                return;
-            }
-
-            await ModuleDAO.getInstance().insertOrUpdateVO(notification);
-        } catch (error) {
-
-            console.error('notify:' + notification.user_id + ':' + error);
-        }
-    }
 
     public async notifyDAOGetVoById(user_id: number, api_type_id: string, vo_id: number) {
 
@@ -243,5 +200,51 @@ export default class ModulePushDataServer extends ModuleServerBase {
         notification.user_id = user_id;
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
+    }
+    private async handleNotificationCreation(notif: NotificationVO): Promise<boolean> {
+        notif.creation_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        return true;
+    }
+
+    private async handleNotificationUpdate(notif: NotificationVO): Promise<boolean> {
+
+        let enbase: NotificationVO = await ModuleDAO.getInstance().getVoById<NotificationVO>(NotificationVO.API_TYPE_ID, notif.id);
+
+        if ((!enbase.read) && notif.read) {
+            notif.read_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        }
+        return true;
+    }
+
+    private async notify(notification: NotificationVO) {
+
+        try {
+
+            if (!notification.user_id) {
+                return;
+            }
+
+            // Broadcast to user's sessions or save in DB if no session available
+            let socketWrappers: SocketWrapper[] = this.getUserSockets(notification.user_id);
+            notification.read = false;
+            if (socketWrappers && socketWrappers.length) {
+                for (let i in socketWrappers) {
+                    let socketWrapper: SocketWrapper = socketWrappers[i];
+                    socketWrapper.socket.emit(NotificationVO.TYPE_NAMES[notification.notification_type], notification);
+                }
+                // if sent then consider it read
+                notification.read = true;
+            }
+
+            // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
+            if (notification.notification_type != NotificationVO.TYPE_NOTIF_SIMPLE) {
+                return;
+            }
+
+            await ModuleDAO.getInstance().insertOrUpdateVO(notification);
+        } catch (error) {
+
+            console.error('notify:' + notification.user_id + ':' + error);
+        }
     }
 }

@@ -261,11 +261,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     }
 
                     await self.handle_modal_show_hide();
-                    $("#rdv_modal").on("hidden.bs.modal", function () {
-                        self.$router.push(self.route_path);
-                        self.show_targets = true;
-                    });
-
                     return;
                 }
 
@@ -286,6 +281,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
             if (!!this.selected_rdv_id) {
                 self.$nextTick(tryOpenModal);
             }
+            $("#rdv_modal").on("hidden.bs.modal", function () {
+                self.$router.push(self.route_path);
+                self.show_targets = true;
+            });
+
         });
     }
 
