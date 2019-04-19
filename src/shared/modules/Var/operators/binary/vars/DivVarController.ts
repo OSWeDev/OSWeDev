@@ -1,5 +1,5 @@
-import ISimpleNumberVarData from '../../interfaces/ISimpleNumberVarData';
-import VarControllerBase from '../../VarControllerBase';
+import ISimpleNumberVarData from '../../../interfaces/ISimpleNumberVarData';
+import VarControllerBase from '../../../VarControllerBase';
 import BinaryVarOperatorControllerBase from '../BinaryVarOperatorControllerBase';
 
 export default class DivVarController<TDataLeft extends ISimpleNumberVarData, TDataRight extends ISimpleNumberVarData> extends BinaryVarOperatorControllerBase<TDataLeft, TDataRight> {

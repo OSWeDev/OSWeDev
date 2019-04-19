@@ -1,4 +1,4 @@
-import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
+import IVarDataParamVOBase from '../../../interfaces/IVarDataParamVOBase';
 
 export default class BinaryVarOperatorDataParamVO implements IVarDataParamVOBase {
 

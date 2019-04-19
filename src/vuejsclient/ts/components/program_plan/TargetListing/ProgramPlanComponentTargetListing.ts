@@ -37,6 +37,7 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
     private unusable_height: number = 75;
     private target_height: number = 40;
     private nb_targets: number = Math.floor((this.height - this.unusable_height) / this.target_height);
+    private initialx: number = window.innerWidth - this.width - 10;
 
     get use_targets(): boolean {
         return !ModuleProgramPlanBase.getInstance().task_type_id;

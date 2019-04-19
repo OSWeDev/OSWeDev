@@ -1,5 +1,5 @@
 import BinaryVarOperatorDataParamVO from './BinaryVarOperatorDataParamVO';
-import ISimpleNumberVarData from '../../interfaces/ISimpleNumberVarData';
+import ISimpleNumberVarData from '../../../interfaces/ISimpleNumberVarData';
 
 export default class BinaryVarOperatorDataVO extends BinaryVarOperatorDataParamVO implements ISimpleNumberVarData {
 

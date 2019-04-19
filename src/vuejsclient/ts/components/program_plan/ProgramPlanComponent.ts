@@ -254,23 +254,38 @@ export default class ProgramPlanComponent extends VueComponentBase {
             async function tryOpenModal() {
 
                 if ((!!self.getRdvsByIds) && (ObjectHandler.getInstance().hasAtLeastOneAttribute(self.getRdvsByIds))) {
+
+                    if ((!self.selected_rdv_id) || (!self.getRdvsByIds[self.selected_rdv_id])) {
+                        self.$router.push(self.route_path);
+                        return;
+                    }
+
                     await self.handle_modal_show_hide();
                     $("#rdv_modal").on("hidden.bs.modal", function () {
                         self.$router.push(self.route_path);
                         self.show_targets = true;
                     });
+
                     return;
                 }
 
                 timeout--;
                 if (timeout < 0) {
+
+                    // On change la route si on a pas réussi à ouvrir le rdv
+                    if ((!self.selected_rdv_id) || (!self.getRdvsByIds[self.selected_rdv_id])) {
+                        self.$router.push(self.route_path);
+                    }
+
                     return;
                 }
 
                 setTimeout(tryOpenModal, 100);
             }
 
-            self.$nextTick(tryOpenModal);
+            if (!!this.selected_rdv_id) {
+                self.$nextTick(tryOpenModal);
+            }
         });
     }
 

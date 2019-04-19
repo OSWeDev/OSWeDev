@@ -1,7 +1,7 @@
 import { isString } from 'util';
-import IVarDataParamVOBase from '../interfaces/IVarDataParamVOBase';
-import VarDataParamControllerBase from '../VarDataParamControllerBase';
-import VarsController from '../VarsController';
+import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
+import VarDataParamControllerBase from '../../VarDataParamControllerBase';
+import VarsController from '../../VarsController';
 import BinaryVarOperatorDataParamVO from './vos/BinaryVarOperatorDataParamVO';
 
 export default class BinaryVarOperatorDataParamController extends VarDataParamControllerBase<BinaryVarOperatorDataParamVO> {
