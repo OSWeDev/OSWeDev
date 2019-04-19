@@ -770,8 +770,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 }
             }
         } else {
-            event_item.title = target.name,
-                event_item.resourceId = rdv.facilitator_id.toString();
+            event_item.title = target.name;
+            event_item.resourceId = rdv.facilitator_id.toString();
             res.push(event_item);
         }
 
@@ -867,6 +867,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
         } else {
             new_facilitator_id = parseInt(event.resourceId);
+            new_target_id = tmp_target_id;
         }
 
         try {
