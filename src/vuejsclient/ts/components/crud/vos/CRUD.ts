@@ -265,6 +265,8 @@ export default class CRUD<T extends IDistantVOBase> {
      */
     public preUpdate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>;
 
+    public isReadOnlyData: (dataVO: IDistantVOBase) => boolean;
+
     /**
      * By default, just the readDatatable is enough for the crud configuration, but the update and create views can be separatly defined.
      * @param readDatatable Datatable and fieds used to populate the data table itself
@@ -287,6 +289,18 @@ export default class CRUD<T extends IDistantVOBase> {
         return this;
     }
 
+    public isReadOnly(dataVO: IDistantVOBase): boolean {
+        if (this.forced_readonly) {
+            return this.forced_readonly;
+        }
+
+        if (this.isReadOnlyData) {
+            return this.isReadOnlyData(dataVO);
+        }
+
+        return this.forced_readonly;
+    }
+
 
     /**
      *
@@ -294,6 +308,12 @@ export default class CRUD<T extends IDistantVOBase> {
      */
     public setPreUpdate(preUpdate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>): CRUD<T> {
         this.preUpdate = preUpdate;
+
+        return this;
+    }
+
+    public setIsReadOnlyData(isReadOnlyData: (dataVO: IDistantVOBase) => boolean): CRUD<T> {
+        this.isReadOnlyData = isReadOnlyData;
 
         return this;
     }
