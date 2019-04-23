@@ -5,24 +5,31 @@ import ISimpleNumberVarData from '../../interfaces/ISimpleNumberVarData';
 import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 import SimpleVarConfVO from '../../simple_vars/SimpleVarConfVO';
 import VarControllerBase from '../../VarControllerBase';
+import VarDataParamControllerBase from '../../VarDataParamControllerBase';
 import VarsController from '../../VarsController';
-import BinaryVarOperatorDataParamController from './BinaryVarOperatorDataParamController';
 import BinaryVarOperatorsController from './BinaryVarOperatorsController';
-import BinaryVarOperatorDataParamVO from './vos/BinaryVarOperatorDataParamVO';
-import BinaryVarOperatorDataVO from './vos/BinaryVarOperatorDataVO';
 
-export default abstract class BinaryVarOperatorControllerBase<TDataLeft extends ISimpleNumberVarData, TDataRight extends ISimpleNumberVarData> extends VarControllerBase<BinaryVarOperatorDataVO, BinaryVarOperatorDataParamVO> {
+export default abstract class BinaryVarOperatorControllerBase<
+    TDataLeft extends ISimpleNumberVarData,
+    TDataParamLeft extends IVarDataParamVOBase,
+    TDataRight extends ISimpleNumberVarData,
+    TDataParamRight extends IVarDataParamVOBase,
+    TData extends ISimpleNumberVarData,
+    TDataParam extends IVarDataParamVOBase> extends VarControllerBase<TData, TDataParam> {
 
     public constructor(
         protected left_var: VarControllerBase<TDataLeft, any>,
         protected operator_name: string,
-        protected right_var: VarControllerBase<TDataRight, any>) {
+        protected right_var: VarControllerBase<TDataRight, any>,
+        var_data_api_type_id: string,
+        protected varDataConstructor: () => TData,
+        data_param_controller: VarDataParamControllerBase<TDataParam>) {
         super({
             _type: SimpleVarConfVO.API_TYPE_ID,
             id: null,
-            var_data_vo_type: BinaryVarOperatorDataVO.API_TYPE_ID,
+            var_data_vo_type: var_data_api_type_id,
             name: BinaryVarOperatorsController.getInstance().getName(left_var.varConf.name, operator_name, right_var.varConf.name),
-        } as SimpleVarConfVO, BinaryVarOperatorDataParamController.getInstance());
+        } as SimpleVarConfVO, data_param_controller);
     }
 
     public getDataSourcesDependencies(): Array<IDataSourceController<any, any>> {
@@ -43,14 +50,12 @@ export default abstract class BinaryVarOperatorControllerBase<TDataLeft extends 
         varDAGNode: VarDAGNode,
         varDAG: VarDAG): Promise<IVarDataParamVOBase[]> {
 
-        let param: BinaryVarOperatorDataParamVO = (varDAGNode.param as BinaryVarOperatorDataParamVO);
-
-        return [VarsController.getInstance().getParam(param.left_var_param_index), VarsController.getInstance().getParam(param.right_var_param_index)];
+        return [this.get_left_param(varDAGNode, varDAG), this.get_right_param(varDAGNode, varDAG)];
     }
 
     public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
-        let param: BinaryVarOperatorDataParamVO = varDAGNode.param as BinaryVarOperatorDataParamVO;
+        let param: TDataParam = varDAGNode.param as TDataParam;
         let index: string = VarsController.getInstance().getIndex(param);
 
         // Si importé, on renvoie la valeur importée, sinon on fait le calcul
@@ -60,20 +65,32 @@ export default abstract class BinaryVarOperatorControllerBase<TDataLeft extends 
             return;
         }
 
-        let res: BinaryVarOperatorDataVO = Object.assign(new BinaryVarOperatorDataVO(), param);
+        let res: TData = Object.assign(this.varDataConstructor(), param);
         res.types_info = [];
         res.var_id = this.varConf.id;
 
-        let data_left: TDataLeft = VarsController.getInstance().getVarData(VarsController.getInstance().getParam(param.left_var_param_index), true);
-        let data_right: TDataRight = VarsController.getInstance().getVarData(VarsController.getInstance().getParam(param.right_var_param_index), true);
+        let data_left: TDataLeft = VarsController.getInstance().getVarData(this.get_left_param(varDAGNode, varDAG), true);
+        let data_right: TDataRight = VarsController.getInstance().getVarData(this.get_right_param(varDAGNode, varDAG), true);
 
         res.value = this.calc_value(data_left, data_right);
-        if (res.value == null) {
-            res.types_info.push(BinaryVarOperatorDataVO.TYPE_INFO_NODATA);
-        }
-
         VarsController.getInstance().setVarData(res, true);
     }
 
     protected abstract calc_value(left_data: TDataLeft, right_data: TDataRight): number;
+
+    protected get_left_param(varDAGNode: VarDAGNode, varDAG: VarDAG): TDataParamLeft {
+        let param: TDataParam = varDAGNode.param as TDataParam;
+
+        let res: TDataParamLeft = Object.assign({}, param) as any;
+        res.var_id = this.left_var.varConf.id;
+        return res;
+    }
+
+    protected get_right_param(varDAGNode: VarDAGNode, varDAG: VarDAG): TDataParamRight {
+        let param: TDataParam = varDAGNode.param as TDataParam;
+
+        let res: TDataParamRight = Object.assign({}, param) as any;
+        res.var_id = this.right_var.varConf.id;
+        return res;
+    }
 }
