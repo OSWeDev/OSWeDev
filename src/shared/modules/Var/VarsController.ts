@@ -1481,6 +1481,14 @@ export default class VarsController {
         let nodes_path: VarDAGNode[] = [];
         let continue_compilation: boolean = true;
 
+        if (node.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED)) {
+            return;
+        }
+
+        if ((!node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) && (node.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE))) {
+            return;
+        }
+
         while (continue_compilation) {
 
             continue_compilation = false;
