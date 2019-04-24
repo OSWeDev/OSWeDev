@@ -7,13 +7,13 @@ import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVar
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
-import './VarDataRefComponent.scss';
+import './VarDatasRefsComponent.scss';
 import moment = require('moment');
 
 @Component({
-    template: require('./VarDataRefComponent.pug')
+    template: require('./VarDatasRefsComponent.pug')
 })
-export default class VarDataRefComponent extends VueComponentBase {
+export default class VarDatasRefsComponent extends VueComponentBase {
     @ModuleVarGetter
     public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
     @ModuleVarGetter
@@ -26,10 +26,10 @@ export default class VarDataRefComponent extends VueComponentBase {
     public getUpdatingParamsByVarsIds: { [index: string]: boolean };
 
     @Prop()
-    public var_param: IVarDataParamVOBase;
+    public var_params: IVarDataParamVOBase[];
 
     @Prop({ default: null })
-    public var_value_callback: (var_value: any) => any;
+    public var_value_callback: (var_values: any[]) => any;
 
     @Prop({ default: null })
     public filter: () => any;
@@ -56,17 +56,27 @@ export default class VarDataRefComponent extends VueComponentBase {
     public consider_zero_value_as_null: boolean;
 
     get is_being_updated(): boolean {
-        return (!!this.getUpdatingParamsByVarsIds) && (!!this.var_param) &&
-            (!!this.getUpdatingParamsByVarsIds[VarsController.getInstance().getIndex(this.var_param)]);
+
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+
+            if ((!!this.getUpdatingParamsByVarsIds) && (!!var_param) &&
+                (!!this.getUpdatingParamsByVarsIds[VarsController.getInstance().getIndex(var_param)])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     get filtered_value() {
 
-        if (!this.var_data) {
+        if (!this.var_datas) {
             return null;
         }
 
         if (!this.filter) {
+
             return this.var_data_value;
         }
 
@@ -80,22 +90,34 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     get var_data_value() {
-        if (!this.var_data) {
+
+        if (!this.var_value_callback) {
             return null;
         }
 
-        if (!this.var_value_callback) {
-            return (this.var_data as ISimpleNumberVarData).value;
+        let values: number[] = [];
+
+        for (let i in this.var_datas) {
+            let var_data = this.var_datas[i];
+            values.push((var_data as ISimpleNumberVarData).value);
         }
 
-        return this.var_value_callback((this.var_data as ISimpleNumberVarData).value);
+        return this.var_value_callback(values);
     }
 
     get is_selected_var(): boolean {
         if (!this.isDescMode) {
             return false;
         }
-        return this.getDescSelectedIndex == VarsController.getInstance().getIndex(this.var_param);
+
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+
+            if (this.getDescSelectedIndex == VarsController.getInstance().getIndex(var_param)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     get is_selected_var_dependency(): boolean {
@@ -109,7 +131,14 @@ export default class VarDataRefComponent extends VueComponentBase {
             return false;
         }
 
-        return this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)], false);
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+
+            if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public is_selected_var_dependency_rec(selectedNode: VarDAGNode, test_node: VarDAGNode, test_incoming: boolean): boolean {
@@ -165,21 +194,43 @@ export default class VarDataRefComponent extends VueComponentBase {
             return false;
         }
 
-        return this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)], true);
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+
+            if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], true)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    get var_data(): IVarDataVOBase {
+    get var_datas(): IVarDataVOBase[] {
 
-        if ((!this.getVarDatas) || (!this.var_param)) {
+        if ((!this.getVarDatas) || (!this.var_params) || (!this.var_params.length)) {
             return null;
         }
 
-        return this.getVarDatas[VarsController.getInstance().getIndex(this.var_param)];
+        let res: IVarDataVOBase[] = [];
+
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+            let var_data = this.getVarDatas[VarsController.getInstance().getIndex(var_param)];
+
+            if (!!var_data) {
+
+                res.push(var_data);
+            }
+        }
+
+        return res.length ? res : null;
     }
 
     public destroyed() {
 
-        VarsController.getInstance().unregisterDataParam(this.var_param);
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+            VarsController.getInstance().unregisterDataParam(var_param);
+        }
     }
 
 
@@ -198,13 +249,5 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (new_var_param) {
             VarsController.getInstance().registerDataParam(new_var_param, this.reload_on_mount);
         }
-    }
-
-    private selectVar() {
-        if (!this.isDescMode) {
-            return;
-        }
-
-        this.setDescSelectedIndex(VarsController.getInstance().getIndex(this.var_param));
     }
 }

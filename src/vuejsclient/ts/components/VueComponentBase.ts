@@ -17,6 +17,7 @@ import IDeclareVueComponent from "./IDeclareVueComponent";
 import DateHandler from '../../../shared/tools/DateHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 
 // MONTHS MIXIN
 let months = [
@@ -558,6 +559,42 @@ export default class VueComponentBase extends Vue
     //EDITION MIXIN
     get editionMode() {
         return AppVuexStoreManager.getInstance().appVuexStore.state.editionMode;
+    }
+
+    protected simple_var_div(values: ISimpleNumberVarData[]): number {
+        if ((!values) || (!values[0]) || (!values[1])) {
+            return null;
+        }
+
+        if (!values[1].value) {
+            return null;
+        }
+
+        return values[0].value / values[1].value;
+    }
+
+    protected simple_var_add(values: ISimpleNumberVarData[]): number {
+        if ((!values) || (!values[0]) || (!values[1])) {
+            return null;
+        }
+
+        return values[0].value + values[1].value;
+    }
+
+    protected simple_var_sub(values: ISimpleNumberVarData[]): number {
+        if ((!values) || (!values[0]) || (!values[1])) {
+            return null;
+        }
+
+        return values[0].value - values[1].value;
+    }
+
+    protected simple_var_times(values: ISimpleNumberVarData[]): number {
+        if ((!values) || (!values[0]) || (!values[1])) {
+            return null;
+        }
+
+        return values[0].value * values[1].value;
     }
 
     protected activateEdition() {

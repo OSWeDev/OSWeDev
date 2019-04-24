@@ -72,24 +72,29 @@ export default class VarDataSumComponent extends VueComponentBase {
             return null;
         }
 
-        let res: number = 0;
-        for (let i in this.var_datas) {
-            let var_data = this.var_datas[i];
-            res += (var_data as ISimpleNumberVarData).value;
-        }
-
         if (!this.filter) {
 
-            return res;
+            return this.var_data_value;
         }
 
-        let params = [res];
+        let params = [this.var_data_value];
 
         if (!!this.filter_additional_params) {
             params = params.concat(this.filter_additional_params);
         }
 
         return this.filter.apply(null, params);
+    }
+
+    get var_data_value() {
+        let res: number = 0;
+
+        for (let i in this.var_datas) {
+            let var_data = this.var_datas[i];
+            res += (var_data as ISimpleNumberVarData).value;
+        }
+
+        return res;
     }
 
     get is_selected_var(): boolean {

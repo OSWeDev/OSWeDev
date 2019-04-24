@@ -54,6 +54,7 @@ import VarsController from '../shared/modules/Var/VarsController';
 import VarDataIfComponent from './ts/components/Var/components/varif/VarDataIfComponent';
 import VarDataBarChartComponent from './ts/components/Var/components/databarchart/VarDataBarChartComponent';
 import VarDataSumComponent from './ts/components/Var/components/datasum/VarDataSumComponent';
+import VarDatasRefsComponent from './ts/components/Var/components/datasrefs/VarDatasRefsComponent';
 
 export default abstract class VueAppBase {
 
@@ -300,6 +301,7 @@ export default abstract class VueAppBase {
         Vue.component('vue-dropzone', vueDropzone);
         Vue.component('var-data', VarDataRefComponent);
         Vue.component('var-sum', VarDataSumComponent);
+        Vue.component('var-datas', VarDatasRefsComponent);
         Vue.component('var-desc', VarDescComponent);
         Vue.component('var-if', VarDataIfComponent);
         Vue.component('var-bar-chart', VarDataBarChartComponent);
