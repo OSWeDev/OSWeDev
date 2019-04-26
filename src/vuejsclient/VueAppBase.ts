@@ -300,8 +300,8 @@ export default abstract class VueAppBase {
         Vue.component('v-select', vSelect);
         Vue.component('vue-dropzone', vueDropzone);
         Vue.component('var-data', VarDataRefComponent);
-        Vue.component('var-sum', VarDataSumComponent);
-        Vue.component('var-datas', VarDatasRefsComponent);
+        Vue.component('vars-sum', VarDataSumComponent);
+        Vue.component('vars-data', VarDatasRefsComponent);
         Vue.component('var-desc', VarDescComponent);
         Vue.component('var-if', VarDataIfComponent);
         Vue.component('var-bar-chart', VarDataBarChartComponent);

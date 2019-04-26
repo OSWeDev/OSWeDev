@@ -18,6 +18,7 @@ import DateHandler from '../../../shared/tools/DateHandler';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
+import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 
 // MONTHS MIXIN
 let months = [
@@ -559,6 +560,10 @@ export default class VueComponentBase extends Vue
     //EDITION MIXIN
     get editionMode() {
         return AppVuexStoreManager.getInstance().appVuexStore.state.editionMode;
+    }
+
+    protected varif_simplenumber_boolean_condition(value: ISimpleNumberVarData) {
+        return (!!value) && (!!value.value);
     }
 
     protected simple_var_div(values: ISimpleNumberVarData[]): number {
