@@ -19,6 +19,7 @@ import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarDAGVisitorMarkForDeletion from './graph/var/visitors/VarDAGVisitorMarkForDeletion';
+import VarUpdateCallback from './vos/VarUpdateCallback';
 
 export default class VarsController {
 
@@ -55,7 +56,7 @@ export default class VarsController {
     public is_stepping: boolean = false;
     public is_waiting: boolean = false;
 
-    public registered_var_callbacks_once: { [index: string]: Array<(varData: IVarDataVOBase) => void> } = {};
+    public registered_var_callbacks: { [index: string]: VarUpdateCallback[] } = {};
 
     public registered_var_data_api_types: { [api_type: string]: boolean } = {};
     public imported_datas_by_index: { [index: string]: IVarDataVOBase } = {};
@@ -411,19 +412,43 @@ export default class VarsController {
     }
 
     @PerfMonFunction
-    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false, var_callback_once: (varData: IVarDataVOBase) => void = null) {
+    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false, var_callbacks: VarUpdateCallback[] = null) {
 
         this.varDAG.registerParams([param]);
 
-        if (!this.registered_var_callbacks_once[this.getIndex(param)]) {
-            this.registered_var_callbacks_once[this.getIndex(param)] = [];
+        if (!!var_callbacks) {
+
+            let param_index = this.getIndex(param);
+            for (let i in var_callbacks) {
+                let var_callback = var_callbacks[i];
+
+                if (!this.registered_var_callbacks[param_index]) {
+                    this.registered_var_callbacks[param_index] = [];
+                }
+                this.registered_var_callbacks[param_index].push(var_callback);
+            }
         }
-        this.registered_var_callbacks_once[this.getIndex(param)].push(var_callback_once);
 
         let actual_value = this.getVarData(param);
         if (reload_on_register || (!actual_value)) {
             this.stageUpdateData(param);
         }
+    }
+
+    public unregisterCallbacks<TDataParam extends IVarDataParamVOBase>(param: TDataParam, var_callbacks_uids: number[]) {
+
+        let param_index = this.getIndex(param);
+        let remaining_callbacks: VarUpdateCallback[] = [];
+
+        for (let j in this.registered_var_callbacks[param_index]) {
+            let registered_var_callback = this.registered_var_callbacks[param_index][j];
+
+            if (var_callbacks_uids.indexOf(registered_var_callback.UID) < 0) {
+                remaining_callbacks.push(registered_var_callback);
+            }
+        }
+
+        this.registered_var_callbacks[param_index] = remaining_callbacks;
     }
 
     public async registerDataParamAndReturnVarData<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false): Promise<IVarDataVOBase> {
@@ -433,11 +458,11 @@ export default class VarsController {
 
             try {
 
-                let var_callback_once: (varData: IVarDataVOBase) => void = (varData: IVarDataVOBase) => {
+                let var_callback_once = VarUpdateCallback.newCallbackOnce(this.getIndex(param), (varData: IVarDataVOBase) => {
                     accept(varData);
-                };
+                });
 
-                self.registerDataParam(param, reload_on_register, var_callback_once);
+                self.registerDataParam(param, reload_on_register, [var_callback_once]);
             } catch (error) {
                 console.error(error);
                 reject(error);
@@ -1536,15 +1561,22 @@ export default class VarsController {
             // On doit pouvoir compute à ce stade
             await VarsController.getInstance().getVarControllerById(actual_node.param.var_id).updateData(actual_node, this.varDAG);
 
-            if (this.registered_var_callbacks_once[actual_node.name] && this.registered_var_callbacks_once[actual_node.name].length) {
-                for (let i in this.registered_var_callbacks_once[actual_node.name]) {
-                    let callback = this.registered_var_callbacks_once[actual_node.name][i];
+            if (this.registered_var_callbacks[actual_node.name] && this.registered_var_callbacks[actual_node.name].length) {
 
-                    if (callback) {
-                        callback(this.getVarData(actual_node.param, true));
+                let remaining_callbacks: VarUpdateCallback[] = [];
+
+                for (let i in this.registered_var_callbacks[actual_node.name]) {
+                    let callback = this.registered_var_callbacks[actual_node.name][i];
+
+                    if (!!callback.callback) {
+                        callback.callback(this.getVarData(actual_node.param, true));
+                    }
+
+                    if (callback.type == VarUpdateCallback.TYPE_EVERY) {
+                        remaining_callbacks.push(callback);
                     }
                 }
-                this.registered_var_callbacks_once[actual_node.name] = null;
+                this.registered_var_callbacks[actual_node.name] = remaining_callbacks;
             }
 
             actual_node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);

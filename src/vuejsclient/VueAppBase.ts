@@ -28,33 +28,33 @@ import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
 import * as vueDropzone from "vue2-dropzone";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
+import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
+import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LocaleManager from '../shared/tools/LocaleManager';
 import IVueModule from '../vuejsclient/ts/modules/IVueModule';
 import VueModuleBase from '../vuejsclient/ts/modules/VueModuleBase';
+import AjaxCacheComponent from './ts/components/AjaxCache/component/AjaxCacheComponent';
+import AjaxCacheComponentPlaceholder from './ts/components/ajaxcache/component/AjaxCacheComponentPlaceholder';
 import DefaultHomeComponent from './ts/components/DefaultHome/component/DefaultHomeComponent';
 import Error404Component from './ts/components/Error404/component/Error404Component';
+import OnPageTranslation from './ts/components/OnPageTranslation/component/OnPageTranslation';
+import OnPageTranslationPlaceholder from './ts/components/OnPageTranslation/component/OnPageTranslationPlaceholder';
+import VarDataBarChartComponent from './ts/components/Var/components/databarchart/VarDataBarChartComponent';
+import VarDataRefComponent from './ts/components/Var/components/dataref/VarDataRefComponent';
+import VarDatasRefsComponent from './ts/components/Var/components/datasrefs/VarDatasRefsComponent';
+import VarDataSumComponent from './ts/components/Var/components/datasum/VarDataSumComponent';
+import VarDescComponent from './ts/components/Var/components/desc/VarDescComponent';
+import VarDataIfComponent from './ts/components/Var/components/varif/VarDataIfComponent';
+import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
-import OnPageTranslation from './ts/components/OnPageTranslation/component/OnPageTranslation';
-import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
-import OnPageTranslationPlaceholder from './ts/components/OnPageTranslation/component/OnPageTranslationPlaceholder';
-import AjaxCacheComponent from './ts/components/AjaxCache/component/AjaxCacheComponent';
-import AjaxCacheComponentPlaceholder from './ts/components/ajaxcache/component/AjaxCacheComponentPlaceholder';
-import VarDataRefComponent from './ts/components/Var/components/dataref/VarDataRefComponent';
-import VarDescComponent from './ts/components/Var/components/desc/VarDescComponent';
-import VarsController from '../shared/modules/Var/VarsController';
-import VarDataIfComponent from './ts/components/Var/components/varif/VarDataIfComponent';
-import VarDataBarChartComponent from './ts/components/Var/components/databarchart/VarDataBarChartComponent';
-import VarDataSumComponent from './ts/components/Var/components/datasum/VarDataSumComponent';
-import VarDatasRefsComponent from './ts/components/Var/components/datasrefs/VarDatasRefsComponent';
 
 export default abstract class VueAppBase {
 
@@ -306,6 +306,7 @@ export default abstract class VueAppBase {
         Vue.component('var-if', VarDataIfComponent);
         Vue.component('var-bar-chart', VarDataBarChartComponent);
 
+        Vue.directive('var-directive', VarDirective.getInstance());
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS)) {
             Vue.component('on-page-translation', OnPageTranslation);

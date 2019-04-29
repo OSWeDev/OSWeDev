@@ -179,6 +179,53 @@ export default class TimeSegmentHandler {
         return res;
     }
 
+    /**
+     *
+     * @param timeSegment
+     * @param type_inclusion choose the granularity of the inclusive bound (day or month)
+     * @returns Inclusive upper bound of the timeSegment (according to type_inclusion segmentation (last day of month, but not last second...))
+     */
+    public getInclusiveEndTimeSegment(timeSegment: TimeSegment, type_inclusion: number = TimeSegment.TYPE_DAY): Moment {
+
+        if (!timeSegment) {
+            return null;
+        }
+
+        let res: Moment = moment(timeSegment.dateIndex);
+
+        switch (timeSegment.type) {
+            case TimeSegment.TYPE_YEAR:
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                res = res.add(1, 'year');
+                break;
+            case TimeSegment.TYPE_MONTH:
+                res = res.add(1, 'month');
+                break;
+            case TimeSegment.TYPE_WEEK:
+                res = res.add(1, 'week');
+                break;
+            case TimeSegment.TYPE_DAY:
+            default:
+                res = res.add(1, 'day');
+        }
+
+        switch (type_inclusion) {
+            case TimeSegment.TYPE_YEAR:
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+            case TimeSegment.TYPE_WEEK:
+                break;
+            case TimeSegment.TYPE_MONTH:
+                res = res.add(-1, 'month');
+                break;
+            case TimeSegment.TYPE_DAY:
+            default:
+                res = res.add(-1, 'day');
+        }
+
+        return res;
+    }
+
+
     public getPreviousTimeSegments(timeSegments: TimeSegment[], type: number = null, offset: number = 1): TimeSegment[] {
 
         if (!timeSegments) {
