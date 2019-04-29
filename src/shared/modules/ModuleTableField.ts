@@ -215,18 +215,18 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_image_ref:
             case ModuleTableField.FIELD_TYPE_foreign_key:
-                return (db_type == "int8") || (db_type == "bigint");
+                return (db_type == "int8") || (db_type == "bigint") || (db_type == "integer");
 
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_float:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                return (db_type == "float8") || (db_type == "double precision");
+                return (db_type == "float8") || (db_type == "double precision") || (db_type == "numeric");
 
             case ModuleTableField.FIELD_TYPE_string_array:
                 return (db_type == "text[]") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_int_array:
-                return db_type == "bigint[]";
+                return (db_type == "bigint[]") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_boolean:
                 return db_type == "boolean";
@@ -244,7 +244,7 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_hours_and_minutes:
             case "ref.hours":
-                return db_type == "ref.hours";
+                return (db_type == "ref.hours") || (db_type == "numeric");
 
             case ModuleTableField.FIELD_TYPE_daterange:
                 return db_type == "daterange";
@@ -256,7 +256,7 @@ export default class ModuleTableField<T> {
                 return db_type == "time without time zone";
 
             case ModuleTableField.FIELD_TYPE_prct:
-                return db_type == "ref.pct";
+                return (db_type == "ref.pct") || (db_type == "numeric");
 
             case 'real':
                 return db_type == "real";
