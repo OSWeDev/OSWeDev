@@ -6,8 +6,17 @@ import VarConfVOBase from './vos/VarConfVOBase';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
 import VarDAG from './graph/var/VarDAG';
 import VarDAGNode from './graph/var/VarDAGNode';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
+import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
+import moment = require('moment');
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
+
+    /**
+     * Used for every segmented data, defaults to day segmentation. Used for cumuls, and refining use of the param.date_index
+     */
+    public segment_type: number = TimeSegment.TYPE_DAY;
 
     protected constructor(
         public varConf: VarConfVOBase,
@@ -63,4 +72,10 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     // }
 
     public async abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG);
+
+    protected getTimeSegment(param: TDataParam): TimeSegment {
+        let date_index: string = ((param as any) as IDateIndexedVarDataParam).date_index;
+
+        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index), this.segment_type);
+    }
 }
