@@ -20,6 +20,9 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarDAGVisitorMarkForDeletion from './graph/var/visitors/VarDAGVisitorMarkForDeletion';
 import VarUpdateCallback from './vos/VarUpdateCallback';
+import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
+import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
+import moment = require('moment');
 
 export default class VarsController {
 
@@ -411,8 +414,20 @@ export default class VarsController {
         }
     }
 
+    public checkDateIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): void {
+        if ((!param) || (!(param as any as IDateIndexedVarDataParam).date_index)) {
+            return;
+        }
+
+        let date_indexed: IDateIndexedVarDataParam = param as any as IDateIndexedVarDataParam;
+        date_indexed.date_index = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_indexed.date_index), this.getVarControllerById(param.var_id).segment_type).dateIndex;
+    }
+
     @PerfMonFunction
     public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false, var_callbacks: VarUpdateCallback[] = null) {
+
+        // On check la validité de la date si daté
+        this.checkDateIndex(param);
 
         this.varDAG.registerParams([param]);
 
@@ -452,6 +467,9 @@ export default class VarsController {
     }
 
     public async registerDataParamAndReturnVarData<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false): Promise<IVarDataVOBase> {
+
+        // On check la validité de la date si daté
+        this.checkDateIndex(param);
 
         let self = this;
         return new Promise<IVarDataVOBase>((accept, reject) => {
