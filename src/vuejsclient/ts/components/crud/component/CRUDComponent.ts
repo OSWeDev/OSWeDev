@@ -27,6 +27,7 @@ import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/Ins
 import MultiInputComponent from '../../multiinput/MultiInputComponent';
 import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
+import CRUDComponentManager from '../CRUDComponentManager';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -630,6 +631,10 @@ export default class CRUDComponent extends VueComponentBase {
         this.snotify.success(this.label('crud.create.success'));
         this.$router.push(this.getCRUDLink(this.api_type_id));
         this.creating_vo = false;
+
+        if (CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud.api_type_id].reset_newvo_after_each_creation) {
+            this.prepareNewVO();
+        }
     }
 
 

@@ -292,6 +292,29 @@ export default class VueComponentBase extends Vue
 
     protected fullscreen = screenfull.isFullscreen;
 
+    // TRANSLATION MIXIN
+    public t(txt, params = {}): string {
+        if (!txt) {
+            return txt;
+        }
+
+        if (VueAppController.getInstance().has_access_to_onpage_translation) {
+            AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslation', {
+                translation_code: txt,
+                missing: false
+            });
+        }
+
+        return LocaleManager.getInstance().t(txt, params);
+    }
+
+    public label(txt, params = {}): string {
+        return this.t(
+            txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
+            params
+        );
+    }
+
     protected toggleFullscreen() {
         screenfull.toggle();
     }
@@ -530,31 +553,6 @@ export default class VueComponentBase extends Vue
     // SMALL MIXINS
     protected filterMultiple(x, xs, strict?) {
         return (xs.length == 0 && !strict) || xs.indexOf(x) != -1;
-    }
-
-    // TRANSLATION MIXIN
-    protected t(txt, params = {}): string {
-        if (!txt) {
-            return txt;
-        }
-
-        if (VueAppController.getInstance().has_access_to_onpage_translation) {
-            AppVuexStoreManager.getInstance().appVuexStore.commit('OnPageTranslationStore/registerPageTranslation', {
-                translation_code: txt,
-                missing: false
-            });
-        }
-
-        let res = LocaleManager.getInstance().i18n.t(txt, params);
-        return res ? res.toString() : null;
-    }
-
-    protected label(txt, params = {}): string {
-        let res = this.t(
-            txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
-            params
-        );
-        return res ? res.toString() : null;
     }
 
     //EDITION MIXIN

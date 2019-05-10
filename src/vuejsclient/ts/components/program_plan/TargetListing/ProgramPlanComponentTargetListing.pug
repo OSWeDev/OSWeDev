@@ -1,12 +1,14 @@
 .rootElt
-    vue-draggable-resizable.row#external-events(:w="width" :h="height" :minh="115" :minw="250" :x="initialx" :y="10" :z="10000" dragHandle="#external_events_drag_handle" v-on:resizing="onResize")
+    vue-draggable-resizable.row#external-events(:resizable="opened" ref="external_events" :w="width" :h="height" :minh="minh" :minw="minw" :x="initialx" :y="10" :z="10000" dragHandle="#external_events_drag_handle" v-on:resizing="onResize" :class="{'opened':opened}")
         .col-md-12
             .row#external_events_drag_handle
                 .col-md-12  
+                    i.fa.fa-minus.fa-fw.pull-right(aria-hidden="true" v-show="opened" @click="opened=!opened")
+                    i.fa.fa-plus.fa-fw.pull-right(aria-hidden="true" v-show="!opened" @click="opened=!opened")
                     i.fa.fa-arrows.fa-fw.pull-right(aria-hidden="true")
             .row.filter
                 .col-md-12.no-padding
-                    input.form-input#filtre_etablissement(ref="filtre_etablissement" v-model="filtre_etablissement" placeholder="Filtrer")        
+                    input.form-input#filtre_etablissement(ref="filtre_etablissement" v-model="filtre_etablissement" placeholder="Filtrer" v-show="opened")        
             .droppable_targets(ref="droppable_targets")
                 template(v-if='use_targets')
                     .row(v-for="(target, i) in filtered_ordered_targets")

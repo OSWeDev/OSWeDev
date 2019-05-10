@@ -54,88 +54,40 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
     private static instance: ModuleProgramPlanBase = null;
 
-    public program_category_type_id: string;
-    public program_type_id: string;
-    public partner_type_id: string;
-    public manager_type_id: string;
-    public enseigne_type_id: string;
-    public contact_type_id: string;
-    public facilitator_region_type_id: string;
-    public target_type_id: string;
-    public rdv_cr_type_id: string;
-    public rdv_type_id: string;
-    public task_type_type_id: string;
-    public task_type_id: string;
-    public facilitator_type_id: string;
-    public program_facilitator_type_id: string;
-    public program_manager_type_id: string;
-    public program_target_type_id: string;
-    public target_contact_type_id: string;
-    public rdv_prep_type_id: string;
-    public target_facilitator_type_id: string;
-    public contact_type_type_id: string;
-
-    public target_group_type_id: string;
-    public target_region_type_id: string;
-    public target_zone_type_id: string;
-
     public showProgramAdministration: boolean = true;
 
     protected constructor(
         name: string,
         reflexiveClassName: string,
 
-        program_category_type_id: string,
-        program_type_id: string,
-        partner_type_id: string,
-        manager_type_id: string,
-        facilitator_region_type_id: string,
-        enseigne_type_id: string,
-        contact_type_id: string,
-        target_type_id: string,
-        rdv_prep_type_id: string,
-        rdv_cr_type_id: string,
-        rdv_type_id: string,
-        facilitator_type_id: string,
-        program_facilitator_type_id: string,
-        program_manager_type_id: string,
-        program_target_type_id: string,
-        target_contact_type_id: string,
-        task_type_type_id: string,
-        task_type_id: string,
-        target_facilitator_type_id: string,
-        target_group_type_id: string,
-        target_region_type_id: string,
-        target_zone_type_id: string,
-        contact_type_type_id: string,
+        public program_category_type_id: string,
+        public program_type_id: string,
+        public partner_type_id: string,
+        public manager_type_id: string,
+        public facilitator_region_type_id: string,
+        public enseigne_type_id: string,
+        public contact_type_id: string,
+        public target_type_id: string,
+        public rdv_prep_type_id: string,
+        public rdv_cr_type_id: string,
+        public rdv_type_id: string,
+        public facilitator_type_id: string,
+        public program_facilitator_type_id: string,
+        public program_manager_type_id: string,
+        public program_target_type_id: string,
+        public target_contact_type_id: string,
+        public task_type_type_id: string,
+        public task_type_id: string,
+        public target_facilitator_type_id: string,
+        public target_group_type_id: string,
+        public target_region_type_id: string,
+        public target_zone_type_id: string,
+        public contact_type_type_id: string,
+        public target_group_contact_type_id: string,
 
-        specificImportPath: string = null) {
+        specificImportPath: string) {
 
         super(name, reflexiveClassName, specificImportPath);
-
-        this.program_category_type_id = program_category_type_id;
-        this.program_type_id = program_type_id;
-        this.manager_type_id = manager_type_id;
-        this.enseigne_type_id = enseigne_type_id;
-        this.target_type_id = target_type_id;
-        this.rdv_cr_type_id = rdv_cr_type_id;
-        this.rdv_type_id = rdv_type_id;
-        this.facilitator_type_id = facilitator_type_id;
-        this.program_facilitator_type_id = program_facilitator_type_id;
-        this.program_manager_type_id = program_manager_type_id;
-        this.program_target_type_id = program_target_type_id;
-        this.partner_type_id = partner_type_id;
-        this.contact_type_id = contact_type_id;
-        this.target_contact_type_id = target_contact_type_id;
-        this.facilitator_region_type_id = facilitator_region_type_id;
-        this.task_type_type_id = task_type_type_id;
-        this.task_type_id = task_type_id;
-        this.rdv_prep_type_id = rdv_prep_type_id;
-        this.target_facilitator_type_id = target_facilitator_type_id;
-        this.target_group_type_id = target_group_type_id;
-        this.target_region_type_id = target_region_type_id;
-        this.target_zone_type_id = target_zone_type_id;
-        this.contact_type_type_id = contact_type_type_id;
 
         ModuleProgramPlanBase.instance = this;
 
@@ -174,6 +126,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.callInitializePlanTargetContact();
         this.callInitializePlanProgramTarget();
         this.callInitializePlanTargetFacilitator();
+        this.callInitializePlanTargetGroupContact();
     }
 
 
@@ -314,16 +267,16 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         let label_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
-        let user_uid = new ModuleTableField('user_uid', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
+        let user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Utilisateur', false);
 
         additional_fields.unshift(
             label_field,
-            user_uid
+            user_id
         );
 
         let datatable = new ModuleTable(this, this.target_group_type_id, additional_fields, label_field, "Groupe d'établissements");
 
-        user_uid.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
@@ -922,6 +875,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.datatables.push(datatable);
     }
 
+
+
     protected callInitializePlanTargetFacilitator() {
         this.initializePlanTargetFacilitator([]);
     }
@@ -945,4 +900,26 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.datatables.push(datatable);
     }
 
+    protected callInitializePlanTargetGroupContact() {
+        this.initializePlanTargetGroupContact([]);
+    }
+
+    protected initializePlanTargetGroupContact(additional_fields: Array<ModuleTableField<any>>) {
+        if (!this.target_group_contact_type_id) {
+            return;
+        }
+
+        let target_group_id = new ModuleTableField('target_group_id', ModuleTableField.FIELD_TYPE_foreign_key, "Groupe d'établissements", true);
+        let contact_id = new ModuleTableField('contact_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Contact', true);
+
+        additional_fields.unshift(
+            target_group_id,
+            contact_id
+        );
+
+        let datatable = new ModuleTable(this, this.target_group_contact_type_id, additional_fields, null, "Contacts par groupe d'établissements");
+        target_group_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_group_type_id]);
+        contact_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.contact_type_id]);
+        this.datatables.push(datatable);
+    }
 }

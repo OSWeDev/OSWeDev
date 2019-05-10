@@ -166,14 +166,14 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
-                if (field.manyToOne_target_moduletable.table_label_function) {
+                if (otherField.manyToOne_target_moduletable.table_label_function) {
                     crud.readDatatable.pushField(new ManyToManyReferenceDatatableField<any, any>(
                         field.module_table.full_name,
                         otherField.manyToOne_target_moduletable,
                         field.module_table,
                         [
                             new ComputedDatatableField(
-                                otherField.manyToOne_target_moduletable.default_label_field.field_id + '__target_label',
+                                otherField.manyToOne_target_moduletable.vo_type + '__' + field.field_id + '__target_label',
                                 otherField.manyToOne_target_moduletable.table_label_function)
                         ]));
                     continue;
@@ -259,6 +259,8 @@ export default class CRUD<T extends IDistantVOBase> {
     }
 
     public forced_readonly: boolean = false;
+    public reset_newvo_after_each_creation: boolean = false;
+    public api_type_id: string;
 
     /**
      * La fonction doit retourner le code_text du label d'erreur ou null. Si erreur, l'update n'aura pas lieu
@@ -281,6 +283,7 @@ export default class CRUD<T extends IDistantVOBase> {
         this.createDatatable = this.createDatatable ? this.createDatatable : (this.updateDatatable ? this.updateDatatable : this.readDatatable);
         this.updateDatatable = this.updateDatatable ? this.updateDatatable : (this.createDatatable ? this.createDatatable : this.readDatatable);
         this.preUpdate = null;
+        this.api_type_id = this.readDatatable.API_TYPE_ID;
     }
 
     public force_readonly(): CRUD<T> {

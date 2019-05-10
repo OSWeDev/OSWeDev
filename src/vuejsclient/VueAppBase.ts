@@ -104,6 +104,8 @@ export default abstract class VueAppBase {
         }
         await Promise.all(promises);
 
+        await this.postInitializationHook();
+
         // var baseApiUrl = this.appController.data_base_api_url || '';
 
         let accepted_language = this.appController.SERVER_HEADERS['accept-language'];
@@ -353,35 +355,5 @@ export default abstract class VueAppBase {
 
     protected abstract createVueMain(): VueComponentBase;
     protected abstract async initializeVueAppModulesDatas();
-    // protected abstract getVAPIDPublicKey(): Uint8Array;
-
-    // private async registerPushWorker() {
-    //     const publicVapidKey = this.getVAPIDPublicKey();
-
-    //     if ('serviceWorker' in navigator) {
-
-    //         console.log('Registering service worker');
-    //         const registration = await navigator.serviceWorker.
-    //             register('sw_push.js', { scope: '/' });
-    //         console.log('Registered service worker');
-
-    //         console.log('Registering push');
-    //         const subscription = await registration.pushManager.
-    //             subscribe({
-    //                 userVisibleOnly: true,
-    //                 applicationServerKey: publicVapidKey
-    //             });
-    //         console.log('Registered push');
-
-    //         console.log('Sending push');
-    //         await fetch('/subscribepush', {
-    //             method: 'POST',
-    //             body: JSON.stringify(subscription),
-    //             headers: {
-    //                 'content-type': 'application/json'
-    //             }
-    //         });
-    //         console.log('Sent push');
-    //     }
-    // }
+    protected async postInitializationHook() { }
 }

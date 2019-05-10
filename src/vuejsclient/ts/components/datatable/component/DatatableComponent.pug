@@ -32,36 +32,41 @@ v-client-table(
         v-select.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", :options="custom_filters_options[field.datatable_field_uid]")
 
     template(v-for="field in datatable.fields" :slot="field.datatable_field_uid" slot-scope="props")
-        template(v-if="field.type == 'Simple'")
-            template(v-if="field.moduleTableField.field_type == 'boolean'")
-                template(v-if="props.row[field.datatable_field_uid] == 'true'")
-                    i.fa.fa-check
-            template(v-else-if="field.moduleTableField.field_type == 'password'")
-                i.fa.fa-lock
-            template(v-else-if="field.moduleTableField.field_type == 'number[]'")
-                ul.multi-input(v-if="props.row[field.datatable_field_uid]")
-                    li(v-for="value in props.row[field.datatable_field_uid]") {{ value }}
-            template(v-else-if="field.moduleTableField.field_type == 'text[]'")
-                ul.multi-input(v-if="props.row[field.datatable_field_uid]")
-                    li(v-for="value in props.row[field.datatable_field_uid]") {{ value }}
-            template(v-else-if="field.moduleTableField.field_type == 'html'")
-                code {{ props.row[field.datatable_field_uid] }}
-            template(v-else-if="field.moduleTableField.field_type == 'enum'")
-                span(:class="transliterate_enum_value_to_class_name(props.row[field.datatable_field_uid])") {{ props.row[field.datatable_field_uid] }}
-            template(v-else)
-                span {{ props.row[field.datatable_field_uid] }}
-        template(v-else-if="field.type == 'ManyToOne'")
-            template(v-if="props.row[field.datatable_field_uid]")
-                template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, props.row[field.datatable_field_uid + '___id___']))")
-                    router-link.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, props.row[field.datatable_field_uid + '___id___'])" target='_blank') {{ props.row[field.datatable_field_uid] }}
+        template(v-if='!field.hidden')
+            template(v-if="field.type == 'Simple'")
+                template(v-if="field.moduleTableField.field_type == 'boolean'")
+                    template(v-if="props.row[field.datatable_field_uid] == 'true'")
+                        i.fa.fa-check
+                template(v-else-if="field.moduleTableField.field_type == 'password'")
+                    i.fa.fa-lock
+                template(v-else-if="field.moduleTableField.field_type == 'number[]'")
+                    ul.multi-input(v-if="props.row[field.datatable_field_uid]")
+                        li(v-for="value in props.row[field.datatable_field_uid]") {{ value }}
+                template(v-else-if="field.moduleTableField.field_type == 'text[]'")
+                    ul.multi-input(v-if="props.row[field.datatable_field_uid]")
+                        li(v-for="value in props.row[field.datatable_field_uid]") {{ value }}
+                template(v-else-if="field.moduleTableField.field_type == 'html'")
+                    code {{ props.row[field.datatable_field_uid] }}
+                template(v-else-if="field.moduleTableField.field_type == 'enum'")
+                    span(:class="transliterate_enum_value_to_class_name(props.row[field.datatable_field_uid])") {{ props.row[field.datatable_field_uid] }}
                 template(v-else)
                     span {{ props.row[field.datatable_field_uid] }}
-        template(v-else-if="(field.type == 'ManyToMany') || (field.type == 'OneToMany')")
-            template(v-if="props.row[field.datatable_field_uid]")
-                template(v-for="e in props.row[field.datatable_field_uid]")
-                    template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id))")
-                        router-link.many-router-links.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id)" target='_blank') {{ e.label }}
+            template(v-else-if="field.type == 'ManyToOne'")
+                template(v-if="props.row[field.datatable_field_uid]")
+                    template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, props.row[field.datatable_field_uid + '___id___']))")
+                        router-link.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, props.row[field.datatable_field_uid + '___id___'])" target='_blank') {{ props.row[field.datatable_field_uid] }}
                     template(v-else)
-                        span {{ e.label }}
-        template(v-else)
-            span {{ props.row[field.datatable_field_uid] }}
+                        span {{ props.row[field.datatable_field_uid] }}
+            template(v-else-if="(field.type == 'ManyToMany') || (field.type == 'OneToMany')")
+                template(v-if="props.row[field.datatable_field_uid]")
+                    template(v-for="e in props.row[field.datatable_field_uid]")
+                        template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id))")
+                            router-link.many-router-links.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id)" target='_blank') {{ e.label }}
+                        template(v-else)
+                            span {{ e.label }}
+
+            template(v-if="field.type == 'COMPONENT'")
+                div(:is="field.component" :vo="props.row" :param="props.row[field.parameter_datatable_field_uid]" :param_ref_id="props.row[field.parameter_datatable_field_uid + '___id___']")
+
+            template(v-else)
+                span {{ props.row[field.datatable_field_uid] }}

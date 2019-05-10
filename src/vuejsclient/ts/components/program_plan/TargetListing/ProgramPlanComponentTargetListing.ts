@@ -1,4 +1,4 @@
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import VueComponentBase from '../../VueComponentBase';
 import ProgramPlanComponentRDV from '../RDV/ProgramPlanComponentRDV';
@@ -34,10 +34,24 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
 
     private width: number = 250;
     private height: number = 395;
-    private unusable_height: number = 75;
+    private opened_width: number = 250;
+    private opened_height: number = 395;
+    private filter_height: number = 26;
+    private closed_width: number = 100;
+    private closed_height: number = 49;
+    private unusable_height: number = this.filter_height + this.closed_height;
     private target_height: number = 40;
+
+    private opened_minh: number = 115;
+    private opened_minw: number = 250;
+    private minh: number = this.opened_minh;
+    private minw: number = this.opened_minw;
+    private closed_minh: number = this.closed_height;
+    private closed_minw: number = this.closed_width;
+
     private nb_targets: number = Math.floor((this.height - this.unusable_height) / this.target_height);
     private initialx: number = window.innerWidth - this.width - 10;
+    private opened: boolean = true;
 
     get use_targets(): boolean {
         return !ModuleProgramPlanBase.getInstance().task_type_id;
@@ -83,12 +97,56 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
         return this.getEnseignesByIds[target.enseigne_id];
     }
 
+    @Watch('opened')
+    private onOpenClose() {
+        if (this.opened) {
+
+            this.width = this.opened_width;
+            this.height = this.opened_height;
+
+            this.minh = this.opened_minh;
+            this.minw = this.opened_minw;
+
+            (this.$refs.droppable_targets as any).style.maxHeight = "" + (this.height - this.unusable_height) + "px";
+            this.nb_targets = Math.floor((this.height - this.unusable_height) / this.target_height);
+        } else {
+
+            this.width = this.closed_width;
+            this.height = this.closed_height;
+
+            this.minh = this.closed_minh;
+            this.minw = this.closed_minw;
+
+            (this.$refs.droppable_targets as any).style.maxHeight = "0px";
+            this.nb_targets = 0;
+        }
+
+        (this.$refs.external_events as any).width = this.width;
+        (this.$refs.external_events as any).height = this.height;
+
+        (this.$refs.external_events as any).style.width = "" + this.width + "px";
+        (this.$refs.external_events as any).style.height = "" + this.height + "px";
+
+        (this.$refs.external_events as any).elmH = this.height;
+        (this.$refs.external_events as any).elmW = this.width;
+    }
+
     private onResize(x, y, width, height) {
-        this.width = width;
-        this.height = height;
+
+        if (!this.opened) {
+            return;
+        }
+
+        if ((this.width == width) && (this.height == height)) {
+            return;
+        }
+
+        this.width = width ? width : this.width;
+        this.height = height ? height : this.height;
+        this.opened_width = this.width;
+        this.opened_height = this.height;
 
         (this.$refs.droppable_targets as any).style.maxHeight = "" + (this.height - this.unusable_height) + "px";
-
         this.nb_targets = Math.floor((this.height - this.unusable_height) / this.target_height);
     }
 

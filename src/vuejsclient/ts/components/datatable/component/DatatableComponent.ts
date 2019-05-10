@@ -296,6 +296,9 @@ export default class DatatableComponent extends VueComponentBase {
             if (field.type == DatatableField.INPUT_FIELD_TYPE) {
                 continue;
             }
+            if (field.type == DatatableField.COMPONENT_FIELD_TYPE) {
+                continue;
+            }
             res.push(field);
         }
 
@@ -578,6 +581,10 @@ export default class DatatableComponent extends VueComponentBase {
                             resData[field.datatable_field_uid] = field.dataToReadIHM(null, baseData);
                             break;
 
+                        case DatatableField.COMPONENT_FIELD_TYPE:
+                            resData[field.datatable_field_uid] = null;
+                            break;
+
                         case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                             let manyToOneField: ManyToOneReferenceDatatableField<any> = (field) as ManyToOneReferenceDatatableField<any>;
 
@@ -701,6 +708,10 @@ export default class DatatableComponent extends VueComponentBase {
             if (field.type == DatatableField.INPUT_FIELD_TYPE) {
                 continue;
             }
+
+            if (field.hidden) {
+                continue;
+            }
             // if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
             //     let simpleField: SimpleDatatableField<any, any> = this.datatable.fields[i] as SimpleDatatableField<any, any>;
 
@@ -724,6 +735,10 @@ export default class DatatableComponent extends VueComponentBase {
 
         for (let j in this.datatable.fields) {
             let field = this.datatable.fields[j];
+
+            if (field.type == DatatableField.COMPONENT_FIELD_TYPE) {
+                continue;
+            }
 
             customFilters.push({
                 name: field.datatable_field_uid,
@@ -871,6 +886,10 @@ export default class DatatableComponent extends VueComponentBase {
                                 return true;
                             }
                             return false;
+
+                        case DatatableField.COMPONENT_FIELD_TYPE:
+                            return false;
+
                         default:
                             return false;
                     }

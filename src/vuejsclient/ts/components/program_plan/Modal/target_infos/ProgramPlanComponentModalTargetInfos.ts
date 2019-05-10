@@ -21,6 +21,7 @@ import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import "./ProgramPlanComponentModalTargetInfos.scss";
 import ProgramPlanComponentHTMLInfos from '../../HTMLInfos/ProgramPlanComponentHTMLInfos';
+import IPlanTargetGroupContact from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetGroupContact';
 
 @Component({
     template: require('./ProgramPlanComponentModalTargetInfos.pug'),
@@ -74,14 +75,36 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
 
     @Watch('selected_rdv', { immediate: true })
     private async onChangeSelectedRDV() {
-        let target_contact_links: IPlanTargetContact[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanTargetContact>(
-            ModuleProgramPlanBase.getInstance().target_contact_type_id, "target_id", [this.selected_rdv.target_id]);
+        let target_contact_links: IPlanTargetContact[] = [];
+        if (!!ModuleProgramPlanBase.getInstance().target_contact_type_id) {
+            target_contact_links = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanTargetContact>(
+                ModuleProgramPlanBase.getInstance().target_contact_type_id, "target_id", [this.selected_rdv.target_id]);
+        }
+
+        let target_group_contact_links: IPlanTargetGroupContact[] = [];
+        if (!!ModuleProgramPlanBase.getInstance().target_group_contact_type_id) {
+            target_group_contact_links = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanTargetGroupContact>(
+                ModuleProgramPlanBase.getInstance().target_group_contact_type_id, "target_group_id", [this.target.group_id]);
+        }
+
         let contacts_ids: number[] = [];
 
         for (let i in target_contact_links) {
             let target_contact_link = target_contact_links[i];
-            contacts_ids.push(target_contact_link.contact_id);
+
+            if (contacts_ids.indexOf(target_contact_link.contact_id) < 0) {
+                contacts_ids.push(target_contact_link.contact_id);
+            }
         }
+
+        for (let i in target_group_contact_links) {
+            let target_group_contact_link = target_group_contact_links[i];
+
+            if (contacts_ids.indexOf(target_group_contact_link.contact_id) < 0) {
+                contacts_ids.push(target_group_contact_link.contact_id);
+            }
+        }
+
         this.target_contacts = await ModuleDAO.getInstance().getVosByIds<IPlanContact>(
             ModuleProgramPlanBase.getInstance().contact_type_id, contacts_ids);
     }

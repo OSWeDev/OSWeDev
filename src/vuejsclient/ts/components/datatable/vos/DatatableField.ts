@@ -12,6 +12,7 @@ export default abstract class DatatableField<T, U> {
     public static ONE_TO_MANY_FIELD_TYPE: string = "OneToMany";
     public static SIMPLE_FIELD_TYPE: string = "Simple";
     public static COMPUTED_FIELD_TYPE: string = "COMPUTED";
+    public static COMPONENT_FIELD_TYPE: string = "COMPONENT";
     public static INPUT_FIELD_TYPE: string = "INPUT";
 
     /**
@@ -30,6 +31,11 @@ export default abstract class DatatableField<T, U> {
      * Used in the CREATE or UPDATE views to show infos that are not editable
      */
     public is_readonly: boolean = false;
+
+    /**
+     * Show/Hide field from datatable
+     */
+    public hidden: boolean = false;
 
     /**
      * Used in the CREATE or UPDATE views
@@ -59,6 +65,13 @@ export default abstract class DatatableField<T, U> {
         this.validate = null;
         this.onChange = null;
         this.isVisibleUpdateOrCreate = () => true;
+    }
+
+    public hide(): DatatableField<T, U> {
+        this.hidden = true;
+        this.hidden_print = true;
+
+        return this;
     }
 
     public hide_print(): DatatableField<T, U> {
