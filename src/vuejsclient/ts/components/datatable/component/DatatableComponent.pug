@@ -65,8 +65,11 @@ v-client-table(
                         template(v-else)
                             span {{ e.label }}
 
-            template(v-if="field.type == 'COMPONENT'")
+            template(v-else-if="field.type == 'COMPONENT'")
                 div(:is="field.component" :vo="props.row" :param="props.row[field.parameter_datatable_field_uid]" :param_ref_id="props.row[field.parameter_datatable_field_uid + '___id___']")
+
+            template(v-else-if="field.type == 'FILE'")
+                FileDatatableFieldComponent(:file_id="props.row[field.parameter_datatable_field_uid]")
 
             template(v-else)
                 span {{ props.row[field.datatable_field_uid] }}

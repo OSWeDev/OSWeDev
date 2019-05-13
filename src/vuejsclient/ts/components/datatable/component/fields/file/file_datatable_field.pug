@@ -1,0 +1,3 @@
+.rootElt.file_datatable_field(v-if='(!!file) && (!!file.path)')
+    .text-center
+        a.btn.btn-primary(:href="'/' + file.path" target='_blank') {{ label('file_datatable_field.download') }}

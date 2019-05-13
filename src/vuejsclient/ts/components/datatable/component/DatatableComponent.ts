@@ -23,10 +23,13 @@ import DaoStoreTypeWatcherDefinition from '../../dao/vos/DaoStoreTypeWatcherDefi
 import * as debounce from 'lodash/debounce';
 import './DatatableComponent.scss';
 import OneToManyReferenceDatatableField from '../vos/OneToManyReferenceDatatableField';
+import FileDatatableFieldComponent from './fields/file/file_datatable_field';
 
 @Component({
     template: require('./DatatableComponent.pug'),
-    components: {}
+    components: {
+        FileDatatableFieldComponent
+    }
 })
 export default class DatatableComponent extends VueComponentBase {
 
@@ -297,6 +300,9 @@ export default class DatatableComponent extends VueComponentBase {
                 continue;
             }
             if (field.type == DatatableField.COMPONENT_FIELD_TYPE) {
+                continue;
+            }
+            if (field.type == DatatableField.FILE_FIELD_TYPE) {
                 continue;
             }
             res.push(field);
@@ -585,6 +591,10 @@ export default class DatatableComponent extends VueComponentBase {
                             resData[field.datatable_field_uid] = null;
                             break;
 
+                        case DatatableField.FILE_FIELD_TYPE:
+                            resData[field.datatable_field_uid] = null;
+                            break;
+
                         case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                             let manyToOneField: ManyToOneReferenceDatatableField<any> = (field) as ManyToOneReferenceDatatableField<any>;
 
@@ -593,6 +603,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 let ref_data: IDistantVOBase = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type][baseData[manyToOneField.srcField.field_id]];
                                 resData[field.datatable_field_uid] = manyToOneField.dataToHumanReadable(ref_data);
                                 resData[field.datatable_field_uid + "___id___"] = baseData[manyToOneField.srcField.field_id];
+                                resData[field.datatable_field_uid + "___type___"] = manyToOneField.targetModuleTable.vo_type;
                             }
                             break;
 
@@ -737,6 +748,10 @@ export default class DatatableComponent extends VueComponentBase {
             let field = this.datatable.fields[j];
 
             if (field.type == DatatableField.COMPONENT_FIELD_TYPE) {
+                continue;
+            }
+
+            if (field.type == DatatableField.FILE_FIELD_TYPE) {
                 continue;
             }
 
@@ -888,6 +903,9 @@ export default class DatatableComponent extends VueComponentBase {
                             return false;
 
                         case DatatableField.COMPONENT_FIELD_TYPE:
+                            return false;
+
+                        case DatatableField.FILE_FIELD_TYPE:
                             return false;
 
                         default:
