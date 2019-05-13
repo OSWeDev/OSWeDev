@@ -108,9 +108,9 @@ export default class CRUDComponent extends VueComponentBase {
 
     @Watch("$route")
     private async handle_modal_show_hide() {
-        let self = this;
-        $("#updateData,#createData,#deleteData").on("hidden.bs.modal", function () {
-            self.$router.push(self.getCRUDLink(self.api_type_id));
+        $("#updateData,#createData,#deleteData").on("hidden.bs.modal", () => {
+            this.$router.push(this.callback_route);
+
         });
 
         if (this.read_query) {
@@ -271,6 +271,11 @@ export default class CRUDComponent extends VueComponentBase {
             id: null
         };
 
+        // Si on a un VO à init, on le fait
+        if (CRUDComponentManager.getInstance().getIDistantVOInit(false)) {
+            obj = CRUDComponentManager.getInstance().getIDistantVOInit();
+        }
+
         for (let i in this.crud.createDatatable.fields) {
             let field: DatatableField<any, any> = this.crud.createDatatable.fields[i];
 
@@ -280,17 +285,17 @@ export default class CRUDComponent extends VueComponentBase {
 
             switch (field.type) {
                 case DatatableField.SIMPLE_FIELD_TYPE:
-                    obj[field.datatable_field_uid] = (field as SimpleDatatableField<any, any>).moduleTableField.field_default;
+                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as SimpleDatatableField<any, any>).moduleTableField.field_default);
                     break;
 
                 default:
-                    obj[field.datatable_field_uid] = null;
+                // obj[field.datatable_field_uid] = null;
             }
         }
 
-
         // On passe la traduction en IHM sur les champs
         this.newVO = this.dataToIHM(obj, this.crud.createDatatable, false);
+
         this.onChangeVO(this.newVO, this.crud.createDatatable);
     }
 
@@ -629,7 +634,7 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.snotify.success(this.label('crud.create.success'));
-        this.$router.push(this.getCRUDLink(this.api_type_id));
+        this.$router.push(this.callback_route);
         this.creating_vo = false;
 
         if (CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud.api_type_id].reset_newvo_after_each_creation) {
@@ -826,7 +831,7 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.snotify.success(this.label('crud.update.success'));
-        this.$router.push(this.getCRUDLink(this.api_type_id));
+        this.$router.push(this.callback_route);
         this.updating_vo = false;
     }
 
@@ -862,7 +867,7 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.snotify.success(this.label('crud.delete.success'));
-        this.$router.push(this.getCRUDLink(this.api_type_id));
+        this.$router.push(this.callback_route);
         this.deleting_vo = false;
     }
 
@@ -984,12 +989,21 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         // On ferme la modal, devenue inutile
-        this.$router.push(this.getCRUDLink(this.api_type_id));
+        this.$router.push(this.callback_route);
     }
 
     private async reload_datas() {
         ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved(this.api_types_involved);
         this.api_types_involved = [];
         await this.loaddatas();
+    }
+
+    get callback_route(): string {
+        let callback: string = this.getCRUDLink(this.api_type_id);
+        if (CRUDComponentManager.getInstance().getCallbackRoute(false)) {
+            callback = CRUDComponentManager.getInstance().getCallbackRoute();
+        }
+
+        return callback;
     }
 }

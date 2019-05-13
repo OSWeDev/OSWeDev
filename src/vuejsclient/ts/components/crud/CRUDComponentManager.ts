@@ -29,6 +29,8 @@ export default class CRUDComponentManager {
     private static instance: CRUDComponentManager;
 
     public cruds_by_api_type_id: { [api_type_id: string]: CRUD<any> } = {};
+    public callback_routes: string[] = [];
+    public idistantvo_init: IDistantVOBase[] = [];
 
     /**
      *
@@ -135,5 +137,33 @@ export default class CRUDComponentManager {
 
         menuPointer.leaf.target = new MenuLeafRouteTarget(route_name);
         menuPointer.addToMenu();
+    }
+
+    public getCallbackRoute(shift: boolean = true): string {
+        if (this.callback_routes && this.callback_routes.length > 0) {
+            let callback: string = CRUDComponentManager.getInstance().callback_routes[0];
+
+            if (shift) {
+                this.callback_routes.shift();
+            }
+
+            return callback;
+        }
+
+        return null;
+    }
+
+    public getIDistantVOInit(shift: boolean = true): IDistantVOBase {
+        if (this.idistantvo_init && this.idistantvo_init.length > 0) {
+            let vo: IDistantVOBase = CRUDComponentManager.getInstance().idistantvo_init[0];
+
+            if (shift) {
+                this.idistantvo_init.shift();
+            }
+
+            return vo;
+        }
+
+        return null;
     }
 }

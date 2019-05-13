@@ -38,6 +38,7 @@ import APIDAONamedParamVO from '../../../shared/modules/DAO/vos/APIDAONamedParam
 import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsParamsVO';
 import EnvParam from '../../env/EnvParam';
 import ConfigurationService from '../../env/ConfigurationService';
+import APIDAORefFieldsAndFieldsStringParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsAndFieldsStringParamsVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -247,6 +248,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS, this.getVosByIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS, this.getVosByRefFieldIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS, this.getVosByRefFieldsIds.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING, this.getVosByRefFieldsIdsAndFieldsString.bind(this));
 
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, this.getNamedVoByName.bind(this));
 
@@ -685,6 +687,47 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
         if (apiDAOParamsVO.field_name3 && ((!!apiDAOParamsVO.ids3) && (apiDAOParamsVO.ids3.length > 0))) {
             request += " AND " + datatable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in (" + apiDAOParamsVO.ids3 + ")";
+        }
+
+        let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";") as T[]);
+
+        // On filtre suivant les droits d'accès
+        return await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+    }
+
+    private async getVosByRefFieldsIdsAndFieldsString<T extends IDistantVOBase>(apiDAOParamsVO: APIDAORefFieldsAndFieldsStringParamsVO): Promise<T[]> {
+
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamsVO.API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!await this.checkAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        // On check le field_name par rapport à la liste des fields, et au fait qu'il doit être un manyToOne (pour sécuriser)
+        if ((!datatable) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name1)) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name1).field_id)) {
+            return null;
+        }
+
+        if (apiDAOParamsVO.field_name2 && ((!datatable.getFieldFromId(apiDAOParamsVO.field_name2)) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name2).field_id))) {
+            return null;
+        }
+
+        if (apiDAOParamsVO.field_name3 && ((!datatable.getFieldFromId(apiDAOParamsVO.field_name3)) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name3).field_id))) {
+            return null;
+        }
+
+        if ((!apiDAOParamsVO.ids1) || (!apiDAOParamsVO.ids1.length)) {
+            return null;
+        }
+
+        let request: string = "SELECT t.* FROM " + datatable.full_name + " t WHERE " +
+            datatable.getFieldFromId(apiDAOParamsVO.field_name1).field_id + " in (" + apiDAOParamsVO.ids1 + ")";
+        if (apiDAOParamsVO.field_name2 && ((!!apiDAOParamsVO.values2) && (apiDAOParamsVO.values2.length > 0))) {
+            request += " AND " + datatable.getFieldFromId(apiDAOParamsVO.field_name2).field_id + " in ('" + apiDAOParamsVO.values2.join("','") + "')";
+        }
+        if (apiDAOParamsVO.field_name3 && ((!!apiDAOParamsVO.values3) && (apiDAOParamsVO.values3.length > 0))) {
+            request += " AND " + datatable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in ('" + apiDAOParamsVO.values3.join("','") + "')";
         }
 
         let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";") as T[]);
