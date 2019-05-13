@@ -566,7 +566,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 for (let i in self.getTargetsByIds) {
                     let target: IPlanTarget = self.getTargetsByIds[i] as IPlanTarget;
 
-                    ids[target.enseigne_id] = true;
+                    if (!!target.enseigne_id) {
+                        ids[target.enseigne_id] = true;
+                    }
                 }
                 let enseignes: IPlanEnseigne[] = await ModuleDAO.getInstance().getVosByIds<IPlanEnseigne>(
                     ModuleProgramPlanBase.getInstance().enseigne_type_id,

@@ -183,7 +183,14 @@ export default class ModuleDAO extends Module {
         if ((!ids) || (!ids.length)) {
             return null;
         }
-        return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS_BY_IDS, API_TYPE_ID, ids);
+
+        let nettoyage_ids: number[] = [];
+        for (let i in ids) {
+            if (!!ids[i]) {
+                nettoyage_ids.push(ids[i]);
+            }
+        }
+        return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS_BY_IDS, API_TYPE_ID, nettoyage_ids);
     }
 
     public async getVosByRefFieldIds<T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]): Promise<T[]> {

@@ -14,6 +14,7 @@ export default abstract class DatatableField<T, U> {
     public static COMPUTED_FIELD_TYPE: string = "COMPUTED";
     public static COMPONENT_FIELD_TYPE: string = "COMPONENT";
     public static INPUT_FIELD_TYPE: string = "INPUT";
+    public static FILE_FIELD_TYPE: string = "FILE";
 
     /**
      * Il faudrait employer des slots ou des composants vue directement
