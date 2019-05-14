@@ -1169,7 +1169,10 @@ export default class VarsController {
                     let node_name = nodes_names[i];
 
                     let new_nodes_: VarDAGNode[] = await VarDAGVisitorDefineNodeDeps.defineNodeDeps(this.varDAG.nodes[node_name], this.varDAG);
-                    new_nodes = new_nodes.concat(new_nodes_);
+
+                    if ((!!new_nodes_) && (!!new_nodes_.length)) {
+                        new_nodes = new_nodes.concat(new_nodes_);
+                    }
                 }
 
                 nodes_names = [];
