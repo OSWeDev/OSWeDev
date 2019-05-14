@@ -5,7 +5,7 @@ import * as debounce from 'lodash/debounce';
 
 export default class PerfMonController {
 
-    public static PERFMON_RUN: boolean = false;
+    public static PERFMON_RUN: boolean = true;
 
     public static getInstance(): PerfMonController {
         if (!PerfMonController.instance) {

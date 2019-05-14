@@ -1,6 +1,6 @@
 .var_data_sum(:class='{"selected_var":is_selected_var, "selectable_var":isDescMode, "selected_var_dependency": is_selected_var_dependency, "selected_var_dependent": is_selected_var_dependent}')
-    slot(v-bind:var_data="var_data")
-        template(v-if='(!!var_data) && ((var_data_value != 0) || (!consider_zero_value_as_null))')
+    slot(v-bind:var_datas="var_datas")
+        template(v-if='(!!var_datas) && ((var_data_value != 0) || (!consider_zero_value_as_null))')
             template(v-if='!!prefix') {{ prefix }}
 
             template(v-if='(var_data_value === 0) && zero_value_replacement')

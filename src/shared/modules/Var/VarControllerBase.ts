@@ -40,6 +40,13 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     public abstract getDataSourcesDependencies(): Array<IDataSourceController<any, any>>;
 
     /**
+     * Returns the datasources this var depends on predeps
+     */
+    public getDataSourcesPredepsDependencies(): Array<IDataSourceController<any, any>> {
+        return null;
+    }
+
+    /**
      * Returns the var_ids that we depend upon (or might depend)
      */
     public abstract getVarsIdsDependencies(): number[];

@@ -686,210 +686,6 @@ export default class VarsController {
         }
     }
 
-    // /**
-    //  * Public pour TestUnit TODO TESTUNIT UNITTEST
-    //  */
-    // @PerfMonFunction
-    // public addDepsToBatch(params_copy: { [paramIndex: string]: IVarDataParamVOBase }): { [paramIndex: string]: IVarDataParamVOBase } {
-    //     let res: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, params_copy);
-    //     let todo_list: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, params_copy);
-
-    //     // Il faut une map des datas registered pour voir parmis elles lesquelles sont à déclencher en tant que voisine.
-    //     let registeredDatasParams_by_var_id: { [var_id: number]: { [paramIndex: string]: IVarDataParamVOBase } } = {};
-    //     for (let index in this.registeredDatasParams) {
-    //         let registeredDatasParam: IVarDataParamVOBase = this.registeredDatasParams[index];
-
-    //         if (!registeredDatasParams_by_var_id[registeredDatasParam.var_id]) {
-    //             registeredDatasParams_by_var_id[registeredDatasParam.var_id] = {};
-    //         }
-    //         registeredDatasParams_by_var_id[registeredDatasParam.var_id][index] = registeredDatasParam;
-    //     }
-
-
-    //     while (ObjectHandler.getInstance().hasAtLeastOneAttribute(todo_list)) {
-
-    //         let new_todo_list: { [paramIndex: string]: IVarDataParamVOBase } = {};
-    //         let todo_list_by_var_id: { [var_id: number]: IVarDataParamVOBase[] } = {};
-    //         for (let param_index in todo_list) {
-    //             let param: IVarDataParamVOBase = todo_list[param_index];
-
-    //             if (!todo_list_by_var_id[param.var_id]) {
-    //                 todo_list_by_var_id[param.var_id] = [];
-    //             }
-    //             todo_list_by_var_id[param.var_id].push(param);
-
-    //             if (this.impacts_by_param[param_index]) {
-    //                 for (let i in this.impacts_by_param[param_index]) {
-    //                     let impact_param: IVarDataParamVOBase = this.impacts_by_param[param_index][i];
-    //                     let impact_index: string = this.getVarControllerById(impact_param.var_id).varDataParamController.getIndex(impact_param);
-
-    //                     if (!res[impact_index]) {
-    //                         res[impact_index] = impact_param;
-    //                         new_todo_list[impact_index] = impact_param;
-    //                     }
-    //                 }
-    //             }
-    //         }
-
-    //         // TODO FIXME : à voir c'est peut-etre la meilleure solution, juste pas parfait sur le papier
-    //         //  on devrait savoir précisément qui dépend de quoi même en transverse.
-    //         //  ici on passe par la notion de daté et cumulé, et on demande alors parmis tous les éléments qui
-    //         //  sont en cache et dans le store si on doit recharger du coup ou pas
-    //         //  En fait on va demander au contrôleur, et lui peut utiliser des infos d'imports, ou de reset
-    //         //  pour décider de pas impacter toute la terre...
-    //         for (let var_id_s in todo_list_by_var_id) {
-    //             let var_id: number = parseInt(var_id_s.toString());
-    //             let params: IVarDataParamVOBase[] = todo_list_by_var_id[var_id];
-
-    //             let impacteds_self: IVarDataParamVOBase[] = this.getVarControllerById(var_id).getSelfImpacted(params, registeredDatasParams_by_var_id[var_id]);
-
-    //             for (let i in impacteds_self) {
-    //                 let impacted_self: IVarDataParamVOBase = impacteds_self[i];
-    //                 let impacted_self_index: string = this.getVarControllerById(impacted_self.var_id).varDataParamController.getIndex(impacted_self);
-
-    //                 if (!res[impacted_self_index]) {
-    //                     res[impacted_self_index] = impacted_self;
-    //                     new_todo_list[impacted_self_index] = impacted_self;
-    //                 }
-    //             }
-    //         }
-
-    //         todo_list = new_todo_list;
-    //     }
-
-    //     return res;
-    // }
-
-
-    // /**
-    //  * Public pour TestUnit TODO TESTUNIT UNITTEST
-    //  */
-    // @PerfMonFunction
-    // public getDataParamsByVarId(
-    //     params: { [paramIndex: string]: IVarDataParamVOBase },
-    //     imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): { [var_id: number]: { [index: string]: IVarDataParamVOBase } } {
-    //     let ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } } = {};
-
-    //     // On organise un peu les datas
-    //     for (let paramIndex in params) {
-    //         let param: IVarDataParamVOBase = params[paramIndex];
-
-    //         if (imported_datas && imported_datas[param.var_id] && imported_datas[param.var_id][paramIndex]) {
-    //             // Si la data est importée, on a pas besoin de l'inclure dans le batch
-    //             continue;
-    //         }
-
-    //         let index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
-
-    //         if (!ordered_params_by_vars_ids[param.var_id]) {
-    //             ordered_params_by_vars_ids[param.var_id] = {};
-    //         }
-    //         ordered_params_by_vars_ids[param.var_id][index] = param;
-    //     }
-
-    //     return ordered_params_by_vars_ids;
-    // }
-
-    // /**
-    //  * Public pour TestUnit TODO TESTUNIT UNITTEST
-    //  */
-    // @PerfMonFunction
-    // public sortDataParamsForUpdate(params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } }) {
-
-    //     // On demande l'ordre dans lequel résoudre les params
-    //     for (let i in params_by_vars_ids) {
-    //         let ordered_params: { [index: string]: IVarDataParamVOBase } = params_by_vars_ids[i];
-    //         let var_id: number = parseInt(i.toString());
-
-    //         if ((!this.getVarControllerById(var_id)) || (!this.getVarControllerById(var_id).varDataParamController) ||
-    //             (!this.getVarControllerById(var_id).varDataParamController.sortParams)) {
-    //             continue;
-    //         }
-    //         this.getVarControllerById(var_id).varDataParamController.sortParams(ordered_params);
-    //     }
-    // }
-
-    // /**
-    //  * Public pour TestUnit TODO TESTUNIT UNITTEST
-    //  */
-    // @PerfMonFunction
-    // public async loadVarsDatasAndLoadParamsDeps(
-    //     ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
-    //     deps_by_var_id: { [from_var_id: number]: number[] },
-    //     imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }
-    // ) {
-    //     this.last_batch_dependencies_by_param = {};
-    //     this.last_batch_param_by_index = {};
-
-    //     let deps_by_var_id_copy: { [from_var_id: number]: number[] } = Object.assign({}, deps_by_var_id);
-    //     while (deps_by_var_id_copy && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_by_var_id_copy)) {
-
-    //         let has_resolved_something: boolean = false;
-
-    //         let next_deps_by_var_id_copy: { [from_var_id: number]: number[] } = {};
-    //         for (let index in deps_by_var_id_copy) {
-    //             let var_id: number = parseInt(index.toString());
-    //             let deps_vars_id: number[] = deps_by_var_id_copy[var_id];
-
-    //             if (this.hasDependancy(var_id, deps_by_var_id_copy)) {
-    //                 next_deps_by_var_id_copy[var_id] = deps_vars_id;
-    //                 continue;
-    //             }
-
-    //             has_resolved_something = true;
-
-    //             // Charger les datas et les params dépendants pour les ajouter à la liste en attente
-    //             if (!this.getVarControllerById(var_id)) {
-    //                 throw new Error('loadDatasVars: controller registering check failed:' + var_id);
-    //             }
-
-    //             await this.getVarControllerById(var_id).begin_batch(
-    //                 this.BATCH_UIDs_by_var_id[var_id],
-    //                 ordered_params_by_vars_ids[var_id],
-    //                 imported_datas
-    //             );
-
-    //             for (let i in ordered_params_by_vars_ids[var_id]) {
-
-    //                 let param: IVarDataParamVOBase = ordered_params_by_vars_ids[var_id][i];
-
-    //                 let dependencies: IVarDataParamVOBase[] = await this.getVarControllerById(var_id).getParamsDependencies(
-    //                     this.BATCH_UIDs_by_var_id[var_id],
-    //                     param,
-    //                     ordered_params_by_vars_ids,
-    //                     imported_datas
-    //                 );
-
-    //                 let cleaned_dependencies: IVarDataParamVOBase[] = [];
-    //                 for (let j in dependencies) {
-    //                     let dependency: IVarDataParamVOBase = dependencies[j];
-    //                     let dependency_index: string = this.getVarControllerById(dependency.var_id).varDataParamController.getIndex(dependency);
-
-    //                     if (imported_datas && imported_datas[dependency.var_id] && imported_datas[dependency.var_id][dependency_index]) {
-    //                         // La data est importée, inutile de l'ajouter au batch
-    //                         // Par contre ça veut dire aussi qu'il faut ajouter ces datas importées dans les caches dans le départ
-    //                         continue;
-    //                     }
-
-    //                     if (!ordered_params_by_vars_ids[dependency.var_id]) {
-    //                         ordered_params_by_vars_ids[dependency.var_id] = {};
-    //                     }
-    //                     ordered_params_by_vars_ids[dependency.var_id][dependency_index] = dependency;
-    //                     cleaned_dependencies.push(dependency);
-    //                 }
-    //                 let param_index: string = this.getVarControllerById(var_id).varDataParamController.getIndex(param);
-    //                 this.last_batch_param_by_index[param_index] = param;
-    //                 this.last_batch_dependencies_by_param[param_index] = cleaned_dependencies;
-    //             }
-    //         }
-    //         deps_by_var_id_copy = next_deps_by_var_id_copy;
-
-    //         if (!has_resolved_something) {
-    //             throw new Error('loadDatasVars: dep check failed:' + JSON.stringify(deps_by_var_id_copy));
-    //         }
-    //     }
-    // }
-
     /**
      * Compare params. Return true if same
      * @param p1
@@ -938,76 +734,6 @@ export default class VarsController {
             datasource_dep.registerDataSource();
         });
     }
-
-    // /**
-    //  * On va chercher à dépiler toutes les demandes en attente,
-    //  *  et dans un ordre définit par le controller du type de var group
-    //  */
-    // @PerfMonFunction
-    // private async updateDatas() {
-
-    //     if (!!this.setUpdatingDatas) {
-    //         this.setUpdatingDatas(true);
-    //     }
-
-    //     // On passe par une copie pour ne pas dépendre des demandes de mise à jour en cours
-    //     //  et on réinitialise immédiatement les waiting for update, comme ça on peut voir ce qui a été demandé pendant qu'on
-    //     //  mettait à jour (important pour éviter des bugs assez difficiles à identifier potentiellement)
-    //     let params_copy: { [paramIndex: string]: IVarDataParamVOBase } = Object.assign({}, this.waitingForUpdate);
-    //     this.BATCH_UIDs_by_var_id = {};
-    //     this.waitingForUpdate = {};
-
-    //     // On ajoute au batch de mise à jour les calculs qui dépendent des vars actuellement prévues en mise à jour
-    //     params_copy = this.addDepsToBatch(params_copy);
-
-    //     // On résoud les deps par group_id avant de chercher à savoir de quel param exactement on dépend
-    //     let deps_by_var_id: { [from_var_id: number]: number[] } = await this.solveVarsDependencies(params_copy);
-
-    //     // FIXME TODO DATASOURCES : En attendant les datasources propres
-    //     //  On a besoin pour lister les params deps de imports de chaque type de vars
-    //     //  Quand on a toutes les deps a priori on peut charger les datas importées (a condition de pas s'intéresser aux params)
-    //     let imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } } = await this.loadAllDatasImported(deps_by_var_id);
-    //     this.setImportedDatas(imported_datas);
-
-    //     let ordered_params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } } = this.getDataParamsByVarId(params_copy, imported_datas);
-
-    //     // On met à jour le store une première fois pour informer qu'on lance un update ciblé
-    //     if (!!this.setUpdatingParamsByVarsIds) {
-    //         this.setUpdatingParamsByVarsIds(ordered_params_by_vars_ids);
-    //         // L'objectif en vrai c'est d'attendre le nexttick de vuejs, donc à voir comment on peut faire, le sleep 1 semble inefficace
-    //         await ThreadHandler.getInstance().sleep(1);
-    //     }
-
-    //     // On demande le chargement des datas par ordre inverse de dépendance et dès qu'on a chargé les datas sources
-    //     //  on peut demander les dépendances du niveau suivant et avancer dans l'arbre
-    //     await this.loadVarsDatasAndLoadParamsDeps(ordered_params_by_vars_ids, deps_by_var_id, imported_datas);
-
-    //     this.sortDataParamsForUpdate(ordered_params_by_vars_ids);
-
-    //     // On met à jour le store une deuxième fois pour informer qu'on fait un update des datas impactées également
-    //     if (!!this.setUpdatingParamsByVarsIds) {
-    //         this.setUpdatingParamsByVarsIds(ordered_params_by_vars_ids);
-    //         // L'objectif en vrai c'est d'attendre le nexttick de vuejs, donc à voir comment on peut faire, le sleep 1 semble inefficace
-    //         await ThreadHandler.getInstance().sleep(1);
-    //     }
-
-    //     // Et une fois que tout est propre, on lance la mise à jour de chaque élément
-    //     await this.updateEachData(deps_by_var_id, ordered_params_by_vars_ids, imported_datas);
-
-    //     // Enfin quand toutes les datas sont à jour on pousse sur le store
-    //     for (let i in this.BATCH_UIDs_by_var_id) {
-    //         this.flushVarsDatas(this.BATCH_UIDs_by_var_id[i]);
-    //     }
-    //     this.mergeDeps();
-
-    //     if (!!this.setUpdatingParamsByVarsIds) {
-    //         this.setUpdatingParamsByVarsIds({});
-    //     }
-
-    //     if (!!this.setUpdatingDatas) {
-    //         this.setUpdatingDatas(false);
-    //     }
-    // }
 
     /**
      * On va chercher à dépiler toutes les demandes en attente,
@@ -1422,15 +1148,160 @@ export default class VarsController {
     @PerfMonFunction
     private async solveDeps() {
 
-        if ((this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
+        let all_ok: boolean = (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
             (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) ||
             ((!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING]) ||
-                (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING].length))) {
-            // tout est déjà chargé
-            return;
+                (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING].length));
+
+        while (!all_ok) {
+
+            // On ajoute la gestion des chargements de datasources pre_deps
+            //  Si on a pas tout chargé, et qu'on a des noeuds qui attendent un chargement de datasource, on lance ces chargement et on indique que la dep doit être résolue
+            //  On demande à nouveau la résolution des deps
+            //  et ainsi de suite, si on a encore d'autres deps à charger pour pouvoir avancer
+
+            let nodes_names: string[] = this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING];
+
+            while (nodes_names && nodes_names.length) {
+
+                let new_nodes: VarDAGNode[] = [];
+                for (let i in nodes_names) {
+                    let node_name = nodes_names[i];
+
+                    let new_nodes_: VarDAGNode[] = await VarDAGVisitorDefineNodeDeps.defineNodeDeps(this.varDAG.nodes[node_name], this.varDAG);
+                    new_nodes = new_nodes.concat(new_nodes_);
+                }
+
+                nodes_names = [];
+                for (let i in new_nodes) {
+                    nodes_names.push(new_nodes[i].name);
+                }
+            }
+
+            // await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, true, new VarDAGVisitorDefineNodeDeps(this.varDAG));
+
+            all_ok = (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
+                (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) ||
+                ((!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING]) ||
+                    (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING].length));
+
+            if (!all_ok) {
+
+                // On check qu'il y a des deps en attente
+                if (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING] &&
+                    this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING].length) {
+
+                    // On doit récupérer les noeuds concernés et demander le chargement des datasources predeps
+                    let nodes_names_to_preload: string[] = this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING];
+
+                    let datasources_batches: { [datasource_name: string]: { [index: string]: IVarDataParamVOBase } } = {};
+                    let params: { [index: string]: IVarDataParamVOBase } = {};
+
+                    for (let i in nodes_names_to_preload) {
+                        let node_name_to_preload: string = nodes_names_to_preload[i];
+
+                        let varDagNode: VarDAGNode = this.varDAG.nodes[node_name_to_preload];
+
+                        let datasources_predeps: Array<IDataSourceController<any, any>> = VarsController.getInstance().getVarControllerById(varDagNode.param.var_id).getDataSourcesPredepsDependencies();
+
+                        for (let j in datasources_predeps) {
+                            let datasource_predeps = datasources_predeps[j];
+
+                            if (!datasources_batches[datasource_predeps.name]) {
+                                datasources_batches[datasource_predeps.name] = {};
+                            }
+                            datasources_batches[datasource_predeps.name][varDagNode.name] = varDagNode.param;
+                        }
+
+                        params[varDagNode.name] = varDagNode.param;
+                    }
+
+                    for (let i in datasources_batches) {
+                        let datasource_batch = datasources_batches[i];
+
+                        let datasource_controller: IDataSourceController<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[i];
+                        datasource_controller.load_for_batch(datasource_batch);
+                    }
+
+                    for (let node_name_to_preload in params) {
+                        this.varDAG.nodes[node_name_to_preload].removeMarker(VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING, this.varDAG, true);
+                        this.varDAG.nodes[node_name_to_preload].addMarker(VarDAG.VARDAG_MARKER_PREDEPS_DATASOURCE_LOADED, this.varDAG);
+                    }
+                } else {
+                    // Sinon on a pas tout ok, mais on sait pas résoudre, on indique une erreur
+                    console.error('echec solveDeps:des deps restent, mais impossible de les charger');
+                    return;
+                }
+            }
+        }
+    }
+
+    @PerfMonFunction
+    private async solveDeps_batch(node: VarDAGNode) {
+
+        let actual_node: VarDAGNode = node;
+        let nodes_path: VarDAGNode[] = [];
+        let continue_batch: boolean = true;
+
+        if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
+            return false;
         }
 
-        await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, true, new VarDAGVisitorDefineNodeDeps(this.varDAG));
+        while (continue_batch) {
+
+            continue_batch = false;
+            let go_further: boolean = false;
+            do {
+
+                go_further = false;
+                for (let i in actual_node.outgoing) {
+                    let outgoing: VarDAGNode = actual_node.outgoing[i] as VarDAGNode;
+
+                    if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED)) {
+                        continue;
+                    }
+
+                    if ((!outgoing.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) && (outgoing.hasMarker(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE))) {
+                        continue;
+                    }
+
+                    // On doit compute un noeud, on s'en occuppe
+                    nodes_path.unshift(actual_node);
+                    actual_node = outgoing;
+                    go_further = true;
+                    break;
+                }
+            } while (go_further);
+
+            // On doit pouvoir compute à ce stade
+            await VarsController.getInstance().getVarControllerById(actual_node.param.var_id).updateData(actual_node, this.varDAG);
+
+            if (this.registered_var_callbacks[actual_node.name] && this.registered_var_callbacks[actual_node.name].length) {
+
+                let remaining_callbacks: VarUpdateCallback[] = [];
+
+                for (let i in this.registered_var_callbacks[actual_node.name]) {
+                    let callback = this.registered_var_callbacks[actual_node.name][i];
+
+                    if (!!callback.callback) {
+                        callback.callback(this.getVarData(actual_node.param, true));
+                    }
+
+                    if (callback.type == VarUpdateCallback.TYPE_EVERY) {
+                        remaining_callbacks.push(callback);
+                    }
+                }
+                this.registered_var_callbacks[actual_node.name] = remaining_callbacks;
+            }
+
+            actual_node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
+            actual_node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
+
+            if (nodes_path.length > 0) {
+                actual_node = nodes_path.shift();
+                continue_batch = true;
+            }
+        }
     }
 
     // @PerfMonFunction

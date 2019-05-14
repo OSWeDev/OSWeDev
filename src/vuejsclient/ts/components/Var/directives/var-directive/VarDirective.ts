@@ -35,7 +35,7 @@ export default class VarDirective {
             return;
         }
 
-        let varUpdateCallbacks: VarUpdateCallback[] = this.getVarUpdateCallbacks(el, binding, vnode, var_param);
+        let varUpdateCallbacks: VarUpdateCallback[] = VarDirective.getInstance().getVarUpdateCallbacks(el, binding, vnode, var_param);
 
         VarsController.getInstance().registerDataParam(var_param, reload_on_register, varUpdateCallbacks);
     }
@@ -48,7 +48,7 @@ export default class VarDirective {
             return;
         }
 
-        VarsController.getInstance().unregisterCallbacks(var_param, this.getVarUpdateCallbackUIDs(el));
+        VarsController.getInstance().unregisterCallbacks(var_param, VarDirective.getInstance().getVarUpdateCallbackUIDs(binding));
     }
 
     private getVarUpdateCallbacks(el, binding, vnode, var_param: IVarDataParamVOBase): VarUpdateCallback[] {
@@ -63,29 +63,33 @@ export default class VarDirective {
             let on_every_update_callback = VarUpdateCallback.newCallbackEvery(param_index, (varData: IVarDataVOBase) => {
                 on_every_update(varData, el, binding, vnode);
             });
-            el.var_directive.on_every_update_uid = on_every_update_callback.UID;
+            binding.value.on_every_update_uid = on_every_update_callback.UID;
             varUpdateCallbacks.push(on_every_update_callback);
         }
         if (!!on_update_once) {
             let on_update_once_callback = VarUpdateCallback.newCallbackEvery(param_index, (varData: IVarDataVOBase) => {
                 on_update_once(varData, el, binding, vnode);
             });
-            el.var_directive.on_update_once_uid = on_update_once_callback.UID;
+            binding.value.on_update_once_uid = on_update_once_callback.UID;
             varUpdateCallbacks.push(on_update_once_callback);
         }
 
         return varUpdateCallbacks;
     }
 
-    private getVarUpdateCallbackUIDs(el): number[] {
+    private getVarUpdateCallbackUIDs(binding): number[] {
 
         let res: number[] = [];
 
-        if (!!el.var_directive.on_every_update_uid) {
-            res.push(el.var_directive.on_every_update_uid);
+        if (!binding.value) {
+            return null;
         }
-        if (!!el.var_directive.on_update_once_uid) {
-            res.push(el.var_directive.on_update_once_uid);
+
+        if (!!binding.value.on_every_update_uid) {
+            res.push(binding.value.on_every_update_uid);
+        }
+        if (!!binding.value.on_update_once_uid) {
+            res.push(binding.value.on_update_once_uid);
         }
 
         return res;
