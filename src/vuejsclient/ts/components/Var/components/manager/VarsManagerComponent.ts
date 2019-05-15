@@ -46,6 +46,8 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarAction
     public removeVarData: (varDataParam: IVarDataParamVOBase) => void;
     @ModuleVarAction
+    public setIsStepping: (is_stepping: boolean) => void;
+    @ModuleVarAction
     public setIsUpdating: (is_updating: boolean) => void;
     @ModuleVarAction
     public setIsWaiting: (is_waiting: boolean) => void;
@@ -65,7 +67,7 @@ export default class VarsManagerComponent extends VueComponentBase {
     public mounted() {
         VarsController.getInstance().registerStoreHandlers(
             this.getVarDatas, this.setVarData, this.removeVarData, this.setIsUpdating,
-            this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds,
+            this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds, this.setIsStepping,
             this.setIsWaiting, this.setStepNumber);
     }
 

@@ -90,7 +90,7 @@ export default class VarDAGVisitorDefineNodeDeps extends DAGVisitorBase<VarDAG> 
 
             let ds_predeps: Array<IDataSourceController<any, any>> = VarsController.getInstance().getVarControllerById(node.param.var_id).getDataSourcesPredepsDependencies();
             if ((!!ds_predeps) && (!!ds_predeps.length)) {
-                node.addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, varDag);
+                node.addMarker(VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING, varDag);
                 return null;
             }
         }

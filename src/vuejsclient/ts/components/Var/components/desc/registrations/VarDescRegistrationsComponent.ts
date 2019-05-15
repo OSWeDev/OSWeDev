@@ -23,12 +23,6 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
     @ModuleVarAction
     public setDescSelectedIndex: (desc_selected_index: string) => void;
 
-    @ModuleVarAction
-    public setIsWaiting: (is_waiting: boolean) => void;
-    @ModuleVarAction
-    public setIsStepping: (is_stepping: boolean) => void;
-    @ModuleVarAction
-    public setStepNumber: (step_number: number) => void;
     @ModuleVarGetter
     public isWaiting: boolean;
     @ModuleVarGetter
@@ -65,17 +59,11 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
     }
 
     public switch_stepper() {
-        this.setIsStepping(!this.isStepping);
-
-        if (!this.isStepping) {
-            this.setIsWaiting(false);
-        } else {
-            this.setStepNumber(1);
-        }
+        VarsController.getInstance().switch_stepper();
     }
 
     public continue_stepper() {
-        this.setIsWaiting(false);
+        VarsController.getInstance().next_step();
     }
 
     public createGraph() {

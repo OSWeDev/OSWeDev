@@ -23,6 +23,7 @@ import VarUpdateCallback from './vos/VarUpdateCallback';
 import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import moment = require('moment');
+import { Watch } from 'vue-property-decorator';
 
 export default class VarsController {
 
@@ -56,8 +57,8 @@ export default class VarsController {
     };
 
     public step_number: number = 1;
-    public is_stepping: boolean = false;
-    public is_waiting: boolean = false;
+    public is_stepping: boolean = true;
+    public is_waiting: boolean = true;
 
     public registered_var_callbacks: { [index: string]: VarUpdateCallback[] } = {};
 
@@ -73,6 +74,7 @@ export default class VarsController {
     private setVarData_: (varData: IVarDataVOBase) => void = null;
     private removeVarData: (varDataParam: IVarDataParamVOBase) => void = null;
     private setStepNumber: (step_number: number) => void = null;
+    private setIsStepping: (is_stepping: boolean) => void = null;
     private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
 
     private registered_vars: { [name: string]: VarConfVOBase } = {};
@@ -149,6 +151,27 @@ export default class VarsController {
     //         return true;
     //     }
     // }
+
+    public next_step() {
+        this.is_waiting = false;
+        this.setIsWaiting(false);
+    }
+
+    public set_step(step_num: number) {
+        this.step_number = step_num;
+        this.setStepNumber(this.step_number);
+    }
+
+    public switch_stepper() {
+        this.is_stepping = !this.is_stepping;
+        this.setIsStepping(this.is_stepping);
+
+        if (this.is_stepping) {
+            this.next_step();
+        } else {
+            this.set_step(1);
+        }
+    }
 
     public async initialize() {
         this.registered_vars_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<SimpleVarConfVO>(SimpleVarConfVO.API_TYPE_ID));
@@ -306,6 +329,7 @@ export default class VarsController {
         setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [index: string]: boolean }) => void,
         // isStepping: boolean,
         // isWaiting: boolean,
+        setIsStepping: (is_stepping: boolean) => void,
         setIsWaiting: (isWaiting: boolean) => void,
         setStepNumber: (step_number: number) => void) {
         this.varDatas = getVarData;
@@ -317,8 +341,9 @@ export default class VarsController {
 
         // this.isStepping = isStepping;
         // this.isWaiting = isWaiting;
-        this.setIsWaiting = setIsWaiting;
 
+        this.setIsStepping = setIsStepping;
+        this.setIsWaiting = setIsWaiting;
         this.setStepNumber = setStepNumber;
     }
 
@@ -1160,7 +1185,7 @@ export default class VarsController {
             //  On demande à nouveau la résolution des deps
             //  et ainsi de suite, si on a encore d'autres deps à charger pour pouvoir avancer
 
-            let nodes_names: string[] = this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING];
+            let nodes_names: string[] = Array.from(this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING]);
 
             while (nodes_names && nodes_names.length) {
 
@@ -1219,12 +1244,14 @@ export default class VarsController {
                         params[varDagNode.name] = varDagNode.param;
                     }
 
+                    let promises: Array<Promise<any>> = [];
                     for (let i in datasources_batches) {
                         let datasource_batch = datasources_batches[i];
 
                         let datasource_controller: IDataSourceController<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[i];
-                        datasource_controller.load_for_batch(datasource_batch);
+                        promises.push(datasource_controller.load_for_batch(datasource_batch));
                     }
+                    await Promise.all(promises);
 
                     for (let node_name_to_preload in params) {
                         this.varDAG.nodes[node_name_to_preload].removeMarker(VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING, this.varDAG, true);

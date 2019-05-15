@@ -191,16 +191,17 @@ export default class ModuleDAO extends Module {
     }
 
     public async getVosByIds<T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]): Promise<T[]> {
-        if ((!ids) || (!ids.length)) {
-            return null;
-        }
-
         let nettoyage_ids: number[] = [];
         for (let i in ids) {
             if (!!ids[i]) {
                 nettoyage_ids.push(ids[i]);
             }
         }
+
+        if ((!nettoyage_ids) || (!nettoyage_ids.length)) {
+            return null;
+        }
+
         return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS_BY_IDS, API_TYPE_ID, nettoyage_ids);
     }
 
