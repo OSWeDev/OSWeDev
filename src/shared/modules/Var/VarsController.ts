@@ -473,6 +473,11 @@ export default class VarsController {
         if (reload_on_register || (!actual_value)) {
             this.stageUpdateData(param);
         }
+
+        // Si la var est déjà calculée, on doit lancer le callback directement
+        if ((!reload_on_register) && (!!actual_value)) {
+            this.run_callbacks(param, this.getIndex(param));
+        }
     }
 
     public unregisterCallbacks<TDataParam extends IVarDataParamVOBase>(param: TDataParam, var_callbacks_uids: number[]) {
@@ -1308,20 +1313,7 @@ export default class VarsController {
 
             if (this.registered_var_callbacks[actual_node.name] && this.registered_var_callbacks[actual_node.name].length) {
 
-                let remaining_callbacks: VarUpdateCallback[] = [];
-
-                for (let i in this.registered_var_callbacks[actual_node.name]) {
-                    let callback = this.registered_var_callbacks[actual_node.name][i];
-
-                    if (!!callback.callback) {
-                        callback.callback(this.getVarData(actual_node.param, true));
-                    }
-
-                    if (callback.type == VarUpdateCallback.TYPE_EVERY) {
-                        remaining_callbacks.push(callback);
-                    }
-                }
-                this.registered_var_callbacks[actual_node.name] = remaining_callbacks;
+                this.run_callbacks(actual_node.param, actual_node.name);
             }
 
             actual_node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
@@ -1332,6 +1324,23 @@ export default class VarsController {
                 continue_batch = true;
             }
         }
+    }
+
+    private run_callbacks(param: IVarDataParamVOBase, param_index: string) {
+        let remaining_callbacks: VarUpdateCallback[] = [];
+
+        for (let i in this.registered_var_callbacks[param_index]) {
+            let callback = this.registered_var_callbacks[param_index][i];
+
+            if (!!callback.callback) {
+                callback.callback(this.getVarData(param, true));
+            }
+
+            if (callback.type == VarUpdateCallback.TYPE_EVERY) {
+                remaining_callbacks.push(callback);
+            }
+        }
+        this.registered_var_callbacks[param_index] = remaining_callbacks;
     }
 
     // @PerfMonFunction
