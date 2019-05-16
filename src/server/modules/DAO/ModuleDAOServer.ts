@@ -120,6 +120,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async insertOrUpdateVO(vo: IDistantVOBase): Promise<any> {
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        let uid: number = httpContext ? httpContext.get('UID') : null;
+        if ((uid >= 225) && (uid <= 230)) {
+            return null;
+        }
 
         let isUpdate: boolean = vo.id ? true : false;
         let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
