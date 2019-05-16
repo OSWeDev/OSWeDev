@@ -18,7 +18,6 @@ export default class VarDAGVisitorDefineNodePropagateRequest extends DAGVisitorB
         return await this.varDAGVisitorDefineNodePropagateRequest(node, path);
     }
 
-    @PerfMonFunction
     public async varDAGVisitorDefineNodePropagateRequest(node: VarDAGNode, path: string[]): Promise<boolean> {
 
         if (node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE) || (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE))) {

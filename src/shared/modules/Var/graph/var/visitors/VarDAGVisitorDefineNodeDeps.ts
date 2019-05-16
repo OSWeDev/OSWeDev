@@ -21,7 +21,6 @@ export default class VarDAGVisitorDefineNodeDeps extends DAGVisitorBase<VarDAG> 
         return await this.varDAGVisitorDefineNodeDeps(node, path);
     }
 
-    @PerfMonFunction
     public async varDAGVisitorDefineNodeDeps(node: VarDAGNode, path: string[]): Promise<boolean> {
 
         if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {

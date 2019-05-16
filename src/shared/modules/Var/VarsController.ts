@@ -172,7 +172,6 @@ export default class VarsController {
     /**
      * Pushes all BatchCached datas of this Batch_uid to the store and clears the cache
      */
-    @PerfMonFunction
     public flushVarsDatas() {
         if (!this.varDatasBATCHCache) {
             return;
@@ -188,7 +187,6 @@ export default class VarsController {
         this.varDatasBATCHCache = {};
     }
 
-    @PerfMonFunction
     public setVarData<T extends IVarDataVOBase>(varData: T, set_in_batch_cache: boolean = false) {
 
         if ((!varData) || (!this.getVarControllerById(varData.var_id)) || (!this.getVarControllerById(varData.var_id).varDataParamController)) {
@@ -219,7 +217,6 @@ export default class VarsController {
      * 2 objectifs : mettre à jour le cache du batch en cours, et mettre à jour le store pour les datas qui sont affichées
      * @param imported_datas
      */
-    @PerfMonFunction
     public setImportedDatas<T extends IVarDataVOBase>(imported_datas: { [var_id: number]: { [param_index: string]: T } }) {
 
         if (!imported_datas) {
@@ -250,7 +247,6 @@ export default class VarsController {
         }
     }
 
-    @PerfMonFunction
     public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, search_in_batch_cache: boolean = false): T {
 
         if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
@@ -340,7 +336,6 @@ export default class VarsController {
         return datasource_deps;
     }
 
-    @PerfMonFunction
     public stageUpdateVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase) {
 
         this.define_datasource_deps();
@@ -389,7 +384,6 @@ export default class VarsController {
     //     this.debouncedUpdateDatas();
     // }
 
-    @PerfMonFunction
     public stageUpdateData<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
 
         let index: string = this.getIndex(param);
@@ -410,7 +404,6 @@ export default class VarsController {
         }
     }
 
-    @PerfMonFunction
     public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false, var_callback_once: (varData: IVarDataVOBase) => void = null) {
 
         this.varDAG.registerParams([param]);
@@ -460,7 +453,6 @@ export default class VarsController {
         }
     }
 
-    @PerfMonFunction
     public unregisterDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
 
         let index: string = this.getIndex(param);
@@ -513,7 +505,6 @@ export default class VarsController {
         }, 100);
     }
 
-    @PerfMonFunction
     public getImportedVarsDatasByIndexFromArray<TImportedData extends IVarDataVOBase>(
         compteursValeursImportees: TImportedData[]): { [var_id: number]: { [param_index: string]: TImportedData } } {
         let res: { [var_id: number]: { [param_index: string]: TImportedData } } = {};
@@ -570,7 +561,6 @@ export default class VarsController {
         return res ? res : null;
     }
 
-    @PerfMonFunction
     public async registerVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>): Promise<VarConfVOBase> {
         if ((!varConf) || (!controller)) {
             return null;
@@ -608,7 +598,6 @@ export default class VarsController {
     /**
      * Utilisé pour les tests unitaires
      */
-    @PerfMonFunction
     public unregisterVar(varConf: VarConfVOBase) {
         if (this.registered_vars && varConf && this.registered_vars[varConf.name]) {
             delete this.registered_vars[varConf.name];
@@ -827,7 +816,6 @@ export default class VarsController {
      * @param p1
      * @param p2
      */
-    @PerfMonFunction
     public isSameParam(p1: IVarDataParamVOBase, p2: IVarDataParamVOBase): boolean {
         return VarsController.getInstance().getIndex(p1) == VarsController.getInstance().getIndex(p2);
     }
@@ -837,7 +825,6 @@ export default class VarsController {
      * @param ps1
      * @param ps2
      */
-    @PerfMonFunction
     public isSameParamArray(ps1: IVarDataParamVOBase[], ps2: IVarDataParamVOBase[]): boolean {
         ps1 = (!!ps1) ? ps1 : [];
         ps2 = (!!ps2) ? ps2 : [];
@@ -857,7 +844,6 @@ export default class VarsController {
         return true;
     }
 
-    @PerfMonFunction
     private setVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>) {
         this.registered_vars[varConf.name] = varConf;
         this.registered_vars_controller[varConf.name] = controller;
@@ -945,7 +931,6 @@ export default class VarsController {
      * On va chercher à dépiler toutes les demandes en attente,
      *  et dans un ordre définit par le controller du type de var group
      */
-    @PerfMonFunction
     private async updateDatas() {
 
         switch (this.step_number) {
@@ -1106,7 +1091,6 @@ export default class VarsController {
         }
     }
 
-    @PerfMonFunction
     private populateListVarIds(current_var_id: number, var_id_list: number[]) {
 
         let controller: VarControllerBase<any, any> = this.getVarControllerById(current_var_id);
@@ -1126,7 +1110,6 @@ export default class VarsController {
     /**
      * Troisième version : on charge toutes les datas de toutes les var_ids présentent dans l'arbre ou dont dépendent des éléments de l'arbre
      */
-    @PerfMonFunction
     private async loadImportedDatas() {
 
         let var_ids: number[] = [];
@@ -1350,7 +1333,6 @@ export default class VarsController {
     //     }
     // }
 
-    @PerfMonFunction
     private async solveDeps() {
 
         if ((this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
@@ -1384,7 +1366,6 @@ export default class VarsController {
     //     }
     // }
 
-    @PerfMonFunction
     private async propagateUpdateRequest() {
 
         if (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE]) {
@@ -1397,7 +1378,6 @@ export default class VarsController {
     /**
      * On charge les datas, en considérant tout l'arbre à plat, aucune dépendance et pas d'ordre de chargement
      */
-    @PerfMonFunction
     private async loadDatasources() {
 
         // On doit charger toutes les datas dont dépendent les ongoing_update
@@ -1474,7 +1454,6 @@ export default class VarsController {
     //     node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
     // }
 
-    @PerfMonFunction
     private async computeNode(node: VarDAGNode) {
 
         let actual_node: VarDAGNode = node;
@@ -1539,7 +1518,6 @@ export default class VarsController {
         }
     }
 
-    @PerfMonFunction
     private clean_var_dag() {
         // On va commencer par nettoyer l'arbre, en supprimant tous les noeuds non registered
         for (let i in this.varDAG.nodes) {
