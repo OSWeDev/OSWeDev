@@ -62,7 +62,7 @@ export default class ObjectHandler {
     /**
      * @param map The map of type {[index:number] : any} from which we want to extract the indexes as number[]
      */
-    @PerfMonFunction
+    //@PerfMonFunction
     public getNumberMapIndexes(map: { [index: number]: any }): number[] {
         let res: number[] = [];
 

@@ -12,7 +12,7 @@ export default class DAGVisitorCheckCycle<TDag extends DAG<any>> extends DAGVisi
         super(true, dag);
     }
 
-    @PerfMonFunction
+    // @PerfMonFunction
     public async visit(node: DAGNode, path: string[]): Promise<boolean> {
         if (node.name === this.nodeNameChecked) {
             this.has_cycle = true;

@@ -29,6 +29,7 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         let varConf: VarConfVOBase = Object.assign({}, this.varConf);
         varConf.id = null;
         varConf.name = VarsCumulsController.getInstance().getCumulativeName(varConf.name, this.cumulType);
+        this.segment_type = VarsController.getInstance().getVarControllerById(this.varConfToCumulate.id).segment_type;
 
         this.varConf = await VarsController.getInstance().registerVar(varConf, this);
     }

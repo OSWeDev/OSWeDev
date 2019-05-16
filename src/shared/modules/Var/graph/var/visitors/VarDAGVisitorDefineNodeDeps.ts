@@ -70,7 +70,7 @@ export default class VarDAGVisitorDefineNodeDeps extends DAGVisitorBase<VarDAG> 
      * @param node 
      * @param path 
      */
-    @PerfMonFunction
+    // @PerfMonFunction
     public static async defineNodeDeps(node: VarDAGNode, varDag: VarDAG): Promise<VarDAGNode[]> {
 
         if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
@@ -96,7 +96,7 @@ export default class VarDAGVisitorDefineNodeDeps extends DAGVisitorBase<VarDAG> 
         }
 
         // On demande les deps de vars
-        let deps: IVarDataParamVOBase[] = await VarsController.getInstance().getVarControllerById(node.param.var_id).getParamDependencies(node, varDag);
+        let deps: IVarDataParamVOBase[] = await VarsController.getInstance().getVarControllerById(node.param.var_id).getSegmentedParamDependencies(node, varDag);
         let new_nodes: VarDAGNode[] = [];
 
         for (let i in deps) {

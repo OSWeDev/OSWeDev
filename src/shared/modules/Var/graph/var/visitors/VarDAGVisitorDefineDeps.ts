@@ -31,7 +31,7 @@ export default class VarDAGVisitorDefineDeps extends DAGVisitorBase<VarDAG> {
         }
 
         // On demande les deps de vars
-        let deps: IVarDataParamVOBase[] = await VarsController.getInstance().getVarControllerById(node.param.var_id).getParamDependencies(node, this.dag);
+        let deps: IVarDataParamVOBase[] = await VarsController.getInstance().getVarControllerById(node.param.var_id).getSegmentedParamDependencies(node, this.dag);
 
         for (let i in deps) {
             let dep: IVarDataParamVOBase = deps[i];

@@ -66,6 +66,28 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     /**
      * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
      */
+    public async abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG);
+
+    public async getSegmentedParamDependencies(
+        varDAGNode: VarDAGNode,
+        varDAG: VarDAG): Promise<IVarDataParamVOBase[]> {
+
+        let res: IVarDataParamVOBase[] = await this.getParamDependencies(varDAGNode, varDAG);
+
+        for (let i in res) {
+            let e = res[i] as IDateIndexedVarDataParam;
+
+            if (!!e.date_index) {
+                e.date_index = VarsController.getInstance().getVarControllerById(e.var_id).getTimeSegment(e).dateIndex;
+            }
+        }
+
+        return res;
+    }
+
+    /**
+     * NEEDS to go protected
+     */
     public async abstract getParamDependencies(
         varDAGNode: VarDAGNode,
         varDAG: VarDAG): Promise<IVarDataParamVOBase[]>;
@@ -78,7 +100,6 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     //     return [];
     // }
 
-    public async abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG);
 
     protected getTimeSegment(param: TDataParam): TimeSegment {
         let date_index: string = ((param as any) as IDateIndexedVarDataParam).date_index;
