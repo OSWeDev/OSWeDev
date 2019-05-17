@@ -29,7 +29,7 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     public var_params: IVarDataParamVOBase[];
 
     @Prop({ default: null })
-    public var_value_callback: (var_values: any[]) => any;
+    public var_value_callback: (var_values: IVarDataVOBase[]) => any;
 
     @Prop({ default: null })
     public filter: () => any;
@@ -95,17 +95,18 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return null;
         }
 
-        let values: number[] = [];
-
-        for (let i in this.var_datas) {
-            let var_data = this.var_datas[i];
-            values.push((var_data as ISimpleNumberVarData).value);
+        if ((!this.var_datas) || (!this.var_params) || (this.var_datas.length != this.var_params.length)) {
+            return null;
         }
 
-        return this.var_value_callback(values);
+        return this.var_value_callback(this.var_datas);
     }
 
     get is_selected_var(): boolean {
+        return false;
+    }
+
+    get is_selected_var_dependency(): boolean {
         if (!this.isDescMode) {
             return false;
         }
@@ -116,13 +117,6 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             if (this.getDescSelectedIndex == VarsController.getInstance().getIndex(var_param)) {
                 return true;
             }
-        }
-        return false;
-    }
-
-    get is_selected_var_dependency(): boolean {
-        if (!this.isDescMode) {
-            return false;
         }
 
         let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
@@ -222,7 +216,7 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             }
         }
 
-        return res.length ? res : null;
+        return (res.length == this.var_params.length) ? res : null;
     }
 
     public destroyed() {
@@ -234,20 +228,37 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     }
 
 
-    @Watch('var_param', { immediate: true })
-    private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+    @Watch('var_params', { immediate: true })
+    private onChangeVarParam(new_var_params: IVarDataParamVOBase[], old_var_params: IVarDataParamVOBase[]) {
 
-        // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
+        if ((!new_var_params) && (!old_var_params)) {
             return;
         }
 
-        if (old_var_param) {
-            VarsController.getInstance().unregisterDataParam(old_var_param);
+        // On doit vérifier qu'ils sont bien différents
+        if ((!!new_var_params) && (!!old_var_params)) {
+
+            if (new_var_params.length == old_var_params.length) {
+
+                for (let i in new_var_params) {
+                    if (!VarsController.getInstance().isSameParam(new_var_params[i], old_var_params[i])) {
+                        break;
+                    }
+                }
+                return;
+            }
         }
 
-        if (new_var_param) {
-            VarsController.getInstance().registerDataParam(new_var_param, this.reload_on_mount);
+        if (old_var_params && old_var_params.length) {
+            for (let i in old_var_params) {
+                VarsController.getInstance().unregisterDataParam(old_var_params[i]);
+            }
+        }
+
+        if (new_var_params) {
+            for (let i in new_var_params) {
+                VarsController.getInstance().registerDataParam(new_var_params[i], this.reload_on_mount);
+            }
         }
     }
 }
