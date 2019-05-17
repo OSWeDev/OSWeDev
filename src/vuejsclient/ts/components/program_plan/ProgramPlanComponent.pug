@@ -4,9 +4,14 @@ include ../../../views/mixins/loading.pug
     +loading()
         program-plan-component-impression
 
-        .row
+        .row(v-if="!!custom_filter_component")
             .col-md-12
-                .custom_filter_component(:is="custom_filter_component" @filter_changed="filter_changed" v-if="!!custom_filter_component")
+                .custom_filter_component(:is="custom_filter_component" @filter_changed="filter_changed")
+
+        .row(v-if="!!custom_overview_program_plan_component")
+            .col-md-12
+                .custom_overview_program_plan_component(:is="custom_overview_program_plan_component" @select_rdv="select_rdv")
+
 
         program-plan-component-target-listing.hidden-print(v-show='show_targets' v-if="can_edit_any")
 

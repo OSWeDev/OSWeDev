@@ -6,6 +6,7 @@ import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlan
 import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueAppBase from '../../../VueAppBase';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 
 export default abstract class ProgramPlanControllerBase {
 
@@ -18,6 +19,8 @@ export default abstract class ProgramPlanControllerBase {
     public is_valid_rdv: (rdv: IPlanRDV) => boolean;
     public is_valid_target: (target: IPlanTarget) => boolean;
     public is_valid_facilitator: (facilitator: IPlanFacilitator) => boolean;
+
+    public customOverviewProgramPlanComponent = null;
 
     protected constructor(
         public customPrepCreateComponent,
@@ -145,5 +148,36 @@ export default abstract class ProgramPlanControllerBase {
         }
 
         return res;
+    }
+
+    public async component_hook_onAsyncLoading(
+        getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void
+    ) { }
+
+    public async component_hook_refuseReceiveRDV(
+        rdv: IPlanRDV,
+        getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
+        get_tasks_by_ids: { [id: number]: IPlanTask }
+    ): Promise<boolean> {
+        return false;
+    }
+
+    public async component_hook_refuseChangeRDV(
+        rdv: IPlanRDV,
+        getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void,
+        get_tasks_by_ids: { [id: number]: IPlanTask }
+    ): Promise<boolean> {
+        return false;
+    }
+
+    public async component_hook_refuseTargetOnLoading(
+        target: IPlanTarget,
+        getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },
+        storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void
+    ): Promise<boolean> {
+        return false;
     }
 }

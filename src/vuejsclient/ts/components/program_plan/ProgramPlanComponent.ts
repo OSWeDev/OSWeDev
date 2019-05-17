@@ -213,6 +213,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private fcEvents: EventObjectInput[] = [];
 
     private custom_filter_component = ProgramPlanControllerBase.getInstance().customFilterComponent;
+    private custom_overview_program_plan_component = ProgramPlanControllerBase.getInstance().customOverviewProgramPlanComponent;
 
     private show_targets: boolean = true;
 
@@ -339,8 +340,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         this.init_print();
 
-        this.nbLoadingSteps = 3;
+        this.nbLoadingSteps = 4;
         this.startLoading();
+
+        await ProgramPlanControllerBase.getInstance().component_hook_onAsyncLoading(this.getStoredDatas, this.storeDatas);
+
+        this.nextLoadingStep();
 
         let promises = [];
 
@@ -524,6 +529,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     continue;
                 }
 
+                if (await ProgramPlanControllerBase.getInstance().component_hook_refuseTargetOnLoading(target, this.getStoredDatas, this.storeDatas)) {
+                    continue;
+                }
+
                 targets_by_ids[target.id] = target;
             }
 
@@ -597,6 +606,15 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return;
         }
         this.$router.push(this.route_path + '/rdv/' + calEvent.rdv_id);
+    }
+
+    private select_rdv(rdv: IPlanRDV) {
+
+        if ((!rdv) || (!rdv.id) || (!this.getRdvsByIds) || (!this.getRdvsByIds[rdv.id])) {
+            this.$router.push(this.route_path);
+            return;
+        }
+        this.$router.push(this.route_path + '/rdv/' + rdv.id);
     }
 
     private getResourceName(first_name, name) {
@@ -940,6 +958,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
             rdv.end_time = new_end_time;
             rdv.facilitator_id = new_facilitator_id;
             rdv.target_id = new_target_id;
+
+            if (await ProgramPlanControllerBase.getInstance().component_hook_refuseChangeRDV(rdv, this.getStoredDatas, this.storeDatas, this.get_tasks_by_ids)) {
+                throw new Error('Interdit');
+            }
+
             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(rdv);
 
             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
@@ -1253,6 +1276,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             if (!this.can_edit_rdv(rdv.facilitator_id)) {
                 this.snotify.error(this.label('programplan.fc.create.denied'));
+                throw new Error('Interdit');
+            }
+
+            if (await ProgramPlanControllerBase.getInstance().component_hook_refuseReceiveRDV(rdv, this.getStoredDatas, this.storeDatas, this.get_tasks_by_ids)) {
                 throw new Error('Interdit');
             }
 
