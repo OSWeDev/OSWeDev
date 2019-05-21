@@ -1,7 +1,6 @@
+import DAG from '../DAG';
 import DAGNode from '../DAGNode';
 import DAGVisitorBase from '../DAGVisitorBase';
-import DAG from '../DAG';
-import PerfMonFunction from '../../../../PerfMon/annotations/PerfMonFunction';
 
 export default class DAGVisitorCheckCycle<TDag extends DAG<any>> extends DAGVisitorBase<TDag> {
 
@@ -12,7 +11,6 @@ export default class DAGVisitorCheckCycle<TDag extends DAG<any>> extends DAGVisi
         super(true, dag);
     }
 
-    // @PerfMonFunction
     public async visit(node: DAGNode, path: string[]): Promise<boolean> {
         if (node.name === this.nodeNameChecked) {
             this.has_cycle = true;

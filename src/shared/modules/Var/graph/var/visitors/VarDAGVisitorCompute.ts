@@ -2,7 +2,6 @@ import VarsController from '../../../VarsController';
 import DAGVisitorBase from '../../dag/DAGVisitorBase';
 import VarDAG from '../VarDAG';
 import VarDAGNode from '../VarDAGNode';
-import PerfMonFunction from '../../../../PerfMon/annotations/PerfMonFunction';
 
 /**
  * Visiteur qui effectue les calculs de vars
@@ -18,7 +17,6 @@ export default class VarDAGVisitorCompute extends DAGVisitorBase<VarDAG> {
         return await this.varDAGVisitorCompute(node, path);
     }
 
-    // @PerfMonFunction
     public async varDAGVisitorCompute(node: VarDAGNode, path: string[]): Promise<boolean> {
 
         // Si on est pas sur un noeud à update, inutile de continuer

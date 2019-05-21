@@ -75,6 +75,15 @@ export default class ModuleSASSSkinConfigurator extends Module {
             new ModuleTableField('light_low', ModuleTableField.FIELD_TYPE_string, 'light_low', true, true, '#339ec1'),
             new ModuleTableField('gris_clair', ModuleTableField.FIELD_TYPE_string, 'gris_clair', true, true, '#999'),
             new ModuleTableField('vert_clair', ModuleTableField.FIELD_TYPE_string, 'vert_clair', true, true, '#8d951e'),
+
+            new ModuleTableField('table_header_odd_bg', ModuleTableField.FIELD_TYPE_string, 'table_header_odd_bg', true, true, '#E2D6C8'),
+            new ModuleTableField('table_header_even_bg', ModuleTableField.FIELD_TYPE_string, 'table_header_even_bg', true, true, 'white'),
+            new ModuleTableField('table_content_odd_bg', ModuleTableField.FIELD_TYPE_string, 'table_content_odd_bg', true, true, '#f4f0ea'),
+            new ModuleTableField('table_content_even_bg', ModuleTableField.FIELD_TYPE_string, 'table_content_even_bg', true, true, 'white'),
+            new ModuleTableField('main_background', ModuleTableField.FIELD_TYPE_string, 'main_background', true, true, '#FAF6ED'),
+            new ModuleTableField('main_sidebar_background', ModuleTableField.FIELD_TYPE_string, 'main_sidebar_background', true, true, 'transparent'),
+            new ModuleTableField('planning_realise_header_bg', ModuleTableField.FIELD_TYPE_string, 'planning_realise_header_bg', true, true, '#563C22'),
+            new ModuleTableField('picto_product_url', ModuleTableField.FIELD_TYPE_string, 'picto_product_url', true, true, '/public/img/pictos/picto_cogs.png'),
         ];
         this.datatables = [];
     }

@@ -4,7 +4,6 @@ import VarsController from '../../../VarsController';
 import DAGVisitorBase from '../../dag/DAGVisitorBase';
 import VarDAG from '../VarDAG';
 import VarDAGNode from '../VarDAGNode';
-import PerfMonFunction from '../../../../PerfMon/annotations/PerfMonFunction';
 
 /**
  * Visiteur qui doit charger les deps de voisinage et down pour les ajouter / relier dans l'arbre.
@@ -21,7 +20,6 @@ export default class VarDAGVisitorDefineNodeDeps extends DAGVisitorBase<VarDAG> 
     //     return await this.varDAGVisitorDefineNodeDeps(node, path);
     // }
 
-    // @PerfMonFunction
     // public async varDAGVisitorDefineNodeDeps(node: VarDAGNode, path: string[]): Promise<boolean> {
 
     //     if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
@@ -67,10 +65,9 @@ export default class VarDAGVisitorDefineNodeDeps extends DAGVisitorBase<VarDAG> 
 
     /**
      * Retourne les nouveaux noeuds
-     * @param node 
-     * @param path 
+     * @param node
+     * @param path
      */
-    // @PerfMonFunction
     public static async defineNodeDeps(node: VarDAGNode, varDag: VarDAG): Promise<VarDAGNode[]> {
 
         if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
