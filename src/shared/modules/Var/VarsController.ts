@@ -217,7 +217,7 @@ export default class VarsController {
         if ((!varData) || (!this.getVarControllerById(varData.var_id)) || (!this.getVarControllerById(varData.var_id).varDataParamController)) {
             return;
         }
-        let index: string = this.getVarControllerById(varData.var_id).varDataParamController.getIndex(varData);
+        let index: string = this.getIndex(varData);
 
         // WARNING : Might be strange some day when the static cache is updated by a BATCH since it should only
         //  be updated after the end of the batch, but the batch sometimes uses methods that need data that
@@ -263,7 +263,7 @@ export default class VarsController {
             // On met à jour le store pour l'affichage directement ici par ce qu'on peut déjà afficher les datas issues d'un import
             for (let j in imported_datas[var_id_s]) {
                 let imported_data: T = imported_datas[var_id_s][j];
-                if (!!this.varDAG.nodes[this.getVarControllerById(imported_data.var_id).varDataParamController.getIndex(imported_data)]) {
+                if (!!this.varDAG.nodes[this.getIndex(imported_data)]) {
                     if (!!this.setVarData_) {
                         this.setVarData_(imported_data);
                     }
@@ -277,7 +277,7 @@ export default class VarsController {
         if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
             return null;
         }
-        let index: string = this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
+        let index: string = this.getIndex(param);
 
         if (search_in_batch_cache) {
             // // On sait qu'on doit chercher dans les datas des batchs actuels, mais en fait l'id du batch est intimement lié
@@ -582,12 +582,11 @@ export default class VarsController {
         for (let i in compteursValeursImportees) {
             let importedData: TImportedData = compteursValeursImportees[i];
 
-            if ((!importedData) || (!this.getVarControllerById(importedData.var_id)) || (!this.getVarControllerById(importedData.var_id).varDataParamController) ||
-                (!this.getVarControllerById(importedData.var_id).varDataParamController.getIndex)) {
+            if ((!importedData) || (!this.getVarControllerById(importedData.var_id)) || (!this.getVarControllerById(importedData.var_id).varDataParamController)) {
                 continue;
             }
 
-            let param_index: string = this.getVarControllerById(importedData.var_id).varDataParamController.getIndex(
+            let param_index: string = this.getIndex(
                 importedData
             );
 
@@ -605,6 +604,8 @@ export default class VarsController {
         if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
             return null;
         }
+
+        this.checkDateIndex(param);
 
         return this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
     }

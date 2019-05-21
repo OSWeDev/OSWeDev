@@ -1,23 +1,26 @@
+.var_datas_refs.selectable_var{
+    cursor: pointer;
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+    min-height: 1em;
+}
+
 .var_datas_refs.selected_var{
-    background: royalblue;
+    background: royalblue !important;
     border-radius: 10px;
     color: white;
     font-weight: bolder;
 }
 
-.var_datas_refs.selectable_var{
-    cursor: pointer;
-}
-
 .var_datas_refs.selected_var_dependency{
-    background: orangered;
+    background: orangered !important;
     border-radius: 10px;
     color: white;
     font-weight: bolder;
 }
 
 .var_datas_refs.selected_var_dependent{
-    background: green;
+    background: green !important;
     border-radius: 10px;
     color: white;
     font-weight: bolder;

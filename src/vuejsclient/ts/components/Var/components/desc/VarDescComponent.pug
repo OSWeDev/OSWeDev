@@ -9,7 +9,11 @@
             h5.card-title {{ label('var.desc_mode.var_params') }}
             p.card-text {{ var_params_desc }}
             h5.card-title {{ label('var.desc_mode.var_markers') }}
-            p.card-text {{ var_markers }}
+            //- p.card-text {{ var_markers_json }}
+            ul
+                li(v-for='(marker_name, marker_value) in var_markers')
+                    b {{ marker_value + ' : ' }}
+                    | {{ marker_name }}
             h5.card-title {{ label('var.desc_mode.var_data') }}
             var-data(:var_param='var_param')
     

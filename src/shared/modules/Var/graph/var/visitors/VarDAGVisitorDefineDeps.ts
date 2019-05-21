@@ -35,7 +35,7 @@ export default class VarDAGVisitorDefineDeps extends DAGVisitorBase<VarDAG> {
 
         for (let i in deps) {
             let dep: IVarDataParamVOBase = deps[i];
-            let dep_index: string = VarsController.getInstance().getVarControllerById(dep.var_id).varDataParamController.getIndex(dep);
+            let dep_index: string = VarsController.getInstance().getIndex(dep);
 
             if (!this.dag.nodes[dep_index]) {
                 this.dag.add(dep_index, dep);

@@ -47,7 +47,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param);
+        return VarsController.getInstance().getIndex(this.var_param);
     }
 
     get var_name(): string {
@@ -74,7 +74,7 @@ export default class VarDescComponent extends VueComponentBase {
         return this.t(VarsController.getInstance().get_translatable_params_desc_code(this.var_param.var_id), this.var_param);
     }
 
-    get var_markers(): string {
+    get var_markers(): any {
         if (!this.var_param) {
             return null;
         }
@@ -85,7 +85,15 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return JSON.stringify(selectedNode.markers);
+        return selectedNode.markers;
+    }
+
+    get var_markers_json(): string {
+        if (!this.var_markers) {
+            return null;
+        }
+
+        return JSON.stringify(this.var_markers);
     }
 
     get var_deps(): { [name: string]: VarDAGNode } {
@@ -94,7 +102,7 @@ export default class VarDescComponent extends VueComponentBase {
         }
 
         return VarsController.getInstance().varDAG.nodes[
-            VarsController.getInstance().getVarControllerById(this.var_param.var_id).varDataParamController.getIndex(this.var_param)].outgoing as { [name: string]: VarDAGNode };
+            VarsController.getInstance().getIndex(this.var_param)].outgoing as { [name: string]: VarDAGNode };
     }
 
 

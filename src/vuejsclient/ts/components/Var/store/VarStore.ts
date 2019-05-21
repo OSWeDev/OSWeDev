@@ -156,12 +156,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     return;
                 }
 
-                let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(varData.var_id);
-                if (!varController) {
-                    return;
-                }
-
-                let index: string = varController.varDataParamController.getIndex(varData);
+                let index: string = VarsController.getInstance().getIndex(varData);
 
                 Vue.set(state.varDatas as any, index, varData);
             },
@@ -173,12 +168,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     return;
                 }
 
-                let varController: VarControllerBase<any, any> = VarsController.getInstance().getVarControllerById(varDataParam.var_id);
-                if (!varController) {
-                    return;
-                }
-
-                let index: string = varController.varDataParamController.getIndex(varDataParam);
+                let index: string = VarsController.getInstance().getIndex(varDataParam);
 
                 try {
                     if (!!state.varDatas[index]) {

@@ -600,6 +600,19 @@ export default class VueComponentBase extends Vue
         return values[0].value * values[1].value;
     }
 
+    protected simple_var_evolution(datas: ISimpleNumberVarData[]) {
+
+        try {
+
+            let a: number = datas[0].value;
+            let b: number = datas[1].value;
+
+            return b ? (a - b) / b : null;
+        } catch (error) {
+        }
+        return null;
+    }
+
     protected activateEdition() {
         AppVuexStoreManager.getInstance().appVuexStore.commit("activateEdition");
     }

@@ -10,6 +10,9 @@ export default abstract class VarDataParamControllerBase<TDataParam extends IVar
     }
 
     /**
+     * DO NOT USE outside VarsController. There are controls made by VarsController.getInstance().getIndex() that this function depends on.
+     * Use VarsController.getInstance().getIndex() instead in most cases.
+     *
      * TODO : si on avait un lien propre vers la description des types de données liées
      *  aux compteurs et données associées, on pourrait théoriquement chercher la defs des fields
      *  du type param associé à la donnée en param (qui peut être une data ou un param), puis lister

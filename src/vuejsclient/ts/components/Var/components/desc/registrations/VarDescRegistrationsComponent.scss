@@ -2,6 +2,10 @@
 
     padding: 10px;
 
+    svg {
+        background: rgba(0,0,0,0.1);
+    }
+
     g.type_leaf > rect {
         fill: #00ffd0;
     }
