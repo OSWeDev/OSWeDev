@@ -10,12 +10,16 @@ include ../../../views/mixins/loading.pug
 
         .row(v-if="!!custom_overview_program_plan_component")
             .col-md-12
-                .custom_overview_program_plan_component(:is="custom_overview_program_plan_component" @select_rdv="select_rdv")
+                .custom_overview_program_plan_component(:is="custom_overview_program_plan_component" @select_rdv="select_rdv" :valid_targets='valid_targets' :segment='fcSegment')
 
 
         program-plan-component-target-listing.hidden-print(v-show='show_targets' v-if="can_edit_any")
 
-        full-calendar(
+        .row.hidden-print
+            input#pplan_date_input(type='date' v-model='calendar_date')
+
+        full-calendar.fullcalendar_pplan(
+            ref="calendar" 
             :key="calendar_key"
 
             :events="fcEvents" 

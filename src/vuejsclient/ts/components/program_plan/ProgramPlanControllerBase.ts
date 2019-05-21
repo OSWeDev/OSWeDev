@@ -16,6 +16,8 @@ export default abstract class ProgramPlanControllerBase {
 
     private static instance: ProgramPlanControllerBase = null;
 
+    public load_rdv_on_segment_change: boolean = true;
+
     public is_valid_rdv: (rdv: IPlanRDV) => boolean;
     public is_valid_target: (target: IPlanTarget) => boolean;
     public is_valid_facilitator: (facilitator: IPlanFacilitator) => boolean;

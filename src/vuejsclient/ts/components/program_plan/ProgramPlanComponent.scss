@@ -1,4 +1,11 @@
 #program-plan {
+
+    #pplan_date_input {
+
+        margin-left: 25px;
+        width: 180px;
+    }
+
     .fc-timeline-event .fc-content {
         padding-left: 5px;
 
@@ -12,7 +19,7 @@
         }
 
         i.fa.fa-circle {
-            border: solid 2px #EEE;
+            border: solid 2px #EEE !important;
             border-radius: 30px;
             margin: 0;
             padding: 0;
@@ -21,23 +28,23 @@
         }
 
         .rdv-state-bg {
-            color: white;
+            color: white !important;
         }
 
         .rdv-state-confirmed {
-            color: orange;
+            color: orange !important;
         }
 
         .rdv-state-crok {
-            color: green;
+            color: green !important;
         }
 
         .rdv-state-prepok {
-            color: yellow;
+            color: yellow !important;
         }
         
         .rdv-state-created {
-            color: red;
+            color: red !important;
         }
     }
 }

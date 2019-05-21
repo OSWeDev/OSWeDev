@@ -56,11 +56,11 @@ export default class Datatable<T extends IDistantVOBase> {
 
     public define_fields_order_by_datatableFieldUIDs(datatable_field_uids: string[]) {
 
-        if ((!datatable_field_uids) || (!this.fields) || (datatable_field_uids.length != this.fields.length)) {
+        if ((!datatable_field_uids) || (!this.fields)) {
             return;
         }
 
-        let new_field_list: Array<DatatableField<any, any>> = [];
+        /*let new_field_list: Array<DatatableField<any, any>> = [];
 
         for (let i in datatable_field_uids) {
             let datatable_field_uid: string = datatable_field_uids[i];
@@ -69,7 +69,10 @@ export default class Datatable<T extends IDistantVOBase> {
         }
         this.sortedFields = new_field_list;
 
-        return;
+        return;*/
+        this.sortedFields.sort((a: DatatableField<any, any>, b: DatatableField<any, any>) => {
+            return datatable_field_uids.indexOf(a.datatable_field_uid) - datatable_field_uids.indexOf(b.datatable_field_uid);
+        });
     }
 
     get fields(): Array<DatatableField<any, any>> {

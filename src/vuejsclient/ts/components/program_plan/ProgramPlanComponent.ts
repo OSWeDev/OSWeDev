@@ -208,9 +208,15 @@ export default class ProgramPlanComponent extends VueComponentBase {
     @Prop({ default: null })
     public program_id: number;
 
-    public fcSegment: TimeSegment = null;
     private user = VueAppController.getInstance().data_user;
     private fcEvents: EventObjectInput[] = [];
+
+    private calendar_date: string = DateHandler.getInstance().formatDayForIndex(moment());
+    private viewname: string = 'timelineWeek';
+
+    private fcSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
+        moment(this.calendar_date),
+        (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
 
     private custom_filter_component = ProgramPlanControllerBase.getInstance().customFilterComponent;
     private custom_overview_program_plan_component = ProgramPlanControllerBase.getInstance().customOverviewProgramPlanComponent;
@@ -608,13 +614,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.$router.push(this.route_path + '/rdv/' + calEvent.rdv_id);
     }
 
-    private select_rdv(rdv: IPlanRDV) {
+    private select_rdv(rdv_id: number) {
 
-        if ((!rdv) || (!rdv.id) || (!this.getRdvsByIds) || (!this.getRdvsByIds[rdv.id])) {
+        if ((!rdv_id) || (!this.getRdvsByIds) || (!this.getRdvsByIds[rdv_id])) {
             this.$router.push(this.route_path);
             return;
         }
-        this.$router.push(this.route_path + '/rdv/' + rdv.id);
+        this.$router.push(this.route_path + '/rdv/' + rdv_id);
     }
 
     private getResourceName(first_name, name) {
@@ -828,11 +834,24 @@ export default class ProgramPlanComponent extends VueComponentBase {
             return;
         }
 
+        if (view.name != this.viewname) {
+            this.viewname = view.name;
+        }
+        if (this.calendar_date != DateHandler.getInstance().formatDayForIndex(view.intervalStart)) {
+            this.calendar_date = DateHandler.getInstance().formatDayForIndex(view.intervalStart);
+        }
+    }
+
+    @Watch('calendar_date')
+    @Watch('viewname')
+    private onchange_calendar_date() {
         let segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-            view.intervalStart,
-            (view.name == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
+            moment(this.calendar_date),
+            (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
+
         if (!TimeSegmentHandler.getInstance().segmentsAreEquivalent(segment, this.fcSegment)) {
             this.fcSegment = segment;
+            this.$refs.calendar['fireMethod']('gotoDate', this.calendar_date);
         }
     }
 
@@ -1045,7 +1064,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             timeZone: 'locale',
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
             now: moment().format('Y-MM-DD'),
-            defaultDate: this.fcSegment ? this.fcSegment.dateIndex : moment().format('Y-MM-DD'),
+            defaultDate: this.calendar_date,
             schedulerLicenseKey: '0801712196-fcs-1461229306',
             editable: this.can_edit_any,
             droppable: this.can_edit_any,
@@ -1057,7 +1076,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 center: 'title',
                 right: ProgramPlanControllerBase.getInstance().month_view ? 'timelineWeek,timelineMonth' : 'timelineWeek'
             },
-            defaultView: this.fcSegment && (this.fcSegment.type == TimeSegment.TYPE_MONTH) ? 'timelineMonth' : 'timelineWeek',
+            defaultView: this.viewname,
             views: {
                 timelineMonth: {
                     slotWidth: 150 / this.nb_day_slices,
@@ -1112,9 +1131,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         // RDVs
         // Sont chargés lors du changement de segment consulté
-        promises.push((async () => {
-            self.setRdvsByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleProgramPlanBase.getInstance().getRDVsOfProgramSegment(self.program_id, self.fcSegment)));
-        })());
+        if (ProgramPlanControllerBase.getInstance().load_rdv_on_segment_change) {
+
+            promises.push((async () => {
+                self.setRdvsByIds(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleProgramPlanBase.getInstance().getRDVsOfProgramSegment(self.program_id, self.fcSegment)));
+            })());
+        }
 
         // Preps
         promises.push((async () => {
@@ -1161,7 +1183,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 if (!target_facilitator) {
                     this.snotify.error(this.label('programplan.fc.create.error'));
                     console.error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
-                    this.setRdvById({ id: 0 } as any);
+                    // this.setRdvById({ id: 0 } as any);
+                    this.reset_rdvs();
                     return;
                 }
 
@@ -1179,7 +1202,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         // Pas normal...
                         this.snotify.error(this.label('programplan.fc.create.error'));
                         console.error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
-                        this.setRdvById({ id: 0 } as any);
+                        // this.setRdvById({ id: 0 } as any);
+                        this.reset_rdvs();
                         return;
                     }
 
@@ -1207,7 +1231,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                         if (moment(all_rdv.start_time).isAfter(moment(rdv.start_time))) {
                             this.snotify.error(this.label('programplan.fc.create.has_more_recent_task__denied'));
-                            this.setRdvById({ id: 0 } as any);
+                            // this.setRdvById({ id: 0 } as any);
+                            this.reset_rdvs();
                             return;
                         }
 
@@ -1233,7 +1258,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     if ((!task_type_tasks) || (!task_type_tasks.length)) {
                         this.snotify.error(this.label('programplan.fc.create.error'));
                         console.error("!task_type_tasks.length");
-                        this.setRdvById({ id: 0 } as any);
+                        // this.setRdvById({ id: 0 } as any);
+                        this.reset_rdvs();
                         return;
                     }
 
@@ -1250,7 +1276,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     if (!task) {
                         this.snotify.error(this.label('programplan.fc.create.no_task_left'));
                         console.error("!task");
-                        this.setRdvById({ id: 0 } as any);
+                        // this.setRdvById({ id: 0 } as any);
+                        this.reset_rdvs();
                         return;
                     }
 
@@ -1262,13 +1289,15 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
         } catch (error) {
             console.error(error);
-            this.setRdvById({ id: 0 } as any);
+            // this.setRdvById({ id: 0 } as any);
+            this.reset_rdvs();
             return;
         }
 
         if ((!event) || (!rdv)) {
             this.snotify.error(this.label('programplan.fc.create.error'));
-            this.setRdvById({ id: 0 } as any);
+            // this.setRdvById({ id: 0 } as any);
+            this.reset_rdvs();
             return;
         }
 
@@ -1295,7 +1324,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
         } catch (error) {
             console.error(error);
             this.snotify.error(this.label('programplan.fc.create.error'));
-            this.setRdvById({ id: 0 } as any);
+            // this.setRdvById({ id: 0 } as any);
+            this.reset_rdvs();
             return;
         }
 
