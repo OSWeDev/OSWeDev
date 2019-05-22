@@ -100,6 +100,8 @@ export default class VarsController {
 
     private datasource_deps_defined: boolean = false;
 
+    private actions_waiting_for_release_of_update_semaphore: Array<() => Promise<void>> = [];
+
     protected constructor() {
     }
 
@@ -444,6 +446,14 @@ export default class VarsController {
         // On check la validité de la date si daté
         this.checkDateIndex(param);
 
+        if (this.updateSemaphore) {
+            let self = this;
+            this.actions_waiting_for_release_of_update_semaphore.push(async () => {
+                self.registerDataParam(param, reload_on_register, var_callbacks);
+            });
+            return false;
+        }
+
         this.varDAG.registerParams([param]);
 
         if (!!var_callbacks) {
@@ -469,6 +479,18 @@ export default class VarsController {
             this.run_callbacks(param, this.getIndex(param));
         }
     }
+
+
+    public getInclusiveEndParamTimeSegment<TDataParam extends IVarDataParamVOBase>(param: TDataParam): moment.Moment {
+
+        if (!(param as any as IDateIndexedVarDataParam).date_index) {
+            return null;
+        }
+
+        let date_index: string = (param as any as IDateIndexedVarDataParam).date_index;
+        return TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index), this.getVarControllerById(param.var_id).segment_type));
+    }
+
 
     public unregisterCallbacks<TDataParam extends IVarDataParamVOBase>(param: TDataParam, var_callbacks_uids: number[]) {
 
@@ -530,6 +552,14 @@ export default class VarsController {
             return;
         }
 
+        if (this.updateSemaphore) {
+            let self = this;
+            this.actions_waiting_for_release_of_update_semaphore.push(async () => {
+                self.unregisterDataParam(param);
+            });
+            return false;
+        }
+
         this.varDAG.unregisterIndexes([index]);
     }
 
@@ -567,12 +597,23 @@ export default class VarsController {
             }
 
             self.updateSemaphore = false;
+
+            if ((!!self.actions_waiting_for_release_of_update_semaphore) && (self.actions_waiting_for_release_of_update_semaphore.length)) {
+                for (let i in self.actions_waiting_for_release_of_update_semaphore) {
+                    let action = self.actions_waiting_for_release_of_update_semaphore[i];
+
+                    await action();
+                }
+            }
+
+            self.actions_waiting_for_release_of_update_semaphore = [];
+
             if (self.updateSemaphore_needs_reload) {
                 // Si on a eu des demandes pendant ce calcul on relance le plus vite possible
                 self.updateSemaphore_needs_reload = false;
                 self.debouncedUpdateDatas();
             }
-        }, 100);
+        }, 500);
     }
 
     public getImportedVarsDatasByIndexFromArray<TImportedData extends IVarDataVOBase>(

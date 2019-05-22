@@ -1,5 +1,7 @@
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import ObjectHandler from '../../tools/ObjectHandler';
+import ISimpleNumberVarData from './interfaces/ISimpleNumberVarData';
+import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
 
 export default abstract class VarDataParamControllerBase<TDataParam extends IVarDataParamVOBase> {
 
