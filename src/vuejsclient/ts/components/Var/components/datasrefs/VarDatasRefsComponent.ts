@@ -55,7 +55,14 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     @Prop({ default: false })
     public consider_zero_value_as_null: boolean;
 
+    private entered_once: boolean = false;
+
     get is_being_updated(): boolean {
+
+        // Si la var data est null on considère qu'elle est en cours de chargement. C'est certainement faux, souvent, mais ça peut aider beaucoup pour afficher au plus tôt le fait que la var est en attente de calcul
+        if (!this.var_datas) {
+            return true;
+        }
 
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
@@ -223,12 +230,39 @@ export default class VarDatasRefsComponent extends VueComponentBase {
 
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
-            VarsController.getInstance().unregisterDataParam(var_param);
+            this.unregister(var_param);
         }
     }
 
+    private intersect_in() {
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+            this.register(var_param);
+        }
 
-    @Watch('var_params', { immediate: true })
+        this.entered_once = true;
+    }
+
+    private intersect_out() {
+        if (!this.entered_once) {
+            return;
+        }
+
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+            this.unregister(var_param);
+        }
+    }
+
+    private register(var_param: IVarDataParamVOBase) {
+        VarsController.getInstance().registerDataParam(var_param, this.reload_on_mount);
+    }
+
+    private unregister(var_param: IVarDataParamVOBase) {
+        VarsController.getInstance().unregisterDataParam(var_param);
+    }
+
+    @Watch('var_params')
     private onChangeVarParam(new_var_params: IVarDataParamVOBase[], old_var_params: IVarDataParamVOBase[]) {
 
         if ((!new_var_params) && (!old_var_params)) {
@@ -251,13 +285,13 @@ export default class VarDatasRefsComponent extends VueComponentBase {
 
         if (old_var_params && old_var_params.length) {
             for (let i in old_var_params) {
-                VarsController.getInstance().unregisterDataParam(old_var_params[i]);
+                this.unregister(old_var_params[i]);
             }
         }
 
         if (new_var_params) {
             for (let i in new_var_params) {
-                VarsController.getInstance().registerDataParam(new_var_params[i], this.reload_on_mount);
+                this.register(new_var_params[i]);
             }
         }
     }

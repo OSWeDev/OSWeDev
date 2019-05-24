@@ -1,0 +1,11 @@
+.site_datas_import
+    .row
+        data_import_component(
+                key="translations_import"
+                :title='label("import.translations.title")'
+                :import_overview_component='overview_component'
+                :import_param_component='param_component'
+                :api_type_ids="api_type_ids"
+                :route_path="route_path"
+                :modal_show="modal_show"
+            )

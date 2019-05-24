@@ -1,4 +1,5 @@
 import 'bootstrap';
+import Intersect from 'vue-intersect';
 import "fullcalendar-scheduler";
 import "fullcalendar-scheduler/dist/scheduler.min.css";
 import "fullcalendar/dist/fullcalendar.min.css";
@@ -307,6 +308,8 @@ export default abstract class VueAppBase {
         Vue.component('var-desc', VarDescComponent);
         Vue.component('var-if', VarDataIfComponent);
         Vue.component('var-bar-chart', VarDataBarChartComponent);
+        Vue.component('Intersect', Intersect);
+
 
         Vue.directive('var-directive', VarDirective.getInstance());
 

@@ -61,6 +61,9 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
     @Prop()
     public api_type_ids: string[];
 
+    @Prop({ default: null })
+    public accordion_elements: Array<{ id: number, label: string }>;
+
     @Prop()
     public route_path: string;
 

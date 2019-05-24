@@ -55,7 +55,15 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: false })
     public consider_zero_value_as_null: boolean;
 
+    private entered_once: boolean = false;
+
     get is_being_updated(): boolean {
+
+        // Si la var data est null on considère qu'elle est en cours de chargement. C'est certainement faux, souvent, mais ça peut aider beaucoup pour afficher au plus tôt le fait que la var est en attente de calcul
+        if (!this.var_data) {
+            return true;
+        }
+
         return (!!this.getUpdatingParamsByVarsIds) && (!!this.var_param) &&
             (!!this.getUpdatingParamsByVarsIds[VarsController.getInstance().getIndex(this.var_param)]);
     }
@@ -178,12 +186,30 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     public destroyed() {
-
-        VarsController.getInstance().unregisterDataParam(this.var_param);
+        this.unregister();
     }
 
+    private intersect_in() {
+        this.register();
+        this.entered_once = true;
+    }
 
-    @Watch('var_param', { immediate: true })
+    private intersect_out() {
+        if (!this.entered_once) {
+            return;
+        }
+        this.unregister();
+    }
+
+    private register(var_param: IVarDataParamVOBase = null) {
+        VarsController.getInstance().registerDataParam(var_param ? var_param : this.var_param, this.reload_on_mount);
+    }
+
+    private unregister(var_param: IVarDataParamVOBase = null) {
+        VarsController.getInstance().unregisterDataParam(var_param ? var_param : this.var_param);
+    }
+
+    @Watch('var_param')
     private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
 
         // On doit vérifier qu'ils sont bien différents
@@ -192,11 +218,11 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (old_var_param) {
-            VarsController.getInstance().unregisterDataParam(old_var_param);
+            this.unregister(old_var_param);
         }
 
         if (new_var_param) {
-            VarsController.getInstance().registerDataParam(new_var_param, this.reload_on_mount);
+            this.register();
         }
     }
 

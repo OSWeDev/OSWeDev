@@ -22,6 +22,7 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
+import ThreadHandler from '../../tools/ThreadHandler';
 
 export default class VarsController {
 
@@ -841,7 +842,7 @@ export default class VarsController {
                 await this.propagateUpdateRequest();
 
                 // On indique dans le store la mise à jour des vars
-                this.setUpdatingParamsToStore();
+                await this.setUpdatingParamsToStore();
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
@@ -854,7 +855,7 @@ export default class VarsController {
                 this.clean_var_dag();
 
                 // On indique dans le store la mise à jour des vars
-                this.setUpdatingParamsToStore();
+                await this.setUpdatingParamsToStore();
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
@@ -940,17 +941,19 @@ export default class VarsController {
         }
     }
 
-    private setUpdatingParamsToStore() {
-        let res: { [index: string]: boolean } = {};
-
-        for (let i in this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE]) {
-            let index: string = this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE][i];
-
-            res[index] = true;
-        }
-
+    private async setUpdatingParamsToStore() {
         if (!!this.setUpdatingParamsByVarsIds) {
+            let res: { [index: string]: boolean } = {};
+
+            for (let i in this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE]) {
+                let index: string = this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE][i];
+
+                res[index] = true;
+            }
+
             this.setUpdatingParamsByVarsIds(res);
+
+            // await ThreadHandler.getInstance().sleep(100);
         }
     }
 

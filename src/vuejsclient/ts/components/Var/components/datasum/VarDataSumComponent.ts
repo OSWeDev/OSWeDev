@@ -52,7 +52,14 @@ export default class VarDataSumComponent extends VueComponentBase {
     @Prop({ default: false })
     public consider_zero_value_as_null: boolean;
 
+    private entered_once: boolean = false;
+
     get is_being_updated(): boolean {
+
+        // Si la var data est null on considère qu'elle est en cours de chargement. C'est certainement faux, souvent, mais ça peut aider beaucoup pour afficher au plus tôt le fait que la var est en attente de calcul
+        if (!this.var_datas) {
+            return true;
+        }
 
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
@@ -221,25 +228,70 @@ export default class VarDataSumComponent extends VueComponentBase {
 
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
-            VarsController.getInstance().unregisterDataParam(var_param);
+            this.unregister(var_param);
         }
     }
 
+    private intersect_in() {
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+            this.register(var_param);
+        }
 
-    @Watch('var_param', { immediate: true })
-    private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+        this.entered_once = true;
+    }
 
-        // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
+    private intersect_out() {
+        if (!this.entered_once) {
             return;
         }
 
-        if (old_var_param) {
-            VarsController.getInstance().unregisterDataParam(old_var_param);
+        for (let i in this.var_params) {
+            let var_param = this.var_params[i];
+            this.unregister(var_param);
+        }
+    }
+
+    private register(var_param: IVarDataParamVOBase) {
+        VarsController.getInstance().registerDataParam(var_param, this.reload_on_mount);
+    }
+
+    private unregister(var_param: IVarDataParamVOBase) {
+        VarsController.getInstance().unregisterDataParam(var_param);
+    }
+
+
+    @Watch('var_params')
+    private onChangeVarParam(new_var_params: IVarDataParamVOBase[], old_var_params: IVarDataParamVOBase[]) {
+
+        if ((!new_var_params) && (!old_var_params)) {
+            return;
         }
 
-        if (new_var_param) {
-            VarsController.getInstance().registerDataParam(new_var_param, this.reload_on_mount);
+        // On doit vérifier qu'ils sont bien différents
+        if ((!!new_var_params) && (!!old_var_params)) {
+
+            if (new_var_params.length == old_var_params.length) {
+
+                for (let i in new_var_params) {
+                    if (!VarsController.getInstance().isSameParam(new_var_params[i], old_var_params[i])) {
+                        break;
+                    }
+                }
+                return;
+            }
+        }
+
+        if (old_var_params && old_var_params.length) {
+            for (let i in old_var_params) {
+                this.unregister(old_var_params[i]);
+            }
+        }
+
+        if (new_var_params) {
+            for (let i in new_var_params) {
+                this.register(new_var_params[i]);
+            }
         }
     }
 }

@@ -55,6 +55,8 @@ import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleGeneratePDF from '../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
+import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
+import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 
 export default abstract class ModuleServiceBase {
 
@@ -303,6 +305,7 @@ export default abstract class ModuleServiceBase {
             ModuleCMS.getInstance(),
             ModuleVersioned.getInstance(),
             ModuleGeneratePDF.getInstance(),
+            ModuleTranslationsImport.getInstance()
         ];
     }
 
@@ -332,6 +335,7 @@ export default abstract class ModuleServiceBase {
             ModuleCMSServer.getInstance(),
             ModuleVersionedServer.getInstance(),
             ModuleGeneratePDFServer.getInstance(),
+            ModuleTranslationsImportServer.getInstance()
         ];
     }
 }
