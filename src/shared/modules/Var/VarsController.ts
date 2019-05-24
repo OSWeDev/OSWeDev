@@ -876,9 +876,9 @@ export default class VarsController {
 
             case 60:
 
-                // // On visite pour résoudre les calculs
-                for (let i in this.varDAG.roots) {
-                    await this.computeNode(this.varDAG.roots[i]);
+                // On visite pour résoudre les calculs
+                while (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE] && this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE].length) {
+                    await this.computeNode(this.varDAG.nodes[this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE][0]]);
                 }
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
@@ -889,7 +889,11 @@ export default class VarsController {
 
             case 70:
 
-                await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_COMPUTED, true, new VarDAGVisitorUnmarkComputed(this.varDAG));
+                while (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_COMPUTED] && this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_COMPUTED].length) {
+                    let node = this.varDAG.nodes[this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_COMPUTED][0]];
+                    node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE, this.varDAG);
+                    node.removeMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG, true);
+                }
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
