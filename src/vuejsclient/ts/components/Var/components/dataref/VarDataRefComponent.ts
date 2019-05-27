@@ -18,6 +18,8 @@ export default class VarDataRefComponent extends VueComponentBase {
     public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
     @ModuleVarGetter
     public getDescSelectedIndex: string;
+    @ModuleVarGetter
+    public get_dependencies_heatmap_version: number;
     @ModuleVarAction
     public setDescSelectedIndex: (desc_selected_index: string) => void;
     @ModuleVarGetter
@@ -160,6 +162,142 @@ export default class VarDataRefComponent extends VueComponentBase {
             }
         }
         return false;
+    }
+
+    get is_dependencies_heatmap_lvl_0(): boolean {
+        if (!this.isDescMode) {
+            return false;
+        }
+
+        if (this.get_dependencies_heatmap_version <= 0) {
+            return true;
+        }
+
+        if (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) {
+            return true;
+        }
+
+        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+
+        if (!vardagnode) {
+            return false;
+        }
+
+        return vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1;
+    }
+
+    get is_dependencies_heatmap_lvl_1(): boolean {
+        if (!this.isDescMode) {
+            return false;
+        }
+
+        if (this.get_dependencies_heatmap_version <= 0) {
+            return false;
+        }
+
+        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2)) {
+            return false;
+        }
+
+        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+
+        if (!vardagnode) {
+            return false;
+        }
+
+        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) &&
+            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2);
+    }
+
+    get is_dependencies_heatmap_lvl_2(): boolean {
+        if (!this.isDescMode) {
+            return false;
+        }
+
+        if (this.get_dependencies_heatmap_version <= 0) {
+            return false;
+        }
+
+        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3)) {
+            return false;
+        }
+
+        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+
+        if (!vardagnode) {
+            return false;
+        }
+
+        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2) &&
+            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3);
+    }
+
+    get is_dependencies_heatmap_lvl_3(): boolean {
+        if (!this.isDescMode) {
+            return false;
+        }
+
+        if (this.get_dependencies_heatmap_version <= 0) {
+            return false;
+        }
+
+        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4)) {
+            return false;
+        }
+
+        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+
+        if (!vardagnode) {
+            return false;
+        }
+
+        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3) &&
+            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4);
+    }
+
+    get is_dependencies_heatmap_lvl_4(): boolean {
+        if (!this.isDescMode) {
+            return false;
+        }
+
+        if (this.get_dependencies_heatmap_version <= 0) {
+            return false;
+        }
+
+        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5)) {
+            return false;
+        }
+
+        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+
+        if (!vardagnode) {
+            return false;
+        }
+
+        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4) &&
+            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5);
+    }
+
+    get is_dependencies_heatmap_lvl_5(): boolean {
+        if (!this.isDescMode) {
+            return false;
+        }
+
+        if (this.get_dependencies_heatmap_version <= 0) {
+            return false;
+        }
+
+        if (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5) {
+            return false;
+        }
+
+        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+
+        if (!vardagnode) {
+            return false;
+        }
+
+        return vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5;
     }
 
     get is_selected_var_dependent(): boolean {

@@ -1,12 +1,11 @@
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
-import { getStoreAccessors, GetterHandler } from "vuex-typescript";
-import VarsController from '../../../../../shared/modules/Var/VarsController';
+import { getStoreAccessors } from "vuex-typescript";
 import IVarDataParamVOBase from '../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarsController from '../../../../../shared/modules/Var/VarsController';
 import IStoreModule from '../../../store/IStoreModule';
-import VarControllerBase from '../../../../../shared/modules/Var/VarControllerBase';
 
 export type VarContext = ActionContext<IVarState, any>;
 
@@ -23,6 +22,7 @@ export interface IVarState {
     desc_registrations_opened: boolean;
     updating_params_by_vars_ids: { [index: string]: boolean };
     desc_funcstats_opened: boolean;
+    dependencies_heatmap_version: number;
 }
 
 
@@ -61,7 +61,8 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             desc_deps_opened: false,
             desc_registrations_opened: false,
             desc_funcstats_opened: false,
-            updating_params_by_vars_ids: {}
+            updating_params_by_vars_ids: {},
+            dependencies_heatmap_version: 0
         };
 
 
@@ -74,6 +75,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             },
             getStepNumber(state: IVarState): number {
                 return state.step_number;
+            },
+            get_dependencies_heatmap_version(state: IVarState): number {
+                return state.dependencies_heatmap_version;
             },
             isWaiting(state: IVarState): boolean {
                 return state.is_waiting;
@@ -113,6 +117,10 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setStepNumber(state: IVarState, step_number: number) {
                 state.step_number = step_number;
                 VarsController.getInstance().step_number = step_number;
+            },
+
+            set_dependencies_heatmap_version(state: IVarState, dependencies_heatmap_version: number) {
+                state.dependencies_heatmap_version = dependencies_heatmap_version;
             },
 
             setIsWaiting(state: IVarState, is_waiting: boolean) {
@@ -199,7 +207,12 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setDescMode(context: VarContext, desc_mode: boolean) {
                 commitSetDescMode(context, desc_mode);
             },
-            setStepNumber(context: VarContext, step_number: boolean) {
+
+            set_dependencies_heatmap_version(context: VarContext, dependencies_heatmap_version: number) {
+                commit_set_dependencies_heatmap_version(context, dependencies_heatmap_version);
+            },
+
+            setStepNumber(context: VarContext, step_number: number) {
                 commitSetStepNumber(context, step_number);
             },
             setDescOpened(context: VarContext, desc_opened: boolean) {
@@ -248,3 +261,4 @@ export const commitSetDescSelectedIndex = commit(VarStore.getInstance().mutation
 export const commitSetIsWaiting = commit(VarStore.getInstance().mutations.setIsWaiting);
 export const commitSetIsStepping = commit(VarStore.getInstance().mutations.setIsStepping);
 export const commitSetStepNumber = commit(VarStore.getInstance().mutations.setStepNumber);
+export const commit_set_dependencies_heatmap_version = commit(VarStore.getInstance().mutations.set_dependencies_heatmap_version);

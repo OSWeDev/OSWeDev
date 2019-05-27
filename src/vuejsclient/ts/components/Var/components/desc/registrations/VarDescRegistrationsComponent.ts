@@ -222,4 +222,8 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
         // svgGroup.attr("transform", "translate(" + xCenterOffset + ", 20)");
         // svg.attr("height", g.graph().height + 40);
     }
+
+    private refreshDependenciesHeatmap() {
+        VarsController.getInstance().varDAG.refreshDependenciesHeatmap();
+    }
 }

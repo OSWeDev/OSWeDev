@@ -4,6 +4,12 @@
             svg(width=1200 height=800)
         .col-md-3
             .row
+                .col-md-12
+                    button.btn.btn-sm.btn-primary.pull-right(@click="refreshDependenciesHeatmap")
+                        i.fa.fa-target.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('var_desc.refreshDependenciesHeatmap') }}
+            
+            .row
                 .col-md-12(v-if='(!is_stepping) && (!isUpdating)')
                     button.btn.btn-sm.btn-secondary.pull-right(@click="switch_stepper")
                         i.fa.fa-pause.fa-lg.btn_icon(aria-hidden="true")

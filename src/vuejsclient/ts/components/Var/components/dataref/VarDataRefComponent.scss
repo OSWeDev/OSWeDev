@@ -5,6 +5,35 @@
     min-height: 1em;
 }
 
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_0{
+    background: rgba(0,0,0,0.1);
+}
+
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_1{
+    background: rgba(255,250,0,1);
+    color: black;
+}
+
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_2{
+    background: rgba(255,200,0,1);
+    color: black;
+}
+
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_3{
+    background: rgba(255,150,0,1);
+    color: white;
+}
+
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_4{
+    background: rgba(255,75,0,1);
+    color: white;
+}
+
+.var_data_ref.selectable_var.dependencies_heatmap_lvl_5{
+    background: rgba(255,0,0,1);
+    color: white;
+}
+
 .var_data_ref.selected_var{
     background: royalblue !important;
     border-radius: 10px;

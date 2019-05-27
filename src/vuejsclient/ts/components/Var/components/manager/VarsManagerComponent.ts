@@ -64,11 +64,15 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarAction
     public setStepNumber: (step_number: number) => void;
 
+    @ModuleVarAction
+    public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void;
+
+
     public mounted() {
         VarsController.getInstance().registerStoreHandlers(
             this.getVarDatas, this.setVarData, this.removeVarData, this.setIsUpdating,
             this.getUpdatingParamsByVarsIds, this.setUpdatingParamsByVarsIds, this.setIsStepping,
-            this.setIsWaiting, this.setStepNumber);
+            this.setIsWaiting, this.setStepNumber, this.set_dependencies_heatmap_version);
     }
 
     /**

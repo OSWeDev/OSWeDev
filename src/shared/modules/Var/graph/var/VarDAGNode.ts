@@ -1,15 +1,17 @@
-import DAGNode from '../dag/DAGNode';
+import LocaleManager from '../../../../tools/LocaleManager';
 import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../interfaces/IVarDataVOBase';
-import VarDAG from './VarDAG';
 import VarsController from '../../VarsController';
-import VueAppController from '../../../../../vuejsclient/VueAppController';
-import LocaleManager from '../../../../tools/LocaleManager';
+import DAGNode from '../dag/DAGNode';
+import VarDAG from './VarDAG';
 
 export default class VarDAGNode extends DAGNode {
 
 
     public imported: IVarDataVOBase = null;
+
+    // Used for the deps heatmap
+    public dependencies_count: number = null;
 
     public constructor(name: string, dag: VarDAG, public param: IVarDataParamVOBase) {
         super(name, dag);

@@ -66,6 +66,8 @@ export default class VarsController {
     public imported_datas_by_index: { [index: string]: IVarDataVOBase } = {};
     public imported_datas_by_var_id: { [var_id: number]: { [index: string]: IVarDataVOBase } } = {};
 
+    public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void = null;
+
     private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
 
     // private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
@@ -75,6 +77,7 @@ export default class VarsController {
     private removeVarData: (varDataParam: IVarDataParamVOBase) => void = null;
     private setStepNumber: (step_number: number) => void = null;
     private setIsStepping: (is_stepping: boolean) => void = null;
+
     private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
 
     private registered_vars: { [name: string]: VarConfVOBase } = {};
@@ -332,7 +335,8 @@ export default class VarsController {
         // isWaiting: boolean,
         setIsStepping: (is_stepping: boolean) => void,
         setIsWaiting: (isWaiting: boolean) => void,
-        setStepNumber: (step_number: number) => void) {
+        setStepNumber: (step_number: number) => void,
+        set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void) {
         this.varDatas = getVarData;
         this.setVarData_ = setVarData;
         this.removeVarData = removeVarData;
@@ -346,6 +350,8 @@ export default class VarsController {
         this.setIsStepping = setIsStepping;
         this.setIsWaiting = setIsWaiting;
         this.setStepNumber = setStepNumber;
+
+        this.set_dependencies_heatmap_version = set_dependencies_heatmap_version;
     }
 
     public define_datasource_deps() {
