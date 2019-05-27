@@ -913,6 +913,8 @@ export default class CRUDComponent extends VueComponentBase {
 
         if (this.crud && this.crud.isReadOnlyData) {
             this.is_only_readable = this.crud.isReadOnlyData(vo);
+        } else {
+            this.is_only_readable = false;
         }
     }
 
@@ -948,6 +950,8 @@ export default class CRUDComponent extends VueComponentBase {
 
         if (this.crud && this.crud.isReadOnlyData) {
             this.is_only_readable = this.crud.isReadOnlyData(vo);
+        } else {
+            this.is_only_readable = false;
         }
     }
 
