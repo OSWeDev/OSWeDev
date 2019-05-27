@@ -113,40 +113,40 @@ export default class DAGNode {
         }
     }
 
-    /**
-     * TODO TestUnit le but est de visiter d'un node vers le haut ou vers le bas suivant donc en suivant les deps de to vers from (incoming)
-     */
-    public async visit(visitor: DAGVisitorBase<any>, visited?, path?: string[]) {
-        let name = this.name;
-        let vertices: { [name: string]: DAGNode } = visitor.top_down ? this.outgoing : this.incoming;
+    // /**
+    //  * TODO TestUnit le but est de visiter d'un node vers le haut ou vers le bas suivant donc en suivant les deps de to vers from (incoming)
+    //  */
+    // public async visit(visitor: DAGVisitorBase<any>, visited?, path?: string[]) {
+    //     let name = this.name;
+    //     let vertices: { [name: string]: DAGNode } = visitor.top_down ? this.outgoing : this.incoming;
 
-        if (!visited) {
-            visited = {};
-        }
-        if (!path) {
-            path = [];
-        }
-        if (visited.hasOwnProperty(name)) {
-            return;
-        }
-        path.push(name);
-        visited[name] = true;
+    //     if (!visited) {
+    //         visited = {};
+    //     }
+    //     if (!path) {
+    //         path = [];
+    //     }
+    //     if (visited.hasOwnProperty(name)) {
+    //         return;
+    //     }
+    //     path.push(name);
+    //     visited[name] = true;
 
-        if (await visitor.visit(this, path)) {
+    //     if (await visitor.visit(this, path)) {
 
-            let names: string[] = visitor.top_down ? this.outgoingNames : this.incomingNames;
-            let old_names: string[] = [];
+    //         let names: string[] = visitor.top_down ? this.outgoingNames : this.incomingNames;
+    //         let old_names: string[] = [];
 
-            while ((!!names) && (names.length > 0)) {
+    //         while ((!!names) && (names.length > 0)) {
 
-                for (let i = 0; i < names.length; i++) {
-                    await vertices[names[i]].visit(visitor, visited, path);
-                }
+    //             for (let i = 0; i < names.length; i++) {
+    //                 await vertices[names[i]].visit(visitor, visited, path);
+    //             }
 
-                old_names = old_names.concat(names);
-                names = (visitor.top_down ? this.outgoingNames : this.incomingNames).filter((nname: string) => old_names.indexOf(nname) < 0);
-            }
-        }
-        path.pop();
-    }
+    //             old_names = old_names.concat(names);
+    //             names = (visitor.top_down ? this.outgoingNames : this.incomingNames).filter((nname: string) => old_names.indexOf(nname) < 0);
+    //         }
+    //     }
+    //     path.pop();
+    // }
 }

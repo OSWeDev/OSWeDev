@@ -13,7 +13,6 @@ import VarDAGVisitorDefineNodeDeps from './graph/var/visitors/VarDAGVisitorDefin
 import VarDAGVisitorDefineNodePropagateRequest from './graph/var/visitors/VarDAGVisitorDefineNodePropagateRequest';
 import VarDAGVisitorMarkForDeletion from './graph/var/visitors/VarDAGVisitorMarkForDeletion';
 import VarDAGVisitorMarkForNextUpdate from './graph/var/visitors/VarDAGVisitorMarkForNextUpdate';
-import VarDAGVisitorUnmarkComputed from './graph/var/visitors/VarDAGVisitorUnmarkComputed';
 import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
@@ -22,8 +21,6 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
-import ThreadHandler from '../../tools/ThreadHandler';
-import ObjectHandler from '../../tools/ObjectHandler';
 
 export default class VarsController {
 
@@ -846,7 +843,7 @@ export default class VarsController {
             case 30:
 
                 // Une fois les deps à jour, on propage la demande de mise à jour à travers les deps
-                await this.propagateUpdateRequest();
+                this.propagateUpdateRequest();
 
                 // On indique dans le store la mise à jour des vars
                 await this.setUpdatingParamsToStore();
@@ -929,8 +926,28 @@ export default class VarsController {
                 if ((!!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE]) &&
                     (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE].length > 0)) {
 
-                    await this.varDAG.visitAllMarkedOrUnmarkedNodes(
-                        VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, true, new VarDAGVisitorMarkForNextUpdate(this.varDAG));
+                    let visitor = new VarDAGVisitorMarkForNextUpdate(this.varDAG);
+                    let visit_all_marked_nodes = true;
+                    let marker = VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE;
+
+                    while ((visit_all_marked_nodes && this.varDAG.marked_nodes_names[marker] && this.varDAG.marked_nodes_names[marker].length) ||
+                        ((!visit_all_marked_nodes) && ((!this.varDAG.marked_nodes_names[marker]) || (this.varDAG.marked_nodes_names[marker].length != this.varDAG.nodes_names.length)))) {
+
+                        let node_name: string;
+
+                        if (visit_all_marked_nodes) {
+                            node_name = this.varDAG.marked_nodes_names[marker][0];
+                        } else {
+                            node_name = this.varDAG.nodes_names.find((name: string) => !this.varDAG.nodes[name].hasMarker(marker));
+                        }
+
+                        if (!node_name) {
+                            return;
+                        }
+
+                        visitor.visitNode(this.varDAG.nodes[node_name]);
+                    }
+
                     needs_new_batch = true;
                 }
 
@@ -1220,13 +1237,33 @@ export default class VarsController {
         this.registered_var_callbacks[param_index] = remaining_callbacks;
     }
 
-    private async propagateUpdateRequest() {
+    private propagateUpdateRequest() {
 
         if (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE]) {
             return;
         }
 
-        await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, true, new VarDAGVisitorDefineNodePropagateRequest(this.varDAG));
+        let visitor = new VarDAGVisitorDefineNodePropagateRequest(this.varDAG);
+        let visit_all_marked_nodes = true;
+        let marker = VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE;
+
+        while ((visit_all_marked_nodes && this.varDAG.marked_nodes_names[marker] && this.varDAG.marked_nodes_names[marker].length) ||
+            ((!visit_all_marked_nodes) && ((!this.varDAG.marked_nodes_names[marker]) || (this.varDAG.marked_nodes_names[marker].length != this.varDAG.nodes_names.length)))) {
+
+            let node_name: string;
+
+            if (visit_all_marked_nodes) {
+                node_name = this.varDAG.marked_nodes_names[marker][0];
+            } else {
+                node_name = this.varDAG.nodes_names.find((name: string) => !this.varDAG.nodes[name].hasMarker(marker));
+            }
+
+            if (!node_name) {
+                return;
+            }
+
+            visitor.varDAGVisitorDefineNodePropagateRequest(this.varDAG.nodes[node_name]);
+        }
     }
 
     /**
@@ -1342,14 +1379,47 @@ export default class VarsController {
         for (let i in this.varDAG.nodes) {
             let node: VarDAGNode = this.varDAG.nodes[i];
 
+            if (node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION)) {
+                continue;
+            }
+
+            if (node.hasIncoming) {
+                continue;
+            }
+
+            if (node.hasMarker(VarDAG.VARDAG_MARKER_REGISTERED)) {
+                continue;
+            }
+
             //  On peut supprimer un noeud à condition qu'il soit :
             //      - Pas registered
             //      - Un root
-            if ((!node.hasMarker(VarDAG.VARDAG_MARKER_REGISTERED)) &&
-                (!node.hasIncoming)) {
 
-                // Suppression en 2 étapes, on marque pour suppression et on demande la suppression des noeuds marqués
-                node.visit(new VarDAGVisitorMarkForDeletion(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION, this.varDAG));
+
+            // Suppression en 2 étapes, on marque pour suppression et on demande la suppression des noeuds marqués
+            let visitor = new VarDAGVisitorMarkForDeletion(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION, this.varDAG);
+
+            let nodes: VarDAGNode[] = [node];
+
+            while (nodes && nodes.length) {
+
+                let next_nodes: VarDAGNode[] = [];
+
+                for (let j in nodes) {
+                    let node_to_visit = nodes[j];
+
+                    let can_continue = visitor.visitNode(node_to_visit);
+
+                    if (!can_continue) {
+                        continue;
+                    }
+
+                    for (let k in node_to_visit.outgoingNames) {
+                        next_nodes.push(this.varDAG.nodes[node_to_visit.outgoingNames[k]]);
+                    }
+                }
+
+                nodes = next_nodes;
             }
         }
         this.varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION);

@@ -14,10 +14,10 @@ export default class VarDAGVisitorDefineNodePropagateRequest extends DAGVisitorB
     }
 
     public async visit(node: VarDAGNode, path: string[]): Promise<boolean> {
-        return await this.varDAGVisitorDefineNodePropagateRequest(node, path);
+        return this.varDAGVisitorDefineNodePropagateRequest(node);
     }
 
-    public async varDAGVisitorDefineNodePropagateRequest(node: VarDAGNode, path: string[]): Promise<boolean> {
+    public varDAGVisitorDefineNodePropagateRequest(node: VarDAGNode): boolean {
 
         if (node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE) || (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE))) {
             return false;

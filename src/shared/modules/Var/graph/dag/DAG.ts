@@ -53,13 +53,13 @@ export default class DAG<TNode extends DAGNode> {
             return;
         }
 
-        // On part de la cible et on essaie de voir s'il existait un lien vers la source en top-down
-        let checkCycle: DAGVisitorCheckCycle<any> = new DAGVisitorCheckCycle(fromName, this);
-        to.visit(checkCycle);
-        if (checkCycle.has_cycle) {
-            console.error('Incohérence dans l\'arbre des vars - cycle détecté');
-            return;
-        }
+        // // On part de la cible et on essaie de voir s'il existait un lien vers la source en top-down
+        // let checkCycle: DAGVisitorCheckCycle<any> = new DAGVisitorCheckCycle(fromName, this);
+        // to.visit(checkCycle);
+        // if (checkCycle.has_cycle) {
+        //     console.error('Incohérence dans l\'arbre des vars - cycle détecté');
+        //     return;
+        // }
 
         from.outgoing[toName] = to;
         from.outgoingNames.push(toName);
@@ -134,62 +134,62 @@ export default class DAG<TNode extends DAGNode> {
         }
     }
 
-    /**
-     * Pour visiter tout l'arbre très facilement en partant des extrémités
-     */
-    public async visitAllFromRootsOrLeafs(visitor_factory: (dag: DAG<TNode>) => DAGVisitorBase<any>) {
-        if (!visitor_factory) {
-            return;
-        }
+    // /**
+    //  * Pour visiter tout l'arbre très facilement en partant des extrémités
+    //  */
+    // public async visitAllFromRootsOrLeafs(visitor_factory: (dag: DAG<TNode>) => DAGVisitorBase<any>) {
+    //     if (!visitor_factory) {
+    //         return;
+    //     }
 
-        // Utilisé juste pour savoir dans quelle direction on doit visiter
-        let testVisitor: DAGVisitorBase<any> = visitor_factory(this);
-        if (!testVisitor.top_down) {
-            for (let i in this.leafs) {
-                let leaf: TNode = this.leafs[i];
+    //     // Utilisé juste pour savoir dans quelle direction on doit visiter
+    //     let testVisitor: DAGVisitorBase<any> = visitor_factory(this);
+    //     if (!testVisitor.top_down) {
+    //         for (let i in this.leafs) {
+    //             let leaf: TNode = this.leafs[i];
 
-                // La visite peut changer la liste de roots ou de leafs
-                if (!!leaf) {
-                    await leaf.visit(visitor_factory(this));
-                }
-            }
-        } else {
-            for (let i in this.roots) {
-                let root: TNode = this.roots[i];
+    //             // La visite peut changer la liste de roots ou de leafs
+    //             if (!!leaf) {
+    //                 await leaf.visit(visitor_factory(this));
+    //             }
+    //         }
+    //     } else {
+    //         for (let i in this.roots) {
+    //             let root: TNode = this.roots[i];
 
-                // La visite peut changer la liste de roots ou de leafs
-                if (!!root) {
-                    await root.visit(visitor_factory(this));
-                }
-            }
-        }
-    }
+    //             // La visite peut changer la liste de roots ou de leafs
+    //             if (!!root) {
+    //                 await root.visit(visitor_factory(this));
+    //             }
+    //         }
+    //     }
+    // }
 
-    /**
-     * Pour visiter tout l'arbre très facilement en utilisant un marker mis à jour par le visiteur
-     * @param visit_all_marked_nodes si true on continue tant que des nodes marqué avec marker existent, sinon on continue tant qu des nodes ne sont pas marqués. Attention aux perfs dans le second cas...
-     */
-    public async visitAllMarkedOrUnmarkedNodes(marker: string, visit_all_marked_nodes: boolean, visitor: DAGVisitorBase<any>) {
-        if (!visitor) {
-            return;
-        }
+    // /**
+    //  * Pour visiter tout l'arbre très facilement en utilisant un marker mis à jour par le visiteur
+    //  * @param visit_all_marked_nodes si true on continue tant que des nodes marqué avec marker existent, sinon on continue tant qu des nodes ne sont pas marqués. Attention aux perfs dans le second cas...
+    //  */
+    // public async visitAllMarkedOrUnmarkedNodes(marker: string, visit_all_marked_nodes: boolean, visitor: DAGVisitorBase<any>) {
+    //     if (!visitor) {
+    //         return;
+    //     }
 
-        while ((visit_all_marked_nodes && this.marked_nodes_names[marker] && this.marked_nodes_names[marker].length) ||
-            ((!visit_all_marked_nodes) && ((!this.marked_nodes_names[marker]) || (this.marked_nodes_names[marker].length != this.nodes_names.length)))) {
+    //     while ((visit_all_marked_nodes && this.marked_nodes_names[marker] && this.marked_nodes_names[marker].length) ||
+    //         ((!visit_all_marked_nodes) && ((!this.marked_nodes_names[marker]) || (this.marked_nodes_names[marker].length != this.nodes_names.length)))) {
 
-            let node_name: string;
+    //         let node_name: string;
 
-            if (visit_all_marked_nodes) {
-                node_name = this.marked_nodes_names[marker][0];
-            } else {
-                node_name = this.nodes_names.find((name: string) => !this.nodes[name].hasMarker(marker));
-            }
+    //         if (visit_all_marked_nodes) {
+    //             node_name = this.marked_nodes_names[marker][0];
+    //         } else {
+    //             node_name = this.nodes_names.find((name: string) => !this.nodes[name].hasMarker(marker));
+    //         }
 
-            if (!node_name) {
-                return;
-            }
+    //         if (!node_name) {
+    //             return;
+    //         }
 
-            await this.nodes[node_name].visit(visitor);
-        }
-    }
+    //         await this.nodes[node_name].visit(visitor);
+    //     }
+    // }
 }
