@@ -16,6 +16,8 @@ export default class VarDAG extends DAG<VarDAGNode> {
     public static VARDAG_MARKER_NEEDS_DEPS_LOADING: string = 'NEEDS_DEPS_LOADING';
     public static VARDAG_MARKER_DEPS_LOADED: string = 'DEPS_LOADED';
 
+    public static VARDAG_MARKER_DATASOURCES_LIST_LOADED: string = 'DATASOURCES_LIST_LOADED';
+
     public static VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING: string = 'NEEDS_PREDEPS_DATASOURCE_LOADING';
     public static VARDAG_MARKER_PREDEPS_DATASOURCE_LOADED: string = 'PREDEPS_DATASOURCE_LOADED';
 
@@ -35,6 +37,11 @@ export default class VarDAG extends DAG<VarDAGNode> {
         for (let i in params) {
             let param: IVarDataParamVOBase = params[i];
             let index: string = VarsController.getInstance().getIndex(param);
+
+            if (!index) {
+                continue;
+            }
+
             let node: VarDAGNode = this.nodes[index];
 
             if (!node) {

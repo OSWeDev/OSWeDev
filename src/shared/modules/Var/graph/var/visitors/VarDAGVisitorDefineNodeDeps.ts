@@ -68,18 +68,21 @@ export default class VarDAGVisitorDefineNodeDeps extends DAGVisitorBase<VarDAG> 
      * @param node
      * @param path
      */
-    public static async defineNodeDeps(node: VarDAGNode, varDag: VarDAG): Promise<VarDAGNode[]> {
+    public static async defineNodeDeps(node: VarDAGNode, varDag: VarDAG, new_nodes: { [index: string]: VarDAGNode }): Promise<VarDAGNode[]> {
 
         if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
             return null;
         }
 
         // On demande les deps de datasources
-        let deps_ds: Array<IDataSourceController<any, any>> = VarsController.getInstance().getVarControllerById(node.param.var_id).getDataSourcesDependencies();
-        for (let i in deps_ds) {
-            let dep_ds = deps_ds[i];
+        if (!node.hasMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED)) {
+            let deps_ds: Array<IDataSourceController<any, any>> = VarsController.getInstance().getVarControllerById(node.param.var_id).getDataSourcesDependencies();
+            for (let i in deps_ds) {
+                let dep_ds = deps_ds[i];
 
-            node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCE_NAME + dep_ds.name, varDag);
+                node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCE_NAME + dep_ds.name, varDag);
+            }
+            node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED, varDag);
         }
 
         // On demande les datasources predeps : Si on en a, il faut indiquer qu'on attend une info avant de pouvoir load les deps
@@ -94,14 +97,14 @@ export default class VarDAGVisitorDefineNodeDeps extends DAGVisitorBase<VarDAG> 
 
         // On demande les deps de vars
         let deps: IVarDataParamVOBase[] = await VarsController.getInstance().getVarControllerById(node.param.var_id).getSegmentedParamDependencies(node, varDag);
-        let new_nodes: VarDAGNode[] = [];
 
         for (let i in deps) {
             let dep: IVarDataParamVOBase = deps[i];
             let dep_index: string = VarsController.getInstance().getIndex(dep);
 
             if (!varDag.nodes[dep_index]) {
-                new_nodes.push(varDag.add(dep_index, dep));
+
+                new_nodes[dep_index] = varDag.add(dep_index, dep);
             }
 
             varDag.addEdge(node.name, dep_index);
@@ -109,6 +112,5 @@ export default class VarDAGVisitorDefineNodeDeps extends DAGVisitorBase<VarDAG> 
 
         node.removeMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, varDag, true);
         node.addMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, varDag);
-        return new_nodes;
     }
 }

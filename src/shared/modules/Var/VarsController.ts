@@ -23,6 +23,7 @@ import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
 import ThreadHandler from '../../tools/ThreadHandler';
+import ObjectHandler from '../../tools/ObjectHandler';
 
 export default class VarsController {
 
@@ -59,6 +60,9 @@ export default class VarsController {
     public is_stepping: boolean = false;
     public is_waiting: boolean = false;
 
+    public var_debouncer: number = 300;
+
+
     public registered_var_callbacks: { [index: string]: VarUpdateCallback[] } = {};
 
     public registered_var_data_api_types: { [api_type: string]: boolean } = {};
@@ -87,6 +91,9 @@ export default class VarsController {
 
     private getUpdatingParamsByVarsIds: { [index: string]: boolean } = null;
     private setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [index: string]: boolean }) => void = null;
+
+
+    private loaded_imported_datas_of_vars_ids: { [index: string]: boolean } = {};
 
     // private waitingForUpdate: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
@@ -614,7 +621,7 @@ export default class VarsController {
                 self.updateSemaphore_needs_reload = false;
                 self.debouncedUpdateDatas();
             }
-        }, 500);
+        }, this.var_debouncer);
     }
 
     public getImportedVarsDatasByIndexFromArray<TImportedData extends IVarDataVOBase>(
@@ -979,6 +986,7 @@ export default class VarsController {
 
     /**
      * Troisième version : on charge toutes les datas de toutes les var_ids présents dans l'arbre ou dont dépendent des éléments de l'arbre
+     * Attention, on ne recharge plus les datasd importées de vars déjà chargées. Il faut les mettre à jour au besoin par ailleurs
      */
     private async loadImportedDatas() {
 
@@ -989,9 +997,15 @@ export default class VarsController {
             }
 
             let var_id: number = parseInt(marker_name.replace(VarDAG.VARDAG_MARKER_VAR_ID, ""));
+
+            if (!!this.loaded_imported_datas_of_vars_ids[var_id]) {
+                continue;
+            }
+
             if (var_ids.indexOf(var_id) < 0) {
 
                 var_ids.push(var_id);
+                this.loaded_imported_datas_of_vars_ids[var_id] = true;
                 this.populateListVarIds(var_id, var_ids);
             }
         }
@@ -1012,28 +1026,34 @@ export default class VarsController {
             }
         }
 
+        let promises = [];
         for (let i in var_imported_data_vo_types) {
             let var_imported_data_vo_type: string = var_imported_data_vo_types[i];
 
-            let importeds: IVarDataVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVarDataVOBase>(
-                var_imported_data_vo_type, 'var_id', var_ids_by_imported_data_vo_types[var_imported_data_vo_type]);
+            promises.push(this.loadVarImportedDataVoType(var_imported_data_vo_type, var_ids_by_imported_data_vo_types[var_imported_data_vo_type]));
+        }
+        await Promise.all(promises);
+    }
 
-            if (importeds) {
-                for (let j in importeds) {
-                    let imported: IVarDataVOBase = importeds[j];
-                    let importedIndex: string = this.getIndex(imported);
+    private async loadVarImportedDataVoType(var_imported_data_vo_type: string, var_ids: number[]): Promise<void> {
+        let importeds: IVarDataVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVarDataVOBase>(
+            var_imported_data_vo_type, 'var_id', var_ids);
 
-                    // Stocke tout et si on peut on met à jour les nodes existants
-                    if (!!this.varDAG.nodes[importedIndex]) {
-                        this.varDAG.nodes[importedIndex].setImportedData(imported, this.varDAG);
-                    }
+        if (importeds) {
+            for (let j in importeds) {
+                let imported: IVarDataVOBase = importeds[j];
+                let importedIndex: string = this.getIndex(imported);
 
-                    if (!this.imported_datas_by_var_id[imported.var_id]) {
-                        this.imported_datas_by_var_id[imported.var_id] = {};
-                    }
-                    this.imported_datas_by_var_id[imported.var_id][importedIndex] = imported;
-                    this.imported_datas_by_index[importedIndex] = imported;
+                // Stocke tout et si on peut on met à jour les nodes existants
+                if (!!this.varDAG.nodes[importedIndex]) {
+                    this.varDAG.nodes[importedIndex].setImportedData(imported, this.varDAG);
                 }
+
+                if (!this.imported_datas_by_var_id[imported.var_id]) {
+                    this.imported_datas_by_var_id[imported.var_id] = {};
+                }
+                this.imported_datas_by_var_id[imported.var_id][importedIndex] = imported;
+                this.imported_datas_by_index[importedIndex] = imported;
             }
         }
     }
@@ -1056,21 +1076,17 @@ export default class VarsController {
 
             while (nodes_names && nodes_names.length) {
 
-                let new_nodes: VarDAGNode[] = [];
+                let new_nodes: { [index: string]: VarDAGNode } = {};
                 for (let i in nodes_names) {
                     let node_name = nodes_names[i];
+                    let node = this.varDAG.nodes[node_name];
 
-                    let new_nodes_: VarDAGNode[] = await VarDAGVisitorDefineNodeDeps.defineNodeDeps(this.varDAG.nodes[node_name], this.varDAG);
-
-                    if ((!!new_nodes_) && (!!new_nodes_.length)) {
-                        new_nodes = new_nodes.concat(new_nodes_);
+                    if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
+                        continue;
                     }
+                    await VarDAGVisitorDefineNodeDeps.defineNodeDeps(node, this.varDAG, new_nodes);
                 }
-
-                nodes_names = [];
-                for (let i in new_nodes) {
-                    nodes_names.push(new_nodes[i].name);
-                }
+                nodes_names = Object.keys(new_nodes);
             }
 
             // await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, true, new VarDAGVisitorDefineNodeDeps(this.varDAG));

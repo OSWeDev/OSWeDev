@@ -1,3 +1,4 @@
+import * as debounce from 'lodash/debounce';
 import Module from '../Module';
 import * as moment from 'moment';
 // if false
@@ -33,14 +34,20 @@ export default class ModuleAjaxCache extends Module {
 
     private static instance: ModuleAjaxCache = null;
 
+    public ajaxcache_debouncer: number = 200;
+
     private cache: RequestsCacheVO = new RequestsCacheVO();
     private invalidationRules: CacheInvalidationRulesVO = new CacheInvalidationRulesVO();
     private waitingForRequest: RequestResponseCacheVO[] = [];
 
-    private timerProcessRequests = 100;
+    // private timerProcessRequests = 100;
 
     private disableCache = false;
     private defaultInvalidationTimeout = 300000;
+
+    private processRequestsSemaphore: boolean = false;
+    private processRequestsSemaphore_needs_reload: boolean = false;
+    private actions_waiting_for_release_of_processRequestsSemaphore: Array<() => Promise<void>> = [];
 
     private constructor() {
 
@@ -188,7 +195,7 @@ export default class ModuleAjaxCache extends Module {
         this.datatables = [];
 
         // Launch the process
-        setTimeout(this.processRequests.bind(this), this.timerProcessRequests);
+        // setTimeout(this.processRequests.bind(this), this.timerProcessRequests);
     }
 
     // Fonctionnement du cache :
@@ -281,8 +288,18 @@ export default class ModuleAjaxCache extends Module {
 
     private addToWaitingRequestsStack(cache: RequestResponseCacheVO) {
 
+        if (this.processRequestsSemaphore) {
+            let self = this;
+            this.actions_waiting_for_release_of_processRequestsSemaphore.push(async () => {
+                self.addToWaitingRequestsStack(cache);
+            });
+            return false;
+        }
+
         cache.state = RequestResponseCacheVO.STATE_REQUESTED;
         this.waitingForRequest.push(cache);
+
+        this.debounced_processRequests();
     }
 
     private traitementFailRequest(err, request: RequestResponseCacheVO) {
@@ -307,15 +324,61 @@ export default class ModuleAjaxCache extends Module {
                 let reject_callback = request.reject_callbacks.shift();
 
                 // Make the calls asynchronous to call them all at the same time
-                setTimeout(() => {
-                    if (reject_callback) {
-                        reject_callback(null);
-                    }
-                }, 10);
+                let callback = async () => {
+                    reject_callback(null);
+                };
+                callback();
+
             }
         }
     }
 
+    get debounced_processRequests() {
+
+        if (this.processRequestsSemaphore) {
+            // ça veut dire qu'on demande un process alors qu'un est déjà en cours.
+            // Il faut pouvoir revenir s'en occuper
+            this.processRequestsSemaphore_needs_reload = true;
+            return () => { };
+        }
+
+        let self = this;
+        return debounce(async () => {
+            // Il faut stocker une info de type sémaphore pour refuser de lancer l'update pendant qu'il est en cours
+            // Mais du coup quand l'update est terminé, il est important de vérifier si de nouvelles demandes de mise à jour ont eues lieues.
+            //  et si oui relancer une mise à jour.
+            // ATTENTION : Risque d'explosion de la pile des appels si on a un temps trop élevé de résolution des variables, par rapport à une mise
+            //  à jour automatique par exemple à intervale régulier, plus court que le temps de mise à jour.
+            if (self.processRequestsSemaphore) {
+                return;
+            }
+            self.processRequestsSemaphore_needs_reload = false;
+            self.processRequestsSemaphore = true;
+            try {
+                await self.processRequests();
+            } catch (error) {
+                console.error(error);
+            }
+
+            self.processRequestsSemaphore = false;
+
+            if ((!!self.actions_waiting_for_release_of_processRequestsSemaphore) && (self.actions_waiting_for_release_of_processRequestsSemaphore.length)) {
+                for (let i in self.actions_waiting_for_release_of_processRequestsSemaphore) {
+                    let action = self.actions_waiting_for_release_of_processRequestsSemaphore[i];
+
+                    await action();
+                }
+            }
+
+            self.actions_waiting_for_release_of_processRequestsSemaphore = [];
+
+            if (self.processRequestsSemaphore_needs_reload) {
+                // Si on a eu des demandes pendant ce calcul on relance le plus vite possible
+                self.processRequestsSemaphore_needs_reload = false;
+                self.debounced_processRequests();
+            }
+        }, this.ajaxcache_debouncer);
+    }
 
     // Le processus qui dépile les requêtes en attente
     // Pour rappel structure de la request
@@ -394,9 +457,13 @@ export default class ModuleAjaxCache extends Module {
             }
         }
 
-        setTimeout((async () => {
-            self.processRequests();
-        }), self.timerProcessRequests);
+        if (self.waitingForRequest && (self.waitingForRequest.length > 0)) {
+            this.processRequestsSemaphore_needs_reload = true;
+        }
+
+        // setTimeout((async () => {
+        //     self.processRequests();
+        // }), self.timerProcessRequests);
     }
 
     private resolve_request(request, datas) {
@@ -408,9 +475,10 @@ export default class ModuleAjaxCache extends Module {
             let resolve_callback = request.resolve_callbacks.shift();
 
             // Make the calls asynchronous to call them all at the same time
-            setTimeout(() => {
+            let callback = async () => {
                 resolve_callback(datas);
-            }, 10);
+            };
+            callback();
         }
     }
 }

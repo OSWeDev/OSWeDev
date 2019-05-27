@@ -156,7 +156,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
                 if (otherField.manyToOne_target_moduletable.default_label_field) {
                     crud.readDatatable.pushField(new ManyToManyReferenceDatatableField<any, any>(
-                        field.module_table.full_name,
+                        field.module_table.full_name + '_' + field.field_id,
                         otherField.manyToOne_target_moduletable,
                         field.module_table,
                         [
@@ -168,7 +168,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
                 if (otherField.manyToOne_target_moduletable.table_label_function) {
                     crud.readDatatable.pushField(new ManyToManyReferenceDatatableField<any, any>(
-                        field.module_table.full_name,
+                        field.module_table.full_name + '_' + field.field_id,
                         otherField.manyToOne_target_moduletable,
                         field.module_table,
                         [
@@ -232,7 +232,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
                 if (field.module_table.default_label_field) {
                     crud.readDatatable.pushField(new OneToManyReferenceDatatableField<any>(
-                        field.module_table.full_name,
+                        field.module_table.full_name + '_' + field.field_id,
                         field.module_table,
                         field,
                         [
@@ -244,7 +244,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
                 if (field.module_table.table_label_function) {
                     crud.readDatatable.pushField(new OneToManyReferenceDatatableField<any>(
-                        field.module_table.full_name,
+                        field.module_table.full_name + '_' + field.field_id,
                         field.module_table,
                         field,
                         [
