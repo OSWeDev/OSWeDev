@@ -291,8 +291,8 @@ export default abstract class ServerBase {
             saveUninitialized: false,
             store: new FileStore(),
             cookie: {
-                httpOnly: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
-                secure: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
+                // httpOnly: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
+                // secure: !ConfigurationService.getInstance().getNodeConfiguration().ISDEV,
                 maxAge: Date.now() + (30 * 86400 * 1000)
             }
         });
