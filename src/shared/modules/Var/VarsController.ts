@@ -110,6 +110,9 @@ export default class VarsController {
 
     private actions_waiting_for_release_of_update_semaphore: Array<() => Promise<void>> = [];
 
+    // Imporssible de stocker dans le var_param qui est souvent copié avcec object.assign.... ou alors faut blocker et passer par une factory (mais en js on peut ps bloquer en fait object.assign ...)
+    private checked_var_indexes: { [index: string]: boolean } = {};
+
     protected constructor() {
     }
 
@@ -444,12 +447,13 @@ export default class VarsController {
     }
 
     public checkDateIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): void {
-        if ((!param) || (!(param as any as IDateIndexedVarDataParam).date_index)) {
+        if ((!param) || (!(param as any as IDateIndexedVarDataParam).date_index) || (this.checked_var_indexes[this._getIndex(param)])) {
             return;
         }
 
         let date_indexed: IDateIndexedVarDataParam = param as any as IDateIndexedVarDataParam;
         date_indexed.date_index = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_indexed.date_index), this.getVarControllerById(param.var_id).segment_type).dateIndex;
+        this.checked_var_indexes[this._getIndex(date_indexed)] = true;
     }
 
     public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false, var_callbacks: VarUpdateCallback[] = null) {
@@ -653,13 +657,9 @@ export default class VarsController {
     }
 
     public getIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): string {
-        if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
-            return null;
-        }
-
         this.checkDateIndex(param);
 
-        return this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
+        return this._getIndex(param);
     }
 
     public getParam<TDataParam extends IVarDataParamVOBase>(param_index: string): TDataParam {
@@ -1429,5 +1429,13 @@ export default class VarsController {
             }
         }
         this.varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_MARKED_FOR_DELETION);
+    }
+
+    private _getIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): string {
+        if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
+            return null;
+        }
+
+        return this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
     }
 }

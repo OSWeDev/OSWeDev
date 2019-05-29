@@ -38,6 +38,34 @@ export default class VarDescComponent extends VueComponentBase {
 
     private step_number: number = 0;
 
+    get var_dependencies_tree_prct(): string {
+        if (!this.var_param) {
+            return null;
+        }
+
+        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
+
+        if (!selectedNode) {
+            return null;
+        }
+
+        return this.formatNumber_2decimal(selectedNode.dependencies_tree_prct * 100);
+    }
+
+    get var_dependencies_count(): number {
+        if (!this.var_param) {
+            return null;
+        }
+
+        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
+
+        if (!selectedNode) {
+            return null;
+        }
+
+        return selectedNode.dependencies_count;
+    }
+
     get is_selected_var(): boolean {
         return this.getDescSelectedIndex == this.var_index;
     }

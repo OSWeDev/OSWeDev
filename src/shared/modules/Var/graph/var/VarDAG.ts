@@ -90,6 +90,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
             let node = this.leafs[i];
 
             node.dependencies_count = 1;
+            node.dependencies_list = [node.name];
 
             if (this.dependencies_heatmap_max == null) {
                 this.dependencies_heatmap_max = 1;
@@ -104,24 +105,36 @@ export default class VarDAG extends DAG<VarDAGNode> {
                 for (let j in nodes_to_visit) {
 
                     let node_to_visit = nodes_to_visit[j];
-                    let dependencies_count: number = 1;
+                    let dependencies_list: string[] = [node_to_visit.name];
 
                     for (let k in node_to_visit.outgoing) {
                         let node_to_visit_dep: VarDAGNode = node_to_visit.outgoing[k] as VarDAGNode;
 
                         if (node_to_visit_dep.dependencies_count == null) {
-                            dependencies_count = null;
+                            dependencies_list = null;
                             break;
                         }
 
-                        dependencies_count += node_to_visit_dep.dependencies_count;
+                        if (dependencies_list.indexOf(node_to_visit_dep.name) < 0) {
+                            dependencies_list.push(node_to_visit_dep.name);
+                        }
+
+                        for (let m in node_to_visit_dep.dependencies_list) {
+                            let index: string = node_to_visit_dep.dependencies_list[m];
+
+                            if (dependencies_list.indexOf(index) < 0) {
+                                dependencies_list.push(index);
+                            }
+                        }
                     }
 
-                    if (dependencies_count == null) {
+                    if (dependencies_list == null) {
                         continue;
                     }
 
-                    node_to_visit.dependencies_count = dependencies_count;
+                    node_to_visit.dependencies_count = dependencies_list.length;
+                    node_to_visit.dependencies_list = dependencies_list;
+                    node_to_visit.dependencies_tree_prct = node_to_visit.dependencies_count / this.nodes_names.length;
 
                     if (this.dependencies_heatmap_max < node_to_visit.dependencies_count) {
                         this.dependencies_heatmap_max = node_to_visit.dependencies_count;

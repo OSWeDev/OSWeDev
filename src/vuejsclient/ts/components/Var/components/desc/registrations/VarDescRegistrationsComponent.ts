@@ -36,6 +36,10 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
     private graph_params: string = null;
     private hover_desc: string = null;
 
+    private vardag_size: number = null;
+    private vardag_registered_prct: string = null;
+
+    private vardags_registered_prct_by_var_id: { [var_id: number]: string } = {};
 
     get descSelectedParam(): IVarDataParamVOBase {
         if (!!this.getDescSelectedIndex) {
@@ -225,5 +229,31 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
 
     private refreshDependenciesHeatmap() {
         VarsController.getInstance().varDAG.refreshDependenciesHeatmap();
+
+        this.vardag_size = VarsController.getInstance().varDAG.nodes_names.length;
+        this.vardag_registered_prct = this.formatNumber_2decimal((this.vardag_size ? VarsController.getInstance().varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_REGISTERED].length / this.vardag_size : 0) * 100);
+
+        let vardags_registered_prct_by_var_id: { [var_id: number]: number } = {};
+
+        for (let marker_name in VarsController.getInstance().varDAG.marked_nodes_names) {
+            let marked_nodes_names: string[] = VarsController.getInstance().varDAG.marked_nodes_names[marker_name];
+
+            if (!marker_name.startsWith(VarDAG.VARDAG_MARKER_VAR_ID)) {
+                continue;
+            }
+
+            let var_id: number = parseInt(marker_name.replace(VarDAG.VARDAG_MARKER_VAR_ID, ""));
+
+            vardags_registered_prct_by_var_id[var_id] = marked_nodes_names.length / this.vardag_size;
+        }
+
+        this.vardags_registered_prct_by_var_id = {};
+        for (let i in vardags_registered_prct_by_var_id) {
+            this.vardags_registered_prct_by_var_id[i] = this.formatNumber_2decimal(vardags_registered_prct_by_var_id[i] * 100);
+        }
+    }
+
+    private clearDag() {
+        VarsController.getInstance().varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE);
     }
 }

@@ -14,6 +14,12 @@
                 li(v-for='(marker_name, marker_value) in var_markers')
                     b {{ marker_value + ' : ' }}
                     | {{ marker_name }}
+            template(v-if='!!var_dependencies_count')
+                h5.card-title {{ label('var.desc_mode.dependencies_number') }}
+                p.card-text {{ var_dependencies_count }}
+                h5.card-title {{ label('var.desc_mode.dependencies_tree_prct') }}
+                p.card-text {{ var_dependencies_tree_prct + '%' }}
+                
             h5.card-title {{ label('var.desc_mode.var_data') }}
             var-data(:var_param='var_param')
     

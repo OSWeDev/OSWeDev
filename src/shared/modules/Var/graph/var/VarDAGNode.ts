@@ -12,6 +12,9 @@ export default class VarDAGNode extends DAGNode {
 
     // Used for the deps heatmap
     public dependencies_count: number = null;
+    public dependencies_list: string[] = null;
+    public dependencies_tree_prct: number = null;
+
 
     public constructor(name: string, dag: VarDAG, public param: IVarDataParamVOBase) {
         super(name, dag);

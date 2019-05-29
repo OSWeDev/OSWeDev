@@ -6,9 +6,35 @@
             .row
                 .col-md-12
                     button.btn.btn-sm.btn-primary.pull-right(@click="refreshDependenciesHeatmap")
-                        i.fa.fa-target.fa-lg.btn_icon(aria-hidden="true")
+                        i.fa.fa-map.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('var_desc.refreshDependenciesHeatmap') }}
             
+            .row
+                .col-md-12
+                    hr
+
+            .row(v-if='vardag_size')
+                .col-md-12
+                    h5 {{ label('var_desc_registrations.vardag_size') }}
+                    .vardag_infos {{ vardag_size }}
+
+                    h5 {{ label('var_desc_registrations.vardag_registered_prct') }}
+                    .vardag_infos {{ vardag_registered_prct  +'%' }}
+
+                    h5 {{ label('var_desc_registrations.vardag_registered_prct_by_var_id') }}
+                    ul 
+                        li(v-for='(vardag_registered_prct_by_var_id, var_id) in vardags_registered_prct_by_var_id') {{ var_id + ' : ' + vardag_registered_prct_by_var_id + '%' }}
+
+            .row
+                .col-md-12
+                    button.btn.btn-sm.btn-secondary.pull-right(@click="clearDag")
+                        i.fa.fa-trash.fa-lg.btn_icon(aria-hidden="true")
+                        | {{ label('var_desc.clearDag') }}
+            
+            .row
+                .col-md-12
+                    hr
+
             .row
                 .col-md-12(v-if='(!is_stepping) && (!isUpdating)')
                     button.btn.btn-sm.btn-secondary.pull-right(@click="switch_stepper")
