@@ -143,7 +143,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             return;
         }
 
-        let segment_date_index: string = (target_segment_date_index ? target_segment_date_index : (this.selected_segment ? this.selected_segment.dateIndex : null));
+        let segment_date_index: string = target_segment_date_index;
         // Si on ne fournit pas le segment, c'est qu'on veut faire un import sur les segments sélectionnés
         if (!segment_date_index) {
             if ((!this.lower_selected_segment) || (!this.upper_selected_segment) || (moment(this.upper_selected_segment.dateIndex).isBefore(moment(this.lower_selected_segment.dateIndex)))) {
