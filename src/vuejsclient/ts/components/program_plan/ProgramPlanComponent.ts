@@ -1123,7 +1123,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return this.get_tasks_by_ids[this.selected_rdv.task_id].is_facilitator_specific;
     }
 
-    @Watch('fcSegment')
+    @Watch('fcSegment', { deep: true })
     private async onChangeFCSegment() {
 
         let promises: Array<Promise<any>> = [];
