@@ -20,6 +20,9 @@
 ## SQL
     CREATE SCHEMA imports;
 
+## Clear duplicates translations if any 
+    delete from  ref.module_translation_translation  where id in (select t.id from ref.module_translation_translation t, ref.module_translation_translation t2 where t.id < t2.id and t.lang_id = t2.lang_id and t.text_id = t2.text_id)
+
 ## DataImportFileVO => DataImportFormatVO
     Ajout du champ file_id
     Suppression du champ datatable_fullname au profit du champ api_type_id

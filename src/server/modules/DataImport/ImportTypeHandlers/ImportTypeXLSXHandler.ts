@@ -232,14 +232,25 @@ export default class ImportTypeXLSXHandler {
     }
 
     private getStringfromColumnDataString(column_data_string: any): string {
+        let res = null;
+
         if (column_data_string.h && column_data_string.h != "") {
-            return column_data_string.h;
+            res = column_data_string.h;
         } else if (column_data_string.w && column_data_string.w != "") {
-            return column_data_string.w;
+            res = column_data_string.w;
         } else if (column_data_string.v && column_data_string.v != "") {
-            return column_data_string.v;
+            res = column_data_string.v;
         }
-        return null;
+
+        if (res) {
+            res = res.replace(/&apos;/ig, "'");
+            res = res.replace(/&quot;/ig, '"');
+            res = res.replace(/&lt;/ig, '<');
+            res = res.replace(/&gt;/ig, '>');
+            res = res.replace(/&amp;/ig, '&');
+        }
+
+        return res;
     }
 
     private importRawsData(

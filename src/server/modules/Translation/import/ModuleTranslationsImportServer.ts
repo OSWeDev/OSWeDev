@@ -68,20 +68,19 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
         for (let i in datas) {
             let data: ImportTranslationRaw = datas[i];
 
-            // Filtrage sur la date de facturation par rapport au segment choisi
             if (!langs_by_code[data.code_lang]) {
                 data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
                 data.not_validated_msg = 'Langue inconnue';
                 continue;
             }
 
-            // TODO FIXME l'import gère très mal les ' et " qui deviennent &apos; et &quot; on filtre en attendant de corriger
-            if (data.translated && ((data.translated.indexOf('"') >= 0) || (data.translated.indexOf("'") >= 0) ||
-                (data.translated.indexOf('&apos;') >= 0) || (data.translated.indexOf('&quot;') >= 0))) {
-                data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
-                data.not_validated_msg = 'Apostrophe ou guillemets non gérés pour le moment dans l\'importation';
-                continue;
-            }
+            // // TODO FIXME l'import gère très mal les ' et " qui deviennent &apos; et &quot; on filtre en attendant de corriger
+            // if (data.translated && ((data.translated.indexOf('"') >= 0) || (data.translated.indexOf("'") >= 0) ||
+            //     (data.translated.indexOf('&apos;') >= 0) || (data.translated.indexOf('&quot;') >= 0))) {
+            //     data.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
+            //     data.not_validated_msg = 'Apostrophe ou guillemets non gérés pour le moment dans l\'importation';
+            //     continue;
+            // }
         }
 
         return datas;
