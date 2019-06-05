@@ -1,3 +1,4 @@
+import * as debounce from 'lodash/debounce';
 import { EventObjectInput, View } from 'fullcalendar';
 import * as $ from 'jquery';
 import * as moment from 'moment';
@@ -843,8 +844,23 @@ export default class ProgramPlanComponent extends VueComponentBase {
     }
 
     @Watch('calendar_date')
+    private onchange_calendar_date_direct() {
+
+        this.debounced_onchange_calendar_date();
+    }
+
+    get debounced_onchange_calendar_date() {
+
+        return debounce(this.onchange_calendar_date, 1000);
+    }
+
     @Watch('viewname')
     private onchange_calendar_date() {
+
+        if (!moment(this.calendar_date).isValid()) {
+            return;
+        }
+
         let segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
             moment(this.calendar_date),
             (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
