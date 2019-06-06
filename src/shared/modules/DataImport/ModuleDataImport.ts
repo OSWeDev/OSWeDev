@@ -181,6 +181,7 @@ export default class ModuleDataImport extends Module {
 
         let field_historic_id = new ModuleTableField<any>("historic_id", ModuleTableField.FIELD_TYPE_foreign_key, "Historique", false);
         fields.unshift(new ModuleTableField<any>("not_validated_msg", ModuleTableField.FIELD_TYPE_string, "Msg validation", false));
+        fields.unshift(new ModuleTableField<any>("imported_line_number", ModuleTableField.FIELD_TYPE_int, "N° de la ligne", false));
         fields.unshift(new ModuleTableField<any>("importation_state", ModuleTableField.FIELD_TYPE_enum, "Status", true, true, 0).setEnumValues({
             [ModuleDataImport.IMPORTATION_STATE_UPLOADED]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_UPLOADED],
             [ModuleDataImport.IMPORTATION_STATE_FORMATTING]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FORMATTING],

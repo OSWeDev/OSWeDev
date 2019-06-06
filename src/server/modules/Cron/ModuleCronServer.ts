@@ -64,6 +64,7 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkersManually, this.executeWorkersManually.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleCron.APINAME_executeWorkerManually, this.executeWorkerManually.bind(this));
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {

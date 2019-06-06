@@ -9,4 +9,5 @@ export default class ImportTranslationRaw extends ImportTranslation implements I
     public creation_date: string;
     public target_vo_id: number;
     public historic_id: number;
+    public imported_line_number: number;
 }

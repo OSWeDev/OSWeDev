@@ -273,7 +273,8 @@ export default class ImportTypeXLSXHandler {
                 not_imported_msg: null,
                 not_posttreated_msg: null,
                 creation_date: DateHandler.getInstance().formatDateTimeForBDD(moment()),
-                historic_id: historic.id
+                historic_id: historic.id,
+                imported_line_number: row_index
             } as any;
 
             for (let i in dataImportColumns) {

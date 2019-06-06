@@ -32,6 +32,28 @@ export default class CRUDComponentManager {
     public callback_routes: string[] = [];
     public idistantvo_init: IDistantVOBase[] = [];
 
+    public registerCRUDs<T extends IDistantVOBase>(
+        API_TYPE_IDs: string[],
+        menuPointers: MenuPointer[],
+        routes: RouteConfig[]) {
+
+        if ((!API_TYPE_IDs) || (!API_TYPE_IDs.length)) {
+            return;
+        }
+
+        if ((!menuPointers) || (!menuPointers.length)) {
+            return;
+        }
+
+        if (API_TYPE_IDs.length != menuPointers.length) {
+            return;
+        }
+
+        for (let i in API_TYPE_IDs) {
+            this.registerCRUD(API_TYPE_IDs[i], null, menuPointers[i], routes);
+        }
+    }
+
     /**
      *
      * @param API_TYPE_ID

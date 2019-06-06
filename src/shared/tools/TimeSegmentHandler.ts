@@ -298,7 +298,16 @@ export default class TimeSegmentHandler {
         return res;
     }
 
-    public getCorrespondingTimeSegment(date: Moment, type: number, offset: number = 0): TimeSegment {
+    public getCorrespondingTimeSegments(dates: Moment[] | string[], type: number, offset: number = 0): TimeSegment[] {
+        let res: TimeSegment[] = [];
+
+        for (let i in dates) {
+            res.push(this.getCorrespondingTimeSegment(dates[i], type, offset));
+        }
+        return res;
+    }
+
+    public getCorrespondingTimeSegment(date: Moment | string, type: number, offset: number = 0): TimeSegment {
         let res: TimeSegment = new TimeSegment();
         res.type = type;
         let date_segment: Moment = moment(date);
@@ -426,5 +435,15 @@ export default class TimeSegmentHandler {
         }
 
         return true;
+    }
+
+    public get_date_indexes(segments: TimeSegment[]): string[] {
+        let res: string[] = [];
+
+        for (let i in segments) {
+            res.push(segments[i].dateIndex);
+        }
+
+        return res;
     }
 }
