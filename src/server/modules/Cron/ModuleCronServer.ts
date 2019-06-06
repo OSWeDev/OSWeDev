@@ -17,6 +17,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModulesManagerServer from '../ModulesManagerServer';
+import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
@@ -92,6 +93,27 @@ export default class ModuleCronServer extends ModuleServerBase {
         }
     }
 
+    public async executeWorkerManually(param: StringParamVO) {
+
+        let worker_uid: string = param.text;
+
+        if (!worker_uid) {
+            return;
+        }
+
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        let uid: number = httpContext ? httpContext.get('UID') : null;
+
+        ModulePushDataServer.getInstance().notifySimpleINFO(uid, 'cron.execute_manually_indiv.start');
+        try {
+
+            await this.executeWorker(worker_uid);
+            ModulePushDataServer.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually_indiv.success');
+        } catch (error) {
+            ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'cron.execute_manually_indiv.failed');
+        }
+    }
+
     public async executeWorkers() {
 
         if (this.semaphore) {
@@ -119,6 +141,9 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     protected async nextRecurrence(plannedWorker: CronWorkerPlanification) {
         if ((!plannedWorker) || (plannedWorker.type_recurrence == CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE)) {
+            plannedWorker.date_heure_planifiee = null;
+            await ModuleDAO.getInstance().insertOrUpdateVO(plannedWorker);
+
             return;
         }
 

@@ -5,6 +5,7 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import CronWorkerPlanification from './vos/CronWorkerPlanification';
+import StringParamVO from '../API/vos/apis/StringParamVO';
 
 export default class ModuleCron extends Module {
 
@@ -14,6 +15,7 @@ export default class ModuleCron extends Module {
     public static POLICY_BO_ACCESS = AccessPolicyTools.POLICY_UID_PREFIX + ModuleCron.MODULE_NAME + ".BO_ACCESS";
 
     public static APINAME_executeWorkersManually: string = "executeWorkersManually";
+    public static APINAME_executeWorkerManually: string = "executeWorkerManually";
 
     public static getInstance(): ModuleCron {
         if (!ModuleCron.instance) {
@@ -37,10 +39,19 @@ export default class ModuleCron extends Module {
             ModuleCron.APINAME_executeWorkersManually,
             [CronWorkerPlanification.API_TYPE_ID]
         ));
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleCron.APINAME_executeWorkerManually,
+            [CronWorkerPlanification.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams
+        ));
     }
 
     public async executeWorkersManually() {
         ModuleAPI.getInstance().handleAPI(ModuleCron.APINAME_executeWorkersManually);
+    }
+
+    public async executeWorkerManually(worker_uid: string) {
+        ModuleAPI.getInstance().handleAPI(ModuleCron.APINAME_executeWorkerManually, worker_uid);
     }
 
     public initialize() {
@@ -51,7 +62,7 @@ export default class ModuleCron extends Module {
         let datatable_fields = [
             label_field,
             new ModuleTableField('worker_uid', ModuleTableField.FIELD_TYPE_string, 'worker_uid', true),
-            new ModuleTableField('date_heure_planifiee', ModuleTableField.FIELD_TYPE_string, 'date_heure_planifiee', true),
+            new ModuleTableField('date_heure_planifiee', ModuleTableField.FIELD_TYPE_string, 'date_heure_planifiee', false),
             new ModuleTableField('type_recurrence', ModuleTableField.FIELD_TYPE_int, 'type_recurrence', true),
             new ModuleTableField('intervale_recurrence', ModuleTableField.FIELD_TYPE_float, 'intervale_recurrence', true),
         ];
