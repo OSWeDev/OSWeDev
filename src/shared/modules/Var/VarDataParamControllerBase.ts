@@ -1,15 +1,13 @@
-import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import ObjectHandler from '../../tools/ObjectHandler';
-import ISimpleNumberVarData from './interfaces/ISimpleNumberVarData';
-import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
+import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 
 export default abstract class VarDataParamControllerBase<TDataParam extends IVarDataParamVOBase> {
 
     protected constructor() { }
 
-    public sortParams(params: { [index: string]: IVarDataParamVOBase }) {
-        ObjectHandler.getInstance().sortObjectByKey(params, this.compareParams);
-    }
+    // public sortParams(params: { [index: string]: IVarDataParamVOBase }) {
+    //     ObjectHandler.getInstance().sortObjectByKey(params, this.compareParams);
+    // }
 
     /**
      * DO NOT USE outside VarsController. There are controls made by VarsController.getInstance().getIndex() that this function depends on.
@@ -30,37 +28,9 @@ export default abstract class VarDataParamControllerBase<TDataParam extends IVar
      * La fonction inverse
      * @param param_index
      */
-    public abstract getParam(param_index: string): TDataParam;
-
-    // public getIndex(param: TDataParam): string {
-
-    //     let res: string = "";
-
-    //     res += param.var_id;
-
-    //     if ((!!param.json_params) && (param.json_params != "")) {
-    //         res += "__" + param.json_params.replace(/[^0-9a-zA-Z-_]/ig, '_');
-    //     }
-
-    //     for (let i in param) {
-    //         if ((i == 'var_id') || (i == 'json_params') || (i == 'id') || (i == '_type')) {
-    //             continue;
-    //         }
-
-    //         let val: string = param[i] ? param[i].toString() : null;
-
-    //         if (!val) {
-    //             res += "____";
-    //             continue;
-    //         }
-
-    //         res += "__" + val + "__";
-    //     }
-
-    //     return res;
-    // }
+    // public abstract getParam(param_index: string): TDataParam;
 
     public abstract getImpactedParamsList(paramUpdated: TDataParam, paramsRegisteredByIndex: { [index: string]: IVarDataParamVOBase }): TDataParam[];
 
-    protected abstract compareParams(paramA: TDataParam, paramB: TDataParam);
+    // protected abstract compareParams(paramA: TDataParam, paramB: TDataParam);
 }

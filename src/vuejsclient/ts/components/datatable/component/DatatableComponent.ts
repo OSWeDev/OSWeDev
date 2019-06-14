@@ -24,6 +24,7 @@ import * as debounce from 'lodash/debounce';
 import './DatatableComponent.scss';
 import OneToManyReferenceDatatableField from '../vos/OneToManyReferenceDatatableField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
+import { truncateFilter } from '../../../../../shared/tools/Filters';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -158,6 +159,8 @@ export default class DatatableComponent extends VueComponentBase {
 
                     if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
+                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
+                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month)) {
@@ -258,6 +261,8 @@ export default class DatatableComponent extends VueComponentBase {
             if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
                 (((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
+                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
+                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
                     ((field as SimpleDatatableField<AnalyserNode, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month))) {
@@ -280,6 +285,8 @@ export default class DatatableComponent extends VueComponentBase {
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
+                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
+                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) ||
@@ -454,6 +461,8 @@ export default class DatatableComponent extends VueComponentBase {
 
                     case ModuleTableField.FIELD_TYPE_timestamp:
                     case ModuleTableField.FIELD_TYPE_daterange:
+                    case ModuleTableField.FIELD_TYPE_daterange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
                     case ModuleTableField.FIELD_TYPE_month:
@@ -768,35 +777,44 @@ export default class DatatableComponent extends VueComponentBase {
                                     return (row[field.datatable_field_uid] && istrue) || ((!row[field.datatable_field_uid]) && !istrue);
 
                                 case ModuleTableField.FIELD_TYPE_daterange:
+                                case ModuleTableField.FIELD_TYPE_daterange_array:
+                                case ModuleTableField.FIELD_TYPE_tstzrange_array:
                                     if ((!query) || ((!query.start) && (!query.end))) {
                                         return true;
                                     }
 
-                                    let parts: string[] = row[field.datatable_field_uid].split('-');
-                                    if ((!parts) || (parts.length <= 0)) {
-                                        return row[field.datatable_field_uid];
+                                    let daterange_array = null;
+                                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) {
+                                        daterange_array = [row[field.datatable_field_uid]];
+                                    } else {
+                                        daterange_array = row[field.datatable_field_uid].split(', ');
                                     }
 
-                                    let dateStart: Moment = null;
-                                    let dateEnd: Moment = null;
-                                    if (parts[0] && parts[0].trim() && (parts[0].trim() != "")) {
-                                        dateStart = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[0].trim());
-                                    }
-                                    if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
-                                        dateEnd = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim());
+                                    for (let i in daterange_array) {
+                                        let daterange = daterange_array[i];
+
+                                        let parts: string[] = daterange.split('-');
+                                        if ((!parts) || (parts.length <= 0)) {
+                                            continue;
+                                        }
+
+                                        let dateStart: Moment = null;
+                                        let dateEnd: Moment = null;
+                                        if (parts[0] && parts[0].trim() && (parts[0].trim() != "")) {
+                                            dateStart = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[0].trim());
+                                        }
+                                        if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
+                                            dateEnd = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim());
+                                        }
+
+                                        let queryStart = moment(query.start);
+                                        let queryEnd = moment(query.end);
+                                        if (((!query.start) || (!dateEnd) || (!dateEnd.isBefore(queryStart))) && ((!query.end) || (!dateStart) || (!dateStart.isAfter(queryEnd)))) {
+                                            return true;
+                                        }
                                     }
 
-                                    let queryStart = moment(query.start);
-                                    if (query.start && dateEnd && dateEnd.isBefore(queryStart)) {
-                                        return false;
-                                    }
-
-                                    let queryEnd = moment(query.end);
-                                    if (query.end && dateStart && dateStart.isAfter(queryEnd)) {
-                                        return false;
-                                    }
-
-                                    return true;
+                                    return false;
 
                                 case ModuleTableField.FIELD_TYPE_date:
                                 case ModuleTableField.FIELD_TYPE_day:

@@ -1,3 +1,4 @@
+import TimeSegmentHandler from '../../../../tools/TimeSegmentHandler';
 import IDataSourceController from '../../../DataSource/interfaces/IDataSourceController';
 import VarDAG from '../../graph/var/VarDAG';
 import VarDAGNode from '../../graph/var/VarDAGNode';
@@ -17,6 +18,8 @@ export default abstract class BinaryVarOperatorControllerBase<
     TData extends ISimpleNumberVarData,
     TDataParam extends IVarDataParamVOBase> extends VarControllerBase<TData, TDataParam> {
 
+    public segment_type: number = null;
+
     public constructor(
         protected left_var: VarControllerBase<TDataLeft, any>,
         protected operator_name: string,
@@ -30,6 +33,8 @@ export default abstract class BinaryVarOperatorControllerBase<
             var_data_vo_type: var_data_api_type_id,
             name: BinaryVarOperatorsController.getInstance().getName(left_var.varConf.name, operator_name, right_var.varConf.name),
         } as SimpleVarConfVO, data_param_controller);
+
+        this.segment_type = TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(left_var.segment_type, right_var.segment_type);
     }
 
     public getDataSourcesDependencies(): Array<IDataSourceController<any, any>> {
@@ -66,7 +71,6 @@ export default abstract class BinaryVarOperatorControllerBase<
         }
 
         let res: TData = Object.assign(this.varDataConstructor(), param);
-        res.types_info = [];
         res.var_id = this.varConf.id;
 
         let data_left: TDataLeft = VarsController.getInstance().getVarData(this.get_left_param(varDAGNode, varDAG), true);

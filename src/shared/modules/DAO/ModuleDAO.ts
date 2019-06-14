@@ -14,6 +14,8 @@ import APIDAONamedParamVO from './vos/APIDAONamedParamVO';
 import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
 import VOsTypesManager from '../VOsTypesManager';
 import APIDAORefFieldsAndFieldsStringParamsVO from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
+import NumRange from '../DataRender/vos/NumRange';
+import APIDAORangesParamsVO from './vos/APIDAORangesParamsVO';
 
 export default class ModuleDAO extends Module {
 
@@ -30,6 +32,7 @@ export default class ModuleDAO extends Module {
     public static APINAME_SELECT_ONE = "SELECT_ONE";
     public static APINAME_GET_VO_BY_ID = "GET_VO_BY_ID";
     public static APINAME_GET_VOS_BY_IDS = "GET_VOS_BY_IDS";
+    public static APINAME_GET_VOS_BY_IDS_RANGES = "GET_VOS_BY_IDS_RANGES";
     public static APINAME_GET_VOS = "GET_VOS";
     public static APINAME_GET_VOS_BY_REFFIELD_IDS = "GET_VOS_BY_REFFIELD_IDS";
     public static APINAME_GET_VOS_BY_REFFIELDS_IDS = "GET_VOS_BY_REFFIELDS_IDS";
@@ -105,6 +108,15 @@ export default class ModuleDAO extends Module {
             APIDAOParamsVO.URL,
             APIDAOParamsVO.translateToURL,
             APIDAOParamsVO.translateFromREQ
+        ));
+
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAORangesParamsVO, IDistantVOBase[]>(
+            ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
+            (param: APIDAORangesParamsVO) => [param.API_TYPE_ID],
+            APIDAORangesParamsVO.translateCheckAccessParams,
+            APIDAORangesParamsVO.URL,
+            APIDAORangesParamsVO.translateToURL,
+            APIDAORangesParamsVO.translateFromREQ
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAORefFieldParamsVO, IDistantVOBase[]>(
@@ -203,6 +215,14 @@ export default class ModuleDAO extends Module {
         }
 
         return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS_BY_IDS, API_TYPE_ID, nettoyage_ids);
+    }
+
+    public async getVosByIdsRanges<T extends IDistantVOBase>(API_TYPE_ID: string, ranges: NumRange[]): Promise<T[]> {
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES, API_TYPE_ID, ranges);
     }
 
     public async getVosByRefFieldIds<T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]): Promise<T[]> {

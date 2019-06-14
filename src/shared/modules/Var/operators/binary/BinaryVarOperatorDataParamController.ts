@@ -50,49 +50,49 @@ export default class BinaryVarOperatorDataParamController extends VarDataParamCo
         return res;
     }
 
-    public getParam(param_index: string): BinaryVarOperatorDataParamVO {
-        let res: BinaryVarOperatorDataParamVO = new BinaryVarOperatorDataParamVO();
+    // public getParam(param_index: string): BinaryVarOperatorDataParamVO {
+    //     let res: BinaryVarOperatorDataParamVO = new BinaryVarOperatorDataParamVO();
 
-        try {
-            res.var_id = parseInt(param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$1'));
-            res.left_var_param_index = param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$2');
-            res.right_var_param_index = param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$3');
+    //     try {
+    //         res.var_id = parseInt(param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$1'));
+    //         res.left_var_param_index = param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$2');
+    //         res.right_var_param_index = param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$3');
 
-            return res;
-        } catch (error) {
-        }
+    //         return res;
+    //     } catch (error) {
+    //     }
 
-        return null;
-    }
+    //     return null;
+    // }
 
-    protected compareParams(paramA: BinaryVarOperatorDataParamVO, paramB: BinaryVarOperatorDataParamVO) {
+    // protected compareParams(paramA: BinaryVarOperatorDataParamVO, paramB: BinaryVarOperatorDataParamVO) {
 
-        if ((!paramA) || (!paramB)) {
-            return null;
-        }
+    //     if ((!paramA) || (!paramB)) {
+    //         return null;
+    //     }
 
-        let operator_diff: number = paramA.var_id - paramB.var_id;
+    //     let operator_diff: number = paramA.var_id - paramB.var_id;
 
-        if (operator_diff) {
-            return operator_diff;
-        }
+    //     if (operator_diff) {
+    //         return operator_diff;
+    //     }
 
-        if (paramA.left_var_param_index < paramB.left_var_param_index) {
-            return -1;
-        }
+    //     if (paramA.left_var_param_index < paramB.left_var_param_index) {
+    //         return -1;
+    //     }
 
-        if (paramA.left_var_param_index > paramB.left_var_param_index) {
-            return 1;
-        }
+    //     if (paramA.left_var_param_index > paramB.left_var_param_index) {
+    //         return 1;
+    //     }
 
-        if (paramA.right_var_param_index < paramB.right_var_param_index) {
-            return -1;
-        }
+    //     if (paramA.right_var_param_index < paramB.right_var_param_index) {
+    //         return -1;
+    //     }
 
-        if (paramA.right_var_param_index > paramB.right_var_param_index) {
-            return 1;
-        }
+    //     if (paramA.right_var_param_index > paramB.right_var_param_index) {
+    //         return 1;
+    //     }
 
-        return 0;
-    }
+    //     return 0;
+    // }
 }

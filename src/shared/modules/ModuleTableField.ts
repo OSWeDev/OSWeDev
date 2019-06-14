@@ -28,6 +28,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_float: string = 'float';
     public static FIELD_TYPE_amount: string = 'amount';
     public static FIELD_TYPE_foreign_key: string = 'fkey';
+    public static FIELD_TYPE_numrange_array: string = 'numrange[]';
     public static FIELD_TYPE_int_array: string = 'number[]';
     public static FIELD_TYPE_string_array: string = 'text[]';
     public static FIELD_TYPE_prct: string = 'pct';
@@ -35,6 +36,8 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_date: string = 'date';
     public static FIELD_TYPE_hours_and_minutes: string = 'HourAndMinute';
     public static FIELD_TYPE_daterange: string = 'daterange';
+    public static FIELD_TYPE_daterange_array: string = 'daterange[]';
+    public static FIELD_TYPE_tstzrange_array: string = 'tstzrange[]'; // TimeStamp With TimeZone range array
     public static FIELD_TYPE_tsrange: string = 'tsrange';
     public static FIELD_TYPE_timestamp: string = 'timestamp';
     // public static FIELD_TYPE_timestamp_with_time_zone: string = 'timestamp with time zone';
@@ -249,6 +252,13 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_daterange:
                 return db_type == "daterange";
 
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+                return db_type == "numrange[]";
+            case ModuleTableField.FIELD_TYPE_daterange_array:
+                return db_type == "daterange[]";
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                return db_type == "tstzrange[]";
+
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return db_type == "tsrange";
 
@@ -316,6 +326,13 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_daterange:
                 return "daterange";
 
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+                return "numrange[]";
+            case ModuleTableField.FIELD_TYPE_daterange_array:
+                return "daterange[]";
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                return "tstzrange[]";
+
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return "tsrange";
 
@@ -365,6 +382,9 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_boolean:
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_daterange:
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_daterange_array:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_month:
             case ModuleTableField.FIELD_TYPE_float:

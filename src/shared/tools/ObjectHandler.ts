@@ -1,4 +1,6 @@
 import IDistantVOBase from '../modules/IDistantVOBase';
+import NumRange from '../modules/DataRender/vos/NumRange';
+import NumRangeHandler from './NumRangeHandler';
 
 export default class ObjectHandler {
     public static getInstance(): ObjectHandler {
@@ -113,5 +115,33 @@ export default class ObjectHandler {
         }
 
         return null;
+    }
+
+    public filterVosIdsByNumRange<T extends IDistantVOBase>(vos_by_ids: { [id: number]: T }, range: NumRange): { [id: number]: T } {
+        let res: { [id: number]: T } = {};
+
+        for (let i in vos_by_ids) {
+            let vo = vos_by_ids[i];
+
+            if (NumRangeHandler.getInstance().elt_intersects_range(vo.id, range)) {
+                res[vo.id] = vo;
+            }
+        }
+
+        return res;
+    }
+
+    public filterVosIdsByNumRanges<T extends IDistantVOBase>(vos_by_ids: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
+        let res: { [id: number]: T } = {};
+
+        for (let i in vos_by_ids) {
+            let vo = vos_by_ids[i];
+
+            if (NumRangeHandler.getInstance().elt_intersects_any_range(vo.id, ranges)) {
+                res[vo.id] = vo;
+            }
+        }
+
+        return res;
     }
 }

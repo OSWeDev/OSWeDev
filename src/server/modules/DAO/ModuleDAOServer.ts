@@ -39,6 +39,7 @@ import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFi
 import EnvParam from '../../env/EnvParam';
 import ConfigurationService from '../../env/ConfigurationService';
 import APIDAORefFieldsAndFieldsStringParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsAndFieldsStringParamsVO';
+import APIDAORangesParamsVO from '../../../shared/modules/DAO/vos/APIDAORangesParamsVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -246,6 +247,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VO_BY_ID, this.getVoById.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS, this.getVosByIds.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES, this.getVosByIdsRanges.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS, this.getVosByRefFieldIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS, this.getVosByRefFieldsIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING, this.getVosByRefFieldsIdsAndFieldsString.bind(this));
@@ -749,11 +751,44 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        if ((!apiDAOParamsVO.ids) || (!apiDAOParamsVO.ids.length)) {
+        let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t WHERE id in (" + apiDAOParamsVO.ids + ");") as T[]);
+
+        // On filtre suivant les droits d'accès
+        return await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+    }
+
+    private async  getVosByIdsRanges<T extends IDistantVOBase>(apiDAORangesParamsVO: APIDAORangesParamsVO): Promise<T[]> {
+
+        if ((!apiDAORangesParamsVO) || (!apiDAORangesParamsVO.ranges) || (!apiDAORangesParamsVO.ranges.length)) {
             return null;
         }
 
-        let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t WHERE id in (" + apiDAOParamsVO.ids + ");") as T[]);
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAORangesParamsVO.API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!await this.checkAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let where_clause: string = "";
+
+        for (let i in apiDAORangesParamsVO.ranges) {
+            let range = apiDAORangesParamsVO.ranges[i];
+
+            if ((!range) || (!range.end) || (!range.start)) {
+                continue;
+            }
+
+            where_clause += (where_clause == "") ? "" : " OR ";
+
+            where_clause += "id <@ " + (range.start_inclusiv ? "[" : "(") + range.start + "," + range.end + (range.end_inclusiv ? "]" : ")");
+        }
+
+        if (where_clause == "") {
+            return null;
+        }
+
+        let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t WHERE " + where_clause + ";") as T[]);
 
         // On filtre suivant les droits d'accès
         return await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);

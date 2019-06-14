@@ -16,7 +16,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
     /**
      * Used for every segmented data, defaults to day segmentation. Used for cumuls, and refining use of the param.date_index
      */
-    public segment_type: number = TimeSegment.TYPE_DAY;
+    public abstract segment_type: number;
 
     protected constructor(
         public varConf: VarConfVOBase,
@@ -75,6 +75,8 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase, TD
         let res: IVarDataParamVOBase[] = await this.getParamDependencies(varDAGNode, varDAG);
 
         for (let i in res) {
+
+            // DIRTY : on fait un peu au pif ici un filtre sur le date_index...
             let e = res[i] as IDateIndexedVarDataParam;
 
             if (!!e.date_index) {

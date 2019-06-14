@@ -447,6 +447,7 @@ export default class VarsController {
     }
 
     public checkDateIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): void {
+        // FIXME DIRTY test sur le date_index
         if ((!param) || (!(param as any as IDateIndexedVarDataParam).date_index) || (this.checked_var_indexes[this._getIndex(param)])) {
             return;
         }
@@ -662,30 +663,30 @@ export default class VarsController {
         return this._getIndex(param);
     }
 
-    public getParam<TDataParam extends IVarDataParamVOBase>(param_index: string): TDataParam {
+    // public getParam<TDataParam extends IVarDataParamVOBase>(param_index: string): TDataParam {
 
-        if (!param_index) {
-            return null;
-        }
+    //     if (!param_index) {
+    //         return null;
+    //     }
 
-        let regexp = /^([0-9]+)_.*$/;
-        if (!regexp.test(param_index)) {
-            return null;
-        }
+    //     let regexp = /^([0-9]+)_.*$/;
+    //     if (!regexp.test(param_index)) {
+    //         return null;
+    //     }
 
-        let res = regexp.exec(param_index);
-        try {
+    //     let res = regexp.exec(param_index);
+    //     try {
 
-            let var_id: number = res && res.length ? parseInt(res[0]) : null;
-            if (var_id == null) {
-                return null;
-            }
+    //         let var_id: number = res && res.length ? parseInt(res[0]) : null;
+    //         if (var_id == null) {
+    //             return null;
+    //         }
 
-            return this.getVarControllerById(var_id).varDataParamController.getParam(param_index);
-        } catch (error) {
-        }
-        return null;
-    }
+    //         return this.getVarControllerById(var_id).varDataParamController.getParam(param_index);
+    //     } catch (error) {
+    //     }
+    //     return null;
+    // }
 
     public getVarConf(var_name: string): VarConfVOBase {
         return this.registered_vars ? (this.registered_vars[var_name] ? this.registered_vars[var_name] : null) : null;

@@ -545,6 +545,19 @@ export default class CRUDComponent extends VueComponentBase {
                         }
                     }
                 }
+
+                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_numrange_array) {
+                    // TODO FIXME ASAP VARS
+                }
+
+                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) {
+                    // TODO FIXME ASAP VARS
+                }
+
+                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                    // TODO FIXME ASAP VARS
+                }
+
                 if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_int_array) {
                     res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
                 }
@@ -584,6 +597,18 @@ export default class CRUDComponent extends VueComponentBase {
                 if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) {
                     res[field.datatable_field_uid + "_start"] = undefined;
                     res[field.datatable_field_uid + "_end"] = undefined;
+                }
+
+                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_numrange_array) {
+                    // TODO FIXME ASAP VARS
+                }
+
+                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) {
+                    // TODO FIXME ASAP VARS
+                }
+
+                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                    // TODO FIXME ASAP VARS
                 }
             }
         }
@@ -882,6 +907,9 @@ export default class CRUDComponent extends VueComponentBase {
                         switch ((field as SimpleDatatableField<any, any>).moduleTableField.field_type) {
                             case ModuleTableField.FIELD_TYPE_boolean:
                             case ModuleTableField.FIELD_TYPE_daterange:
+                            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                            case ModuleTableField.FIELD_TYPE_numrange_array:
+                            case ModuleTableField.FIELD_TYPE_daterange_array:
                                 break;
 
                             default:

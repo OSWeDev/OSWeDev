@@ -16,6 +16,8 @@ import TimeSegment from '../../DataRender/vos/TimeSegment';
 
 export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
 
+    public segment_type: number = null;
+
     public constructor(
         protected varConfToCumulate: VarConfVOBase,
         protected cumulType: string,
@@ -85,7 +87,6 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         }
 
         let res: TData = Object.assign(this.varDataConstructor(), param);
-        res.types_info = [];
         res.var_id = this.varConf.id;
         res.date_index = param.date_index;
 

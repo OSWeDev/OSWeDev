@@ -44,23 +44,38 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value)) + ' ' + moment(field_value).format('HH:mm:ss');
 
                 case ModuleTableField.FIELD_TYPE_daterange:
+                case ModuleTableField.FIELD_TYPE_daterange_array:
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+
                     // On stocke au format day - day
                     if (!field_value) {
                         return field_value;
                     }
 
-                    let parts: string[] = field_value.replace(/[\(\)\[\]]/g, '').split(',');
-                    if ((!parts) || (parts.length <= 0)) {
-                        return field_value;
+                    let daterange_array = null;
+                    if (moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) {
+                        daterange_array = [field_value];
+                    } else {
+                        daterange_array = field_value;
                     }
 
                     let res: string = "";
-                    if (parts[0] && parts[0].trim() && (parts[0].trim() != "")) {
-                        res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(parts[0].trim()));
-                    }
-                    res += '-';
-                    if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
-                        res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(parts[1].trim()), moduleTableField, true));
+                    for (let i in daterange_array) {
+                        let daterange = daterange_array[i];
+
+                        let parts: string[] = daterange.replace(/[\(\)\[\]]/g, '').split(',');
+                        if ((!parts) || (parts.length <= 0)) {
+                            continue;
+                        }
+
+                        res += (res != "") ? ", " : "";
+                        if (parts[0] && parts[0].trim() && (parts[0].trim() != "")) {
+                            res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(parts[0].trim()));
+                        }
+                        res += '-';
+                        if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
+                            res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(parts[1].trim()), moduleTableField, true));
+                        }
                     }
 
                     return res;

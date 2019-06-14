@@ -59,7 +59,6 @@ export default abstract class VarDatasourceControllerBase<
         let param: TDataParam = varDAGNode.param as TDataParam;
 
         let res: TData = Object.assign(this.varDataConstructor(), param);
-        res.types_info = [];
         res.var_id = this.varConf.id;
 
         let datasource_data: IVarDataVOBase = this.datasource.get_data(param as any);

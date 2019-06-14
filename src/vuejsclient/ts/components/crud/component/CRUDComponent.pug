@@ -41,6 +41,12 @@ mixin simple_input_types(vo, datatable, field_type)
         template(v-else-if=field_type+" == 'daterange'")
             input.form-control(type="date" v-model=vo+"[field.datatable_field_uid + '_start']" :disabled="field.is_readonly" @change="updateDateRange("+vo+", field)" @input="validateInput($event.target, field, "+vo+")")
             input.form-control(type="date" v-model=vo+"[field.datatable_field_uid + '_end']" :disabled="field.is_readonly" @change="updateDateRange("+vo+", field)" @input="validateInput($event.target, field, "+vo+")")
+        template(v-else-if=field_type+" == 'daterange[]'")
+            // FIXME TODO ASAP VARS
+        template(v-else-if=field_type+" == 'tstzrange[]'")
+            // FIXME TODO ASAP VARS
+        template(v-else-if=field_type+" == 'numrange[]'")
+            // FIXME TODO ASAP VARS
         template(v-else-if=field_type+" == 'tsrange'")
             input.form-control(type="text" v-model=vo+"[field.datatable_field_uid]" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target, field, "+vo+")")
         template(v-else-if=field_type+" == 'timestamp'")

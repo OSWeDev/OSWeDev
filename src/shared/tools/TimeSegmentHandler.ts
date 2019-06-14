@@ -2,6 +2,8 @@ import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import { Moment } from 'moment';
 import * as moment from 'moment';
 import DateHandler from './DateHandler';
+import TSRange from '../modules/DataRender/vos/TSRange';
+import TSRangeHandler from './TSRangeHandler';
 
 export default class TimeSegmentHandler {
     public static getInstance(): TimeSegmentHandler {
@@ -14,6 +16,90 @@ export default class TimeSegmentHandler {
     private static instance: TimeSegmentHandler = null;
 
     private constructor() { }
+
+    public getBiggestTimeSegmentationType(segment_type_a: number, segment_type_b: number): number {
+        switch (segment_type_a) {
+            case TimeSegment.TYPE_YEAR:
+                return TimeSegment.TYPE_YEAR;
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                return TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
+            case TimeSegment.TYPE_MONTH:
+                if (segment_type_b == TimeSegment.TYPE_YEAR) {
+                    return TimeSegment.TYPE_YEAR;
+                }
+                if (segment_type_b == TimeSegment.TYPE_ROLLING_YEAR_MONTH_START) {
+                    return TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
+                }
+                return TimeSegment.TYPE_MONTH;
+            case TimeSegment.TYPE_WEEK:
+                if (segment_type_b == TimeSegment.TYPE_YEAR) {
+                    return TimeSegment.TYPE_YEAR;
+                }
+                if (segment_type_b == TimeSegment.TYPE_ROLLING_YEAR_MONTH_START) {
+                    return TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MONTH) {
+                    return TimeSegment.TYPE_MONTH;
+                }
+                return TimeSegment.TYPE_WEEK;
+            case TimeSegment.TYPE_DAY:
+                if (segment_type_b == TimeSegment.TYPE_YEAR) {
+                    return TimeSegment.TYPE_YEAR;
+                }
+                if (segment_type_b == TimeSegment.TYPE_ROLLING_YEAR_MONTH_START) {
+                    return TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MONTH) {
+                    return TimeSegment.TYPE_MONTH;
+                }
+                if (segment_type_b == TimeSegment.TYPE_WEEK) {
+                    return TimeSegment.TYPE_WEEK;
+                }
+                return TimeSegment.TYPE_DAY;
+        }
+    }
+
+    public getSmallestTimeSegmentationType(segment_type_a: number, segment_type_b: number): number {
+        switch (segment_type_a) {
+            case TimeSegment.TYPE_DAY:
+                return TimeSegment.TYPE_DAY;
+            case TimeSegment.TYPE_WEEK:
+                if (segment_type_b == TimeSegment.TYPE_DAY) {
+                    return TimeSegment.TYPE_DAY;
+                }
+                return TimeSegment.TYPE_WEEK;
+            case TimeSegment.TYPE_MONTH:
+                if (segment_type_b == TimeSegment.TYPE_DAY) {
+                    return TimeSegment.TYPE_DAY;
+                }
+                if (segment_type_b == TimeSegment.TYPE_WEEK) {
+                    return TimeSegment.TYPE_WEEK;
+                }
+                return TimeSegment.TYPE_MONTH;
+            case TimeSegment.TYPE_YEAR:
+                if (segment_type_b == TimeSegment.TYPE_DAY) {
+                    return TimeSegment.TYPE_DAY;
+                }
+                if (segment_type_b == TimeSegment.TYPE_WEEK) {
+                    return TimeSegment.TYPE_WEEK;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MONTH) {
+                    return TimeSegment.TYPE_MONTH;
+                }
+                return TimeSegment.TYPE_YEAR;
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                if (segment_type_b == TimeSegment.TYPE_DAY) {
+                    return TimeSegment.TYPE_DAY;
+                }
+                if (segment_type_b == TimeSegment.TYPE_WEEK) {
+                    return TimeSegment.TYPE_WEEK;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MONTH) {
+                    return TimeSegment.TYPE_MONTH;
+                }
+                return TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
+        }
+    }
 
     /**
      *
@@ -442,6 +528,29 @@ export default class TimeSegmentHandler {
 
         for (let i in segments) {
             res.push(segments[i].dateIndex);
+        }
+
+        return res;
+    }
+
+    public get_ts_ranges(segments: TimeSegment[]): TSRange[] {
+        return TSRangeHandler.getInstance().getRangesUnion(this.get_ts_ranges_(segments));
+    }
+
+    public get_surrounding_ts_range(segments: TimeSegment[]): TSRange {
+        return TSRangeHandler.getInstance().getMinSurroundingRange(this.get_ts_ranges_(segments));
+    }
+
+    private get_ts_ranges_(segments: TimeSegment[]): TSRange[] {
+        let res: TSRange[] = [];
+
+        for (let i in segments) {
+            let range: TSRange = TSRange.createNew(
+                TimeSegmentHandler.getInstance().getStartTimeSegment(segments[i]),
+                TimeSegmentHandler.getInstance().getEndTimeSegment(segments[i]),
+                true,
+                false);
+            res.push(range);
         }
 
         return res;
