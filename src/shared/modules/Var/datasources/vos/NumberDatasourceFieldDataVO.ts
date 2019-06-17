@@ -9,4 +9,7 @@ export default class NumberDatasourceFieldDataVO extends NumberDatasourceFieldDa
     public datafound: boolean;
 
     public value: number;
+
+    public value_type: number;
+    public value_ts: string;
 }

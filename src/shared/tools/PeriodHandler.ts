@@ -1,6 +1,8 @@
 import * as moment from 'moment';
 import { Moment, unitOfTime } from "moment";
 import DateHandler from './DateHandler';
+import TSRange from '../modules/DataRender/vos/TSRange';
+import TimeSegmentHandler from './TimeSegmentHandler';
 
 export default class PeriodHandler {
 
@@ -88,5 +90,14 @@ export default class PeriodHandler {
         let upper: Moment = this.upperMoment(period, base);
 
         return (!!date) && (!!lower) && (!!upper) && (date.isSameOrAfter(lower) && date.isBefore(upper));
+    }
+
+    public get_ts_range_from_period(period: string, segment_type: number): TSRange {
+
+        return TSRange.createNew(
+            this.lowerMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)),
+            this.upperMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)),
+            true,
+            true);
     }
 }

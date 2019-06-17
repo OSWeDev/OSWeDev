@@ -39,6 +39,8 @@ import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFi
 import EnvParam from '../../env/EnvParam';
 import ConfigurationService from '../../env/ConfigurationService';
 import APIDAORefFieldsAndFieldsStringParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsAndFieldsStringParamsVO';
+import APIDAOIdsRangesParamsVO from '../../../shared/modules/DAO/vos/APIDAOIdsRangesParamsVO';
+import FieldRange from '../../../shared/modules/DataRender/vos/FieldRange';
 import APIDAORangesParamsVO from '../../../shared/modules/DAO/vos/APIDAORangesParamsVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
@@ -248,6 +250,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS, this.getVosByIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES, this.getVosByIdsRanges.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES, this.filterVosByFieldRanges.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS, this.getVosByRefFieldIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS, this.getVosByRefFieldsIds.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING, this.getVosByRefFieldsIdsAndFieldsString.bind(this));
@@ -757,8 +760,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
     }
 
-    private async  getVosByIdsRanges<T extends IDistantVOBase>(apiDAORangesParamsVO: APIDAORangesParamsVO): Promise<T[]> {
-
+    private async filterVosByFieldRanges<T extends IDistantVOBase>(apiDAORangesParamsVO: APIDAORangesParamsVO): Promise<T[]> {
         if ((!apiDAORangesParamsVO) || (!apiDAORangesParamsVO.ranges) || (!apiDAORangesParamsVO.ranges.length)) {
             return null;
         }
@@ -773,15 +775,54 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let where_clause: string = "";
 
         for (let i in apiDAORangesParamsVO.ranges) {
-            let range = apiDAORangesParamsVO.ranges[i];
+            let field_range = apiDAORangesParamsVO.ranges[i];
 
-            if ((!range) || (!range.end) || (!range.start)) {
+            if ((!field_range) || (apiDAORangesParamsVO.API_TYPE_ID != field_range.api_type_id) || (!field_range.field_id) || (!datatable.getFieldFromId(field_range.field_id))) {
+                continue;
+            }
+
+            let field = datatable.getFieldFromId(field_range.field_id);
+
+            where_clause += (where_clause == "") ? "" : " OR ";
+
+            where_clause += field.field_id + " <@ " + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")");
+        }
+
+        if (where_clause == "") {
+            return null;
+        }
+
+        let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t WHERE " + where_clause + ";") as T[]);
+
+        // On filtre suivant les droits d'accès
+        return await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+    }
+
+    private async  getVosByIdsRanges<T extends IDistantVOBase>(apiDAOIdsRangesParamsVO: APIDAOIdsRangesParamsVO): Promise<T[]> {
+
+        if ((!apiDAOIdsRangesParamsVO) || (!apiDAOIdsRangesParamsVO.ranges) || (!apiDAOIdsRangesParamsVO.ranges.length)) {
+            return null;
+        }
+
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOIdsRangesParamsVO.API_TYPE_ID];
+
+        // On vérifie qu'on peut faire un select
+        if (!await this.checkAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let where_clause: string = "";
+
+        for (let i in apiDAOIdsRangesParamsVO.ranges) {
+            let range = apiDAOIdsRangesParamsVO.ranges[i];
+
+            if ((!range) || (!range.max) || (!range.min)) {
                 continue;
             }
 
             where_clause += (where_clause == "") ? "" : " OR ";
 
-            where_clause += "id <@ " + (range.start_inclusiv ? "[" : "(") + range.start + "," + range.end + (range.end_inclusiv ? "]" : ")");
+            where_clause += "id <@ " + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")");
         }
 
         if (where_clause == "") {

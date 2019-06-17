@@ -1,8 +1,8 @@
 export default interface IRange<T> {
 
-    start: T;
-    end: T;
+    min: T;
+    max: T;
 
-    start_inclusiv: boolean;
-    end_inclusiv: boolean;
+    min_inclusiv: boolean;
+    max_inclusiv: boolean;
 }

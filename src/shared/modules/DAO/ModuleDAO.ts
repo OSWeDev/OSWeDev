@@ -15,6 +15,8 @@ import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
 import VOsTypesManager from '../VOsTypesManager';
 import APIDAORefFieldsAndFieldsStringParamsVO from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
 import NumRange from '../DataRender/vos/NumRange';
+import APIDAOIdsRangesParamsVO from './vos/APIDAOIdsRangesParamsVO';
+import FieldRange from '../DataRender/vos/FieldRange';
 import APIDAORangesParamsVO from './vos/APIDAORangesParamsVO';
 
 export default class ModuleDAO extends Module {
@@ -34,6 +36,7 @@ export default class ModuleDAO extends Module {
     public static APINAME_GET_VOS_BY_IDS = "GET_VOS_BY_IDS";
     public static APINAME_GET_VOS_BY_IDS_RANGES = "GET_VOS_BY_IDS_RANGES";
     public static APINAME_GET_VOS = "GET_VOS";
+    public static APINAME_FILTER_VOS_BY_FIELD_RANGES = "FILTER_VOS_BY_FIELD_RANGES";
     public static APINAME_GET_VOS_BY_REFFIELD_IDS = "GET_VOS_BY_REFFIELD_IDS";
     public static APINAME_GET_VOS_BY_REFFIELDS_IDS = "GET_VOS_BY_REFFIELDS_IDS";
     public static APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING = "GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING";
@@ -110,8 +113,17 @@ export default class ModuleDAO extends Module {
             APIDAOParamsVO.translateFromREQ
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAORangesParamsVO, IDistantVOBase[]>(
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOIdsRangesParamsVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
+            (param: APIDAOIdsRangesParamsVO) => [param.API_TYPE_ID],
+            APIDAOIdsRangesParamsVO.translateCheckAccessParams,
+            APIDAOIdsRangesParamsVO.URL,
+            APIDAOIdsRangesParamsVO.translateToURL,
+            APIDAOIdsRangesParamsVO.translateFromREQ
+        ));
+
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAORangesParamsVO, IDistantVOBase[]>(
+            ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES,
             (param: APIDAORangesParamsVO) => [param.API_TYPE_ID],
             APIDAORangesParamsVO.translateCheckAccessParams,
             APIDAORangesParamsVO.URL,
@@ -223,6 +235,14 @@ export default class ModuleDAO extends Module {
         }
 
         return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES, API_TYPE_ID, ranges);
+    }
+
+    public async filterVosByFieldRanges<T extends IDistantVOBase>(API_TYPE_ID: string, field_ranges: Array<FieldRange<any>>): Promise<T[]> {
+        if ((!field_ranges) || (!field_ranges.length)) {
+            return null;
+        }
+
+        return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES, API_TYPE_ID, field_ranges);
     }
 
     public async getVosByRefFieldIds<T extends IDistantVOBase>(API_TYPE_ID: string, field_name: string, ids: number[]): Promise<T[]> {

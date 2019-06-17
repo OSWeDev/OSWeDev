@@ -4,6 +4,7 @@ import { Moment } from 'moment';
 export default class DateHandler {
     public static DAY_FOR_INDEX_FORMAT: string = 'YYYY-MM-DD';
     public static DateTime_FOR_BDD_FORMAT: string = 'YYYY-MM-DD HH:mm:ss';
+    public static DateTime_FOR_API_FORMAT: string = 'x';
 
     public static getInstance(): DateHandler {
         if (!DateHandler.instance) {
@@ -15,6 +16,13 @@ export default class DateHandler {
     private static instance: DateHandler = null;
 
     private constructor() {
+    }
+
+    public formatDateTimeForAPI(date: Moment): string {
+        if ((date == null) || (typeof date == 'undefined')) {
+            return null;
+        }
+        return date.format(DateHandler.DateTime_FOR_API_FORMAT);
     }
 
     public formatDateTimeForBDD(date: Moment): string {

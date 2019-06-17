@@ -15,6 +15,24 @@ export default class VarDAGNode extends DAGNode {
     public dependencies_list: string[] = null;
     public dependencies_tree_prct: number = null;
 
+    /**
+     * Nodes that need this one
+     */
+    public incoming: { [node_name: string]: DAGNode } = {};
+    /**
+     * Nodes that need this one
+     */
+    public incomingNames: string[] = [];
+
+    /**
+     * Nodes needed by this one
+     */
+    public outgoing: { [node_name: string]: DAGNode } = {};
+    /**
+     * Nodes needed by this one
+     */
+    public outgoingNames: string[] = [];
+
 
     public constructor(name: string, dag: VarDAG, public param: IVarDataParamVOBase) {
         super(name, dag);

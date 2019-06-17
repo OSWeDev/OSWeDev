@@ -11,12 +11,20 @@ export default class NumRangeHandler extends RangeHandler<number> {
 
     private static instance: NumRangeHandler = null;
 
-    protected createNew(start: number = null, end: number = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): NumRange {
+    public createNew(start: number = null, end: number = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): NumRange {
         return NumRange.createNew(start, end, start_inclusiv, end_inclusiv);
     }
 
-    protected cloneFrom(from: NumRange): NumRange {
+    public cloneFrom(from: NumRange): NumRange {
         return NumRange.cloneFrom(from);
+    }
+
+    public getValueFromFormattedMinOrMaxAPI(input: string): number {
+        try {
+            return parseFloat(input);
+        } catch (error) {
+        }
+        return null;
     }
 }
 

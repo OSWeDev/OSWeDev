@@ -1,9 +1,8 @@
-import TimeSegment from '../modules/DataRender/vos/TimeSegment';
-import { Moment } from 'moment';
 import * as moment from 'moment';
-import DateHandler from './DateHandler';
+import { Moment } from 'moment';
 import TSRange from '../modules/DataRender/vos/TSRange';
 import RangeHandler from './RangeHandler';
+import DateHandler from './DateHandler';
 
 export default class TSRangeHandler extends RangeHandler<Moment> {
     public static getInstance(): TSRangeHandler {
@@ -31,13 +30,13 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         }
 
         // Reste à tester les ensembles contigus
-        if (range_a.start_inclusiv != range_b.end_inclusiv) {
-            if (range_a.start.isSame(range_b.end)) {
+        if (range_a.min_inclusiv != range_b.max_inclusiv) {
+            if (range_a.min.isSame(range_b.max)) {
                 return true;
             }
         }
-        if (range_b.start_inclusiv != range_a.end_inclusiv) {
-            if (range_b.start.isSame(range_a.end)) {
+        if (range_b.min_inclusiv != range_a.max_inclusiv) {
+            if (range_b.min.isSame(range_a.max)) {
                 return true;
             }
         }
@@ -55,10 +54,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return false;
         }
 
-        if (range_a.start_inclusiv && (!range_b.start_inclusiv)) {
-            return range_a.start.isSameOrBefore(range_b.start);
+        if (range_a.min_inclusiv && (!range_b.min_inclusiv)) {
+            return range_a.min.isSameOrBefore(range_b.min);
         }
-        return range_a.start.isBefore(range_b.start);
+        return range_a.min.isBefore(range_b.min);
     }
 
     /**
@@ -71,10 +70,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return false;
         }
 
-        if (range_a.start_inclusiv != range_b.start_inclusiv) {
+        if (range_a.min_inclusiv != range_b.min_inclusiv) {
             return false;
         }
-        return range_a.start.isSame(range_b.start);
+        return range_a.min.isSame(range_b.min);
     }
 
     /**
@@ -87,10 +86,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return false;
         }
 
-        if (range_a.end_inclusiv && (!range_b.end_inclusiv)) {
-            return range_a.end.isSameOrBefore(range_b.end);
+        if (range_a.max_inclusiv && (!range_b.max_inclusiv)) {
+            return range_a.max.isSameOrBefore(range_b.max);
         }
-        return range_a.end.isBefore(range_b.end);
+        return range_a.max.isBefore(range_b.max);
     }
 
     /**
@@ -103,10 +102,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return false;
         }
 
-        if (range_a.end_inclusiv != range_b.end_inclusiv) {
+        if (range_a.max_inclusiv != range_b.max_inclusiv) {
             return false;
         }
-        return range_a.end.isSame(range_b.end);
+        return range_a.max.isSame(range_b.max);
     }
 
     /**
@@ -119,10 +118,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return false;
         }
 
-        if (range_a.start_inclusiv && (!range_b.end_inclusiv)) {
-            return range_a.start.isSameOrBefore(range_b.end);
+        if (range_a.min_inclusiv && (!range_b.max_inclusiv)) {
+            return range_a.min.isSameOrBefore(range_b.max);
         }
-        return range_a.start.isBefore(range_b.end);
+        return range_a.min.isBefore(range_b.max);
     }
 
     /**
@@ -135,10 +134,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return false;
         }
 
-        if (range_a.start_inclusiv != range_b.end_inclusiv) {
+        if (range_a.min_inclusiv != range_b.max_inclusiv) {
             return false;
         }
-        return range_a.start.isSame(range_b.end);
+        return range_a.min.isSame(range_b.max);
     }
 
     /**
@@ -151,10 +150,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return false;
         }
 
-        if (range_a.end_inclusiv && (!range_b.start_inclusiv)) {
-            return range_a.end.isSameOrBefore(range_b.start);
+        if (range_a.max_inclusiv && (!range_b.min_inclusiv)) {
+            return range_a.max.isSameOrBefore(range_b.min);
         }
-        return range_a.end.isBefore(range_b.start);
+        return range_a.max.isBefore(range_b.min);
     }
 
     /**
@@ -173,25 +172,25 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         for (let i in ranges) {
             let range = ranges[i];
 
-            if (!res.start) {
-                res.start = moment(range.start);
-                res.start_inclusiv = range.start_inclusiv;
+            if (!res.min) {
+                res.min = moment(range.min);
+                res.min_inclusiv = range.min_inclusiv;
             } else {
 
-                if ((res.start_inclusiv && range.start.isBefore(res.start)) || ((!res.start_inclusiv) && range.start.isSameOrBefore(res.start))) {
-                    res.start = moment(range.start);
-                    res.start_inclusiv = range.start_inclusiv;
+                if ((res.min_inclusiv && range.min.isBefore(res.min)) || ((!res.min_inclusiv) && range.min.isSameOrBefore(res.min))) {
+                    res.min = moment(range.min);
+                    res.min_inclusiv = range.min_inclusiv;
                 }
             }
 
-            if (!res.end) {
-                res.end = moment(range.end);
-                res.end_inclusiv = range.end_inclusiv;
+            if (!res.max) {
+                res.max = moment(range.max);
+                res.max_inclusiv = range.max_inclusiv;
             } else {
 
-                if ((res.end_inclusiv && range.end.isAfter(res.end)) || ((!res.end_inclusiv) && range.end.isSameOrAfter(res.end))) {
-                    res.end = moment(range.end);
-                    res.end_inclusiv = range.end_inclusiv;
+                if ((res.max_inclusiv && range.max.isAfter(res.max)) || ((!res.max_inclusiv) && range.max.isSameOrAfter(res.max))) {
+                    res.max = moment(range.max);
+                    res.max_inclusiv = range.max_inclusiv;
                 }
             }
         }
@@ -199,12 +198,27 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         return res;
     }
 
-    protected createNew(start: Moment = null, end: Moment = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): TSRange {
+    public createNew(start: Moment = null, end: Moment = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): TSRange {
         return TSRange.createNew(start, end, start_inclusiv, end_inclusiv);
     }
 
-    protected cloneFrom(from: TSRange): TSRange {
+    public cloneFrom(from: TSRange): TSRange {
         return TSRange.cloneFrom(from);
     }
-}
 
+    public getFormattedMinForAPI(range: TSRange): string {
+        return DateHandler.getInstance().formatDateTimeForAPI(range.min);
+    }
+
+    public getFormattedMaxForAPI(range: TSRange): string {
+        return DateHandler.getInstance().formatDateTimeForAPI(range.max);
+    }
+
+    public getValueFromFormattedMinOrMaxAPI(input: string): Moment {
+        try {
+            return moment(parseFloat(input));
+        } catch (error) {
+        }
+        return null;
+    }
+}

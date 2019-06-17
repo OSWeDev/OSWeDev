@@ -541,6 +541,41 @@ export default class TimeSegmentHandler {
         return TSRangeHandler.getInstance().getMinSurroundingRange(this.get_ts_ranges_(segments));
     }
 
+    /**
+     * TODO TESTUNIT ASAP TU
+     */
+    public get_segment_from_ts_range_start(ts_range: TSRange, segment_type: number): TimeSegment {
+        if (ts_range.min_inclusiv) {
+            return this.getCorrespondingTimeSegment(ts_range.min, segment_type);
+        }
+        return this.getCorrespondingTimeSegment(ts_range.min, segment_type, 1);
+    }
+
+    /**
+     * TODO TESTUNIT ASAP TU
+     */
+    public get_segment_from_ts_range_end(ts_range: TSRange, segment_type: number): TimeSegment {
+        if (ts_range.max_inclusiv) {
+            return this.getCorrespondingTimeSegment(ts_range.max, segment_type);
+        }
+        return this.getCorrespondingTimeSegment(ts_range.max, segment_type, -1);
+    }
+
+    public getCorrespondingMomentUnitOfTime(segment_type: number): moment.unitOfTime.Base {
+        switch (segment_type) {
+            case TimeSegment.TYPE_DAY:
+                return 'day';
+            case TimeSegment.TYPE_WEEK:
+                return 'week';
+            case TimeSegment.TYPE_MONTH:
+                return 'month';
+            case TimeSegment.TYPE_YEAR:
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                return 'year';
+        }
+        return null;
+    }
+
     private get_ts_ranges_(segments: TimeSegment[]): TSRange[] {
         let res: TSRange[] = [];
 

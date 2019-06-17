@@ -24,6 +24,10 @@ import moment = require('moment');
 
 export default class VarsController {
 
+    public static VALUE_TYPE_LABELS: string[] = ['var_data.value_type.import', 'var_data.value_type.computed'];
+    public static VALUE_TYPE_IMPORT: number = 0;
+    public static VALUE_TYPE_COMPUTED: number = 1;
+
     public static getInstance(): VarsController {
         if (!VarsController.instance) {
             VarsController.instance = new VarsController();
@@ -843,6 +847,19 @@ export default class VarsController {
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
+                    this.setStepNumber(25);
+                    break;
+                }
+
+            case 25:
+
+                // Ajout d'une étape pour le chargement des datas importées. Le but est de supprimer à terme le chargement des imports avant définition des deps
+                //  pour les charger une fois la liste complète des deps connue et on cherchera à tronquer les branches qui sont importées ou précalculées,
+                //  avant de demander les datas / ou de faire les calculs
+                await this.loadImportedOrPrecompiledDatas();
+
+                if ((!!this.is_stepping) && this.setStepNumber) {
+                    this.setIsWaiting(true);
                     this.setStepNumber(30);
                     break;
                 }
@@ -1006,6 +1023,41 @@ export default class VarsController {
                 this.populateListVarIds(dep_id, var_id_list);
             }
         }
+    }
+
+    /**
+     * Nouvelle version de la gestion des données importées et/ou précompilées pour avoir
+     *  des chargements de datas uniquement liées à l'arbre demandé. Objectif : Limiter
+     *  drastiquement les donées chargées, et donc en précompiler le plus possible à terme.
+     */
+    private async loadImportedOrPrecompiledDatas() {
+
+        // let params_by_var_id: { [var_id: number]: IVarDataParamVOBase[] } = {};
+
+        // // On regroupe les params par var_id
+        // for (let i in this.varDAG.nodes) {
+        //     let node: VarDAGNode = this.varDAG.nodes[i];
+
+        //     if (!params_by_var_id[node.param.var_id]) {
+        //         params_by_var_id[node.param.var_id] = [];
+        //     }
+        //     params_by_var_id[node.param.var_id].push(node.param);
+        // }
+
+        // // et on cherche l'union pour chaque filtre / field_id cible
+        // // On voudrait limiter le nombre de requêtes, en même temps comment regrouper facilement les
+        // for (let i in params_by_var_id){
+        //     let params: IVarDataParamVOBase[] = params_by_var_id[i];
+
+        //     if ((!params) || (!params.length) || (!params[0]) || (!params[0].var_id)){
+        //         continue;
+        //     }
+
+        //     //FIXME TODO ASAP à refondre en utilisant les bonnes requêtes avec un chargement partiel des datas de chaque var_id
+        //     // là on charge tout en vrac, osef pour le moment
+        // }
+
+        await this.loadImportedDatas();
     }
 
     /**

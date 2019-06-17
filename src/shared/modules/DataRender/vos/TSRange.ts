@@ -3,13 +3,13 @@ import IRange from '../interfaces/IRange';
 
 export default class TSRange implements IRange<moment.Moment> {
 
-    public static createNew(start: moment.Moment = null, end: moment.Moment = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): TSRange {
+    public static createNew(min: moment.Moment = null, max: moment.Moment = null, min_inclusiv: boolean = null, max_inclusiv: boolean = null): TSRange {
         let res: TSRange = new TSRange();
 
-        res.end = end;
-        res.end_inclusiv = end_inclusiv;
-        res.start = start;
-        res.start_inclusiv = start_inclusiv;
+        res.max = max;
+        res.max_inclusiv = max_inclusiv;
+        res.min = min;
+        res.min_inclusiv = min_inclusiv;
 
         return res;
     }
@@ -17,19 +17,19 @@ export default class TSRange implements IRange<moment.Moment> {
     public static cloneFrom(from: TSRange): TSRange {
         let res: TSRange = new TSRange();
 
-        res.end = moment(from.end);
-        res.end_inclusiv = from.end_inclusiv;
-        res.start = moment(from.start);
-        res.start_inclusiv = from.start_inclusiv;
+        res.max = moment(from.max);
+        res.max_inclusiv = from.max_inclusiv;
+        res.min = moment(from.min);
+        res.min_inclusiv = from.min_inclusiv;
 
         return res;
     }
 
-    public start: moment.Moment;
-    public end: moment.Moment;
+    public min: moment.Moment;
+    public max: moment.Moment;
 
-    public start_inclusiv: boolean;
-    public end_inclusiv: boolean;
+    public min_inclusiv: boolean;
+    public max_inclusiv: boolean;
 
     private constructor() { }
 }

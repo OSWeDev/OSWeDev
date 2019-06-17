@@ -1,4 +1,5 @@
 import IRange from '../modules/DataRender/interfaces/IRange';
+import FieldRange from '../modules/DataRender/vos/FieldRange';
 
 export default abstract class RangeHandler<T> {
 
@@ -92,13 +93,13 @@ export default abstract class RangeHandler<T> {
         }
 
         // Reste à tester les ensembles contigus
-        if (range_a.start_inclusiv != range_b.end_inclusiv) {
-            if (range_a.start == range_b.end) {
+        if (range_a.min_inclusiv != range_b.max_inclusiv) {
+            if (range_a.min == range_b.max) {
                 return true;
             }
         }
-        if (range_b.start_inclusiv != range_a.end_inclusiv) {
-            if (range_b.start == range_a.end) {
+        if (range_b.min_inclusiv != range_a.max_inclusiv) {
+            if (range_b.min == range_a.max) {
                 return true;
             }
         }
@@ -116,10 +117,10 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.start_inclusiv && (!range_b.start_inclusiv)) {
-            return range_a.start <= range_b.start;
+        if (range_a.min_inclusiv && (!range_b.min_inclusiv)) {
+            return range_a.min <= range_b.min;
         }
-        return range_a.start < range_b.start;
+        return range_a.min < range_b.min;
     }
 
     /**
@@ -132,10 +133,10 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.start_inclusiv != range_b.start_inclusiv) {
+        if (range_a.min_inclusiv != range_b.min_inclusiv) {
             return false;
         }
-        return range_a.start == range_b.start;
+        return range_a.min == range_b.min;
     }
 
     /**
@@ -148,10 +149,10 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.end_inclusiv && (!range_b.end_inclusiv)) {
-            return range_a.end <= range_b.end;
+        if (range_a.max_inclusiv && (!range_b.max_inclusiv)) {
+            return range_a.max <= range_b.max;
         }
-        return range_a.end < range_b.end;
+        return range_a.max < range_b.max;
     }
 
     /**
@@ -164,10 +165,10 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.end_inclusiv != range_b.end_inclusiv) {
+        if (range_a.max_inclusiv != range_b.max_inclusiv) {
             return false;
         }
-        return range_a.end == range_b.end;
+        return range_a.max == range_b.max;
     }
 
     /**
@@ -180,10 +181,10 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.start_inclusiv && (!range_b.end_inclusiv)) {
-            return range_a.start <= range_b.end;
+        if (range_a.min_inclusiv && (!range_b.max_inclusiv)) {
+            return range_a.min <= range_b.max;
         }
-        return range_a.start < range_b.end;
+        return range_a.min < range_b.max;
     }
 
     /**
@@ -196,10 +197,10 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.start_inclusiv != range_b.end_inclusiv) {
+        if (range_a.min_inclusiv != range_b.max_inclusiv) {
             return false;
         }
-        return range_a.start == range_b.end;
+        return range_a.min == range_b.max;
     }
 
     /**
@@ -212,10 +213,10 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.end_inclusiv && (!range_b.start_inclusiv)) {
-            return range_a.end <= range_b.start;
+        if (range_a.max_inclusiv && (!range_b.min_inclusiv)) {
+            return range_a.max <= range_b.min;
         }
-        return range_a.end < range_b.start;
+        return range_a.max < range_b.min;
     }
 
     /**
@@ -310,25 +311,25 @@ export default abstract class RangeHandler<T> {
         for (let i in ranges) {
             let range = ranges[i];
 
-            if (!res.start) {
-                res.start = range.start;
-                res.start_inclusiv = range.start_inclusiv;
+            if (!res.min) {
+                res.min = range.min;
+                res.min_inclusiv = range.min_inclusiv;
             } else {
 
-                if ((res.start_inclusiv && (range.start < res.start)) || ((!res.start_inclusiv) && (range.start <= res.start))) {
-                    res.start = range.start;
-                    res.start_inclusiv = range.start_inclusiv;
+                if ((res.min_inclusiv && (range.min < res.min)) || ((!res.min_inclusiv) && (range.min <= res.min))) {
+                    res.min = range.min;
+                    res.min_inclusiv = range.min_inclusiv;
                 }
             }
 
-            if (!res.end) {
-                res.end = range.end;
-                res.end_inclusiv = range.end_inclusiv;
+            if (!res.max) {
+                res.max = range.max;
+                res.max_inclusiv = range.max_inclusiv;
             } else {
 
-                if ((res.end_inclusiv && (range.end > res.end)) || ((!res.end_inclusiv) && (range.end >= res.end))) {
-                    res.end = range.end;
-                    res.end_inclusiv = range.end_inclusiv;
+                if ((res.max_inclusiv && (range.max > res.max)) || ((!res.max_inclusiv) && (range.max >= res.max))) {
+                    res.max = range.max;
+                    res.max_inclusiv = range.max_inclusiv;
                 }
             }
         }
@@ -336,7 +337,28 @@ export default abstract class RangeHandler<T> {
         return res;
     }
 
-    protected abstract createNew(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean): IRange<T>;
-    protected abstract cloneFrom(from: IRange<T>): IRange<T>;
+    public getFieldRangesFromRanges(api_type_id: string, field_id: string, ranges: Array<IRange<T>>): Array<FieldRange<T>> {
+        let res: Array<FieldRange<T>> = [];
+
+        for (let i in ranges) {
+            let range: IRange<T> = ranges[i];
+
+            res.push(FieldRange.createNew(api_type_id, field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv));
+        }
+        return res;
+    }
+
+    public abstract createNew(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean): IRange<T>;
+    public abstract cloneFrom(from: IRange<T>): IRange<T>;
+
+    public getFormattedMinForAPI(range: IRange<T>): string {
+        return range.min.toString();
+    }
+
+    public getFormattedMaxForAPI(range: IRange<T>): string {
+        return range.min.toString();
+    }
+
+    public abstract getValueFromFormattedMinOrMaxAPI(input: string): T;
 }
 

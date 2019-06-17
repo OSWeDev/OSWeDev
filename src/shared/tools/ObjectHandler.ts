@@ -131,14 +131,14 @@ export default class ObjectHandler {
         return res;
     }
 
-    public filterVosIdsByNumRanges<T extends IDistantVOBase>(vos_by_ids: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
+    public filterVosIdsByNumRanges<T>(vos_by_ids: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
         let res: { [id: number]: T } = {};
 
-        for (let i in vos_by_ids) {
-            let vo = vos_by_ids[i];
+        for (let id in vos_by_ids) {
+            let vo = vos_by_ids[id];
 
-            if (NumRangeHandler.getInstance().elt_intersects_any_range(vo.id, ranges)) {
-                res[vo.id] = vo;
+            if (NumRangeHandler.getInstance().elt_intersects_any_range(parseInt(id.toString()), ranges)) {
+                res[id] = vo;
             }
         }
 
