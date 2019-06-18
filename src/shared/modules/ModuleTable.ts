@@ -29,6 +29,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public vo_type: string;
     public label: DefaultTranslation = null;
     public forceNumeric: (e: T) => T = null;
+    public get_bdd_version: (e: T) => T = null;
     public forceNumerics: (es: T[]) => T[] = null;
 
     public default_label_field: ModuleTableField<any> = null;
@@ -54,6 +55,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.default_label_field = default_label_field;
         this.forceNumeric = this.defaultforceNumeric;
         this.forceNumerics = this.defaultforceNumerics;
+
+        this.get_bdd_version = this.default_get_bdd_version;
 
         this.vo_type = tmp_vo_type;
         this.module = tmp_module;
@@ -214,6 +217,41 @@ export default class ModuleTable<T extends IDistantVOBase> {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(this.label);
     }
 
+    /**
+     * Permet de récupérer un clone dont les fields sont insérables en bdd.
+     * Cela autorise l'usage en VO de fields dont les types sont incompatibles nativement avec le format de la BDD
+     *  (exemple du unix_timestamp qu'on stocke comme un bigint en BDD mais qu'on manipule en Moment)
+     * @param e Le VO dont on veut une version insérable en BDD
+     */
+    private default_get_bdd_version(e: T): T {
+        if (!e) {
+            return null;
+        }
+
+        let res: T = Object.assign({}, e);
+
+        if (!this.fields) {
+            return res;
+        }
+
+        for (let i in this.fields) {
+            let field = this.fields[i];
+
+            switch (field.field_type) {
+
+                case ModuleTableField.FIELD_TYPE_unix_timestamp:
+
+                    let field_as_moment: moment.Moment = res[field.field_id] as moment.Moment;
+                    res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
+                    break;
+
+                default:
+            }
+        }
+
+        return res;
+    }
+
     private defaultforceNumeric(e: T): T {
         if (!e) {
             return null;
@@ -257,6 +295,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 (field.field_type == ModuleTableField.FIELD_TYPE_date) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_month)) {
                 e[field.field_id] = (e[field.field_id]) ? DateHandler.getInstance().formatDayForIndex(moment(e[field.field_id])) : e[field.field_id];
+            }
+
+            if (field.field_type == ModuleTableField.FIELD_TYPE_unix_timestamp) {
+                e[field.field_id] = (e[field.field_id] && moment(e[field.field_id]).isValid()) ? moment(e[field.field_id]) : e[field.field_id];
             }
         }
 

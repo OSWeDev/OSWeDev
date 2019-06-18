@@ -89,6 +89,10 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                     return field_value;
 
+                case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                    return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(field_value);
+
+
                 default:
                     return field_value.toString();
             }
@@ -203,6 +207,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_string_array:
                     return '{' + value.join() + '}';
 
+                case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                    return ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment(value);
+
                 default:
                     return value;
             }
@@ -231,6 +238,19 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
             console.error(error);
             return value;
         }
+    }
+
+    private static getMomentDateFieldInclusif(momentSrc: Moment, moduleTableField: ModuleTableField<any>, is_data_to_ihm: boolean): Moment {
+        let date = moment(momentSrc);
+        if (moduleTableField.is_inclusive_data != moduleTableField.is_inclusive_ihm) {
+            if (moduleTableField.is_inclusive_data) {
+                date.add(is_data_to_ihm ? 1 : -1, 'day');
+            } else {
+                date.add(is_data_to_ihm ? -1 : 1, 'day');
+            }
+        }
+
+        return date;
     }
 
     public constructor(
@@ -296,18 +316,5 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
     public dataToHumanReadableField(e: IDistantVOBase): U {
         return this.dataToReadIHM(e[this.datatable_field_uid], e);
-    }
-
-    private static getMomentDateFieldInclusif(momentSrc: Moment, moduleTableField: ModuleTableField<any>, is_data_to_ihm: boolean): Moment {
-        let date = moment(momentSrc);
-        if (moduleTableField.is_inclusive_data != moduleTableField.is_inclusive_ihm) {
-            if (moduleTableField.is_inclusive_data) {
-                date.add(is_data_to_ihm ? 1 : -1, 'day');
-            } else {
-                date.add(is_data_to_ihm ? -1 : 1, 'day');
-            }
-        }
-
-        return date;
     }
 }

@@ -32,6 +32,24 @@ export default class ModuleFormatDatesNombres extends Module {
         return moment(dateToConvert);
     }
 
+    public formatMoment_to_YYYYMMDD_HHmmss(date: moment.Moment): string {
+
+        return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss");
+    }
+
+    public formatYYYYMMDD_HHmmss_to_Moment(date: string): moment.Moment {
+
+        try {
+            let res: moment.Moment = moment(date, this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss");
+
+            if (res.isValid()) {
+                return res;
+            }
+        } catch (error) {
+        }
+        return null;
+    }
+
     // Formatter un moment en HoursAndMinutes pour la BDD
     public formatDuration_to_HoursAndMinutes(durationToFormat) {
 

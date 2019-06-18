@@ -3,6 +3,7 @@ import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
+import ModuleFormatDatesNombres from './FormatDatesNombres/ModuleFormatDatesNombres';
 
 export default class ModuleTableField<T> {
 
@@ -13,6 +14,8 @@ export default class ModuleTableField<T> {
     public static VALIDATION_CODE_TEXT_need_lowercase: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_lowercase";
     public static VALIDATION_CODE_TEXT_need_uppercase: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_uppercase";
     public static VALIDATION_CODE_TEXT_need_h: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "need_h";
+    public static VALIDATION_CODE_TEXT_format_unix_timestamp_invalid: string = ModuleTableField.VALIDATION_CODE_TEXT_BASE + "format_unix_timestamp_invalid";
+
 
     public static FIELD_TYPE_file_field: string = 'file';
     public static FIELD_TYPE_file_ref: string = 'file_ref';
@@ -43,6 +46,7 @@ export default class ModuleTableField<T> {
     // public static FIELD_TYPE_timestamp_with_time_zone: string = 'timestamp with time zone';
     public static FIELD_TYPE_day: string = 'day';
     public static FIELD_TYPE_timewithouttimezone: string = 'timewithouttimezone';
+    public static FIELD_TYPE_unix_timestamp: string = 'unix_timestamp';
     public static FIELD_TYPE_month: string = 'month';
 
     public field_value: T;
@@ -220,6 +224,9 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_foreign_key:
                 return (db_type == "int8") || (db_type == "bigint") || (db_type == "integer");
 
+            case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                return (db_type == "int8") || (db_type == "bigint");
+
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_float:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -294,6 +301,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_image_ref:
             case ModuleTableField.FIELD_TYPE_foreign_key:
+            case ModuleTableField.FIELD_TYPE_unix_timestamp:
                 return "bigint";
 
             case ModuleTableField.FIELD_TYPE_string_array:
@@ -370,6 +378,17 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_password:
                 return this.passwordIsValidProposition(data);
+
+            case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                if (data == null || data == "") {
+                    return null;
+                }
+
+                if (ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment(data) != null) {
+                    return null;
+                }
+
+                return ModuleTableField.VALIDATION_CODE_TEXT_format_unix_timestamp_invalid;
 
             case ModuleTableField.FIELD_TYPE_image_field:
             case ModuleTableField.FIELD_TYPE_image_ref:

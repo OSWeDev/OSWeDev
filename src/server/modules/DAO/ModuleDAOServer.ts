@@ -330,6 +330,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 for (let i in vos) {
                     let vo: IDistantVOBase = vos[i];
 
+                    let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+
+                    if (!moduleTable) {
+                        return null;
+                    }
+
                     isUpdates[i] = vo.id ? true : false;
                     let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
 
@@ -337,7 +343,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         continue;
                     }
 
-                    queries.push(t.oneOrNone(sql, vo));
+                    queries.push(t.oneOrNone(sql, moduleTable.get_bdd_version(vo)));
                 }
 
                 return t.batch(queries);
@@ -374,13 +380,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
 
             let isUpdate: boolean = vo.id ? true : false;
+
+            let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+
+            if (!moduleTable) {
+                return null;
+            }
+
             let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
 
             if (!sql) {
                 resolve(null);
             }
 
-            let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, vo).catch((reason) => {
+            let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, moduleTable.get_bdd_version(vo)).catch((reason) => {
                 resolve(null);
             });
 
