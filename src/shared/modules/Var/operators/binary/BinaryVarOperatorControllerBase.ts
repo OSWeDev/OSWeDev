@@ -11,11 +11,11 @@ import VarsController from '../../VarsController';
 import BinaryVarOperatorsController from './BinaryVarOperatorsController';
 
 export default abstract class BinaryVarOperatorControllerBase<
-    TDataLeft extends ISimpleNumberVarData,
+    TDataLeft extends ISimpleNumberVarData & TDataParamLeft,
     TDataParamLeft extends IVarDataParamVOBase,
-    TDataRight extends ISimpleNumberVarData,
+    TDataRight extends ISimpleNumberVarData & TDataParamRight,
     TDataParamRight extends IVarDataParamVOBase,
-    TData extends ISimpleNumberVarData,
+    TData extends ISimpleNumberVarData & TDataParam,
     TDataParam extends IVarDataParamVOBase> extends VarControllerBase<TData, TDataParam> {
 
     public segment_type: number = null;

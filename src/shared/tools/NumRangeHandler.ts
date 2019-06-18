@@ -2,6 +2,9 @@ import NumRange from '../modules/DataRender/vos/NumRange';
 import RangeHandler from './RangeHandler';
 
 export default class NumRangeHandler extends RangeHandler<number> {
+
+    public static SEGMENTATION_UNITE: number = 0;
+
     public static getInstance(): NumRangeHandler {
         if (!NumRangeHandler.instance) {
             NumRangeHandler.instance = new NumRangeHandler();
@@ -25,6 +28,39 @@ export default class NumRangeHandler extends RangeHandler<number> {
         } catch (error) {
         }
         return null;
+    }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est (4,5] ça veut dire 5 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMin(range: NumRange, segment_type?: number): number {
+
+        if (range.min_inclusiv) {
+            return range.min;
+        }
+
+        return range.min + 1;
+    }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est [4,5) ça veut dire 4 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMax(range: NumRange, segment_type?: number): number {
+        if (range.max_inclusiv) {
+            return range.max;
+        }
+
+        return range.max - 1;
+    }
+
+    public foreach(range: NumRange, callback: (value: number) => void, segment_type?: number) {
+        for (let i = this.getSegmentedMin(range, segment_type); i <= this.getSegmentedMax(range, segment_type); i++) {
+            callback(i);
+        }
     }
 }
 

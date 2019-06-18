@@ -10,9 +10,9 @@ import VarsController from '../VarsController';
 import VarsDatasourceFieldsController from './VarsDatasourceFieldsController';
 
 export default abstract class VarDatasourceControllerBase<
-    TData extends IVarDataVOBase,
+    TData extends IVarDataVOBase & TDataParam,
     TDataParam extends IVarDataParamVOBase,
-    TDatasourceData extends IVarDataVOBase,
+    TDatasourceData extends IVarDataVOBase & TDatasourceDataParam,
     TDatasourceDataParam extends IVarDataParamVOBase> extends VarControllerBase<TData, TDataParam> {
 
     public constructor(

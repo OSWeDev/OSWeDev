@@ -11,7 +11,7 @@ import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import moment = require('moment');
 
-export default abstract class VarControllerBase<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
+export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 
     /**
      * Used for every segmented data, defaults to day segmentation. Used for cumuls, and refining use of the param.date_index

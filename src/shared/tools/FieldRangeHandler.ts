@@ -290,5 +290,33 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         let handler = this.getRelevantHandlerFromStrings(api_type_id, field_id);
         return handler ? handler.getValueFromFormattedMinOrMaxAPI(input) : null;
     }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est (4,5] ça veut dire 5 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMin<T>(range: FieldRange<T>, segment_type?: number): T {
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.getSegmentedMin(range, segment_type) : null;
+    }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est [4,5) ça veut dire 4 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMax<T>(range: FieldRange<T>, segment_type?: number): T {
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.getSegmentedMax(range, segment_type) : null;
+    }
+
+    public foreach<T>(range: FieldRange<T>, callback: (value: T) => void, segment_type?: number) {
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.foreach(range, callback, segment_type) : null;
+    }
 }
 

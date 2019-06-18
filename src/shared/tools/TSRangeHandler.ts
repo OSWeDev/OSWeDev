@@ -3,6 +3,8 @@ import { Moment } from 'moment';
 import TSRange from '../modules/DataRender/vos/TSRange';
 import RangeHandler from './RangeHandler';
 import DateHandler from './DateHandler';
+import TimeSegment from '../modules/DataRender/vos/TimeSegment';
+import TimeSegmentHandler from './TimeSegmentHandler';
 
 export default class TSRangeHandler extends RangeHandler<Moment> {
     public static getInstance(): TSRangeHandler {
@@ -220,5 +222,67 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         } catch (error) {
         }
         return null;
+    }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est (4,5] ça veut dire 5 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMin(range: TSRange, segment_type?: number): Moment {
+
+        if (range.min_inclusiv) {
+            return moment(range.min);
+        }
+
+        switch (segment_type) {
+            case TimeSegment.TYPE_MONTH:
+                return moment(range.min).add(1, 'month');
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                return moment(range.min).add(1, 'year');
+            case TimeSegment.TYPE_WEEK:
+                return moment(range.min).add(1, 'week');
+            case TimeSegment.TYPE_YEAR:
+                return moment(range.min).add(1, 'year');
+            case TimeSegment.TYPE_DAY:
+            default:
+                return moment(range.min).add(1, 'day');
+        }
+    }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est [4,5) ça veut dire 4 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMax(range: TSRange, segment_type?: number): Moment {
+        if (range.max_inclusiv) {
+            return range.max;
+        }
+
+        switch (segment_type) {
+            case TimeSegment.TYPE_MONTH:
+                return moment(range.max).add(-1, 'month');
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                return moment(range.max).add(-1, 'year');
+            case TimeSegment.TYPE_WEEK:
+                return moment(range.max).add(-1, 'week');
+            case TimeSegment.TYPE_YEAR:
+                return moment(range.max).add(-1, 'year');
+            case TimeSegment.TYPE_DAY:
+            default:
+                return moment(range.max).add(-1, 'day');
+        }
+    }
+
+    public foreach(range: TSRange, callback: (value: Moment) => void, segment_type?: number) {
+
+        let actual_moment: Moment = this.getSegmentedMin(range, segment_type);
+        let end_moment: Moment = this.getSegmentedMax(range, segment_type);
+        while (actual_moment.isSameOrBefore(end_moment)) {
+
+            callback(actual_moment);
+            actual_moment = moment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(actual_moment, segment_type, 1).dateIndex);
+        }
     }
 }

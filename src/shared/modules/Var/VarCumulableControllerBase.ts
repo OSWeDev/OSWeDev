@@ -6,7 +6,7 @@ import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
 import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
 
-export default abstract class VarCumulableControllerBase<TData extends IDateIndexedSimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
+export default abstract class VarCumulableControllerBase<TData extends IDateIndexedSimpleNumberVarData & TDataParam, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
 
     protected constructor(
         public varConf: VarConfVOBase,

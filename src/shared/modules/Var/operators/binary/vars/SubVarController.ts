@@ -5,11 +5,11 @@ import IVarDataParamVOBase from '../../../interfaces/IVarDataParamVOBase';
 import VarDataParamControllerBase from '../../../VarDataParamControllerBase';
 
 export default class SubVarController<
-    TDataLeft extends ISimpleNumberVarData,
+    TDataLeft extends ISimpleNumberVarData & TDataParamLeft,
     TDataParamLeft extends IVarDataParamVOBase,
-    TDataRight extends ISimpleNumberVarData,
+    TDataRight extends ISimpleNumberVarData & TDataParamRight,
     TDataParamRight extends IVarDataParamVOBase,
-    TData extends ISimpleNumberVarData,
+    TData extends ISimpleNumberVarData & TDataParam,
     TDataParam extends IVarDataParamVOBase
     > extends BinaryVarOperatorControllerBase<TDataLeft, TDataParamLeft, TDataRight, TDataParamRight, TData, TDataParam> {
 

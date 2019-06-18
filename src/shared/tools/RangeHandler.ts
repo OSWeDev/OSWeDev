@@ -360,5 +360,16 @@ export default abstract class RangeHandler<T> {
     }
 
     public abstract getValueFromFormattedMinOrMaxAPI(input: string): T;
+
+    public abstract getSegmentedMin(range: IRange<T>, segment_type?: number): T;
+    public abstract getSegmentedMax(range: IRange<T>, segment_type?: number): T;
+
+    public abstract foreach(range: IRange<T>, callback: (value: T) => void, segment_type?: number);
+
+    public foreach_ranges(ranges: Array<IRange<T>>, callback: (value: T) => void, segment_type?: number) {
+        for (let i in ranges) {
+            this.foreach(ranges[i], callback, segment_type);
+        }
+    }
 }
 

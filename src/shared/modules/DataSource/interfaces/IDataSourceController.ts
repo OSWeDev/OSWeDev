@@ -2,7 +2,7 @@ import IVarDataVOBase from '../../Var/interfaces/IVarDataVOBase';
 import IVarDataParamVOBase from '../../Var/interfaces/IVarDataParamVOBase';
 import IDistantVOBase from '../../IDistantVOBase';
 
-export default interface IDataSourceController<TData extends IVarDataVOBase, TDataParam extends IVarDataParamVOBase> {
+export default interface IDataSourceController<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 
     name: string;
 

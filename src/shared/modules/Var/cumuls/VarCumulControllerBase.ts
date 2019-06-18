@@ -14,7 +14,7 @@ import IVarDataParamVOBase from '../interfaces/IVarDataParamVOBase';
 import VarDAGNode from '../graph/var/VarDAGNode';
 import TimeSegment from '../../DataRender/vos/TimeSegment';
 
-export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumberVarData, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
+export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumberVarData & TDataParam, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
 
     public segment_type: number = null;
 
