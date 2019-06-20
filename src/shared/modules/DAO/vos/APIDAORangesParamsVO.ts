@@ -41,9 +41,9 @@ export default class APIDAORangesParamsVO {
 
             range_txt += "/" + field_range.field_id;
             range_txt += "/" + min_txt;
-            range_txt += "/" + field_range.min_inclusiv ? "I" : "E";
+            range_txt += "/" + (field_range.min_inclusiv ? "i" : "e");
             range_txt += "/" + max_txt;
-            range_txt += "/" + field_range.max_inclusiv ? "I" : "E";
+            range_txt += "/" + (field_range.max_inclusiv ? "i" : "e");
         }
         return param ? param.API_TYPE_ID + range_txt : '';
     }
@@ -92,8 +92,8 @@ export default class APIDAORangesParamsVO {
             return null;
         }
 
-        let inclusive_min: boolean = (params['inclusive_min_' + i] == "I");
-        let inclusive_max: boolean = (params['inclusive_max_' + i] == "I");
+        let inclusive_min: boolean = (params['inclusive_min_' + i] == "i");
+        let inclusive_max: boolean = (params['inclusive_max_' + i] == "i");
         return FieldRange.createNew(vo_moduletable.vo_type, field.field_id, min_value, max_value, inclusive_min, inclusive_max);
     }
 

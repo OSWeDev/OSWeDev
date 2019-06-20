@@ -272,7 +272,7 @@ export default abstract class RangeHandler<T> {
      */
     public elt_intersects_any_range(a: T, ranges: Array<IRange<T>>): boolean {
 
-        if ((!ranges) || (!a) || (!ranges.length)) {
+        if ((!ranges) || (a == null) || (typeof a === 'undefined') || (!ranges.length)) {
             return false;
         }
 
@@ -287,12 +287,46 @@ export default abstract class RangeHandler<T> {
      */
     public elt_intersects_range(a: T, range: IRange<T>): boolean {
 
-        if ((!range) || (!a)) {
+        if ((!range) || (a == null) || (typeof a === 'undefined')) {
             return false;
         }
 
         let fakeRange = this.createNew(a, a, true, true);
         return this.range_intersects_range(fakeRange, range);
+    }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     * @param elt
+     * @param range
+     */
+    public is_elt_inf_min(a: T, range: IRange<T>): boolean {
+
+        if ((!range) || (a == null) || (typeof a === 'undefined')) {
+            return false;
+        }
+
+        if (range.min_inclusiv) {
+            return a < range.min;
+        }
+        return a <= range.min;
+    }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     * @param elt
+     * @param range
+     */
+    public is_elt_sup_max(a: T, range: IRange<T>): boolean {
+
+        if ((!range) || (a == null) || (typeof a === 'undefined')) {
+            return false;
+        }
+
+        if (range.max_inclusiv) {
+            return a > range.max;
+        }
+        return a >= range.max;
     }
 
     /**
@@ -363,6 +397,9 @@ export default abstract class RangeHandler<T> {
 
     public abstract getSegmentedMin(range: IRange<T>, segment_type?: number): T;
     public abstract getSegmentedMax(range: IRange<T>, segment_type?: number): T;
+
+    public abstract getSegmentedMin_from_ranges(ranges: Array<IRange<T>>, segment_type?: number): T;
+    public abstract getSegmentedMax_from_ranges(ranges: Array<IRange<T>>, segment_type?: number): T;
 
     public abstract foreach(range: IRange<T>, callback: (value: T) => void, segment_type?: number);
 

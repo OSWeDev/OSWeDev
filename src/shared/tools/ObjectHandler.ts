@@ -1,6 +1,9 @@
 import IDistantVOBase from '../modules/IDistantVOBase';
 import NumRange from '../modules/DataRender/vos/NumRange';
 import NumRangeHandler from './NumRangeHandler';
+import TSRange from '../modules/DataRender/vos/TSRange';
+import TSRangeHandler from './TSRangeHandler';
+import moment = require('moment');
 
 export default class ObjectHandler {
     public static getInstance(): ObjectHandler {
@@ -117,28 +120,56 @@ export default class ObjectHandler {
         return null;
     }
 
-    public filterVosIdsByNumRange<T extends IDistantVOBase>(vos_by_ids: { [id: number]: T }, range: NumRange): { [id: number]: T } {
+    public filterVosIdsByNumRange<T>(elts_by_id: { [id: number]: T }, range: NumRange): { [id: number]: T } {
         let res: { [id: number]: T } = {};
 
-        for (let i in vos_by_ids) {
-            let vo = vos_by_ids[i];
+        for (let id in elts_by_id) {
+            let elt = elts_by_id[id];
 
-            if (NumRangeHandler.getInstance().elt_intersects_range(vo.id, range)) {
-                res[vo.id] = vo;
+            if (NumRangeHandler.getInstance().elt_intersects_range(parseInt(id.toString()), range)) {
+                res[id] = elt;
             }
         }
 
         return res;
     }
 
-    public filterVosIdsByNumRanges<T>(vos_by_ids: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
+    public filterVosIdsByNumRanges<T>(elts_by_id: { [id: number]: T }, ranges: NumRange[]): { [id: number]: T } {
         let res: { [id: number]: T } = {};
 
-        for (let id in vos_by_ids) {
-            let vo = vos_by_ids[id];
+        for (let id in elts_by_id) {
+            let elt = elts_by_id[id];
 
             if (NumRangeHandler.getInstance().elt_intersects_any_range(parseInt(id.toString()), ranges)) {
-                res[id] = vo;
+                res[id] = elt;
+            }
+        }
+
+        return res;
+    }
+
+    public filterVosDateIndexesByTSRange<T extends IDistantVOBase>(elts_by_date_index: { [date_index: string]: T }, range: TSRange): { [date_index: string]: T } {
+        let res: { [date_index: string]: T } = {};
+
+        for (let date_index in elts_by_date_index) {
+            let elt = elts_by_date_index[date_index];
+
+            if (TSRangeHandler.getInstance().elt_intersects_range(moment(date_index), range)) {
+                res[date_index] = elt;
+            }
+        }
+
+        return res;
+    }
+
+    public filterVosDateIndexesByTSRanges<T>(elts_by_date_index: { [date_index: string]: T }, ranges: TSRange[]): { [date_index: string]: T } {
+        let res: { [date_index: string]: T } = {};
+
+        for (let date_index in elts_by_date_index) {
+            let elt = elts_by_date_index[date_index];
+
+            if (TSRangeHandler.getInstance().elt_intersects_any_range(moment(date_index), ranges)) {
+                res[date_index] = elt;
             }
         }
 

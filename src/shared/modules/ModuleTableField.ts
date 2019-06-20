@@ -1,9 +1,10 @@
-import { isBoolean, isNull, isNumber, isArray } from 'util';
+import { isArray, isBoolean, isNull, isNumber } from 'util';
 import IDistantVOBase from './IDistantVOBase';
+import Module from './Module';
+import ModulesManager from './ModulesManager';
 import ModuleTable from './ModuleTable';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
-import ModuleFormatDatesNombres from './FormatDatesNombres/ModuleFormatDatesNombres';
 
 export default class ModuleTableField<T> {
 
@@ -384,7 +385,8 @@ export default class ModuleTableField<T> {
                     return null;
                 }
 
-                if (ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment(data) != null) {
+                // DIRTY : Pour éviter une dep circulaire de modules, on utilise le nom du module pour le retrouver
+                if (ModulesManager.getInstance().getModuleByNameAndRole('format_dates_nombres', Module.SharedModuleRoleName)['formatYYYYMMDD_HHmmss_to_Moment'](data) != null) {
                     return null;
                 }
 

@@ -42,6 +42,7 @@ import APIDAORefFieldsAndFieldsStringParamsVO from '../../../shared/modules/DAO/
 import APIDAOIdsRangesParamsVO from '../../../shared/modules/DAO/vos/APIDAOIdsRangesParamsVO';
 import FieldRange from '../../../shared/modules/DataRender/vos/FieldRange';
 import APIDAORangesParamsVO from '../../../shared/modules/DAO/vos/APIDAORangesParamsVO';
+import DateHandler from '../../../shared/tools/DateHandler';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -798,7 +799,57 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             where_clause += (where_clause == "") ? "" : " OR ";
 
-            where_clause += field.field_id + " <@ " + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")");
+            switch (field.field_type) {
+                case ModuleTableField.FIELD_TYPE_amount:
+                case ModuleTableField.FIELD_TYPE_enum:
+                case ModuleTableField.FIELD_TYPE_file_ref:
+                case ModuleTableField.FIELD_TYPE_float:
+                case ModuleTableField.FIELD_TYPE_foreign_key:
+                case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                case ModuleTableField.FIELD_TYPE_image_ref:
+                case ModuleTableField.FIELD_TYPE_int:
+                case ModuleTableField.FIELD_TYPE_prct:
+                    where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_int_array:
+                    where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange @> ANY (" + field.field_id + "::numeric[])";
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+                    where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange @> ANY (" + field.field_id + "::numrange[])";
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_date:
+                case ModuleTableField.FIELD_TYPE_day:
+                case ModuleTableField.FIELD_TYPE_month:
+                case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                    where_clause += field.field_id + "::date <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange";
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_timestamp:
+                case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                    // TODO FIXME
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_daterange:
+                    where_clause += field.field_id + " <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange";
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                    where_clause += field.field_id + " <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDateTimeForBDD(field_range.min) + "," + DateHandler.getInstance().formatDateTimeForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDateTimeForBDD(field_range.min) + "," + DateHandler.getInstance().formatDateTimeForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::tstzrange @> ANY (" + field.field_id + "::tstzrange[])";
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_daterange_array:
+                    where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange @> ANY (" + field.field_id + "::daterange[])";
+                    break;
+            }
+
         }
 
         if (where_clause == "") {
@@ -835,7 +886,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             where_clause += (where_clause == "") ? "" : " OR ";
 
-            where_clause += "id <@ " + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")");
+            where_clause += "id::numeric <@ '" + (range.min_inclusiv ? "[" : "(") + range.min + "," + range.max + (range.max_inclusiv ? "]" : ")") + "'::numrange";
         }
 
         if (where_clause == "") {

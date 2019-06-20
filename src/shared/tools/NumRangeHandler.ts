@@ -37,6 +37,10 @@ export default class NumRangeHandler extends RangeHandler<number> {
      */
     public getSegmentedMin(range: NumRange, segment_type?: number): number {
 
+        if (!range) {
+            return null;
+        }
+
         if (range.min_inclusiv) {
             return range.min;
         }
@@ -50,11 +54,69 @@ export default class NumRangeHandler extends RangeHandler<number> {
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
     public getSegmentedMax(range: NumRange, segment_type?: number): number {
+        if (!range) {
+            return null;
+        }
+
         if (range.max_inclusiv) {
             return range.max;
         }
 
         return range.max - 1;
+    }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est (4,5] ça veut dire 5 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMin_from_ranges(ranges: NumRange[], segment_type?: number): number {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let res: number = null;
+
+        for (let i in ranges) {
+            let range = ranges[i];
+            let range_min = this.getSegmentedMin(range, segment_type);
+
+            if (res == null) {
+                res = range_min;
+            } else {
+                res = Math.min(range_min, res);
+            }
+        }
+
+        return res;
+    }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est [4,5) ça veut dire 4 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMax_from_ranges(ranges: NumRange[], segment_type?: number): number {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let res: number = null;
+
+        for (let i in ranges) {
+            let range = ranges[i];
+            let range_max = this.getSegmentedMax(range, segment_type);
+
+            if (res == null) {
+                res = range_max;
+            } else {
+                res = Math.max(range_max, res);
+            }
+        }
+
+        return res;
     }
 
     public foreach(range: NumRange, callback: (value: number) => void, segment_type?: number) {

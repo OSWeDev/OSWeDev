@@ -1,9 +1,9 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import TSRange from '../modules/DataRender/vos/TSRange';
-import RangeHandler from './RangeHandler';
-import DateHandler from './DateHandler';
 import TimeSegment from '../modules/DataRender/vos/TimeSegment';
+import TSRange from '../modules/DataRender/vos/TSRange';
+import DateHandler from './DateHandler';
+import RangeHandler from './RangeHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
 
 export default class TSRangeHandler extends RangeHandler<Moment> {
@@ -231,6 +231,11 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
      */
     public getSegmentedMin(range: TSRange, segment_type?: number): Moment {
 
+
+        if (!range) {
+            return null;
+        }
+
         if (range.min_inclusiv) {
             return moment(range.min);
         }
@@ -256,6 +261,11 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
     public getSegmentedMax(range: TSRange, segment_type?: number): Moment {
+
+        if (!range) {
+            return null;
+        }
+
         if (range.max_inclusiv) {
             return range.max;
         }
@@ -275,14 +285,104 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         }
     }
 
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est (4,5] ça veut dire 5 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMin_from_ranges(ranges: TSRange[], segment_type?: number): Moment {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let res: Moment = null;
+
+        for (let i in ranges) {
+            let range = ranges[i];
+            let range_min = this.getSegmentedMin(range, segment_type);
+
+            if (res == null) {
+                res = range_min;
+            } else {
+                res = moment.min(range_min, res);
+            }
+        }
+
+        return res;
+    }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est [4,5) ça veut dire 4 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMax_from_ranges(ranges: TSRange[], segment_type?: number): Moment {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let res: Moment = null;
+
+        for (let i in ranges) {
+            let range = ranges[i];
+            let range_max = this.getSegmentedMax(range, segment_type);
+
+            if (res == null) {
+                res = range_max;
+            } else {
+                res = moment.max(range_max, res);
+            }
+        }
+
+        return res;
+    }
+
+
     public foreach(range: TSRange, callback: (value: Moment) => void, segment_type?: number) {
 
         let actual_moment: Moment = this.getSegmentedMin(range, segment_type);
         let end_moment: Moment = this.getSegmentedMax(range, segment_type);
-        while (actual_moment.isSameOrBefore(end_moment)) {
+        while (actual_moment && actual_moment.isSameOrBefore(end_moment)) {
 
             callback(actual_moment);
             actual_moment = moment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(actual_moment, segment_type, 1).dateIndex);
         }
+    }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     * @param elt
+     * @param range
+     */
+    public is_elt_inf_min(a: Moment, range: TSRange): boolean {
+
+        if ((!range) || (a == null) || (typeof a === 'undefined')) {
+            return false;
+        }
+
+        if (range.min_inclusiv) {
+            return moment(a).isBefore(range.min);
+        }
+        return moment(a).isSameOrBefore(range.min);
+    }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     * @param elt
+     * @param range
+     */
+    public is_elt_sup_max(a: Moment, range: TSRange): boolean {
+
+        if ((!range) || (a == null) || (typeof a === 'undefined')) {
+            return false;
+        }
+
+        if (range.max_inclusiv) {
+            return moment(a).isAfter(range.max);
+        }
+        return moment(a).isSameOrAfter(range.max);
     }
 }

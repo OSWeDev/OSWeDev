@@ -270,11 +270,21 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     public getFormattedMinForAPI<T>(range: FieldRange<T>): string {
+
+        if (!range) {
+            return null;
+        }
+
         let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
         return handler ? handler.getFormattedMinForAPI(range) : null;
     }
 
     public getFormattedMaxForAPI<T>(range: FieldRange<T>): string {
+
+        if (!range) {
+            return null;
+        }
+
         let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
         return handler ? handler.getFormattedMaxForAPI(range) : null;
     }
@@ -298,6 +308,10 @@ export default class FieldRangeHandler extends RangeHandler<any> {
      */
     public getSegmentedMin<T>(range: FieldRange<T>, segment_type?: number): T {
 
+        if (!range) {
+            return null;
+        }
+
         let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
         return handler ? handler.getSegmentedMin(range, segment_type) : null;
     }
@@ -309,14 +323,85 @@ export default class FieldRangeHandler extends RangeHandler<any> {
      */
     public getSegmentedMax<T>(range: FieldRange<T>, segment_type?: number): T {
 
+        if (!range) {
+            return null;
+        }
+
         let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
         return handler ? handler.getSegmentedMax(range, segment_type) : null;
     }
 
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est (4,5] ça veut dire 5 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMin_from_ranges<T>(ranges: Array<FieldRange<T>>, segment_type?: number): T {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let handler = this.getRelevantHandlerFromStrings(ranges[0].api_type_id, ranges[0].field_id);
+        return handler ? handler.getSegmentedMin_from_ranges(ranges, segment_type) : null;
+    }
+
+    /**
+     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est [4,5) ça veut dire 4 en fait
+     * @param range
+     * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
+     */
+    public getSegmentedMax_from_ranges<T>(ranges: Array<FieldRange<T>>, segment_type?: number): T {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let handler = this.getRelevantHandlerFromStrings(ranges[0].api_type_id, ranges[0].field_id);
+        return handler ? handler.getSegmentedMax_from_ranges(ranges, segment_type) : null;
+    }
+
     public foreach<T>(range: FieldRange<T>, callback: (value: T) => void, segment_type?: number) {
+
+
+        if (!range) {
+            return null;
+        }
 
         let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
         return handler ? handler.foreach(range, callback, segment_type) : null;
+    }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     * @param elt
+     * @param range
+     */
+    public is_elt_inf_min<T>(a: T, range: FieldRange<T>): boolean {
+
+
+        if (!range) {
+            return null;
+        }
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.is_elt_inf_min(a, range) : null;
+    }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     * @param elt
+     * @param range
+     */
+    public is_elt_sup_max<T>(a: T, range: FieldRange<T>): boolean {
+
+
+        if (!range) {
+            return null;
+        }
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.is_elt_sup_max(a, range) : null;
     }
 }
 
