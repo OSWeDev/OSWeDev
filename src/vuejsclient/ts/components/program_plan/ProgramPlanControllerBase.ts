@@ -18,6 +18,8 @@ export default abstract class ProgramPlanControllerBase {
 
     public load_rdv_on_segment_change: boolean = true;
 
+    public confirm_before_rdv_deletion: boolean = true;
+
     public is_valid_rdv: (rdv: IPlanRDV) => boolean;
     public is_valid_target: (target: IPlanTarget) => boolean;
     public is_valid_facilitator: (facilitator: IPlanFacilitator) => boolean;

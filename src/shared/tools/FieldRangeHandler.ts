@@ -7,6 +7,7 @@ import VOsTypesManager from '../modules/VOsTypesManager';
 import NumRangeHandler from './NumRangeHandler';
 import TSRangeHandler from './TSRangeHandler';
 import DateHandler from './DateHandler';
+import IRange from '../modules/DataRender/interfaces/IRange';
 
 export default class FieldRangeHandler extends RangeHandler<any> {
     public static getInstance(): FieldRangeHandler {
@@ -402,6 +403,17 @@ export default class FieldRangeHandler extends RangeHandler<any> {
 
         let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
         return handler ? handler.is_elt_sup_max(a, range) : null;
+    }
+
+    public getFieldRangesFromRanges<T>(api_type_id: string, field_id: string, ranges: Array<IRange<T>>): Array<FieldRange<T>> {
+        let res: Array<FieldRange<T>> = [];
+
+        for (let i in ranges) {
+            let range: IRange<T> = ranges[i];
+
+            res.push(FieldRange.createNew(api_type_id, field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv));
+        }
+        return res;
     }
 }
 

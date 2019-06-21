@@ -240,13 +240,19 @@ export default class DatatableComponent extends VueComponentBase {
     get exportable_datatable_columns(): string[] {
         let res: string[] = [];
 
-        for (let i in this.datatable_columns) {
-            let column: string = this.datatable_columns[i];
-            if ((column == DatatableComponent.ACTIONS_COLUMN_ID) ||
-                (column == DatatableComponent.MULTISELECT_COLUMN_ID)) {
+        for (let i in this.datatable.fields) {
+            let field: DatatableField<any, any> = this.datatable.fields[i];
+
+            if (field.type == DatatableField.INPUT_FIELD_TYPE) {
                 continue;
             }
-            res.push(column);
+
+            // On peut refuser l'export d'une colonne
+            if (field.hiden_export) {
+                continue;
+            }
+
+            res.push(field.datatable_field_uid);
         }
 
         return res;

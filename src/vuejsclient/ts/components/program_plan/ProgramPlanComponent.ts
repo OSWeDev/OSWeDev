@@ -1479,6 +1479,53 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         // On demande confirmation avant toute chose.
         // si on valide, on lance la suppression des CRs en premier lieu puis du rdv
+        let onconfirmation = async (toast) => {
+
+            if (!!toast) {
+                self.$snotify.remove(toast.id);
+            }
+            self.snotify.info(self.label('programplan.delete.start'));
+
+            let toDeleteVos: IPlanRDVCR[] = [];
+            for (let i in self.getCrsByIds) {
+                let cr: IPlanRDVCR = self.getCrsByIds[i];
+
+                if (cr.rdv_id != self.selected_rdv.id) {
+                    continue;
+                }
+
+                toDeleteVos.push(cr);
+                self.removeCr(cr.id);
+            }
+
+            try {
+
+                if (toDeleteVos && toDeleteVos.length > 0) {
+                    let insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(toDeleteVos);
+                    if ((!insertOrDeleteQueryResult_) || (insertOrDeleteQueryResult_.length != toDeleteVos.length)) {
+                        throw new Error('Erreur serveur');
+                    }
+                }
+                let insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([self.selected_rdv]);
+                if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1)) {
+                    throw new Error('Erreur serveur');
+                }
+            } catch (error) {
+                console.error(error);
+                self.snotify.error(self.label('programplan.delete.error'));
+                return;
+            }
+            self.removeRdv(self.selected_rdv.id);
+            self.set_selected_rdv(null);
+            self.snotify.success(self.label('programplan.delete.ok'));
+            self.$router.push(self.route_path);
+        };
+
+        if (!ProgramPlanControllerBase.getInstance().confirm_before_rdv_deletion) {
+            onconfirmation(null);
+            return;
+        }
+
         self.snotify.confirm(self.label(confirmation_content_code), self.label('programplan.delete.confirmation.title'), {
             timeout: 10000,
             showProgressBar: true,
@@ -1487,44 +1534,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             buttons: [
                 {
                     text: self.t('YES'),
-                    action: async (toast) => {
-                        self.$snotify.remove(toast.id);
-                        self.snotify.info(self.label('programplan.delete.start'));
-
-                        let toDeleteVos: IPlanRDVCR[] = [];
-                        for (let i in self.getCrsByIds) {
-                            let cr: IPlanRDVCR = self.getCrsByIds[i];
-
-                            if (cr.rdv_id != self.selected_rdv.id) {
-                                continue;
-                            }
-
-                            toDeleteVos.push(cr);
-                            self.removeCr(cr.id);
-                        }
-
-                        try {
-
-                            if (toDeleteVos && toDeleteVos.length > 0) {
-                                let insertOrDeleteQueryResult_: InsertOrDeleteQueryResult[] = await ModuleDAO.getInstance().deleteVOs(toDeleteVos);
-                                if ((!insertOrDeleteQueryResult_) || (insertOrDeleteQueryResult_.length != toDeleteVos.length)) {
-                                    throw new Error('Erreur serveur');
-                                }
-                            }
-                            let insertOrDeleteQueryResult = await ModuleDAO.getInstance().deleteVOs([self.selected_rdv]);
-                            if ((!insertOrDeleteQueryResult) || (insertOrDeleteQueryResult.length != 1)) {
-                                throw new Error('Erreur serveur');
-                            }
-                        } catch (error) {
-                            console.error(error);
-                            self.snotify.error(self.label('programplan.delete.error'));
-                            return;
-                        }
-                        self.removeRdv(self.selected_rdv.id);
-                        self.set_selected_rdv(null);
-                        self.snotify.success(self.label('programplan.delete.ok'));
-                        self.$router.push(self.route_path);
-                    },
+                    action: onconfirmation,
                     bold: false
                 },
                 {

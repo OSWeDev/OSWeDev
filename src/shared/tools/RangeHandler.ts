@@ -1,5 +1,4 @@
 import IRange from '../modules/DataRender/interfaces/IRange';
-import FieldRange from '../modules/DataRender/vos/FieldRange';
 
 export default abstract class RangeHandler<T> {
 
@@ -368,17 +367,6 @@ export default abstract class RangeHandler<T> {
             }
         }
 
-        return res;
-    }
-
-    public getFieldRangesFromRanges(api_type_id: string, field_id: string, ranges: Array<IRange<T>>): Array<FieldRange<T>> {
-        let res: Array<FieldRange<T>> = [];
-
-        for (let i in ranges) {
-            let range: IRange<T> = ranges[i];
-
-            res.push(FieldRange.createNew(api_type_id, field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv));
-        }
         return res;
     }
 

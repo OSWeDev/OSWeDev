@@ -39,6 +39,16 @@ export default abstract class DatatableField<T, U> {
     public hidden: boolean = false;
 
     /**
+     * Show/Hide field from export
+     */
+    public hiden_export: boolean = false;
+
+    /**
+     * Show/Hide field from print
+     */
+    public hidden_print: boolean = false;
+
+    /**
      * Used in the CREATE or UPDATE views
      */
     public translatable_place_holder: string = null;
@@ -53,7 +63,6 @@ export default abstract class DatatableField<T, U> {
     public onChange: (vo: IDistantVOBase) => void;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
-    public hidden_print: boolean = false;
 
     /**
      *
@@ -80,6 +89,13 @@ export default abstract class DatatableField<T, U> {
 
         return this;
     }
+
+    public hide_export(): DatatableField<T, U> {
+        this.hiden_export = true;
+
+        return this;
+    }
+
 
     public setIsVisibleUpdateOrCreate(isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean): DatatableField<T, U> {
         this.isVisibleUpdateOrCreate = isVisibleUpdateOrCreate;
