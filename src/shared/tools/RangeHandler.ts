@@ -148,7 +148,7 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.max_inclusiv && (!range_b.max_inclusiv)) {
+        if ((!range_a.max_inclusiv) && range_b.max_inclusiv) {
             return range_a.max <= range_b.max;
         }
         return range_a.max < range_b.max;
@@ -180,9 +180,6 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.min_inclusiv && (!range_b.max_inclusiv)) {
-            return range_a.min <= range_b.max;
-        }
         return range_a.min < range_b.max;
     }
 
@@ -196,7 +193,7 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.min_inclusiv != range_b.max_inclusiv) {
+        if ((!range_a.min_inclusiv) || (!range_b.max_inclusiv)) {
             return false;
         }
         return range_a.min == range_b.max;
@@ -212,7 +209,7 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        if (range_a.max_inclusiv && (!range_b.min_inclusiv)) {
+        if ((!range_a.max_inclusiv) || (!range_b.min_inclusiv)) {
             return range_a.max <= range_b.min;
         }
         return range_a.max < range_b.min;
@@ -374,11 +371,19 @@ export default abstract class RangeHandler<T> {
     public abstract cloneFrom(from: IRange<T>): IRange<T>;
 
     public getFormattedMinForAPI(range: IRange<T>): string {
+        if (!range) {
+            return null;
+        }
+
         return range.min.toString();
     }
 
     public getFormattedMaxForAPI(range: IRange<T>): string {
-        return range.min.toString();
+        if (!range) {
+            return null;
+        }
+
+        return range.max.toString();
     }
 
     public abstract getValueFromFormattedMinOrMaxAPI(input: string): T;

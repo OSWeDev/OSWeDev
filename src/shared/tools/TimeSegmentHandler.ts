@@ -394,6 +394,11 @@ export default class TimeSegmentHandler {
     }
 
     public getCorrespondingTimeSegment(date: Moment | string, type: number, offset: number = 0): TimeSegment {
+
+        if ((type == null) || (typeof type === 'undefined')) {
+            type = TimeSegment.TYPE_DAY;
+        }
+
         let res: TimeSegment = new TimeSegment();
         res.type = type;
         let date_segment: Moment = moment(date);

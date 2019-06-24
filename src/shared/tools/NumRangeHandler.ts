@@ -1,5 +1,7 @@
 import NumRange from '../modules/DataRender/vos/NumRange';
 import RangeHandler from './RangeHandler';
+import NumSegmentHandler from './NumSegmentHandler';
+import NumSegment from '../modules/DataRender/vos/NumSegment';
 
 export default class NumRangeHandler extends RangeHandler<number> {
 
@@ -35,17 +37,36 @@ export default class NumRangeHandler extends RangeHandler<number> {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMin(range: NumRange, segment_type?: number): number {
+    public getSegmentedMin(range: NumRange, segment_type: number = NumSegment.TYPE_INT): number {
 
         if (!range) {
             return null;
         }
 
-        if (range.min_inclusiv) {
-            return range.min;
+        let range_min_num: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(range.min, segment_type);
+
+        if (range_min_num.num < range.min) {
+            range_min_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_min_num, segment_type, -1);
         }
 
-        return range.min + 1;
+        if (range_min_num.num > range.max) {
+            return null;
+        }
+
+        if ((!range.max_inclusiv) && (range_min_num.num >= range.max)) {
+            return null;
+        }
+
+        if (range.min_inclusiv) {
+            return range_min_num.num;
+        }
+
+        if (range_min_num.num > range.min) {
+            return range_min_num.num;
+        }
+
+        range_min_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_min_num, segment_type, -1);
+        return range_min_num.num;
     }
 
     /**
@@ -53,16 +74,32 @@ export default class NumRangeHandler extends RangeHandler<number> {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMax(range: NumRange, segment_type?: number): number {
+    public getSegmentedMax(range: NumRange, segment_type: number = NumSegment.TYPE_INT): number {
         if (!range) {
             return null;
         }
 
-        if (range.max_inclusiv) {
-            return range.max;
+        let range_max_num: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(range.max, segment_type);
+
+
+        if (range_max_num.num < range.min) {
+            return null;
         }
 
-        return range.max - 1;
+        if ((!range.min_inclusiv) && (range_max_num.num <= range.min)) {
+            return null;
+        }
+
+        if (range.max_inclusiv) {
+            return range_max_num.num;
+        }
+
+        if (range_max_num.num < range.max) {
+            return range_max_num.num;
+        }
+
+        range_max_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_max_num, segment_type);
+        return range_max_num.num;
     }
 
     /**
@@ -70,7 +107,7 @@ export default class NumRangeHandler extends RangeHandler<number> {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMin_from_ranges(ranges: NumRange[], segment_type?: number): number {
+    public getSegmentedMin_from_ranges(ranges: NumRange[], segment_type: number = NumSegment.TYPE_INT): number {
 
         if ((!ranges) || (!ranges.length)) {
             return null;
@@ -81,6 +118,10 @@ export default class NumRangeHandler extends RangeHandler<number> {
         for (let i in ranges) {
             let range = ranges[i];
             let range_min = this.getSegmentedMin(range, segment_type);
+
+            if ((range_min == null) || (typeof range_min == 'undefined')) {
+                continue;
+            }
 
             if (res == null) {
                 res = range_min;
@@ -97,7 +138,7 @@ export default class NumRangeHandler extends RangeHandler<number> {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMax_from_ranges(ranges: NumRange[], segment_type?: number): number {
+    public getSegmentedMax_from_ranges(ranges: NumRange[], segment_type: number = NumSegment.TYPE_INT): number {
 
         if ((!ranges) || (!ranges.length)) {
             return null;
@@ -109,6 +150,10 @@ export default class NumRangeHandler extends RangeHandler<number> {
             let range = ranges[i];
             let range_max = this.getSegmentedMax(range, segment_type);
 
+            if ((range_max == null) || (typeof range_max == 'undefined')) {
+                continue;
+            }
+
             if (res == null) {
                 res = range_max;
             } else {
@@ -119,8 +164,21 @@ export default class NumRangeHandler extends RangeHandler<number> {
         return res;
     }
 
-    public foreach(range: NumRange, callback: (value: number) => void, segment_type?: number) {
-        for (let i = this.getSegmentedMin(range, segment_type); i <= this.getSegmentedMax(range, segment_type); i++) {
+    public foreach(range: NumRange, callback: (value: number) => void, segment_type: number = NumSegment.TYPE_INT) {
+        let min = this.getSegmentedMin(range, segment_type);
+        let max = this.getSegmentedMax(range, segment_type);
+
+        if ((min == null) || (max == null) || (typeof min == 'undefined') || (typeof max == 'undefined')) {
+            return;
+        }
+
+        switch (segment_type) {
+            default:
+                min = Math.ceil(min);
+                max = Math.floor(max);
+        }
+
+        for (let i = min; i <= max; i++) {
             callback(i);
         }
     }

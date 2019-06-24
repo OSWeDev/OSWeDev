@@ -5,6 +5,7 @@ import FieldRangeHandler from '../../../tools/FieldRangeHandler';
 export default class FieldRange<T> implements IRange<T>  {
 
     /**
+     * Test d'incohérence sur des ensembles qui indiqueraient inclure le min mais pas le max et où min == max (ou inversement)
      * @param min_inclusiv defaults to true
      * @param max_inclusiv defaults to true
      */

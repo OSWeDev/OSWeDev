@@ -172,7 +172,10 @@ export default class ModuleAPI extends Module {
     }
 
     public requestUrlMatchesApiUrl(requestUrl: string, apiUrl: string): boolean {
-        let pattern: string = apiUrl.replace(/(:[^:\/]+)/ig, '[^/]*');
+        let pattern: string = apiUrl.replace(/(:[^:\/?]+)([/]|$)/ig, '[^/]*$2');
+
+        // Gestion des paramètres optionnels
+        pattern = pattern.replace(/([/]:[^:\/?]+[?])/ig, '(/[^/]*)?');
 
         return new RegExp(pattern, "ig").test(requestUrl);
     }
@@ -183,7 +186,11 @@ export default class ModuleAPI extends Module {
      * @param apiUrl
      */
     public getFakeRequestParamsFromUrl(requestUrl: string, apiUrl: string): any {
-        let pattern: string = apiUrl.replace(/(:[^:\/]+)/ig, '([^/]*)');
+        var pattern = apiUrl.replace(/:[^:\/?]+([/]|$)/ig, '([^/]*)$1');
+        // Gestion des paramètres optionnels
+        pattern = pattern.replace(/[/]:[^:\/?]+[?]/ig, '/?([^/]*)?');
+
+        // let pattern: string = apiUrl.replace(/(:[^:\/]+)/ig, '([^/]*)');
 
         let urlMembers: string[] = Array.from(new RegExp(pattern, "ig").exec(requestUrl));
         let res = { params: {} };
@@ -200,7 +207,7 @@ export default class ModuleAPI extends Module {
         while (apiMember) {
 
             if ((!urlMembers[i]) || (!apiMember[1])) {
-                console.error('Incohérence getFakeRequestParamsFromUrl :' + urlMembers[i] + ":" + apiMember[1] + ":");
+                // console.error('Incohérence getFakeRequestParamsFromUrl :' + urlMembers[i] + ":" + apiMember[1] + ":");
                 return res;
             }
 
