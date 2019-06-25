@@ -381,13 +381,615 @@ describe('NumRangeHandler', () => {
         expect(NumRangeHandler.getInstance().getFormattedMinForAPI(NumRange.createNew(-0.5, 0.5, true, false))).to.equal('-0.5');
     });
 
-    // it('test getMinSurroundingRange', () => {
-    //     expect(NumRangeHandler.getInstance().getMinSurroundingRange
-    // });
+    it('test getMinSurroundingRange', () => {
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
 
-    // it('test getRangesUnion', () => {
-    //     expect(NumRangeHandler.getInstance().getRangesUnion
-    // });
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 0, true, true)])).to.deep.equal(NumRange.createNew(0, 0, true, true));
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, false)])).to.deep.equal(NumRange.createNew(0, 0, true, true));
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, true)])).to.deep.equal(NumRange.createNew(0, 0, true, true));
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true), NumRange.createNew(-1, 0, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true), NumRange.createNew(-1, 0, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false), NumRange.createNew(-1, 0, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false), NumRange.createNew(-1, 0, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true), NumRange.createNew(-1, 0, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true), NumRange.createNew(-1, 0, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false), NumRange.createNew(-1, 0, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false), NumRange.createNew(-1, 0, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true), NumRange.createNew(-1, 0, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true), NumRange.createNew(-1, 0, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false), NumRange.createNew(-1, 0, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false), NumRange.createNew(-1, 0, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true), NumRange.createNew(-1, 0, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true), NumRange.createNew(-1, 0, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false), NumRange.createNew(-1, 0, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false), NumRange.createNew(-1, 0, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+
+
+
+
+
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+
+
+
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true), NumRange.createNew(-1, 0.5, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true), NumRange.createNew(-1, 0.5, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false), NumRange.createNew(-1, 0.5, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false), NumRange.createNew(-1, 0.5, true, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true), NumRange.createNew(-1, 0.5, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true), NumRange.createNew(-1, 0.5, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false), NumRange.createNew(-1, 0.5, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false), NumRange.createNew(-1, 0.5, false, true)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true), NumRange.createNew(-1, 0.5, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true), NumRange.createNew(-1, 0.5, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false), NumRange.createNew(-1, 0.5, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false), NumRange.createNew(-1, 0.5, true, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true), NumRange.createNew(-1, 0.5, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true), NumRange.createNew(-1, 0.5, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false), NumRange.createNew(-1, 0.5, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false), NumRange.createNew(-1, 0.5, false, false)])).to.deep.equal({
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange);
+    });
+
+    it('test getRangesUnion', () => {
+        expect(NumRangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 0, true, true)])).to.deep.equal([NumRange.createNew(0, 0, true, true)]);
+
+        expect(NumRangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, false)])).to.deep.equal([NumRange.createNew(0, 0, true, true)]);
+        expect(NumRangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, true)])).to.deep.equal([NumRange.createNew(0, 0, true, true)]);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true), NumRange.createNew(-1, 0, true, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true), NumRange.createNew(-1, 0, true, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false), NumRange.createNew(-1, 0, true, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false), NumRange.createNew(-1, 0, true, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true), NumRange.createNew(-1, 0, false, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true), NumRange.createNew(-1, 0, false, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false), NumRange.createNew(-1, 0, false, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false), NumRange.createNew(-1, 0, false, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true), NumRange.createNew(-1, 0, true, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true), NumRange.createNew(-1, 0, true, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 0,
+            max_inclusiv: false
+        } as NumRange, {
+            min: 0,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false), NumRange.createNew(-1, 0, true, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 0,
+            max_inclusiv: false
+        } as NumRange, {
+            min: 0,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false), NumRange.createNew(-1, 0, true, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true), NumRange.createNew(-1, 0, false, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true), NumRange.createNew(-1, 0, false, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 0,
+            max_inclusiv: false
+        } as NumRange, {
+            min: 0,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false), NumRange.createNew(-1, 0, false, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 0,
+            max_inclusiv: false
+        } as NumRange, {
+            min: 0,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false), NumRange.createNew(-1, 0, false, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+
+
+
+
+
+
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, true, true)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, true, true)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, true, true)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, true, true)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, true, true)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, true, true)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, true, true)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, true, true)]
+        );
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, false, true)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, false, true)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, false, true)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, false, true)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, false, true)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, false, true)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, false, true)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, false, true)]
+        );
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, true, false)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, true, false)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, true, false)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, true, false)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, true, false)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, true, false)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, true, false)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, true, false)]
+        );
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, false, false)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, true, true), NumRange.createNew(-1, -0.5, false, false)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, false, false)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, false, true), NumRange.createNew(-1, -0.5, false, false)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, false, false)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, false, false), NumRange.createNew(-1, -0.5, false, false)]
+        );
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, false, false)])).to.deep.equal(
+            [NumRange.createNew(0.5, 1, true, false), NumRange.createNew(-1, -0.5, false, false)]
+        );
+
+
+
+
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true), NumRange.createNew(-1, 0.5, true, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true), NumRange.createNew(-1, 0.5, true, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false), NumRange.createNew(-1, 0.5, true, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false), NumRange.createNew(-1, 0.5, true, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true), NumRange.createNew(-1, 0.5, false, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true), NumRange.createNew(-1, 0.5, false, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false), NumRange.createNew(-1, 0.5, false, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false), NumRange.createNew(-1, 0.5, false, true)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true), NumRange.createNew(-1, 0.5, true, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true), NumRange.createNew(-1, 0.5, true, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false), NumRange.createNew(-1, 0.5, true, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false), NumRange.createNew(-1, 0.5, true, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true), NumRange.createNew(-1, 0.5, false, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true), NumRange.createNew(-1, 0.5, false, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false), NumRange.createNew(-1, 0.5, false, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+        expect(NumRangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false), NumRange.createNew(-1, 0.5, false, false)])).to.deep.equal([{
+            min: -1,
+            min_inclusiv: false,
+            max: 1,
+            max_inclusiv: false
+        } as NumRange]);
+    });
 
     it('test getSegmentedMax', () => {
         expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(0.2, 0.2, true, true))).to.equal(null);
@@ -409,11 +1011,70 @@ describe('NumRangeHandler', () => {
         expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, true, false))).to.equal(0);
         expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, false, true))).to.equal(0);
         expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, false, false))).to.equal(0);
+
+        expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-1, 0, false, false))).to.equal(null);
     });
 
-    // it('test getSegmentedMax_from_ranges', () => {
-    //     expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges
-    // });
+    it('test getSegmentedMax_from_ranges', () => {
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 0, true, true), NumRange.createNew(-1, 1, true, true)
+        ])).to.equal(1);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 1, true, false), NumRange.createNew(-1, 1, true, true)
+        ])).to.equal(1);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 1, true, false), NumRange.createNew(-1, 1, true, false)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 1, true, true), NumRange.createNew(-1, 1, true, false)
+        ])).to.equal(1);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 1, true, true), NumRange.createNew(-1, 1, true, true)
+        ])).to.equal(1);
+
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 0, false, true), NumRange.createNew(-1, 0, false, false)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 0, false, true), NumRange.createNew(-1, 0, false, true)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 0, false, false), NumRange.createNew(-1, 0, false, false)
+        ])).to.equal(null);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 0, true, false), NumRange.createNew(-1, 0, false, false)
+        ])).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 0, true, false), NumRange.createNew(-1, 0, true, false)
+        ])).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-1, 0, false, false), NumRange.createNew(-1, 0, true, false)
+        ])).to.equal(-1);
+
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(0, 0, true, false), NumRange.createNew(0, 0, true, false)
+        ])).to.equal(null);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, true)
+        ])).to.equal(0);
+
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-0.5, 0.5, true, false), NumRange.createNew(-0.5, 0.5, true, false)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-0.5, 0.5, false, false), NumRange.createNew(-0.5, 0.5, true, false)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-0.5, 0.5, true, false), NumRange.createNew(-0.5, 0.5, false, false)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-0.5, 0.5, false, false), NumRange.createNew(-0.5, 0.5, false, false)
+        ])).to.equal(0);
+
+        expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            NumRange.createNew(-0.5, 0.5, true, true), NumRange.createNew(-0.5, 0.5, true, true)
+        ])).to.equal(0);
+    });
 
     it('test getSegmentedMin', () => {
         expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(0.2, 0.2, true, true))).to.equal(null);
@@ -437,13 +1098,77 @@ describe('NumRangeHandler', () => {
         expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, false, false))).to.equal(0);
     });
 
-    // it('test getSegmentedMin_from_ranges', () => {
-    //     expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges
-    // });
+    it('test getSegmentedMin_from_ranges', () => {
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 0, true, true), NumRange.createNew(-1, 1, true, true)
+        ])).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 1, true, false), NumRange.createNew(-1, 1, true, true)
+        ])).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 1, true, false), NumRange.createNew(-1, 1, true, false)
+        ])).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 1, true, true), NumRange.createNew(-1, 1, true, false)
+        ])).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 1, true, true), NumRange.createNew(-1, 1, true, true)
+        ])).to.equal(-1);
 
-    // it('test getValueFromFormattedMinOrMaxAPI', () => {
-    //     expect(NumRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI
-    // });
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 0, false, true), NumRange.createNew(-1, 0, false, false)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 0, false, true), NumRange.createNew(-1, 0, false, true)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 0, false, false), NumRange.createNew(-1, 0, false, false)
+        ])).to.equal(null);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 0, true, false), NumRange.createNew(-1, 0, false, false)
+        ])).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 0, true, false), NumRange.createNew(-1, 0, true, false)
+        ])).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-1, 0, false, false), NumRange.createNew(-1, 0, true, false)
+        ])).to.equal(-1);
+
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(0, 0, true, false), NumRange.createNew(0, 0, true, false)
+        ])).to.equal(null);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, true)
+        ])).to.equal(0);
+
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-0.5, 0.5, true, false), NumRange.createNew(-0.5, 0.5, true, false)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-0.5, 0.5, false, false), NumRange.createNew(-0.5, 0.5, true, false)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-0.5, 0.5, true, false), NumRange.createNew(-0.5, 0.5, false, false)
+        ])).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-0.5, 0.5, false, false), NumRange.createNew(-0.5, 0.5, false, false)
+        ])).to.equal(0);
+
+        expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            NumRange.createNew(-0.5, 0.5, true, true), NumRange.createNew(-0.5, 0.5, true, true)
+        ])).to.equal(0);
+    });
+
+    it('test getValueFromFormattedMinOrMaxAPI', () => {
+        expect(NumRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI('0')).to.equal(0);
+        expect(NumRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI('a')).to.equal(null);
+        expect(NumRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(undefined)).to.equal(null);
+        expect(NumRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(null)).to.equal(null);
+        expect(NumRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI('-1')).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI('-1000')).to.equal(-1000);
+        expect(NumRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI('1')).to.equal(1);
+        expect(NumRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI('0.5')).to.equal(0.5);
+    });
 
     it('test isEndABeforeEndB', () => {
         expect(NumRangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, true))).to.equal(false);

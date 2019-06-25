@@ -26,7 +26,12 @@ export default class NumRangeHandler extends RangeHandler<number> {
 
     public getValueFromFormattedMinOrMaxAPI(input: string): number {
         try {
-            return parseFloat(input);
+            let res = parseFloat(input);
+
+            if (isNaN(res)) {
+                return null;
+            }
+            return res;
         } catch (error) {
         }
         return null;
@@ -66,6 +71,11 @@ export default class NumRangeHandler extends RangeHandler<number> {
         }
 
         range_min_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_min_num, segment_type, -1);
+
+        if (((!range.max_inclusiv) && (range.max == range_min_num.num)) || (range.max < range_min_num.num)) {
+            return null;
+        }
+
         return range_min_num.num;
     }
 
@@ -99,6 +109,11 @@ export default class NumRangeHandler extends RangeHandler<number> {
         }
 
         range_max_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_max_num, segment_type);
+
+        if (((!range.min_inclusiv) && (range.min == range_max_num.num)) || (range.min > range_max_num.num)) {
+            return null;
+        }
+
         return range_max_num.num;
     }
 

@@ -166,31 +166,28 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return null;
         }
 
-        let res: TSRange = TSRange.createNew();
+        let res: TSRange = null;
 
         for (let i in ranges) {
             let range = ranges[i];
 
-            if (!res.min) {
-                res.min = moment(range.min);
-                res.min_inclusiv = range.min_inclusiv;
-            } else {
-
-                if ((res.min_inclusiv && range.min.isBefore(res.min)) || ((!res.min_inclusiv) && range.min.isSameOrBefore(res.min))) {
-                    res.min = moment(range.min);
-                    res.min_inclusiv = range.min_inclusiv;
-                }
+            if (!range) {
+                continue;
             }
 
-            if (!res.max) {
+            if (!res) {
+                res = this.createNew(range.min, range.max, range.min_inclusiv, range.max_inclusiv);
+                continue;
+            }
+
+            if ((res.min_inclusiv && range.min.isBefore(res.min)) || ((!res.min_inclusiv) && range.min.isSameOrBefore(res.min))) {
+                res.min = moment(range.min);
+                res.min_inclusiv = range.min_inclusiv;
+            }
+
+            if ((res.max_inclusiv && range.max.isAfter(res.max)) || ((!res.max_inclusiv) && range.max.isSameOrAfter(res.max))) {
                 res.max = moment(range.max);
                 res.max_inclusiv = range.max_inclusiv;
-            } else {
-
-                if ((res.max_inclusiv && range.max.isAfter(res.max)) || ((!res.max_inclusiv) && range.max.isSameOrAfter(res.max))) {
-                    res.max = moment(range.max);
-                    res.max_inclusiv = range.max_inclusiv;
-                }
             }
         }
 
@@ -266,6 +263,11 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         }
 
         range_min_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_min_ts, segment_type, -1);
+
+        if (((!range.max_inclusiv) && (range.max.isSame(moment(range_min_ts.dateIndex))) || (range.max.isBefore(moment(range_min_ts.dateIndex))))) {
+            return null;
+        }
+
         return moment(range_min_ts.dateIndex);
     }
 
@@ -301,6 +303,11 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         }
 
         range_max_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_max_ts, segment_type);
+
+        if (((!range.min_inclusiv) && (range.min.isSame(moment(range_max_ts.dateIndex))) || (range.min.isAfter(moment(range_max_ts.dateIndex))))) {
+            return null;
+        }
+
         return moment(range_max_ts.dateIndex);
     }
 

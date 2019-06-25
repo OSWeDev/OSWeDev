@@ -15,13 +15,17 @@ export default abstract class RangeHandler<T> {
             return null;
         }
 
-        let res: Array<IRange<T>> = [];
+        let res: Array<IRange<T>> = null;
         let hasContiguousRanges: boolean = false;
         for (let i in ranges) {
             let range = ranges[i];
 
-            if ((!res) || (!res.length)) {
-                res.push(this.cloneFrom(range));
+            if (!range) {
+                continue;
+            }
+
+            if (!res) {
+                res = [this.cloneFrom(range)];
                 continue;
             }
 
@@ -31,6 +35,7 @@ export default abstract class RangeHandler<T> {
 
                 if (this.ranges_are_contiguous_or_intersect(resrange, range)) {
                     res[j] = this.getMinSurroundingRange([resrange, range]);
+                    got_contiguous = true;
                     break;
                 }
             }
@@ -336,31 +341,28 @@ export default abstract class RangeHandler<T> {
             return null;
         }
 
-        let res: IRange<T> = this.createNew();
+        let res: IRange<T> = null;
 
         for (let i in ranges) {
             let range = ranges[i];
 
-            if (!res.min) {
-                res.min = range.min;
-                res.min_inclusiv = range.min_inclusiv;
-            } else {
-
-                if ((res.min_inclusiv && (range.min < res.min)) || ((!res.min_inclusiv) && (range.min <= res.min))) {
-                    res.min = range.min;
-                    res.min_inclusiv = range.min_inclusiv;
-                }
+            if (!range) {
+                continue;
             }
 
-            if (!res.max) {
+            if (!res) {
+                res = this.createNew(range.min, range.max, range.min_inclusiv, range.max_inclusiv);
+                continue;
+            }
+
+            if ((res.min_inclusiv && (range.min < res.min)) || ((!res.min_inclusiv) && (range.min <= res.min))) {
+                res.min = range.min;
+                res.min_inclusiv = range.min_inclusiv;
+            }
+
+            if ((res.max_inclusiv && (range.max > res.max)) || ((!res.max_inclusiv) && (range.max >= res.max))) {
                 res.max = range.max;
                 res.max_inclusiv = range.max_inclusiv;
-            } else {
-
-                if ((res.max_inclusiv && (range.max > res.max)) || ((!res.max_inclusiv) && (range.max >= res.max))) {
-                    res.max = range.max;
-                    res.max_inclusiv = range.max_inclusiv;
-                }
             }
         }
 
