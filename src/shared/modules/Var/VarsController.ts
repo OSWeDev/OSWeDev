@@ -290,11 +290,19 @@ export default class VarsController {
     }
 
     public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, search_in_batch_cache: boolean = false): T {
-
         if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
             return null;
         }
         let index: string = this.getIndex(param);
+
+        return this.getVarDataByIndex(index, search_in_batch_cache);
+    }
+
+    public getVarDataByIndex<T extends IVarDataVOBase>(index: string, search_in_batch_cache: boolean = false): T {
+
+        if (!index) {
+            return null;
+        }
 
         if (search_in_batch_cache) {
             // // On sait qu'on doit chercher dans les datas des batchs actuels, mais en fait l'id du batch est intimement lié

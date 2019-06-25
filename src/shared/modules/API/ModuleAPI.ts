@@ -211,7 +211,7 @@ export default class ModuleAPI extends Module {
                 return res;
             }
 
-            res.params[apiMember[1]] = urlMembers[i];
+            res.params[apiMember[1].replace(/[?]/ig, '')] = urlMembers[i];
             apiMember = apiRegExp.exec(apiUrl);
             i++;
         }

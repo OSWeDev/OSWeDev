@@ -249,7 +249,7 @@ export default abstract class RangeHandler<T> {
      * @param range_a
      * @param ranges
      */
-    public range_intersects_ranges(range_a: IRange<T>, ranges: Array<IRange<T>>): boolean {
+    public range_intersects_any_range(range_a: IRange<T>, ranges: Array<IRange<T>>): boolean {
 
         if ((!ranges) || (!range_a) || (!ranges.length)) {
             return false;
@@ -278,7 +278,7 @@ export default abstract class RangeHandler<T> {
         }
 
         let fakeRange = this.createNew(a, a, true, true);
-        return this.range_intersects_ranges(fakeRange, ranges);
+        return this.range_intersects_any_range(fakeRange, ranges);
     }
 
     /**

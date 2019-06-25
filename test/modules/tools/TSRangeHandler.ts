@@ -414,13 +414,615 @@ describe('TSRangeHandler', () => {
         expect(TSRangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(moins_zero_cinq));
     });
 
-    // it('test getMinSurroundingRange', () => {
-    //     expect(TSRangeHandler.getInstance().getMinSurroundingRange
-    // });
+    it('test getMinSurroundingRange', () => {
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, zero, true, false)])).to.deep.equal(null);
 
-    // it('test getRangesUnion', () => {
-    //     expect(TSRangeHandler.getInstance().getRangesUnion
-    // });
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, zero, true, true)])).to.deep.equal(TSRange.createNew(zero, zero, true, true));
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, false)])).to.deep.equal(TSRange.createNew(zero, zero, true, true));
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, true)])).to.deep.equal(TSRange.createNew(zero, zero, true, true));
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, true), TSRange.createNew(moins_un, zero, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, true), TSRange.createNew(moins_un, zero, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, false), TSRange.createNew(moins_un, zero, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, false), TSRange.createNew(moins_un, zero, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, true), TSRange.createNew(moins_un, zero, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, true), TSRange.createNew(moins_un, zero, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, false), TSRange.createNew(moins_un, zero, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, false), TSRange.createNew(moins_un, zero, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, true), TSRange.createNew(moins_un, zero, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, true), TSRange.createNew(moins_un, zero, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, false), TSRange.createNew(moins_un, zero, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, false), TSRange.createNew(moins_un, zero, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, true), TSRange.createNew(moins_un, zero, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, true), TSRange.createNew(moins_un, zero, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, false), TSRange.createNew(moins_un, zero, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, false), TSRange.createNew(moins_un, zero, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+
+
+
+
+
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+
+
+
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true), TSRange.createNew(moins_un, zero_cinq, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true), TSRange.createNew(moins_un, zero_cinq, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false), TSRange.createNew(moins_un, zero_cinq, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false), TSRange.createNew(moins_un, zero_cinq, true, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true), TSRange.createNew(moins_un, zero_cinq, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true), TSRange.createNew(moins_un, zero_cinq, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false), TSRange.createNew(moins_un, zero_cinq, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false), TSRange.createNew(moins_un, zero_cinq, false, true)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true), TSRange.createNew(moins_un, zero_cinq, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true), TSRange.createNew(moins_un, zero_cinq, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false), TSRange.createNew(moins_un, zero_cinq, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false), TSRange.createNew(moins_un, zero_cinq, true, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true), TSRange.createNew(moins_un, zero_cinq, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true), TSRange.createNew(moins_un, zero_cinq, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false), TSRange.createNew(moins_un, zero_cinq, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+        expect(TSRangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false), TSRange.createNew(moins_un, zero_cinq, false, false)])).to.deep.equal({
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange);
+    });
+
+    it('test getRangesUnion', () => {
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, zero, true, false)])).to.deep.equal(null);
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, zero, true, true)])).to.deep.equal([TSRange.createNew(zero, zero, true, true)]);
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, false)])).to.deep.equal([TSRange.createNew(zero, zero, true, true)]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, true)])).to.deep.equal([TSRange.createNew(zero, zero, true, true)]);
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, true), TSRange.createNew(moins_un, zero, true, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true), TSRange.createNew(moins_un, zero, true, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false), TSRange.createNew(moins_un, zero, true, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, false), TSRange.createNew(moins_un, zero, true, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, true), TSRange.createNew(moins_un, zero, false, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true), TSRange.createNew(moins_un, zero, false, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false), TSRange.createNew(moins_un, zero, false, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, false), TSRange.createNew(moins_un, zero, false, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, true), TSRange.createNew(moins_un, zero, true, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true), TSRange.createNew(moins_un, zero, true, false)])).to.deep.equal([{
+            min: zero,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange, {
+            min: moins_un,
+            min_inclusiv: true,
+            max: zero,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false), TSRange.createNew(moins_un, zero, true, false)])).to.deep.equal([{
+            min: zero,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange, {
+            min: moins_un,
+            min_inclusiv: true,
+            max: zero,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, false), TSRange.createNew(moins_un, zero, true, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, true), TSRange.createNew(moins_un, zero, false, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true), TSRange.createNew(moins_un, zero, false, false)])).to.deep.equal([{
+            min: zero,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange, {
+            min: moins_un,
+            min_inclusiv: false,
+            max: zero,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false), TSRange.createNew(moins_un, zero, false, false)])).to.deep.equal([{
+            min: zero,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange, {
+            min: moins_un,
+            min_inclusiv: false,
+            max: zero,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, false), TSRange.createNew(moins_un, zero, false, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+
+
+
+
+
+
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, true, true)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, true, true)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, true, true)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, true, true)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, true, true)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, true, true)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, true, true)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, true, true)]
+        );
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, false, true)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, false, true)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, false, true)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, false, true)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, false, true)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, false, true)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, false, true)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, false, true)]
+        );
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, true, false)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, true, false)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, true, false)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, true, false)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, true, false)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, true, false)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, true, false)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, true, false)]
+        );
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, false, false)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, true, true), TSRange.createNew(moins_un, moins_zero_cinq, false, false)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, false, false)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, false, true), TSRange.createNew(moins_un, moins_zero_cinq, false, false)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, false, false)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, false, false), TSRange.createNew(moins_un, moins_zero_cinq, false, false)]
+        );
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, false, false)])).to.deep.equal(
+            [TSRange.createNew(zero_cinq, un, true, false), TSRange.createNew(moins_un, moins_zero_cinq, false, false)]
+        );
+
+
+
+
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true), TSRange.createNew(moins_un, zero_cinq, true, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true), TSRange.createNew(moins_un, zero_cinq, true, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false), TSRange.createNew(moins_un, zero_cinq, true, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false), TSRange.createNew(moins_un, zero_cinq, true, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true), TSRange.createNew(moins_un, zero_cinq, false, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true), TSRange.createNew(moins_un, zero_cinq, false, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false), TSRange.createNew(moins_un, zero_cinq, false, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false), TSRange.createNew(moins_un, zero_cinq, false, true)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true), TSRange.createNew(moins_un, zero_cinq, true, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true), TSRange.createNew(moins_un, zero_cinq, true, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false), TSRange.createNew(moins_un, zero_cinq, true, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false), TSRange.createNew(moins_un, zero_cinq, true, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: true,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true), TSRange.createNew(moins_un, zero_cinq, false, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true), TSRange.createNew(moins_un, zero_cinq, false, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: true
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false), TSRange.createNew(moins_un, zero_cinq, false, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+        expect(TSRangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false), TSRange.createNew(moins_un, zero_cinq, false, false)])).to.deep.equal([{
+            min: moins_un,
+            min_inclusiv: false,
+            max: un,
+            max_inclusiv: false
+        } as TSRange]);
+    });
 
     it('test getSegmentedMax', () => {
 
@@ -440,9 +1042,66 @@ describe('TSRangeHandler', () => {
         expect(TSRangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
     });
 
-    // it('test getSegmentedMax_from_ranges', () => {
-    //     expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges
-    // });
+    it('test getSegmentedMax_from_ranges', () => {
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, zero, true, true), TSRange.createNew(moins_un, un, true, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, un, true, false), TSRange.createNew(moins_un, un, true, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, un, true, false), TSRange.createNew(moins_un, un, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, un, true, true), TSRange.createNew(moins_un, un, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, un, true, true), TSRange.createNew(moins_un, un, true, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, zero, false, true), TSRange.createNew(moins_un, zero, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, zero, false, true), TSRange.createNew(moins_un, zero, false, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, zero, false, false), TSRange.createNew(moins_un, zero, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, zero, true, false), TSRange.createNew(moins_un, zero, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, zero, true, false), TSRange.createNew(moins_un, zero, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_un, zero, false, false), TSRange.createNew(moins_un, zero, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(zero, zero, true, false), TSRange.createNew(zero, zero, true, false)
+        ])).to.equal(null);
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, true)
+        ])).to.equal(null);
+
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+
+        expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(moins_zero_cinq, zero_cinq, true, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+    });
 
     it('test getSegmentedMin', () => {
 
@@ -462,13 +1121,76 @@ describe('TSRangeHandler', () => {
         expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
     });
 
-    // it('test getSegmentedMin_from_ranges', () => {
-    //     expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges
-    // });
+    it('test getSegmentedMin_from_ranges', () => {
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, zero, true, true), TSRange.createNew(moins_un, un, true, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, un, true, false), TSRange.createNew(moins_un, un, true, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, un, true, false), TSRange.createNew(moins_un, un, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, un, true, true), TSRange.createNew(moins_un, un, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, un, true, true), TSRange.createNew(moins_un, un, true, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
 
-    // it('test getValueFromFormattedMinOrMaxAPI', () => {
-    //     expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI
-    // });
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, zero, false, true), TSRange.createNew(moins_un, zero, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, zero, false, true), TSRange.createNew(moins_un, zero, false, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, zero, false, false), TSRange.createNew(moins_un, zero, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, zero, true, false), TSRange.createNew(moins_un, zero, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, zero, true, false), TSRange.createNew(moins_un, zero, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_un, zero, false, false), TSRange.createNew(moins_un, zero, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero, zero, true, false), TSRange.createNew(zero, zero, true, false)
+        ])).to.equal(null);
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, true)
+        ])).to.equal(null);
+
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+
+        expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
+            TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(moins_zero_cinq, zero_cinq, true, true)
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+    });
+
+    it('test getValueFromFormattedMinOrMaxAPI', () => {
+        expect(DateHandler.getInstance().formatDateTimeForAPI(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(zero)))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(zero));
+        expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(null))).to.equal(null);
+        expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(undefined)).to.equal(null);
+        expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(null)).to.equal(null);
+        expect(DateHandler.getInstance().formatDateTimeForAPI(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(moins_un)))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(moins_un));
+        expect(DateHandler.getInstance().formatDateTimeForAPI(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(un)))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(un));
+        expect(DateHandler.getInstance().formatDateTimeForAPI(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(zero_cinq)))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(zero_cinq));
+    });
 
     it('test isEndABeforeEndB', () => {
         expect(TSRangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, true))).to.equal(false);
@@ -1001,23 +1723,303 @@ describe('TSRangeHandler', () => {
         expect(TSRangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false), TSRange.createNew(moins_un, zero, false, false))).to.equal(true);
     });
 
-    // it('test is_elt_inf_min', () => {
-    //     expect(TSRangeHandler.getInstance().is_elt_inf_min
-    // });
+    it('test is_elt_inf_min', () => {
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(null, TSRange.createNew(zero, zero, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(null, TSRange.createNew(zero, zero, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(moins_un, TSRange.createNew(zero, zero, true, false))).to.equal(false);
 
-    // it('test is_elt_sup_max', () => {
-    //     expect(TSRangeHandler.getInstance().is_elt_sup_max
-    // });
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(zero, TSRange.createNew(zero, zero, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(zero, TSRange.createNew(zero, zero, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(zero, TSRange.createNew(zero, zero, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(zero, TSRange.createNew(zero, zero, false, false))).to.equal(false);
 
-    // it('test range_intersects_range', () => {
-    //     expect(TSRangeHandler.getInstance().range_intersects_range
-    // });
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(deux, TSRange.createNew(moins_un, un, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(deux, TSRange.createNew(moins_un, un, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(deux, TSRange.createNew(moins_un, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(deux, TSRange.createNew(moins_un, un, false, false))).to.equal(false);
 
-    // it('test range_intersects_ranges', () => {
-    //     expect(TSRangeHandler.getInstance().range_intersects_ranges
-    // });
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(un, TSRange.createNew(moins_un, un, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(un, TSRange.createNew(moins_un, un, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(un, TSRange.createNew(moins_un, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(un, TSRange.createNew(moins_un, un, false, false))).to.equal(false);
 
-    // it('test ranges_are_contiguous_or_intersect', () => {
-    //     expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect
-    // });
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(moins_un, TSRange.createNew(moins_un, un, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(moins_un, TSRange.createNew(moins_un, un, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(moins_un, TSRange.createNew(moins_un, un, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(moins_un, TSRange.createNew(moins_un, un, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(moins_deux, TSRange.createNew(moins_un, un, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(moins_deux, TSRange.createNew(moins_un, un, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(moins_deux, TSRange.createNew(moins_un, un, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().is_elt_inf_min(moins_deux, TSRange.createNew(moins_un, un, false, false))).to.equal(true);
+    });
+
+    it('test is_elt_sup_max', () => {
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(null, TSRange.createNew(zero, zero, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(null, TSRange.createNew(zero, zero, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(deux, TSRange.createNew(zero, zero, true, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(zero, TSRange.createNew(zero, zero, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(zero, TSRange.createNew(zero, zero, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(zero, TSRange.createNew(zero, zero, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(zero, TSRange.createNew(zero, zero, false, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(deux, TSRange.createNew(moins_un, un, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(deux, TSRange.createNew(moins_un, un, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(deux, TSRange.createNew(moins_un, un, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(deux, TSRange.createNew(moins_un, un, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(un, TSRange.createNew(moins_un, un, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(un, TSRange.createNew(moins_un, un, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(un, TSRange.createNew(moins_un, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(un, TSRange.createNew(moins_un, un, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(moins_un, TSRange.createNew(moins_un, un, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(moins_un, TSRange.createNew(moins_un, un, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(moins_un, TSRange.createNew(moins_un, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(moins_un, TSRange.createNew(moins_un, un, false, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(moins_deux, TSRange.createNew(moins_un, un, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(moins_deux, TSRange.createNew(moins_un, un, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(moins_deux, TSRange.createNew(moins_un, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().is_elt_sup_max(moins_deux, TSRange.createNew(moins_un, un, false, false))).to.equal(false);
+    });
+
+    it('test range_intersects_range', () => {
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, false, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero, false, true), TSRange.createNew(zero, zero, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero, false, true), TSRange.createNew(zero, zero, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, true))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(un, deux, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(un, deux, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), TSRange.createNew(un, deux, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(un, deux, true, true))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(un, deux, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(un, deux, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), TSRange.createNew(un, deux, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(un, deux, true, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(un, deux, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(un, deux, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), TSRange.createNew(un, deux, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(un, deux, false, true))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(un, deux, false, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(un, deux, false, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), TSRange.createNew(un, deux, false, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(un, deux, false, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, true), TSRange.createNew(zero_cinq, deux, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, true), TSRange.createNew(zero_cinq, deux, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, true), TSRange.createNew(zero_cinq, deux, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, true), TSRange.createNew(zero_cinq, deux, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false), TSRange.createNew(zero_cinq, deux, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false), TSRange.createNew(zero_cinq, deux, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false), TSRange.createNew(zero_cinq, deux, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false), TSRange.createNew(zero_cinq, deux, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, true), TSRange.createNew(zero_cinq, deux, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, true), TSRange.createNew(zero_cinq, deux, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, true), TSRange.createNew(zero_cinq, deux, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, true), TSRange.createNew(zero_cinq, deux, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false), TSRange.createNew(zero_cinq, deux, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false), TSRange.createNew(zero_cinq, deux, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false), TSRange.createNew(zero_cinq, deux, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false), TSRange.createNew(zero_cinq, deux, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, true), TSRange.createNew(zero_cinq, un, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, true), TSRange.createNew(zero_cinq, un, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, true), TSRange.createNew(zero_cinq, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, true), TSRange.createNew(zero_cinq, un, false, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, false), TSRange.createNew(zero_cinq, un, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, false), TSRange.createNew(zero_cinq, un, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, false), TSRange.createNew(zero_cinq, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, false), TSRange.createNew(zero_cinq, un, false, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true), TSRange.createNew(zero_cinq, un, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true), TSRange.createNew(zero_cinq, un, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true), TSRange.createNew(zero_cinq, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true), TSRange.createNew(zero_cinq, un, false, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, false), TSRange.createNew(zero_cinq, un, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, false), TSRange.createNew(zero_cinq, un, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, false), TSRange.createNew(zero_cinq, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, false), TSRange.createNew(zero_cinq, un, false, false))).to.equal(false);
+    });
+
+    it('test range_intersects_any_range', () => {
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, zero, true, true), [
+            TSRange.createNew(zero, zero, false, false),
+            TSRange.createNew(zero, zero, true, false),
+            TSRange.createNew(zero, zero, false, true)
+        ])).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, zero, true, true), [
+            TSRange.createNew(zero, zero, false, false),
+            TSRange.createNew(zero, zero, true, false),
+            TSRange.createNew(zero, zero, false, true),
+            TSRange.createNew(zero, zero, true, true)
+        ])).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), [
+            TSRange.createNew(un, deux, true, true),
+            TSRange.createNew(un, deux, true, false),
+            TSRange.createNew(un, deux, false, true),
+            TSRange.createNew(un, deux, false, false),
+        ])).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), [
+            TSRange.createNew(un, deux, true, true),
+            TSRange.createNew(un, deux, true, false),
+            TSRange.createNew(un, deux, false, true),
+            TSRange.createNew(un, deux, false, false),
+        ])).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), [
+            TSRange.createNew(un, deux, true, true),
+            TSRange.createNew(un, deux, true, false),
+            TSRange.createNew(un, deux, false, true),
+            TSRange.createNew(un, deux, false, false),
+        ])).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), [
+            TSRange.createNew(un, deux, true, true),
+            TSRange.createNew(un, deux, true, false),
+            TSRange.createNew(un, deux, false, true),
+            TSRange.createNew(un, deux, false, false),
+        ])).to.equal(false);
+
+
+
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, un, true, true), [
+            TSRange.createNew(zero_cinq, deux, true, true),
+            TSRange.createNew(zero_cinq, deux, true, false),
+            TSRange.createNew(zero_cinq, deux, false, true),
+            TSRange.createNew(zero_cinq, deux, false, false),
+        ])).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, un, true, false), [
+            TSRange.createNew(zero_cinq, deux, true, true),
+            TSRange.createNew(zero_cinq, deux, true, false),
+            TSRange.createNew(zero_cinq, deux, false, true),
+            TSRange.createNew(zero_cinq, deux, false, false),
+        ])).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, un, false, true), [
+            TSRange.createNew(zero_cinq, deux, true, true),
+            TSRange.createNew(zero_cinq, deux, true, false),
+            TSRange.createNew(zero_cinq, deux, false, true),
+            TSRange.createNew(zero_cinq, deux, false, false),
+        ])).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, un, false, false), [
+            TSRange.createNew(zero_cinq, deux, true, true),
+            TSRange.createNew(zero_cinq, deux, true, false),
+            TSRange.createNew(zero_cinq, deux, false, true),
+            TSRange.createNew(zero_cinq, deux, false, false),
+        ])).to.equal(true);
+
+
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, zero_cinq, true, true), [
+            TSRange.createNew(zero_cinq, un, true, true),
+            TSRange.createNew(zero_cinq, un, true, false),
+            TSRange.createNew(zero_cinq, un, false, true),
+            TSRange.createNew(zero_cinq, un, false, false),
+        ])).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, zero_cinq, true, false), [
+            TSRange.createNew(zero_cinq, un, true, true),
+            TSRange.createNew(zero_cinq, un, true, false),
+            TSRange.createNew(zero_cinq, un, false, true),
+            TSRange.createNew(zero_cinq, un, false, false),
+        ])).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, zero_cinq, false, true), [
+            TSRange.createNew(zero_cinq, un, true, true),
+            TSRange.createNew(zero_cinq, un, true, false),
+            TSRange.createNew(zero_cinq, un, false, true),
+            TSRange.createNew(zero_cinq, un, false, false),
+        ])).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, zero_cinq, false, false), [
+            TSRange.createNew(zero_cinq, un, true, true),
+            TSRange.createNew(zero_cinq, un, true, false),
+            TSRange.createNew(zero_cinq, un, false, true),
+            TSRange.createNew(zero_cinq, un, false, false),
+        ])).to.equal(false);
+    });
+
+    it('test ranges_are_contiguous_or_intersect', () => {
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, false, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero, false, true), TSRange.createNew(zero, zero, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero, false, true), TSRange.createNew(zero, zero, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, true))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(un, deux, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(un, deux, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), TSRange.createNew(un, deux, true, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(un, deux, true, true))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(un, deux, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(un, deux, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), TSRange.createNew(un, deux, true, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(un, deux, true, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(un, deux, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(un, deux, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), TSRange.createNew(un, deux, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(un, deux, false, true))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(un, deux, false, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(un, deux, false, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), TSRange.createNew(un, deux, false, false))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(un, deux, false, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, true, true), TSRange.createNew(zero_cinq, deux, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, true, true), TSRange.createNew(zero_cinq, deux, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, true, true), TSRange.createNew(zero_cinq, deux, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, true, true), TSRange.createNew(zero_cinq, deux, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, true, false), TSRange.createNew(zero_cinq, deux, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, true, false), TSRange.createNew(zero_cinq, deux, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, true, false), TSRange.createNew(zero_cinq, deux, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, true, false), TSRange.createNew(zero_cinq, deux, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, true), TSRange.createNew(zero_cinq, deux, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, true), TSRange.createNew(zero_cinq, deux, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, true), TSRange.createNew(zero_cinq, deux, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, true), TSRange.createNew(zero_cinq, deux, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false), TSRange.createNew(zero_cinq, deux, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false), TSRange.createNew(zero_cinq, deux, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false), TSRange.createNew(zero_cinq, deux, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false), TSRange.createNew(zero_cinq, deux, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, true), TSRange.createNew(zero_cinq, un, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, true), TSRange.createNew(zero_cinq, un, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, true), TSRange.createNew(zero_cinq, un, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, true), TSRange.createNew(zero_cinq, un, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false), TSRange.createNew(zero_cinq, un, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false), TSRange.createNew(zero_cinq, un, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false), TSRange.createNew(zero_cinq, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false), TSRange.createNew(zero_cinq, un, false, false))).to.equal(false);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true), TSRange.createNew(zero_cinq, un, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true), TSRange.createNew(zero_cinq, un, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true), TSRange.createNew(zero_cinq, un, false, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true), TSRange.createNew(zero_cinq, un, false, false))).to.equal(true);
+
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false), TSRange.createNew(zero_cinq, un, true, true))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false), TSRange.createNew(zero_cinq, un, true, false))).to.equal(true);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false), TSRange.createNew(zero_cinq, un, false, true))).to.equal(false);
+        expect(TSRangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false), TSRange.createNew(zero_cinq, un, false, false))).to.equal(false);
+    });
 });

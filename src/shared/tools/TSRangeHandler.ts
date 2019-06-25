@@ -220,7 +220,23 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
 
     public getValueFromFormattedMinOrMaxAPI(input: string): Moment {
         try {
-            return moment(parseFloat(input));
+            if (!input) {
+                return null;
+            }
+
+            let resn = parseFloat(input);
+
+            if (isNaN(resn)) {
+                return null;
+            }
+
+            let res = moment(resn);
+
+            if (!res.isValid()) {
+                return null;
+            }
+
+            return res;
         } catch (error) {
         }
         return null;
