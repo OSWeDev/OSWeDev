@@ -8,6 +8,7 @@ import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import APIDefinition from './vos/APIDefinition';
 import { isArray } from 'util';
 
+
 export default class ModuleAPI extends Module {
 
     public static BASE_API_URL: string = "/api_handler/";
@@ -52,6 +53,11 @@ export default class ModuleAPI extends Module {
         let paramTranslator: (...params) => Promise<T> = this.getParamTranslator<T>(api_name);
         let apiDefinition: APIDefinition<T, U> = this.registered_apis[api_name];
 
+        // // On ajoute la conversion msgpack à cette étape
+        // if (ModulesManager.getInstance().isServerSide && Buffer.isBuffer(translated_param)) {
+        //     translated_param = translated_param ? decode(translated_param as any as Buffer) : null;
+        // }
+
         if (api_params && isArray(api_params) && (api_params.length > 1)) {
             // On a besoin de faire appel à un traducteur
             if (!paramTranslator) {
@@ -89,16 +95,21 @@ export default class ModuleAPI extends Module {
 
                 return await ModuleAjaxCache.getInstance().get(
                     (ModuleAPI.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
-                    API_TYPES_IDS_involved) as U;
+                    API_TYPES_IDS_involved,
+                    ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
             } else {
+
+                // On ajoute la conversion msgpack à cette étape
 
                 if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
 
                     let filePath: string = await ModuleAjaxCache.getInstance().post(
                         (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
-                        null) as string;
+                        // ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? translated_param : null,
+                        null,
+                        ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as string;
 
                     let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
                     $('body').append(iframe);
@@ -154,8 +165,9 @@ export default class ModuleAPI extends Module {
                     return await ModuleAjaxCache.getInstance().post(
                         (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
-                        null) as U;
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? translated_param : null,
+                        null,
+                        ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
                 }
             }
         }

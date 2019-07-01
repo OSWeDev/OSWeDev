@@ -85,6 +85,8 @@ OpenSource WeDev
 ## Outil de développement préféré
 Visual Studio Code
 ### Configuration conseillée 
+    * A Lancer depuis un powershell admin :
+      npm install --global windows-build-tools
     * DEPRECATED : Semble ne pas convenir de lancer toutes les taches en meme temps, il faut creuser. Et pour le moment lancer les taches individuellement, et avec une visibilité (donc on commente une ligne) : Installer le plugin    yukidoi.blade-runner
     * Souvent utile pour initialiser une nouvelle base depuis une base existante et en changer le propriétaire : 
         ---- Pour les tables ------------------------------------------------------------------------------------

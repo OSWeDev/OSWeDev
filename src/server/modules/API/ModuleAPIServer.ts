@@ -2,6 +2,8 @@ import ModuleServerBase from '../ModuleServerBase';
 import { Express, Request, Response } from 'express';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
+import { encode } from 'messagepack';
+import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 export default class ModuleAPIServer extends ModuleServerBase {
 

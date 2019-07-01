@@ -1,4 +1,6 @@
+import * as msgpackResponse from 'msgpack-response';
 import * as child_process from 'child_process';
+import * as bodyParser from 'body-parser-with-msgpack';
 import * as compression from 'compression';
 import * as express from 'express';
 import { NextFunction, Request, Response } from 'express';
@@ -33,6 +35,7 @@ import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 import ModuleFileServer from './modules/File/ModuleFileServer';
+import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 
 export default abstract class ServerBase {
 
@@ -150,7 +153,21 @@ export default abstract class ServerBase {
         let httpContext = ServerBase.getInstance().getHttpContext();
 
         if (this.envParam.COMPRESS) {
-            this.app.use(compression());
+            let shouldCompress = function (req, res) {
+                if (req.headers['x-no-compression']) {
+                    // don't compress responses with this request header
+                    return false;
+                }
+
+                // On check le cas du MSGPack qui est pas géré pour le moment pour indiquer compressible
+                if (req.headers['content-type'] == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+                    return true;
+                }
+
+                // fallback to standard filter function
+                return compression.filter(req, res);
+            };
+            this.app.use(compression({ filter: shouldCompress }));
         }
 
         this.app.use(createLocaleMiddleware({
@@ -253,6 +270,12 @@ export default abstract class ServerBase {
             next();
         });
 
+        // if (ConfigurationService.getInstance().getNodeConfiguration().ISDEV) {
+        this.app.use(bodyParser.msgpack());
+        this.app.use(msgpackResponse({ auto_detect: true }));
+        // }
+
+
         // Log request & response
         this.app.use((req: Request, res: Response, next: NextFunction) => {
             // logger.info('req', {
@@ -321,6 +344,7 @@ export default abstract class ServerBase {
         this.app.use(express.urlencoded({ extended: true, limit: '150mb' }));
 
         this.app.use(httpContext.middleware);
+
 
         // Example authorization middleware
         this.app.use(async (req, res, next) => {

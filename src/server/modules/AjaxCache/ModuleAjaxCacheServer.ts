@@ -49,26 +49,26 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    public async requests_wrapper(requests: RequestResponseCacheVO[]): Promise<RequestsWrapperResult> {
+    public async requests_wrapper(request_urls: string[]): Promise<RequestsWrapperResult> {
 
         let res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
 
-        for (let i in requests) {
-            let wrapped_request: RequestResponseCacheVO = requests[i];
+        for (let i in request_urls) {
+            let request_url: string = request_urls[i];
 
             let apiDefinition: APIDefinition<any, any> = null;
 
             for (let j in ModuleAPI.getInstance().registered_apis) {
                 let registered_api = ModuleAPI.getInstance().registered_apis[j];
-                if (ModuleAPI.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, ModuleAPI.getInstance().getAPI_URL(registered_api))) {
+                if (ModuleAPI.getInstance().requestUrlMatchesApiUrl(request_url, ModuleAPI.getInstance().getAPI_URL(registered_api))) {
                     apiDefinition = registered_api;
                     break;
                 }
             }
 
             if (!apiDefinition) {
-                console.error('API introuvable:' + wrapped_request.url + ':');
+                console.error('API introuvable:' + request_url + ':');
                 break;
             }
 
@@ -77,11 +77,11 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                 // Il faut un objet request.params à ce niveau avec chaque param séparé si c'est possible.
                 //
                 param = await apiDefinition.PARAM_TRANSLATE_FROM_REQ(ModuleAPI.getInstance().getFakeRequestParamsFromUrl(
-                    wrapped_request.url,
+                    request_url,
                     ModuleAPI.getInstance().getAPI_URL(apiDefinition)));
             }
 
-            res.requests_results[wrapped_request.url] = await apiDefinition.SERVER_HANDLER(param);
+            res.requests_results[request_url] = await apiDefinition.SERVER_HANDLER(param);
         }
 
         return res;

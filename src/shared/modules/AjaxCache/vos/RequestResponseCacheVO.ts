@@ -13,6 +13,7 @@ export default class RequestResponseCacheVO {
     public creationDate: Moment = moment();
     public datasDate: Moment = null;
     public url: string;
+    public contentType: string = null;
 
     public resolve_callbacks: Array<(datas) => void> = [];
     public reject_callbacks: Array<(datas) => void> = [];
@@ -23,8 +24,9 @@ export default class RequestResponseCacheVO {
 
     public api_types_involved: string[] = [];
 
-    public constructor(url: string, api_types_involved: string[]) {
+    public constructor(url: string, api_types_involved: string[], contentType: string = null) {
         this.url = url;
         this.api_types_involved = api_types_involved;
+        this.contentType = contentType;
     }
 }
