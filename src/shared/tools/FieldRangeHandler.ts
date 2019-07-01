@@ -24,6 +24,19 @@ export default class FieldRangeHandler extends RangeHandler<any> {
      * @param range_a
      * @param range_b
      */
+    public getCardinal<T>(range: FieldRange<T>, segment_type?: number): number {
+        if (!range) {
+            return null;
+        }
+
+        let relevantHandler = this.getRelevantHandler(range);
+        return relevantHandler ? relevantHandler.getCardinal(range as any, segment_type) : null;
+    }
+
+    /**
+     * @param range_a
+     * @param range_b
+     */
     public ranges_are_contiguous_or_intersect<T>(range_a: FieldRange<T>, range_b: FieldRange<T>): boolean {
 
         if ((!range_a) || (!range_b)) {
@@ -43,7 +56,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -65,7 +77,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -87,7 +98,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -109,7 +119,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -131,7 +140,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -153,7 +161,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -175,7 +182,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -197,7 +203,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * Renvoie le plus petit ensemble permettant d'entourer les ranges passés en param
      * @param ranges
      */
@@ -217,8 +222,8 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         return res;
     }
 
-    public createNew<T>(api_type_id: string, field_i: string, min: T = null, max: T = null, min_inclusiv: boolean = null, max_inclusiv: boolean = null): FieldRange<T> {
-        return FieldRange.createNew(api_type_id, field_i, min, max, min_inclusiv, max_inclusiv);
+    public createNew<T>(api_type_id: string, field_id: string, min: T = null, max: T = null, min_inclusiv: boolean = null, max_inclusiv: boolean = null): FieldRange<T> {
+        return FieldRange.createNew(api_type_id, field_id, min, max, min_inclusiv, max_inclusiv);
     }
 
     public cloneFrom<T>(from: FieldRange<T>): FieldRange<T> {
@@ -374,7 +379,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param elt
      * @param range
      */
@@ -390,7 +394,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param elt
      * @param range
      */

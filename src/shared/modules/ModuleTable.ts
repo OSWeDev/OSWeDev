@@ -38,6 +38,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public importable: boolean = false;
     public isModuleParamTable: boolean = false;
 
+    public isMatroidTable: boolean = false;
+
     public any_to_many_default_behaviour_show: boolean = true;
 
     public voConstructor: () => T = null;
@@ -86,6 +88,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
+    }
+
+    public defineAsMatroid(): ModuleTable<any> {
+        this.isMatroidTable = true;
+        return this;
     }
 
     public hideAnyToManyByDefault(): ModuleTable<any> {

@@ -21,6 +21,12 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
+import ModuleMatroid from '../Matroid/ModuleMatroid';
+import MatroidController from '../Matroid/MatroidController';
+import IMatroid from '../Matroid/interfaces/IMatroid';
+import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
+import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
+import ISimpleNumberVarMatroidData from './interfaces/ISimpleNumberVarMatroidData';
 
 export default class VarsController {
 
@@ -1037,36 +1043,110 @@ export default class VarsController {
      * Nouvelle version de la gestion des données importées et/ou précompilées pour avoir
      *  des chargements de datas uniquement liées à l'arbre demandé. Objectif : Limiter
      *  drastiquement les donées chargées, et donc en précompiler le plus possible à terme.
+     *
+     * On s'intéresse par contre que aux vars qui utilisent des matroids
      */
     private async loadImportedOrPrecompiledDatas() {
 
-        // let params_by_var_id: { [var_id: number]: IVarDataParamVOBase[] } = {};
 
-        // // On regroupe les params par var_id
-        // for (let i in this.varDAG.nodes) {
-        //     let node: VarDAGNode = this.varDAG.nodes[i];
+        // TODO FIXME il faut parcourir l'arbre de haut en bas, en linéraire, pour restreindre petit à petit les matroids des deps
+        //  ça veut dire aussi qu'on doit d'abord stocker tous les matroids inscrits et ensuite quand le noeud peut être résolu,
+        //  on filtre les matroids inscrits pour limiter à ceux qui restent inscrits après limitation des deps.
 
-        //     if (!params_by_var_id[node.param.var_id]) {
-        //         params_by_var_id[node.param.var_id] = [];
-        //     }
-        //     params_by_var_id[node.param.var_id].push(node.param);
-        // }
+        // Dans le cas des matroids, et puisque les requêtes sont wrappées maintenant, on demande une requête par varnode
+        //  compliqué de faire des unions de matroids et probablement contre-productif à ce niveau
+        let promises: Array<Promise<any>> = [];
+        let vos: IVarMatroidDataVO[] = [];
 
-        // // et on cherche l'union pour chaque filtre / field_id cible
-        // // On voudrait limiter le nombre de requêtes, en même temps comment regrouper facilement les
-        // for (let i in params_by_var_id){
-        //     let params: IVarDataParamVOBase[] = params_by_var_id[i];
+        for (let i in this.varDAG.nodes) {
+            let node: VarDAGNode = this.varDAG.nodes[i];
 
-        //     if ((!params) || (!params.length) || (!params[0]) || (!params[0].var_id)){
-        //         continue;
-        //     }
+            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
 
-        //     //FIXME TODO ASAP à refondre en utilisant les bonnes requêtes avec un chargement partiel des datas de chaque var_id
-        //     // là on charge tout en vrac, osef pour le moment
-        // }
+            if (!moduletable.isMatroidTable) {
+                continue;
+            }
+
+            promises.push((async () => {
+                let matroids_inscrits: ISimpleNumberVarMatroidData[] = await MatroidController.getInstance().getVosFilteredByMatroid<ISimpleNumberVarMatroidData>(moduletable.vo_type, node.param as IVarMatroidDataParamVO);
+
+                // On a les matroids inscrits dans le matroid qui questionne, on veut maintenant identifier l'ensemble le 'plus couvrant'
+                //  Pour l'instant on fait simple, on classe par cardinal dec, et on garde ceux qui intersectent pas l'ensemble en cours de constitution
+
+                // TODO FIXME VARS ASAP au lieu de demander un vos filtered, on demande des datarendered donc on filtre côté serveur directement les matroids qui seront utilisés ou pas
+                //  au final côté client, ce qui évite d'envoyer une somme compilée pour les mois, et pour les jours des mois et pour l'année, si l'année est valide et couvre les autres.
+                //  Attention, si on veut faire une couverture optimale on peut pas d'abord filtrer les couverts et ensuite chercher la couverture totale. Exemple si j'ai une question
+                //  qui se pose sur 6 semaines, dont 4,5 sont couverts par un mois en datarendered, on a un cardinal élevé, on couvre 4 semaines probablement, mais on pourra probablement
+                //  plus tenter de couvrire les semaines restantes avec des calculs semaine.Alors que si on prend les 6 semaines en calculé, on couvre la totalité et on recalcule rien.
+                //  L'approximation est-elle suffisante, à voir dans le temps.
+                let matroids_list: ISimpleNumberVarMatroidData[] = [];
+                matroids_inscrits.sort((a: ISimpleNumberVarMatroidData, b: ISimpleNumberVarMatroidData) => b.cardinal - a.cardinal);
+
+                for (let j in matroids_inscrits) {
+                    let matroid_inscrit = matroids_inscrits[j];
+
+                    if (MatroidController.getInstance().matroid_intersects_any_matroid(matroid_inscrit, matroids_list)) {
+                        continue;
+                    }
+                    matroids_list.push(matroid_inscrit);
+                }
+
+                // On veut en tirer 2 choses :
+                //  La somme des valeurs précompilées sur la matroids_list, comme base de calcul
+                //  Le matroid restant que l'on va propager sur les vars dont on dépend
+
+                //  En fait, les deps on besoin de connaitre tous les matroids parents, qui les filtrent
+                //  on peut simplement les stocker, et retirer des matroids inscrits ceux qui intersectent avec l'un des matroid parent.
+
+                //  Celà dit, pour le calcul final, il faut définir la liste des matroids restants à calculer.
+                //  Si on a la liste des matroids restants à calculer, il faut savoir dire si les matroids inscrits restent inscrits dans les matroids restants.
+                //  ça semble pas simple a priori, alors qu'avec les parents, on a pas de difficulté.
+
+                //  donc on stocke les 2 infos dans l'arbre, les matroids cibles, et les matroids retirés via précompilation/import
+
+                // On commence par stocker les matroids en cache :
+                node.loaded_datas = Array.from(matroids_list);
+
+                // On rempli au passage la liste des matroids utilisés dans l'arborescence avant ce node
+                for (let j in node.incoming) {
+                    let incoming = node.incoming[j];
+
+                    node.parents_loaded_datas = node.parents_loaded_datas.concat(incoming.parents_loaded_datas);
+                }
+
+
+                let sum_value: number = null;
+                node.computed_datas = [Object.assign({}, node.param) as IVarMatroidDataVO];
+
+                for (let j in matroids_list) {
+                    let matroid = matroids_list[j];
+
+                    if ((matroid.value == null) || (typeof matroid.value == "undefined")) {
+                        continue;
+                    }
+
+                    if (sum_value == null) {
+                        sum_value = matroid.value;
+                        continue;
+                    }
+                    sum_value += matroid.value;
+
+                    // On soustrait ensuite ce matroid des matroids restants
+                    // On coupe chaque matroid restant intersectant ce matroid
+                    let new_matroids_restants: IMatroid[] = Object.assign({}, node.computed_datas);
+                    for (let k in node.computed_datas) {
+                        let
+                    }
+                }
+
+
+            })());
+        }
 
         await this.loadImportedDatas();
     }
+
+    private inter
 
     /**
      * Troisième version : on charge toutes les datas de toutes les var_ids présents dans l'arbre ou dont dépendent des éléments de l'arbre

@@ -5,7 +5,6 @@ import NumSegment from '../modules/DataRender/vos/NumSegment';
 
 export default class NumRangeHandler extends RangeHandler<number> {
 
-    public static SEGMENTATION_UNITE: number = 0;
 
     public static getInstance(): NumRangeHandler {
         if (!NumRangeHandler.instance) {
@@ -22,6 +21,27 @@ export default class NumRangeHandler extends RangeHandler<number> {
 
     public cloneFrom(from: NumRange): NumRange {
         return NumRange.cloneFrom(from);
+    }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     * @param range_a
+     * @param range_b
+     */
+    public getCardinal(range: NumRange, segment_type: number = NumSegment.TYPE_INT): number {
+        if (!range) {
+            return null;
+        }
+
+        let min: number = this.getSegmentedMin(range, segment_type);
+        let max: number = this.getSegmentedMax(range, segment_type);
+
+        switch (segment_type) {
+            case NumSegment.TYPE_INT:
+                return (max - min) + 1;
+        }
+
+        return null;
     }
 
     public getValueFromFormattedMinOrMaxAPI(input: string): number {

@@ -21,6 +21,33 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
      * @param range_a
      * @param range_b
      */
+    public getCardinal(range: TSRange, segment_type: number = TimeSegment.TYPE_DAY): number {
+        if (!range) {
+            return null;
+        }
+
+        let min: Moment = this.getSegmentedMin(range, segment_type);
+        let max: Moment = this.getSegmentedMax(range, segment_type);
+
+        switch (segment_type) {
+            case TimeSegment.TYPE_DAY:
+                return max.diff(min, 'day') + 1;
+            case TimeSegment.TYPE_MONTH:
+                return max.diff(min, 'month') + 1;
+            case TimeSegment.TYPE_WEEK:
+                return max.diff(min, 'week') + 1;
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+            case TimeSegment.TYPE_YEAR:
+                return max.diff(min, 'year') + 1;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param range_a
+     * @param range_b
+     */
     public ranges_are_contiguous_or_intersect(range_a: TSRange, range_b: TSRange): boolean {
 
         if ((!range_a) || (!range_b)) {
@@ -47,7 +74,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -63,7 +89,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -79,7 +104,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -95,7 +119,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -111,7 +134,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -124,7 +146,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -140,7 +161,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -156,7 +176,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * Renvoie le plus petit ensemble permettant d'entourer les ranges passés en param
      * @param ranges
      */
@@ -400,7 +419,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param elt
      * @param range
      */
@@ -417,7 +435,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param elt
      * @param range
      */

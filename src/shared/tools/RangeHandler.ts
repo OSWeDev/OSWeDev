@@ -5,7 +5,6 @@ export default abstract class RangeHandler<T> {
     protected constructor() { }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * On essaie de réduire le nombre d'ensemble si certains s'entrecoupent
      * @param ranges
      */
@@ -82,7 +81,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -112,7 +110,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -128,7 +125,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -144,7 +140,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -160,7 +155,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -176,7 +170,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -189,7 +182,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -205,7 +197,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -221,7 +212,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -245,7 +235,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param ranges
      */
@@ -267,7 +256,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param ranges
      */
@@ -282,7 +270,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param ranges
      */
@@ -297,7 +284,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param elt
      * @param range
      */
@@ -314,7 +300,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param elt
      * @param range
      */
@@ -331,7 +316,6 @@ export default abstract class RangeHandler<T> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * Renvoie le plus petit ensemble permettant d'entourer les ranges passés en param
      * @param ranges
      */
@@ -392,6 +376,8 @@ export default abstract class RangeHandler<T> {
 
     public abstract getSegmentedMin(range: IRange<T>, segment_type?: number): T;
     public abstract getSegmentedMax(range: IRange<T>, segment_type?: number): T;
+
+    public abstract getCardinal(range: IRange<T>, segment_type?: number): number;
 
     public abstract getSegmentedMin_from_ranges(ranges: Array<IRange<T>>, segment_type?: number): T;
     public abstract getSegmentedMax_from_ranges(ranges: Array<IRange<T>>, segment_type?: number): T;

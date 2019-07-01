@@ -1,6 +1,6 @@
 import TSRange from '../../DataRender/vos/TSRange';
-import IVarDataParamVOBase from './IVarDataParamVOBase';
+import IVarMatroidDataParamVO from './IVarMatroidDataParamVO';
 
-export default interface ITSRangesVarDataParam extends IVarDataParamVOBase {
+export default interface ITSRangesVarDataParam extends IVarMatroidDataParamVO {
     ts_ranges: TSRange[];
 }

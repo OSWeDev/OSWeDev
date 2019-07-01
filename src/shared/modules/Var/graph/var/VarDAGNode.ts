@@ -4,11 +4,21 @@ import IVarDataVOBase from '../../interfaces/IVarDataVOBase';
 import VarsController from '../../VarsController';
 import DAGNode from '../dag/DAGNode';
 import VarDAG from './VarDAG';
+import IVarMatroidDataVO from '../../interfaces/IVarMatroidDataVO';
+import IVarMatroidDataParamVO from '../../interfaces/IVarMatroidDataParamVO';
 
 export default class VarDAGNode extends DAGNode {
 
 
+    // Old version : sans matroids
     public imported: IVarDataVOBase = null;
+
+    // New version : with matroids
+    public loaded_datas: IVarMatroidDataVO[] = [];
+    public parents_loaded_datas: IVarMatroidDataVO[] = [];
+
+    public computed_datas: IVarMatroidDataVO[] = [];
+
 
     // Used for the deps heatmap
     public dependencies_count: number = null;
@@ -18,7 +28,7 @@ export default class VarDAGNode extends DAGNode {
     /**
      * Nodes that need this one
      */
-    public incoming: { [node_name: string]: DAGNode } = {};
+    public incoming: { [node_name: string]: VarDAGNode } = {};
     /**
      * Nodes that need this one
      */
@@ -27,7 +37,7 @@ export default class VarDAGNode extends DAGNode {
     /**
      * Nodes needed by this one
      */
-    public outgoing: { [node_name: string]: DAGNode } = {};
+    public outgoing: { [node_name: string]: VarDAGNode } = {};
     /**
      * Nodes needed by this one
      */

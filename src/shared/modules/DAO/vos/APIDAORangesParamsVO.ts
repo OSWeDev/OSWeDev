@@ -16,13 +16,23 @@ export default class APIDAORangesParamsVO {
         '/:field_id_7?/:range_min_7?/:inclusive_min_7?/:range_max_7?/:inclusive_max_7?' +
         '/:field_id_8?/:range_min_8?/:inclusive_min_8?/:range_max_8?/:inclusive_max_8?' +
         '/:field_id_9?/:range_min_9?/:inclusive_min_9?/:range_max_9?/:inclusive_max_9?' +
-        '/:field_id_10?/:range_min_10?/:inclusive_min_10?/:range_max_10?/:inclusive_max_10?';
+        '/:field_id_10?/:range_min_10?/:inclusive_min_10?/:range_max_10?/:inclusive_max_10?' +
+        '/:field_id_11?/:range_min_11?/:inclusive_min_11?/:range_max_11?/:inclusive_max_11?' +
+        '/:field_id_12?/:range_min_12?/:inclusive_min_12?/:range_max_12?/:inclusive_max_12?' +
+        '/:field_id_13?/:range_min_13?/:inclusive_min_13?/:range_max_13?/:inclusive_max_13?' +
+        '/:field_id_14?/:range_min_14?/:inclusive_min_14?/:range_max_14?/:inclusive_max_14?' +
+        '/:field_id_15?/:range_min_15?/:inclusive_min_15?/:range_max_15?/:inclusive_max_15?' +
+        '/:field_id_16?/:range_min_16?/:inclusive_min_16?/:range_max_16?/:inclusive_max_16?' +
+        '/:field_id_17?/:range_min_17?/:inclusive_min_17?/:range_max_17?/:inclusive_max_17?' +
+        '/:field_id_18?/:range_min_18?/:inclusive_min_18?/:range_max_18?/:inclusive_max_18?' +
+        '/:field_id_19?/:range_min_19?/:inclusive_min_19?/:range_max_19?/:inclusive_max_19?' +
+        '/:field_id_20?/:range_min_20?/:inclusive_min_20?/:range_max_20?/:inclusive_max_20?';
 
     public static async translateCheckAccessParams(
         API_TYPE_ID: string,
         ranges: Array<FieldRange<any>>): Promise<APIDAORangesParamsVO> {
 
-        if ((!ranges) || (!ranges.length) || (ranges.length > 10)) {
+        if ((!ranges) || (!ranges.length) || (ranges.length > 20)) {
             console.error("translateCheckAccessParams:APIDAORangesParamsVO:" + JSON.stringify(ranges));
             return null;
         }
