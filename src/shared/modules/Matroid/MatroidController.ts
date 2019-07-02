@@ -1,5 +1,8 @@
+import * as clonedeep from 'lodash/clonedeep';
 import moment = require('moment');
 import FieldRangeHandler from '../../tools/FieldRangeHandler';
+import NumRangeHandler from '../../tools/NumRangeHandler';
+import TSRangeHandler from '../../tools/TSRangeHandler';
 import ModuleDAO from '../DAO/ModuleDAO';
 import IRange from '../DataRender/interfaces/IRange';
 import FieldRange from '../DataRender/vos/FieldRange';
@@ -8,14 +11,12 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import IMatroid from './interfaces/IMatroid';
-import RangeHandler from '../../tools/RangeHandler';
-import TSRangeHandler from '../../tools/TSRangeHandler';
-import NumRangeHandler from '../../tools/NumRangeHandler';
+import MatroidBaseController from './MatroidBaseController';
 import MatroidBase from './vos/MatroidBase';
+import MatroidBaseCutResult from './vos/MatroidBaseCutResult';
+import MatroidCutResult from './vos/MatroidCutResult';
 
 export default class MatroidController {
-
-    public static Matroid_RUN: boolean = true;
 
     public static getInstance(): MatroidController {
         if (!MatroidController.instance) {
@@ -215,19 +216,19 @@ export default class MatroidController {
         return false;
     }
 
-    public cut_matroids(matroid_cutter: IMatroid, matroids_to_cut: IMatroid[]): IMatroid[] {
+    public cut_matroids<T extends IMatroid>(matroid_cutter: T, matroids_to_cut: T[]): Array<MatroidCutResult<T>> {
 
-        let res: IMatroid[] = Object.assign({}, matroids_to_cut);
+        let res: Array<MatroidCutResult<T>> = [];
         for (let i in matroids_to_cut) {
-            let matroid_to_cut: IMatroid = matroids_to_cut[i];
+            let matroid_to_cut: T = matroids_to_cut[i];
 
-            let cut_results: IMatroid[] = this.cut_matroid(matroid_cutter, matroid_to_cut);
+            let cut_result: MatroidCutResult<T> = this.cut_matroid(matroid_cutter, matroid_to_cut);
 
-            if (!cut_results) {
+            if (!cut_result) {
                 continue;
             }
 
-            res = res.concat(cut_results);
+            res.push(cut_result);
         }
 
         return res;
@@ -236,8 +237,8 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
-    public cut_matroid(matroid_cutter: IMatroid, matroid_to_cut: IMatroid): IMatroid[] {
-        let res: IMatroid[] = [];
+    public cut_matroid<T extends IMatroid>(matroid_cutter: T, matroid_to_cut: T): MatroidCutResult<T> {
+        let res: MatroidCutResult<T> = new MatroidCutResult<T>([], []);
 
         if (!this.matroid_intersects_matroid(matroid_cutter, matroid_to_cut)) {
             return null;
@@ -245,15 +246,72 @@ export default class MatroidController {
 
         // On choisit (arbitrairement) de projeter la coupe selon une base du matroid
         //  de manière totalement arbitraire aussi, on priorise la base de cardinal la plus élevée
-        let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(matroid_to_cut._type);
         let matroid_to_cut_bases: Array<MatroidBase<any>> = this.getMatroidBases(matroid_to_cut, true, false);
 
-        // On coupe sur chaque base, si elle a une intersection
+        // Le matroid chopped est unique par définition et reprend simplement les bases chopped
+        let chopped_matroid = this.cloneFrom(matroid_to_cut);
 
+        // On coupe sur chaque base, si elle a une intersection
         for (let i in matroid_to_cut_bases) {
             let matroid_to_cut_base = matroid_to_cut_bases[i];
 
-            matroid_to_cut_base.ranges
+            // Pour chaque base:
+            //  - on cherche le résultat de la coupe.
+            //  - on en déduit un matroid sur cette coupe
+            //  - si il y a un chopped, on fixe cette dimension et on continue de couper sur les autres bases
+
+            if (!matroid_cutter[matroid_to_cut_base.field_id]) {
+                continue;
+            }
+            let matroidbase_cutter = matroid_cutter[matroid_to_cut_base.field_id];
+            let cut_result: MatroidBaseCutResult<MatroidBase<any>> = MatroidBaseController.getInstance().cut_matroid_base(matroidbase_cutter, matroid_to_cut_base);
+
+            // Le but est de créer le matroid lié à la coupe sur cette dimension
+            let this_base_remaining_matroid = this.cloneFrom(chopped_matroid);
+
+            this_base_remaining_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.remaining_items);
+            res.remaining_items.push(this_base_remaining_matroid);
+
+            chopped_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.chopped_items);
+        }
+        res.chopped_items.push(chopped_matroid);
+
+        return res;
+    }
+
+    /**
+     * Clones the type and segment_type. The bases are left undefined
+     * @param from
+     */
+    public createEmptyFrom<T extends IMatroid>(from: T): T {
+        let res: T = {
+            _type: from._type,
+            cardinal: 0,
+            segment_type: from.segment_type,
+            id: undefined
+        } as T;
+
+        return res;
+    }
+
+    /**
+     * Clones all but id
+     * @param from
+     */
+    public cloneFrom<T extends IMatroid>(from: T): T {
+        let res: T = {
+            _type: from._type,
+            cardinal: from.cardinal,
+            segment_type: from.segment_type,
+            id: undefined
+        } as T;
+
+        let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(from._type);
+
+        for (let i in matroid_fields) {
+            let matroid_field = matroid_fields[i];
+
+            res[matroid_field.field_id] = clonedeep(from[matroid_field.field_id]);
         }
 
         return res;

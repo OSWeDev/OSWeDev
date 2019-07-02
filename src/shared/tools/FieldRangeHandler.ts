@@ -222,12 +222,12 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         return res;
     }
 
-    public createNew<T>(api_type_id: string, field_id: string, min: T = null, max: T = null, min_inclusiv: boolean = null, max_inclusiv: boolean = null): FieldRange<T> {
-        return FieldRange.createNew(api_type_id, field_id, min, max, min_inclusiv, max_inclusiv);
+    public createNew<T, U extends IRange<T>>(api_type_id: string, field_id: string, min: T = null, max: T = null, min_inclusiv: boolean = null, max_inclusiv: boolean = null): U {
+        return FieldRange.createNew(api_type_id, field_id, min, max, min_inclusiv, max_inclusiv) as any;
     }
 
-    public cloneFrom<T>(from: FieldRange<T>): FieldRange<T> {
-        return FieldRange.cloneFrom(from);
+    public cloneFrom<T, U extends IRange<T>>(from: U): U {
+        return FieldRange.cloneFrom(from as any) as any;
     }
 
     public getRelevantHandler<T>(field_range: FieldRange<T>): RangeHandler<any> {
@@ -417,6 +417,53 @@ export default class FieldRangeHandler extends RangeHandler<any> {
             res.push(FieldRange.createNew(api_type_id, field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv));
         }
         return res;
+    }
+
+
+    public isSupp<T>(range: FieldRange<T>, a: T, b: T): boolean {
+        if (!range) {
+            return null;
+        }
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.isSupp(range, a, b) : null;
+    }
+
+    public isInf<T>(range: FieldRange<T>, a: T, b: T): boolean {
+        if (!range) {
+            return null;
+        }
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.isInf(range, a, b) : null;
+    }
+
+    public equals<T>(range: FieldRange<T>, a: T, b: T): boolean {
+        if (!range) {
+            return null;
+        }
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.equals(range, a, b) : null;
+    }
+
+
+    public max<T>(range: FieldRange<T>, a: T, b: T): T {
+        if (!range) {
+            return null;
+        }
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.max(range, a, b) : null;
+    }
+
+    public min<T>(range: FieldRange<T>, a: T, b: T): T {
+        if (!range) {
+            return null;
+        }
+
+        let handler = this.getRelevantHandlerFromStrings(range.api_type_id, range.field_id);
+        return handler ? handler.min(range, a, b) : null;
     }
 }
 

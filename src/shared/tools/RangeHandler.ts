@@ -1,4 +1,6 @@
 import IRange from '../modules/DataRender/interfaces/IRange';
+import CutResultController from '../modules/Matroid/CutResultController';
+import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
 
 export default abstract class RangeHandler<T> {
 
@@ -353,8 +355,8 @@ export default abstract class RangeHandler<T> {
         return res;
     }
 
-    public abstract createNew(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean): IRange<T>;
-    public abstract cloneFrom(from: IRange<T>): IRange<T>;
+    public abstract createNew<U extends IRange<T>>(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean): U;
+    public abstract cloneFrom<U extends IRange<T>>(from: U): U;
 
     public getFormattedMinForAPI(range: IRange<T>): string {
         if (!range) {
@@ -388,6 +390,95 @@ export default abstract class RangeHandler<T> {
         for (let i in ranges) {
             this.foreach(ranges[i], callback, segment_type);
         }
+    }
+
+    public cut_range<U extends IRange<any>>(range_cutter: U, range_to_cut: U): RangesCutResult<U> {
+
+        if ((!range_cutter) || (!this.range_intersects_range(range_cutter, range_to_cut))) {
+            return new RangesCutResult([], [this.cloneFrom(range_to_cut)]);
+        }
+
+        if (!range_to_cut) {
+            return null;
+        }
+
+        let res: U[] = [];
+
+        let cutter_min = this.getSegmentedMin(range_cutter);
+        let cutter_max = this.getSegmentedMax(range_cutter);
+        let to_cut_min = this.getSegmentedMin(range_to_cut);
+        let to_cut_max = this.getSegmentedMax(range_to_cut);
+
+        let max_des_min = this.max(range_to_cut, cutter_min, to_cut_min);
+        let min_des_max = this.min(range_to_cut, cutter_max, to_cut_max);
+
+        if ((min_des_max == to_cut_max) && (max_des_min == to_cut_min)) {
+            return null;
+        }
+
+        if (this.isSupp(range_to_cut, max_des_min, to_cut_min)) {
+            res.push(this.createNew(to_cut_min, max_des_min, true, false));
+        }
+
+        if (this.isInf(range_to_cut, min_des_max, to_cut_max)) {
+            res.push(this.createNew((max_des_min > to_cut_min) ? cutter_max : to_cut_min, to_cut_max, !(max_des_min > to_cut_min), true));
+        }
+        return new RangesCutResult([this.createNew(max_des_min, min_des_max, true, true)], res);
+    }
+
+    public cut_ranges<U extends IRange<any>>(range_cutter: U, ranges_to_cut: U[]): RangesCutResult<U> {
+
+        let res: RangesCutResult<U> = null;
+
+        for (let i in ranges_to_cut) {
+            let range_to_cut = ranges_to_cut[i];
+
+            res = this.addCutResults(res, this.cut_range(range_cutter, range_to_cut));
+        }
+
+        return res;
+    }
+
+    public cuts_ranges<U extends IRange<any>>(ranges_cutter: U[], ranges_to_cut: U[]): RangesCutResult<U> {
+
+        let res: RangesCutResult<U> = null;
+
+        for (let i in ranges_cutter) {
+            let range_cutter = ranges_cutter[i];
+
+            res = this.addCutResults(res, this.cut_ranges(range_cutter, res.remaining_items));
+        }
+
+        return res;
+    }
+
+    /**
+     *
+     * @param range cas du fieldrange qui nécessite un typage
+     * @param a
+     * @param b
+     */
+    public abstract isSupp(range: IRange<T>, a: T, b: T): boolean;
+    public abstract isInf(range: IRange<T>, a: T, b: T): boolean;
+    public abstract equals(range: IRange<T>, a: T, b: T): boolean;
+
+    public abstract max(range: IRange<T>, a: T, b: T): T;
+    public abstract min(range: IRange<T>, a: T, b: T): T;
+
+    public addCutResults<U extends IRange<T>>(a: RangesCutResult<U>, b: RangesCutResult<U>): RangesCutResult<U> {
+
+        if (!a) {
+            return b;
+        }
+
+        if (!b) {
+            return a;
+        }
+
+        let chopped = a.chopped_items ? a.chopped_items.concat(b.chopped_items) : b.chopped_items;
+        let remaining = a.remaining_items ? a.remaining_items.concat(b.remaining_items) : b.remaining_items;
+
+        return new RangesCutResult(chopped, remaining);
     }
 }
 

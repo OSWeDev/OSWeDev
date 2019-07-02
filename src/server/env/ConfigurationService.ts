@@ -15,8 +15,8 @@ export default class ConfigurationService {
     }
     private static instance: ConfigurationService = null;
 
-    private nodeEnv: string;
     public nodeInstall: boolean;
+    private nodeEnv: string;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
     private constructor() {

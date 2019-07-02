@@ -74,7 +74,7 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         return res;
     }
 
-    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG) {
+    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): Promise<TData> {
 
         let param: TDataParam = varDAGNode.param as TDataParam;
         let index: string = VarsController.getInstance().getIndex(param);
@@ -105,7 +105,7 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         res.value = (((!!yesterdayData) && (!!yesterdayData.value)) ? yesterdayData.value : 0) +
             (((!!todayData) && (!!todayData.value)) ? todayData.value : 0);
 
-        VarsController.getInstance().setVarData(res, true);
+        return res;
     }
 
     private getPreviousDateIndexKeepSameSegment(date_index: string): string {

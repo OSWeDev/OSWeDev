@@ -1,4 +1,3 @@
-import DAGVisitorBase from '../../dag/DAGVisitorBase';
 import VarDAG from '../VarDAG';
 import VarDAGNode from '../VarDAGNode';
 
@@ -6,18 +5,9 @@ import VarDAGNode from '../VarDAGNode';
  * Visiteur qui doit charger les deps de voisinage et down pour les ajouter / relier dans l'arbre.
  * Les deps ne sont pas sensées changer, on marque le noeud comme chargé
  */
-export default class VarDAGVisitorDefineNodePropagateRequest extends DAGVisitorBase<VarDAG> {
+export default class VarDAGDefineNodePropagateRequest {
 
-
-    public constructor(dag: VarDAG) {
-        super(true, dag);
-    }
-
-    public async visit(node: VarDAGNode, path: string[]): Promise<boolean> {
-        return this.varDAGVisitorDefineNodePropagateRequest(node);
-    }
-
-    public varDAGVisitorDefineNodePropagateRequest(node: VarDAGNode): boolean {
+    public varDAGVisitorDefineNodePropagateRequest(node: VarDAGNode, dag: VarDAG): boolean {
 
         if (node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE) || (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE))) {
             return false;
@@ -35,9 +25,9 @@ export default class VarDAGVisitorDefineNodePropagateRequest extends DAGVisitorB
                 continue;
             }
 
-            incoming.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.dag);
+            incoming.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, dag);
             if (incoming.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE)) {
-                incoming.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, this.dag, true);
+                incoming.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, dag, true);
             }
         }
 
@@ -57,14 +47,14 @@ export default class VarDAGVisitorDefineNodePropagateRequest extends DAGVisitorB
                 continue;
             }
 
-            outgoing.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.dag);
+            outgoing.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, dag);
             if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE)) {
-                outgoing.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, this.dag, true);
+                outgoing.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, dag, true);
             }
         }
 
-        node.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.dag, true);
-        node.addMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.dag);
+        node.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, dag, true);
+        node.addMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, dag);
         return false;
     }
 }

@@ -1,6 +1,5 @@
-import DAGVisitorBase from './DAGVisitorBase';
-import DAG from './DAG';
 import ObjectHandler from '../../../../tools/ObjectHandler';
+import DAG from './DAG';
 
 export default class DAGNode {
 
@@ -14,7 +13,7 @@ export default class DAGNode {
 
     public markers: { [marker_id: string]: number } = {};
 
-    public constructor(public name: string, dag: DAG<any>) { }
+    public constructor(public name: string, public dag: DAG<any>) { }
 
     public initializeNode(dag: DAG<any>) {
     }
@@ -35,6 +34,11 @@ export default class DAGNode {
      * Si un marker existe déjà, on l'incrémente
      */
     public addMarker(marker: string, dag: DAG<any>) {
+
+        if (!dag) {
+            return;
+        }
+
         if (!this.markers[marker]) {
             this.markers[marker] = 0;
 
@@ -89,6 +93,10 @@ export default class DAGNode {
         return !((!this.incomingNames) || (!this.incomingNames.length));
     }
 
+    /**
+     * ATTENTION ça ne lance aucune suppression de noeud, il faut utiliser la suppression de noeud si on vaut pas avoir des noeuds flottants sans refs
+     * @param node_name
+     */
     public removeNodeFromOutgoing(node_name: string) {
 
         if ((!!this.outgoing) && (!!this.outgoing[node_name])) {
@@ -101,6 +109,10 @@ export default class DAGNode {
         }
     }
 
+    /**
+     * ATTENTION ça ne lance aucune suppression de noeud, il faut utiliser la suppression de noeud si on vaut pas avoir des noeuds flottants sans refs
+     * @param node_name
+     */
     public removeNodeFromIncoming(node_name: string) {
 
         if ((!!this.incoming) && (!!this.incoming[node_name])) {

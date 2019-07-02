@@ -54,7 +54,7 @@ export default abstract class VarDatasourceControllerBase<
         return [];
     }
 
-    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG) {
+    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): Promise<TData> {
 
         let param: TDataParam = varDAGNode.param as TDataParam;
 
@@ -65,7 +65,7 @@ export default abstract class VarDatasourceControllerBase<
 
         this.populateVarData(res, datasource_data);
 
-        VarsController.getInstance().setVarData(res, true);
+        return res;
     }
 
     protected abstract populateVarData(res: TData, datasource_data: IVarDataVOBase);

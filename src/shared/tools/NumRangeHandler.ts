@@ -2,6 +2,7 @@ import NumRange from '../modules/DataRender/vos/NumRange';
 import RangeHandler from './RangeHandler';
 import NumSegmentHandler from './NumSegmentHandler';
 import NumSegment from '../modules/DataRender/vos/NumSegment';
+import IRange from '../modules/DataRender/interfaces/IRange';
 
 export default class NumRangeHandler extends RangeHandler<number> {
 
@@ -15,12 +16,12 @@ export default class NumRangeHandler extends RangeHandler<number> {
 
     private static instance: NumRangeHandler = null;
 
-    public createNew(start: number = null, end: number = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): NumRange {
-        return NumRange.createNew(start, end, start_inclusiv, end_inclusiv);
+    public createNew<U extends IRange<number>>(start: number = null, end: number = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): U {
+        return NumRange.createNew(start, end, start_inclusiv, end_inclusiv) as U;
     }
 
-    public cloneFrom(from: NumRange): NumRange {
-        return NumRange.cloneFrom(from);
+    public cloneFrom<U extends IRange<number>>(from: U): U {
+        return NumRange.cloneFrom(from) as U;
     }
 
     /**
@@ -217,5 +218,27 @@ export default class NumRangeHandler extends RangeHandler<number> {
             callback(i);
         }
     }
+
+    public isSupp(range: NumRange, a: number, b: number): boolean {
+        return a > b;
+    }
+
+    public isInf(range: NumRange, a: number, b: number): boolean {
+        return a < b;
+    }
+
+    public equals(range: NumRange, a: number, b: number): boolean {
+        return a == b;
+    }
+
+
+    public max(range: NumRange, a: number, b: number): number {
+        return Math.max(a, b);
+    }
+
+    public min(range: NumRange, a: number, b: number): number {
+        return Math.min(a, b);
+    }
+
 }
 

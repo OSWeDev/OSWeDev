@@ -1,6 +1,4 @@
-import DAGVisitorCheckCycle from './visitors/DAGVisitorCheckCycle';
 import DAGNode from './DAGNode';
-import DAGVisitorBase from './DAGVisitorBase';
 
 /**
  * Issu de Ember.js : https://github.com/emberjs/ember.js/blob/62e52938f48278a6cb838016108f3e35c18c8b3f/packages/ember-application/lib/system/dag.js
@@ -85,7 +83,7 @@ export default class DAG<TNode extends DAGNode> {
 
             if (this.nodes[node_name].hasMarker(marker)) {
 
-                this.deletedNode(node_name);
+                this.deletedNode(node_name, null);
             }
         }
     }
@@ -93,7 +91,7 @@ export default class DAG<TNode extends DAGNode> {
     /**
      * Supprime un noeud et ses refs dans les incoming et outgoing
      */
-    public deletedNode(node_name: string) {
+    public deletedNode(node_name: string, propagate_if_condition: (propagation_target: string) => boolean) {
         if (!this.nodes[node_name]) {
             return;
         }
@@ -103,6 +101,10 @@ export default class DAG<TNode extends DAGNode> {
             let incoming: TNode = this.nodes[node_name].incoming[i] as TNode;
 
             incoming.removeNodeFromOutgoing(node_name);
+
+            if (propagate_if_condition(i)) {
+                this.deletedNode(i, propagate_if_condition);
+            }
         }
 
         // On supprime le noeud des incomings, et des outgoings
@@ -110,6 +112,10 @@ export default class DAG<TNode extends DAGNode> {
             let outgoing: TNode = this.nodes[node_name].outgoing[i] as TNode;
 
             outgoing.removeNodeFromIncoming(node_name);
+
+            if (propagate_if_condition(i)) {
+                this.deletedNode(i, propagate_if_condition);
+            }
         }
 
         // FIXME TODO Qu'est-ce qu'il se passe quand un noeud n'a plus de outgoing alors qu'il en avait ?

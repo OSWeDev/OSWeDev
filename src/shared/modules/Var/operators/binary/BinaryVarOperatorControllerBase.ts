@@ -58,7 +58,7 @@ export default abstract class BinaryVarOperatorControllerBase<
         return [this.get_left_param(varDAGNode, varDAG), this.get_right_param(varDAGNode, varDAG)];
     }
 
-    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG) {
+    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): Promise<TData> {
 
         let param: TDataParam = varDAGNode.param as TDataParam;
         let index: string = VarsController.getInstance().getIndex(param);
@@ -77,7 +77,7 @@ export default abstract class BinaryVarOperatorControllerBase<
         let data_right: TDataRight = VarsController.getInstance().getVarData(this.get_right_param(varDAGNode, varDAG), true);
 
         res.value = this.calc_value(data_left, data_right);
-        VarsController.getInstance().setVarData(res, true);
+        return res;
     }
 
     protected abstract calc_value(left_data: TDataLeft, right_data: TDataRight): number;

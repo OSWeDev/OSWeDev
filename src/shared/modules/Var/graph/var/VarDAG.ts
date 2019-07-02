@@ -1,9 +1,8 @@
-import DAG from '../dag/DAG';
-import VarDAGNode from './VarDAGNode';
-import VarDAGVisitorMarkForDeletion from './visitors/VarDAGVisitorMarkForDeletion';
+import ObjectHandler from '../../../../tools/ObjectHandler';
 import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 import VarsController from '../../VarsController';
-import ObjectHandler from '../../../../tools/ObjectHandler';
+import DAG from '../dag/DAG';
+import VarDAGNode from './VarDAGNode';
 
 export default class VarDAG extends DAG<VarDAGNode> {
 

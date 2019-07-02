@@ -5,6 +5,7 @@ import TSRange from '../modules/DataRender/vos/TSRange';
 import DateHandler from './DateHandler';
 import RangeHandler from './RangeHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
+import IRange from '../modules/DataRender/interfaces/IRange';
 
 export default class TSRangeHandler extends RangeHandler<Moment> {
     public static getInstance(): TSRangeHandler {
@@ -213,12 +214,12 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         return res;
     }
 
-    public createNew(start: Moment = null, end: Moment = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): TSRange {
-        return TSRange.createNew(start, end, start_inclusiv, end_inclusiv);
+    public createNew<U extends IRange<Moment>>(start: Moment = null, end: Moment = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): U {
+        return TSRange.createNew(start, end, start_inclusiv, end_inclusiv) as U;
     }
 
-    public cloneFrom(from: TSRange): TSRange {
-        return TSRange.cloneFrom(from);
+    public cloneFrom<U extends IRange<Moment>>(from: U): U {
+        return TSRange.cloneFrom(from) as U;
     }
 
     public getFormattedMinForAPI(range: TSRange): string {
@@ -448,5 +449,26 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return moment(a).isAfter(range.max);
         }
         return moment(a).isSameOrAfter(range.max);
+    }
+
+    public isSupp(range: TSRange, a: Moment, b: Moment): boolean {
+        return a.isAfter(b);
+    }
+
+    public isInf(range: TSRange, a: Moment, b: Moment): boolean {
+        return a.isBefore(b);
+    }
+
+    public equals(range: TSRange, a: Moment, b: Moment): boolean {
+        return a.isSame(b);
+    }
+
+
+    public max(range: TSRange, a: Moment, b: Moment): Moment {
+        return moment.max(a, b);
+    }
+
+    public min(range: TSRange, a: Moment, b: Moment): Moment {
+        return moment.min(a, b);
     }
 }

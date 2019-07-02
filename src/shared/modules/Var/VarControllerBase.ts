@@ -10,6 +10,8 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import moment = require('moment');
+import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
+import ISimpleNumberVarMatroidData from './interfaces/ISimpleNumberVarMatroidData';
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 
@@ -63,10 +65,40 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
     //     params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
     //     imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<IVarDataParamVOBase[]>;
 
-    /**
-     * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
-     */
-    public async abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG);
+    public async computeValue(varDAGNode: VarDAGNode, varDAG: VarDAG) {
+
+        let res: TData = null;
+
+        if ((!!varDAGNode.computed_datas_matroids) && (!!varDAGNode.loaded_datas_matroids)) {
+
+            // Si on est sur des matroids, on doit créer la réponse nous mêmes
+            //  en additionnant les imports/précalculs + les res de calcul des computed matroids
+            //  le datafound est true si l'un des computed est true
+            let res_matroid: ISimpleNumberVarMatroidData = Object.assign({}, varDAGNode.param as TDataParam) as any;
+
+            res_matroid.value = varDAGNode.loaded_datas_matroids_sum_value;
+
+            for (let i in varDAGNode.computed_datas_matroids) {
+                let computed_datas_matroid = varDAGNode.computed_datas_matroids[i];
+
+                let fake_vardagnode = new VarDAGNode(VarsController.getInstance().getIndex(computed_datas_matroid), null, computed_datas_matroid);
+
+                let computed_datas_matroid_res: ISimpleNumberVarMatroidData = this.updateData(fake_vardagnode, varDAG) as any;
+
+                if (res_matroid.value == null) {
+                    res_matroid.value = computed_datas_matroid_res.value;
+                } else {
+                    res_matroid.value += computed_datas_matroid_res.value;
+                }
+            }
+
+            res = res_matroid as any;
+        } else {
+            res = await this.updateData(varDAGNode, varDAG);
+        }
+
+        VarsController.getInstance().setVarData(res, true);
+    }
 
     public async getSegmentedParamDependencies(
         varDAGNode: VarDAGNode,
@@ -108,4 +140,6 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
         return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index), this.segment_type);
     }
+
+    protected async abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): Promise<TData>;
 }

@@ -14,10 +14,10 @@ export default class VarDAGNode extends DAGNode {
     public imported: IVarDataVOBase = null;
 
     // New version : with matroids
-    public loaded_datas: IVarMatroidDataVO[] = [];
-    public parents_loaded_datas: IVarMatroidDataVO[] = [];
-
-    public computed_datas: IVarMatroidDataVO[] = [];
+    public loaded_datas_matroids: IVarMatroidDataVO[] = null;
+    public parents_loaded_datas_matroids: IVarMatroidDataVO[] = null;
+    public computed_datas_matroids: IVarMatroidDataVO[] = null;
+    public loaded_datas_matroids_sum_value: number = null;
 
 
     // Used for the deps heatmap
