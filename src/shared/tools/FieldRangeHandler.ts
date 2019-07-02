@@ -20,7 +20,6 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     private static instance: FieldRangeHandler = null;
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */

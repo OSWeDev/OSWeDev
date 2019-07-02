@@ -549,7 +549,7 @@ export default class TimeSegmentHandler {
     /**
      * TODO TESTUNIT ASAP TU
      */
-    public get_segment_from_ts_range_start(ts_range: TSRange, segment_type: number): TimeSegment {
+    public get_segment_from_range_start(ts_range: TSRange, segment_type: number): TimeSegment {
         if (ts_range.min_inclusiv) {
             return this.getCorrespondingTimeSegment(ts_range.min, segment_type);
         }
@@ -559,7 +559,7 @@ export default class TimeSegmentHandler {
     /**
      * TODO TESTUNIT ASAP TU
      */
-    public get_segment_from_ts_range_end(ts_range: TSRange, segment_type: number): TimeSegment {
+    public get_segment_from_range_end(ts_range: TSRange, segment_type: number): TimeSegment {
         if (ts_range.max_inclusiv) {
             return this.getCorrespondingTimeSegment(ts_range.max, segment_type);
         }

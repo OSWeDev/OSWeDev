@@ -18,7 +18,6 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     private static instance: TSRangeHandler = null;
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -29,6 +28,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
 
         let min: Moment = this.getSegmentedMin(range, segment_type);
         let max: Moment = this.getSegmentedMax(range, segment_type);
+
+        if ((min == null) || (max == null)) {
+            return null;
+        }
 
         switch (segment_type) {
             case TimeSegment.TYPE_DAY:

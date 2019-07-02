@@ -146,32 +146,6 @@ export default class VarsController {
         return this.updateSemaphore;
     }
 
-    // /**
-    //  * pour UnitTest TestUnit uniquement
-    //  */
-    // get varDatasBATCHCache_(): { [BATCH_UID: number]: { [index: string]: IVarDataVOBase } } {
-    //     return this.varDatasBATCHCache;
-    // }
-
-    // /**
-    //  * pour UnitTest TestUnit uniquement
-    //  */
-    // get BATCH_UIDs_by_var_id_(): { [var_id: number]: number } {
-    //     return this.BATCH_UIDs_by_var_id;
-    // }
-
-
-    // /**
-    //  * TODO TestUnit : on doit indiquer si un impact va avoir lieu sur les registered quand on change un param
-    //  */
-    // public impacts_registered_vars(param: IVarDataParamVOBase): boolean {
-
-    //     let index: string = this.getIndex(param);
-    //     if ((!!this.impacts_by_param[index]) && (this.impacts_by_param[index].length > 0)) {
-    //         return true;
-    //     }
-    // }
-
     public next_step() {
         this.is_waiting = false;
         this.setIsWaiting(false);

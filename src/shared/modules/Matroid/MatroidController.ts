@@ -27,19 +27,9 @@ export default class MatroidController {
 
     private static instance: MatroidController = null;
 
-    private matroids_types_by_type_id: { [api_type_id: string]: ModuleTable<any> } = {};
-
     private constructor() { }
 
     public async initialize() {
-    }
-
-    public register_matroid_type(moduleTable: ModuleTable<any>) {
-        this.matroids_types_by_type_id[moduleTable.vo_type] = moduleTable;
-    }
-
-    public is_matroid_type(api_type_id: string): boolean {
-        return !!this.matroids_types_by_type_id[api_type_id];
     }
 
     // public union(matroids: IMatroid[]): IMatroid[]{
@@ -81,7 +71,7 @@ export default class MatroidController {
             }
         }
 
-        return await ModuleDAO.getInstance().filterVosByFieldRanges(api_type_id, field_ranges);
+        return await ModuleDAO.getInstance().filterVosByFieldRanges(api_type_id, field_ranges) as T[];
     }
 
     public getMatroidFields(api_type_id: string): Array<ModuleTableField<any>> {
@@ -140,9 +130,6 @@ export default class MatroidController {
 
         if (sort) {
             matroid_bases.sort((a: MatroidBase<any>, b: MatroidBase<any>) => {
-                let a_cardinal = 0;
-                let b_cardinal = 0;
-
                 return sort_asc ? a.cardinal - b.cardinal : b.cardinal - a.cardinal;
             });
         }
@@ -150,6 +137,9 @@ export default class MatroidController {
         return matroid_bases;
     }
 
+    /**
+     * FIXME TODO ASAP WITH TU
+     */
     public matroid_intersects_matroid(a: IMatroid, b: IMatroid): boolean {
         // On part du principe que l'on peut affirmer qu'un matroid intersecte un autre matroid
         //  dès que toutes les bases intersectent. Il faut pour cela avoir les mêmes formats de matroid, le même _type sur le matroid

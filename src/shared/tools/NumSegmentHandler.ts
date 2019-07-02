@@ -361,7 +361,7 @@ export default class NumSegmentHandler {
     /**
      * TODO TESTUNIT ASAP TU
      */
-    public get_segment_from_ts_range_start(num_range: NumRange, segment_type: number): NumSegment {
+    public get_segment_from_range_start(num_range: NumRange, segment_type: number): NumSegment {
         let min_segment = this.getCorrespondingNumSegment(num_range.min, segment_type);
 
         if (min_segment.num < num_range.min) {
@@ -381,7 +381,7 @@ export default class NumSegmentHandler {
     /**
      * TODO TESTUNIT ASAP TU
      */
-    public get_segment_from_ts_range_end(num_range: NumRange, segment_type: number): NumSegment {
+    public get_segment_from_range_end(num_range: NumRange, segment_type: number): NumSegment {
         let max_segment = this.getCorrespondingNumSegment(num_range.max, segment_type);
 
         if (num_range.max_inclusiv) {

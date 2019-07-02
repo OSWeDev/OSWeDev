@@ -5,6 +5,28 @@ import NumRange from '../../../src/shared/modules/DataRender/vos/NumRange';
 
 describe('NumRangeHandler', () => {
 
+    it('test getCardinal', () => {
+        expect(NumRangeHandler.getInstance().getCardinal(null)).to.equal(null);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 0, false, false))).to.equal(null);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 0, false, true))).to.equal(null);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 0, true, false))).to.equal(null);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 0, true, true))).to.equal(1);
+
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, true, true))).to.equal(2);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, false, true))).to.equal(1);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, true, false))).to.equal(1);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, false, false))).to.equal(null);
+
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, true, true))).to.equal(1);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, false, true))).to.equal(1);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, true, false))).to.equal(1);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, false, false))).to.equal(1);
+
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, true, true))).to.equal(5);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, false, true))).to.equal(4);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, true, false))).to.equal(4);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, false, false))).to.equal(3);
+    });
 
     it('test elt_intersects_any_range', () => {
         expect(NumRangeHandler.getInstance().elt_intersects_any_range(0, [NumRange.createNew(0, 0, false, false)])).to.equal(false);

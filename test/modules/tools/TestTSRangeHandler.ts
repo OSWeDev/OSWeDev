@@ -18,6 +18,29 @@ describe('TSRangeHandler', () => {
 
     let bidon = moment(zero).add(10, 'day');
 
+    it('test getCardinal', () => {
+        expect(TSRangeHandler.getInstance().getCardinal(null)).to.equal(null);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, false, false))).to.equal(null);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, false, true))).to.equal(null);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, true, false))).to.equal(null);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, true, true))).to.equal(null);
+
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, true, true))).to.equal(1);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, false, true))).to.equal(1);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, true, false))).to.equal(1);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, false, false))).to.equal(1);
+
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true))).to.equal(1);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true))).to.equal(1);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false))).to.equal(1);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false))).to.equal(1);
+
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, true, true))).to.equal(4);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, true))).to.equal(4);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, true, false))).to.equal(4);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, false))).to.equal(4);
+    });
+
     it('test elt_intersects_any_range', () => {
         expect(TSRangeHandler.getInstance().elt_intersects_any_range(zero, [TSRange.createNew(zero, zero, false, false)])).to.equal(false);
         expect(TSRangeHandler.getInstance().elt_intersects_any_range(zero, [TSRange.createNew(zero, zero, false, true)])).to.equal(false);

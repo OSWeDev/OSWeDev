@@ -25,7 +25,6 @@ export default class NumRangeHandler extends RangeHandler<number> {
     }
 
     /**
-     * FIXME TODO ASAP WITH TU
      * @param range_a
      * @param range_b
      */
@@ -36,6 +35,10 @@ export default class NumRangeHandler extends RangeHandler<number> {
 
         let min: number = this.getSegmentedMin(range, segment_type);
         let max: number = this.getSegmentedMax(range, segment_type);
+
+        if ((min == null) || (max == null)) {
+            return null;
+        }
 
         switch (segment_type) {
             case NumSegment.TYPE_INT:
