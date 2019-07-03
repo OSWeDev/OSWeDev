@@ -32,6 +32,30 @@ export default class MatroidController {
     public async initialize() {
     }
 
+    /**
+     * TODO FIXME ASAP TU VARS
+     * On définit le cardinal du matroid par la multiplication des cardinaux des bases
+     * @param matroid
+     */
+    public get_cardinal(matroid: IMatroid): number {
+
+        if (!matroid) {
+            return 0;
+        }
+
+        let matroid_bases = this.getMatroidBases(matroid);
+
+        let res = null;
+
+        for (let i in matroid_bases) {
+            let matroid_base = matroid_bases[i];
+            let matroid_base_cardinal = (matroid_base != null) ? matroid_base.cardinal : 0;
+
+            res = (res != null) ? res * matroid_base_cardinal : matroid_base_cardinal;
+        }
+        return (res != null) ? res : 0;
+    }
+
     // public union(matroids: IMatroid[]): IMatroid[]{
     //     let res: IMatroid[] = [];
 
