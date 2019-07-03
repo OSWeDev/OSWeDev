@@ -105,6 +105,11 @@ export default class DAGNode {
                 this.outgoingNames.splice(indexof, 1);
             }
         }
+
+        // Si on a plus d'outgoing, on devient une leaf
+        if ((!this.outgoingNames) || (this.outgoingNames.length == 0)) {
+            this.dag.leafs[this.name] = this;
+        }
     }
 
     /**
@@ -120,6 +125,11 @@ export default class DAGNode {
             if (indexof >= 0) {
                 this.incomingNames.splice(indexof, 1);
             }
+        }
+
+        // Si on a plus d'incoming, on devient une root
+        if ((!this.incomingNames) || (this.incomingNames.length == 0)) {
+            this.dag.roots[this.name] = this;
         }
     }
 }

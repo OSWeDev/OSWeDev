@@ -7,7 +7,7 @@ export default class MatroidBase<T> {
      * Test d'incohérence sur des ensembles qui indiqueraient inclure le min mais pas le max et où min == max (ou inversement)
      * @param ranges on clone les ranges passés en param
      */
-    public static createNew<T>(api_type_id: string, field_id: string, segment_type: number, ranges: Array<FieldRange<T>>): MatroidBase<T> {
+    public static createNew<T>(api_type_id: string, field_id: string, ranges: Array<FieldRange<T>>): MatroidBase<T> {
         let res: MatroidBase<T> = new MatroidBase<T>();
         let cardinal = 0;
 
@@ -25,7 +25,6 @@ export default class MatroidBase<T> {
         res.api_type_id = api_type_id;
         res.field_id = field_id;
         res.cardinal = cardinal;
-        res.segment_type = segment_type;
 
         return res;
     }
@@ -47,7 +46,6 @@ export default class MatroidBase<T> {
         res.api_type_id = from.api_type_id;
         res.field_id = from.field_id;
         res.cardinal = from.cardinal;
-        res.segment_type = res.segment_type;
 
         return res;
     }
@@ -56,9 +54,8 @@ export default class MatroidBase<T> {
     public field_id: string;
 
     public cardinal: number;
-    public segment_type: number;
 
-    private ranges_: Array<FieldRange<T>>;
+    private ranges_: Array<FieldRange<T>> = [];
 
     private constructor() { }
 

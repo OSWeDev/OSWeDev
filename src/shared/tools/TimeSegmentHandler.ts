@@ -546,24 +546,22 @@ export default class TimeSegmentHandler {
         return TSRangeHandler.getInstance().getMinSurroundingRange(this.get_ts_ranges_(segments));
     }
 
-    /**
-     * TODO TESTUNIT ASAP TU
-     */
     public get_segment_from_range_start(ts_range: TSRange, segment_type: number): TimeSegment {
-        if (ts_range.min_inclusiv) {
-            return this.getCorrespondingTimeSegment(ts_range.min, segment_type);
+        if (!ts_range) {
+            return null;
         }
-        return this.getCorrespondingTimeSegment(ts_range.min, segment_type, 1);
+
+        let min = TSRangeHandler.getInstance().getSegmentedMin(ts_range, segment_type);
+        return this.getCorrespondingTimeSegment(min, segment_type);
     }
 
-    /**
-     * TODO TESTUNIT ASAP TU
-     */
     public get_segment_from_range_end(ts_range: TSRange, segment_type: number): TimeSegment {
-        if (ts_range.max_inclusiv) {
-            return this.getCorrespondingTimeSegment(ts_range.max, segment_type);
+        if (!ts_range) {
+            return null;
         }
-        return this.getCorrespondingTimeSegment(ts_range.max, segment_type, -1);
+
+        let max = TSRangeHandler.getInstance().getSegmentedMax(ts_range, segment_type);
+        return this.getCorrespondingTimeSegment(max, segment_type);
     }
 
     public getCorrespondingMomentUnitOfTime(segment_type: number): moment.unitOfTime.Base {

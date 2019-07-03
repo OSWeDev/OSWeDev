@@ -17,7 +17,7 @@ export default class FieldRange<T> implements IRange<T>  {
             return null;
         }
 
-        let res: FieldRange<T> = clonedeep(range);
+        let res: FieldRange<T> = range as any;
         res.api_type_id = api_type_id;
         res.field_id = field_id;
 
@@ -31,7 +31,7 @@ export default class FieldRange<T> implements IRange<T>  {
             return null;
         }
 
-        let res: FieldRange<T> = clonedeep(range);
+        let res: FieldRange<T> = range as any;
         res.api_type_id = from.api_type_id;
         res.field_id = from.field_id;
 

@@ -78,6 +78,10 @@ export default class ModuleTableField<T> {
 
     public hidden_print: boolean = false;
 
+    /**
+     * Utilisé par les matroids pour définir la segmentation de chaque champs directement au niveau de la structure de données
+     */
+    public segmentation_type: number = null;
 
     /**
      * Renvoie null ou "" si ok, sinon le code_text traduisible de l'erreur
@@ -114,6 +118,10 @@ export default class ModuleTableField<T> {
         this.target_field = null;
     }
 
+    public set_segmentation_type(segmentation_type: number): ModuleTableField<T> {
+        this.segmentation_type = segmentation_type;
+        return this;
+    }
 
     public hide_print(): ModuleTableField<T> {
         this.hidden_print = true;

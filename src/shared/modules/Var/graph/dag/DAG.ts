@@ -91,7 +91,10 @@ export default class DAG<TNode extends DAGNode> {
     /**
      * Supprime un noeud et ses refs dans les incoming et outgoing
      */
-    public deletedNode(node_name: string, propagate_if_condition: (propagation_target: string) => boolean) {
+    public deletedNode(
+        node_name: string,
+        propagate_to_bottom_if_condition: (propagation_target: string) => boolean
+    ) {
         if (!this.nodes[node_name]) {
             return;
         }
@@ -101,10 +104,6 @@ export default class DAG<TNode extends DAGNode> {
             let incoming: TNode = this.nodes[node_name].incoming[i] as TNode;
 
             incoming.removeNodeFromOutgoing(node_name);
-
-            if (propagate_if_condition(i)) {
-                this.deletedNode(i, propagate_if_condition);
-            }
         }
 
         // On supprime le noeud des incomings, et des outgoings
@@ -113,8 +112,8 @@ export default class DAG<TNode extends DAGNode> {
 
             outgoing.removeNodeFromIncoming(node_name);
 
-            if (propagate_if_condition(i)) {
-                this.deletedNode(i, propagate_if_condition);
+            if (propagate_to_bottom_if_condition && propagate_to_bottom_if_condition(i)) {
+                this.deletedNode(i, propagate_to_bottom_if_condition);
             }
         }
 

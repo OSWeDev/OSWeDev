@@ -2,8 +2,372 @@ import { expect } from 'chai';
 import 'mocha';
 import NumRangeHandler from '../../../src/shared/tools/NumRangeHandler';
 import NumRange from '../../../src/shared/modules/DataRender/vos/NumRange';
+import RangesCutResult from '../../../src/shared/modules/Matroid/vos/RangesCutResult';
 
 describe('NumRangeHandler', () => {
+
+    it('test cut_range', () => {
+        expect(NumRangeHandler.getInstance().cut_range(null, null)).to.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(null, NumRange.createNew(0, 0, true, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, true, true), null)).to.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 0, true, true)],
+            null
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, true, false), NumRange.createNew(0, 0, true, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, false, true), NumRange.createNew(0, 0, true, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, false, false), NumRange.createNew(0, 0, true, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, false))).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, true, false), NumRange.createNew(0, 0, true, false))).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, false, true), NumRange.createNew(0, 0, true, false))).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, false, false), NumRange.createNew(0, 0, true, false))).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, false, true))).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, true, false), NumRange.createNew(0, 0, false, true))).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, false, true), NumRange.createNew(0, 0, false, true))).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, false, false), NumRange.createNew(0, 0, false, true))).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, false, false))).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, true, false), NumRange.createNew(0, 0, false, false))).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, false, true), NumRange.createNew(0, 0, false, false))).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 0, false, false), NumRange.createNew(0, 0, false, false))).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, true, true), NumRange.createNew(0, 0, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 0, true, true)],
+            null
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, true, false), NumRange.createNew(0, 0, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 0, true, true)],
+            null
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, true), NumRange.createNew(0, 0, true, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, false), NumRange.createNew(0, 0, true, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(2, 3, true, true), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(2, 3, true, true)],
+            [NumRange.createNew(0, 2, true, false), NumRange.createNew(3, 4, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(2, 3, true, false), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(2, 3, true, false)],
+            [NumRange.createNew(0, 2, true, false), NumRange.createNew(3, 4, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(2, 3, false, true), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(2, 3, false, true)],
+            [NumRange.createNew(0, 2, true, true), NumRange.createNew(3, 4, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(2, 3, false, false), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 4, true, true)]
+        ));
+
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(-1, 1, true, true), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 1, true, true)],
+            [NumRange.createNew(1, 4, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(-1, 1, true, false), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 1, true, false)],
+            [NumRange.createNew(1, 4, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(-1, 1, false, true), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 1, true, true)],
+            [NumRange.createNew(1, 4, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(-1, 1, false, false), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 1, true, false)],
+            [NumRange.createNew(1, 4, true, true)]
+        ));
+
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, true), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, true, true)],
+            [NumRange.createNew(0, 3, true, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, false), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, true, true)],
+            [NumRange.createNew(0, 3, true, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, true), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, false, true)],
+            [NumRange.createNew(0, 3, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, false), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, false, true)],
+            [NumRange.createNew(0, 3, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, true), NumRange.createNew(0, 4, true, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, true, false)],
+            [NumRange.createNew(0, 3, true, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, false), NumRange.createNew(0, 4, true, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, true, false)],
+            [NumRange.createNew(0, 3, true, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, true), NumRange.createNew(0, 4, true, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, false, false)],
+            [NumRange.createNew(0, 3, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, false), NumRange.createNew(0, 4, true, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, false, false)],
+            [NumRange.createNew(0, 3, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, true), NumRange.createNew(0, 4, false, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, true, true)],
+            [NumRange.createNew(0, 3, false, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, false), NumRange.createNew(0, 4, false, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, true, true)],
+            [NumRange.createNew(0, 3, false, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, true), NumRange.createNew(0, 4, false, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, false, true)],
+            [NumRange.createNew(0, 3, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, false), NumRange.createNew(0, 4, false, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, false, true)],
+            [NumRange.createNew(0, 3, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, true), NumRange.createNew(0, 4, false, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, true, false)],
+            [NumRange.createNew(0, 3, false, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, false), NumRange.createNew(0, 4, false, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, true, false)],
+            [NumRange.createNew(0, 3, false, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, true), NumRange.createNew(0, 4, false, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, false, false)],
+            [NumRange.createNew(0, 3, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, false), NumRange.createNew(0, 4, false, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(3, 4, false, false)],
+            [NumRange.createNew(0, 3, false, true)]
+        ));
+
+
+
+
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(-1, 5, true, true), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 4, true, true)],
+            null
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(-1, 5, true, false), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 4, true, true)],
+            null
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(-1, 5, false, true), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 4, true, true)],
+            null
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(-1, 5, false, false), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 4, true, true)],
+            null
+        ));
+
+
+
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(1, 1, true, true), NumRange.createNew(1, 2, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(1, 1, true, true)],
+            [NumRange.createNew(1, 2, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, true, false), NumRange.createNew(1, 2, true, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, true), NumRange.createNew(1, 2, true, true))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(1, 1, true, true)],
+            [NumRange.createNew(1, 2, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, false), NumRange.createNew(1, 2, true, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, true, true)]
+        ));
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(1, 1, true, true), NumRange.createNew(1, 2, true, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(1, 1, true, true)],
+            [NumRange.createNew(1, 2, false, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, true, false), NumRange.createNew(1, 2, true, false))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, true, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, true), NumRange.createNew(1, 2, true, false))).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(1, 1, true, true)],
+            [NumRange.createNew(1, 2, false, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, false), NumRange.createNew(1, 2, true, false))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, true, false)]
+        ));
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(1, 1, true, true), NumRange.createNew(1, 2, false, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, true, false), NumRange.createNew(1, 2, false, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, true), NumRange.createNew(1, 2, false, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, false, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, false), NumRange.createNew(1, 2, false, true))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, false, true)]
+        ));
+
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(1, 1, true, true), NumRange.createNew(1, 2, false, false))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, false, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, true, false), NumRange.createNew(1, 2, false, false))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, false, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, true), NumRange.createNew(1, 2, false, false))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, false, false)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, false), NumRange.createNew(1, 2, false, false))).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(1, 2, false, false)]
+        ));
+    });
+
+    it('test cuts_ranges', () => {
+        expect(NumRangeHandler.getInstance().cuts_ranges(null, null)).to.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges(null, [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, true)], null)).to.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, true)], [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 0, true, true)],
+            null
+        ));
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, false)], [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, false, true)], [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, false, false)], [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, true)], [NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, false)], [NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, false, true)], [NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, false, false)], [NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, true)], [NumRange.createNew(0, 0, false, true)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, false)], [NumRange.createNew(0, 0, false, true)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, false, true)], [NumRange.createNew(0, 0, false, true)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, false, false)], [NumRange.createNew(0, 0, false, true)])).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, true)], [NumRange.createNew(0, 0, false, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, false)], [NumRange.createNew(0, 0, false, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, false, true)], [NumRange.createNew(0, 0, false, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, false, false)], [NumRange.createNew(0, 0, false, false)])).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(-1, 5, true, true)], [NumRange.createNew(0, 4, true, true)])).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 4, true, true)],
+            null
+        ));
+
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(-1, 5, true, true)], [NumRange.createNew(0, 0, true, true), NumRange.createNew(1, 4, true, true)])).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 0, true, true), NumRange.createNew(1, 4, true, true)],
+            null
+        ));
+
+
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(-1, 0, true, true), NumRange.createNew(2, 3, true, false), NumRange.createNew(3, 4, true, false)], [NumRange.createNew(0, 0, true, true), NumRange.createNew(1, 4, true, true)])).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 0, true, true), NumRange.createNew(2, 4, true, false)],
+            [NumRange.createNew(1, 2, true, false), NumRange.createNew(4, 4, true, true)]
+        ));
+    });
+
+    it('test cut_ranges', () => {
+        expect(NumRangeHandler.getInstance().cut_ranges(null, null)).to.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(null, [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, true, true), null)).to.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, true, true), [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 0, true, true)],
+            null
+        ));
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, true, false), [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, false, true), [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, false, false), [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
+            null,
+            [NumRange.createNew(0, 0, true, true)]
+        ));
+
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, true, true), [NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, true, false), [NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, false, true), [NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, false, false), [NumRange.createNew(0, 0, true, false)])).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, true, true), [NumRange.createNew(0, 0, false, true)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, true, false), [NumRange.createNew(0, 0, false, true)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, false, true), [NumRange.createNew(0, 0, false, true)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, false, false), [NumRange.createNew(0, 0, false, true)])).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, true, true), [NumRange.createNew(0, 0, false, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, true, false), [NumRange.createNew(0, 0, false, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, false, true), [NumRange.createNew(0, 0, false, false)])).to.deep.equal(null);
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(0, 0, false, false), [NumRange.createNew(0, 0, false, false)])).to.deep.equal(null);
+
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(-1, 5, true, true), [NumRange.createNew(0, 4, true, true)])).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 4, true, true)],
+            null
+        ));
+
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(-1, 5, true, true), [NumRange.createNew(0, 0, true, true), NumRange.createNew(1, 4, true, true)])).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(0, 0, true, true), NumRange.createNew(1, 4, true, true)],
+            null
+        ));
+
+        expect(NumRangeHandler.getInstance().cut_ranges(NumRange.createNew(1, 1, true, true), [NumRange.createNew(1, 2, true, true)])).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(1, 1, true, true)],
+            [NumRange.createNew(1, 2, false, true)]
+        ));
+    });
+
 
     it('test getCardinal', () => {
         expect(NumRangeHandler.getInstance().getCardinal(null)).to.equal(null);

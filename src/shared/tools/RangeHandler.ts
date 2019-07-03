@@ -1,5 +1,5 @@
+import * as clonedeep from 'lodash/clonedeep';
 import IRange from '../modules/DataRender/interfaces/IRange';
-import CutResultController from '../modules/Matroid/CutResultController';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
 
 export default abstract class RangeHandler<T> {
@@ -392,14 +392,19 @@ export default abstract class RangeHandler<T> {
         }
     }
 
+    /**
+     * TODO FIXME ASAP VARS TU => refondre le cut range qui ne connait pas le segment_type et qui doit donc pas se baser dessus
+     * @param range_cutter
+     * @param range_to_cut
+     */
     public cut_range<U extends IRange<any>>(range_cutter: U, range_to_cut: U): RangesCutResult<U> {
-
-        if ((!range_cutter) || (!this.range_intersects_range(range_cutter, range_to_cut))) {
-            return new RangesCutResult([], [this.cloneFrom(range_to_cut)]);
-        }
 
         if (!range_to_cut) {
             return null;
+        }
+
+        if ((!range_cutter) || (!this.range_intersects_range(range_cutter, range_to_cut))) {
+            return new RangesCutResult(null, [this.cloneFrom(range_to_cut)]);
         }
 
         let res: U[] = [];
@@ -409,23 +414,47 @@ export default abstract class RangeHandler<T> {
         let to_cut_min = this.getSegmentedMin(range_to_cut);
         let to_cut_max = this.getSegmentedMax(range_to_cut);
 
+        if ((cutter_min == null) || (cutter_max == null)) {
+            return new RangesCutResult(null, [this.cloneFrom(range_to_cut)]);
+        }
+
+        if ((to_cut_min == null) || (to_cut_max == null)) {
+            return null;
+        }
+
         let max_des_min = this.max(range_to_cut, cutter_min, to_cut_min);
         let min_des_max = this.min(range_to_cut, cutter_max, to_cut_max);
 
         if ((min_des_max == to_cut_max) && (max_des_min == to_cut_min)) {
-            return null;
+            return new RangesCutResult([this.cloneFrom(range_to_cut)], null);
         }
 
-        if (this.isSupp(range_to_cut, max_des_min, to_cut_min)) {
-            res.push(this.createNew(to_cut_min, max_des_min, true, false));
+        let is_max_des_min_supp_to_cut_min = this.isSupp(range_to_cut, max_des_min, to_cut_min);
+        let is_min_des_max_inf_to_cut_max = this.isInf(range_to_cut, min_des_max, to_cut_max);
+
+        if (is_max_des_min_supp_to_cut_min) {
+            res.push(this.createNew(range_to_cut.min, range_cutter.min, range_to_cut.min_inclusiv, !range_cutter.min_inclusiv));
         }
 
-        if (this.isInf(range_to_cut, min_des_max, to_cut_max)) {
-            res.push(this.createNew((max_des_min > to_cut_min) ? cutter_max : to_cut_min, to_cut_max, !(max_des_min > to_cut_min), true));
+        if (is_min_des_max_inf_to_cut_max) {
+            res.push(this.createNew(
+                this.isSupp(range_to_cut, range_cutter.max, range_to_cut.min) || this.equals(range_to_cut, range_cutter.max, range_to_cut.min) ? range_cutter.max : range_to_cut.min,
+                range_to_cut.max,
+                this.isSupp(range_to_cut, range_cutter.max, range_to_cut.min) || this.equals(range_to_cut, range_cutter.max, range_to_cut.min) ? !range_cutter.max_inclusiv : range_to_cut.min_inclusiv,
+                range_to_cut.max_inclusiv));
         }
-        return new RangesCutResult([this.createNew(max_des_min, min_des_max, true, true)], res);
+        return new RangesCutResult([this.createNew(
+            is_max_des_min_supp_to_cut_min ? range_cutter.min : range_to_cut.min,
+            is_min_des_max_inf_to_cut_max ? range_cutter.max : range_to_cut.max,
+            is_max_des_min_supp_to_cut_min ? range_cutter.min_inclusiv : range_to_cut.min_inclusiv,
+            is_min_des_max_inf_to_cut_max ? range_cutter.max_inclusiv : range_to_cut.max_inclusiv)], (res && res.length) ? res : null);
     }
 
+    /**
+     * ATTENTION les ranges sont considérés comme indépendants entre eux. Sinon cela n'a pas de sens.
+     * @param range_cutter
+     * @param ranges_to_cut
+     */
     public cut_ranges<U extends IRange<any>>(range_cutter: U, ranges_to_cut: U[]): RangesCutResult<U> {
 
         let res: RangesCutResult<U> = null;
@@ -441,15 +470,24 @@ export default abstract class RangeHandler<T> {
 
     public cuts_ranges<U extends IRange<any>>(ranges_cutter: U[], ranges_to_cut: U[]): RangesCutResult<U> {
 
-        let res: RangesCutResult<U> = null;
+        if (!ranges_to_cut) {
+            return null;
+        }
+
+        let res: RangesCutResult<U> = new RangesCutResult(null, clonedeep(ranges_to_cut));
 
         for (let i in ranges_cutter) {
             let range_cutter = ranges_cutter[i];
 
-            res = this.addCutResults(res, this.cut_ranges(range_cutter, res.remaining_items));
+            let temp_res = this.cut_ranges(range_cutter, res.remaining_items);
+            res.remaining_items = temp_res ? temp_res.remaining_items : null;
+            res.chopped_items = temp_res ? (res.chopped_items ? (temp_res.chopped_items ? res.chopped_items.concat(temp_res.chopped_items) : null) : temp_res.chopped_items) : res.chopped_items;
         }
 
-        return res;
+        res.remaining_items = this.getRangesUnion(res.remaining_items) as U[];
+        res.chopped_items = this.getRangesUnion(res.chopped_items) as U[];
+
+        return (res && (res.chopped_items || res.remaining_items)) ? res : null;
     }
 
     /**

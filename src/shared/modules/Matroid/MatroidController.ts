@@ -74,6 +74,9 @@ export default class MatroidController {
         return await ModuleDAO.getInstance().filterVosByFieldRanges(api_type_id, field_ranges) as T[];
     }
 
+    /**
+     * FIXME TODO ASAP WITH TU
+     */
     public getMatroidFields(api_type_id: string): Array<ModuleTableField<any>> {
         let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
 
@@ -107,6 +110,11 @@ export default class MatroidController {
      * @param sort Sorts by cardinal
      */
     public getMatroidBases(matroid: IMatroid, sort: boolean = false, sort_asc: boolean = false): Array<MatroidBase<any>> {
+
+        if (!matroid) {
+            return null;
+        }
+
         let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(matroid._type);
         let matroid_bases: Array<MatroidBase<any>> = [];
 
@@ -125,7 +133,7 @@ export default class MatroidController {
                 base_ranges.push(FieldRangeHandler.getInstance().createNew(matroid._type, field.field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv));
             }
 
-            matroid_bases.push(MatroidBase.createNew(matroid._type, field.field_id, matroid.segment_type, base_ranges));
+            matroid_bases.push(MatroidBase.createNew(matroid._type, field.field_id, base_ranges));
         }
 
         if (sort) {
@@ -196,6 +204,9 @@ export default class MatroidController {
         return true;
     }
 
+    /**
+     * FIXME TODO ASAP WITH TU
+     */
     public matroid_intersects_any_matroid(a: IMatroid, bs: IMatroid[]): boolean {
         for (let i in bs) {
             if (this.matroid_intersects_matroid(a, bs[i])) {
@@ -206,6 +217,9 @@ export default class MatroidController {
         return false;
     }
 
+    /**
+     * FIXME TODO ASAP WITH TU
+     */
     public cut_matroids<T extends IMatroid>(matroid_cutter: T, matroids_to_cut: T[]): Array<MatroidCutResult<T>> {
 
         let res: Array<MatroidCutResult<T>> = [];
@@ -228,10 +242,16 @@ export default class MatroidController {
      * FIXME TODO ASAP WITH TU
      */
     public cut_matroid<T extends IMatroid>(matroid_cutter: T, matroid_to_cut: T): MatroidCutResult<T> {
+
+        if (!matroid_to_cut) {
+            return null;
+        }
+
         let res: MatroidCutResult<T> = new MatroidCutResult<T>([], []);
 
         if (!this.matroid_intersects_matroid(matroid_cutter, matroid_to_cut)) {
-            return null;
+            res.remaining_items.push(matroid_to_cut);
+            return res;
         }
 
         // On choisit (arbitrairement) de projeter la coupe selon une base du matroid
@@ -253,7 +273,18 @@ export default class MatroidController {
             if (!matroid_cutter[matroid_to_cut_base.field_id]) {
                 continue;
             }
-            let matroidbase_cutter = matroid_cutter[matroid_to_cut_base.field_id];
+
+            let cutter_field_ranges: Array<IRange<any>> = matroid_cutter[matroid_to_cut_base.field_id];
+
+            let field_ranges: Array<FieldRange<any>> = [];
+            for (let j in cutter_field_ranges) {
+                let cutter_field_range = cutter_field_ranges[j];
+                field_ranges.push(FieldRange.createNew(matroid_to_cut_base.api_type_id, matroid_to_cut_base.field_id, cutter_field_range.min, cutter_field_range.max, cutter_field_range.min_inclusiv, cutter_field_range.max_inclusiv));
+            }
+
+            let matroidbase_cutter = MatroidBase.createNew(
+                matroid_to_cut_base.api_type_id, matroid_to_cut_base.field_id,
+                field_ranges);
             let cut_result: MatroidBaseCutResult<MatroidBase<any>> = MatroidBaseController.getInstance().cut_matroid_base(matroidbase_cutter, matroid_to_cut_base);
 
             // Le but est de créer le matroid lié à la coupe sur cette dimension
@@ -277,7 +308,6 @@ export default class MatroidController {
         let res: T = {
             _type: from._type,
             cardinal: 0,
-            segment_type: from.segment_type,
             id: undefined
         } as T;
 
@@ -292,7 +322,6 @@ export default class MatroidController {
         let res: T = {
             _type: from._type,
             cardinal: from.cardinal,
-            segment_type: from.segment_type,
             id: undefined
         } as T;
 

@@ -51,10 +51,12 @@ export default class VarDAGDefineNodeDeps {
         node.addMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, varDag);
     }
 
-    /**
-     * FIXME TODO TU ASAP VARS
-     */
     public static clear_node_deps(node: VarDAGNode, dag: VarDAG) {
+
+        if ((!node) || (!dag)) {
+            return;
+        }
+
         for (let i in node.outgoingNames) {
 
             let outgoing_name = node.outgoingNames[i];
@@ -72,9 +74,6 @@ export default class VarDAGDefineNodeDeps {
         }
     }
 
-    /**
-     * FIXME TODO TU ASAP VARS
-     */
     public static add_node_deps(node: VarDAGNode, dag: VarDAG, deps: IVarDataParamVOBase[], new_nodes: { [index: string]: VarDAGNode }) {
         for (let i in deps) {
             let dep: IVarDataParamVOBase = deps[i];

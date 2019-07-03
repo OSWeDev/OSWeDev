@@ -8,7 +8,4 @@ export default interface IMatroid extends IDistantVOBase {
 
     // Reste que l'on veut stocker ou avoir un getter indiquant facilement le cardinal de l'ensemble
     cardinal: number;
-
-    // Et si on stocke un cardinal, c'est qu'on a l'info de la segmentation
-    segment_type: number;
 }

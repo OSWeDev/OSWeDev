@@ -1,14 +1,10 @@
 import { expect } from 'chai';
 import 'mocha';
-import VarsController from '../../../src/shared/modules/Var/VarsController';
-import VarConfVOBase from '../../../src/shared/modules/Var/vos/VarConfVOBase';
 import SimpleVarConfVO from '../../../src/shared/modules/Var/simple_vars/SimpleVarConfVO';
-import FakeDataVO from './fakes/vos/FakeDataVO';
-import FakeDataParamController from './fakes/FakeDataParamController';
+import VarsController from '../../../src/shared/modules/Var/VarsController';
 import FakeVarController from './fakes/FakeVarController';
 import FakeDataParamVO from './fakes/vos/FakeDataParamVO';
-import ThreadHandler from '../../../src/shared/tools/ThreadHandler';
-import PerfMonController from '../../../src/shared/modules/PerfMon/PerfMonController';
+import FakeDataVO from './fakes/vos/FakeDataVO';
 
 
 describe('VarsController', () => {
@@ -22,6 +18,7 @@ describe('VarsController', () => {
         varConf.name = "varConf";
         varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
+        VarsController.getInstance().unregisterVar(varConf);
 
         VarsController.getInstance().registerVar(null, null);
         VarsController.getInstance().registerVar(null, FakeVarController.getInstance());
@@ -59,17 +56,47 @@ describe('VarsController', () => {
         varConf.name = "varConf";
         varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
+        let index1: string = "1_2019-01-01_1_1";
+        let index2: string = "1_2019-01-02_1_1";
+        let index3: string = "1_2019-01-03_1_1";
 
+        let param1: FakeDataParamVO = {
+            _type: 'fake_type',
+            var_id: 1,
+            id: undefined,
+            json_params: undefined,
+            date_index: "2019-01-01",
+            fake_y_id: 1,
+            fake_z_id: 1
+        };
+        let param2: FakeDataParamVO = {
+            _type: 'fake_type',
+            var_id: 1,
+            id: undefined,
+            json_params: undefined,
+            date_index: "2019-01-02",
+            fake_y_id: 1,
+            fake_z_id: 1
+        };
+        let param3: FakeDataParamVO = {
+            _type: 'fake_type',
+            var_id: 1,
+            id: undefined,
+            json_params: undefined,
+            date_index: "2019-01-03",
+            fake_y_id: 1,
+            fake_z_id: 1
+        };
+
+        VarsController.getInstance().unregisterVar(varConf);
 
         expect(VarsController.getInstance().getIndex(null)).to.equal(null);
-        expect(VarsController.getInstance().getIndex(FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01'))).to.equal(null);
+        expect(VarsController.getInstance().getIndex(param1)).to.equal(null);
 
         VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
-        expect(VarsController.getInstance().getIndex(FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01'))).to.equal('1_5_2019-01-01');
-        expect(VarsController.getInstance().getIndex(FakeDataParamController.getInstance().getParamFromCompteurName("doesntexist", 5, '2019-01-01'))).to.equal(null);
-        expect(VarsController.getInstance().getIndex(FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 15, '2019-01-01'))).to.equal('1_15_2019-01-01');
-        expect(VarsController.getInstance().getIndex(FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-20'))).to.equal('1_5_2019-01-20');
-        expect(VarsController.getInstance().getIndex(FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 15, '2019-01-20'))).to.equal('1_15_2019-01-20');
+        expect(VarsController.getInstance().getIndex(param1)).to.equal(index1);
+        expect(VarsController.getInstance().getIndex(param2)).to.equal(index2);
+        expect(VarsController.getInstance().getIndex(param3)).to.equal(index3);
         VarsController.getInstance().unregisterVar(varConf);
     });
 

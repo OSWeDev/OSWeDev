@@ -3,8 +3,157 @@ import 'mocha';
 import * as moment from 'moment';
 import NumSegment from '../../../src/shared/modules/DataRender/vos/NumSegment';
 import NumSegmentHandler from '../../../src/shared/tools/NumSegmentHandler';
+import NumRange from '../../../src/shared/modules/DataRender/vos/NumRange';
 
 describe('NumSegmentHandler', () => {
+
+
+    it('test get_segment_from_range_start', () => {
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            null,
+            NumSegment.TYPE_INT)).to.deep.equal(null);
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(0, 0, true, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(0, 0, true, false),
+            NumSegment.TYPE_INT)).to.deep.equal(null);
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(0, 0, false, true),
+            NumSegment.TYPE_INT)).to.deep.equal(null);
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(0, 0, false, false),
+            NumSegment.TYPE_INT)).to.deep.equal(null);
+
+
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(-0.5, 0.5, true, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(-0.5, 0.5, true, false),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(-0.5, 0.5, false, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(-0.5, 0.5, false, false),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+
+
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(-2, 2, true, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: -2,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(-2, 2, false, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: -1,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(-2, 2, true, false),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: -2,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
+            NumRange.createNew(-2, 2, false, false),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: -1,
+                type: NumSegment.TYPE_INT
+            });
+    });
+
+
+    it('test get_segment_from_range_end', () => {
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            null,
+            NumSegment.TYPE_INT)).to.deep.equal(null);
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(0, 0, true, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(0, 0, true, false),
+            NumSegment.TYPE_INT)).to.deep.equal(null);
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(0, 0, false, true),
+            NumSegment.TYPE_INT)).to.deep.equal(null);
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(0, 0, false, false),
+            NumSegment.TYPE_INT)).to.deep.equal(null);
+
+
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(-0.5, 0.5, true, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(-0.5, 0.5, true, false),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(-0.5, 0.5, false, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(-0.5, 0.5, false, false),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 0,
+                type: NumSegment.TYPE_INT
+            });
+
+
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(-2, 2, true, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 2,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(-2, 2, false, true),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 2,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(-2, 2, true, false),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 1,
+                type: NumSegment.TYPE_INT
+            });
+        expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
+            NumRange.createNew(-2, 2, false, false),
+            NumSegment.TYPE_INT)).to.deep.equal({
+                num: 1,
+                type: NumSegment.TYPE_INT
+            });
+    });
 
     it('test getAllDataNumSegments', () => {
         expect(NumSegmentHandler.getInstance().getAllDataNumSegments(null, null, null)).to.equal(null);

@@ -8,7 +8,8 @@ export default class FakeDataParamVO implements IDateIndexedVarDataParam {
     public _type: string = FakeDataParamVO.API_TYPE_ID;
 
     public date_index: string;
-    public fake_vo_id: number;
+    public fake_y_id: number;
+    public fake_z_id: number;
 
     public var_id: number;
     public json_params: string;

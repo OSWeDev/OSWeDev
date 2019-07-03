@@ -32,6 +32,7 @@ export default class VarsController {
     public static VALUE_TYPE_LABELS: string[] = ['var_data.value_type.import', 'var_data.value_type.computed'];
     public static VALUE_TYPE_IMPORT: number = 0;
     public static VALUE_TYPE_COMPUTED: number = 1;
+    public static VALUE_TYPE_MIXED: number = 2;
 
     public static getInstance(): VarsController {
         if (!VarsController.instance) {
@@ -439,7 +440,7 @@ export default class VarsController {
 
     public checkDateIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): void {
         // FIXME DIRTY test sur le date_index
-        if ((!param) || (!(param as any as IDateIndexedVarDataParam).date_index) || (this.checked_var_indexes[this._getIndex(param)])) {
+        if ((!param) || (!(param as any as IDateIndexedVarDataParam).date_index) || (this.checked_var_indexes[this._getIndex(param)]) || (!this.getVarControllerById(param.var_id))) {
             return;
         }
 

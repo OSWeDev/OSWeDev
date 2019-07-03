@@ -358,37 +358,22 @@ export default class NumSegmentHandler {
         return NumRangeHandler.getInstance().getMinSurroundingRange(this.get_num_ranges_(segments));
     }
 
-    /**
-     * TODO TESTUNIT ASAP TU
-     */
     public get_segment_from_range_start(num_range: NumRange, segment_type: number): NumSegment {
-        let min_segment = this.getCorrespondingNumSegment(num_range.min, segment_type);
-
-        if (min_segment.num < num_range.min) {
-            min_segment = this.getPreviousNumSegment(min_segment, -1);
+        if (!num_range) {
+            return null;
         }
 
-        if (num_range.min_inclusiv) {
-            return min_segment;
-        }
-
-        if (min_segment.num == num_range.min) {
-            min_segment = this.getPreviousNumSegment(min_segment, -1);
-        }
-        return min_segment;
+        let min = NumRangeHandler.getInstance().getSegmentedMin(num_range, segment_type);
+        return this.getCorrespondingNumSegment(min, segment_type);
     }
 
-    /**
-     * TODO TESTUNIT ASAP TU
-     */
     public get_segment_from_range_end(num_range: NumRange, segment_type: number): NumSegment {
-        let max_segment = this.getCorrespondingNumSegment(num_range.max, segment_type);
-
-        if (num_range.max_inclusiv) {
-            return max_segment;
+        if (!num_range) {
+            return null;
         }
 
-        return this.getCorrespondingNumSegment(num_range.max, segment_type, -1);
+        let max = NumRangeHandler.getInstance().getSegmentedMax(num_range, segment_type);
+        return this.getCorrespondingNumSegment(max, segment_type);
     }
 
     private get_num_ranges_(segments: NumSegment[]): NumRange[] {
