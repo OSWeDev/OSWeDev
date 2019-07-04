@@ -450,6 +450,10 @@ export default abstract class RangeHandler<T> {
             is_min_des_max_inf_to_cut_max ? range_cutter.max_inclusiv : range_to_cut.max_inclusiv)], (res && res.length) ? res : null);
     }
 
+    public create_single_element_range(elt: T): IRange<T> {
+        return this.createNew(elt, elt, true, true);
+    }
+
     /**
      * ATTENTION les ranges sont considérés comme indépendants entre eux. Sinon cela n'a pas de sens.
      * @param range_cutter

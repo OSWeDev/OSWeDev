@@ -43,6 +43,8 @@ import APIDAOIdsRangesParamsVO from '../../../shared/modules/DAO/vos/APIDAOIdsRa
 import FieldRange from '../../../shared/modules/DataRender/vos/FieldRange';
 import APIDAORangesParamsVO from '../../../shared/modules/DAO/vos/APIDAORangesParamsVO';
 import DateHandler from '../../../shared/tools/DateHandler';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
+import { Moment } from 'moment';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -849,8 +851,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
                     case ModuleTableField.FIELD_TYPE_month:
-                    case ModuleTableField.FIELD_TYPE_unix_timestamp:
                         where_clause += field.field_id + "::date <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange";
+                        break;
+
+                    case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                        where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + (field_range.min as Moment).unix() + "," + (field_range.max as Moment).unix() + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                         break;
 
                     case ModuleTableField.FIELD_TYPE_timestamp:

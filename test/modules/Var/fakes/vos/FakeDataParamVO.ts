@@ -12,5 +12,4 @@ export default class FakeDataParamVO implements IDateIndexedVarDataParam {
     public fake_z_id: number;
 
     public var_id: number;
-    public json_params: string;
 }

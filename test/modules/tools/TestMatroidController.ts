@@ -29,12 +29,10 @@ describe('MatroidController', () => {
         _type: 'matroid_type',
         id: 1,
         cardinal: 4,
-        segment_type: NumSegment.TYPE_INT,
-        value_ts: moment().format('YYYY-MM-DD'),
-        json_params: null,
+        value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
-
+        missing_datas_infos: null,
         employee_id_ranges: [NumRange.createNew(1, 2, true, true)],
         ts_ranges: [TSRange.createNew(moins_deux, zero_cinq, true, true)]
     } as IVarMatroidDataVO;
@@ -43,12 +41,10 @@ describe('MatroidController', () => {
         _type: 'matroid_type',
         id: 1,
         cardinal: 1,
-        segment_type: NumSegment.TYPE_INT,
-        value_ts: moment().format('YYYY-MM-DD'),
-        json_params: null,
+        value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
-
+        missing_datas_infos: null,
         employee_id_ranges: [NumRange.createNew(1, 1, true, true)],
         ts_ranges: [TSRange.createNew(moins_zero_cinq, zero_cinq, true, true)]
     } as IVarMatroidDataVO;
@@ -57,12 +53,10 @@ describe('MatroidController', () => {
         _type: 'matroid_type',
         id: 1,
         cardinal: 1,
-        segment_type: NumSegment.TYPE_INT,
-        value_ts: moment().format('YYYY-MM-DD'),
-        json_params: null,
+        value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
-
+        missing_datas_infos: null,
         employee_id_ranges: [NumRange.createNew(1, 1, true, true)],
         ts_ranges: [TSRange.createNew(moins_deux, moins_un, true, true)]
     } as IVarMatroidDataVO;
@@ -71,12 +65,10 @@ describe('MatroidController', () => {
         _type: 'matroid_type',
         id: 1,
         cardinal: 1,
-        segment_type: NumSegment.TYPE_INT,
-        value_ts: moment().format('YYYY-MM-DD'),
-        json_params: null,
+        value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
-
+        missing_datas_infos: null,
         employee_id_ranges: [NumRange.createNew(2, 2, true, true)],
         ts_ranges: [TSRange.createNew(moins_zero_cinq, zero_cinq, true, true)]
     } as IVarMatroidDataVO;
@@ -85,12 +77,10 @@ describe('MatroidController', () => {
         _type: 'matroid_type',
         id: 1,
         cardinal: 1,
-        segment_type: NumSegment.TYPE_INT,
-        value_ts: moment().format('YYYY-MM-DD'),
-        json_params: null,
+        value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
-
+        missing_datas_infos: null,
         employee_id_ranges: [NumRange.createNew(2, 2, true, true)],
         ts_ranges: [TSRange.createNew(moins_deux, moins_un, true, true)]
     } as IVarMatroidDataVO;
@@ -116,7 +106,6 @@ describe('MatroidController', () => {
         null,
         'matroid_type',
         [
-            new ModuleTableField('json_params', ModuleTableField.FIELD_TYPE_string, 'Paramètres'),
             new ModuleTableField('cardinal', ModuleTableField.FIELD_TYPE_int, 'Cardinal'),
             employee_id_ranges,
             ts_ranges

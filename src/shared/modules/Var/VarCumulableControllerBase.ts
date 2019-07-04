@@ -18,7 +18,6 @@ export default abstract class VarCumulableControllerBase<TData extends IDateInde
 
     public async initialize() {
         this.varConf = await VarsController.getInstance().registerVar(this.varConf, this);
-        await this.configure_from_json_params();
 
         for (let i in this.cumuls_types) {
             let cumul_type: string = this.cumuls_types[i];

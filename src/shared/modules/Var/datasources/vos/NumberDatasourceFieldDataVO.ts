@@ -1,5 +1,6 @@
 import NumberDatasourceFieldDataParamVO from './NumberDatasourceFieldDataParamVO';
 import ISimpleNumberVarData from '../../interfaces/ISimpleNumberVarData';
+import { Moment } from 'moment';
 
 export default class NumberDatasourceFieldDataVO extends NumberDatasourceFieldDataParamVO implements ISimpleNumberVarData {
 
@@ -11,5 +12,6 @@ export default class NumberDatasourceFieldDataVO extends NumberDatasourceFieldDa
     public value: number;
 
     public value_type: number;
-    public value_ts: string;
+    public value_ts: Moment;
+    public missing_datas_infos: string[];
 }

@@ -12,4 +12,5 @@ export default class FakeDataVO extends FakeDataParamVO implements ISimpleNumber
 
     public value_type: number;
     public value_ts: string;
+    public missing_datas_infos: string[];
 }

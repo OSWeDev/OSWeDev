@@ -14,7 +14,6 @@ describe('VarsController', () => {
         let var_name: string = "varConf";
         let varConf: SimpleVarConfVO = new SimpleVarConfVO();
         varConf.id = 1;
-        varConf.json_params = "{}";
         varConf.name = "varConf";
         varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
@@ -52,7 +51,6 @@ describe('VarsController', () => {
         let var_name: string = "varConf";
         let varConf: SimpleVarConfVO = new SimpleVarConfVO();
         varConf.id = 1;
-        varConf.json_params = "{}";
         varConf.name = "varConf";
         varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
@@ -64,7 +62,6 @@ describe('VarsController', () => {
             _type: 'fake_type',
             var_id: 1,
             id: undefined,
-            json_params: undefined,
             date_index: "2019-01-01",
             fake_y_id: 1,
             fake_z_id: 1
@@ -73,7 +70,6 @@ describe('VarsController', () => {
             _type: 'fake_type',
             var_id: 1,
             id: undefined,
-            json_params: undefined,
             date_index: "2019-01-02",
             fake_y_id: 1,
             fake_z_id: 1
@@ -82,7 +78,6 @@ describe('VarsController', () => {
             _type: 'fake_type',
             var_id: 1,
             id: undefined,
-            json_params: undefined,
             date_index: "2019-01-03",
             fake_y_id: 1,
             fake_z_id: 1
@@ -105,7 +100,6 @@ describe('VarsController', () => {
     //     let var_name: string = "varConf";
     //     let varConf: SimpleVarConfVO = new SimpleVarConfVO();
     //     varConf.id = 1;
-    //     varConf.json_params = "{}";
     //     varConf.name = "varConf";
     //     varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
@@ -141,7 +135,6 @@ describe('VarsController', () => {
     //     let var_name: string = "varConf";
     //     let varConf: SimpleVarConfVO = new SimpleVarConfVO();
     //     varConf.id = 1;
-    //     varConf.json_params = "{}";
     //     varConf.name = "varConf";
     //     varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
@@ -205,7 +198,6 @@ describe('VarsController', () => {
     //     let var_name: string = "varConf";
     //     let varConf: SimpleVarConfVO = new SimpleVarConfVO();
     //     varConf.id = 1;
-    //     varConf.json_params = "{}";
     //     varConf.name = "varConf";
     //     varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 
@@ -238,7 +230,6 @@ describe('VarsController', () => {
     //     let var_name: string = "varConf";
     //     let varConf: SimpleVarConfVO = new SimpleVarConfVO();
     //     varConf.id = 1;
-    //     varConf.json_params = "{}";
     //     varConf.name = "varConf";
     //     varConf.var_data_vo_type = FakeDataVO.API_TYPE_ID;
 

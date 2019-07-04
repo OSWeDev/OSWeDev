@@ -5,6 +5,8 @@ import ModuleTable from '../ModuleTable';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import DefaultTranslationManager from '../Translation/DefaultTranslationManager';
 import VarsController from './VarsController';
+import moment = require('moment');
+import VOsTypesManager from '../VOsTypesManager';
 
 export default class ModuleVar extends Module {
 
@@ -50,6 +52,26 @@ export default class ModuleVar extends Module {
         return true;
     }
 
+    public register_simple_number_var_data(api_type_id: string, var_fields: Array<ModuleTableField<any>>) {
+        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
+
+        var_fields.unshift(var_id);
+        var_fields = var_fields.concat([
+            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur'),
+            new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarsController.VALUE_TYPE_IMPORT).setEnumValues({
+                [VarsController.VALUE_TYPE_IMPORT]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_IMPORT],
+                [VarsController.VALUE_TYPE_COMPUTED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_COMPUTED],
+                [VarsController.VALUE_TYPE_MIXED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_MIXED]
+            }),
+            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_unix_timestamp, 'Date mise à jour', true, true, moment().unix()),
+            new ModuleTableField('missing_datas_infos', ModuleTableField.FIELD_TYPE_string_array, 'Datas manquantes', false),
+        ]);
+
+        let datatable = new ModuleTable(this, api_type_id, var_fields, null);
+        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[SimpleVarConfVO.API_TYPE_ID]);
+        this.datatables.push(datatable);
+    }
+
     private initializeSimpleVarConf() {
 
         let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur');
@@ -59,11 +81,13 @@ export default class ModuleVar extends Module {
             new ModuleTableField('var_data_vo_type', ModuleTableField.FIELD_TYPE_string, 'VoType des données du jour'),
             new ModuleTableField('var_imported_data_vo_type', ModuleTableField.FIELD_TYPE_string, 'VoType des données importées'),
 
-            new ModuleTableField('json_params', ModuleTableField.FIELD_TYPE_string, 'Paramètres'),
-
             new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Code de traduction du nom'),
             new ModuleTableField('translatable_description', ModuleTableField.FIELD_TYPE_string, 'Code de traduction de la description'),
             new ModuleTableField('translatable_params_desc', ModuleTableField.FIELD_TYPE_string, 'Code de traduction de la desc des params'),
+
+            new ModuleTableField('has_yearly_reset', ModuleTableField.FIELD_TYPE_boolean, 'Reset annuel ?', true, true, false),
+            new ModuleTableField('yearly_reset_day_in_month', ModuleTableField.FIELD_TYPE_int, 'Jour du mois de reset (1-31)', false, true, 1),
+            new ModuleTableField('yearly_reset_month', ModuleTableField.FIELD_TYPE_int, 'Mois du reset (0-11)', false, true, 0),
         ];
 
         let datatable = new ModuleTable(this, SimpleVarConfVO.API_TYPE_ID, datatable_fields, labelField);

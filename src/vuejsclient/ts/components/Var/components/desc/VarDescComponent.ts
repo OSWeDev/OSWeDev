@@ -9,6 +9,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDescComponent.scss';
 import moment = require('moment');
+import IDataSourceController from '../../../../../../shared/modules/DataSource/interfaces/IDataSourceController';
 
 @Component({
     template: require('./VarDescComponent.pug')
@@ -37,6 +38,61 @@ export default class VarDescComponent extends VueComponentBase {
     public max_depth: number;
 
     private step_number: number = 0;
+    private var_datasources: { [datasource_name: string]: string } = {};
+
+    private var_missing_datas: string[] = [];
+
+    public update_var_missing_datas() {
+
+        this.var_missing_datas = [];
+        if (!this.var_param) {
+            return;
+        }
+
+        let data = VarsController.getInstance().getVarData(this.var_param);
+
+        if ((!data) || (!data.missing_datas_infos)) {
+            return;
+        }
+
+        this.var_missing_datas = data.missing_datas_infos;
+    }
+
+    public async update_var_datasources() {
+
+        this.var_datasources = {};
+        if (!this.var_param) {
+            return;
+        }
+
+        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+
+        if (!controller) {
+            return;
+        }
+
+        let datasources: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
+
+        for (let i in datasources) {
+            let datasource = datasources[i];
+
+            let tmp_datasource_data = null;
+            tmp_datasource_data = datasource.get_data(this.var_param);
+
+            if (!tmp_datasource_data) {
+                await datasource.load_for_batch({
+                    [this.var_index]: this.var_param
+                });
+                tmp_datasource_data = datasource.get_data(this.var_param);
+            }
+
+            if (!tmp_datasource_data) {
+                this.var_datasources[datasource.name] = '-';
+            } else {
+                this.var_datasources[datasource.name] = JSON.stringify(tmp_datasource_data);
+            }
+        }
+    }
 
     get var_dependencies_tree_prct(): string {
         if (!this.var_param) {

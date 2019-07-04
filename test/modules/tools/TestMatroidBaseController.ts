@@ -36,7 +36,6 @@ describe('MatroidBaseController', () => {
         null,
         matroid_type,
         [
-            new ModuleTableField('json_params', ModuleTableField.FIELD_TYPE_string, 'Paramètres'),
             new ModuleTableField('cardinal', ModuleTableField.FIELD_TYPE_int, 'Cardinal'),
             employee_id_ranges,
             ts_ranges

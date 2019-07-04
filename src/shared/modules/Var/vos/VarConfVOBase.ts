@@ -1,7 +1,6 @@
 import INamedVO from '../../../interfaces/INamedVO';
-import IParameterizedVO from '../../../interfaces/IParameterizedVO';
 
-export default abstract class VarConfVOBase implements INamedVO, IParameterizedVO {
+export default abstract class VarConfVOBase implements INamedVO {
 
     public id: number;
     public abstract _type: string;
@@ -10,8 +9,7 @@ export default abstract class VarConfVOBase implements INamedVO, IParameterizedV
 
     public var_data_vo_type: string;
 
-    /**
-     * json_params : params au format json, à généraliser pour des paramètres dont on peut faire varier les attributs
-     */
-    public json_params: string;
+    public has_yearly_reset: boolean;
+    public yearly_reset_day_in_month: number;
+    public yearly_reset_month: number;
 }

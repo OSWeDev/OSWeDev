@@ -27,14 +27,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
     public async initialize() {
         this.varConf = await VarsController.getInstance().registerVar(this.varConf, this);
-        await this.configure_from_json_params();
     }
-    public async configure_from_json_params() { }
-
-    // public async abstract begin_batch(
-    //     vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
-    // public async abstract end_batch(
-    //     vars_params: { [index: string]: IVarDataParamVOBase }, imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } });
 
     /**
      * Returns the datasources this var depends on
@@ -52,18 +45,6 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
      * Returns the var_ids that we depend upon (or might depend)
      */
     public abstract getVarsIdsDependencies(): number[];
-
-    // /**
-    //  * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
-    //  * @param BATCH_UID
-    //  * @param param
-    //  * @param params_by_vars_ids gives awereness about the other datas being loaded, giving the possibility to reduce needed deps to the ones not already awaiting. There's no need to handle this, unless there's a clear impact if a data is present or not, changing the number of datas necessary. Best example is the Soldes d'heures where the simple fact that we are already awaiting yesterday's solde can save up to thousands of data deps.
-    //  */
-    // public async abstract getParamsDependencies(
-    //     BATCH_UID: number,
-    //     param: TDataParam,
-    //     params_by_vars_ids: { [var_id: number]: { [index: string]: IVarDataParamVOBase } },
-    //     imported_datas: { [var_id: number]: { [param_index: string]: IVarDataVOBase } }): Promise<IVarDataParamVOBase[]>;
 
     public async computeValue(varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
@@ -97,6 +78,21 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
             res = await this.updateData(varDAGNode, varDAG);
         }
 
+        // On aggrège au passage les missing_datas_infos des childs vers ce noeud :
+        if ((typeof res.missing_datas_infos === 'undefined') || (!res.missing_datas_infos)) {
+            res.missing_datas_infos = [];
+        }
+
+        for (let i in varDAGNode.outgoingNames) {
+            let outgoing_name = varDAGNode.outgoingNames[i];
+            let outgoing_data = VarsController.getInstance().getVarData(varDAGNode.outgoing[outgoing_name].param, true);
+
+            if (outgoing_data && outgoing_data.missing_datas_infos && outgoing_data.missing_datas_infos.length) {
+
+                res.missing_datas_infos = res.missing_datas_infos.concat(outgoing_data.missing_datas_infos);
+            }
+        }
+
         VarsController.getInstance().setVarData(res, true);
     }
 
@@ -107,6 +103,9 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
         let res: IVarDataParamVOBase[] = await this.getParamDependencies(varDAGNode, varDAG);
 
         for (let i in res) {
+
+            // TODO FIXME ASAP VARS : On intègre ici et dans le Varscontroller la gestion du reset des compteurs,
+            //  puisque [0, 50] sur un reset à 30 ça équivaut strictement à [30,50]
 
             // DIRTY : on fait un peu au pif ici un filtre sur le date_index...
             let e = res[i] as IDateIndexedVarDataParam;
@@ -125,15 +124,6 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
     public async abstract getParamDependencies(
         varDAGNode: VarDAGNode,
         varDAG: VarDAG): Promise<IVarDataParamVOBase[]>;
-
-    // /**
-    //  * FIXME TODO : on a pas accès aux imports, mais en fait il sont chargés à cette étape et ça permettrait d'optimiser cette étape. à voir
-    //  * @param params
-    //  */
-    // public getSelfImpacted(params: TDataParam[], registered: { [paramIndex: string]: IVarDataParamVOBase }): TDataParam[] {
-    //     return [];
-    // }
-
 
     protected getTimeSegment(param: TDataParam): TimeSegment {
         let date_index: string = ((param as any) as IDateIndexedVarDataParam).date_index;
