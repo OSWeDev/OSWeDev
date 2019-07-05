@@ -12,6 +12,8 @@ import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import moment = require('moment');
 import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
 import ISimpleNumberVarMatroidData from './interfaces/ISimpleNumberVarMatroidData';
+import VOsTypesManager from '../VOsTypesManager';
+import ITSRangesVarDataParam from './interfaces/ITSRangesVarDataParam';
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 
@@ -104,14 +106,17 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
         for (let i in res) {
 
+            let param = res[i];
+
             // TODO FIXME ASAP VARS : On intègre ici et dans le Varscontroller la gestion du reset des compteurs,
             //  puisque [0, 50] sur un reset à 30 ça équivaut strictement à [30,50]
 
-            // DIRTY : on fait un peu au pif ici un filtre sur le date_index...
-            let e = res[i] as IDateIndexedVarDataParam;
+            VarsController.getInstance().check_tsrange_on_resetable_var(param);
 
-            if (!!e.date_index) {
-                e.date_index = VarsController.getInstance().getVarControllerById(e.var_id).getTimeSegment(e).dateIndex;
+            // DIRTY : on fait un peu au pif ici un filtre sur le date_index...
+
+            if (!!(param as IDateIndexedVarDataParam).date_index) {
+                (param as IDateIndexedVarDataParam).date_index = VarsController.getInstance().getVarControllerById(param.var_id).getTimeSegment(param).dateIndex;
             }
         }
 

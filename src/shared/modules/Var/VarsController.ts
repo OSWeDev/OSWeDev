@@ -26,6 +26,10 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
+import ITSRangesVarDataParam from './interfaces/ITSRangesVarDataParam';
+import TSRangeHandler from '../../tools/TSRangeHandler';
+import CumulativVarController from './CumulativVarController';
+import TSRange from '../DataRender/vos/TSRange';
 
 export default class VarsController {
 
@@ -93,7 +97,7 @@ export default class VarsController {
     private registered_vars: { [name: string]: VarConfVOBase } = {};
     private registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
 
-    private registered_vars_controller: { [name: string]: VarControllerBase<any, any> } = {};
+    private registered_vars_controller_: { [name: string]: VarControllerBase<any, any> } = {};
 
     private setUpdatingDatas: (updating: boolean) => void = null;
 
@@ -125,6 +129,11 @@ export default class VarsController {
 
     protected constructor() {
     }
+
+    get registered_vars_controller(): { [name: string]: VarControllerBase<any, any> } {
+        return this.registered_vars_controller_;
+    }
+
 
     // /**
     //  * pour UnitTest TestUnit uniquement
@@ -353,8 +362,8 @@ export default class VarsController {
 
         if (!this.datasource_deps_defined) {
 
-            for (let i in this.registered_vars_controller) {
-                let registered_var_controller = this.registered_vars_controller[i];
+            for (let i in this.registered_vars_controller_) {
+                let registered_var_controller = this.registered_vars_controller_[i];
 
                 let datasource_deps: Array<IDataSourceController<any, any>> = this.get_datasource_deps(registered_var_controller);
                 datasource_deps = (!!datasource_deps) ? datasource_deps : [];
@@ -453,6 +462,8 @@ export default class VarsController {
 
         // On check la validité de la date si daté
         this.checkDateIndex(param);
+        // Idem pour les compteurs matroids
+        this.check_tsrange_on_resetable_var(param);
 
         if (this.updateSemaphore) {
             let self = this;
@@ -520,6 +531,8 @@ export default class VarsController {
 
         // On check la validité de la date si daté
         this.checkDateIndex(param);
+        // Idem pour les compteurs matroids
+        this.check_tsrange_on_resetable_var(param);
 
         let self = this;
         return new Promise<IVarDataVOBase>((accept, reject) => {
@@ -651,6 +664,9 @@ export default class VarsController {
 
     public getIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): string {
         this.checkDateIndex(param);
+        // TODO FIXME ASAP : A supprimer si on voit qu'il n'y a pas de problème
+        //  le but est de limiter ce contrôle qui peut couter cher
+        // this.check_tsrange_on_resetable_var(param);
 
         return this._getIndex(param);
     }
@@ -680,6 +696,87 @@ export default class VarsController {
     //     return null;
     // }
 
+    /**
+     * FIXME TODO ASAP VARS TU
+     * Fonction qui permet de définir avec une date le tsrange qu'on veut vraiment calculer dans le cas d'un compteur
+     *  par exemple un compteur de solde d'heures veut la somme des soldes quotidiens depuis le dernier reset ou imports mais
+     *  ils sont gérés plus tard
+     */
+    public get_tsrange_on_resetable_var(var_id: number, target: moment.Moment): TSRange {
+
+        let controller = VarsController.getInstance().getVarControllerById(var_id);
+
+        if (!controller) {
+            return;
+        }
+
+        let conf = controller.varConf;
+
+        if (!conf) {
+            return null;
+        }
+
+        if (!conf.has_yearly_reset) {
+            // Techniquement on a rien à faire ici...
+            return null;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[conf.var_data_vo_type];
+        if (!moduletable.isMatroidTable) {
+            return null;
+        }
+
+        let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
+            target, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
+        return TSRange.createNew(closest_earlier_reset_date, target, true, true);
+    }
+
+    /**
+     * FIXME TODO ASAP VARS TU
+     * Fonction qui permet de vérifier que le range de date n'inclut pas un reset de compteur, auquel cas on enlève la partie qui dépasse
+     * La fonction vérifie qu'on est bien sur un matroid avec un reset
+     */
+    public check_tsrange_on_resetable_var(param: IVarDataParamVOBase) {
+        let controller = VarsController.getInstance().getVarControllerById(param.var_id);
+
+        if (!controller) {
+            return;
+        }
+
+        let conf = controller.varConf;
+
+        if (!conf) {
+            return;
+        }
+
+        if (!conf.has_yearly_reset) {
+            return;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[conf.var_data_vo_type];
+        if (!moduletable.isMatroidTable) {
+            return;
+        }
+
+        let tsranged_param = param as ITSRangesVarDataParam;
+        if (!tsranged_param.ts_ranges) {
+            return;
+        }
+
+        for (let i in tsranged_param.ts_ranges) {
+            let ts_range = tsranged_param.ts_ranges[i];
+
+            let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
+            let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
+                end_range, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
+            if (TSRangeHandler.getInstance().elt_intersects_range(closest_earlier_reset_date, ts_range)) {
+                ts_range.min = closest_earlier_reset_date;
+                ts_range.min_inclusiv = true;
+            }
+        }
+    }
+
+
     public getVarConf(var_name: string): VarConfVOBase {
         return this.registered_vars ? (this.registered_vars[var_name] ? this.registered_vars[var_name] : null) : null;
     }
@@ -689,16 +786,16 @@ export default class VarsController {
     }
 
     public getVarController(var_name: string): VarControllerBase<any, any> {
-        return this.registered_vars_controller ? (this.registered_vars_controller[var_name] ? this.registered_vars_controller[var_name] : null) : null;
+        return this.registered_vars_controller_ ? (this.registered_vars_controller_[var_name] ? this.registered_vars_controller_[var_name] : null) : null;
     }
 
     public getVarControllerById(var_id: number): VarControllerBase<any, any> {
         if ((!this.registered_vars_by_ids) || (!this.registered_vars_by_ids[var_id]) ||
-            (!this.registered_vars_controller)) {
+            (!this.registered_vars_controller_)) {
             return null;
         }
 
-        let res = this.registered_vars_controller[this.registered_vars_by_ids[var_id].name];
+        let res = this.registered_vars_controller_[this.registered_vars_by_ids[var_id].name];
         return res ? res : null;
     }
 
@@ -742,7 +839,7 @@ export default class VarsController {
     public unregisterVar(varConf: VarConfVOBase) {
         if (this.registered_vars && varConf && this.registered_vars[varConf.name]) {
             delete this.registered_vars[varConf.name];
-            delete this.registered_vars_controller[varConf.name];
+            delete this.registered_vars_controller_[varConf.name];
             delete this.registered_vars_by_ids[varConf.id];
             delete this.datasource_deps_by_var_id[varConf.id];
         }
@@ -783,7 +880,7 @@ export default class VarsController {
 
     private setVar(varConf: VarConfVOBase, controller: VarControllerBase<any, any>) {
         this.registered_vars[varConf.name] = varConf;
-        this.registered_vars_controller[varConf.name] = controller;
+        this.registered_vars_controller_[varConf.name] = controller;
         this.registered_vars_by_ids[varConf.id] = varConf;
         this.registered_var_data_api_types[varConf.var_data_vo_type] = true;
 

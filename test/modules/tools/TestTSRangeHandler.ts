@@ -4,6 +4,7 @@ import TSRangeHandler from '../../../src/shared/tools/TSRangeHandler';
 import TSRange from '../../../src/shared/modules/DataRender/vos/TSRange';
 import moment = require('moment');
 import DateHandler from '../../../src/shared/tools/DateHandler';
+import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
 
 describe('TSRangeHandler', () => {
 
@@ -313,6 +314,116 @@ describe('TSRangeHandler', () => {
             TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), (date: moment.Moment) => {
                 res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
             });
+            return res;
+        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+
+
+
+
+
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, true), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, zero, zero);
+            return res;
+        })()).to.deep.equal([]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, false), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, zero, zero);
+            return res;
+        })()).to.deep.equal([]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, true), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, zero, zero);
+            return res;
+        })()).to.deep.equal([]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, false), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, zero, zero);
+            return res;
+        })()).to.deep.equal([]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, false), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, zero, zero);
+            return res;
+        })()).to.deep.equal([]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, false), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, zero, zero);
+            return res;
+        })()).to.deep.equal([]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, true), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, zero, zero);
+            return res;
+        })()).to.deep.equal([]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, true), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, zero, zero);
+            return res;
+        })()).to.deep.equal([]);
+
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_un, un, true, true), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, moins_un, zero);
+            return res;
+        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, moins_un, zero);
+            return res;
+        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, moins_un, zero);
+            return res;
+        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, moins_un, zero);
+            return res;
+        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+
+        expect((() => {
+            let res: string[] = [];
+            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            }, TimeSegment.TYPE_DAY, moins_un, zero);
             return res;
         })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
     });

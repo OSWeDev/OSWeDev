@@ -203,7 +203,7 @@ export default class NumRangeHandler extends RangeHandler<number> {
         return res;
     }
 
-    public foreach(range: NumRange, callback: (value: number) => void, segment_type: number = NumSegment.TYPE_INT) {
+    public foreach(range: NumRange, callback: (value: number) => void, segment_type: number = NumSegment.TYPE_INT, min_inclusiv: number = null, max_inclusiv: number = null) {
         let min = this.getSegmentedMin(range, segment_type);
         let max = this.getSegmentedMax(range, segment_type);
 
@@ -211,10 +211,14 @@ export default class NumRangeHandler extends RangeHandler<number> {
             return;
         }
 
-        switch (segment_type) {
-            default:
-                min = Math.ceil(min);
-                max = Math.floor(max);
+        if ((typeof min_inclusiv != 'undefined') && (min_inclusiv != null) && (!isNaN(min_inclusiv)) && (min_inclusiv > min)) {
+            min = min_inclusiv;
+        }
+        if ((typeof max_inclusiv != 'undefined') && (max_inclusiv != null) && (!isNaN(max_inclusiv)) && (max_inclusiv < max)) {
+            max = max_inclusiv;
+        }
+        if (min > max) {
+            return;
         }
 
         for (let i = min; i <= max; i++) {
