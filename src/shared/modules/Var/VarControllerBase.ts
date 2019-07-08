@@ -1,19 +1,16 @@
+import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
+import VarDAG from './graph/var/VarDAG';
+import VarDAGNode from './graph/var/VarDAGNode';
+import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
+import ISimpleNumberVarMatroidData from './interfaces/ISimpleNumberVarMatroidData';
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
-import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
-import VarDAG from './graph/var/VarDAG';
-import VarDAGNode from './graph/var/VarDAGNode';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
-import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import moment = require('moment');
-import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
-import ISimpleNumberVarMatroidData from './interfaces/ISimpleNumberVarMatroidData';
-import VOsTypesManager from '../VOsTypesManager';
-import ITSRangesVarDataParam from './interfaces/ITSRangesVarDataParam';
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 

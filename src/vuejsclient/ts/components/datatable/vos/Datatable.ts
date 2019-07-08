@@ -1,6 +1,7 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import DatatableField from './DatatableField';
+import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 
 export default class Datatable<T extends IDistantVOBase> {
 
@@ -8,6 +9,13 @@ export default class Datatable<T extends IDistantVOBase> {
      * La fonction doit true pour accepter l'affichage ou false pour refuser
      */
     public conditional_show: (dataVO: IDistantVOBase) => boolean;
+
+    /**
+     * Fonction qui permet de rajouter ou filtrer des datas dans le set loadé de la base
+     */
+    public data_set_hook: (datas_by_ids: { [id: number]: IDistantVOBase }) => Promise<IDistantVOBase[]> = async (datas_by_ids: { [id: number]: IDistantVOBase }) => {
+        return ObjectHandler.getInstance().arrayFromMap(datas_by_ids);
+    }
 
     protected sortedFields: Array<DatatableField<any, any>> = [];
 
@@ -26,6 +34,12 @@ export default class Datatable<T extends IDistantVOBase> {
 
     public set_conditional_show(conditional_show: (dataVO: IDistantVOBase) => boolean): Datatable<T> {
         this.conditional_show = conditional_show;
+
+        return this;
+    }
+
+    public set_data_set_hook(data_set_hook: (datas_by_ids: { [id: number]: IDistantVOBase }) => Promise<IDistantVOBase[]>): Datatable<T> {
+        this.data_set_hook = data_set_hook;
 
         return this;
     }

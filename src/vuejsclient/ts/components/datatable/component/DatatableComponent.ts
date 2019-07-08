@@ -501,7 +501,7 @@ export default class DatatableComponent extends VueComponentBase {
 
         this.loaded = true;
 
-        this.update_datatable_data();
+        await this.update_datatable_data();
 
         for (let i in this.api_types_involved) {
             this.setWatcher(this.api_types_involved[i]);
@@ -510,12 +510,12 @@ export default class DatatableComponent extends VueComponentBase {
 
     get debounced_update_datatable_data() {
         let self = this;
-        return debounce(() => {
-            self.update_datatable_data();
+        return debounce(async () => {
+            await self.update_datatable_data();
         }, 500);
     }
 
-    private update_datatable_data() {
+    private async update_datatable_data() {
 
         if (!this.loaded) {
             return;
@@ -528,10 +528,16 @@ export default class DatatableComponent extends VueComponentBase {
         // On commence par charger la liste des données concernées
         // Un getter du store qui renvoie les datas de base, version distant vo et on va chercher ensuite tous les fields utiles, et les refs
         let baseDatas_byid: { [id: number]: IDistantVOBase } = this.getStoredDatas[this.datatable.API_TYPE_ID]; //TODO chargement depuis le store
+        let baseDatas: IDistantVOBase[] = [];
+
+        if (!!this.datatable.data_set_hook) {
+            baseDatas = await this.datatable.data_set_hook(baseDatas_byid);
+        }
+
         this.datatable_data = [];
 
-        for (let j in baseDatas_byid) {
-            let baseData: IDistantVOBase = baseDatas_byid[j];
+        for (let j in baseDatas) {
+            let baseData: IDistantVOBase = baseDatas[j];
 
             if (!baseData) {
                 continue;
