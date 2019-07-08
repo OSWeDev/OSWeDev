@@ -6,7 +6,6 @@ import IRange from '../modules/DataRender/interfaces/IRange';
 
 export default class NumRangeHandler extends RangeHandler<number> {
 
-
     public static getInstance(): NumRangeHandler {
         if (!NumRangeHandler.instance) {
             NumRangeHandler.instance = new NumRangeHandler();
@@ -23,6 +22,88 @@ export default class NumRangeHandler extends RangeHandler<number> {
     public cloneFrom<U extends IRange<number>>(from: U): U {
         return NumRange.cloneFrom(from) as U;
     }
+
+    /**
+     * TODO TU ASAP FIXME VARS
+     */
+    public translate_to_bdd(ranges: NumRange[]): string {
+        let res = null;
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            if (res == null) {
+                res = '{"';
+            } else {
+                res += ',"';
+            }
+
+            res += range.min_inclusiv ? '[' : '(';
+            res += range.min;
+            res += ',';
+            res += range.max;
+            res += range.max_inclusiv ? ']' : ')';
+
+            res += '"';
+        }
+        res += "}";
+
+        return res;
+    }
+
+    /**
+     * TODO TU ASAP FIXME VARS
+     */
+    public translate_from_bdd<U extends NumRange>(ranges: string): U[] {
+
+        let res: U[] = [];
+        try {
+
+            // (\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))
+            // (\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))
+            // let rangeRegExp = /{("(?:(?:\[|\()(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*),(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*)(?:\]|\)))",?)+}/ig;
+            let rangeRegExp = /("(?:(?:\[|\()(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*),(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*)(?:\]|\)))"),?/ig;
+            let range = rangeRegExp.exec(ranges);
+
+            while (range) {
+
+                if (!range[1]) {
+                    continue;
+                }
+
+                res.push(this.parseRange(range[1].replace(/\\"/ig, '"')) as U);
+                range = rangeRegExp.exec(ranges);
+            }
+        } catch (error) {
+        }
+
+        if ((!res) || (!res.length)) {
+            return null;
+        }
+        return res;
+    }
+
+    /**
+     * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
+     * @param rangeLiteral
+     */
+    public parseRange<U extends NumRange>(rangeLiteral: string): U {
+        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER);
+
+        if (!matches) {
+            return null;
+        }
+
+        var lower = this.parseRangeSegment(matches[2], matches[3]);
+        var upper = this.parseRangeSegment(matches[4], matches[5]);
+
+        return this.createNew(
+            parseFloat(lower),
+            parseFloat(upper),
+            matches[1] == '[',
+            matches[6] == ']');
+    }
+
 
     /**
      * @param range_a

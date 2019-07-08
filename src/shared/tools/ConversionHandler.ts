@@ -20,7 +20,7 @@ export default class ConversionHandler {
         return null;
     }
 
-    public forceNumbers(es: (string | number)[]): number[] {
+    public forceNumbers(es: Array<(string | number)>): number[] {
         if ((!es) || (es.length <= 0)) {
             return null;
         }

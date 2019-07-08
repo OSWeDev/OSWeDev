@@ -6,6 +6,7 @@ import DateHandler from './DateHandler';
 import RangeHandler from './RangeHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
 import IRange from '../modules/DataRender/interfaces/IRange';
+import TimeHandler from './TimeHandler';
 
 export default class TSRangeHandler extends RangeHandler<Moment> {
     public static getInstance(): TSRangeHandler {
@@ -16,6 +17,84 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     private static instance: TSRangeHandler = null;
+
+    /**
+     * TODO TU ASAP FIXME VARS
+     */
+    public translate_to_bdd(ranges: TSRange[]): string {
+        let res = null;
+
+        for (let i in ranges) {
+            let range: TSRange = ranges[i];
+
+            if (res == null) {
+                res = '{"';
+            } else {
+                res += ',"';
+            }
+
+            res += range.min_inclusiv ? '[' : '(';
+            res += range.min.unix();
+            res += ',';
+            res += range.max.unix();
+            res += range.max_inclusiv ? ']' : ')';
+
+            res += '"';
+        }
+        res += "}";
+
+        return res;
+    }
+
+    /**
+     * TODO TU ASAP FIXME VARS
+     */
+    public translate_from_bdd<U extends TSRange>(ranges: string): U[] {
+
+        let res: U[] = [];
+        try {
+
+            let rangeRegExp = /("(?:(?:\[|\()(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*),(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*)(?:\]|\)))"),?/ig;
+            let range = rangeRegExp.exec(ranges);
+
+            while (range) {
+
+                if (!range[1]) {
+                    continue;
+                }
+
+                res.push(this.parseRange(range[1].replace(/\\"/ig, '"')) as U);
+                range = rangeRegExp.exec(ranges);
+            }
+        } catch (error) {
+        }
+
+        if ((!res) || (!res.length)) {
+            return null;
+        }
+        return res;
+    }
+
+    /**
+     * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
+     * @param rangeLiteral
+     */
+    public parseRange<U extends TSRange>(rangeLiteral: string): U {
+        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER);
+
+        if (!matches) {
+            return null;
+        }
+
+        var lower = this.parseRangeSegment(matches[2], matches[3]);
+        var upper = this.parseRangeSegment(matches[4], matches[5]);
+
+        return this.createNew(
+            moment(lower),
+            moment(upper),
+            matches[1] == '[',
+            matches[6] == ']');
+    }
 
     /**
      * @param range_a

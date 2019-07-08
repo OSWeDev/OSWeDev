@@ -44,7 +44,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value)) + ' ' + moment(field_value).format('HH:mm:ss');
 
                 case ModuleTableField.FIELD_TYPE_daterange:
-                case ModuleTableField.FIELD_TYPE_daterange_array:
+                // case ModuleTableField.FIELD_TYPE_daterange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
 
                     // On stocke au format day - day

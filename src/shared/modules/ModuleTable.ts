@@ -7,6 +7,8 @@ import { default as ModuleDBField, default as ModuleTableField } from './ModuleT
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
+import NumRangeHandler from '../tools/NumRangeHandler';
+import TSRangeHandler from '../tools/TSRangeHandler';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -252,6 +254,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     break;
 
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+                    res[field.field_id] = NumRangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    res[field.field_id] = TSRangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
+                    break;
+
                 default:
             }
         }
@@ -296,6 +306,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 if (e[field.field_id]) {
                     e[field.field_id] = e[field.field_id].map(Number);
                 }
+            }
+
+            if (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) {
+                e[field.field_id] = NumRangeHandler.getInstance().translate_from_bdd(e[field.field_id]);
+            }
+            if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                e[field.field_id] = TSRangeHandler.getInstance().translate_from_bdd(e[field.field_id]);
             }
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_day) ||

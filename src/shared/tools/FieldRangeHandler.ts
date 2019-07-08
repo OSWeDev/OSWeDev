@@ -180,6 +180,18 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         return relevantHandler ? relevantHandler.isStartASameEndB(range_a as any, range_b as any) : false;
     }
 
+    public translate_to_bdd(ranges: any[]): string {
+        throw new Error('Not Implemented');
+    }
+
+    public translate_from_bdd(ranges: string): any[] {
+        throw new Error('Not Implemented');
+    }
+
+    public parseRange(rangeLiteral: string): any {
+        throw new Error('Not Implemented');
+    }
+
     /**
      * @param range_a
      * @param range_b
@@ -260,7 +272,7 @@ export default class FieldRangeHandler extends RangeHandler<any> {
 
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_daterange:
-            case ModuleTableField.FIELD_TYPE_daterange_array:
+            // case ModuleTableField.FIELD_TYPE_daterange_array:
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:

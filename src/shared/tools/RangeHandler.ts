@@ -1,8 +1,11 @@
 import * as clonedeep from 'lodash/clonedeep';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
+import NumRange from '../modules/DataRender/vos/NumRange';
 
 export default abstract class RangeHandler<T> {
+
+    protected static RANGE_MATCHER = /(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
 
     protected constructor() { }
 
@@ -358,6 +361,11 @@ export default abstract class RangeHandler<T> {
     public abstract createNew<U extends IRange<T>>(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean): U;
     public abstract cloneFrom<U extends IRange<T>>(from: U): U;
 
+    public abstract translate_to_bdd<U extends IRange<T>>(ranges: U[]): string;
+    public abstract translate_from_bdd<U extends IRange<T>>(ranges: string): U[];
+
+    public abstract parseRange<U extends IRange<T>>(rangeLiteral: string): U;
+
     public getFormattedMinForAPI(range: IRange<T>): string {
         if (!range) {
             return null;
@@ -521,6 +529,16 @@ export default abstract class RangeHandler<T> {
         let remaining = a.remaining_items ? a.remaining_items.concat(b.remaining_items) : b.remaining_items;
 
         return new RangesCutResult(chopped, remaining);
+    }
+
+    protected parseRangeSegment(whole, quoted) {
+        if (quoted) {
+            return quoted.replace(/\\(.)/g, "$1");
+        }
+        if (whole === "") {
+            return null;
+        }
+        return whole;
     }
 }
 

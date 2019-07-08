@@ -1,50 +1,48 @@
+import { Moment } from 'moment';
+import INamedVO from '../../../shared/interfaces/INamedVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import APIDAOIdsRangesParamsVO from '../../../shared/modules/DAO/vos/APIDAOIdsRangesParamsVO';
+import APIDAONamedParamVO from '../../../shared/modules/DAO/vos/APIDAONamedParamVO';
+import APIDAOParamsVO from '../../../shared/modules/DAO/vos/APIDAOParamsVO';
 import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
+import APIDAORangesParamsVO from '../../../shared/modules/DAO/vos/APIDAORangesParamsVO';
+import APIDAORefFieldParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldParamsVO';
+import APIDAORefFieldsAndFieldsStringParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsAndFieldsStringParamsVO';
+import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsParamsVO';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import FieldRange from '../../../shared/modules/DataRender/vos/FieldRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import BooleanHandler from '../../../shared/tools/BooleanHandler';
-import ServerBase from '../../ServerBase';
-import ModuleServerBase from '../ModuleServerBase';
-import ModuleServiceBase from '../ModuleServiceBase';
-import DAOTriggerHook from './triggers/DAOTriggerHook';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import APIDAOParamsVO from '../../../shared/modules/DAO/vos/APIDAOParamsVO';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import APIDAORefFieldParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldParamsVO';
-import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
-import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
-import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
-import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import LocaleManager from '../../../shared/tools/LocaleManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import ModulesManagerServer from '../ModulesManagerServer';
-import INamedVO from '../../../shared/interfaces/INamedVO';
-import APIDAONamedParamVO from '../../../shared/modules/DAO/vos/APIDAONamedParamVO';
-import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsParamsVO';
-import EnvParam from '../../env/EnvParam';
-import ConfigurationService from '../../env/ConfigurationService';
-import APIDAORefFieldsAndFieldsStringParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsAndFieldsStringParamsVO';
-import APIDAOIdsRangesParamsVO from '../../../shared/modules/DAO/vos/APIDAOIdsRangesParamsVO';
-import FieldRange from '../../../shared/modules/DataRender/vos/FieldRange';
-import APIDAORangesParamsVO from '../../../shared/modules/DAO/vos/APIDAORangesParamsVO';
+import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
-import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
-import { Moment } from 'moment';
+import ConfigurationService from '../../env/ConfigurationService';
+import ServerBase from '../../ServerBase';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleServerBase from '../ModuleServerBase';
+import ModuleServiceBase from '../ModuleServiceBase';
+import ModulesManagerServer from '../ModulesManagerServer';
+import DAOTriggerHook from './triggers/DAOTriggerHook';
+import ModuleVO from '../../../shared/modules/ModuleVO';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -301,6 +299,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On filtre suivant les droits d'accès
         return await this.filterVOAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
+    }
+
+    /**
+     * DONT USE : N'utiliser que en cas de force majeure => exemple upgrade de format de BDD
+     * @param query
+     */
+    public async query(query: string = null): Promise<any> {
+
+        // On vérifie qu'on peut faire des modifs de table modules
+        if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
+            return null;
+        }
+
+        return await ModuleServiceBase.getInstance().db.query(query);
     }
 
     /**
@@ -725,8 +737,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        if ((!apiDAOParamsVO.field_name1) && (!apiDAOParamsVO.field_name2) && (!apiDAOParamsVO.field_name3)) {
+            return null;
+        }
+
+        if (!datatable) {
+            return null;
+        }
+
         // On check le field_name par rapport à la liste des fields, et au fait qu'il doit être un manyToOne (pour sécuriser)
-        if ((!datatable) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name1)) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name1).field_id)) {
+        if (apiDAOParamsVO.field_name1 && ((!datatable.getFieldFromId(apiDAOParamsVO.field_name1)) || (!datatable.getFieldFromId(apiDAOParamsVO.field_name1).field_id) || (!apiDAOParamsVO.ids1))) {
             return null;
         }
 
@@ -738,17 +758,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        if ((!apiDAOParamsVO.ids1) || (!apiDAOParamsVO.ids1.length)) {
-            return null;
+        let request: string = "SELECT t.* FROM " + datatable.full_name + " t WHERE ";
+        let first: boolean = true;
+        if (apiDAOParamsVO.field_name1 && ((!!apiDAOParamsVO.ids1) && (apiDAOParamsVO.ids1.length > 0))) {
+            request += datatable.getFieldFromId(apiDAOParamsVO.field_name1).field_id + " in (" + apiDAOParamsVO.ids1 + ")";
+            first = false;
         }
-
-        let request: string = "SELECT t.* FROM " + datatable.full_name + " t WHERE " +
-            datatable.getFieldFromId(apiDAOParamsVO.field_name1).field_id + " in (" + apiDAOParamsVO.ids1 + ")";
         if (apiDAOParamsVO.field_name2 && ((!!apiDAOParamsVO.values2) && (apiDAOParamsVO.values2.length > 0))) {
-            request += " AND " + datatable.getFieldFromId(apiDAOParamsVO.field_name2).field_id + " in ('" + apiDAOParamsVO.values2.join("','") + "')";
+            request += ((!first) ? " AND " : "") + datatable.getFieldFromId(apiDAOParamsVO.field_name2).field_id + " in ('" + apiDAOParamsVO.values2.join("','") + "')";
+            first = false;
         }
         if (apiDAOParamsVO.field_name3 && ((!!apiDAOParamsVO.values3) && (apiDAOParamsVO.values3.length > 0))) {
-            request += " AND " + datatable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in ('" + apiDAOParamsVO.values3.join("','") + "')";
+            request += ((!first) ? " AND " : "") + datatable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in ('" + apiDAOParamsVO.values3.join("','") + "')";
+            first = false;
         }
 
         let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";") as T[]);
@@ -872,12 +894,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         break;
 
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDateTimeForBDD(field_range.min) + "," + DateHandler.getInstance().formatDateTimeForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::tstzrange @> ANY (" + field.field_id + "::tstzrange[])";
+                        where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + (field_range.min as Moment).unix() + "," + (field_range.max as Moment).unix() + (field_range.max_inclusiv ? "]" : ")") + "'::numrange @> ANY (" + field.field_id + "::numrange[])";
                         break;
 
-                    case ModuleTableField.FIELD_TYPE_daterange_array:
-                        where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange @> ANY (" + field.field_id + "::daterange[])";
-                        break;
+                    // case ModuleTableField.FIELD_TYPE_daterange_array:
+                    //     where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange @> ANY (" + field.field_id + "::daterange[])";
+                    //     break;
                 }
             }
         }

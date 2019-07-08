@@ -114,7 +114,7 @@ export default class MatroidController {
             let field = moduleTable.fields[i];
 
             switch (field.field_type) {
-                case ModuleTableField.FIELD_TYPE_daterange_array:
+                // case ModuleTableField.FIELD_TYPE_daterange_array:
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     break;
@@ -197,7 +197,7 @@ export default class MatroidController {
 
             let intersects: boolean = false;
             switch (matroid_field.field_type) {
-                case ModuleTableField.FIELD_TYPE_daterange_array:
+                // case ModuleTableField.FIELD_TYPE_daterange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     for (let j in a_ranges) {
 

@@ -550,9 +550,9 @@ export default class CRUDComponent extends VueComponentBase {
                     // TODO FIXME ASAP VARS
                 }
 
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) {
-                    // TODO FIXME ASAP VARS
-                }
+                // if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) {
+                //     // TODO FIXME ASAP VARS
+                // }
 
                 if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
                     // TODO FIXME ASAP VARS
@@ -603,9 +603,9 @@ export default class CRUDComponent extends VueComponentBase {
                     // TODO FIXME ASAP VARS
                 }
 
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) {
-                    // TODO FIXME ASAP VARS
-                }
+                // if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) {
+                //     // TODO FIXME ASAP VARS
+                // }
 
                 if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
                     // TODO FIXME ASAP VARS
@@ -909,7 +909,7 @@ export default class CRUDComponent extends VueComponentBase {
                             case ModuleTableField.FIELD_TYPE_daterange:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
-                            case ModuleTableField.FIELD_TYPE_daterange_array:
+                                // case ModuleTableField.FIELD_TYPE_daterange_array:
                                 break;
 
                             default:

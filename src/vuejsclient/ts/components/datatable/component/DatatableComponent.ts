@@ -159,7 +159,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                     if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
+                        // (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
                         (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
@@ -267,7 +267,7 @@ export default class DatatableComponent extends VueComponentBase {
             if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
                 (((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
+                    // ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
                     ((field as SimpleDatatableField<AnalyserNode, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                     ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
@@ -291,7 +291,7 @@ export default class DatatableComponent extends VueComponentBase {
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
+                    // (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
                     (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month) ||
@@ -467,7 +467,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                     case ModuleTableField.FIELD_TYPE_timestamp:
                     case ModuleTableField.FIELD_TYPE_daterange:
-                    case ModuleTableField.FIELD_TYPE_daterange_array:
+                    // case ModuleTableField.FIELD_TYPE_daterange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
@@ -789,7 +789,7 @@ export default class DatatableComponent extends VueComponentBase {
                                     return (row[field.datatable_field_uid] && istrue) || ((!row[field.datatable_field_uid]) && !istrue);
 
                                 case ModuleTableField.FIELD_TYPE_daterange:
-                                case ModuleTableField.FIELD_TYPE_daterange_array:
+                                // case ModuleTableField.FIELD_TYPE_daterange_array:
                                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                                     if ((!query) || ((!query.start) && (!query.end))) {
                                         return true;

@@ -40,7 +40,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_date: string = 'date';
     public static FIELD_TYPE_hours_and_minutes: string = 'HourAndMinute';
     public static FIELD_TYPE_daterange: string = 'daterange';
-    public static FIELD_TYPE_daterange_array: string = 'daterange[]';
+    // public static FIELD_TYPE_daterange_array: string = 'daterange[]';
     public static FIELD_TYPE_tstzrange_array: string = 'tstzrange[]'; // TimeStamp With TimeZone range array
     public static FIELD_TYPE_tsrange: string = 'tsrange';
     public static FIELD_TYPE_timestamp: string = 'timestamp';
@@ -270,10 +270,10 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_numrange_array:
                 return db_type == "numrange[]";
-            case ModuleTableField.FIELD_TYPE_daterange_array:
-                return db_type == "daterange[]";
+            // case ModuleTableField.FIELD_TYPE_daterange_array:
+            //     return db_type == "daterange[]";
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return db_type == "tstzrange[]";
+                return db_type == "numrange[]";
 
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return db_type == "tsrange";
@@ -345,10 +345,10 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_numrange_array:
                 return "numrange[]";
-            case ModuleTableField.FIELD_TYPE_daterange_array:
-                return "daterange[]";
+            // case ModuleTableField.FIELD_TYPE_daterange_array:
+            //     return "daterange[]";
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return "tstzrange[]";
+                return "numrange[]";
 
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return "tsrange";
@@ -412,7 +412,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_daterange:
             case ModuleTableField.FIELD_TYPE_numrange_array:
-            case ModuleTableField.FIELD_TYPE_daterange_array:
+            // case ModuleTableField.FIELD_TYPE_daterange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_day:
             case ModuleTableField.FIELD_TYPE_month:
