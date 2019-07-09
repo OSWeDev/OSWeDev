@@ -1155,6 +1155,10 @@ export default class VarsController {
                         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
                         let matroids_inscrits: ISimpleNumberVarMatroidData[] = await MatroidController.getInstance().getVosFilteredByMatroid<ISimpleNumberVarMatroidData>(moduletable.vo_type, node.param as IVarMatroidDataParamVO);
 
+                        if (!matroids_inscrits) {
+                            return;
+                        }
+
                         // On a les matroids inscrits dans le matroid qui questionne, on veut maintenant identifier l'ensemble le 'plus couvrant'
                         //  Pour l'instant on fait simple, on classe par cardinal dec, et on garde ceux qui intersectent pas l'ensemble en cours de constitution
 

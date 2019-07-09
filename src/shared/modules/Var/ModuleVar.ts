@@ -52,7 +52,7 @@ export default class ModuleVar extends Module {
         return true;
     }
 
-    public register_simple_number_var_data(api_type_id: string, var_fields: Array<ModuleTableField<any>>) {
+    public register_simple_number_var_data(api_type_id: string, var_fields: Array<ModuleTableField<any>>, is_matroid: boolean = false) {
         let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
 
         var_fields.unshift(var_id);
@@ -68,6 +68,9 @@ export default class ModuleVar extends Module {
         ]);
 
         let datatable = new ModuleTable(this, api_type_id, var_fields, null);
+        if (is_matroid) {
+            datatable.defineAsMatroid();
+        }
         var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[SimpleVarConfVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }

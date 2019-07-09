@@ -834,6 +834,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let ranges = ranges_by_field_id[i];
 
             where_clause += first ? "(" : ") AND (";
+            let first_in_clause = true;
 
             for (let j in ranges) {
                 let field_range = ranges[j];
@@ -844,9 +845,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 let field = datatable.getFieldFromId(field_range.field_id);
 
-                where_clause += first ? "" : " OR ";
+                where_clause += first_in_clause ? "" : " OR ";
 
                 first = false;
+                first_in_clause = false;
 
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_amount:

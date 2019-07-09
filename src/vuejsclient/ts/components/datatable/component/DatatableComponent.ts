@@ -231,6 +231,15 @@ export default class DatatableComponent extends VueComponentBase {
             if (!!cloned_data[DatatableComponent.ACTIONS_COLUMN_ID]) {
                 delete cloned_data[DatatableComponent.ACTIONS_COLUMN_ID];
             }
+
+            // On allège le vo en gardant que les colonne à exporter
+            for (let column in cloned_data) {
+
+                if (this.exportable_datatable_columns.indexOf(column) < 0) {
+                    cloned_data[column] = undefined;
+                }
+            }
+
             this.exportable_datatable_data.push(cloned_data);
         }
 
