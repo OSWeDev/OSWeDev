@@ -10,6 +10,11 @@ import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDescComponent.scss';
 import moment = require('moment');
 import IDataSourceController from '../../../../../../shared/modules/DataSource/interfaces/IDataSourceController';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import ModuleTable from '../../../../../../shared/modules/ModuleTable';
+import Datatable from '../../../datatable/vos/Datatable';
+import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 
 @Component({
     template: require('./VarDescComponent.pug')
@@ -41,6 +46,20 @@ export default class VarDescComponent extends VueComponentBase {
     private var_datasources: { [datasource_name: string]: string } = {};
 
     private var_missing_datas: string[] = [];
+
+    // get var_param_desc_component():any{
+    //     if (!this.var_param){
+    //         return null;
+    //     }
+
+    //     let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+
+    //     if (!controller) {
+    //         return null;
+    //     }
+
+    //     controller.varDataParamController.
+    // }
 
     public update_var_missing_datas() {
 
@@ -150,12 +169,115 @@ export default class VarDescComponent extends VueComponentBase {
         return this.t(VarsController.getInstance().get_translatable_description_code(this.var_param.var_id));
     }
 
+    get ismatroid(): boolean {
+        if (!this.var_param) {
+            return null;
+        }
+
+        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+
+        if (!controller) {
+            return null;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
+
+        return moduletable && moduletable.isMatroidTable;
+    }
+
+    get loaded_datas_matroids_desc(): string {
+        if (!this.var_index) {
+            return null;
+        }
+
+        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+
+        return JSON.stringify(this.get_copy_with_explaining_fields(node.loaded_datas_matroids));
+    }
+
+    get parents_loaded_datas_matroids_desc(): string {
+        if (!this.var_index) {
+            return null;
+        }
+
+        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+
+        return JSON.stringify(this.get_copy_with_explaining_fields(node.parents_loaded_datas_matroids));
+    }
+
+    get loaded_datas_matroids_sum_value_desc(): string {
+        if (!this.var_index) {
+            return null;
+        }
+
+        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+
+        return node.loaded_datas_matroids_sum_value ? node.loaded_datas_matroids_sum_value.toString() : null;
+    }
+
+    get computed_datas_matroids_desc(): string {
+        if (!this.var_index) {
+            return null;
+        }
+
+        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+
+        return JSON.stringify(this.get_copy_with_explaining_fields(node.computed_datas_matroids));
+    }
+
+
+
+
     get var_params_desc(): string {
         if (!this.var_param) {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_params_desc_code(this.var_param.var_id), this.var_param);
+        // return this.t(VarsController.getInstance().get_translatable_params_desc_code(this.var_param.var_id), this.get_copy_with_explaining_fields(this.var_param));
+        return JSON.stringify(this.get_copy_with_explaining_fields(this.var_param));
+    }
+
+    public get_copy_with_explaining_fields(matroid): IVarDataParamVOBase {
+        if ((!this.var_param) || (!matroid)) {
+            return null;
+        }
+
+        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+
+        if (!controller) {
+            return null;
+        }
+
+        // On essaie de proposer des params pré-travaillés
+        let param: any = {};
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
+
+        for (let i in moduletable.fields) {
+            let field = moduletable.fields[i];
+
+            if ([
+                //IVarDataParamVOBase
+                "var_id",
+
+                //IDistantVOBase
+                "id",
+                "_type",
+
+                //IVarDataVOBase
+                "value_type",
+                "value_ts",
+                "missing_datas_infos",
+
+                // IMatroid
+                "cardinal"
+            ].indexOf(field.field_id) >= 0) {
+                continue;
+            }
+
+            param[field.field_id] = SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+        }
+
+        return param;
     }
 
     get var_markers(): any {

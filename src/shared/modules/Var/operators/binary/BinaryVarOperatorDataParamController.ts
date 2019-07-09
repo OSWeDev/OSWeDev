@@ -3,8 +3,9 @@ import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 import VarDataParamControllerBase from '../../VarDataParamControllerBase';
 import VarsController from '../../VarsController';
 import BinaryVarOperatorDataParamVO from './vos/BinaryVarOperatorDataParamVO';
+import BinaryVarOperatorDataVO from './vos/BinaryVarOperatorDataVO';
 
-export default class BinaryVarOperatorDataParamController extends VarDataParamControllerBase<BinaryVarOperatorDataParamVO> {
+export default class BinaryVarOperatorDataParamController extends VarDataParamControllerBase<BinaryVarOperatorDataVO, BinaryVarOperatorDataParamVO> {
 
     public static getInstance() {
         if (!BinaryVarOperatorDataParamController.instance) {
@@ -19,6 +20,17 @@ export default class BinaryVarOperatorDataParamController extends VarDataParamCo
     protected constructor() {
         super();
     }
+
+    public cloneParam(param: BinaryVarOperatorDataParamVO): BinaryVarOperatorDataParamVO {
+        let res: BinaryVarOperatorDataParamVO = new BinaryVarOperatorDataParamVO();
+
+        res.var_id = param.var_id;
+        res.left_var_param_index = param.left_var_param_index;
+        res.right_var_param_index = param.right_var_param_index;
+
+        return res;
+    }
+
 
     public getParamFromIndexes(var_name_or_id: string | number, left_var_param_index: string, right_var_param_index: string): BinaryVarOperatorDataParamVO {
 

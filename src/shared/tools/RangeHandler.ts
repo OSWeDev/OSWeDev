@@ -358,6 +358,20 @@ export default abstract class RangeHandler<T> {
         return res;
     }
 
+    public cloneArrayFrom<U extends IRange<T>>(from: U[]): U[] {
+
+        if (!from) {
+            return null;
+        }
+
+        let res: U[] = [];
+
+        for (let i in from) {
+            res.push(this.cloneFrom(from[i]) as U);
+        }
+        return res;
+    }
+
     public abstract createNew<U extends IRange<T>>(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean): U;
     public abstract cloneFrom<U extends IRange<T>>(from: U): U;
 

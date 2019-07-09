@@ -20,7 +20,7 @@ export default class MinVarController<
         protected right_var: VarControllerBase<TDataRight, any>,
         var_data_api_type_id: string,
         protected varDataConstructor: () => TData,
-        data_param_controller: VarDataParamControllerBase<TDataParam>) {
+        data_param_controller: VarDataParamControllerBase<TData, TDataParam>) {
         super(left_var, MinVarController.OPERATOR_NAME, right_var, var_data_api_type_id, varDataConstructor, data_param_controller);
     }
 

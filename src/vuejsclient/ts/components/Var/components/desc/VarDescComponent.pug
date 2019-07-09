@@ -8,16 +8,30 @@
             p.card-text {{ var_description }}
             h5.card-title {{ label('var.desc_mode.var_params') }}
             p.card-text {{ var_params_desc }}
+            
+            template(v-if='ismatroid')
+                h5.card-title {{ label('var.desc_mode.loaded_datas_matroids') }}
+                p.card-text {{ loaded_datas_matroids_desc }}
+
+                h5.card-title {{ label('var.desc_mode.parents_loaded_datas_matroids') }}
+                p.card-text {{ parents_loaded_datas_matroids_desc }}
+
+                h5.card-title {{ label('var.desc_mode.loaded_datas_matroids_sum_value') }}
+                p.card-text {{ loaded_datas_matroids_sum_value_desc }}
+
+                h5.card-title {{ label('var.desc_mode.computed_datas_matroids') }}
+                p.card-text {{ computed_datas_matroids_desc }}
+
             h5.card-title {{ label('var.desc_mode.var_markers') }}
             //- p.card-text {{ var_markers_json }}
             ul
-                li(v-for='(marker_name, marker_value) in var_markers')
-                    b {{ marker_value + ' : ' }}
-                    | {{ marker_name }}
+                li(v-for='(marker_value, marker_name) in var_markers')
+                    b {{ marker_name + ' : ' }}
+                    | {{ marker_value }}
             h5.card-title {{ label('var.desc_mode.var_datasources') }}
             i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_datasources')
             ul
-                li(v-for='(datasource_name, datasource_value) in var_datasources')
+                li(v-for='(datasource_value, datasource_name) in var_datasources')
                     b {{ datasource_name + ' : ' }}
                     | {{ datasource_value }}
             h5.card-title {{ label('var.desc_mode.var_missing_datas') }}

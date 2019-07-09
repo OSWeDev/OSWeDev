@@ -21,7 +21,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
     protected constructor(
         public varConf: VarConfVOBase,
-        public varDataParamController: VarDataParamControllerBase<TDataParam>) {
+        public varDataParamController: VarDataParamControllerBase<TData, TDataParam>) {
     }
 
     public async initialize() {

@@ -10,7 +10,7 @@ export default abstract class VarCumulableControllerBase<TData extends IDateInde
 
     protected constructor(
         public varConf: VarConfVOBase,
-        public varDataParamController: VarDataParamControllerBase<TDataParam>,
+        public varDataParamController: VarDataParamControllerBase<TData, TDataParam>,
         public cumuls_types: string[] = [],
         public var_data_constructor: () => TData = null) {
         super(varConf, varDataParamController);

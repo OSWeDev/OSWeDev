@@ -26,7 +26,7 @@ export default abstract class BinaryVarOperatorControllerBase<
         protected right_var: VarControllerBase<TDataRight, any>,
         var_data_api_type_id: string,
         protected varDataConstructor: () => TData,
-        data_param_controller: VarDataParamControllerBase<TDataParam>) {
+        data_param_controller: VarDataParamControllerBase<TData, TDataParam>) {
         super({
             _type: SimpleVarConfVO.API_TYPE_ID,
             id: null,

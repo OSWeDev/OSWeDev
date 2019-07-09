@@ -1,81 +1,92 @@
-import { isString } from 'util';
-import VarDataParamControllerBase from '../VarDataParamControllerBase';
-import NumberDatasourceFieldDataParamVO from './vos/NumberDatasourceFieldDataParamVO';
+// import { isString } from 'util';
+// import VarDataParamControllerBase from '../VarDataParamControllerBase';
+// import NumberDatasourceFieldDataParamVO from './vos/NumberDatasourceFieldDataParamVO';
+// import NumberDatasourceFieldDataVO from './vos/NumberDatasourceFieldDataVO';
 
-export default class NumberDatasourceFieldDataParamController extends VarDataParamControllerBase<NumberDatasourceFieldDataParamVO> {
+// export default class NumberDatasourceFieldDataParamController extends VarDataParamControllerBase<NumberDatasourceFieldDataVO, NumberDatasourceFieldDataParamVO> {
 
-    public static getInstance() {
-        if (!NumberDatasourceFieldDataParamController.instance) {
-            NumberDatasourceFieldDataParamController.instance = new NumberDatasourceFieldDataParamController();
-        }
+//     public static getInstance() {
+//         if (!NumberDatasourceFieldDataParamController.instance) {
+//             NumberDatasourceFieldDataParamController.instance = new NumberDatasourceFieldDataParamController();
+//         }
 
-        return NumberDatasourceFieldDataParamController.instance;
-    }
+//         return NumberDatasourceFieldDataParamController.instance;
+//     }
 
-    private static instance: NumberDatasourceFieldDataParamController = null;
+//     private static instance: NumberDatasourceFieldDataParamController = null;
 
-    protected constructor() {
-        super();
-    }
+//     protected constructor() {
+//         super();
+//     }
 
-    public getImpactedParamsList(paramUpdated: NumberDatasourceFieldDataParamVO, paramsRegisteredByIndex: { [index: string]: NumberDatasourceFieldDataParamVO }): NumberDatasourceFieldDataParamVO[] {
-        return null;
-    }
+//     public createNewData(param: BinaryVarOperatorDataParamVO): BinaryVarOperatorDataVO {
+//         let res: BinaryVarOperatorDataVO = new BinaryVarOperatorDataVO();
 
-    public getIndex(param: NumberDatasourceFieldDataParamVO): string {
-        let res: string = "";
+//         res.var_id = param.var_id;
+//         res.left_var_param_index = param.left_var_param_index;
+//         res.right_var_param_index = param.right_var_param_index;
 
-        res += param.var_id;
+//         return res;
+//     }
 
-        // res += "_" + (param.a ? param.left_var_param_index : "");
-        // res += "_" + (param.right_var_param_index ? param.right_var_param_index : "");
+//     public getImpactedParamsList(paramUpdated: NumberDatasourceFieldDataParamVO, paramsRegisteredByIndex: { [index: string]: NumberDatasourceFieldDataParamVO }): NumberDatasourceFieldDataParamVO[] {
+//         return null;
+//     }
 
-        return res;
-    }
+//     public getIndex(param: NumberDatasourceFieldDataParamVO): string {
+//         let res: string = "";
 
-    // public getParam(param_index: string): NumberDatasourceFieldDataParamVO {
-    //     let res: NumberDatasourceFieldDataParamVO = new NumberDatasourceFieldDataParamVO();
+//         res += param.var_id;
 
-    //     try {
-    //         res.var_id = parseInt(param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$1'));
-    //         // res.left_var_param_index = param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$2');
-    //         // res.right_var_param_index = param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$3');
+//         // res += "_" + (param.a ? param.left_var_param_index : "");
+//         // res += "_" + (param.right_var_param_index ? param.right_var_param_index : "");
 
-    //         return res;
-    //     } catch (error) {
-    //     }
+//         return res;
+//     }
 
-    //     return null;
-    // }
+//     // public getParam(param_index: string): NumberDatasourceFieldDataParamVO {
+//     //     let res: NumberDatasourceFieldDataParamVO = new NumberDatasourceFieldDataParamVO();
 
-    // protected compareParams(paramA: NumberDatasourceFieldDataParamVO, paramB: NumberDatasourceFieldDataParamVO) {
+//     //     try {
+//     //         res.var_id = parseInt(param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$1'));
+//     //         // res.left_var_param_index = param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$2');
+//     //         // res.right_var_param_index = param_index.replace(/^([^_]+)_([^_]*)_([^_]*)$/, '$3');
 
-    //     if ((!paramA) || (!paramB)) {
-    //         return null;
-    //     }
+//     //         return res;
+//     //     } catch (error) {
+//     //     }
 
-    //     let operator_diff: number = paramA.var_id - paramB.var_id;
+//     //     return null;
+//     // }
 
-    //     if (operator_diff) {
-    //         return operator_diff;
-    //     }
+//     // protected compareParams(paramA: NumberDatasourceFieldDataParamVO, paramB: NumberDatasourceFieldDataParamVO) {
 
-    //     // if (paramA.left_var_param_index < paramB.left_var_param_index) {
-    //     //     return -1;
-    //     // }
+//     //     if ((!paramA) || (!paramB)) {
+//     //         return null;
+//     //     }
 
-    //     // if (paramA.left_var_param_index > paramB.left_var_param_index) {
-    //     //     return 1;
-    //     // }
+//     //     let operator_diff: number = paramA.var_id - paramB.var_id;
 
-    //     // if (paramA.right_var_param_index < paramB.right_var_param_index) {
-    //     //     return -1;
-    //     // }
+//     //     if (operator_diff) {
+//     //         return operator_diff;
+//     //     }
 
-    //     // if (paramA.right_var_param_index > paramB.right_var_param_index) {
-    //     //     return 1;
-    //     // }
+//     //     // if (paramA.left_var_param_index < paramB.left_var_param_index) {
+//     //     //     return -1;
+//     //     // }
 
-    //     return 0;
-    // }
-}
+//     //     // if (paramA.left_var_param_index > paramB.left_var_param_index) {
+//     //     //     return 1;
+//     //     // }
+
+//     //     // if (paramA.right_var_param_index < paramB.right_var_param_index) {
+//     //     //     return -1;
+//     //     // }
+
+//     //     // if (paramA.right_var_param_index > paramB.right_var_param_index) {
+//     //     //     return 1;
+//     //     // }
+
+//     //     return 0;
+//     // }
+// }

@@ -30,6 +30,9 @@ import ITSRangesVarDataParam from './interfaces/ITSRangesVarDataParam';
 import TSRangeHandler from '../../tools/TSRangeHandler';
 import CumulativVarController from './CumulativVarController';
 import TSRange from '../DataRender/vos/TSRange';
+import ObjectHandler from '../../tools/ObjectHandler';
+import MatroidCutResult from '../Matroid/vos/MatroidCutResult';
+import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
 
 export default class VarsController {
 
@@ -1110,6 +1113,192 @@ export default class VarsController {
         }
     }
 
+    private markNoeudsAGererImportMatroids(marker_todo: string) {
+        for (let marker_name in this.varDAG.marked_nodes_names) {
+            if (!marker_name.startsWith(VarDAG.VARDAG_MARKER_VAR_ID)) {
+                continue;
+            }
+
+            let var_id: number = parseInt(marker_name.replace(VarDAG.VARDAG_MARKER_VAR_ID, ""));
+
+            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(var_id).var_data_vo_type];
+
+            if (!moduletable.isMatroidTable) {
+                continue;
+            }
+
+            for (let j in this.varDAG.marked_nodes_names[marker_name]) {
+                let node_index: string = this.varDAG.marked_nodes_names[marker_name][j];
+
+                this.varDAG.nodes[node_index].addMarker(marker_todo, this.varDAG);
+            }
+        }
+    }
+
+    private getNoeudsAGererImportMatroids(marker_todo: string): { [node_name: string]: VarDAGNode } {
+        let noeuds_a_gerer: { [node_name: string]: VarDAGNode } = {};
+
+        for (let i in this.varDAG.marked_nodes_names[marker_todo]) {
+            let node_index: string = this.varDAG.marked_nodes_names[marker_todo][i];
+
+            noeuds_a_gerer[node_index] = this.varDAG.nodes[node_index];
+        }
+
+        return noeuds_a_gerer;
+    }
+
+    private getRootsLocauxToLoadImportedOrPrecompiledDatas(nodes_by_name: { [node_name: string]: VarDAGNode }): { [node_name: string]: VarDAGNode } {
+        let res: { [node_name: string]: VarDAGNode } = {};
+
+        for (let i in nodes_by_name) {
+            let node = nodes_by_name[i];
+
+            let isroot = true;
+            if (node.hasIncoming) {
+
+                // On part du principe qu'un matroid dépend obligatoirement d'un matroid, donc on ne devrait pas avoir besoin de faire une remontée récursive
+                for (let j in node.incoming) {
+                    let incoming = node.incoming[j];
+
+                    if (nodes_by_name[incoming.name]) {
+                        isroot = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isroot) {
+                res[node.name] = node;
+            }
+        }
+
+        return res;
+    }
+
+    private async loadDatasForNodes(nodes: { [node_name: string]: VarDAGNode }) {
+        let promises: Array<Promise<any>> = [];
+
+        for (let i in nodes) {
+            let node = nodes[i];
+
+            promises.push((async () => {
+
+                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
+                let matroids_inscrits: ISimpleNumberVarMatroidData[] = await MatroidController.getInstance().getVosFilteredByMatroid<ISimpleNumberVarMatroidData>(moduletable.vo_type, node.param as IVarMatroidDataParamVO);
+
+                if (!matroids_inscrits) {
+                    return;
+                }
+
+                // On a les matroids inscrits dans le matroid qui questionne, on veut maintenant identifier l'ensemble le 'plus couvrant'
+                //  Pour l'instant on fait simple, on classe par cardinal dec, et on garde ceux qui intersectent pas l'ensemble en cours de constitution
+
+                // TODO FIXME VARS ASAP au lieu de demander un vos filtered, on demande des datarendered donc on filtre côté serveur directement les matroids qui seront utilisés ou pas
+                //  au final côté client, ce qui évite d'envoyer une somme compilée pour les mois, et pour les jours des mois et pour l'année, si l'année est valide et couvre les autres.
+                //  Attention, si on veut faire une couverture optimale on peut pas d'abord filtrer les couverts et ensuite chercher la couverture totale. Exemple si j'ai une question
+                //  qui se pose sur 6 semaines, dont 4,5 sont couverts par un mois en datarendered, on a un cardinal élevé, on couvre 4 semaines probablement, mais on pourra probablement
+                //  plus tenter de couvrire les semaines restantes avec des calculs semaine.Alors que si on prend les 6 semaines en calculé, on couvre la totalité et on recalcule rien.
+                //  L'approximation est-elle suffisante, à voir dans le temps.
+                let matroids_list: ISimpleNumberVarMatroidData[] = [];
+                matroids_inscrits.sort((a: ISimpleNumberVarMatroidData, b: ISimpleNumberVarMatroidData) => b.cardinal - a.cardinal);
+
+                for (let j in matroids_inscrits) {
+                    let matroid_inscrit = matroids_inscrits[j];
+
+                    if (MatroidController.getInstance().matroid_intersects_any_matroid(matroid_inscrit, matroids_list)) {
+                        continue;
+                    }
+                    matroids_list.push(matroid_inscrit);
+                }
+
+                // On veut en tirer 2 choses :
+                //  La somme des valeurs précompilées sur la matroids_list, comme base de calcul
+                //  Le matroid restant que l'on va propager sur les vars dont on dépend
+
+                //  En fait, les deps ont besoin de connaitre tous les matroids parents, qui les filtrent
+                //  on peut simplement les stocker, et retirer des matroids inscrits ceux qui intersectent avec l'un des matroid parent.
+
+                //  Celà dit, pour le calcul final, il faut définir la liste des matroids restants à calculer.
+                //  Si on a la liste des matroids restants à calculer, il faut savoir dire si les matroids inscrits restent inscrits dans les matroids restants.
+                //  ça semble pas simple a priori, alors qu'avec les parents, on a pas de difficulté.
+
+                //  donc on stocke les 2 infos dans l'arbre, les matroids cibles, et les matroids retirés via précompilation/import
+
+                // On commence par stocker les matroids en cache :
+                node.loaded_datas_matroids = Array.from(matroids_list);
+            })());
+        }
+        await Promise.all(promises);
+    }
+
+    private async updateMatroidsAfterImport(nodes: { [node_name: string]: VarDAGNode }) {
+
+        for (let i in nodes) {
+            let node: VarDAGNode = nodes[i];
+
+            let matroids_list: ISimpleNumberVarMatroidData[] = node.loaded_datas_matroids as ISimpleNumberVarMatroidData[];
+
+            node.parents_loaded_datas_matroids = [];
+
+            // On rempli au passage la liste des matroids utilisés dans l'arborescence avant ce node
+            for (let j in node.incoming) {
+                let incoming = node.incoming[j];
+
+                node.parents_loaded_datas_matroids = node.parents_loaded_datas_matroids.concat(incoming.parents_loaded_datas_matroids);
+            }
+
+
+            node.loaded_datas_matroids_sum_value = null;
+            let remaining_matroids = [MatroidController.getInstance().cloneFrom(node.param as IVarMatroidDataParamVO)];
+
+
+            for (let j in matroids_list) {
+                let matroid = matroids_list[j];
+
+                if ((matroid.value == null) || (typeof matroid.value == "undefined")) {
+                    continue;
+                }
+
+                if (node.loaded_datas_matroids_sum_value == null) {
+                    node.loaded_datas_matroids_sum_value = matroid.value;
+                    continue;
+                }
+                node.loaded_datas_matroids_sum_value += matroid.value;
+
+                let cut_results: Array<MatroidCutResult<IVarMatroidDataParamVO>> = MatroidController.getInstance().cut_matroids(matroid, remaining_matroids);
+                remaining_matroids = [];
+                for (let k in cut_results) {
+                    remaining_matroids = remaining_matroids.concat(cut_results[k].remaining_items);
+                }
+            }
+
+            node.computed_datas_matroids = remaining_matroids as IVarMatroidDataVO[];
+        }
+    }
+
+    private async updateDepssAfterImport(nodes: { [node_name: string]: VarDAGNode }) {
+
+        for (let i in nodes) {
+            let node: VarDAGNode = nodes[i];
+
+            // ça veut dire aussi qu'on se demande ici quels params on doit vraiment charger en deps de ce params pour pouvoir calculer
+            //  et on doit modifier l'arbre en conséquence
+            let node_controller = VarsController.getInstance().getVarControllerById(node.param.var_id);
+
+            VarDAGDefineNodeDeps.clear_node_deps(node, this.varDAG);
+
+            // On doit faire un fake vardagnode pour chaque matroid à calculer (donc résultant de la coupe) et on additionnera les résultats
+            for (let j in node.computed_datas_matroids) {
+                let computed_datas_matroid = node.computed_datas_matroids[j];
+
+                let fake_vardagnode = new VarDAGNode(VarsController.getInstance().getIndex(computed_datas_matroid), null, computed_datas_matroid);
+                let deps: IVarDataParamVOBase[] = await node_controller.getSegmentedParamDependencies(fake_vardagnode, this.varDAG);
+
+                VarDAGDefineNodeDeps.add_node_deps(node, this.varDAG, deps, {});
+            }
+        }
+    }
+
     /**
      * Nouvelle version de la gestion des données importées et/ou précompilées pour avoir
      *  des chargements de datas uniquement liées à l'arbre demandé. Objectif : Limiter
@@ -1119,87 +1308,49 @@ export default class VarsController {
      */
     private async loadImportedOrPrecompiledDatas() {
 
+        let marker_todo = "loadImportedOrPrecompiledDatas_todo";
+        // let marker_ok = "loadImportedOrPrecompiledDatas_ok";
 
-        // TODO FIXME il faut parcourir l'arbre de haut en bas, en linéraire, pour restreindre petit à petit les matroids des deps
-        //  ça veut dire aussi qu'on doit d'abord stocker tous les matroids inscrits et ensuite quand le noeud peut être résolu,
-        //  on filtre les matroids inscrits pour limiter à ceux qui restent inscrits après limitation des deps.
+        // On initialise d'abord la liste des noeuds à gérer
+        this.markNoeudsAGererImportMatroids(marker_todo);
+        let noeuds_a_gerer: { [node_name: string]: VarDAGNode } = this.getNoeudsAGererImportMatroids(marker_todo);
+        // let noeuds_geres: { [node_name: string]: VarDAGNode } = {};
 
-        DAGController.getInstance().visit_dag(
-            this.varDAG,
-            new VarDAGVisitorLoadPrecompiled(),
-            (node: VarDAGNode) => {
-                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
+        while (ObjectHandler.getInstance().hasAtLeastOneAttribute(noeuds_a_gerer)) {
 
-                if (!moduletable.isMatroidTable) {
-                    return false;
-                }
+            // Une fois qu'on a la liste des noeuds à gérer, on découpe en plusieurs étapes:
+            //  1- prendre les noeuds de plus haut niveau (roots locaux) qui dépendent d'aucun noeud à gérer
+            //  2- Charger les imports et ajuster les matroids
+            //  3- Retirer ces noeuds des noeuds à gérer
+            //  4- Vérifier les noeuds enfants. Pour chaque noeud :
+            //      0- Si les parents ne sont pas tous chargés, on ignore
+            //      a- Si l'enfant a plusieurs parents, et pour chaque matroid à calculer différent chez les parents, on duplique l'enfant, et on adapte pour chacun le nouveau matroid demandé
+            //          ATTENTION la copie concerne le noeud et tout l'arbre qui en découle => donc peut impacter plusieurs matroids aussi en dessous
+            //      b- Sinon on applique le matroid à calculer parent
+            //  5- On recommence avec la liste des noeuds à gérer mise à jour
 
-                return true;
-            },
-            VarDAGVisitorLoadPrecompiled.MARKER_visited_node_marker,
-            null,
-            true,
-            (node: VarDAGNode) => {
-                return (!node.loaded_datas_matroids);
-            },
-            async (dag: VarDAG, node_names: string[]): Promise<void> => {
+            //  1- prendre les noeuds de plus haut niveau (roots locaux) qui dépendent d'aucun noeud à gérer
+            let roots_locaux: { [node_name: string]: VarDAGNode } = this.getRootsLocauxToLoadImportedOrPrecompiledDatas(noeuds_a_gerer);
 
-                let promises: Array<Promise<any>> = [];
+            //  2- Charger les imports et ajuster les matroids
+            await this.loadDatasForNodes(roots_locaux);
 
-                for (let i in node_names) {
-                    let node_name = node_names[i];
-                    let node = dag.nodes[node_name];
-
-                    promises.push((async () => {
-
-                        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
-                        let matroids_inscrits: ISimpleNumberVarMatroidData[] = await MatroidController.getInstance().getVosFilteredByMatroid<ISimpleNumberVarMatroidData>(moduletable.vo_type, node.param as IVarMatroidDataParamVO);
-
-                        if (!matroids_inscrits) {
-                            return;
-                        }
-
-                        // On a les matroids inscrits dans le matroid qui questionne, on veut maintenant identifier l'ensemble le 'plus couvrant'
-                        //  Pour l'instant on fait simple, on classe par cardinal dec, et on garde ceux qui intersectent pas l'ensemble en cours de constitution
-
-                        // TODO FIXME VARS ASAP au lieu de demander un vos filtered, on demande des datarendered donc on filtre côté serveur directement les matroids qui seront utilisés ou pas
-                        //  au final côté client, ce qui évite d'envoyer une somme compilée pour les mois, et pour les jours des mois et pour l'année, si l'année est valide et couvre les autres.
-                        //  Attention, si on veut faire une couverture optimale on peut pas d'abord filtrer les couverts et ensuite chercher la couverture totale. Exemple si j'ai une question
-                        //  qui se pose sur 6 semaines, dont 4,5 sont couverts par un mois en datarendered, on a un cardinal élevé, on couvre 4 semaines probablement, mais on pourra probablement
-                        //  plus tenter de couvrire les semaines restantes avec des calculs semaine.Alors que si on prend les 6 semaines en calculé, on couvre la totalité et on recalcule rien.
-                        //  L'approximation est-elle suffisante, à voir dans le temps.
-                        let matroids_list: ISimpleNumberVarMatroidData[] = [];
-                        matroids_inscrits.sort((a: ISimpleNumberVarMatroidData, b: ISimpleNumberVarMatroidData) => b.cardinal - a.cardinal);
-
-                        for (let j in matroids_inscrits) {
-                            let matroid_inscrit = matroids_inscrits[j];
-
-                            if (MatroidController.getInstance().matroid_intersects_any_matroid(matroid_inscrit, matroids_list)) {
-                                continue;
-                            }
-                            matroids_list.push(matroid_inscrit);
-                        }
-
-                        // On veut en tirer 2 choses :
-                        //  La somme des valeurs précompilées sur la matroids_list, comme base de calcul
-                        //  Le matroid restant que l'on va propager sur les vars dont on dépend
-
-                        //  En fait, les deps ont besoin de connaitre tous les matroids parents, qui les filtrent
-                        //  on peut simplement les stocker, et retirer des matroids inscrits ceux qui intersectent avec l'un des matroid parent.
-
-                        //  Celà dit, pour le calcul final, il faut définir la liste des matroids restants à calculer.
-                        //  Si on a la liste des matroids restants à calculer, il faut savoir dire si les matroids inscrits restent inscrits dans les matroids restants.
-                        //  ça semble pas simple a priori, alors qu'avec les parents, on a pas de difficulté.
-
-                        //  donc on stocke les 2 infos dans l'arbre, les matroids cibles, et les matroids retirés via précompilation/import
-
-                        // On commence par stocker les matroids en cache :
-                        node.loaded_datas_matroids = Array.from(matroids_list);
-                    })());
-                }
-                await Promise.all(promises);
+            //  3- Retirer ces noeuds des noeuds à gérer
+            for (let i in roots_locaux) {
+                roots_locaux[i].removeMarker(marker_todo, this.varDAG);
             }
-        );
+
+            //  4- Vérifier les noeuds enfants. Pour chaque noeud :
+            //      0- Si les parents ne sont pas tous chargés, on ignore
+            //      a- Si l'enfant a plusieurs parents, et pour chaque matroid à calculer différent chez les parents, on duplique l'enfant, et on adapte pour chacun le nouveau matroid demandé
+            //          ATTENTION la copie concerne le noeud et tout l'arbre qui en découle => donc peut impacter plusieurs matroids aussi en dessous
+            //      b- Sinon on applique le matroid à calculer parent
+            await this.updateMatroidsAfterImport(roots_locaux);
+            await this.updateDepssAfterImport(roots_locaux);
+
+            //  5- On recommence avec la liste des noeuds à gérer mise à jour
+            noeuds_a_gerer = this.getNoeudsAGererImportMatroids(marker_todo);
+        }
     }
 
     /**

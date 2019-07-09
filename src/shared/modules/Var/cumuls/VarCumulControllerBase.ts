@@ -82,8 +82,7 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         // Cumul => si importé, on renvoie la valeur importée, sinon veille (si meme segment) + jour*
         if (VarsController.getInstance().varDAG.nodes[index].hasMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA)) {
 
-            VarsController.getInstance().setVarData(VarsController.getInstance().varDAG.nodes[index].imported, true);
-            return;
+            return VarsController.getInstance().varDAG.nodes[index].imported as TData;
         }
 
         let res: TData = Object.assign(this.varDataConstructor(), param);

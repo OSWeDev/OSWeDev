@@ -1,13 +1,19 @@
 import ObjectHandler from '../../tools/ObjectHandler';
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from './interfaces/IVarDataVOBase';
 
-export default abstract class VarDataParamControllerBase<TDataParam extends IVarDataParamVOBase> {
+export default abstract class VarDataParamControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
+
+    // TODO FIXME
+    public param_desc_component = null;
 
     protected constructor() { }
 
     // public sortParams(params: { [index: string]: IVarDataParamVOBase }) {
     //     ObjectHandler.getInstance().sortObjectByKey(params, this.compareParams);
     // }
+
+    public abstract cloneParam(param: TDataParam): TDataParam;
 
     /**
      * DO NOT USE outside VarsController. There are controls made by VarsController.getInstance().getIndex() that this function depends on.

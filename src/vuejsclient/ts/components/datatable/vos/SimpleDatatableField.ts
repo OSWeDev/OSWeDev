@@ -9,6 +9,8 @@ import { Moment } from 'moment';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
+import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
@@ -44,8 +46,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value)) + ' ' + moment(field_value).format('HH:mm:ss');
 
                 case ModuleTableField.FIELD_TYPE_daterange:
-                // case ModuleTableField.FIELD_TYPE_daterange_array:
-                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    // case ModuleTableField.FIELD_TYPE_daterange_array:
 
                     // On stocke au format day - day
                     if (!field_value) {
@@ -79,6 +80,48 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     }
 
                     return res;
+
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    if (!field_value) {
+                        return field_value;
+                    }
+
+                    let res_tstzranges = "";
+
+                    for (let i in field_value) {
+                        let tstzrange: TSRange = field_value[i] as TSRange;
+
+                        res_tstzranges += (res_tstzranges == "") ? '' : ' + ';
+
+                        res_tstzranges += tstzrange.min_inclusiv ? '[' : '(';
+                        res_tstzranges += tstzrange.min.format('DD/MM/Y HH:mm');
+                        res_tstzranges += ',';
+                        res_tstzranges += tstzrange.max.format('DD/MM/Y HH:mm');
+                        res_tstzranges += tstzrange.max_inclusiv ? ']' : ')';
+                    }
+
+                    return res_tstzranges;
+
+                case ModuleTableField.FIELD_TYPE_numrange_array:
+                    if (!field_value) {
+                        return field_value;
+                    }
+
+                    let res_numranges = "";
+
+                    for (let i in field_value) {
+                        let numrange: NumRange = field_value[i] as NumRange;
+
+                        res_numranges += (res_numranges == "") ? '' : ' + ';
+
+                        res_numranges += numrange.min_inclusiv ? '[' : '(';
+                        res_numranges += numrange.min;
+                        res_numranges += ',';
+                        res_numranges += numrange.max;
+                        res_numranges += numrange.max_inclusiv ? ']' : ')';
+                    }
+
+                    return res_numranges;
 
                 case ModuleTableField.FIELD_TYPE_int_array:
                     return field_value;
