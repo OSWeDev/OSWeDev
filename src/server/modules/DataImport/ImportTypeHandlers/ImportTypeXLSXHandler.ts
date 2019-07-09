@@ -214,18 +214,76 @@ export default class ImportTypeXLSXHandler {
         return worsheet_datas;
     }
 
+    /**
+     * TODO FIXME ASAP TU
+     */
     public getMomentFromXLSDateString(column_data_string: any): Moment {
         if (!column_data_string) {
             return null;
         }
+
+        if (/^[0-9][0-9][/][0-9][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'DD/MM/YYYY');
+        }
+        if (/^[0-9][/][0-9][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'D/MM/YYYY');
+        }
+        if (/^[0-9][0-9][/][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'DD/M/YYYY');
+        }
+        if (/^[0-9][/][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'D/M/YYYY');
+        }
+
+        if (/^[0-9][0-9][/][0-9][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'DD/MM/YY');
+        }
+        if (/^[0-9][/][0-9][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'D/MM/YY');
+        }
+        if (/^[0-9][0-9][/][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'DD/M/YY');
+        }
+        if (/^[0-9][/][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'D/M/YY');
+        }
+
+
+        if (/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YYYY-MM-DD');
+        }
+        if (/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YYYY-MM-D');
+        }
+        if (/^[0-9][0-9][0-9][0-9]-[0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YYYY-M-DD');
+        }
+        if (/^[0-9][0-9][0-9][0-9]-[0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YYYY-M-D');
+        }
+
+        if (/^[0-9][0-9]-[0-9][0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YY-MM-DD');
+        }
+        if (/^[0-9][0-9]-[0-9][0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YY-MM-D');
+        }
+        if (/^[0-9][0-9]-[0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YY-M-DD');
+        }
+        if (/^[0-9][0-9]-[0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YY-M-D');
+        }
+
+        if (/^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YYYYMMDD');
+        }
+        if (/^[0-9][0-9][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
+            return moment(column_data_string, 'YYMMDD');
+        }
+
         if (moment(column_data_string).isValid()) {
             return moment(column_data_string);
-        }
-        if (moment(column_data_string, 'MM/DD/YY').isValid()) {
-            return moment(column_data_string, 'MM/DD/YY');
-        }
-        if (moment(column_data_string, 'YYYYMMDD').isValid()) {
-            return moment(column_data_string, 'YYYYMMDD');
         }
 
         return null;
