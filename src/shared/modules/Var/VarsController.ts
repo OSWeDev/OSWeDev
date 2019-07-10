@@ -1360,6 +1360,7 @@ export default class VarsController {
     private async loadImportedDatas() {
 
         let var_ids: number[] = [];
+        let all_ids: number[] = [];
         for (let marker_name in this.varDAG.marked_nodes_names) {
             if (!marker_name.startsWith(VarDAG.VARDAG_MARKER_VAR_ID)) {
                 continue;
@@ -1371,7 +1372,14 @@ export default class VarsController {
                 continue;
             }
 
-            if (var_ids.indexOf(var_id) < 0) {
+            if (all_ids.indexOf(var_id) < 0) {
+
+                all_ids.push(var_id);
+
+                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(var_id).var_data_vo_type];
+                if (moduletable && moduletable.isMatroidTable) {
+                    continue;
+                }
 
                 var_ids.push(var_id);
                 this.loaded_imported_datas_of_vars_ids[var_id] = true;

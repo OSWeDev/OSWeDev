@@ -54,25 +54,15 @@ export default class NumRangeHandler extends RangeHandler<number> {
     /**
      * TODO TU ASAP FIXME VARS
      */
-    public translate_from_bdd<U extends NumRange>(ranges: string): U[] {
+    public translate_from_bdd<U extends NumRange>(ranges: string[]): U[] {
 
         let res: U[] = [];
         try {
 
-            // (\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))
-            // (\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))
-            // let rangeRegExp = /{("(?:(?:\[|\()(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*),(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*)(?:\]|\)))",?)+}/ig;
-            let rangeRegExp = /("(?:(?:\[|\()(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*),(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*)(?:\]|\)))"),?/ig;
-            let range = rangeRegExp.exec(ranges);
+            for (let i in ranges) {
+                let range = ranges[i];
 
-            while (range) {
-
-                if (!range[1]) {
-                    continue;
-                }
-
-                res.push(this.parseRange(range[1].replace(/\\"/ig, '"')) as U);
-                range = rangeRegExp.exec(ranges);
+                res.push(this.parseRange(range));
             }
         } catch (error) {
         }

@@ -184,7 +184,7 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         throw new Error('Not Implemented');
     }
 
-    public translate_from_bdd(ranges: string): any[] {
+    public translate_from_bdd(ranges: string[]): any[] {
         throw new Error('Not Implemented');
     }
 

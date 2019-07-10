@@ -47,7 +47,7 @@ export default class APIDAORangesParamsVO {
             let field_range: FieldRange<any> = param.ranges[i];
 
             let min_txt: string = FieldRangeHandler.getInstance().getFormattedMinForAPI(field_range);
-            let max_txt: string = FieldRangeHandler.getInstance().getFormattedMinForAPI(field_range);
+            let max_txt: string = FieldRangeHandler.getInstance().getFormattedMaxForAPI(field_range);
 
             range_txt += "/" + field_range.field_id;
             range_txt += "/" + min_txt;

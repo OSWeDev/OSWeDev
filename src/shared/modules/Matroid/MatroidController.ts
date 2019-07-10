@@ -74,7 +74,7 @@ export default class MatroidController {
 
         let field_ranges: Array<FieldRange<any>> = [];
 
-        let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(matroid._type);
+        let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(api_type_id);
 
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];

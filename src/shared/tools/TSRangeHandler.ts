@@ -49,22 +49,14 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     /**
      * TODO TU ASAP FIXME VARS
      */
-    public translate_from_bdd<U extends TSRange>(ranges: string): U[] {
+    public translate_from_bdd<U extends TSRange>(ranges: string[]): U[] {
 
         let res: U[] = [];
         try {
 
-            let rangeRegExp = /("(?:(?:\[|\()(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*),(?:\\"(?:(?:\\\\"|[^\\"])*)\\"|[^\\"]*)(?:\]|\)))"),?/ig;
-            let range = rangeRegExp.exec(ranges);
-
-            while (range) {
-
-                if (!range[1]) {
-                    continue;
-                }
-
-                res.push(this.parseRange(range[1].replace(/\\"/ig, '"')) as U);
-                range = rangeRegExp.exec(ranges);
+            for (let i in ranges) {
+                let range = ranges[i];
+                res.push(this.parseRange(range));
             }
         } catch (error) {
         }
@@ -86,14 +78,16 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return null;
         }
 
-        var lower = this.parseRangeSegment(matches[2], matches[3]);
-        var upper = this.parseRangeSegment(matches[4], matches[5]);
-
-        return this.createNew(
-            moment(lower),
-            moment(upper),
-            matches[1] == '[',
-            matches[6] == ']');
+        try {
+            let lower = parseInt(matches[2]) * 1000;
+            let upper = parseInt(matches[4]) * 1000;
+            return this.createNew(
+                moment(lower),
+                moment(upper),
+                matches[1] == '[',
+                matches[6] == ']');
+        } catch (error) { }
+        return null;
     }
 
     /**
