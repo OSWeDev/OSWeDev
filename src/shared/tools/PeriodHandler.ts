@@ -87,6 +87,6 @@ export default class PeriodHandler {
         let lower: Moment = this.lowerMoment(period, base);
         let upper: Moment = this.upperMoment(period, base);
 
-        return (!!date) && (!!lower) && (!!upper) && (date.isSameOrAfter(lower) && date.isBefore(upper));
+        return (!!date) && (!!lower) && (!!upper) && (date.isSameOrAfter(lower) && date.isSameOrBefore(upper));
     }
 }
