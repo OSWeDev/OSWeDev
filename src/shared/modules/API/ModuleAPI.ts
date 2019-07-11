@@ -7,6 +7,9 @@ import ModulesManager from '../ModulesManager';
 import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import APIDefinition from './vos/APIDefinition';
 import { isArray } from 'util';
+import { EEXIST } from 'constants';
+import IDistantVOBase from '../IDistantVOBase';
+import VOsTypesManager from '../VOsTypesManager';
 
 export default class ModuleAPI extends Module {
 
@@ -81,13 +84,15 @@ export default class ModuleAPI extends Module {
                 API_TYPES_IDS_involved = API_TYPES_IDS_involved(translated_param);
             }
 
+            let api_res = null;
+
             if (apiDefinition.api_type == APIDefinition.API_TYPE_GET) {
 
                 let url_param: string =
                     apiDefinition.PARAM_TRANSLATE_TO_URL ? await apiDefinition.PARAM_TRANSLATE_TO_URL(translated_param) :
                         (translated_param ? translated_param.toString() : "");
 
-                return await ModuleAjaxCache.getInstance().get(
+                api_res = await ModuleAjaxCache.getInstance().get(
                     (ModuleAPI.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
                     API_TYPES_IDS_involved) as U;
             } else {
@@ -102,64 +107,24 @@ export default class ModuleAPI extends Module {
 
                     let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
                     $('body').append(iframe);
-                    // var xhr = new XMLHttpRequest();
-                    // xhr.open('POST', filePath, true);
-                    // xhr.responseType = 'arraybuffer';
-                    // xhr.onload = function () {
-                    //     if (this.status === 200) {
-                    //         var filename = "";
-                    //         var disposition = xhr.getResponseHeader('Content-Disposition');
-                    //         if (disposition && disposition.indexOf('attachment') !== -1) {
-                    //             var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-                    //             var matches = filenameRegex.exec(disposition);
-                    //             if (matches != null && matches[1]) {
-                    //                 filename = matches[1].replace(/['"]/g, '');
-                    //             }
-                    //         }
-                    //         var type = xhr.getResponseHeader('Content-Type');
-
-                    //         var blob = typeof File === 'function'
-                    //             ? new File([this.response], filename, { type: type })
-                    //             : new Blob([this.response], { type: type });
-                    //         if (typeof window.navigator.msSaveBlob !== 'undefined') {
-                    //             // IE workaround for "HTML7007: One or more blob URLs were revoked by closing the blob for which they were created. These URLs will no longer resolve as the data backing the URL has been freed."
-                    //             window.navigator.msSaveBlob(blob, filename);
-                    //         } else {
-                    //             var URL = window.URL || window['webkitURL'];
-                    //             var downloadUrl = URL.createObjectURL(blob);
-
-                    //             if (filename) {
-                    //                 // use HTML5 a[download] attribute to specify filename
-                    //                 var a = document.createElement("a");
-                    //                 // safari doesn't support this yet
-                    //                 if (typeof a.download === 'undefined') {
-                    //                     window.location = downloadUrl;
-                    //                 } else {
-                    //                     a.href = downloadUrl;
-                    //                     a.download = filename;
-                    //                     document.body.appendChild(a);
-                    //                     a.click();
-                    //                 }
-                    //             } else {
-                    //                 window.location = downloadUrl;
-                    //             }
-
-                    //             setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 100); // cleanup
-                    //         }
-                    //     }
-                    // };
-                    // xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                    // xhr.send();
+                    return;
                 } else {
-                    return await ModuleAjaxCache.getInstance().post(
+                    api_res = await ModuleAjaxCache.getInstance().post(
                         (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
                         ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
                         null) as U;
                 }
             }
+
+            // On tente de traduire si on reconnait un type de vo
+            api_res = this.try_translate_vo_from_api(api_res);
+
+            return api_res;
         }
     }
+
+
 
     public getAPI_URL<T, U>(apiDefinition: APIDefinition<T, U>): string {
         if (apiDefinition.api_type == APIDefinition.API_TYPE_GET) {
@@ -222,5 +187,93 @@ export default class ModuleAPI extends Module {
     public initialize() {
         this.fields = [];
         this.datatables = [];
+    }
+
+    public try_translate_vo_from_api(e: any): any {
+
+        if (!e) {
+            return e;
+        }
+
+        if (Array.isArray(e)) {
+            return this.try_translate_vos_from_api(e);
+        }
+
+        let elt = (e as IDistantVOBase);
+        if (!elt._type) {
+            return elt;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[elt._type];
+        if (!moduletable) {
+            return elt;
+        }
+
+        return moduletable.from_api_version(elt);
+    }
+
+    public try_translate_vo_to_api(e: any): any {
+
+        if (!e) {
+            return e;
+        }
+
+        if (Array.isArray(e)) {
+            return this.try_translate_vos_to_api(e);
+        }
+
+        let elt = (e as IDistantVOBase);
+        if (!elt._type) {
+            return elt;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[elt._type];
+        if (!moduletable) {
+            return elt;
+        }
+
+        return moduletable.get_api_version(elt);
+    }
+
+    private try_translate_vos_from_api(e: any): any {
+
+        if (!e) {
+            return e;
+        }
+
+        if (!Array.isArray(e)) {
+            return this.try_translate_vo_from_api(e);
+        }
+
+        let res = [];
+
+        for (let i in e) {
+            let elt = e[i];
+
+            res.push(this.try_translate_vo_from_api(elt));
+        }
+
+        return res;
+    }
+
+    private try_translate_vos_to_api(e: any): any {
+
+        if (!e) {
+            return e;
+        }
+
+        if (!Array.isArray(e)) {
+            return this.try_translate_vo_to_api(e);
+        }
+
+        let res = [];
+
+        for (let i in e) {
+            let elt = e[i];
+
+            res.push(this.try_translate_vo_to_api(elt));
+        }
+
+        return res;
     }
 }

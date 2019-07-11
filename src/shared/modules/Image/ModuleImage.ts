@@ -37,7 +37,7 @@ export default class ModuleImage extends Module {
             label_field,
         ];
 
-        let datatable = new ModuleTable(this, ImageVO.API_TYPE_ID, datatable_fields, label_field, "Images");
+        let datatable = new ModuleTable(this, ImageVO.API_TYPE_ID, () => new ImageVO(), datatable_fields, label_field, "Images");
         this.datatables.push(datatable);
     }
 }

@@ -188,6 +188,14 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         throw new Error('Not Implemented');
     }
 
+    public translate_to_api(ranges: any[]): string[] {
+        throw new Error('Not Implemented');
+    }
+
+    public translate_from_api(ranges: string[]): any[] {
+        throw new Error('Not Implemented');
+    }
+
     public parseRange(rangeLiteral: string): any {
         throw new Error('Not Implemented');
     }

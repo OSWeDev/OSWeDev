@@ -51,7 +51,7 @@ export default class ModulePushData extends Module {
             new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de création', true),
             new ModuleTableField('read_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de lecture', false),
         ];
-        let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, datatable_fields, null, "Notifications");
+        let datatable = new ModuleTable(this, NotificationVO.API_TYPE_ID, () => new NotificationVO(), datatable_fields, null, "Notifications");
         user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }

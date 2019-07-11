@@ -1,3 +1,16 @@
+# Ajout des constructeurs de VO dans la def des tables
+
+ * Gros impacts, quelques outils pour simplifier la mise en place :
+    - Rechercher : new DataImportColumnVO(
+    - Remplacer  : DataImportColumnVO.createNew(
+
+    - Rechercher : new ModuleTable([^(]*)\(this, ([^. ]+)\.API_TYPE_ID, ([^(])
+    - Remplacer  : new ModuleTable$1(this, $2.API_TYPE_ID, () => new $2(), $3
+
+    - Rechercher : register_simple_number_var_data\(([^. ]+)\.API_TYPE_ID, ([^(])
+    - Remplacer  : register_simple_number_var_data($1.API_TYPE_ID, () => new $1(), $2
+
+
 # Gestion des droits V2
 
  * BREAKING change sur le program plan : ajout de target_validation dans le RDV pour définit le state plus facilement via triggers

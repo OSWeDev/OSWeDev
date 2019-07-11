@@ -375,6 +375,9 @@ export default abstract class RangeHandler<T> {
     public abstract createNew<U extends IRange<T>>(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean): U;
     public abstract cloneFrom<U extends IRange<T>>(from: U): U;
 
+    public abstract translate_to_api<U extends IRange<T>>(ranges: U[]): string[];
+    public abstract translate_from_api<U extends IRange<T>>(ranges: string[]): U[];
+
     public abstract translate_to_bdd<U extends IRange<T>>(ranges: U[]): string;
     public abstract translate_from_bdd<U extends IRange<T>>(ranges: string[]): U[];
 

@@ -104,7 +104,7 @@ export default class ModuleProduit extends Module {
         let datatable_fields = [
             default_label_field,
         ];
-        this.datatable_categorie_produit = new ModuleTable<CategorieProduitVO>(this, CategorieProduitVO.API_TYPE_ID, datatable_fields, default_label_field, 'CategorieProduit');
+        this.datatable_categorie_produit = new ModuleTable<CategorieProduitVO>(this, CategorieProduitVO.API_TYPE_ID, () => new CategorieProduitVO(), datatable_fields, default_label_field, 'CategorieProduit');
         this.datatables.push(this.datatable_categorie_produit);
     }
 
@@ -119,7 +119,7 @@ export default class ModuleProduit extends Module {
             field_categorie_produit_id,
         ];
 
-        this.datatable_type_produit = new ModuleTable<TypeProduitVO>(this, TypeProduitVO.API_TYPE_ID, datatable_fields, default_label_field, 'TypeProduit');
+        this.datatable_type_produit = new ModuleTable<TypeProduitVO>(this, TypeProduitVO.API_TYPE_ID, () => new TypeProduitVO(), datatable_fields, default_label_field, 'TypeProduit');
         field_categorie_produit_id.addManyToOneRelation(this.datatable_categorie_produit);
         this.datatables.push(this.datatable_type_produit);
     }
@@ -138,7 +138,7 @@ export default class ModuleProduit extends Module {
             new ModuleTableField('picto', ModuleTableField.FIELD_TYPE_string, 'Picto'),
             new ModuleTableField('is_complementaire', ModuleTableField.FIELD_TYPE_boolean, 'Complémentaire ?'),
         ];
-        this.datatable_produit = new ModuleTable<ProduitVO>(this, ProduitVO.API_TYPE_ID, datatable_fields, default_label_field, 'Produit');
+        this.datatable_produit = new ModuleTable<ProduitVO>(this, ProduitVO.API_TYPE_ID, () => new ProduitVO(), datatable_fields, default_label_field, 'Produit');
         field_type_produit_id.addManyToOneRelation(this.datatable_type_produit);
         this.datatables.push(this.datatable_produit);
     }
@@ -152,7 +152,7 @@ export default class ModuleProduit extends Module {
             new ModuleTableField('frequence', ModuleTableField.FIELD_TYPE_int, 'Frequence', true),
             new ModuleTableField('texte_affichage', ModuleTableField.FIELD_TYPE_string, 'Texte Affichage', true),
         ];
-        this.datatable_facturation = new ModuleTable<FacturationVO>(this, FacturationVO.API_TYPE_ID, datatable_fields, default_label_field, 'Facturation');
+        this.datatable_facturation = new ModuleTable<FacturationVO>(this, FacturationVO.API_TYPE_ID, () => new FacturationVO(), datatable_fields, default_label_field, 'Facturation');
         this.datatables.push(this.datatable_facturation);
     }
 
@@ -166,7 +166,7 @@ export default class ModuleProduit extends Module {
             field_facturation_id,
             new ModuleTableField('par_defaut', ModuleTableField.FIELD_TYPE_boolean, 'Par default'),
         ];
-        this.datatable_facturation_produit = new ModuleTable<FacturationProduitVO>(this, FacturationProduitVO.API_TYPE_ID, datatable_fields, null, 'Facturation Produit');
+        this.datatable_facturation_produit = new ModuleTable<FacturationProduitVO>(this, FacturationProduitVO.API_TYPE_ID, () => new FacturationProduitVO(), datatable_fields, null, 'Facturation Produit');
         field_produit_id.addManyToOneRelation(this.datatable_produit);
         field_facturation_id.addManyToOneRelation(this.datatable_facturation);
         this.datatables.push(this.datatable_facturation_produit);

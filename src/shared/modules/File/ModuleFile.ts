@@ -43,7 +43,7 @@ export default class ModuleFile extends Module {
             label_field,
         ];
 
-        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, datatable_fields, label_field, "Fichiers");
+        let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field, "Fichiers");
         this.datatables.push(datatable);
     }
 

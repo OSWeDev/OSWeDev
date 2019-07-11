@@ -76,7 +76,7 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
             datafound: true,
             value: 42,
             value_type: VarsController.VALUE_TYPE_COMPUTED,
-            value_ts: moment().format('YYYY-MM-DD'),
+            value_ts: moment(),
             missing_datas_infos: null
         }, param);
 

@@ -53,59 +53,34 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     returnvalue = {} as any;
                 }
 
-                if (!api.is_autonomous_res_handler) {
-                    res.json(returnvalue);
-                }
+                // if (!api.is_autonomous_res_handler) {
+
+                returnvalue = ModuleAPI.getInstance().try_translate_vo_to_api(returnvalue);
+
+                res.json(returnvalue);
+                // }
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_RES) {
                 let returnvalue = await api.SERVER_HANDLER(param);
 
-                if (!api.is_autonomous_res_handler) {
-                    res.end(returnvalue);
-                }
+                // if (!api.is_autonomous_res_handler) {
+                res.end(returnvalue);
+                // }
             } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
 
                 let returnvalue = await api.SERVER_HANDLER(param);
 
-                if (!api.is_autonomous_res_handler) {
-                    res.json(returnvalue);
-                }
+                // if (!api.is_autonomous_res_handler) {
 
-                // let filedata = await api.SERVER_HANDLER(param);
+                returnvalue = ModuleAPI.getInstance().try_translate_vo_to_api(returnvalue);
 
-                // //T nécessite un filename, il faut faire une interface pour forcer cette situation
-                // // Pareil sur le filetype fixé par défaut à xlsx...
-                // res.writeHead(200, {
-                //     'Content-Description': 'File Transfer',
-                //     'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // 'application/octet-stream', //'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                //     'Content-disposition': 'attachment; filename=' + param['filename'],
-                //     // 'Content-Transfer-Encoding': 'binary',
-                //     'Connection': 'Keep-Alive',
-                //     'Expires': '0',
-                //     'Cache-Control': 'must-revalidate, post-check=0, pre-check=0',
-                //     'Pragma': 'public'
-                // });
-                // // header('Content-Type: application/octet-stream');
-
-                // // res.attachment(param['filename']);
-                // // filedata['pipe'](res);
-
-                // // res.end(await api.SERVER_HANDLER(param));
-
-                // // res.writeHead(200, { 'Content-Type': 'application/octet-stream' });
-                // res.end(filedata);
-                // // res.end(new Buffer(filedata as any, 'base64'));
-                // // if (filedata) {
-                // //     res.sendFile(filedata as any);
-                // // }
-                // // res.send(new Buffer(filedata as any));
-                // // res.write(filedata, 'binary');
-                // // res.end(undefined, 'binary');
+                res.json(returnvalue);
+                // }
             } else {
                 let returnvalue = await api.SERVER_HANDLER(param);
 
-                if (!api.is_autonomous_res_handler) {
-                    res.end(returnvalue);
-                }
+                // if (!api.is_autonomous_res_handler) {
+                res.end(returnvalue);
+                // }
             }
         };
     }

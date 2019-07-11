@@ -12,6 +12,27 @@ import IPlanRDV from './interfaces/IPlanRDV';
 import IPlanRDVCR from './interfaces/IPlanRDVCR';
 import ProgramSegmentParamVO from './vos/ProgramSegmentParamVO';
 import IPlanRDVPrep from './interfaces/IPlanRDVPrep';
+import IPlanProgramCategory from './interfaces/IPlanProgramCategory';
+import IPlanContactType from './interfaces/IPlanContactType';
+import IPlanFacilitatorRegion from './interfaces/IPlanFacilitatorRegion';
+import IPlanTargetGroup from './interfaces/IPlanTargetGroup';
+import IPlanTargetRegion from './interfaces/IPlanTargetRegion';
+import IPlanTargetZone from './interfaces/IPlanTargetZone';
+import IPlanContact from './interfaces/IPlanContact';
+import IPlanTargetContact from './interfaces/IPlanTargetContact';
+import IPlanProgram from './interfaces/IPlanProgram';
+import IPlanFacilitator from './interfaces/IPlanFacilitator';
+import IPlanManager from './interfaces/IPlanManager';
+import IPlanEnseigne from './interfaces/IPlanEnseigne';
+import IPlanTaskType from './interfaces/IPlanTaskType';
+import IPlanTask from './interfaces/IPlanTask';
+import IPlanTarget from './interfaces/IPlanTarget';
+import IPlanProgramFacilitator from './interfaces/IPlanProgramFacilitator';
+import IPlanProgramManager from './interfaces/IPlanProgramManager';
+import IPlanProgramTarget from './interfaces/IPlanProgramTarget';
+import IPlanPartner from './interfaces/IPlanPartner';
+import IPlanTargetFacilitator from './interfaces/IPlanTargetFacilitator';
+import IPlanTargetGroupContact from './interfaces/IPlanTargetGroupContact';
 
 export default abstract class ModuleProgramPlanBase extends Module {
 
@@ -192,10 +213,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDVPrep[]>(ModuleProgramPlanBase.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
     }
 
-    protected callInitializePlanProgramCategory() {
-        this.initializePlanProgramCategory([]);
-    }
-    protected initializePlanProgramCategory(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanProgramCategory();
+    protected initializePlanProgramCategory(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgramCategory) {
         if (!this.program_category_type_id) {
             return;
         }
@@ -218,14 +237,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
             new ModuleTableField('nb_closed_targets', ModuleTableField.FIELD_TYPE_int, 'Terminés', true, true, 0),
         );
 
-        let datatable = new ModuleTable(this, this.program_category_type_id, additional_fields, label_field, "Catégories de programmes");
+        let datatable = new ModuleTable(this, this.program_category_type_id, constructor, additional_fields, label_field, "Catégories de programmes");
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanContactType() {
-        this.initializePlanContactType([]);
-    }
-    protected initializePlanContactType(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanContactType();
+    protected initializePlanContactType(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanContactType) {
         if (!this.contact_type_type_id) {
             return;
         }
@@ -236,14 +253,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
             label_field
         );
 
-        let datatable = new ModuleTable(this, this.contact_type_type_id, additional_fields, label_field, "Types de contact");
+        let datatable = new ModuleTable(this, this.contact_type_type_id, constructor, additional_fields, label_field, "Types de contact");
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanFacilitatorRegion() {
-        this.initializePlanFacilitatorRegion([]);
-    }
-    protected initializePlanFacilitatorRegion(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanFacilitatorRegion();
+    protected initializePlanFacilitatorRegion(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanFacilitatorRegion) {
         if (!this.facilitator_region_type_id) {
             return;
         }
@@ -254,14 +269,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
             label_field
         );
 
-        let datatable = new ModuleTable(this, this.facilitator_region_type_id, additional_fields, label_field, "Régions des animateurs");
+        let datatable = new ModuleTable(this, this.facilitator_region_type_id, constructor, additional_fields, label_field, "Régions des animateurs");
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanTargetGroup() {
-        this.initializePlanTargetgroup([]);
-    }
-    protected initializePlanTargetgroup(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanTargetGroup();
+    protected initializePlanTargetgroup(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetGroup) {
         if (!this.target_group_type_id) {
             return;
         }
@@ -274,16 +287,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
             user_id
         );
 
-        let datatable = new ModuleTable(this, this.target_group_type_id, additional_fields, label_field, "Groupe d'établissements");
+        let datatable = new ModuleTable(this, this.target_group_type_id, constructor, additional_fields, label_field, "Groupe d'établissements");
 
         user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanTargetRegion() {
-        this.initializePlanTargetRegion([]);
-    }
-    protected initializePlanTargetRegion(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanTargetRegion();
+    protected initializePlanTargetRegion(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetRegion) {
         if (!this.target_region_type_id) {
             return;
         }
@@ -297,17 +308,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             region_director_uid
         );
 
-        let datatable = new ModuleTable(this, this.target_region_type_id, additional_fields, label_field, "Régions d'établissements");
+        let datatable = new ModuleTable(this, this.target_region_type_id, constructor, additional_fields, label_field, "Régions d'établissements");
 
 
         region_director_uid.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanTargetZone() {
-        this.initializePlanTargetZone([]);
-    }
-    protected initializePlanTargetZone(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanTargetZone();
+    protected initializePlanTargetZone(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetZone) {
         if (!this.target_zone_type_id) {
             return;
         }
@@ -327,7 +336,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             zone_manager_uid
         );
 
-        let datatable = new ModuleTable(this, this.target_zone_type_id, additional_fields, label_field, "Zones d'établissements");
+        let datatable = new ModuleTable(this, this.target_zone_type_id, constructor, additional_fields, label_field, "Zones d'établissements");
         if (!!this.target_region_type_id) {
             region_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_region_type_id]);
         }
@@ -335,10 +344,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanContact() {
-        this.initializePlanContact([]);
-    }
-    protected initializePlanContact(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanContact();
+    protected initializePlanContact(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanContact) {
         if (!this.contact_type_id) {
             return;
         }
@@ -362,7 +369,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             new ModuleTableField('infos', ModuleTableField.FIELD_TYPE_string, 'Infos', false)
         );
 
-        let datatable = new ModuleTable(this, this.contact_type_id, additional_fields, label_field, "Contacts");
+        let datatable = new ModuleTable(this, this.contact_type_id, constructor, additional_fields, label_field, "Contacts");
         user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         if (!!this.contact_type_type_id) {
@@ -372,10 +379,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanTargetContact() {
-        this.initializePlanTargetContact([]);
-    }
-    protected initializePlanTargetContact(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanTargetContact();
+    protected initializePlanTargetContact(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetContact) {
         if (!this.target_contact_type_id) {
             return;
         }
@@ -388,18 +393,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
             contact_id
         );
 
-        let datatable = new ModuleTable(this, this.target_contact_type_id, additional_fields, null, "Contacts par cible");
+        let datatable = new ModuleTable(this, this.target_contact_type_id, constructor, additional_fields, null, "Contacts par cible");
         target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
         contact_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.contact_type_id]);
 
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanProgram() {
-        this.initializePlanProgram([]);
-    }
-
-    protected initializePlanProgram(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanProgram();
+    protected initializePlanProgram(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgram) {
         if (!this.program_type_id) {
             return;
         }
@@ -423,16 +425,13 @@ export default abstract class ModuleProgramPlanBase extends Module {
             new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false)
         );
 
-        let datatable = new ModuleTable(this, this.program_type_id, additional_fields, label_field, "Programmes");
+        let datatable = new ModuleTable(this, this.program_type_id, constructor, additional_fields, label_field, "Programmes");
         category_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_category_type_id]);
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanFacilitator() {
-        this.initializePlanFacilitator([]);
-    }
-
-    protected initializePlanFacilitator(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanFacilitator();
+    protected initializePlanFacilitator(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanFacilitator) {
         if (!this.facilitator_type_id) {
             return;
         }
@@ -467,7 +466,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true)
         );
 
-        let datatable = new ModuleTable(this, this.facilitator_type_id, additional_fields, label_field, "Animateurs");
+        let datatable = new ModuleTable(this, this.facilitator_type_id, constructor, additional_fields, label_field, "Animateurs");
         user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         if (!!this.manager_type_id) {
@@ -486,11 +485,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
     }
 
 
-    protected callInitializePlanManager() {
-        this.initializePlanManager([]);
-    }
-
-    protected initializePlanManager(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanManager();
+    protected initializePlanManager(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanManager) {
         if (!this.manager_type_id) {
             return;
         }
@@ -512,7 +508,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true)
         );
 
-        let datatable = new ModuleTable(this, this.manager_type_id, additional_fields, label_field, "Managers");
+        let datatable = new ModuleTable(this, this.manager_type_id, constructor, additional_fields, label_field, "Managers");
         user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
 
         if (!!this.partner_type_id) {
@@ -522,10 +518,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanEnseigne() {
-        this.initializePlanEnseigne([]);
-    }
-    protected initializePlanEnseigne(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanEnseigne();
+    protected initializePlanEnseigne(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanEnseigne) {
         if (!this.enseigne_type_id) {
             return;
         }
@@ -536,14 +530,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
             label_field
         );
 
-        let datatable = new ModuleTable(this, this.enseigne_type_id, additional_fields, label_field, "Enseignes");
+        let datatable = new ModuleTable(this, this.enseigne_type_id, constructor, additional_fields, label_field, "Enseignes");
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanTaskType() {
-        this.initializePlanTaskType([]);
-    }
-    protected initializePlanTaskType(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanTaskType();
+    protected initializePlanTaskType(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTaskType) {
         if (!this.task_type_type_id) {
             return;
         }
@@ -559,14 +551,12 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.push(
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
 
-        let datatable = new ModuleTable(this, this.task_type_type_id, additional_fields, label_field, "Type de tâche");
+        let datatable = new ModuleTable(this, this.task_type_type_id, constructor, additional_fields, label_field, "Type de tâche");
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanTask() {
-        this.initializePlanTask([]);
-    }
-    protected initializePlanTask(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanTask();
+    protected initializePlanTask(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTask) {
         if (!this.task_type_id) {
             return;
         }
@@ -588,17 +578,15 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.push(
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0));
 
-        let datatable = new ModuleTable(this, this.task_type_id, additional_fields, label_field, "Tâche");
+        let datatable = new ModuleTable(this, this.task_type_id, constructor, additional_fields, label_field, "Tâche");
         if (!!this.task_type_type_id) {
             task_type_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.task_type_type_id]);
         }
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanTarget() {
-        this.initializePlanTarget([]);
-    }
-    protected initializePlanTarget(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanTarget();
+    protected initializePlanTarget(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTarget) {
         if (!this.target_type_id) {
             return;
         }
@@ -632,7 +620,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             new ModuleTableField('activated', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true, true, true)
         );
 
-        let datatable = new ModuleTable(this, this.target_type_id, additional_fields, label_field, "Etablissements");
+        let datatable = new ModuleTable(this, this.target_type_id, constructor, additional_fields, label_field, "Etablissements");
 
         if (!!this.enseigne_type_id) {
             enseigne_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.enseigne_type_id]);
@@ -647,10 +635,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanRDVPrep() {
-        this.initializePlanRDVPrep([]);
-    }
-    protected initializePlanRDVPrep(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanRDVPrep();
+    protected initializePlanRDVPrep(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanRDVPrep) {
         if (!this.rdv_prep_type_id) {
             return;
         }
@@ -669,7 +655,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             prep_file_id
         );
 
-        let datatable = new ModuleTable(this, this.rdv_prep_type_id, additional_fields, null, "Préparations");
+        let datatable = new ModuleTable(this, this.rdv_prep_type_id, constructor, additional_fields, null, "Préparations");
 
         if (!!this.rdv_type_id) {
             rdv_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.rdv_type_id]);
@@ -680,10 +666,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanRDVCR() {
-        this.initializePlanRDVCR([]);
-    }
-    protected initializePlanRDVCR(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanRDVCR();
+    protected initializePlanRDVCR(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanRDVCR) {
         if (!this.rdv_cr_type_id) {
             return;
         }
@@ -702,7 +686,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             cr_file_id
         );
 
-        let datatable = new ModuleTable(this, this.rdv_cr_type_id, additional_fields, null, "Compte-rendus");
+        let datatable = new ModuleTable(this, this.rdv_cr_type_id, constructor, additional_fields, null, "Compte-rendus");
 
         if (!!this.rdv_type_id) {
             rdv_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.rdv_type_id]);
@@ -713,10 +697,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanRDV() {
-        this.initializePlanRDV(null, []);
-    }
-    protected initializePlanRDV(states: { [state_id: number]: string }, additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanRDV();
+    protected initializePlanRDV(states: { [state_id: number]: string }, additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanRDV) {
 
         if (!this.rdv_type_id) {
             return;
@@ -766,7 +748,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         additional_fields.push(new ModuleTableField('target_validation', ModuleTableField.FIELD_TYPE_boolean, 'RDV confirmé', false));
 
-        let datatable = new ModuleTable(this, this.rdv_type_id, additional_fields, null, "RDVs");
+        let datatable = new ModuleTable(this, this.rdv_type_id, constructor, additional_fields, null, "RDVs");
 
         if (!!this.task_type_id) {
             task_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.task_type_id]);
@@ -787,11 +769,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanProgramFacilitator() {
-        this.initializePlanProgramFacilitator([]);
-    }
-
-    protected initializePlanProgramFacilitator(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanProgramFacilitator();
+    protected initializePlanProgramFacilitator(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgramFacilitator) {
         if (!this.program_facilitator_type_id) {
             return;
         }
@@ -804,17 +783,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
             program_id
         );
 
-        let datatable = new ModuleTable(this, this.program_facilitator_type_id, additional_fields, null, "Animateurs par programme");
+        let datatable = new ModuleTable(this, this.program_facilitator_type_id, constructor, additional_fields, null, "Animateurs par programme");
         facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
         program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanProgramManager() {
-        this.initializePlanProgramManager([]);
-    }
-
-    protected initializePlanProgramManager(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanProgramManager();
+    protected initializePlanProgramManager(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgramManager) {
         if (!this.program_manager_type_id) {
             return;
         }
@@ -827,17 +803,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
             program_id
         );
 
-        let datatable = new ModuleTable(this, this.program_manager_type_id, additional_fields, null, "Animateurs par programme");
+        let datatable = new ModuleTable(this, this.program_manager_type_id, constructor, additional_fields, null, "Animateurs par programme");
         manager_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.manager_type_id]);
         program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanProgramTarget() {
-        this.initializePlanProgramTarget([]);
-    }
-
-    protected initializePlanProgramTarget(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanProgramTarget();
+    protected initializePlanProgramTarget(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanProgramTarget) {
         if (!this.program_target_type_id) {
             return;
         }
@@ -850,17 +823,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
             program_id
         );
 
-        let datatable = new ModuleTable(this, this.program_target_type_id, additional_fields, null, "Etablissements par programme");
+        let datatable = new ModuleTable(this, this.program_target_type_id, constructor, additional_fields, null, "Etablissements par programme");
         target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
         program_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.program_type_id]);
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanPartner() {
-        this.initializePlanPartner([]);
-    }
-
-    protected initializePlanPartner(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanPartner();
+    protected initializePlanPartner(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanPartner) {
         if (!this.partner_type_id) {
             return;
         }
@@ -871,17 +841,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
             label_field
         );
 
-        let datatable = new ModuleTable(this, this.partner_type_id, additional_fields, label_field, "Partenaires");
+        let datatable = new ModuleTable(this, this.partner_type_id, constructor, additional_fields, label_field, "Partenaires");
         this.datatables.push(datatable);
     }
 
 
 
-    protected callInitializePlanTargetFacilitator() {
-        this.initializePlanTargetFacilitator([]);
-    }
-
-    protected initializePlanTargetFacilitator(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanTargetFacilitator();
+    protected initializePlanTargetFacilitator(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetFacilitator) {
         if (!this.target_facilitator_type_id) {
             return;
         }
@@ -894,17 +861,14 @@ export default abstract class ModuleProgramPlanBase extends Module {
             facilitator_id
         );
 
-        let datatable = new ModuleTable(this, this.target_facilitator_type_id, additional_fields, null, "Animateurs par établissements");
+        let datatable = new ModuleTable(this, this.target_facilitator_type_id, constructor, additional_fields, null, "Animateurs par établissements");
         target_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_type_id]);
         facilitator_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.facilitator_type_id]);
         this.datatables.push(datatable);
     }
 
-    protected callInitializePlanTargetGroupContact() {
-        this.initializePlanTargetGroupContact([]);
-    }
-
-    protected initializePlanTargetGroupContact(additional_fields: Array<ModuleTableField<any>>) {
+    protected abstract callInitializePlanTargetGroupContact();
+    protected initializePlanTargetGroupContact(additional_fields: Array<ModuleTableField<any>>, constructor: () => IPlanTargetGroupContact) {
         if (!this.target_group_contact_type_id) {
             return;
         }
@@ -917,7 +881,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             contact_id
         );
 
-        let datatable = new ModuleTable(this, this.target_group_contact_type_id, additional_fields, null, "Contacts par groupe d'établissements");
+        let datatable = new ModuleTable(this, this.target_group_contact_type_id, constructor, additional_fields, null, "Contacts par groupe d'établissements");
         target_group_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.target_group_type_id]);
         contact_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[this.contact_type_id]);
         this.datatables.push(datatable);

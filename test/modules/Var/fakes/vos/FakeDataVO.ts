@@ -1,5 +1,6 @@
 import ISimpleNumberVarData from '../../../../../src/shared/modules/Var/interfaces/ISimpleNumberVarData';
 import FakeDataParamVO from './FakeDataParamVO';
+import { Moment } from 'moment';
 
 export default class FakeDataVO extends FakeDataParamVO implements ISimpleNumberVarData {
 
@@ -11,6 +12,6 @@ export default class FakeDataVO extends FakeDataParamVO implements ISimpleNumber
     public value: number;
 
     public value_type: number;
-    public value_ts: string;
+    public value_ts: Moment;
     public missing_datas_infos: string[];
 }

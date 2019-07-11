@@ -7,6 +7,7 @@ import DefaultTranslationManager from '../Translation/DefaultTranslationManager'
 import VarsController from './VarsController';
 import moment = require('moment');
 import VOsTypesManager from '../VOsTypesManager';
+import ISimpleNumberVarData from './interfaces/ISimpleNumberVarData';
 
 export default class ModuleVar extends Module {
 
@@ -52,7 +53,9 @@ export default class ModuleVar extends Module {
         return true;
     }
 
-    public register_simple_number_var_data(api_type_id: string, var_fields: Array<ModuleTableField<any>>, is_matroid: boolean = false) {
+    public register_simple_number_var_data(
+        api_type_id: string, constructor: () => ISimpleNumberVarData,
+        var_fields: Array<ModuleTableField<any>>, is_matroid: boolean = false) {
         let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
 
         var_fields.unshift(var_id);
@@ -63,11 +66,11 @@ export default class ModuleVar extends Module {
                 [VarsController.VALUE_TYPE_COMPUTED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_COMPUTED],
                 [VarsController.VALUE_TYPE_MIXED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_MIXED]
             }),
-            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_unix_timestamp, 'Date mise à jour', true, true, moment().unix()),
+            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_unix_timestamp, 'Date mise à jour', true, true, moment()),
             new ModuleTableField('missing_datas_infos', ModuleTableField.FIELD_TYPE_string_array, 'Datas manquantes', false),
         ]);
 
-        let datatable = new ModuleTable(this, api_type_id, var_fields, null);
+        let datatable = new ModuleTable(this, api_type_id, constructor, var_fields, null);
         if (is_matroid) {
             datatable.defineAsMatroid();
         }
@@ -93,7 +96,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('yearly_reset_month', ModuleTableField.FIELD_TYPE_int, 'Mois du reset (0-11)', false, true, 0),
         ];
 
-        let datatable = new ModuleTable(this, SimpleVarConfVO.API_TYPE_ID, datatable_fields, labelField);
+        let datatable = new ModuleTable(this, SimpleVarConfVO.API_TYPE_ID, () => new SimpleVarConfVO(), datatable_fields, labelField);
         this.datatables.push(datatable);
     }
 }

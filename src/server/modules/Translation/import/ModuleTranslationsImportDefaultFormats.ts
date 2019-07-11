@@ -51,9 +51,9 @@ export default class ModuleTranslationsImportDefaultFormats {
         let i = 0;
         let import_base_data_import_columns: DataImportColumnVO[] = [];
 
-        import_base_data_import_columns.push(new DataImportColumnVO('code_lang', import_base_data_import_file.id).addColumnLabels(['code_lang']).setMandatory());
-        import_base_data_import_columns.push(new DataImportColumnVO('code_text', import_base_data_import_file.id).addColumnLabels(['code_text']).setMandatory());
-        import_base_data_import_columns.push(new DataImportColumnVO('translated', import_base_data_import_file.id).addColumnLabels(['translated']).setMandatory());
+        import_base_data_import_columns.push(DataImportColumnVO.createNew('code_lang', import_base_data_import_file.id).addColumnLabels(['code_lang']).setMandatory());
+        import_base_data_import_columns.push(DataImportColumnVO.createNew('code_text', import_base_data_import_file.id).addColumnLabels(['code_text']).setMandatory());
+        import_base_data_import_columns.push(DataImportColumnVO.createNew('translated', import_base_data_import_file.id).addColumnLabels(['translated']).setMandatory());
 
         await ModuleDAO.getInstance().insertOrUpdateVOs(import_base_data_import_columns);
     }

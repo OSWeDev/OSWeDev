@@ -72,7 +72,7 @@ export default class ModuleClient extends Module {
             new ModuleTableField('siret', ModuleTableField.FIELD_TYPE_string, 'Siret'),
             default_label_field,
         ];
-        this.datatable_informations = new ModuleTable<InformationsVO>(this, InformationsVO.API_TYPE_ID, datatable_fields, default_label_field, 'Informations');
+        this.datatable_informations = new ModuleTable<InformationsVO>(this, InformationsVO.API_TYPE_ID, () => new InformationsVO(), datatable_fields, default_label_field, 'Informations');
         this.datatables.push(this.datatable_informations);
     }
 
@@ -85,7 +85,7 @@ export default class ModuleClient extends Module {
             field_user_id,
             field_informations_id
         ];
-        this.datatable_client = new ModuleTable<ClientVO>(this, ClientVO.API_TYPE_ID, datatable_fields, field_user_id, 'Client');
+        this.datatable_client = new ModuleTable<ClientVO>(this, ClientVO.API_TYPE_ID, () => new ClientVO(), datatable_fields, field_user_id, 'Client');
         field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         field_informations_id.addManyToOneRelation(this.datatable_informations);
         this.datatables.push(this.datatable_client);

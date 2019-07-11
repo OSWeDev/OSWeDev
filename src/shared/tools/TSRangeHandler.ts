@@ -20,6 +20,55 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
 
     /**
      * TODO TU ASAP FIXME VARS
+     * On passe par une version text pour simplifier
+     */
+    public translate_to_api(ranges: TSRange[]): string[] {
+        let res: string[] = null;
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            if (res == null) {
+                res = [];
+            }
+
+            let elt = '';
+            elt += range.min_inclusiv ? '[' : '(';
+            elt += range.min.unix();
+            elt += ',';
+            elt += range.max.unix();
+            elt += range.max_inclusiv ? ']' : ')';
+
+            res.push(elt);
+        }
+
+        return res;
+    }
+
+    /**
+     * TODO TU ASAP FIXME VARS
+     */
+    public translate_from_api<U extends TSRange>(ranges: string[]): U[] {
+
+        let res: U[] = [];
+        try {
+
+            for (let i in ranges) {
+                let range = ranges[i];
+
+                res.push(this.parseRange(range));
+            }
+        } catch (error) {
+        }
+
+        if ((!res) || (!res.length)) {
+            return null;
+        }
+        return res;
+    }
+
+    /**
+     * TODO TU ASAP FIXME VARS
      */
     public translate_to_bdd(ranges: TSRange[]): string {
         let res = null;

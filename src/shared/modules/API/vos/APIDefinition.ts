@@ -11,7 +11,7 @@ export default abstract class APIDefinition<T, U> {
 
     public SERVER_HANDLER: (translated_param: T) => Promise<U> = null;
 
-    public is_autonomous_res_handler: boolean = false;
+    // public is_autonomous_res_handler: boolean = false;
 
     /**
      *
@@ -34,8 +34,8 @@ export default abstract class APIDefinition<T, U> {
         public api_return_type: number = 0) {
     }
 
-    public define_as_autonomous_res_handler(): APIDefinition<T, U> {
-        this.is_autonomous_res_handler = true;
-        return this;
-    }
+    // public define_as_autonomous_res_handler(): APIDefinition<T, U> {
+    //     this.is_autonomous_res_handler = true;
+    //     return this;
+    // }
 }
