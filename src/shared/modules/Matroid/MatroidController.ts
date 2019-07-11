@@ -49,7 +49,7 @@ export default class MatroidController {
 
         for (let i in matroid_bases) {
             let matroid_base = matroid_bases[i];
-            let matroid_base_cardinal = (matroid_base != null) ? matroid_base.cardinal : 0;
+            let matroid_base_cardinal = (matroid_base != null) ? MatroidBaseController.getInstance().get_cardinal(matroid_base) : 0;
 
             res = (res != null) ? res * matroid_base_cardinal : matroid_base_cardinal;
         }
@@ -162,7 +162,8 @@ export default class MatroidController {
 
         if (sort) {
             matroid_bases.sort((a: MatroidBase<any>, b: MatroidBase<any>) => {
-                return sort_asc ? a.cardinal - b.cardinal : b.cardinal - a.cardinal;
+                return sort_asc ? MatroidBaseController.getInstance().get_cardinal(a) - MatroidBaseController.getInstance().get_cardinal(b) :
+                    MatroidBaseController.getInstance().get_cardinal(b) - MatroidBaseController.getInstance().get_cardinal(a);
             });
         }
 
@@ -179,7 +180,7 @@ export default class MatroidController {
         //  qui seraient définis sur la structure de données, et qui indique un non filtrage, donc une intersection obligatoire
         //  à moins que l'autre matroid soit vide (cardinal = 0).
 
-        if ((!a) || (!a.cardinal) || (!b) || (!b.cardinal) || (a._type != b._type)) {
+        if ((!a) || (!MatroidController.getInstance().get_cardinal(a)) || (!b) || (!MatroidController.getInstance().get_cardinal(b)) || (a._type != b._type)) {
             return false;
         }
 
@@ -331,7 +332,6 @@ export default class MatroidController {
     public createEmptyFrom<T extends IMatroid>(from: T): T {
         let res: T = {
             _type: from._type,
-            cardinal: 0,
             id: undefined
         } as T;
 
@@ -345,7 +345,6 @@ export default class MatroidController {
     public cloneFrom<T extends IMatroid>(from: T): T {
         let res: T = {
             _type: from._type,
-            cardinal: from.cardinal,
             id: undefined
         } as T;
 

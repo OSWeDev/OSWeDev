@@ -267,9 +267,6 @@ export default class VarDescComponent extends VueComponentBase {
                 "value_type",
                 "value_ts",
                 "missing_datas_infos",
-
-                // IMatroid
-                "cardinal"
             ].indexOf(field.field_id) >= 0) {
                 continue;
             }

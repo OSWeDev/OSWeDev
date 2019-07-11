@@ -1200,7 +1200,8 @@ export default class VarsController {
                 //  plus tenter de couvrire les semaines restantes avec des calculs semaine.Alors que si on prend les 6 semaines en calculé, on couvre la totalité et on recalcule rien.
                 //  L'approximation est-elle suffisante, à voir dans le temps.
                 let matroids_list: ISimpleNumberVarMatroidData[] = [];
-                matroids_inscrits.sort((a: ISimpleNumberVarMatroidData, b: ISimpleNumberVarMatroidData) => b.cardinal - a.cardinal);
+                matroids_inscrits.sort((a: ISimpleNumberVarMatroidData, b: ISimpleNumberVarMatroidData) =>
+                    MatroidController.getInstance().get_cardinal(b) - MatroidController.getInstance().get_cardinal(a));
 
                 for (let j in matroids_inscrits) {
                     let matroid_inscrit = matroids_inscrits[j];

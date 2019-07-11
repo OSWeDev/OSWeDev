@@ -1321,9 +1321,9 @@ describe('TSRangeHandler', () => {
         expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(null))).to.equal(null);
         expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(undefined)).to.equal(null);
         expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(null)).to.equal(null);
-        expect(DateHandler.getInstance().formatDateTimeForAPI(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(moins_un)))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(moins_un));
-        expect(DateHandler.getInstance().formatDateTimeForAPI(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(un)))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(un));
-        expect(DateHandler.getInstance().formatDateTimeForAPI(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(zero_cinq)))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(zero_cinq));
+        expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(moins_un)).format('DD/MM/YYYY')).to.equal(moins_un.format('DD/MM/YYYY'));
+        expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(un)).format('DD/MM/YYYY')).to.equal(un.format('DD/MM/YYYY'));
+        expect(TSRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPI(DateHandler.getInstance().formatDateTimeForAPI(zero_cinq)).format('DD/MM/YYYY')).to.equal(zero_cinq.format('DD/MM/YYYY'));
     });
 
     it('test isEndABeforeEndB', () => {

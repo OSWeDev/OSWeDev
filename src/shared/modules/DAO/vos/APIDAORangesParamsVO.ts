@@ -96,7 +96,7 @@ export default class APIDAORangesParamsVO {
 
         let field = vo_moduletable.getFieldFromId(field_id);
         let min_value = FieldRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPIAndApiTypeId(vo_moduletable.vo_type, field_id, params['range_min_' + i]);
-        let max_value = FieldRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPIAndApiTypeId(vo_moduletable.vo_type, field_id, params['range_min_' + i]);
+        let max_value = FieldRangeHandler.getInstance().getValueFromFormattedMinOrMaxAPIAndApiTypeId(vo_moduletable.vo_type, field_id, params['range_max_' + i]);
 
         if ((!min_value) || (!max_value)) {
             return null;

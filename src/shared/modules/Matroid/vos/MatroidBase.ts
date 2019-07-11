@@ -9,7 +9,6 @@ export default class MatroidBase<T> {
      */
     public static createNew<T>(api_type_id: string, field_id: string, ranges: Array<FieldRange<T>>): MatroidBase<T> {
         let res: MatroidBase<T> = new MatroidBase<T>();
-        let cardinal = 0;
 
         for (let i in ranges) {
 
@@ -20,11 +19,9 @@ export default class MatroidBase<T> {
 
             let res_fieldrange = FieldRangeHandler.getInstance().cloneFrom(from_fieldrange);
             res.ranges_.push(res_fieldrange);
-            cardinal += FieldRangeHandler.getInstance().getCardinal(res_fieldrange);
         }
         res.api_type_id = api_type_id;
         res.field_id = field_id;
-        res.cardinal = cardinal;
 
         return res;
     }
@@ -45,15 +42,12 @@ export default class MatroidBase<T> {
         }
         res.api_type_id = from.api_type_id;
         res.field_id = from.field_id;
-        res.cardinal = from.cardinal;
 
         return res;
     }
 
     public api_type_id: string;
     public field_id: string;
-
-    public cardinal: number;
 
     private ranges_: Array<FieldRange<T>> = [];
 

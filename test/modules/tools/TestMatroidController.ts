@@ -28,7 +28,6 @@ describe('MatroidController', () => {
     let matroid_1_2_moins1_zero: IVarMatroidDataVO = {
         _type: 'matroid_type',
         id: 1,
-        cardinal: 4,
         value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
@@ -40,7 +39,6 @@ describe('MatroidController', () => {
     let matroid_1_zero: IVarMatroidDataVO = {
         _type: 'matroid_type',
         id: 1,
-        cardinal: 1,
         value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
@@ -52,7 +50,6 @@ describe('MatroidController', () => {
     let matroid_1_moins1: IVarMatroidDataVO = {
         _type: 'matroid_type',
         id: 1,
-        cardinal: 1,
         value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
@@ -64,7 +61,6 @@ describe('MatroidController', () => {
     let matroid_2_zero: IVarMatroidDataVO = {
         _type: 'matroid_type',
         id: 1,
-        cardinal: 1,
         value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
@@ -76,7 +72,6 @@ describe('MatroidController', () => {
     let matroid_2_moins1: IVarMatroidDataVO = {
         _type: 'matroid_type',
         id: 1,
-        cardinal: 1,
         value_ts: moment(),
         value_type: VarsController.VALUE_TYPE_COMPUTED,
         var_id: 1,
@@ -106,7 +101,6 @@ describe('MatroidController', () => {
         null,
         'matroid_type',
         [
-            new ModuleTableField('cardinal', ModuleTableField.FIELD_TYPE_int, 'Cardinal'),
             employee_id_ranges,
             ts_ranges
         ],

@@ -22,15 +22,45 @@ export default class MatroidBaseController {
     public async initialize() {
     }
 
+
+    /**
+     * TODO FIXME ASAP TU VARS
+     * On définit le cardinal du matroid base par la somme des ranges
+     * @param matroid_base
+     */
+    public get_cardinal<T>(matroid_base: MatroidBase<T>): number {
+
+        if (!matroid_base) {
+            return 0;
+        }
+
+        let cardinal = 0;
+
+        for (let i in matroid_base.ranges) {
+
+            let from_fieldrange: FieldRange<T> = matroid_base.ranges[i];
+            if (!from_fieldrange) {
+                return null;
+            }
+
+            let res_fieldrange = FieldRangeHandler.getInstance().cloneFrom(from_fieldrange);
+            cardinal += FieldRangeHandler.getInstance().getCardinal(res_fieldrange);
+        }
+        return cardinal;
+    }
+
+
     /**
      * FIXME TODO ASAP WITH TU
      */
     public matroidbase_intersects_matroidbase<T>(a: MatroidBase<T>, b: MatroidBase<T>): boolean {
         // Si l'un des ranges intersect, les matroid base intersectent
 
-        if ((!a) || (!a.cardinal) || (!b) || (!b.cardinal) || (a.api_type_id != b.api_type_id) || (a.field_id != b.field_id)) {
+        if ((!a) || (!b) || (a.api_type_id != b.api_type_id) || (a.field_id != b.field_id)) {
             return false;
         }
+
+
 
         for (let i in a.ranges) {
             let range_a = a.ranges[i];
