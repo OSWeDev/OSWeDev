@@ -35,8 +35,8 @@ describe('MatroidBaseController', () => {
     VOsTypesManager.getInstance().registerModuleTable(new ModuleTable(
         null,
         matroid_type,
+        () => ({} as any),
         [
-            new ModuleTableField('cardinal', ModuleTableField.FIELD_TYPE_int, 'Cardinal'),
             employee_id_ranges,
             ts_ranges
         ],
@@ -229,7 +229,7 @@ describe('MatroidBaseController', () => {
             FieldRange.createNew(matroid_type, 'ts_ranges', moins_un, zero_cinq, false, true)
         ]);
         let matroid_base_moins1_zero_moins_zero = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, zero, true, false)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, moins_zero_cinq, true, false)
         ]);
 
         expect(MatroidBaseController.getInstance().cut_matroid_base(null, matroid_base_1)).to.deep.equal(new MatroidBaseCutResult(

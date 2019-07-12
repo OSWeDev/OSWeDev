@@ -54,7 +54,9 @@ export default class ModuleVar extends Module {
     }
 
     public register_simple_number_var_data(
-        api_type_id: string, constructor: () => ISimpleNumberVarData,
+        api_type_id: string,
+        param_api_type_id: string,
+        constructor: () => ISimpleNumberVarData,
         var_fields: Array<ModuleTableField<any>>, is_matroid: boolean = false) {
         let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
 
@@ -74,6 +76,7 @@ export default class ModuleVar extends Module {
         if (is_matroid) {
             datatable.defineAsMatroid();
         }
+        datatable.addAlias(param_api_type_id);
         var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[SimpleVarConfVO.API_TYPE_ID]);
         this.datatables.push(datatable);
     }

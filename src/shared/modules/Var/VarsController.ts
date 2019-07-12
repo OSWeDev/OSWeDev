@@ -1239,16 +1239,6 @@ export default class VarsController {
 
             let matroids_list: ISimpleNumberVarMatroidData[] = node.loaded_datas_matroids as ISimpleNumberVarMatroidData[];
 
-            node.parents_loaded_datas_matroids = [];
-
-            // On rempli au passage la liste des matroids utilisés dans l'arborescence avant ce node
-            for (let j in node.incoming) {
-                let incoming = node.incoming[j];
-
-                node.parents_loaded_datas_matroids = node.parents_loaded_datas_matroids.concat(incoming.parents_loaded_datas_matroids);
-            }
-
-
             node.loaded_datas_matroids_sum_value = null;
             let remaining_matroids = [MatroidController.getInstance().cloneFrom(node.param as IVarMatroidDataParamVO)];
 
@@ -1262,9 +1252,9 @@ export default class VarsController {
 
                 if (node.loaded_datas_matroids_sum_value == null) {
                     node.loaded_datas_matroids_sum_value = matroid.value;
-                    continue;
+                } else {
+                    node.loaded_datas_matroids_sum_value += matroid.value;
                 }
-                node.loaded_datas_matroids_sum_value += matroid.value;
 
                 let cut_results: Array<MatroidCutResult<IVarMatroidDataParamVO>> = MatroidController.getInstance().cut_matroids(matroid, remaining_matroids);
                 remaining_matroids = [];

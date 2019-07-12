@@ -180,7 +180,14 @@ export default class MatroidController {
         //  qui seraient définis sur la structure de données, et qui indique un non filtrage, donc une intersection obligatoire
         //  à moins que l'autre matroid soit vide (cardinal = 0).
 
-        if ((!a) || (!MatroidController.getInstance().get_cardinal(a)) || (!b) || (!MatroidController.getInstance().get_cardinal(b)) || (a._type != b._type)) {
+        if ((!a) || (!MatroidController.getInstance().get_cardinal(a)) || (!b) || (!MatroidController.getInstance().get_cardinal(b))) {
+            return false;
+        }
+
+        let moduletablea = VOsTypesManager.getInstance().moduleTables_by_voType[a._type];
+        let moduletableb = VOsTypesManager.getInstance().moduleTables_by_voType[b._type];
+
+        if (moduletablea != moduletableb) {
             return false;
         }
 
@@ -312,13 +319,33 @@ export default class MatroidController {
                 field_ranges);
             let cut_result: MatroidBaseCutResult<MatroidBase<any>> = MatroidBaseController.getInstance().cut_matroid_base(matroidbase_cutter, matroid_to_cut_base);
 
-            // Le but est de créer le matroid lié à la coupe sur cette dimension
-            let this_base_remaining_matroid = this.cloneFrom(chopped_matroid);
+            // ça marche que si il y a un remaining sur cette dimension, sinon on veut pas stocker des bases null...
+            if (!!cut_result.remaining_items) {
 
-            this_base_remaining_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.remaining_items);
-            res.remaining_items.push(this_base_remaining_matroid);
+                // Le but est de créer le matroid lié à la coupe sur cette dimension
+                let this_base_remaining_matroid = this.cloneFrom(chopped_matroid);
 
-            chopped_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.chopped_items);
+                this_base_remaining_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.remaining_items.ranges);
+
+                // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
+                for (let k in this_base_remaining_matroid[matroid_to_cut_base.field_id]) {
+                    let range = this_base_remaining_matroid[matroid_to_cut_base.field_id][k];
+                    range.field_id = undefined;
+                    range.api_type_id = undefined;
+                }
+
+                res.remaining_items.push(this_base_remaining_matroid);
+            }
+
+            chopped_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.chopped_items.ranges);
+
+            // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
+            for (let k in chopped_matroid[matroid_to_cut_base.field_id]) {
+                let range = chopped_matroid[matroid_to_cut_base.field_id][k];
+                range.field_id = undefined;
+                range.api_type_id = undefined;
+            }
+
         }
         res.chopped_items.push(chopped_matroid);
 
@@ -343,10 +370,17 @@ export default class MatroidController {
      * @param from
      */
     public cloneFrom<T extends IMatroid>(from: T): T {
+
+        if (!from) {
+            return null;
+        }
+
+        // On copie uniquement le matroid et le var_id si présent pour compatibilité avec les vars
         let res: T = {
             _type: from._type,
-            id: undefined
-        } as T;
+            id: undefined,
+            var_id: from['var_id']
+        } as any;
 
         let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(from._type);
 

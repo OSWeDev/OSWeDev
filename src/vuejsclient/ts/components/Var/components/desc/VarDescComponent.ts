@@ -195,16 +195,6 @@ export default class VarDescComponent extends VueComponentBase {
         return JSON.stringify(this.get_copy_with_explaining_fields(node.loaded_datas_matroids));
     }
 
-    get parents_loaded_datas_matroids_desc(): string {
-        if (!this.var_index) {
-            return null;
-        }
-
-        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
-
-        return JSON.stringify(this.get_copy_with_explaining_fields(node.parents_loaded_datas_matroids));
-    }
-
     get loaded_datas_matroids_sum_value_desc(): string {
         if (!this.var_index) {
             return null;

@@ -76,8 +76,8 @@ describe('NumRangeHandler', () => {
             [NumRange.createNew(0, 2, true, true), NumRange.createNew(3, 4, false, true)]
         ));
         expect(NumRangeHandler.getInstance().cut_range(NumRange.createNew(2, 3, false, false), NumRange.createNew(0, 4, true, true))).to.deep.equal(new RangesCutResult(
-            null,
-            [NumRange.createNew(0, 4, true, true)]
+            [NumRange.createNew(2, 3, false, false)],
+            [NumRange.createNew(0, 2, true, true), NumRange.createNew(3, 4, true, true)]
         ));
 
 
@@ -264,6 +264,12 @@ describe('NumRangeHandler', () => {
             [NumRange.createNew(0, 0, true, true)]
         ));
         expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, true)], null)).to.equal(null);
+
+        expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(1, 1, true, true)], [NumRange.createNew(1, 1, true, true)])).to.deep.equal(new RangesCutResult(
+            [NumRange.createNew(1, 1, true, true)],
+            null
+        ));
+
         expect(NumRangeHandler.getInstance().cuts_ranges([NumRange.createNew(0, 0, true, true)], [NumRange.createNew(0, 0, true, true)])).to.deep.equal(new RangesCutResult(
             [NumRange.createNew(0, 0, true, true)],
             null
@@ -1093,6 +1099,13 @@ describe('NumRangeHandler', () => {
 
         expect(NumRangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, false)])).to.deep.equal([NumRange.createNew(0, 0, true, true)]);
         expect(NumRangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 0, true, true), NumRange.createNew(0, 0, true, true)])).to.deep.equal([NumRange.createNew(0, 0, true, true)]);
+
+        expect(NumRangeHandler.getInstance().getRangesUnion([NumRange.createNew(1, 1, true, true)])).to.deep.equal([{
+            min: 1,
+            min_inclusiv: true,
+            max: 1,
+            max_inclusiv: true
+        } as NumRange]);
 
         expect(NumRangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, true, true), NumRange.createNew(-1, 0, true, true)])).to.deep.equal([{
             min: -1,

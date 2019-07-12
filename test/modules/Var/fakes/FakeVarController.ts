@@ -39,7 +39,6 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
             controller ? controller : FakeDataParamController.getInstance());
     }
 
-
     public getVarsIdsDependencies(): number[] {
         return [];
     }

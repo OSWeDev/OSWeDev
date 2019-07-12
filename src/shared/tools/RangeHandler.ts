@@ -422,6 +422,7 @@ export default abstract class RangeHandler<T> {
      * @param range_cutter
      * @param range_to_cut
      */
+
     public cut_range<U extends IRange<any>>(range_cutter: U, range_to_cut: U): RangesCutResult<U> {
 
         if (!range_to_cut) {
@@ -432,48 +433,161 @@ export default abstract class RangeHandler<T> {
             return new RangesCutResult(null, [this.cloneFrom(range_to_cut)]);
         }
 
-        let res: U[] = [];
+        let avant: U = this.cloneFrom(range_to_cut);
+        let coupe: U = this.cloneFrom(range_to_cut);
+        let apres: U = this.cloneFrom(range_to_cut);
 
-        let cutter_min = this.getSegmentedMin(range_cutter);
-        let cutter_max = this.getSegmentedMax(range_cutter);
-        let to_cut_min = this.getSegmentedMin(range_to_cut);
-        let to_cut_max = this.getSegmentedMax(range_to_cut);
+        if (this.isStartABeforeStartB(range_to_cut, range_cutter)) {
+            // SC > STC
+            coupe.min = clonedeep(range_cutter.min);
+            coupe.min_inclusiv = range_cutter.min_inclusiv;
 
-        if ((cutter_min == null) || (cutter_max == null)) {
-            return new RangesCutResult(null, [this.cloneFrom(range_to_cut)]);
+            avant.min = clonedeep(range_to_cut.min);
+            avant.min_inclusiv = range_to_cut.min_inclusiv;
+
+            avant.max = clonedeep(range_cutter.min);
+            avant.max_inclusiv = !range_cutter.min_inclusiv;
+        } else {
+            // SC <= STC
+            coupe.min = clonedeep(range_to_cut.min);
+            coupe.min_inclusiv = range_to_cut.min_inclusiv;
+            avant = null;
         }
 
-        if ((to_cut_min == null) || (to_cut_max == null)) {
+        if (this.isStartASameEndB(range_cutter, range_to_cut)) {
+            // SC = ETC
+            coupe.min = clonedeep(range_cutter.min);
+            coupe.min_inclusiv = range_cutter.min_inclusiv;
+
+            coupe.max = clonedeep(range_cutter.min);
+            coupe.max_inclusiv = range_cutter.min_inclusiv;
+
+            if (!!avant) {
+                avant.min = clonedeep(range_to_cut.min);
+                avant.min_inclusiv = range_to_cut.min_inclusiv;
+
+                avant.max = clonedeep(range_cutter.min);
+                avant.max_inclusiv = !range_cutter.min_inclusiv;
+            }
+
+            apres = null;
+        }
+
+        if (this.isStartASameEndB(range_to_cut, range_cutter)) {
+            // STC = EC
+            coupe.min = clonedeep(range_to_cut.min);
+            coupe.min_inclusiv = range_to_cut.min_inclusiv;
+
+            coupe.max = clonedeep(range_to_cut.min);
+            coupe.max_inclusiv = range_to_cut.min_inclusiv;
+
+            avant = null;
+
+            if (!!apres) {
+                apres.min = clonedeep(range_cutter.max);
+                apres.min_inclusiv = !range_cutter.max_inclusiv;
+
+                apres.max = clonedeep(range_to_cut.max);
+                apres.max_inclusiv = range_to_cut.max_inclusiv;
+            }
+        }
+
+        if (this.isEndABeforeEndB(range_cutter, range_to_cut)) {
+            // EC < ETC
+            coupe.max = clonedeep(range_cutter.max);
+            coupe.max_inclusiv = range_cutter.max_inclusiv;
+
+            if (!!apres) {
+                apres.min = clonedeep(range_cutter.max);
+                apres.min_inclusiv = !range_cutter.max_inclusiv;
+
+                apres.max = clonedeep(range_to_cut.max);
+                apres.max_inclusiv = range_to_cut.max_inclusiv;
+            }
+        } else {
+            // SC <= STC
+            coupe.max = clonedeep(range_to_cut.max);
+            coupe.max_inclusiv = range_to_cut.max_inclusiv;
+            apres = null;
+        }
+
+        if ((!avant) && (!apres) && (!coupe)) {
             return null;
         }
 
-        let max_des_min = this.max(range_to_cut, cutter_min, to_cut_min);
-        let min_des_max = this.min(range_to_cut, cutter_max, to_cut_max);
-
-        if ((min_des_max == to_cut_max) && (max_des_min == to_cut_min)) {
-            return new RangesCutResult([this.cloneFrom(range_to_cut)], null);
+        if ((!avant) && (!apres)) {
+            return new RangesCutResult([coupe], null);
         }
 
-        let is_max_des_min_supp_to_cut_min = this.isSupp(range_to_cut, max_des_min, to_cut_min);
-        let is_min_des_max_inf_to_cut_max = this.isInf(range_to_cut, min_des_max, to_cut_max);
-
-        if (is_max_des_min_supp_to_cut_min) {
-            res.push(this.createNew(range_to_cut.min, range_cutter.min, range_to_cut.min_inclusiv, !range_cutter.min_inclusiv));
+        let remaining_items = [];
+        if (!!avant) {
+            remaining_items.push(avant);
+        }
+        if (!!apres) {
+            remaining_items.push(apres);
         }
 
-        if (is_min_des_max_inf_to_cut_max) {
-            res.push(this.createNew(
-                this.isSupp(range_to_cut, range_cutter.max, range_to_cut.min) || this.equals(range_to_cut, range_cutter.max, range_to_cut.min) ? range_cutter.max : range_to_cut.min,
-                range_to_cut.max,
-                this.isSupp(range_to_cut, range_cutter.max, range_to_cut.min) || this.equals(range_to_cut, range_cutter.max, range_to_cut.min) ? !range_cutter.max_inclusiv : range_to_cut.min_inclusiv,
-                range_to_cut.max_inclusiv));
+        if (!coupe) {
+            return new RangesCutResult(null, remaining_items);
         }
-        return new RangesCutResult([this.createNew(
-            is_max_des_min_supp_to_cut_min ? range_cutter.min : range_to_cut.min,
-            is_min_des_max_inf_to_cut_max ? range_cutter.max : range_to_cut.max,
-            is_max_des_min_supp_to_cut_min ? range_cutter.min_inclusiv : range_to_cut.min_inclusiv,
-            is_min_des_max_inf_to_cut_max ? range_cutter.max_inclusiv : range_to_cut.max_inclusiv)], (res && res.length) ? res : null);
+        return new RangesCutResult([coupe], remaining_items);
     }
+
+    // public cut_range<U extends IRange<any>>(range_cutter: U, range_to_cut: U): RangesCutResult<U> {
+
+    //     if (!range_to_cut) {
+    //         return null;
+    //     }
+
+    //     if ((!range_cutter) || (!this.range_intersects_range(range_cutter, range_to_cut))) {
+    //         return new RangesCutResult(null, [this.cloneFrom(range_to_cut)]);
+    //     }
+
+    //     let res: U[] = [];
+
+    //     let cutter_min = this.getSegmentedMin(range_cutter);
+    //     let cutter_max = this.getSegmentedMax(range_cutter);
+    //     let to_cut_min = this.getSegmentedMin(range_to_cut);
+    //     let to_cut_max = this.getSegmentedMax(range_to_cut);
+
+    //     if ((cutter_min == null) || (cutter_max == null)) {
+    //         return new RangesCutResult(null, [this.cloneFrom(range_to_cut)]);
+    //     }
+
+    //     if ((to_cut_min == null) || (to_cut_max == null)) {
+    //         return null;
+    //     }
+
+    //     let max_des_min = this.max(range_to_cut, cutter_min, to_cut_min);
+    //     let min_des_max = this.min(range_to_cut, cutter_max, to_cut_max);
+
+    //     if ((min_des_max == to_cut_max) && (max_des_min == to_cut_min)) {
+
+    //         if (this.isStartASameStartB(range_cutter, range_to_cut) && this.isEndASameEndB(range_cutter, range_to_cut)) {
+    //             return new RangesCutResult([this.cloneFrom(range_to_cut)], null);
+    //         }
+    //     }
+
+    //     let is_max_des_min_supp_to_cut_min = this.isSupp(range_to_cut, max_des_min, to_cut_min);
+    //     let is_min_des_max_inf_to_cut_max = this.isInf(range_to_cut, min_des_max, to_cut_max);
+
+    //     if (is_max_des_min_supp_to_cut_min) {
+    //         res.push(this.createNew(range_to_cut.min, range_cutter.min, range_to_cut.min_inclusiv, !range_cutter.min_inclusiv));
+    //     }
+
+    //     if (is_min_des_max_inf_to_cut_max) {
+    //         res.push(this.createNew(
+    //             this.isSupp(range_to_cut, range_cutter.max, range_to_cut.min) || this.equals(range_to_cut, range_cutter.max, range_to_cut.min) ? range_cutter.max : range_to_cut.min,
+    //             range_to_cut.max,
+    //             this.isSupp(range_to_cut, range_cutter.max, range_to_cut.min) || this.equals(range_to_cut, range_cutter.max, range_to_cut.min) ? !range_cutter.max_inclusiv : range_to_cut.min_inclusiv,
+    //             range_to_cut.max_inclusiv));
+    //     }
+    //     return new RangesCutResult([this.createNew(
+    //         is_max_des_min_supp_to_cut_min ? range_cutter.min : range_to_cut.min,
+    //         is_min_des_max_inf_to_cut_max ? range_cutter.max : range_to_cut.max,
+    //         is_max_des_min_supp_to_cut_min ? range_cutter.min_inclusiv : range_to_cut.min_inclusiv,
+    //         is_min_des_max_inf_to_cut_max ? range_cutter.max_inclusiv : range_to_cut.max_inclusiv)], (res && res.length) ? res : null);
+    // }
 
     public create_single_element_range(elt: T): IRange<T> {
         return this.createNew(elt, elt, true, true);

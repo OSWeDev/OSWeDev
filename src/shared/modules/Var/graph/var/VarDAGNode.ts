@@ -15,7 +15,6 @@ export default class VarDAGNode extends DAGNode {
 
     // New version : with matroids
     public loaded_datas_matroids: IVarMatroidDataVO[] = null;
-    public parents_loaded_datas_matroids: IVarMatroidDataVO[] = null;
     public computed_datas_matroids: IVarMatroidDataVO[] = null;
     public loaded_datas_matroids_sum_value: number = null;
 

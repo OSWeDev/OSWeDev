@@ -141,6 +141,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
     }
 
+    public addAlias(api_type_id_alias: string): ModuleTable<any> {
+        VOsTypesManager.getInstance().addAlias(api_type_id_alias, this.vo_type);
+        return this;
+    }
+
     public defineAsMatroid(): ModuleTable<any> {
         this.isMatroidTable = true;
         return this;

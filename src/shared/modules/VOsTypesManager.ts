@@ -16,6 +16,10 @@ export default class VOsTypesManager {
 
     private constructor() { }
 
+    public addAlias(api_type_id_alias: string, vo_type: string) {
+        this.moduleTables_by_voType[api_type_id_alias] = this.moduleTables_by_voType[vo_type];
+    }
+
     public registerModuleTable(module_table: ModuleTable<any>) {
         if (module_table && module_table.vo_type) {
 

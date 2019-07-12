@@ -14,6 +14,7 @@ import NumRange from '../../../src/shared/modules/DataRender/vos/NumRange';
 import TSRange from '../../../src/shared/modules/DataRender/vos/TSRange';
 import MatroidCutResult from '../../../src/shared/modules/Matroid/vos/MatroidCutResult';
 import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
+import IMatroid from '../../../src/shared/modules/Matroid/interfaces/IMatroid';
 
 describe('MatroidController', () => {
 
@@ -81,18 +82,103 @@ describe('MatroidController', () => {
     } as IVarMatroidDataVO;
 
 
+
+    let real_1_cutter = {
+        _type: 'matroid_type',
+        var_id: 1,
+        id: 1,
+        value_ts: moment(),
+        value_type: 0,
+        value: 0,
+        missing_datas_infos: null,
+        employee_id_ranges: [NumRange.createNew(1596, 1596, true, true)],
+        ts_ranges: [TSRange.createNew(moment(1527804000), moment(1559253600), true, true)]
+    };
+
+    let real_2_to_cut = {
+        _type: 'matroid_type',
+        var_id: 1,
+        employee_id_ranges: [NumRange.createNew(1596, 1596, true, true)],
+        ts_ranges: [TSRange.createNew(moment(1527804000), moment(1559253600), true, true)]
+    };
+
+
+
+    let real_1_cutter_ = {
+        _type: 'matroid_type',
+        var_id: 1,
+        employee_id_ranges: [NumRange.createNew(1596, 1596, true, true)],
+        ts_ranges: [TSRange.createNew(moment(1527804000), moment(1559253600), true, true)]
+    };
+
+    let matroid_1_2_moins1_zero_ = {
+        _type: 'matroid_type',
+        var_id: 1,
+        employee_id_ranges: [NumRange.createNew(1, 2, true, true)],
+        ts_ranges: [TSRange.createNew(moins_deux, zero_cinq, true, true)]
+    };
+
+    let matroid_1_zero_: IMatroid = {
+        _type: 'matroid_type',
+        id: undefined,
+        var_id: 1,
+        employee_id_ranges: [NumRange.createNew(1, 1, true, true)],
+        ts_ranges: [TSRange.createNew(moins_zero_cinq, zero_cinq, true, true)]
+    } as IMatroid;
+
+    let matroid_1_moins1_: IMatroid = {
+        _type: 'matroid_type',
+        id: undefined,
+        var_id: 1,
+        employee_id_ranges: [NumRange.createNew(1, 1, true, true)],
+        ts_ranges: [TSRange.createNew(moins_deux, moins_un, true, true)]
+    } as IMatroid;
+
+    let matroid_2_zero_: IMatroid = {
+        _type: 'matroid_type',
+        id: undefined,
+        var_id: 1,
+        employee_id_ranges: [NumRange.createNew(2, 2, true, true)],
+        ts_ranges: [TSRange.createNew(moins_zero_cinq, zero_cinq, true, true)]
+    } as IMatroid;
+
+    let matroid_2_moins1_: IMatroid = {
+        _type: 'matroid_type',
+        id: undefined,
+        var_id: 1,
+        employee_id_ranges: [NumRange.createNew(2, 2, true, true)],
+        ts_ranges: [TSRange.createNew(moins_deux, moins_un, true, true)]
+    } as IMatroid;
+
+
+
     let matroid_1_2_moins1_zero__moins__matroid_1_zero: MatroidCutResult<any> = new MatroidCutResult(
-        [matroid_1_zero],
-        []);
+        [matroid_1_zero_],
+        [{
+            _type: 'matroid_type',
+            var_id: 1,
+            employee_id_ranges: [NumRange.createNew(1, 2, false, true)],
+            ts_ranges: [TSRange.createNew(moins_deux, zero_cinq, true, true)]
+        } as any, {
+            _type: 'matroid_type',
+            var_id: 1,
+            employee_id_ranges: [NumRange.createNew(1, 1, true, true)],
+            ts_ranges: [TSRange.createNew(moins_deux, moins_zero_cinq, true, false)]
+        } as any]);
     let matroid_1_2_moins1_zero__moins__matroid_1_moins1: MatroidCutResult<any> = new MatroidCutResult(
-        [matroid_1_moins1],
+        [matroid_1_moins1_],
         []);
     let matroid_1_2_moins1_zero__moins__matroid_2_moins1: MatroidCutResult<any> = new MatroidCutResult(
-        [matroid_2_moins1],
+        [matroid_2_moins1_],
         []);
     let matroid_1_2_moins1_zero__moins__matroid_2_zero: MatroidCutResult<any> = new MatroidCutResult(
-        [matroid_2_zero],
+        [matroid_2_zero_],
         []);
+
+
+
+
+
 
     let employee_id_ranges = new ModuleTableField('employee_id_ranges', ModuleTableField.FIELD_TYPE_numrange_array, 'Employees').set_segmentation_type(NumSegment.TYPE_INT);
     let ts_ranges = new ModuleTableField('ts_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY);
@@ -100,11 +186,25 @@ describe('MatroidController', () => {
     VOsTypesManager.getInstance().registerModuleTable(new ModuleTable(
         null,
         'matroid_type',
+        () => ({
+            _type: 'matroid_type'
+        } as any),
         [
             employee_id_ranges,
             ts_ranges
         ],
         null));
+
+
+    it('test cloneFrom', () => {
+        expect(MatroidController.getInstance().cloneFrom(null)).to.deep.equal(null);
+
+        expect(MatroidController.getInstance().cloneFrom(matroid_1_zero)).to.deep.equal(matroid_1_zero_);
+        expect(MatroidController.getInstance().cloneFrom(matroid_2_moins1)).to.deep.equal(matroid_2_moins1_);
+        expect(MatroidController.getInstance().cloneFrom(matroid_2_zero)).to.deep.equal(matroid_2_zero_);
+        expect(MatroidController.getInstance().cloneFrom(matroid_1_2_moins1_zero)).to.deep.equal(matroid_1_2_moins1_zero_);
+        expect(MatroidController.getInstance().cloneFrom(matroid_1_moins1)).to.deep.equal(matroid_1_moins1_);
+    });
 
     it('test matroid_intersects_matroid', () => {
         expect(MatroidController.getInstance().matroid_intersects_matroid(null, null)).to.equal(false);
@@ -177,11 +277,13 @@ describe('MatroidController', () => {
         expect(MatroidController.getInstance().matroid_intersects_any_matroid(matroid_1_zero, [matroid_1_zero, matroid_2_moins1, matroid_1_moins1, matroid_2_zero])).to.equal(true);
     });
 
-    // it('test cut_matroids', () => {
-    //     expect(MatroidController.getInstance().cut_matroids(
-    //         null,
-    //         NumSegment.TYPE_INT)).to.deep.equal(null);
-    // });
+    it('test cut_matroids', () => {
+
+        expect(JSON.stringify(MatroidController.getInstance().cut_matroids(real_1_cutter, [real_2_to_cut as any]))).to.deep.equal(JSON.stringify([new MatroidCutResult(
+            [real_1_cutter_ as any],
+            [])]));
+
+    });
 
     it('test cut_matroid', () => {
         expect(MatroidController.getInstance().cut_matroid(null, null)).to.deep.equal(null);
@@ -191,10 +293,16 @@ describe('MatroidController', () => {
             [matroid_1_zero]
         ));
 
-        expect(MatroidController.getInstance().cut_matroid(matroid_1_zero, matroid_1_zero)).to.deep.equal(new MatroidCutResult(
-            [matroid_1_zero],
-            []
-        ));
+        expect(JSON.stringify(MatroidController.getInstance().cut_matroid(real_1_cutter, real_2_to_cut as any))).to.deep.equal(JSON.stringify(new MatroidCutResult(
+            [real_1_cutter_ as any],
+            [])));
+
+        expect(JSON.stringify(MatroidController.getInstance().cut_matroid(matroid_1_zero, matroid_1_zero))).to.deep.equal(JSON.stringify(new MatroidCutResult(
+            [matroid_1_zero_],
+            [])));
+        // '{"chopped_items":[{"_type":"matroid_type","var_id":1,"employee_id_ranges":[{"max":1,"max_inclusiv":true,"min":1,' +
+        // '"min_inclusiv":true,"api_type_id":"matroid_type","field_id":"employee_id_ranges"}],"ts_ranges":[{"max":"2019-07-12T11:00:00.000Z",' +
+        // '"max_inclusiv":true,"min":"2019-07-11T11:00:00.000Z","min_inclusiv":true,"api_type_id":"matroid_type","field_id":"ts_ranges"}]}],"remaining_items":[]}');
         expect(MatroidController.getInstance().cut_matroid(matroid_1_zero, matroid_1_moins1)).to.deep.equal(new MatroidCutResult(
             [],
             [matroid_1_moins1]
@@ -207,7 +315,7 @@ describe('MatroidController', () => {
             [],
             [matroid_2_zero]
         ));
-        expect(MatroidController.getInstance().cut_matroid(matroid_1_zero, matroid_1_2_moins1_zero)).to.deep.equal(matroid_1_2_moins1_zero__moins__matroid_1_zero);
+        expect(JSON.stringify(MatroidController.getInstance().cut_matroid(matroid_1_zero, matroid_1_2_moins1_zero))).to.deep.equal(JSON.stringify(matroid_1_2_moins1_zero__moins__matroid_1_zero));
 
 
         expect(MatroidController.getInstance().cut_matroid(matroid_1_moins1, matroid_1_zero)).to.deep.equal(new MatroidCutResult(

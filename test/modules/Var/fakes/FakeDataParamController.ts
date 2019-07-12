@@ -1,11 +1,11 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import FakeDataParamVO from './vos/FakeDataParamVO';
-import VarDataParamControllerBase from '../../../../src/shared/modules/Var/VarDataParamControllerBase';
-import VarsController from '../../../../src/shared/modules/Var/VarsController';
 import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
+import VarDataParamControllerBase from '../../../../src/shared/modules/Var/VarDataParamControllerBase';
+import FakeDataParamVO from './vos/FakeDataParamVO';
+import FakeDataVO from './vos/FakeDataVO';
 
-export default class FakeDataParamController extends VarDataParamControllerBase<FakeDataParamVO> {
+export default class FakeDataParamController extends VarDataParamControllerBase<FakeDataVO, FakeDataParamVO> {
 
     public static getInstance() {
         if (!FakeDataParamController.instance) {
@@ -21,6 +21,17 @@ export default class FakeDataParamController extends VarDataParamControllerBase<
 
     protected constructor() {
         super();
+    }
+
+    public cloneParam(param: FakeDataParamVO): FakeDataParamVO {
+        let res: FakeDataParamVO = new FakeDataParamVO();
+
+        res.date_index = param.date_index;
+        res.fake_y_id = param.fake_y_id;
+        res.fake_z_id = param.fake_z_id;
+        res.var_id = param.var_id;
+
+        return res;
     }
 
     public getImpactedParamsList(paramUpdated: FakeDataParamVO, paramsRegisteredByIndex: { [index: string]: FakeDataParamVO }): FakeDataParamVO[] {
