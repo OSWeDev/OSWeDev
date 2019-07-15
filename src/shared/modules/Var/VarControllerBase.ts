@@ -11,6 +11,7 @@ import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
 import moment = require('moment');
+import IMatroid from '../Matroid/interfaces/IMatroid';
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 
@@ -59,11 +60,9 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
             res_matroid.value = varDAGNode.loaded_datas_matroids_sum_value;
 
             for (let i in varDAGNode.computed_datas_matroids) {
-                let computed_datas_matroid = varDAGNode.computed_datas_matroids[i];
+                let data_matroid_to_compute = varDAGNode.computed_datas_matroids[i];
 
-                let fake_vardagnode = new VarDAGNode(VarsController.getInstance().getIndex(computed_datas_matroid), null, computed_datas_matroid);
-
-                let computed_datas_matroid_res: ISimpleNumberVarMatroidData = this.updateData(fake_vardagnode, varDAG) as any;
+                let computed_datas_matroid_res: ISimpleNumberVarMatroidData = await this.updateData(varDAGNode, varDAG, data_matroid_to_compute) as any;
 
                 if (res_matroid.value == null) {
                     res_matroid.value = computed_datas_matroid_res.value;
@@ -133,5 +132,17 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
         return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index), this.segment_type);
     }
 
-    protected async abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): Promise<TData>;
+    protected async abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG, matroid_to_compute?: IMatroid): Promise<TData>;
+
+    protected push_missing_datas_infos(var_data: TData, translatable_code: string) {
+        if (!var_data) {
+            return;
+        }
+
+        if (!var_data.missing_datas_infos) {
+            var_data.missing_datas_infos = [];
+        }
+
+        var_data.missing_datas_infos.push(translatable_code);
+    }
 }

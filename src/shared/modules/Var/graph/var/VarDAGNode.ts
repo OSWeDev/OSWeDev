@@ -72,10 +72,10 @@ export default class VarDAGNode extends DAGNode {
         }
         let d3node = { label: label };
         if (!this.hasIncoming) {
-            d3node['class'] = "type_leaf";
+            d3node['class'] = ((!!d3node['class']) ? d3node['class'] : "") + " type_root";
         }
         if (!this.hasOutgoing) {
-            d3node['class'] = "type_root";
+            d3node['class'] = ((!!d3node['class']) ? d3node['class'] : "") + " type_leaf";
         }
 
         for (let marker in this.markers) {
@@ -83,5 +83,33 @@ export default class VarDAGNode extends DAGNode {
         }
 
         return d3node;
+    }
+
+
+    /**
+     * @param node_name
+     */
+    public removeNodeFromIncoming(node_name: string) {
+
+        if ((!!this.incoming) && (!!this.incoming[node_name])) {
+            delete this.incoming[node_name];
+
+            let indexof = this.incomingNames.indexOf(node_name);
+            if (indexof >= 0) {
+                this.incomingNames.splice(indexof, 1);
+            }
+        }
+
+        // Si on a plus d'incoming,
+        //  on devient une root, mais si on a pas de marker registered, on sert à rien, donc on lance une suppression sur ce noeud automatiquement
+        if ((!this.incomingNames) || (this.incomingNames.length == 0)) {
+
+            if (!this.hasMarker(VarDAG.VARDAG_MARKER_REGISTERED)) {
+                this.dag.deletedNode(this.name, null);
+                return;
+            }
+
+            this.dag.roots[this.name] = this;
+        }
     }
 }

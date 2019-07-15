@@ -81,7 +81,7 @@ export default class DAG<TNode extends DAGNode> {
         for (let i in nodes_names) {
             let node_name: string = nodes_names[i];
 
-            if (this.nodes[node_name].hasMarker(marker)) {
+            if (this.nodes[node_name] && this.nodes[node_name].hasMarker(marker)) {
 
                 this.deletedNode(node_name, null);
             }
@@ -90,6 +90,8 @@ export default class DAG<TNode extends DAGNode> {
 
     /**
      * Supprime un noeud et ses refs dans les incoming et outgoing
+     * On nettoie aussi l'arbre au passage de tout ce qui n'est plus registered ou lié à des registered
+     *  (parmis les eléments qu'on est en train de toucher pas sur tout l'arbre)
      */
     public deletedNode(
         node_name: string,
@@ -100,20 +102,32 @@ export default class DAG<TNode extends DAGNode> {
         }
 
         // On supprime le noeud des incomings, et des outgoings
-        for (let i in this.nodes[node_name].incoming) {
-            let incoming: TNode = this.nodes[node_name].incoming[i] as TNode;
+        // On impacte le incoming et le ougoing on fait des copies des listes avant
+        let incoming_names = Array.from(this.nodes[node_name].incomingNames);
+        let outgoing_names = Array.from(this.nodes[node_name].outgoingNames);
+        for (let i in incoming_names) {
+            let incoming: TNode = this.nodes[incoming_names[i]] as TNode;
+
+            if (!incoming) {
+                continue;
+            }
 
             incoming.removeNodeFromOutgoing(node_name);
         }
 
         // On supprime le noeud des incomings, et des outgoings
-        for (let i in this.nodes[node_name].outgoing) {
-            let outgoing: TNode = this.nodes[node_name].outgoing[i] as TNode;
+        for (let i in outgoing_names) {
+            let outgoing_name = outgoing_names[i];
+            let outgoing: TNode = this.nodes[outgoing_name] as TNode;
+
+            if (!outgoing) {
+                continue;
+            }
 
             outgoing.removeNodeFromIncoming(node_name);
 
-            if (propagate_to_bottom_if_condition && propagate_to_bottom_if_condition(i)) {
-                this.deletedNode(i, propagate_to_bottom_if_condition);
+            if (propagate_to_bottom_if_condition && propagate_to_bottom_if_condition(outgoing_name)) {
+                this.deletedNode(outgoing_name, propagate_to_bottom_if_condition);
             }
         }
 

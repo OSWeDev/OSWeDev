@@ -255,5 +255,7 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
 
     private clearDag() {
         VarsController.getInstance().varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE);
+        this.vardags_registered_prct_by_var_id = null;
+        //  FIXME TODO ASAP should work ... VarsController.getInstance().varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_REGISTERED);
     }
 }

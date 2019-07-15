@@ -192,7 +192,18 @@ export default class VarDescComponent extends VueComponentBase {
 
         let node = VarsController.getInstance().varDAG.nodes[this.var_index];
 
-        return JSON.stringify(this.get_copy_with_explaining_fields(node.loaded_datas_matroids));
+        if ((!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
+            return null;
+        }
+
+        let res: string = "";
+        for (let i in node.loaded_datas_matroids) {
+            let matroid = node.loaded_datas_matroids[i];
+
+            res += ((res == "") ? "" : ";") + JSON.stringify(this.get_copy_with_explaining_fields(matroid));
+        }
+
+        return res;
     }
 
     get loaded_datas_matroids_sum_value_desc(): string {
@@ -202,7 +213,7 @@ export default class VarDescComponent extends VueComponentBase {
 
         let node = VarsController.getInstance().varDAG.nodes[this.var_index];
 
-        return node.loaded_datas_matroids_sum_value ? node.loaded_datas_matroids_sum_value.toString() : null;
+        return ((typeof node.loaded_datas_matroids_sum_value !== 'undefined') && (node.loaded_datas_matroids_sum_value != null)) ? node.loaded_datas_matroids_sum_value.toString() : null;
     }
 
     get computed_datas_matroids_desc(): string {
@@ -212,7 +223,14 @@ export default class VarDescComponent extends VueComponentBase {
 
         let node = VarsController.getInstance().varDAG.nodes[this.var_index];
 
-        return JSON.stringify(this.get_copy_with_explaining_fields(node.computed_datas_matroids));
+        let res: string = "";
+        for (let i in node.computed_datas_matroids) {
+            let matroid = node.computed_datas_matroids[i];
+
+            res += ((res == "") ? "" : ";") + JSON.stringify(this.get_copy_with_explaining_fields(matroid));
+        }
+
+        return res;
     }
 
 

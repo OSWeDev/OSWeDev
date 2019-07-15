@@ -463,6 +463,10 @@ export default class VarsController {
 
     public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false, var_callbacks: VarUpdateCallback[] = null) {
 
+        if (!param) {
+            return false;
+        }
+
         // On check la validité de la date si daté
         this.checkDateIndex(param);
         // Idem pour les compteurs matroids
@@ -515,6 +519,10 @@ export default class VarsController {
 
 
     public unregisterCallbacks<TDataParam extends IVarDataParamVOBase>(param: TDataParam, var_callbacks_uids: number[]) {
+
+        if (!param) {
+            return false;
+        }
 
         let param_index = this.getIndex(param);
         let remaining_callbacks: VarUpdateCallback[] = [];
@@ -666,6 +674,10 @@ export default class VarsController {
     }
 
     public getIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): string {
+        if (!param) {
+            return null;
+        }
+
         this.checkDateIndex(param);
         // TODO FIXME ASAP : A supprimer si on voit qu'il n'y a pas de problème
         //  le but est de limiter ce contrôle qui peut couter cher
@@ -740,6 +752,10 @@ export default class VarsController {
      * La fonction vérifie qu'on est bien sur un matroid avec un reset
      */
     public check_tsrange_on_resetable_var(param: IVarDataParamVOBase) {
+        if (!param) {
+            return;
+        }
+
         let controller = VarsController.getInstance().getVarControllerById(param.var_id);
 
         if (!controller) {
@@ -1113,7 +1129,7 @@ export default class VarsController {
         }
     }
 
-    private markNoeudsAGererImportMatroids(marker_todo: string) {
+    private markNoeudsAGererImportMatroids(marker_todo: string, marker_ok: string) {
         for (let marker_name in this.varDAG.marked_nodes_names) {
             if (!marker_name.startsWith(VarDAG.VARDAG_MARKER_VAR_ID)) {
                 continue;
@@ -1129,6 +1145,11 @@ export default class VarsController {
 
             for (let j in this.varDAG.marked_nodes_names[marker_name]) {
                 let node_index: string = this.varDAG.marked_nodes_names[marker_name][j];
+                let node = this.varDAG.nodes[node_index];
+
+                if (node.hasMarker(marker_ok)) {
+                    continue;
+                }
 
                 this.varDAG.nodes[node_index].addMarker(marker_todo, this.varDAG);
             }
@@ -1267,10 +1288,15 @@ export default class VarsController {
         }
     }
 
-    private async updateDepssAfterImport(nodes: { [node_name: string]: VarDAGNode }) {
+    private async updateDepssAfterImport(nodes: { [node_name: string]: VarDAGNode }, marker_todo: string) {
 
         for (let i in nodes) {
             let node: VarDAGNode = nodes[i];
+
+            // Si on a rien de chargé, on a rien à changer
+            if ((!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
+                continue;
+            }
 
             // ça veut dire aussi qu'on se demande ici quels params on doit vraiment charger en deps de ce params pour pouvoir calculer
             //  et on doit modifier l'arbre en conséquence
@@ -1286,6 +1312,10 @@ export default class VarsController {
                 let deps: IVarDataParamVOBase[] = await node_controller.getSegmentedParamDependencies(fake_vardagnode, this.varDAG);
 
                 VarDAGDefineNodeDeps.add_node_deps(node, this.varDAG, deps, {});
+
+                for (let k in node.outgoing) {
+                    node.outgoing[k].addMarker(marker_todo, this.varDAG);
+                }
             }
         }
     }
@@ -1300,12 +1330,11 @@ export default class VarsController {
     private async loadImportedOrPrecompiledDatas() {
 
         let marker_todo = "loadImportedOrPrecompiledDatas_todo";
-        // let marker_ok = "loadImportedOrPrecompiledDatas_ok";
+        let marker_ok = "loadImportedOrPrecompiledDatas_ok";
 
         // On initialise d'abord la liste des noeuds à gérer
-        this.markNoeudsAGererImportMatroids(marker_todo);
+        this.markNoeudsAGererImportMatroids(marker_todo, marker_ok);
         let noeuds_a_gerer: { [node_name: string]: VarDAGNode } = this.getNoeudsAGererImportMatroids(marker_todo);
-        // let noeuds_geres: { [node_name: string]: VarDAGNode } = {};
 
         while (ObjectHandler.getInstance().hasAtLeastOneAttribute(noeuds_a_gerer)) {
 
@@ -1329,6 +1358,7 @@ export default class VarsController {
             //  3- Retirer ces noeuds des noeuds à gérer
             for (let i in roots_locaux) {
                 roots_locaux[i].removeMarker(marker_todo, this.varDAG);
+                roots_locaux[i].addMarker(marker_ok, this.varDAG);
             }
 
             //  4- Vérifier les noeuds enfants. Pour chaque noeud :
@@ -1337,7 +1367,7 @@ export default class VarsController {
             //          ATTENTION la copie concerne le noeud et tout l'arbre qui en découle => donc peut impacter plusieurs matroids aussi en dessous
             //      b- Sinon on applique le matroid à calculer parent
             await this.updateMatroidsAfterImport(roots_locaux);
-            await this.updateDepssAfterImport(roots_locaux);
+            await this.updateDepssAfterImport(roots_locaux, marker_todo);
 
             //  5- On recommence avec la liste des noeuds à gérer mise à jour
             noeuds_a_gerer = this.getNoeudsAGererImportMatroids(marker_todo);

@@ -57,20 +57,19 @@ export default class VarDAGDefineNodeDeps {
             return;
         }
 
-        for (let i in node.outgoingNames) {
+        // On modifie les outgoings dans la boucle, il faut en faire une copie avant
+        let outgoing_names = Array.from(node.outgoingNames);
+        for (let i in outgoing_names) {
 
-            let outgoing_name = node.outgoingNames[i];
+            let outgoing_name = outgoing_names[i];
             let outgoing = dag.nodes[outgoing_name];
 
-            // Si on est le seul à référencer ce noeud, on le supprime, sinon on supprime juste la liaison
-            if ((outgoing.incomingNames.length == 1) && (!outgoing.hasMarker(VarDAG.VARDAG_MARKER_REGISTERED))) {
-                dag.deletedNode(outgoing_name, (propagate_name: string) => {
-                    return ((!dag.nodes[propagate_name].incomingNames) || (!dag.nodes[propagate_name].incomingNames.length)) && (!dag.nodes[propagate_name].hasMarker(VarDAG.VARDAG_MARKER_REGISTERED));
-                });
-            } else {
-                outgoing.removeNodeFromIncoming(node.name);
-                node.removeNodeFromOutgoing(outgoing_name);
+            if (!outgoing) {
+                continue;
             }
+
+            outgoing.removeNodeFromIncoming(node.name);
+            node.removeNodeFromOutgoing(outgoing_name);
         }
     }
 

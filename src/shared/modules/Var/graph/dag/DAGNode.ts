@@ -92,7 +92,6 @@ export default class DAGNode {
     }
 
     /**
-     * ATTENTION ça ne lance aucune suppression de noeud, il faut utiliser la suppression de noeud si on vaut pas avoir des noeuds flottants sans refs
      * @param node_name
      */
     public removeNodeFromOutgoing(node_name: string) {
@@ -113,7 +112,7 @@ export default class DAGNode {
     }
 
     /**
-     * ATTENTION ça ne lance aucune suppression de noeud, il faut utiliser la suppression de noeud si on vaut pas avoir des noeuds flottants sans refs
+     * Pas de suppression automatique àa ce niveau
      * @param node_name
      */
     public removeNodeFromIncoming(node_name: string) {
@@ -129,6 +128,7 @@ export default class DAGNode {
 
         // Si on a plus d'incoming, on devient une root
         if ((!this.incomingNames) || (this.incomingNames.length == 0)) {
+
             this.dag.roots[this.name] = this;
         }
     }

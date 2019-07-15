@@ -9,6 +9,22 @@ export default class NumRange implements IRange<number> {
      */
     public static createNew(min: number = null, max: number = null, min_inclusiv: boolean = true, max_inclusiv: boolean = true): NumRange {
 
+        if (typeof min === 'undefined') {
+            return null;
+        }
+
+        if (typeof max === 'undefined') {
+            return null;
+        }
+
+        if (min == null) {
+            return null;
+        }
+
+        if (max == null) {
+            return null;
+        }
+
         if (min == max) {
             if ((!min_inclusiv) || (!max_inclusiv)) {
                 return null;

@@ -330,8 +330,8 @@ export default class MatroidController {
                 // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
                 for (let k in this_base_remaining_matroid[matroid_to_cut_base.field_id]) {
                     let range = this_base_remaining_matroid[matroid_to_cut_base.field_id][k];
-                    range.field_id = undefined;
-                    range.api_type_id = undefined;
+                    delete range.field_id;
+                    delete range.api_type_id;
                 }
 
                 res.remaining_items.push(this_base_remaining_matroid);
@@ -342,8 +342,8 @@ export default class MatroidController {
             // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
             for (let k in chopped_matroid[matroid_to_cut_base.field_id]) {
                 let range = chopped_matroid[matroid_to_cut_base.field_id][k];
-                range.field_id = undefined;
-                range.api_type_id = undefined;
+                delete range.field_id;
+                delete range.api_type_id;
             }
 
         }
