@@ -85,9 +85,17 @@ export default class PeriodHandler {
         return !((!split) || (!split[2]) || (split[2] == ''));
     }
 
-    public isDateInPeriod(date: Moment, period: string, base: unitOfTime.Base = 'days'): boolean {
-        let lower: Moment = this.lowerMoment(period, base);
-        let upper: Moment = this.upperMoment(period, base);
+    public isDateInPeriod(date: Moment, period: string): boolean {
+        if (!period) {
+            return false;
+        }
+
+        if (!date) {
+            return false;
+        }
+
+        let lower: Moment = this.lowerMoment(period, 'days');
+        let upper: Moment = this.upperMoment(period, 'days');
 
         return (!!date) && (!!lower) && (!!upper) && (date.isSameOrAfter(lower) && date.isSameOrBefore(upper));
     }
