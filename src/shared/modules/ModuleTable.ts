@@ -360,6 +360,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[new_id] = TSRangeHandler.getInstance().translate_to_api(e[field.field_id]);
                     break;
 
+                case ModuleTableField.FIELD_TYPE_tstz:
+                    res[new_id] = e[field.field_id] ? e[field.field_id].unix() : null;
+                    break;
+
                 default:
                     res[new_id] = e[field.field_id];
             }
@@ -410,6 +414,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = TSRangeHandler.getInstance().translate_from_api(e[old_id]);
                     break;
 
+                case ModuleTableField.FIELD_TYPE_tstz:
+                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000) : null;
+                    break;
+
                 default:
                     res[field.field_id] = e[old_id];
             }
@@ -452,6 +460,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     res[field.field_id] = TSRangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tstz:
+                    res[field.field_id] = res[field.field_id] ? res[field.field_id].unix() : null;
                     break;
 
                 default:
@@ -505,6 +517,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
             }
             if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
                 e[field.field_id] = TSRangeHandler.getInstance().translate_from_bdd(e[field.field_id]);
+            }
+
+            if (field.field_type == ModuleTableField.FIELD_TYPE_tstz) {
+                e[field.field_id] = e[field.field_id] ? moment(parseInt(e[field.field_id]) * 1000) : null;
             }
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_day) ||

@@ -81,6 +81,9 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
             res.missing_datas_infos = [];
         }
 
+        // Dans tous les cas au moment de stocker l'info (dans l'arbre ou en base) on ne doit plus ignorer les datas
+        res.ignore_unvalidated_datas = false;
+
         for (let i in varDAGNode.outgoingNames) {
             let outgoing_name = varDAGNode.outgoingNames[i];
             let outgoing_data = VarsController.getInstance().getVarData(varDAGNode.outgoing[outgoing_name].param, true);

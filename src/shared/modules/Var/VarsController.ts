@@ -562,6 +562,34 @@ export default class VarsController {
         });
     }
 
+    public async registerDataParamsAndReturnVarDatas<TDataParam extends IVarDataParamVOBase, TData extends TDataParam & IVarDataVOBase>(params: TDataParam[], reload_on_register: boolean = false): Promise<TData[]> {
+
+        let res: TData[] = [];
+
+        try {
+            let promises = [];
+
+            for (let i in params) {
+                promises.push(this.registerDataParamAndReturnVarData(params[i]));
+            }
+            await Promise.all(promises);
+
+            for (let i in params) {
+                let param = params[i];
+
+                let data: TData = this.getVarData(param, true);
+
+                if (data && data.value_ts) {
+                    res.push(data);
+                }
+            }
+        } catch (error) {
+            return null;
+        }
+
+        return (res && res.length) ? res : null;
+    }
+
     public onVarDAGNodeRemoval(node: VarDAGNode) {
 
         if ((!node) || (!node.param)) {

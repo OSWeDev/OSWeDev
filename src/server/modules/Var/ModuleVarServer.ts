@@ -11,6 +11,17 @@ import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import APIDAORangesParamsVO from '../../../shared/modules/DAO/vos/APIDAORangesParamsVO';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
+import IVarMatroidDataVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataVO';
+import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
+import FieldRange from '../../../shared/modules/DataRender/vos/FieldRange';
+import FieldRangeHandler from '../../../shared/tools/FieldRangeHandler';
+import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import ModuleTableField from '../../../shared/modules/ModuleTableField';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -42,6 +53,11 @@ export default class ModuleVarServer extends ModuleServerBase {
         //     preCreateTrigger.registerHandler(api_type, this.onCreateVarData.bind(this));
         //     preUpdateTrigger.registerHandler(api_type, this.onUpdateVarData.bind(this));
         // }
+    }
+
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
     }
 
     /**
@@ -96,5 +112,74 @@ export default class ModuleVarServer extends ModuleServerBase {
         access_dependency.src_pol_id = bo_imported_access.id;
         access_dependency.depends_on_pol_id = bo_access.id;
         access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+    }
+
+    public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {
+        if ((!matroid_param) || (!matroid_param._type)) {
+            return;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_param._type];
+
+        if ((!moduletable) || (!moduletable.isMatroidTable)) {
+            return;
+        }
+
+        let vos: IVarMatroidDataVO[] = await MatroidController.getInstance().getVosFilteredByMatroid<IVarMatroidDataVO>(moduletable.vo_type, matroid_param);
+
+        // L'invalidation se fait en supprimant la date de création de la data
+        for (let i in vos) {
+            let vo = vos[i];
+
+            delete vo.value_ts;
+        }
+
+        await ModuleDAO.getInstance().insertOrUpdateVOs(vos);
+    }
+
+    public async register_matroid_for_precalc(matroid_param: IVarMatroidDataParamVO): Promise<void> {
+        if ((!matroid_param) || (!matroid_param._type)) {
+            return;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[matroid_param._type];
+
+        if ((!moduletable) || (!moduletable.isMatroidTable)) {
+            return;
+        }
+
+        let fields: Array<ModuleTableField<any>> = await MatroidController.getInstance().getMatroidFields(moduletable.vo_type);
+        let ranges: Array<FieldRange<any>> = [];
+
+        for (let i in fields) {
+
+            // ATTENTION, si un matroid à plusieurs ranges sur le même field, on refuse la demande pour le moment.
+            //  a priori c'est pas le cas standard
+            let field = fields[i];
+
+            let matroid_field_range: Array<FieldRange<any>> = FieldRangeHandler.getInstance().getFieldRangesFromRanges(moduletable.vo_type, field.field_id, matroid_param[field.field_id]);
+
+            if ((!matroid_field_range) || (matroid_field_range.length != 1)) {
+                console.error('Impossible de questionner un matroid qui possède plusieurs ranges sur un de ses fields');
+                return null;
+            }
+
+            ranges.push(matroid_field_range[0]);
+        }
+
+        // On doit pas créer de data si il existe un matroid en bdd exactement comme celui demandé
+        let vos: IVarMatroidDataVO[] = await ModuleDAO.getInstance().getVosByExactFieldRange<IVarMatroidDataVO>(moduletable.vo_type, ranges);
+
+        if ((vos) && (vos.length > 0)) {
+            return null;
+        }
+
+        let empty_shell: IVarMatroidDataVO = MatroidController.getInstance().cloneFrom(matroid_param) as IVarMatroidDataVO;
+        empty_shell._type = moduletable.vo_type;
+        empty_shell.missing_datas_infos = [];
+        empty_shell.value_ts = null;
+        empty_shell.value_type = VarsController.VALUE_TYPE_COMPUTED;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(empty_shell);
     }
 }

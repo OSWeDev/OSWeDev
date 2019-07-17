@@ -1,7 +1,7 @@
 import TriggerHook from '../../../../shared/modules/Trigger/TriggerHook';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 
-export default class DAOTriggerHook extends TriggerHook<string, IDistantVOBase, boolean>{
+export default class DAOTriggerHook extends TriggerHook<string, IDistantVOBase, boolean> {
 
     // Les triggers read sont très spécifiques à mettre en place, il faut pouvoir passer des vos[], ... bref pour le moment pas besoin on verra
     // public static DAO_PRE_READ_TRIGGER: string = "DAO_PRE_READ_TRIGGER";
@@ -21,4 +21,4 @@ export default class DAOTriggerHook extends TriggerHook<string, IDistantVOBase, 
     public getConditionUID_from_Conditions(API_TYPE_ID: string): string {
         return API_TYPE_ID;
     }
-} 
+}

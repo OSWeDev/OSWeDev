@@ -10,16 +10,16 @@ export default class Datatable<T extends IDistantVOBase> {
      */
     public conditional_show: (dataVO: IDistantVOBase) => boolean;
 
+    protected sortedFields: Array<DatatableField<any, any>> = [];
+
+    constructor(public API_TYPE_ID: string) { }
+
     /**
      * Fonction qui permet de rajouter ou filtrer des datas dans le set loadé de la base
      */
     public data_set_hook: (datas_by_ids: { [id: number]: IDistantVOBase }) => Promise<IDistantVOBase[]> = async (datas_by_ids: { [id: number]: IDistantVOBase }) => {
         return ObjectHandler.getInstance().arrayFromMap(datas_by_ids);
     }
-
-    protected sortedFields: Array<DatatableField<any, any>> = [];
-
-    constructor(public API_TYPE_ID: string) { }
 
     public getFieldByDatatableFieldUID(datatable_field_uid: string): DatatableField<any, any> {
 

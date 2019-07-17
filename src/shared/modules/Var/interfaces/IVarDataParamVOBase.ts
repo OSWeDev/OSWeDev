@@ -8,4 +8,5 @@ import IDistantVOBase from '../../IDistantVOBase';
 export default interface IVarDataParamVOBase extends IDistantVOBase {
 
     var_id: number;
+    ignore_unvalidated_datas: boolean;
 }

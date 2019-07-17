@@ -34,6 +34,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_enum:
                     return LocaleManager.getInstance().i18n.t(moduleTableField.enum_values[field_value]);
 
+                case ModuleTableField.FIELD_TYPE_tstz:
+                    return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
 

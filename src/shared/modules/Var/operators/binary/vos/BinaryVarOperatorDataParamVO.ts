@@ -9,6 +9,8 @@ export default class BinaryVarOperatorDataParamVO implements IVarDataParamVOBase
 
     public var_id: number;
 
+    public ignore_unvalidated_datas: boolean;
+
     public left_var_param_index: string;
     public right_var_param_index: string;
 }

@@ -172,6 +172,16 @@ export default class ModulePushDataServer extends ModuleServerBase {
         await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
 
+    public async broadcastSimple(msg_type: number, code_text: string) {
+        let promises = [];
+        for (let userId_ in this.registeredSockets) {
+            let userId = parseInt(userId_.toString());
+
+            promises.push(this.notifySimple(userId, msg_type, code_text));
+        }
+        await Promise.all(promises);
+    }
+
     public async notifySimpleSUCCESS(user_id: number, code_text: string) {
         await this.notifySimple(user_id, NotificationVO.SIMPLE_SUCCESS, code_text);
     }

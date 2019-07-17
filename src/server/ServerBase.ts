@@ -33,6 +33,8 @@ import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 import ModuleFileServer from './modules/File/ModuleFileServer';
+import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
+import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServer';
 
 export default abstract class ServerBase {
 
@@ -333,12 +335,18 @@ export default abstract class ServerBase {
                 httpContext.set('SESSION', req.session);
                 httpContext.set('USER', req.session.user);
                 httpContext.set('USER_DATA', await ServerBase.getInstance().getUserData(uid));
+
+                if (ModuleMaintenanceServer.getInstance().has_planned_maintenance) {
+                    ModuleMaintenanceServer.getInstance().inform_user_on_request(req.session.user.id);
+                }
+
             } else {
                 httpContext.set('UID', null);
                 httpContext.set('SESSION', req ? req.session : null);
                 httpContext.set('USER', null);
                 httpContext.set('USER_DATA', null);
             }
+
             next();
         });
 

@@ -8,6 +8,12 @@ import VarsController from './VarsController';
 import moment = require('moment');
 import VOsTypesManager from '../VOsTypesManager';
 import ISimpleNumberVarData from './interfaces/ISimpleNumberVarData';
+import ModuleAPI from '../API/ModuleAPI';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import APIDAOIdsRangesParamsVO from '../DAO/vos/APIDAOIdsRangesParamsVO';
+import APIDAORangesParamsVO from '../DAO/vos/APIDAORangesParamsVO';
+import FieldRange from '../DataRender/vos/FieldRange';
+import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
 
 export default class ModuleVar extends Module {
 
@@ -20,6 +26,8 @@ export default class ModuleVar extends Module {
     public static POLICY_BO_IMPORTED_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_IMPORTED_ACCESS';
     public static POLICY_DESC_MODE_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.DESC_MODE_ACCESS';
 
+    public static APINAME_INVALIDATE_MATROID: string = 'invalidate_matroid';
+    public static APINAME_register_matroid_for_precalc: string = 'register_matroid_for_precalc';
 
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
@@ -41,6 +49,35 @@ export default class ModuleVar extends Module {
         this.datatables = [];
 
         this.initializeSimpleVarConf();
+    }
+
+    public registerApis() {
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
+            ModuleVar.APINAME_INVALIDATE_MATROID,
+            (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
+            ModuleVar.APINAME_register_matroid_for_precalc,
+            (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
+        ));
+    }
+
+    public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {
+        if ((!matroid_param) || (!matroid_param._type)) {
+            return null;
+        }
+
+        return ModuleAPI.getInstance().handleAPI<APIDAORangesParamsVO, void>(ModuleVar.APINAME_INVALIDATE_MATROID, matroid_param);
+    }
+
+    public async register_matroid_for_precalc(matroid_param: IVarMatroidDataParamVO): Promise<void> {
+        if ((!matroid_param) || (!matroid_param._type)) {
+            return null;
+        }
+
+        return ModuleAPI.getInstance().handleAPI<APIDAORangesParamsVO, void>(ModuleVar.APINAME_register_matroid_for_precalc, matroid_param);
     }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {
@@ -70,6 +107,7 @@ export default class ModuleVar extends Module {
             }),
             new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_unix_timestamp, 'Date mise à jour', true, true, moment()),
             new ModuleTableField('missing_datas_infos', ModuleTableField.FIELD_TYPE_string_array, 'Datas manquantes', false),
+            new ModuleTableField('ignore_unvalidated_datas', ModuleTableField.FIELD_TYPE_boolean, 'Ignore unvalidated datas while computing', true, true, false),
         ]);
 
         let datatable = new ModuleTable(this, api_type_id, constructor, var_fields, null);
