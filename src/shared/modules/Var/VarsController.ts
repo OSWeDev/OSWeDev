@@ -461,7 +461,11 @@ export default class VarsController {
         this.checked_var_indexes[this._getIndex(date_indexed)] = true;
     }
 
-    public registerDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false, var_callbacks: VarUpdateCallback[] = null) {
+    public registerDataParam<TDataParam extends IVarDataParamVOBase>(
+        param: TDataParam,
+        reload_on_register: boolean = false,
+        var_callbacks: VarUpdateCallback[] = null,
+        ignore_unvalidated_datas: boolean = false) {
 
         if (!param) {
             return false;
@@ -480,7 +484,7 @@ export default class VarsController {
             return false;
         }
 
-        this.varDAG.registerParams([param]);
+        this.varDAG.registerParams([param], ignore_unvalidated_datas);
 
         if (!!var_callbacks) {
 
@@ -538,7 +542,8 @@ export default class VarsController {
         this.registered_var_callbacks[param_index] = remaining_callbacks;
     }
 
-    public async registerDataParamAndReturnVarData<TDataParam extends IVarDataParamVOBase>(param: TDataParam, reload_on_register: boolean = false): Promise<IVarDataVOBase> {
+    public async registerDataParamAndReturnVarData<TDataParam extends IVarDataParamVOBase>(
+        param: TDataParam, reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false): Promise<IVarDataVOBase> {
 
         // On check la validité de la date si daté
         this.checkDateIndex(param);
@@ -555,7 +560,7 @@ export default class VarsController {
                     accept(varData);
                 });
 
-                self.registerDataParam(param, reload_on_register, [var_callback_once]);
+                self.registerDataParam(param, reload_on_register, [var_callback_once], ignore_unvalidated_datas);
             } catch (error) {
                 console.error(error);
                 reject(error);
@@ -563,7 +568,8 @@ export default class VarsController {
         });
     }
 
-    public async registerDataParamsAndReturnVarDatas<TDataParam extends IVarDataParamVOBase, TData extends TDataParam & IVarDataVOBase>(params: TDataParam[], reload_on_register: boolean = false): Promise<TData[]> {
+    public async registerDataParamsAndReturnVarDatas<TDataParam extends IVarDataParamVOBase, TData extends TDataParam & IVarDataVOBase>(
+        params: TDataParam[], reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false): Promise<TData[]> {
 
         let res: TData[] = [];
 
@@ -571,7 +577,7 @@ export default class VarsController {
             let promises = [];
 
             for (let i in params) {
-                promises.push(this.registerDataParamAndReturnVarData(params[i]));
+                promises.push(this.registerDataParamAndReturnVarData(params[i], reload_on_register, ignore_unvalidated_datas));
             }
             await Promise.all(promises);
 

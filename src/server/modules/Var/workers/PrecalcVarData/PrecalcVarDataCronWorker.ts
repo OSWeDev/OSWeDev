@@ -37,14 +37,10 @@ export default class PrecalcVarDataCronWorker implements ICronWorker {
         for (let api_type in VarsController.getInstance().registered_var_data_api_types) {
             let vos: IVarDataVOBase[] = await ModuleDAOServer.getInstance().selectAll<IVarDataVOBase>(api_type, ' WHERE value_ts is null;');
 
-            for (let i in vos) {
-                vos[i].ignore_unvalidated_datas = true;
-            }
-
             datas_to_calc = datas_to_calc.concat(vos);
         }
 
-        let calculated_datas: IVarDataVOBase[] = await VarsController.getInstance().registerDataParamsAndReturnVarDatas(datas_to_calc, true);
+        let calculated_datas: IVarDataVOBase[] = await VarsController.getInstance().registerDataParamsAndReturnVarDatas(datas_to_calc, true, true);
 
         await ModuleDAO.getInstance().insertOrUpdateVOs(calculated_datas);
     }

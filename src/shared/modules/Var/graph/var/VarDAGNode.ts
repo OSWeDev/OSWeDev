@@ -18,6 +18,7 @@ export default class VarDAGNode extends DAGNode {
     public computed_datas_matroids: IVarMatroidDataVO[] = null;
     public loaded_datas_matroids_sum_value: number = null;
 
+    public ignore_unvalidated_datas: boolean = false;
 
     // Used for the deps heatmap
     public dependencies_count: number = null;

@@ -107,7 +107,6 @@ export default class ModuleVar extends Module {
             }),
             new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_unix_timestamp, 'Date mise à jour', true, true, moment()),
             new ModuleTableField('missing_datas_infos', ModuleTableField.FIELD_TYPE_string_array, 'Datas manquantes', false),
-            new ModuleTableField('ignore_unvalidated_datas', ModuleTableField.FIELD_TYPE_boolean, 'Ignore unvalidated datas while computing', true, true, false),
         ]);
 
         let datatable = new ModuleTable(this, api_type_id, constructor, var_fields, null);

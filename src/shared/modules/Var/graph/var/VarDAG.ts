@@ -43,7 +43,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
     private dependencies_heatmap_version: number = 0;
 
 
-    public registerParams(params: IVarDataParamVOBase[]) {
+    public registerParams(params: IVarDataParamVOBase[], ignore_unvalidated_datas: boolean = false) {
         for (let i in params) {
             let param: IVarDataParamVOBase = params[i];
             let index: string = VarsController.getInstance().getIndex(param);
@@ -62,6 +62,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
                 node = this.nodes[index];
             }
 
+            node.ignore_unvalidated_datas = ignore_unvalidated_datas;
             node.addMarker(VarDAG.VARDAG_MARKER_REGISTERED, this);
         }
     }
