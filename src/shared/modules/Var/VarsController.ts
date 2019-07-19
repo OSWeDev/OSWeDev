@@ -534,6 +534,7 @@ export default class VarsController {
             try {
 
                 let var_callback_once = VarUpdateCallback.newCallbackOnce(this.getIndex(param), (varData: IVarDataVOBase) => {
+                    self.unregisterDataParam(param);
                     accept(varData);
                 });
 
