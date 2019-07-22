@@ -399,7 +399,7 @@ export default class ImportTypeXLSXHandler {
                 dateValue = parseFloat(dateValue);
             }
             if (typeof dateValue === 'number') {
-                var dt = XLSX.SSF.parse_date_code(dateValue, { date1904: wbProps.date1904 === '1' });
+                var dt = XLSX.SSF.parse_date_code(dateValue, { date1904: (wbProps && wbProps.date1904 === '1') });
                 // new Date(2015, 9, 18);  // 18th October(!) 2015 in @JavaScript
                 var monthToJs = dt.m - 1;
                 return moment(new Date(dt.y, monthToJs, dt.d));
