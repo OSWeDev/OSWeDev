@@ -6,6 +6,7 @@ import DAGNode from '../dag/DAGNode';
 import VarDAG from './VarDAG';
 import IVarMatroidDataVO from '../../interfaces/IVarMatroidDataVO';
 import IVarMatroidDataParamVO from '../../interfaces/IVarMatroidDataParamVO';
+import VOsTypesManager from '../../../VOsTypesManager';
 
 export default class VarDAGNode extends DAGNode {
 
@@ -46,7 +47,14 @@ export default class VarDAGNode extends DAGNode {
 
     public constructor(name: string, dag: VarDAG, public param: IVarDataParamVOBase) {
         super(name, dag);
+
+        // TODO FIXME VARS : ICI on force les matroids à ne pas dep de vars normales, et on saute l'étape de deps des vars classiques
+        // let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[param._type];
+        // if (moduletable.isMatroidTable) {
+        //     this.addMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, dag);
+        // } else {
         this.addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, dag);
+        // }
     }
 
     public setImportedData(imported: IVarDataVOBase, dag: VarDAG) {

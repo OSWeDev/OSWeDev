@@ -32,7 +32,7 @@ export default class ModulesManager {
             new ModuleTableField('actif', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Actif' }), true),
         ];
         let moduleTable: ModuleTable<ModuleVO> = new ModuleTable<ModuleVO>(
-            null, ModuleVO.API_TYPE_ID, () => new ModuleVO(), null, label_field, new DefaultTranslation({ fr: 'Modules' }));
+            null, ModuleVO.API_TYPE_ID, () => new ModuleVO(), fields, label_field, new DefaultTranslation({ fr: 'Modules' }));
         moduleTable.set_bdd_ref('admin', 'modules');
     }
 

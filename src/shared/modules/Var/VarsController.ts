@@ -1328,9 +1328,11 @@ export default class VarsController {
         for (let i in nodes) {
             let node: VarDAGNode = nodes[i];
 
-            // Si on a rien de chargé, on a rien à changer
-            if ((!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
-                continue;
+            // Si on a rien de chargé, on a rien à changer, sauf si on a pas de deps loaded
+            if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED)) {
+                if ((!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
+                    continue;
+                }
             }
 
             // ça veut dire aussi qu'on se demande ici quels params on doit vraiment charger en deps de ce params pour pouvoir calculer
@@ -1349,8 +1351,20 @@ export default class VarsController {
                 VarDAGDefineNodeDeps.add_node_deps(node, this.varDAG, deps, {});
 
                 for (let k in node.outgoing) {
-                    node.outgoing[k].addMarker(marker_todo, this.varDAG);
+                    let outgoing = node.outgoing[k];
+
+                    outgoing.addMarker(marker_todo, this.varDAG);
+
+                    // On doit aussi rajouter tous les marqueurs qu'un noeud doit avoir à cette étape
+                    outgoing.addMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED, this.varDAG);
+                    // outgoing.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.varDAG, true);
+                    outgoing.addMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG);
                 }
+            }
+
+            if (!node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED)) {
+                node.removeMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, this.varDAG, true);
+                node.addMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, this.varDAG);
             }
         }
     }

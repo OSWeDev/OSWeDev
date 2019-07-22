@@ -1,3 +1,4 @@
+import * as clonedeep from 'lodash/clonedeep';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
@@ -74,6 +75,12 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
             res = res_matroid as any;
         } else {
             res = await this.updateData(varDAGNode, varDAG);
+        }
+
+        if (!res) {
+            console.error('updateData should return res anyway');
+            res = clonedeep(varDAGNode.param);
+            res.value_type = VarsController.VALUE_TYPE_COMPUTED;
         }
 
         // On aggrège au passage les missing_datas_infos des childs vers ce noeud :
