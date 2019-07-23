@@ -13,6 +13,9 @@ import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ImportLogger from '../logger/ImportLogger';
 import { isString } from 'util';
+import ModuleTable from '../../../../shared/modules/ModuleTable';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 
 export default class ImportTypeXLSXHandler {
     public static getInstance() {
@@ -321,6 +324,8 @@ export default class ImportTypeXLSXHandler {
         let last_row_has_data: boolean = true;
         let datas: IImportedData[] = [];
 
+        let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[dataImportFormat.api_type_id];
+
         while (last_row_has_data) {
             last_row_has_data = false;
 
@@ -342,6 +347,12 @@ export default class ImportTypeXLSXHandler {
                     continue;
                 }
 
+                let moduletable_field = moduletable.getFieldFromId(dataImportColumn.vo_field_name);
+
+                if (!moduletable_field) {
+                    continue;
+                }
+
                 let column_index: number = dataImportColumn.column_index;
                 let cell_address: CellAddress = { c: column_index, r: row_index };
 
@@ -360,7 +371,15 @@ export default class ImportTypeXLSXHandler {
                                 // }
                                 // epoch.add(column_data_string.v, 'days');
                                 // rowData[dataImportColumn.vo_field_name] = DateHandler.getInstance().formatDayForIndex(epoch);
-                                rowData[dataImportColumn.vo_field_name] = DateHandler.getInstance().formatDayForIndex(this.parseExcelDate(column_data_string.v, (workbook.Workbook || {}).WBProps));
+
+                                switch (moduletable_field.field_type) {
+                                    case ModuleTableField.FIELD_TYPE_tstz:
+                                        rowData[dataImportColumn.vo_field_name] = this.parseExcelDate(column_data_string.v, (workbook.Workbook || {}).WBProps);
+                                        break;
+                                    default:
+                                        rowData[dataImportColumn.vo_field_name] = DateHandler.getInstance().formatDayForIndex(this.parseExcelDate(column_data_string.v, (workbook.Workbook || {}).WBProps));
+                                        break;
+                                }
                                 break;
                             case DataImportColumnVO.TYPE_NUMBER:
                                 if (column_data_string.h && column_data_string.h != "") {

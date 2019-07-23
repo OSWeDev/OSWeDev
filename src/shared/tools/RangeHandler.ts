@@ -239,6 +239,23 @@ export default abstract class RangeHandler<T> {
         return false;
     }
 
+    public any_range_intersects_any_range(ranges_a: Array<IRange<T>>, ranges_b: Array<IRange<T>>): boolean {
+
+        if ((!ranges_b) || (!ranges_a) || (!ranges_b.length) || (!ranges_a.length)) {
+            return false;
+        }
+
+        for (let i in ranges_a) {
+            let range_a = ranges_a[i];
+
+            if (this.range_intersects_any_range(range_a, ranges_b)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @param range_a
      * @param ranges
@@ -662,6 +679,27 @@ export default abstract class RangeHandler<T> {
         return new RangesCutResult(chopped, remaining);
     }
 
+    /**
+     * Returns new ranges, iso previous but shifted of the given segment amounts
+     */
+    public get_ranges_shifted_by_x_segments(ranges: Array<IRange<T>>, shift_value: number, shift_segment_type: number): Array<IRange<T>> {
+
+        if ((!ranges) || (!ranges[0])) {
+            return null;
+        }
+
+        let res: Array<IRange<T>> = [];
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            res.push(this.get_range_shifted_by_x_segments(range, shift_value, shift_segment_type));
+        }
+        return res;
+    }
+
+    public abstract get_range_shifted_by_x_segments(range: IRange<T>, shift_value: number, shift_segment_type: number): IRange<T>;
+
     protected parseRangeSegment(whole, quoted) {
         if (quoted) {
             return quoted.replace(/\\(.)/g, "$1");
@@ -671,5 +709,7 @@ export default abstract class RangeHandler<T> {
         }
         return whole;
     }
+
+
 }
 

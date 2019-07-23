@@ -15,6 +15,22 @@ export default class NumRangeHandler extends RangeHandler<number> {
 
     private static instance: NumRangeHandler = null;
 
+    /**
+     * TODO TU ASAP FIXME VARS
+     */
+    public get_range_shifted_by_x_segments(range: NumRange, shift_value: number, shift_segment_type: number): NumRange {
+
+        if (!range) {
+            return null;
+        }
+
+        switch (shift_segment_type) {
+            case NumSegment.TYPE_INT:
+            default:
+                return this.createNew(range.min + shift_value, range.max + shift_value, range.min_inclusiv, range.max_inclusiv);
+        }
+    }
+
     public createNew<U extends IRange<number>>(start: number = null, end: number = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): U {
         return NumRange.createNew(start, end, start_inclusiv, end_inclusiv) as U;
     }

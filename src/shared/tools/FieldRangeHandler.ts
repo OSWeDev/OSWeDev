@@ -1,13 +1,10 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
+import IRange from '../modules/DataRender/interfaces/IRange';
 import FieldRange from '../modules/DataRender/vos/FieldRange';
-import RangeHandler from './RangeHandler';
 import ModuleTableField from '../modules/ModuleTableField';
 import VOsTypesManager from '../modules/VOsTypesManager';
 import NumRangeHandler from './NumRangeHandler';
+import RangeHandler from './RangeHandler';
 import TSRangeHandler from './TSRangeHandler';
-import DateHandler from './DateHandler';
-import IRange from '../modules/DataRender/interfaces/IRange';
 
 export default class FieldRangeHandler extends RangeHandler<any> {
     public static getInstance(): FieldRangeHandler {
@@ -18,6 +15,21 @@ export default class FieldRangeHandler extends RangeHandler<any> {
     }
 
     private static instance: FieldRangeHandler = null;
+
+    /**
+     * TODO TU ASAP FIXME VARS
+     */
+    public get_range_shifted_by_x_segments<T>(range: FieldRange<T>, shift_value: number, shift_segment_type: number): FieldRange<T> {
+
+        if (!range) {
+            return null;
+        }
+
+        let relevantHandler = this.getRelevantHandler(range);
+        let res = relevantHandler ? relevantHandler.get_range_shifted_by_x_segments(range as any, shift_value, shift_segment_type) : null;
+
+        return res ? this.createNew(range.api_type_id, range.field_id, res.min, res.max, res.min_inclusiv, res.max_inclusiv) : null;
+    }
 
     /**
      * @param range_a

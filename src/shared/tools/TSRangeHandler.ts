@@ -20,6 +20,30 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
 
     /**
      * TODO TU ASAP FIXME VARS
+     */
+    public get_range_shifted_by_x_segments(range: TSRange, shift_value: number, shift_segment_type: number): TSRange {
+
+        if (!range) {
+            return null;
+        }
+
+        switch (shift_segment_type) {
+            case TimeSegment.TYPE_MONTH:
+                return this.createNew(moment(range.min).add(shift_value, 'month'), moment(range.max).add(shift_value, 'month'), range.min_inclusiv, range.max_inclusiv);
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+            case TimeSegment.TYPE_YEAR:
+                return this.createNew(moment(range.min).add(shift_value, 'year'), moment(range.max).add(shift_value, 'year'), range.min_inclusiv, range.max_inclusiv);
+            case TimeSegment.TYPE_WEEK:
+                return this.createNew(moment(range.min).add(shift_value, 'week'), moment(range.max).add(shift_value, 'week'), range.min_inclusiv, range.max_inclusiv);
+            case TimeSegment.TYPE_DAY:
+            default:
+                return this.createNew(moment(range.min).add(shift_value, 'day'), moment(range.max).add(shift_value, 'day'), range.min_inclusiv, range.max_inclusiv);
+        }
+    }
+
+
+    /**
+     * TODO TU ASAP FIXME VARS
      * On passe par une version text pour simplifier
      */
     public translate_to_api(ranges: TSRange[]): string[] {
