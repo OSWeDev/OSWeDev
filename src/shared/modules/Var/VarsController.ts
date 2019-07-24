@@ -785,6 +785,9 @@ export default class VarsController {
      * FIXME TODO ASAP VARS TU
      * Fonction qui permet de vérifier que le range de date n'inclut pas un reset de compteur, auquel cas on enlève la partie qui dépasse
      * La fonction vérifie qu'on est bien sur un matroid avec un reset
+     * On ajoute les notions de tests sur les segmentations (jour / mois / semaine / année) pour agrandir les ranges en conséquence si nécessaire
+     *  ça permet d'avoir des ranges uniformes pour parler toujours des mêmes choses
+     *  pour l'instant on fait pour année 2019 : (2019, 2019, true, true) et pas (2019, 2020, true, false) a voir si c'est pertinent. au moins c'est cohérent avec les autres fonctions atuellement
      */
     public check_tsrange_on_resetable_var(param: IVarDataParamVOBase) {
         if (!param) {
@@ -803,10 +806,6 @@ export default class VarsController {
             return;
         }
 
-        if (!conf.has_yearly_reset) {
-            return;
-        }
-
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[conf.var_data_vo_type];
         if (!moduletable.isMatroidTable) {
             return;
@@ -817,15 +816,31 @@ export default class VarsController {
             return;
         }
 
+        if (!!conf.has_yearly_reset) {
+            for (let i in tsranged_param.ts_ranges) {
+                let ts_range = tsranged_param.ts_ranges[i];
+
+                let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
+                let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
+                    end_range, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
+                if (TSRangeHandler.getInstance().elt_intersects_range(closest_earlier_reset_date, ts_range)) {
+                    ts_range.min = closest_earlier_reset_date;
+                    ts_range.min_inclusiv = true;
+                }
+            }
+        }
+
         for (let i in tsranged_param.ts_ranges) {
             let ts_range = tsranged_param.ts_ranges[i];
 
             let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
-            let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
-                end_range, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
-            if (TSRangeHandler.getInstance().elt_intersects_range(closest_earlier_reset_date, ts_range)) {
-                ts_range.min = closest_earlier_reset_date;
+            let start_range = TSRangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type);
+            if ((!ts_range.min_inclusiv) || (!ts_range.max_inclusiv) ||
+                (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {
+                ts_range.min = start_range;
+                ts_range.max = end_range;
                 ts_range.min_inclusiv = true;
+                ts_range.max_inclusiv = true;
             }
         }
     }
