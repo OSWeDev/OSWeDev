@@ -334,7 +334,10 @@ export default abstract class ServerBase {
                 httpContext.set('USER', req.session.user);
                 httpContext.set('USER_DATA', await ServerBase.getInstance().getUserData(uid));
 
-                console.log('REQUETE: ' + req.url + ' | USER: ' + req.session.user.name + ' | BODY: ' + JSON.stringify(req.body));
+                // On log en PROD
+                if (!ServerBase.getInstance().envParam.ISDEV) {
+                    console.log('REQUETE: ' + req.url + ' | USER: ' + req.session.user.name + ' | BODY: ' + JSON.stringify(req.body));
+                }
             } else {
                 httpContext.set('UID', null);
                 httpContext.set('SESSION', req ? req.session : null);
