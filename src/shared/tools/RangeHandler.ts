@@ -422,6 +422,19 @@ export default abstract class RangeHandler<T> {
     public abstract getSegmentedMax(range: IRange<T>, segment_type?: number): T;
 
     public abstract getCardinal(range: IRange<T>, segment_type?: number): number;
+    public getCardinalFromArray(ranges: Array<IRange<T>>, segment_type?: number): number {
+
+        if (!ranges) {
+            return null;
+        }
+
+        let res: number = 0;
+
+        for (let i in ranges) {
+            res += this.getCardinal(ranges[i], segment_type);
+        }
+        return res;
+    }
 
     public abstract getSegmentedMin_from_ranges(ranges: Array<IRange<T>>, segment_type?: number): T;
     public abstract getSegmentedMax_from_ranges(ranges: Array<IRange<T>>, segment_type?: number): T;
