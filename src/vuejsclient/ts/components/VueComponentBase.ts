@@ -577,11 +577,34 @@ export default class VueComponentBase extends Vue
     }
 
     protected simple_var_add(values: ISimpleNumberVarData[]): number {
-        if ((!values) || (!values[0]) || (!values[1])) {
+        if ((!values) || (!values.length)) {
             return null;
         }
 
-        return values[0].value + values[1].value;
+        let res: number = null;
+        for (let i in values) {
+            let value = values[i];
+
+            if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
+                continue;
+            }
+
+            if (res == null) {
+                res = value.value;
+            } else {
+                res += value.value;
+            }
+        }
+
+        return res;
+    }
+
+    protected simple_var_supp_egal_zero(var_data: ISimpleNumberVarData): boolean {
+        if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
+            return false;
+        }
+
+        return var_data.value >= 0;
     }
 
     protected simple_var_sub(values: ISimpleNumberVarData[]): number {
@@ -593,11 +616,26 @@ export default class VueComponentBase extends Vue
     }
 
     protected simple_var_times(values: ISimpleNumberVarData[]): number {
-        if ((!values) || (!values[0]) || (!values[1])) {
+        if ((!values) || (!values.length)) {
             return null;
         }
 
-        return values[0].value * values[1].value;
+        let res: number = null;
+        for (let i in values) {
+            let value = values[i];
+
+            if ((!value) || (value.value == null) || (typeof value.value == 'undefined') || (isNaN(1 + value.value))) {
+                continue;
+            }
+
+            if (res == null) {
+                res = value.value;
+            } else {
+                res *= value.value;
+            }
+        }
+
+        return res;
     }
 
     protected simple_var_evolution(datas: ISimpleNumberVarData[]) {
