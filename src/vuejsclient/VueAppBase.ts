@@ -56,6 +56,7 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
+import VarPieChartComponent from './ts/components/Var/components/piechart/VarPieChartComponent';
 
 export default abstract class VueAppBase {
 
@@ -308,6 +309,7 @@ export default abstract class VueAppBase {
         Vue.component('var-desc', VarDescComponent);
         Vue.component('var-if', VarDataIfComponent);
         Vue.component('var-bar-chart', VarDataBarChartComponent);
+        Vue.component('var-pie-chart', VarPieChartComponent);
         Vue.component('Intersect', Intersect);
 
 
