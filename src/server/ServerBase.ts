@@ -340,6 +340,10 @@ export default abstract class ServerBase {
                     ModuleMaintenanceServer.getInstance().inform_user_on_request(req.session.user.id);
                 }
 
+                // On log en PROD
+                if (!ServerBase.getInstance().envParam.ISDEV) {
+                    console.log('REQUETE: ' + req.url + ' | USER: ' + req.session.user.name + ' | BODY: ' + JSON.stringify(req.body));
+                }
             } else {
                 httpContext.set('UID', null);
                 httpContext.set('SESSION', req ? req.session : null);
