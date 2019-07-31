@@ -76,6 +76,13 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG4_code_text
         ));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Maintenance',
+            de: 'Wartung',
+            es: 'Mantenimiento'
+        }, 'menu.menuelements.module_maintenance.___LABEL___'));
+
+
         let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this.handleTriggerPreC_MaintenanceVO.bind(this));
 

@@ -21,6 +21,8 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -35,6 +37,24 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleDataRender.getInstance().name);
+    }
+
+    public async configure() {
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Jour'
+        }, 'timesegment.day.type_name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mois'
+        }, 'timesegment.month.type_name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Année glissante'
+        }, 'timesegment.rolling_year_month_start.type_name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Semaine'
+        }, 'timesegment.week.type_name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Année'
+        }, 'timesegment.year.type_name'));
     }
 
     public registerExpressApis(app: Express): void {

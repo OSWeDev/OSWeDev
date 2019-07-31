@@ -30,6 +30,7 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -213,6 +214,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         preDeleteTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onDeleteRolePolicyVO.bind(this));
         preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onDeleteRoleVO.bind(this));
         preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onDeleteUserRoleVO.bind(this));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Droit'
+        }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____group_id'));
     }
 
     public registerServerApiHandlers() {

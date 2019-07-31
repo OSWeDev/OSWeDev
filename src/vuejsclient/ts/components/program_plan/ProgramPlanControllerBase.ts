@@ -24,6 +24,8 @@ export default abstract class ProgramPlanControllerBase {
     public is_valid_target: (target: IPlanTarget) => boolean;
     public is_valid_facilitator: (facilitator: IPlanFacilitator) => boolean;
 
+    public reset_rdvs_debouncer: number = 500;
+
     public customOverviewProgramPlanComponent = null;
 
     protected constructor(

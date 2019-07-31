@@ -20,6 +20,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModulesManagerServer from '../ModulesManagerServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -42,6 +43,24 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO.bind(this));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Traductions'
+        }, 'menu.menuelements.__i__import_translation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Traductions'
+        }, 'menu.menuelements._i_import_translation.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Traduction'
+        }, 'fields.labels.ref.module_translation_translation.___LABEL____lang_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Traduction'
+        }, 'fields.labels.ref.module_translation_translation.___LABEL____text_id'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Utilisateur'
+        }, 'fields.labels.ref.user.___LABEL____lang_id'));
     }
 
     /**

@@ -13,6 +13,7 @@ import UserRoleVO from '../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import './AccessPolicyComponent.scss';
 import Vue from 'vue';
+import PolicyGroupSegmentation from './PolicyGroupSegmentation';
 
 @Component({
     template: require('./AccessPolicyComponent.pug'),
@@ -39,6 +40,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
     private access_matrix: { [policy_id: number]: { [role_id: number]: boolean } } = {};
     private inherited_access_matrix: { [policy_id: number]: { [role_id: number]: boolean } } = {};
     private display_policy_groups: { [policy_group_id: number]: boolean } = {};
+    private display_policy_group_segmentations: { [policy_group_segmentation_id: number]: boolean } = {};
 
     public async mounted() {
         this.startLoading();
@@ -97,6 +99,75 @@ export default class AccessPolicyComponent extends VueComponentBase {
         }
 
         this.stopLoading();
+    }
+
+
+    private switch_display_policy_group_segmentation(policy_group_segmentation: PolicyGroupSegmentation) {
+        Vue.set(this.display_policy_group_segmentations as any, policy_group_segmentation.id, !this.display_policy_group_segmentations[policy_group_segmentation.id]);
+    }
+
+    get policy_groups_segmentations(): { [group_id: number]: PolicyGroupSegmentation[] } {
+        let res: { [group_id: number]: PolicyGroupSegmentation[] } = {};
+
+        let policies_by_segmentation_index: { [group_id: number]: { [segmentation_index: string]: AccessPolicyVO[] } } = {};
+
+        for (let group_id_ in this.policies_by_group_id) {
+            let group_id: number = parseInt(group_id_.toString());
+
+            if (!policies_by_segmentation_index[group_id]) {
+                policies_by_segmentation_index[group_id] = {};
+            }
+
+            for (let i in this.policies_by_group_id[group_id_]) {
+                let policy: AccessPolicyVO = this.policies_by_group_id[group_id_][i];
+
+                if (!res[group_id]) {
+                    res[group_id] = [];
+                }
+
+                let segmentation_index: string = policy.translatable_name
+                    .replace(/access\.policy_groups\.names\.DAO_MODULES_CONF\.[^.]+\./, '')
+                    .replace(/access\.policy_groups\.names\.DAO_DATAS\.[^.]+\./, '')
+                    .replace(/\.___LABEL___/, '');
+                if (!policies_by_segmentation_index[group_id][segmentation_index]) {
+                    policies_by_segmentation_index[group_id][segmentation_index] = [];
+                }
+
+                policies_by_segmentation_index[group_id][segmentation_index].push(policy);
+            }
+        }
+
+        for (let group_id_ in policies_by_segmentation_index) {
+            let group_id = parseInt(group_id_.toString());
+            let policies_by_segmentation = policies_by_segmentation_index[group_id];
+
+            if (!res[group_id]) {
+                res[group_id] = [];
+            }
+
+            let default_segment: PolicyGroupSegmentation = new PolicyGroupSegmentation(
+                group_id, 'N/A', []);
+
+            for (let segmentation_index in policies_by_segmentation) {
+                let policies = policies_by_segmentation[segmentation_index];
+
+                if ((!policies) || (!policies.length)) {
+                    continue;
+                }
+
+                if (policies.length == 1) {
+                    default_segment.policies.push(policies[0]);
+                    continue;
+                }
+
+                let segment: PolicyGroupSegmentation = new PolicyGroupSegmentation(
+                    group_id, segmentation_index, policies);
+                res[group_id].push(segment);
+            }
+            res[group_id].push(default_segment);
+        }
+
+        return res;
     }
 
     get ordered_policy_groups(): AccessPolicyGroupVO[] {

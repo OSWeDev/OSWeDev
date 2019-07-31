@@ -1139,7 +1139,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return this.get_tasks_by_ids[this.selected_rdv.task_id].is_facilitator_specific;
     }
 
-    @Watch('fcSegment', { deep: true })
+    @Watch('fcSegment', { deep: true, immediate: true })
     private async onChangeFCSegment() {
 
         let promises: Array<Promise<any>> = [];
@@ -1835,7 +1835,19 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
     }
 
+    @Watch('valid_targets', { deep: true, immediate: true })
     @Watch('getRdvsByIds', { deep: true, immediate: true })
+    private debounce_reset_rdvs() {
+        this.debounced_reset_rdvs();
+    }
+
+    get debounced_reset_rdvs() {
+        let self = this;
+        return debounce(async () => {
+            self.reset_rdvs();
+        }, ProgramPlanControllerBase.getInstance().reset_rdvs_debouncer);
+    }
+
     private reset_rdvs() {
         this.valid_rdvs = [];
         for (let i in this.getRdvsByIds) {

@@ -37,6 +37,7 @@ export default class ModuleDataRender extends Module {
     private constructor() {
 
         super("data_render", "DataRender");
+        this.forceActivationOnInstallation();
     }
 
     public registerApis() {

@@ -48,6 +48,19 @@ export default class ModuleVarServer extends ModuleServerBase {
         //     preCreateTrigger.registerHandler(api_type, this.onCreateVarData.bind(this));
         //     preUpdateTrigger.registerHandler(api_type, this.onUpdateVarData.bind(this));
         // }
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Datasources'
+        }, 'var.desc_mode.var_datasources.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Datas manquantes'
+        }, 'var.desc_mode.var_missing_datas.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Vider l\'arbre'
+        }, 'var_desc.clearDag.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Actualiser la HeatMap des deps'
+        }, 'var_desc.refreshDependenciesHeatmap.___LABEL___'));
     }
 
     public registerServerApiHandlers() {

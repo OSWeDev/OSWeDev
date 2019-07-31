@@ -18,6 +18,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModulesManagerServer from '../ModulesManagerServer';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
@@ -36,6 +37,12 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleCron.getInstance().name);
+    }
+
+    public async configure() {
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '{worker_uid}'
+        }, 'cron.run_cron_individuel.___LABEL___'));
     }
 
     /**

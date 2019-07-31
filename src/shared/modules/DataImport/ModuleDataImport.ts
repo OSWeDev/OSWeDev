@@ -82,6 +82,7 @@ export default class ModuleDataImport extends Module {
     private constructor() {
 
         super("data_import", ModuleDataImport.MODULE_NAME);
+        this.forceActivationOnInstallation();
     }
 
     public registerApis() {

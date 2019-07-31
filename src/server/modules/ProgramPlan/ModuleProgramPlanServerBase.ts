@@ -28,6 +28,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import UpdateRDVStatesCronWorker from './workers/UpdateRDVStates/UpdateRDVStatesCronWorker';
 import UpdateRDVStatesCronWorkersHandler from './UpdateRDVStatesCronWorkersHandler';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default abstract class ModuleProgramPlanServerBase extends ModuleServerBase {
 
@@ -61,6 +62,48 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
         preDeleteTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, this.handleTriggerPreDeleteCr.bind(this));
         preDeleteTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, this.handleTriggerPreDeletePrep.bind(this));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Animateur'
+        }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____manager_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Animateur'
+        }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____region_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Animateur'
+        }, 'fields.labels.ref.module_sfam_program_plan_animateur.___LABEL____user_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Boutique'
+        }, 'fields.labels.ref.module_sfam_program_plan_boutique.___LABEL____enseigne_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Contact'
+        }, 'fields.labels.ref.module_sfam_program_plan_contact.___LABEL____contact_type_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Contact'
+        }, 'fields.labels.ref.module_sfam_program_plan_contact.___LABEL____user_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Manager'
+        }, 'fields.labels.ref.module_sfam_program_plan_manager.___LABEL____user_id'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Création interdite'
+        }, 'programplan.fc.create.denied.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Erreur de création'
+        }, 'programplan.fc.create.error.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression interdite'
+        }, 'programplan.fc.delete.denied.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Erreur de suppression'
+        }, 'programplan.delete.error.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Modification interdite'
+        }, 'programplan.fc.update.denied.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Erreur de modification'
+        }, 'programplan.fc.update.error.___LABEL___'));
     }
 
     public registerServerApiHandlers() {

@@ -35,6 +35,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModulesManagerServer from '../ModulesManagerServer';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleDataImportServer extends ModuleServerBase {
 
@@ -126,6 +127,118 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         postUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricProgression.bind(this));
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID.bind(this));
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricProgression.bind(this));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Format d\'import'
+        }, 'fields.labels.ref.module_data_import_dif.___LABEL____file_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Format d\'import'
+        }, 'fields.labels.ref.module_data_import_dif.___LABEL____post_exec_module_id'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Format'
+        }, 'fields.labels.ref.module_data_import_difc.___LABEL____data_import_format_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Index'
+        }, 'import.column_position.index.name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Titre'
+        }, 'import.column_position.label.name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'CSV'
+        }, 'import.file_types.CSV.name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'XLS'
+        }, 'import.file_types.XLS.name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'XLSX'
+        }, 'import.file_types.XLSX.name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Compléter'
+        }, 'import.historic.types.EDIT'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Remplacer'
+        }, 'import.historic.types.REPLACE'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'DEBUG'
+        }, 'import.logs.lvl.DEBUG'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'ERREUR'
+        }, 'import.logs.lvl.ERROR'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'CRITIQUE'
+        }, 'import.logs.lvl.FATAL'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'INFO'
+        }, 'import.logs.lvl.INFO'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'OK'
+        }, 'import.logs.lvl.SUCCESS'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'ATTENTION'
+        }, 'import.logs.lvl.WARN'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Par index'
+        }, 'import.sheet_position.index.name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Par nom'
+        }, 'import.sheet_position.label.name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'SCAN'
+        }, 'import.sheet_position.scan.name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Echec lors de l\'importation'
+        }, 'import.state.failed_importation'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Echec lors du post-traitement'
+        }, 'import.state.failed_posttreatment'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Formatté'
+        }, 'import.state.formatted'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Formattage...'
+        }, 'import.state.formatting'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Importation interdite'
+        }, 'import.state.importation_not_allowed'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Importé'
+        }, 'import.state.imported'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Importation...'
+        }, 'import.state.importing'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'En attente de ré-importation'
+        }, 'import.state.needs_reimport'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Post-traité'
+        }, 'import.state.posttreated'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Post-traitement...'
+        }, 'import.state.posttreating'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Prêt à importer'
+        }, 'import.state.ready_to_import'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Uploadé'
+        }, 'import.state.uploaded'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Imports'
+        }, 'menu.menuelements.DataImportAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Colonnes'
+        }, 'menu.menuelements.DataImportColumnVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Formats'
+        }, 'menu.menuelements.DataImportFormatVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Historiques'
+        }, 'menu.menuelements.DataImportHistoricVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Logs'
+        }, 'menu.menuelements.DataImportLogVO.___LABEL___'));
     }
 
 

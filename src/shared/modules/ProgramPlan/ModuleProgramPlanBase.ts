@@ -606,7 +606,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             additional_fields.unshift(group_id);
         }
         if (!!this.enseigne_type_id) {
-            enseigne_id = new ModuleTableField('enseigne_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Enseigne', false);
+            enseigne_id = new ModuleTableField('enseigne_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Enseigne', true);
             additional_fields.unshift(enseigne_id);
         }
 

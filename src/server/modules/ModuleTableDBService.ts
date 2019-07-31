@@ -39,6 +39,11 @@ export default class ModuleTableDBService {
     private async create_datatable(moduleTable: ModuleTable<any>) {
         // console.log(moduleTable.full_name + " - install - ETAPE 1");
 
+        // On va commencer par créer le schema si il existe pas
+        if (!!moduleTable.database) {
+            await this.db.none('CREATE SCHEMA IF NOT EXISTS ' + moduleTable.database + ';');
+        }
+
         // On doit entre autre ajouter la table en base qui gère les fields
         if (moduleTable.fields && (moduleTable.fields.length > 0)) {
 
