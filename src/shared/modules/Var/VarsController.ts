@@ -789,31 +789,31 @@ export default class VarsController {
      *  ça permet d'avoir des ranges uniformes pour parler toujours des mêmes choses
      *  pour l'instant on fait pour année 2019 : (2019, 2019, true, true) et pas (2019, 2020, true, false) a voir si c'est pertinent. au moins c'est cohérent avec les autres fonctions atuellement
      */
-    public check_tsrange_on_resetable_var(param: IVarDataParamVOBase) {
+    public check_tsrange_on_resetable_var(param: IVarDataParamVOBase): boolean {
         if (!param) {
-            return;
+            return false;
         }
 
         let controller = VarsController.getInstance().getVarControllerById(param.var_id);
 
         if (!controller) {
-            return;
+            return false;
         }
 
         let conf = controller.varConf;
 
         if (!conf) {
-            return;
+            return false;
         }
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[conf.var_data_vo_type];
         if (!moduletable.isMatroidTable) {
-            return;
+            return true;
         }
 
         let tsranged_param = param as ITSRangesVarDataParam;
         if (!tsranged_param.ts_ranges) {
-            return;
+            return true;
         }
 
         if (!!conf.has_yearly_reset) {
@@ -830,11 +830,17 @@ export default class VarsController {
             }
         }
 
+        let ts_ranges_: TSRange[] = [];
         for (let i in tsranged_param.ts_ranges) {
             let ts_range = tsranged_param.ts_ranges[i];
 
             let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
             let start_range = TSRangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type);
+
+            if ((start_range == null) || (end_range == null)) {
+                continue;
+            }
+
             if ((!ts_range.min_inclusiv) || (!ts_range.max_inclusiv) ||
                 (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {
                 ts_range.min = start_range;
@@ -842,7 +848,15 @@ export default class VarsController {
                 ts_range.min_inclusiv = true;
                 ts_range.max_inclusiv = true;
             }
+
+            ts_ranges_.push(ts_range);
         }
+
+        if (!ts_ranges_.length) {
+            return false;
+        }
+        tsranged_param.ts_ranges = ts_ranges_;
+        return true;
     }
 
 
