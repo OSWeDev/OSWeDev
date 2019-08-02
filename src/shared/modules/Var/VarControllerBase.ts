@@ -106,6 +106,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
         varDAG: VarDAG): Promise<IVarDataParamVOBase[]> {
 
         let res: IVarDataParamVOBase[] = await this.getParamDependencies(varDAGNode, varDAG);
+        let res_: IVarDataParamVOBase[] = [];
 
         for (let i in res) {
 
@@ -114,16 +115,21 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
             // TODO FIXME ASAP VARS : On intègre ici et dans le Varscontroller la gestion du reset des compteurs,
             //  puisque [0, 50] sur un reset à 30 ça équivaut strictement à [30,50]
 
-            VarsController.getInstance().check_tsrange_on_resetable_var(param);
+            let check_res: boolean = VarsController.getInstance().check_tsrange_on_resetable_var(param);
+            if (!check_res) {
+                continue;
+            }
 
             // DIRTY : on fait un peu au pif ici un filtre sur le date_index...
 
             if (!!(param as IDateIndexedVarDataParam).date_index) {
                 (param as IDateIndexedVarDataParam).date_index = VarsController.getInstance().getVarControllerById(param.var_id).getTimeSegment(param).dateIndex;
             }
+
+            res_.push(param);
         }
 
-        return res;
+        return res_;
     }
 
     /**
