@@ -531,7 +531,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             if (field.field_type == ModuleTableField.FIELD_TYPE_unix_timestamp) {
                 try {
-                    e[field.field_id] = (e[field.field_id] && moment(parseInt(e[field.field_id])).isValid()) ? moment(parseInt(e[field.field_id])) : e[field.field_id];
+                    e[field.field_id] = (e[field.field_id] && moment(parseInt(e[field.field_id]) * 1000).isValid()) ? moment(parseInt(e[field.field_id]) * 1000) : e[field.field_id];
                 } catch (error) {
                     e[field.field_id] = e[field.field_id];
                 }

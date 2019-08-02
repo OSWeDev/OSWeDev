@@ -1,12 +1,9 @@
 import * as clonedeep from 'lodash/clonedeep';
-import moment = require('moment');
 import FieldRangeHandler from '../../tools/FieldRangeHandler';
 import NumRangeHandler from '../../tools/NumRangeHandler';
 import TSRangeHandler from '../../tools/TSRangeHandler';
-import ModuleDAO from '../DAO/ModuleDAO';
 import IRange from '../DataRender/interfaces/IRange';
 import FieldRange from '../DataRender/vos/FieldRange';
-import IDistantVOBase from '../IDistantVOBase';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
@@ -15,6 +12,8 @@ import MatroidBaseController from './MatroidBaseController';
 import MatroidBase from './vos/MatroidBase';
 import MatroidBaseCutResult from './vos/MatroidBaseCutResult';
 import MatroidCutResult from './vos/MatroidCutResult';
+import moment = require('moment');
+import RangeHandler from '../../tools/RangeHandler';
 
 export default class MatroidController {
 
@@ -56,6 +55,82 @@ export default class MatroidController {
         return (res != null) ? res : 0;
     }
 
+    public getIndex<T extends IMatroid>(matroid: T): string {
+
+        if (!matroid) {
+            return null;
+        }
+
+        let res: string = matroid._type;
+
+        let fields: Array<ModuleTableField<any>> = this.getMatroidFields(matroid._type);
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            let controller = FieldRangeHandler.getInstance().getRelevantHandlerFromStrings(matroid._type, field.field_type);
+            res += '_' + controller.getIndexRanges(matroid[field.field_type]);
+        }
+
+        return res;
+    }
+
+    // FIXME Algo naif certainement très mauvais mais simple
+    //  on regarde si on trouve des matroids identiques, on ignore le second,
+    //  si on trouve des matroids qui n'ont qu'une base différente, on fait une union des bases sur le premier et on ignore le second,
+    //  si on trouve plus d'une base différente
+    public union<T extends IMatroid>(matroids: T[]): T[] {
+        let res: T[] = [];
+
+        if ((!matroids) || (!matroids.length)) {
+            return null;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[matroids[0]._type];
+
+        if (!moduletable) {
+            return null;
+        }
+
+        for (let i in matroids) {
+
+            let tested_matroid = matroids[i];
+            let ignore_matroid: boolean = false;
+
+            for (let j in res) {
+                let matroid = res[j];
+
+                let different_field_ids: string[] = this.get_different_field_ids(tested_matroid, matroid);
+
+                if ((!different_field_ids) || (different_field_ids.length == 0)) {
+                    ignore_matroid = true;
+                    break;
+                }
+
+                if (different_field_ids.length > 1) {
+                    continue;
+                }
+
+                if (different_field_ids.length == 1) {
+
+                    let rangeHandler = FieldRangeHandler.getInstance().getRelevantHandlerFromStrings(moduletable.vo_type, different_field_ids[0]);
+                    matroid[different_field_ids[0]] = rangeHandler.getRangesUnion(tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]));
+
+                    ignore_matroid = true;
+                    break;
+                }
+            }
+
+            if (ignore_matroid) {
+                continue;
+            }
+
+            res.push(tested_matroid);
+        }
+
+        return res;
+    }
+
     // public union(matroids: IMatroid[]): IMatroid[]{
     //     let res: IMatroid[] = [];
 
@@ -65,38 +140,38 @@ export default class MatroidController {
     //     return res;
     // }
 
-    /**
-     * TODO FIXME ASAP VARS Si on a trop de ranges on peut pas envoyer la requête, il faut limiter le nombre de ranges ciblés au global (en scindant le matroide sur une base proablement)
-     * @param api_type_id
-     * @param matroid
-     */
-    public async getVosFilteredByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid): Promise<T[]> {
+    // /**
+    //  * TODO FIXME ASAP VARS Si on a trop de ranges on peut pas envoyer la requête, il faut limiter le nombre de ranges ciblés au global (en scindant le matroide sur une base proablement)
+    //  * @param api_type_id
+    //  * @param matroid
+    //  */
+    // public async getVosFilteredByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid): Promise<T[]> {
 
-        let field_ranges: Array<FieldRange<any>> = [];
+    //     let field_ranges: Array<FieldRange<any>> = [];
 
-        let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(api_type_id);
+    //     let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(api_type_id);
 
-        for (let i in matroid_fields) {
-            let matroid_field = matroid_fields[i];
-            let matroid_field_ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
+    //     for (let i in matroid_fields) {
+    //         let matroid_field = matroid_fields[i];
+    //         let matroid_field_ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
 
-            for (let j in matroid_field_ranges) {
-                let matroid_field_range = matroid_field_ranges[j];
+    //         for (let j in matroid_field_ranges) {
+    //             let matroid_field_range = matroid_field_ranges[j];
 
-                field_ranges.push(FieldRangeHandler.getInstance().createNew(
-                    api_type_id, matroid_field.field_id,
-                    matroid_field_range.min, matroid_field_range.max,
-                    matroid_field_range.min_inclusiv, matroid_field_range.max_inclusiv));
+    //             field_ranges.push(FieldRangeHandler.getInstance().createNew(
+    //                 api_type_id, matroid_field.field_id,
+    //                 matroid_field_range.min, matroid_field_range.max,
+    //                 matroid_field_range.min_inclusiv, matroid_field_range.max_inclusiv));
 
-                if (field_ranges.length > 20) {
-                    console.error('getVosFilteredByMatroid:field_ranges.length>20');
-                    return null;
-                }
-            }
-        }
+    //             if (field_ranges.length > 20) {
+    //                 console.error('getVosFilteredByMatroid:field_ranges.length>20');
+    //                 return null;
+    //             }
+    //         }
+    //     }
 
-        return await ModuleDAO.getInstance().filterVosByFieldRanges(api_type_id, field_ranges) as T[];
-    }
+    //     return await ModuleDAO.getInstance().filterVosByFieldRanges(api_type_id, field_ranges) as T[];
+    // }
 
     /**
      * FIXME TODO ASAP WITH TU
@@ -169,6 +244,49 @@ export default class MatroidController {
 
         return matroid_bases;
     }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     * Renvoie les bases qui diffèrent entre a et b (qu'elles intersectent ou pas)
+     */
+    public get_different_field_ids(a: IMatroid, b: IMatroid): string[] {
+
+        let res: string[] = [];
+
+        if ((!a) || (!b)) {
+            return null;
+        }
+
+        let moduletablea = VOsTypesManager.getInstance().moduleTables_by_voType[a._type];
+        let moduletableb = VOsTypesManager.getInstance().moduleTables_by_voType[b._type];
+
+        if (moduletablea != moduletableb) {
+            return null;
+        }
+
+        let matroid_fields = this.getMatroidFields(a._type);
+
+        for (let i in matroid_fields) {
+            let matroid_field = matroid_fields[i];
+
+            let a_ranges = a[matroid_field.field_id];
+            let b_ranges = b[matroid_field.field_id];
+
+            if ((!a_ranges) || (!a_ranges.length) || (!b_ranges) || (!b_ranges.length)) {
+                return null;
+            }
+
+            let controller = FieldRangeHandler.getInstance().getRelevantHandlerFromStrings(a._type, matroid_field.field_id);
+            if (controller.are_same(a_ranges, b_ranges)) {
+                continue;
+            }
+
+            res.push(matroid_field.field_id);
+        }
+
+        return res;
+    }
+
 
     /**
      * FIXME TODO ASAP WITH TU

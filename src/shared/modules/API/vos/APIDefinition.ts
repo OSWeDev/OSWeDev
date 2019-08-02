@@ -4,6 +4,7 @@ export default abstract class APIDefinition<T, U> {
 
     public static API_TYPE_GET: number = 0;
     public static API_TYPE_POST: number = 1;
+    public static API_TYPE_POST_FOR_GET: number = 2;
 
     public static API_RETURN_TYPE_JSON: number = 0;
     public static API_RETURN_TYPE_RES: number = 1;

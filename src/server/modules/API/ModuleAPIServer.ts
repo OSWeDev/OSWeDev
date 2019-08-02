@@ -24,12 +24,19 @@ export default class ModuleAPIServer extends ModuleServerBase {
         for (let i in ModuleAPI.getInstance().registered_apis) {
             let api: APIDefinition<any, any> = ModuleAPI.getInstance().registered_apis[i];
 
-            if (api.api_type == APIDefinition.API_TYPE_GET) {
-                console.log("AJOUT API GET  :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
-                app.get(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
-            } else {
-                console.log("AJOUT API POST :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
-                app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+            switch (api.api_type) {
+                case APIDefinition.API_TYPE_GET:
+                    console.log("AJOUT API GET  :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
+                    app.get(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    break;
+                case APIDefinition.API_TYPE_POST:
+                    console.log("AJOUT API POST :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
+                    app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    break;
+                case APIDefinition.API_TYPE_POST_FOR_GET:
+                    console.log("AJOUT API POST FOR GET :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
+                    app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    break;
             }
         }
     }
@@ -41,7 +48,8 @@ export default class ModuleAPIServer extends ModuleServerBase {
             if (api.PARAM_TRANSLATE_FROM_REQ) {
                 param = await api.PARAM_TRANSLATE_FROM_REQ(req);
             } else {
-                if ((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) {
+                if (((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
+                    ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))) {
                     param = req.body as T;
                 }
             }

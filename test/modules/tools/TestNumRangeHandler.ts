@@ -1391,7 +1391,7 @@ describe('NumRangeHandler', () => {
     });
 
     it('test getSegmentedMax', () => {
-        expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(0.2, 0.2, true, true))).to.equal(null);
+        expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(0.2, 0.2, true, true))).to.equal(0);
         expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(0.2, 0.2, true, false))).to.equal(null);
         expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(0.2, 0.2, false, true))).to.equal(null);
         expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(0.2, 0.2, false, false))).to.equal(null);
@@ -1411,7 +1411,7 @@ describe('NumRangeHandler', () => {
         expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, false, true))).to.equal(0);
         expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, false, false))).to.equal(0);
 
-        expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-1, 0, false, false))).to.equal(null);
+        expect(NumRangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-1, 0, false, false))).to.equal(-1);
     });
 
     it('test getSegmentedMax_from_ranges', () => {
@@ -1439,7 +1439,7 @@ describe('NumRangeHandler', () => {
         ])).to.equal(0);
         expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
             NumRange.createNew(-1, 0, false, false), NumRange.createNew(-1, 0, false, false)
-        ])).to.equal(null);
+        ])).to.equal(-1);
         expect(NumRangeHandler.getInstance().getSegmentedMax_from_ranges([
             NumRange.createNew(-1, 0, true, false), NumRange.createNew(-1, 0, false, false)
         ])).to.equal(-1);
@@ -1476,7 +1476,7 @@ describe('NumRangeHandler', () => {
     });
 
     it('test getSegmentedMin', () => {
-        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(0.2, 0.2, true, true))).to.equal(null);
+        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(0.2, 0.2, true, true))).to.equal(0);
         expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(0.2, 0.2, true, false))).to.equal(null);
         expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(0.2, 0.2, false, true))).to.equal(null);
         expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(0.2, 0.2, false, false))).to.equal(null);
@@ -1488,13 +1488,13 @@ describe('NumRangeHandler', () => {
 
         expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, true, true))).to.equal(-1);
         expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, true, false))).to.equal(-1);
-        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, false, true))).to.equal(0);
-        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, false, false))).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, false, true))).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, false, false))).to.equal(-1);
 
-        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, true, true))).to.equal(0);
-        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, true, false))).to.equal(0);
-        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, false, true))).to.equal(0);
-        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, false, false))).to.equal(0);
+        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, true, true))).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, true, false))).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, false, true))).to.equal(-1);
+        expect(NumRangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, false, false))).to.equal(-1);
     });
 
     it('test getSegmentedMin_from_ranges', () => {
@@ -1516,13 +1516,13 @@ describe('NumRangeHandler', () => {
 
         expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-1, 0, false, true), NumRange.createNew(-1, 0, false, false)
-        ])).to.equal(0);
+        ])).to.equal(-1);
         expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-1, 0, false, true), NumRange.createNew(-1, 0, false, true)
-        ])).to.equal(0);
+        ])).to.equal(-1);
         expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-1, 0, false, false), NumRange.createNew(-1, 0, false, false)
-        ])).to.equal(null);
+        ])).to.equal(-1);
         expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-1, 0, true, false), NumRange.createNew(-1, 0, false, false)
         ])).to.equal(-1);
@@ -1542,20 +1542,20 @@ describe('NumRangeHandler', () => {
 
         expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-0.5, 0.5, true, false), NumRange.createNew(-0.5, 0.5, true, false)
-        ])).to.equal(0);
+        ])).to.equal(-1);
         expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-0.5, 0.5, false, false), NumRange.createNew(-0.5, 0.5, true, false)
-        ])).to.equal(0);
+        ])).to.equal(-1);
         expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-0.5, 0.5, true, false), NumRange.createNew(-0.5, 0.5, false, false)
-        ])).to.equal(0);
+        ])).to.equal(-1);
         expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-0.5, 0.5, false, false), NumRange.createNew(-0.5, 0.5, false, false)
-        ])).to.equal(0);
+        ])).to.equal(-1);
 
         expect(NumRangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-0.5, 0.5, true, true), NumRange.createNew(-0.5, 0.5, true, true)
-        ])).to.equal(0);
+        ])).to.equal(-1);
     });
 
     it('test getValueFromFormattedMinOrMaxAPI', () => {

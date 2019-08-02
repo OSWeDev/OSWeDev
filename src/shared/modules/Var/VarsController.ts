@@ -1255,7 +1255,7 @@ export default class VarsController {
             promises.push((async () => {
 
                 let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
-                let matroids_inscrits: ISimpleNumberVarMatroidData[] = await MatroidController.getInstance().getVosFilteredByMatroid<ISimpleNumberVarMatroidData>(moduletable.vo_type, node.param as IVarMatroidDataParamVO);
+                let matroids_inscrits: ISimpleNumberVarMatroidData[] = await ModuleDAO.getInstance().filterVosByMatroids<ISimpleNumberVarMatroidData>(moduletable.vo_type, [node.param as ISimpleNumberVarMatroidData], {});
 
                 if (!matroids_inscrits) {
                     return;

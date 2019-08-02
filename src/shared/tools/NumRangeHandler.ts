@@ -6,6 +6,11 @@ import IRange from '../modules/DataRender/interfaces/IRange';
 
 export default class NumRangeHandler extends RangeHandler<number> {
 
+    /**
+     * FIXME DIRTY Pseudo max int pour int4 en bdd potentiellement need passer en int8
+     */
+    public static MAX_INT: number = 2147483600;
+
     public static getInstance(): NumRangeHandler {
         if (!NumRangeHandler.instance) {
             NumRangeHandler.instance = new NumRangeHandler();
@@ -198,7 +203,6 @@ export default class NumRangeHandler extends RangeHandler<number> {
     }
 
     /**
-     * On considère qu'on est sur une segmentation unité donc si l'ensemble c'est (4,5] ça veut dire 5 en fait
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
@@ -210,10 +214,6 @@ export default class NumRangeHandler extends RangeHandler<number> {
 
         let range_min_num: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(range.min, segment_type);
 
-        if (range_min_num.num < range.min) {
-            range_min_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_min_num, segment_type, -1);
-        }
-
         if (range_min_num.num > range.max) {
             return null;
         }
@@ -222,19 +222,19 @@ export default class NumRangeHandler extends RangeHandler<number> {
             return null;
         }
 
-        if (range.min_inclusiv) {
-            return range_min_num.num;
-        }
+        // if (range.min_inclusiv) {
+        //     return range_min_num.num;
+        // }
 
-        if (range_min_num.num > range.min) {
-            return range_min_num.num;
-        }
+        // if (range_min_num.num > range.min) {
+        //     return range_min_num.num;
+        // }
 
-        range_min_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_min_num, segment_type, -1);
+        // range_min_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_min_num, segment_type, -1);
 
-        if (((!range.max_inclusiv) && (range.max == range_min_num.num)) || (range.max < range_min_num.num)) {
-            return null;
-        }
+        // if (((!range.max_inclusiv) && (range.max == range_min_num.num)) || (range.max < range_min_num.num)) {
+        //     return null;
+        // }
 
         return range_min_num.num;
     }
@@ -251,26 +251,17 @@ export default class NumRangeHandler extends RangeHandler<number> {
 
         let range_max_num: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(range.max, segment_type);
 
+        if ((!range.max_inclusiv) && (range_max_num.num == range.max)) {
+            range_max_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_max_num, segment_type);
+        }
 
-        if (range_max_num.num < range.min) {
+        let range_max_end: number = NumSegmentHandler.getInstance().getEndNumSegment(range_max_num);
+
+        if (range_max_end < range.min) {
             return null;
         }
 
-        if ((!range.min_inclusiv) && (range_max_num.num <= range.min)) {
-            return null;
-        }
-
-        if (range.max_inclusiv) {
-            return range_max_num.num;
-        }
-
-        if (range_max_num.num < range.max) {
-            return range_max_num.num;
-        }
-
-        range_max_num = NumSegmentHandler.getInstance().getPreviousNumSegment(range_max_num, segment_type);
-
-        if (((!range.min_inclusiv) && (range.min == range_max_num.num)) || (range.min > range_max_num.num)) {
+        if ((!range.min_inclusiv) && (range_max_end <= range.min)) {
             return null;
         }
 

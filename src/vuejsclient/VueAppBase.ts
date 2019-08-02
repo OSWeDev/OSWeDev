@@ -58,6 +58,8 @@ import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
 import VarPieChartComponent from './ts/components/Var/components/piechart/VarPieChartComponent';
 
+require('moment-json-parser').overrideDefault();
+
 export default abstract class VueAppBase {
 
     public static instance_: VueAppBase;

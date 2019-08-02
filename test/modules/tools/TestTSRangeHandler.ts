@@ -1160,7 +1160,7 @@ describe('TSRangeHandler', () => {
 
     it('test getSegmentedMax', () => {
 
-        expect(TSRangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, true, true))).to.equal(null);
+        expect(TSRangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, true, true)).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, true, false))).to.equal(null);
         expect(TSRangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, false, true))).to.equal(null);
         expect(TSRangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, false, false))).to.equal(null);
@@ -1217,7 +1217,7 @@ describe('TSRangeHandler', () => {
         ])).to.equal(null);
         expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, true)
-        ])).to.equal(null);
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
 
         expect(TSRangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false)
@@ -1239,81 +1239,81 @@ describe('TSRangeHandler', () => {
 
     it('test getSegmentedMin', () => {
 
-        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true))).to.equal(null);
+        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true)).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, false))).to.equal(null);
         expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, true))).to.equal(null);
         expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, false))).to.equal(null);
 
-        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
 
-        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(TSRangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
     });
 
     it('test getSegmentedMin_from_ranges', () => {
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, true, true), TSRange.createNew(moins_un, un, true, true)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, un, true, false), TSRange.createNew(moins_un, un, true, true)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, un, true, false), TSRange.createNew(moins_un, un, true, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, un, true, true), TSRange.createNew(moins_un, un, true, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, un, true, true), TSRange.createNew(moins_un, un, true, true)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
 
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, false, true), TSRange.createNew(moins_un, zero, false, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, false, true), TSRange.createNew(moins_un, zero, false, true)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, false, false), TSRange.createNew(moins_un, zero, false, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, true, false), TSRange.createNew(moins_un, zero, false, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, true, false), TSRange.createNew(moins_un, zero, true, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, false, false), TSRange.createNew(moins_un, zero, true, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
 
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(zero, zero, true, false), TSRange.createNew(zero, zero, true, false)
         ])).to.equal(null);
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(zero, zero, true, true), TSRange.createNew(zero, zero, true, true)
-        ])).to.equal(null);
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
 
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
 
         expect(TSRangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), TSRange.createNew(moins_zero_cinq, zero_cinq, true, true)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
     });
 
     it('test getValueFromFormattedMinOrMaxAPI', () => {

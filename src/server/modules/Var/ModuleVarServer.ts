@@ -50,6 +50,13 @@ export default class ModuleVarServer extends ModuleServerBase {
         // }
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Calculée'
+        }, 'var_data.value_type.computed'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Importée'
+        }, 'var_data.value_type.import'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Datasources'
         }, 'var.desc_mode.var_datasources.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -133,7 +140,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let vos: IVarMatroidDataVO[] = await MatroidController.getInstance().getVosFilteredByMatroid<IVarMatroidDataVO>(moduletable.vo_type, matroid_param);
+        let vos: IVarMatroidDataVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections<IVarMatroidDataVO>(moduletable.vo_type, [matroid_param as any], {});
 
         // L'invalidation se fait en supprimant la date de création de la data
         for (let i in vos) {
