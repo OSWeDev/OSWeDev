@@ -84,6 +84,7 @@ export default class ModuleSASSSkinConfigurator extends Module {
             new ModuleTableField('main_sidebar_background', ModuleTableField.FIELD_TYPE_string, 'main_sidebar_background', true, true, 'transparent'),
             new ModuleTableField('planning_realise_header_bg', ModuleTableField.FIELD_TYPE_string, 'planning_realise_header_bg', true, true, '#563C22'),
             new ModuleTableField('picto_product_url', ModuleTableField.FIELD_TYPE_string, 'picto_product_url', true, true, '/public/img/pictos/picto_cogs.png'),
+            new ModuleTableField('picto_saisonnalite_url', ModuleTableField.FIELD_TYPE_string, 'picto_saisonnalite_url', true, true, '/public/img/pictos/picto_chart_bar.png'),
         ];
         this.datatables = [];
     }
