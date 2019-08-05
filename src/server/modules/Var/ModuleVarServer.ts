@@ -68,6 +68,17 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Actualiser la HeatMap des deps'
         }, 'var_desc.refreshDependenciesHeatmap.___LABEL___'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Matroids calculés'
+        }, 'var.desc_mode.computed_datas_matroids.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Matroids chargés'
+        }, 'var.desc_mode.loaded_datas_matroids.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Valeur totale des matroids chargés'
+        }, 'var.desc_mode.loaded_datas_matroids_sum_value.___LABEL___'));
     }
 
     public registerServerApiHandlers() {
@@ -129,7 +140,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     }
 
-    public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {
+    public async invalidate_matroid<TData extends IVarMatroidDataVO, TParam extends IVarMatroidDataParamVO & TData>(matroid_param: TParam): Promise<void> {
         if ((!matroid_param) || (!matroid_param._type)) {
             return;
         }
@@ -140,7 +151,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        let vos: IVarMatroidDataVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections<IVarMatroidDataVO>(moduletable.vo_type, [matroid_param as any], {});
+        let vos: TData[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections<TData, TParam>(moduletable.vo_type, [matroid_param], {});
 
         // L'invalidation se fait en supprimant la date de création de la data
         for (let i in vos) {

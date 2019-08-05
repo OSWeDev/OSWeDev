@@ -299,7 +299,7 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndFieldRangesParamsVO, T[]>(ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS, API_TYPE_ID, field_ranges);
     }
 
-    public async getVosByExactMatroids<T extends IDistantVOBase & IMatroid>(API_TYPE_ID: string, matroids: T[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
+    public async getVosByExactMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
         if ((!matroids) || (!matroids.length)) {
             return null;
         }
@@ -307,7 +307,7 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, T[]>(ModuleDAO.APINAME_GET_VOS_BY_EXACT_MATROIDS, API_TYPE_ID, matroids, fields_ids_mapper);
     }
 
-    public async filterVosByMatroids<T extends IDistantVOBase & IMatroid>(API_TYPE_ID: string, matroids: T[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
+    public async filterVosByMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
         if ((!matroids) || (!matroids.length)) {
             return null;
         }
@@ -315,7 +315,7 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, T[]>(ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS, API_TYPE_ID, matroids, fields_ids_mapper);
     }
 
-    public async filterVosByMatroidsIntersections<T extends IDistantVOBase & IMatroid>(API_TYPE_ID: string, matroids: T[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
+    public async filterVosByMatroidsIntersections<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
         if ((!matroids) || (!matroids.length)) {
             return null;
         }

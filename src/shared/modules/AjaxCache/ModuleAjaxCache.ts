@@ -57,7 +57,7 @@ export default class ModuleAjaxCache extends Module {
 
     public getIndex(url: string, postdatas: any): string {
         try {
-            return url + '###___###' + JSON.stringify(postdatas);
+            return url + (postdatas ? '###___###' + JSON.stringify(postdatas) : '');
         } catch (error) {
             console.error('Index impossible à créer:' + url + ':' + postdatas + ':' + error + ':');
         }
@@ -303,7 +303,7 @@ export default class ModuleAjaxCache extends Module {
 
             // On indique si on peut stacker ou pas
             //  pour l'instant on essaie de stacker tout ce qui part vers les apis sauf les post
-            if (url.match(/^\/api_handler\/.*/ig) && (type != RequestResponseCacheVO.API_TYPE_POST)) {
+            if (url.match(/^\/api_handler\/.*/ig) && (type != RequestResponseCacheVO.API_TYPE_POST) && (type != RequestResponseCacheVO.API_TYPE_POST_FOR_GET)) {
                 this.cache.requestResponseCaches[index].wrappable_request = true;
             }
         }

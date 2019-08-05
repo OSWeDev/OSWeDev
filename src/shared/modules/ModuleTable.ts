@@ -2,14 +2,14 @@ import * as clonedeep from 'lodash/clonedeep';
 import * as moment from 'moment';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
+import NumRangeHandler from '../tools/NumRangeHandler';
+import TSRangeHandler from '../tools/TSRangeHandler';
 import IDistantVOBase from './IDistantVOBase';
 import Module from './Module';
-import { default as ModuleDBField, default as ModuleTableField } from './ModuleTableField';
+import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
-import NumRangeHandler from '../tools/NumRangeHandler';
-import TSRangeHandler from '../tools/TSRangeHandler';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -64,7 +64,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public hook_datatable_install: (db) => {} = null;
 
     public module: Module;
-    public fields: Array<ModuleDBField<any>>;
+    public fields: Array<ModuleTableField<any>>;
     public suffix: string;
     public prefix: string;
     public database: string;
@@ -95,7 +95,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         tmp_module: Module,
         tmp_vo_type: string,
         voConstructor: () => T,
-        tmp_fields: Array<ModuleDBField<any>>,
+        tmp_fields: Array<ModuleTableField<any>>,
         default_label_field: ModuleTableField<any>,
         label: string | DefaultTranslation = null
     ) {
@@ -139,6 +139,22 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
+    }
+
+    get sortedFields(): Array<ModuleTableField<any>> {
+        let res: Array<ModuleTableField<any>> = Array.from(this.fields);
+
+        res.sort((a: ModuleTableField<any>, b: ModuleTableField<any>) => {
+            if (a.field_id < b.field_id) {
+                return -1;
+            }
+            if (a.field_id > b.field_id) {
+                return 1;
+            }
+            return 0;
+        });
+
+        return res;
     }
 
     public addAlias(api_type_id_alias: string): ModuleTable<any> {
@@ -289,8 +305,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         let res: { [field_id: string]: string } = {};
         let n = 0;
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let i in this.sortedFields) {
+            let field = this.sortedFields[i];
 
             res[field.field_id] = ModuleTable.OFFUSC_IDs[n];
             n++;
@@ -306,8 +322,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         let res: { [api_id: string]: string } = {};
         let n = 0;
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let i in this.sortedFields) {
+            let field = this.sortedFields[i];
 
             res[ModuleTable.OFFUSC_IDs[n]] = field.field_id;
             n++;

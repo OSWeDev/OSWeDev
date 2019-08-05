@@ -42,7 +42,7 @@ export default class ObjectHandler {
         return sorted_obj;
     }
 
-    public arrayFromMap<T>(map: {}): T[] {
+    public arrayFromMap<T>(map: { [i: number]: T }): T[] {
         let res: T[] = [];
 
         for (let i in map) {

@@ -883,7 +883,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_image_ref:
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
                         where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                         break;
 
@@ -901,6 +900,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         where_clause += field.field_id + "::date <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange";
                         break;
 
+                    case ModuleTableField.FIELD_TYPE_tstz:
                     case ModuleTableField.FIELD_TYPE_unix_timestamp:
                         where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                         break;
@@ -1018,7 +1018,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_image_ref:
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
-                    case ModuleTableField.FIELD_TYPE_tstz:
                         where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                         break;
 
@@ -1037,6 +1036,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         break;
 
                     case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                    case ModuleTableField.FIELD_TYPE_tstz:
                         where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                         break;
 
@@ -1305,7 +1305,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_image_ref:
                         case ModuleTableField.FIELD_TYPE_int:
                         case ModuleTableField.FIELD_TYPE_prct:
-                        case ModuleTableField.FIELD_TYPE_tstz:
                             where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                             break;
 
@@ -1323,6 +1322,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             where_clause += field.field_id + "::date <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange";
                             break;
 
+                        case ModuleTableField.FIELD_TYPE_tstz:
                         case ModuleTableField.FIELD_TYPE_unix_timestamp:
                             where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                             break;
@@ -1454,7 +1454,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_image_ref:
                         case ModuleTableField.FIELD_TYPE_int:
                         case ModuleTableField.FIELD_TYPE_prct:
-                        case ModuleTableField.FIELD_TYPE_tstz:
                             where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                             break;
 
@@ -1472,6 +1471,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             where_clause += field.field_id + "::date <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange";
                             break;
 
+                        case ModuleTableField.FIELD_TYPE_tstz:
                         case ModuleTableField.FIELD_TYPE_unix_timestamp:
                             where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                             break;

@@ -22,7 +22,7 @@ export default class DateHandler {
         if ((date == null) || (typeof date == 'undefined')) {
             return null;
         }
-        return date.unix() / 1000;
+        return date.unix();
     }
 
     public formatDateTimeForAPI(date: Moment): string {

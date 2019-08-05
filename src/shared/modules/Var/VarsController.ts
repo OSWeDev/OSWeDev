@@ -1,38 +1,36 @@
 import * as debounce from 'lodash/debounce';
+import ObjectHandler from '../../tools/ObjectHandler';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
+import TSRangeHandler from '../../tools/TSRangeHandler';
 import ModuleDAO from '../DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
+import TSRange from '../DataRender/vos/TSRange';
 import DataSourcesController from '../DataSource/DataSourcesController';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
 import IDistantVOBase from '../IDistantVOBase';
 import MatroidController from '../Matroid/MatroidController';
+import MatroidCutResult from '../Matroid/vos/MatroidCutResult';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
-import DAGController from './graph/dag/DAGController';
+import CumulativVarController from './CumulativVarController';
 import VarDAG from './graph/var/VarDAG';
 import VarDAGNode from './graph/var/VarDAGNode';
 import VarDAGDefineNodeDeps from './graph/var/visitors/VarDAGDefineNodeDeps';
 import VarDAGDefineNodePropagateRequest from './graph/var/visitors/VarDAGDefineNodePropagateRequest';
 import VarDAGMarkForDeletion from './graph/var/visitors/VarDAGMarkForDeletion';
 import VarDAGMarkForNextUpdate from './graph/var/visitors/VarDAGMarkForNextUpdate';
-import VarDAGVisitorLoadPrecompiled from './graph/var/visitors/VarDAGVisitorLoadPrecompiled';
 import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
 import ISimpleNumberVarMatroidData from './interfaces/ISimpleNumberVarMatroidData';
+import ITSRangesVarDataParam from './interfaces/ITSRangesVarDataParam';
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
+import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
-import ITSRangesVarDataParam from './interfaces/ITSRangesVarDataParam';
-import TSRangeHandler from '../../tools/TSRangeHandler';
-import CumulativVarController from './CumulativVarController';
-import TSRange from '../DataRender/vos/TSRange';
-import ObjectHandler from '../../tools/ObjectHandler';
-import MatroidCutResult from '../Matroid/vos/MatroidCutResult';
-import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
 
 export default class VarsController {
 
@@ -1269,7 +1267,7 @@ export default class VarsController {
             promises.push((async () => {
 
                 let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
-                let matroids_inscrits: ISimpleNumberVarMatroidData[] = await ModuleDAO.getInstance().filterVosByMatroids<ISimpleNumberVarMatroidData>(moduletable.vo_type, [node.param as ISimpleNumberVarMatroidData], {});
+                let matroids_inscrits: ISimpleNumberVarMatroidData[] = await ModuleDAO.getInstance().filterVosByMatroids<ISimpleNumberVarMatroidData, IVarDataParamVOBase>(moduletable.vo_type, [node.param], {});
 
                 if (!matroids_inscrits) {
                     return;
