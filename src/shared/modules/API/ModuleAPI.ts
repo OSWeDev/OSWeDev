@@ -159,6 +159,9 @@ export default class ModuleAPI extends Module {
         // Gestion des paramètres optionnels
         pattern = pattern.replace(/([/]:[^:\/?]+[?])/ig, '(/[^/]*)?');
 
+        // Par contre on doit bien avoir un truc complet donc on ajoute les indices de début et fin
+        pattern = '^' + pattern + '$';
+
         return new RegExp(pattern, "ig").test(requestUrl);
     }
 

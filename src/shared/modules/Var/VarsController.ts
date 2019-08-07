@@ -818,9 +818,9 @@ export default class VarsController {
             for (let i in tsranged_param.ts_ranges) {
                 let ts_range = tsranged_param.ts_ranges[i];
 
-                let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
+                let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type).utc(true);
                 let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
-                    end_range, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
+                    end_range, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month).utc(true);
                 if (TSRangeHandler.getInstance().elt_intersects_range(closest_earlier_reset_date, ts_range)) {
                     ts_range.min = closest_earlier_reset_date;
                     ts_range.min_inclusiv = true;
@@ -832,8 +832,8 @@ export default class VarsController {
         for (let i in tsranged_param.ts_ranges) {
             let ts_range = tsranged_param.ts_ranges[i];
 
-            let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
-            let start_range = TSRangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type);
+            let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type).utc(true);
+            let start_range = TSRangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type).utc(true);
 
             if ((start_range == null) || (end_range == null)) {
                 continue;

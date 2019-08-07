@@ -1,3 +1,4 @@
+import { request } from 'https';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
@@ -72,12 +73,24 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
             }
 
             let param = null;
-            if (!!apiDefinition.PARAM_TRANSLATE_FROM_REQ) {
-                // Il faut un objet request.params à ce niveau avec chaque param séparé si c'est possible.
-                //
-                param = await apiDefinition.PARAM_TRANSLATE_FROM_REQ(ModuleAPI.getInstance().getFakeRequestParamsFromUrl(
-                    wrapped_request.url,
-                    ModuleAPI.getInstance().getAPI_URL(apiDefinition)));
+
+            switch (wrapped_request.type) {
+                case RequestResponseCacheVO.API_TYPE_GET:
+                    if (!!apiDefinition.PARAM_TRANSLATE_FROM_REQ) {
+                        // Il faut un objet request.params à ce niveau avec chaque param séparé si c'est possible.
+                        //
+                        param = await apiDefinition.PARAM_TRANSLATE_FROM_REQ(ModuleAPI.getInstance().getFakeRequestParamsFromUrl(
+                            wrapped_request.url,
+                            ModuleAPI.getInstance().getAPI_URL(apiDefinition)));
+                    }
+                    break;
+
+                case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
+                    try {
+                        param = JSON.parse(wrapped_request.postdatas);
+                    } catch (error) {
+                        console.error('Erreur récupération params poste_for_get wrapped:' + error + ':');
+                    }
             }
 
             let index = ModuleAjaxCache.getInstance().getIndex(wrapped_request.url, wrapped_request.postdatas);

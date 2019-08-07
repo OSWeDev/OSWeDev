@@ -105,7 +105,7 @@ export default class ModuleVar extends Module {
                 [VarsController.VALUE_TYPE_COMPUTED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_COMPUTED],
                 [VarsController.VALUE_TYPE_MIXED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_MIXED]
             }),
-            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_unix_timestamp, 'Date mise à jour', true, true, moment()),
+            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour', true, true, moment()),
             new ModuleTableField('missing_datas_infos', ModuleTableField.FIELD_TYPE_string_array, 'Datas manquantes', false),
         ]);
 
