@@ -1,6 +1,8 @@
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import VueComponentBase from '../../VueComponentBase';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import Vue from 'vue';
+import CRUDComponentManager from '../../crud/CRUDComponentManager';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface
@@ -52,6 +54,8 @@ export default abstract class DatatableField<T, U> {
      * Used in the CREATE or UPDATE views
      */
     public translatable_place_holder: string = null;
+
+    public select_options_enabled: number[] = null;
 
     /**
      * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.
@@ -205,5 +209,10 @@ export default abstract class DatatableField<T, U> {
 
     public dataToHumanReadableField(e: IDistantVOBase): U {
         return null;
+    }
+
+    public setSelectOptionsEnabled(options: number[]): DatatableField<T, U> {
+        this.select_options_enabled = options;
+        return this;
     }
 }

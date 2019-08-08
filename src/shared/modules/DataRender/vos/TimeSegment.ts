@@ -5,6 +5,13 @@ export default class TimeSegment {
     public static TYPE_DAY: number = 2;
     public static TYPE_WEEK: number = 3;
     public static TYPE_ROLLING_YEAR_MONTH_START: number = 4;
+    public static TYPE_NAMES_ENUM: { [type: number]: string } = {
+        [TimeSegment.TYPE_YEAR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_YEAR],
+        [TimeSegment.TYPE_MONTH]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MONTH],
+        [TimeSegment.TYPE_DAY]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_DAY],
+        [TimeSegment.TYPE_WEEK]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_WEEK],
+        [TimeSegment.TYPE_ROLLING_YEAR_MONTH_START]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_ROLLING_YEAR_MONTH_START],
+    };
 
     public static fromDateAndType(dateIndex: string, type: number) {
         let res = new TimeSegment();

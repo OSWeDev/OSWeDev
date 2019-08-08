@@ -1,13 +1,13 @@
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import { RouteConfig } from 'vue-router';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import CRUDHandler from '../../../../shared/tools/CRUDHandler';
 import CRUDComponent from '../../components/crud/component/CRUDComponent';
 import MenuBranch from '../../components/menu/vos/MenuBranch';
 import MenuElementBase from '../../components/menu/vos/MenuElementBase';
 import MenuPointer from '../../components/menu/vos/MenuPointer';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import CRUD from './vos/CRUD';
-import CRUDHandler from '../../../../shared/tools/CRUDHandler';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 
 export default class CRUDComponentManager {
 
@@ -162,11 +162,11 @@ export default class CRUDComponentManager {
     }
 
     public getCallbackRoute(shift: boolean = true): string {
-        if (this.callback_routes && this.callback_routes.length > 0) {
+        if (CRUDComponentManager.getInstance().callback_routes && CRUDComponentManager.getInstance().callback_routes.length > 0) {
             let callback: string = CRUDComponentManager.getInstance().callback_routes[0];
 
             if (shift) {
-                this.callback_routes.shift();
+                CRUDComponentManager.getInstance().callback_routes.shift();
             }
 
             return callback;
@@ -176,11 +176,11 @@ export default class CRUDComponentManager {
     }
 
     public getIDistantVOInit(shift: boolean = true): IDistantVOBase {
-        if (this.idistantvo_init && this.idistantvo_init.length > 0) {
+        if (CRUDComponentManager.getInstance().idistantvo_init && CRUDComponentManager.getInstance().idistantvo_init.length > 0) {
             let vo: IDistantVOBase = CRUDComponentManager.getInstance().idistantvo_init[0];
 
             if (shift) {
-                this.idistantvo_init.shift();
+                CRUDComponentManager.getInstance().idistantvo_init.shift();
             }
 
             return vo;

@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/clonedeep';
+import * as clonedeep from 'lodash/cloneDeep';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
 import NumRange from '../modules/DataRender/vos/NumRange';

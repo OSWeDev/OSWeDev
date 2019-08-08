@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/clonedeep';
+import * as clonedeep from 'lodash/cloneDeep';
 import FieldRangeHandler from '../../../tools/FieldRangeHandler';
 import IRange from '../interfaces/IRange';
 

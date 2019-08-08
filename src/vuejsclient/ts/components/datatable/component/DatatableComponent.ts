@@ -1,6 +1,9 @@
 import * as $ from 'jquery';
+import * as debounce from 'lodash/debounce';
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import { Component, Prop, Watch } from 'vue-property-decorator';
+import { Event } from 'vue-tables-2';
 import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
@@ -8,28 +11,26 @@ import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../../../shared/tools/DateHandler';
-import { Component, Prop, Watch } from 'vue-property-decorator';
-import { Event } from 'vue-tables-2';
 import AppVuexStoreManager from '../../../store/AppVuexStoreManager';
 import { ModuleCRUDAction } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
+import DaoStoreTypeWatcherDefinition from '../../dao/vos/DaoStoreTypeWatcherDefinition';
 import VueComponentBase from '../../VueComponentBase';
 import Datatable from '../vos/Datatable';
 import DatatableField from '../vos/DatatableField';
-import ManyToOneReferenceDatatableField from '../vos/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../vos/SimpleDatatableField';
 import ManyToManyReferenceDatatableField from '../vos/ManyToManyReferenceDatatableField';
-import DaoStoreTypeWatcherDefinition from '../../dao/vos/DaoStoreTypeWatcherDefinition';
-import * as debounce from 'lodash/debounce';
-import './DatatableComponent.scss';
+import ManyToOneReferenceDatatableField from '../vos/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../vos/OneToManyReferenceDatatableField';
+import SimpleDatatableField from '../vos/SimpleDatatableField';
+import './DatatableComponent.scss';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
-import { truncateFilter } from '../../../../../shared/tools/Filters';
+import DatatableComponentField from './fields/DatatableComponentField';
 
 @Component({
     template: require('./DatatableComponent.pug'),
     components: {
-        FileDatatableFieldComponent
+        FileDatatableFieldComponent,
+        DatatableComponentField
     }
 })
 export default class DatatableComponent extends VueComponentBase {
@@ -1062,9 +1063,5 @@ export default class DatatableComponent extends VueComponentBase {
                 delete this.selected_datas[this.datatable_data[i].id];
             }
         }
-    }
-
-    private transliterate_enum_value_to_class_name(val: string): string {
-        return ((val) ? val.replace(/[^a-zA-Z0-9-_]/ig, '_') : val);
     }
 }

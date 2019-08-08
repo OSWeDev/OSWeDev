@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/clonedeep';
+import * as clonedeep from 'lodash/cloneDeep';
 import moment = require('moment');
 import FieldRangeHandler from '../../tools/FieldRangeHandler';
 import NumRangeHandler from '../../tools/NumRangeHandler';

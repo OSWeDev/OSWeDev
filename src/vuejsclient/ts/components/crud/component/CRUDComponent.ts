@@ -1,45 +1,37 @@
 import * as $ from 'jquery';
 import * as moment from 'moment';
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../../../shared/tools/DateHandler';
-import select2 from '../../../directives/select2/select2';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DatatableComponent from '../../datatable/component/DatatableComponent';
 import Datatable from '../../datatable/vos/Datatable';
 import DatatableField from '../../datatable/vos/DatatableField';
 import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
+import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
 import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../VueComponentBase';
+import CRUDComponentManager from '../CRUDComponentManager';
 import CRUD from '../vos/CRUD';
 import "./CRUDComponent.scss";
-import FileVO from '../../../../../shared/modules/File/vos/FileVO';
-import FileComponent from '../../file/FileComponent';
-import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
-import ImageComponent from '../../image/ImageComponent';
-import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import MultiInputComponent from '../../multiinput/MultiInputComponent';
-import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
-import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
-import CRUDComponentManager from '../CRUDComponentManager';
+import CRUDComponentField from './field/CRUDComponentField';
 
 @Component({
     template: require('./CRUDComponent.pug'),
     components: {
-        'datatable': DatatableComponent,
-        'fileinput': FileComponent,
-        'imageinput': ImageComponent,
-        'multi-input': MultiInputComponent
+        datatable: DatatableComponent,
+        crud_field: CRUDComponentField,
     },
-    directives: {
-        select2: select2
-    }
 })
 export default class CRUDComponent extends VueComponentBase {
 
@@ -82,9 +74,6 @@ export default class CRUDComponent extends VueComponentBase {
     private editableVO: IDistantVOBase = null;
     private newVO: IDistantVOBase = null;
 
-    private select_options: { [field_id: string]: IDistantVOBase[] } = {};
-    private isLoadingOptions: { [field_id: string]: boolean } = {};
-
     private api_types_involved: string[] = [];
 
     private creating_vo: boolean = false;
@@ -92,11 +81,6 @@ export default class CRUDComponent extends VueComponentBase {
     private deleting_vo: boolean = false;
 
     private is_only_readable: boolean = false;
-
-    get isModuleParamTable() {
-        return VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID] ?
-            VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
-    }
 
     public async mounted() {
         if (this.read_query) {
@@ -143,10 +127,6 @@ export default class CRUDComponent extends VueComponentBase {
         }
     }
 
-    get api_type_id(): string {
-        return this.crud.readDatatable.API_TYPE_ID;
-    }
-
     private async loaddatas() {
 
         this.isLoading = true;
@@ -168,7 +148,6 @@ export default class CRUDComponent extends VueComponentBase {
 
         this.prepareNewVO();
         this.nextLoadingStep();
-        this.prepare_select_options();
         this.nextLoadingStep();
 
         this.isLoading = false;
@@ -296,184 +275,8 @@ export default class CRUDComponent extends VueComponentBase {
         // On passe la traduction en IHM sur les champs
         this.newVO = this.dataToIHM(obj, this.crud.createDatatable, false);
 
-        this.onChangeVO(this.newVO, this.crud.createDatatable);
+        this.onChangeVO(this.newVO);
     }
-
-    private prepare_select_options() {
-
-        for (let i in this.crud.createDatatable.fields) {
-            let field = this.crud.createDatatable.fields[i];
-
-            if (field.datatable_field_uid != field.module_table_field_id) {
-                continue;
-            }
-
-            if ((field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
-                (field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
-                (field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
-                let newOptions: number[] = [];
-
-                let manyToOne: ReferenceDatatableField<any> = (field as ReferenceDatatableField<any>);
-                let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
-
-                if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
-                    let manyToOneField: ManyToOneReferenceDatatableField<any> = (field as ManyToOneReferenceDatatableField<any>);
-                    if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
-                        options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(null, options);
-                    }
-                }
-
-                for (let j in options) {
-                    let option = options[j];
-
-                    newOptions.push(option.id);
-                }
-
-                this.isLoadingOptions[field.datatable_field_uid] = false;
-                Vue.set(this.select_options, field.datatable_field_uid, newOptions);
-                continue;
-            }
-
-            if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
-
-                if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum) {
-                    let newOptions = [];
-
-                    for (let j in simpleField.moduleTableField.enum_values) {
-                        newOptions.push(parseInt(j.toString()));
-                    }
-                    this.isLoadingOptions[field.datatable_field_uid] = false;
-                    Vue.set(this.select_options, field.datatable_field_uid, newOptions);
-                    continue;
-                }
-            }
-        }
-    }
-
-    private updateBooleanRadio(editableVO: IDistantVOBase, field: DatatableField<any, any>) {
-        // On récupère l
-        let start = editableVO[field.datatable_field_uid + '_start'];
-        let end = editableVO[field.datatable_field_uid + '_end'];
-
-        let res = "";
-        if (start) {
-            try {
-                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(start));
-            } catch (error) {
-            }
-        }
-
-        res += "-";
-
-        if (end) {
-            try {
-                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(end));
-            } catch (error) {
-            }
-        }
-
-        editableVO[field.datatable_field_uid] = res;
-    }
-
-    private updateDateRange(editableVO: IDistantVOBase, field: DatatableField<any, any>) {
-        // On veut stocker au format "day day"
-        let start = editableVO[field.datatable_field_uid + '_start'];
-        let end = editableVO[field.datatable_field_uid + '_end'];
-
-        let res = "";
-        if (start) {
-            try {
-                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(start));
-            } catch (error) {
-            }
-        }
-
-        res += "-";
-
-        if (end) {
-            try {
-                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(end));
-            } catch (error) {
-            }
-        }
-
-        editableVO[field.datatable_field_uid] = res;
-    }
-
-    private asyncLoadOptions(query, datatable_field_uid) {
-        this.isLoadingOptions[datatable_field_uid] = true;
-
-        let field: DatatableField<any, any>;
-        for (let i in this.crud.createDatatable.fields) {
-            if (!this.crud.createDatatable.fields[i]) {
-                this.snotify.warning(this.label('crud.multiselect.search.error'));
-                continue;
-            }
-
-            if (this.crud.createDatatable.fields[i].datatable_field_uid == datatable_field_uid) {
-                field = this.crud.createDatatable.fields[i];
-                break;
-            }
-        }
-        if ((!field) ||
-            ((field.type != DatatableField.MANY_TO_ONE_FIELD_TYPE) &&
-                (field.type != DatatableField.ONE_TO_MANY_FIELD_TYPE) &&
-                (field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE))) {
-            this.snotify.warning(this.label('crud.multiselect.search.error'));
-            this.isLoadingOptions[datatable_field_uid] = false;
-            return;
-        }
-
-        let manyToOne: ReferenceDatatableField<any> = (field as ReferenceDatatableField<any>);
-        let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
-        let newOptions = [];
-
-        for (let i in options) {
-            let option = options[i];
-
-            if (manyToOne.dataToHumanReadable(option).match(new RegExp(query, 'i'))) {
-                newOptions.push(option.id);
-            }
-        }
-
-        this.isLoadingOptions[datatable_field_uid] = false;
-        Vue.set(this.select_options, field.datatable_field_uid, newOptions);
-    }
-
-    private asyncLoadEnumOptions(query, datatable_field_uid) {
-        this.isLoadingOptions[datatable_field_uid] = true;
-
-        let field: DatatableField<any, any>;
-        for (let i in this.crud.createDatatable.fields) {
-            if (!this.crud.createDatatable.fields[i]) {
-                this.snotify.warning(this.label('crud.multiselect.search.error'));
-                continue;
-            }
-
-            if (this.crud.createDatatable.fields[i].datatable_field_uid == datatable_field_uid) {
-                field = this.crud.createDatatable.fields[i];
-                break;
-            }
-        }
-        if ((!field) ||
-            ((field.type != DatatableField.SIMPLE_FIELD_TYPE))) {
-            this.snotify.warning(this.label('crud.multiselect.search.error'));
-            this.isLoadingOptions[datatable_field_uid] = false;
-            return;
-        }
-
-        let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
-        let newOptions = [];
-
-        for (let i in simpleField.moduleTableField.enum_values) {
-            newOptions.push(i);
-        }
-
-        this.isLoadingOptions[datatable_field_uid] = false;
-        Vue.set(this.select_options, field.datatable_field_uid, newOptions);
-    }
-
 
     get CRUDTitle(): string {
         if (!this.crud) {
@@ -502,7 +305,7 @@ export default class CRUDComponent extends VueComponentBase {
 
         // On passe la traduction en IHM sur les champs
         this.editableVO = this.dataToIHM(this.getSelectedVOs[0], this.crud.updateDatatable, true);
-        this.onChangeVO(this.editableVO, this.crud.updateDatatable);
+        this.onChangeVO(this.editableVO);
     }
 
     private dataToIHM(vo: IDistantVOBase, datatable: Datatable<any>, isUpdate: boolean): IDistantVOBase {
@@ -526,7 +329,9 @@ export default class CRUDComponent extends VueComponentBase {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) {
+                let simpleFieldType = (field as SimpleDatatableField<any, any>).moduleTableField.field_type;
+
+                if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
 
                     if (res[field.datatable_field_uid]) {
 
@@ -546,23 +351,31 @@ export default class CRUDComponent extends VueComponentBase {
                     }
                 }
 
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_numrange_array) {
+                if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
                     // TODO FIXME ASAP VARS
                 }
 
-                // if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) {
+                // if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange_array) {
                 //     // TODO FIXME ASAP VARS
                 // }
 
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                if (simpleFieldType == ModuleTableField.FIELD_TYPE_tstzrange_array) {
                     // TODO FIXME ASAP VARS
                 }
 
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_int_array) {
+                if (simpleFieldType == ModuleTableField.FIELD_TYPE_int_array) {
                     res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
                 }
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_string_array) {
+                if (simpleFieldType == ModuleTableField.FIELD_TYPE_string_array) {
                     res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
+                }
+
+                for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                    let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+
+                    if (simpleFieldType == tableFieldTypeController.name) {
+                        tableFieldTypeController.dataToIHM(vo, (field as SimpleDatatableField<any, any>), res, datatable, isUpdate);
+                    }
                 }
             }
         }
@@ -594,21 +407,33 @@ export default class CRUDComponent extends VueComponentBase {
             }
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) {
-                    res[field.datatable_field_uid + "_start"] = undefined;
-                    res[field.datatable_field_uid + "_end"] = undefined;
-                }
+                let simpleFieldType = (field as SimpleDatatableField<any, any>).moduleTableField.field_type;
 
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_numrange_array) {
-                    // TODO FIXME ASAP VARS
-                }
+                if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
+                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange) {
+                        res[field.datatable_field_uid + "_start"] = undefined;
+                        res[field.datatable_field_uid + "_end"] = undefined;
+                    }
 
-                // if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) {
-                //     // TODO FIXME ASAP VARS
-                // }
+                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
+                        // TODO FIXME ASAP VARS
+                    }
 
-                if ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
-                    // TODO FIXME ASAP VARS
+                    // if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange_array) {
+                    //     // TODO FIXME ASAP VARS
+                    // }
+
+                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                        // TODO FIXME ASAP VARS
+                    }
+
+                    for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                        let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+
+                        if (simpleFieldType == tableFieldTypeController.name) {
+                            tableFieldTypeController.IHMToData(vo, field as SimpleDatatableField<any, any>, res, datatable, isUpdate);
+                        }
+                    }
                 }
             }
         }
@@ -687,27 +512,29 @@ export default class CRUDComponent extends VueComponentBase {
 
                 let need_update_links: IDistantVOBase[] = [];
 
-                for (let j in actual_links) {
-                    let actual_link = actual_links[j];
+                if (new_links_target_ids) {
+                    for (let j in actual_links) {
+                        let actual_link = actual_links[j];
 
-                    if (new_links_target_ids.indexOf(actual_link.id) < 0) {
+                        if (new_links_target_ids.indexOf(actual_link.id) < 0) {
 
-                        actual_link[field.destField.field_id] = null;
-                        need_update_links.push(actual_link);
-                        continue;
+                            actual_link[field.destField.field_id] = null;
+                            need_update_links.push(actual_link);
+                            continue;
+                        }
+
+                        new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link.id), 1);
                     }
 
-                    new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link.id), 1);
-                }
+                    for (let j in new_links_target_ids) {
+                        let new_link_target_id = new_links_target_ids[j];
 
-                for (let j in new_links_target_ids) {
-                    let new_link_target_id = new_links_target_ids[j];
-
-                    if ((!this.getStoredDatas[field.targetModuleTable.vo_type]) || (!this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
-                        continue;
+                        if ((!this.getStoredDatas[field.targetModuleTable.vo_type]) || (!this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id])) {
+                            continue;
+                        }
+                        this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
+                        need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
                     }
-                    this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id][field.destField.field_id] = db_vo.id;
-                    need_update_links.push(this.getStoredDatas[field.targetModuleTable.vo_type][new_link_target_id]);
                 }
 
                 if (need_update_links.length > 0) {
@@ -753,26 +580,28 @@ export default class CRUDComponent extends VueComponentBase {
                     [interSrcRefField.field_id]: db_vo.id
                 };
 
-                for (let j in actual_links) {
-                    let actual_link = actual_links[j];
+                if (new_links_target_ids) {
+                    for (let j in actual_links) {
+                        let actual_link = actual_links[j];
 
-                    if (new_links_target_ids.indexOf(actual_link[interDestRefField.field_id]) < 0) {
+                        if (new_links_target_ids.indexOf(actual_link[interDestRefField.field_id]) < 0) {
 
-                        need_delete_links.push(actual_link);
-                        continue;
+                            need_delete_links.push(actual_link);
+                            continue;
+                        }
+
+                        new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link[interDestRefField.field_id]), 1);
                     }
 
-                    new_links_target_ids.splice(new_links_target_ids.indexOf(actual_link[interDestRefField.field_id]), 1);
-                }
+                    for (let j in new_links_target_ids) {
+                        let new_link_target_id = new_links_target_ids[j];
 
-                for (let j in new_links_target_ids) {
-                    let new_link_target_id = new_links_target_ids[j];
+                        let link_vo: IDistantVOBase = Object.assign({}, sample_vo);
 
-                    let link_vo: IDistantVOBase = Object.assign({}, sample_vo);
+                        link_vo[interDestRefField.field_id] = new_link_target_id;
 
-                    link_vo[interDestRefField.field_id] = new_link_target_id;
-
-                    need_add_links.push(link_vo);
+                        need_add_links.push(link_vo);
+                    }
                 }
 
                 if (need_add_links.length > 0) {
@@ -896,48 +725,8 @@ export default class CRUDComponent extends VueComponentBase {
         this.deleting_vo = false;
     }
 
-    private validateInput(input, field: DatatableField<any, any>, vo: IDistantVOBase) {
-        // - @input="(value, id) => validateInput({value:value, id:id}, field)",
-
-        if (field.required) {
-            if ((input.value == null) || (typeof input.value == "undefined")) {
-
-                switch (field.type) {
-                    case DatatableField.SIMPLE_FIELD_TYPE:
-                        switch ((field as SimpleDatatableField<any, any>).moduleTableField.field_type) {
-                            case ModuleTableField.FIELD_TYPE_boolean:
-                            case ModuleTableField.FIELD_TYPE_daterange:
-                            case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                            case ModuleTableField.FIELD_TYPE_numrange_array:
-                                // case ModuleTableField.FIELD_TYPE_daterange_array:
-                                break;
-
-                            default:
-                                input.setCustomValidity ? input.setCustomValidity(this.label(ModuleTableField.VALIDATION_CODE_TEXT_required)) : document.getElementById(input.id)['setCustomValidity'](this.label(ModuleTableField.VALIDATION_CODE_TEXT_required));
-                                return;
-                        }
-                        break;
-
-                    default:
-                        input.setCustomValidity ? input.setCustomValidity(this.label(ModuleTableField.VALIDATION_CODE_TEXT_required)) : document.getElementById(input.id)['setCustomValidity'](this.label(ModuleTableField.VALIDATION_CODE_TEXT_required));
-                        return;
-                }
-            }
-        }
-
-        if (!field.validate) {
-            return;
-        }
-
-        let error: string = field.validate(input.value);
-        let msg;
-
-        if ((!error) || (error == "")) {
-            msg = "";
-        } else {
-            msg = this.t(error);
-        }
-        input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
+    private validateInput(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
+        vo[field.datatable_field_uid] = value;
 
         if (this.crud && this.crud.isReadOnlyData) {
             this.is_only_readable = this.crud.isReadOnlyData(vo);
@@ -946,51 +735,17 @@ export default class CRUDComponent extends VueComponentBase {
         }
     }
 
-    private validateMultiInput(values: any[], field: DatatableField<any, any>, vo: string) {
-        this[vo][field.datatable_field_uid] = values;
+    private validateMultiInput(values: any[], field: DatatableField<any, any>, vo: IDistantVOBase) {
+        vo[field.datatable_field_uid] = values;
     }
 
-    private onChangeVO(vo: IDistantVOBase, datatable: Datatable<any>) {
-
-
-        for (let i in datatable.fields) {
-            let field: DatatableField<any, any> = datatable.fields[i];
-
-
-            if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
-
-                let manyToOneField: ManyToOneReferenceDatatableField<any> = (field as ManyToOneReferenceDatatableField<any>);
-                let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
-
-                if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
-                    options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
-                }
-
-                let newOptions: number[] = [];
-                for (let j in options) {
-                    let option = options[j];
-
-                    newOptions.push(option.id);
-                }
-                Vue.set(this.select_options, field.datatable_field_uid, newOptions);
-            }
-        }
+    private onChangeVO(vo: IDistantVOBase) {
 
         if (this.crud && this.crud.isReadOnlyData) {
             this.is_only_readable = this.crud.isReadOnlyData(vo);
         } else {
             this.is_only_readable = false;
         }
-    }
-
-    private onChangeField(vo: IDistantVOBase, datatable: Datatable<any>, field: DatatableField<any, any>) {
-
-        this.onChangeVO(vo, datatable);
-
-        if (!field.onChange) {
-            return;
-        }
-        field.onChange(vo);
     }
 
     /**
@@ -1037,5 +792,22 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         return callback;
+    }
+
+    get isModuleParamTable() {
+        return VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID] ?
+            VOsTypesManager.getInstance().moduleTables_by_voType[this.crud.readDatatable.API_TYPE_ID].isModuleParamTable : false;
+    }
+
+    get api_type_id(): string {
+        return this.crud.readDatatable.API_TYPE_ID;
+    }
+
+    get createDatatableFields(): Array<DatatableField<any, any>> {
+        if (this.crud && this.crud.createDatatable && this.crud.createDatatable.fields) {
+            return this.crud.createDatatable.fields;
+        }
+
+        return null;
     }
 }

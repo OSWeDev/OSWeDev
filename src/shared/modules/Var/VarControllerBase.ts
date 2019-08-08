@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/clonedeep';
+import * as clonedeep from 'lodash/cloneDeep';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';

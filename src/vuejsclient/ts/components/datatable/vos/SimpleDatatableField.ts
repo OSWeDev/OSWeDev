@@ -11,6 +11,7 @@ import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
+import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
@@ -138,8 +139,16 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_unix_timestamp:
                     return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(field_value);
 
-
                 default:
+
+                    for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                        let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+
+                        if (moduleTableField.field_type == tableFieldTypeController.name) {
+                            return tableFieldTypeController.defaultDataToReadIHM(field_value, moduleTableField, vo);
+                        }
+                    }
+
                     return field_value.toString();
             }
         } catch (error) {
@@ -257,6 +266,15 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment(value);
 
                 default:
+
+                    for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                        let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+
+                        if (moduleTableField.field_type == tableFieldTypeController.name) {
+                            return tableFieldTypeController.defaultReadIHMToData(value, moduleTableField, vo);
+                        }
+                    }
+
                     return value;
             }
         } catch (error) {
