@@ -177,7 +177,9 @@ export default class ModulePushDataServer extends ModuleServerBase {
         for (let userId_ in this.registeredSockets) {
             let userId = parseInt(userId_.toString());
 
-            promises.push(this.notifySimple(userId, msg_type, code_text));
+            promises.push((async () => {
+                await this.notifySimple(userId, msg_type, code_text);
+            })());
         }
         await Promise.all(promises);
     }

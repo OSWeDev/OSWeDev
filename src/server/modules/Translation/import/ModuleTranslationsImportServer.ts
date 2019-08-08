@@ -157,7 +157,9 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
 
                 if (overwrite && translation) {
                     translation.translated = data.translated;
-                    promises.push(ModuleDAO.getInstance().insertOrUpdateVO(translation));
+                    promises.push((async () => {
+                        await ModuleDAO.getInstance().insertOrUpdateVO(translation);
+                    })());
                     continue;
                 }
             }
@@ -182,7 +184,9 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
             new_translation.lang_id = lang.id;
             new_translation.text_id = translatable.id;
             new_translation.translated = data.translated;
-            promises.push(ModuleDAO.getInstance().insertOrUpdateVO(new_translation));
+            promises.push((async () => {
+                await ModuleDAO.getInstance().insertOrUpdateVO(new_translation);
+            })());
         }
 
         await Promise.all(promises);

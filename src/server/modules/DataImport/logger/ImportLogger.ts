@@ -38,7 +38,9 @@ export default class ImportLogger {
         log.api_type_id = historique.api_type_id;
 
         let promises: Array<Promise<any>> = [];
-        promises.push(ModuleDAO.getInstance().insertOrUpdateVOs([log]));
+        promises.push((async () => {
+            await ModuleDAO.getInstance().insertOrUpdateVOs([log]);
+        })());
         await Promise.all(promises);
     }
 }
