@@ -5,6 +5,7 @@ import ModulesManager from './ModulesManager';
 import ModuleTable from './ModuleTable';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
+import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';
 
 export default class ModuleTableField<T> {
 
@@ -298,8 +299,16 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_image_field:
-            default:
                 return db_type == 'text';
+
+            default:
+                for (let i in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                    let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[i];
+
+                    if (this.field_type == tableFieldTypeController.name) {
+                        return tableFieldTypeController.isAcceptableCurrentDBType(db_type);
+                    }
+                }
         }
     }
 
@@ -373,8 +382,16 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_image_field:
-            default:
                 return 'text';
+
+            default:
+                for (let i in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                    let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[i];
+
+                    if (this.field_type == tableFieldTypeController.name) {
+                        return tableFieldTypeController.getPGSqlFieldType();
+                    }
+                }
         }
     }
 
@@ -433,8 +450,16 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-            default:
                 return null;
+
+            default:
+                for (let i in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                    let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[i];
+
+                    if (this.field_type == tableFieldTypeController.name) {
+                        return tableFieldTypeController.defaultValidator(data, this);
+                    }
+                }
         }
     }
 

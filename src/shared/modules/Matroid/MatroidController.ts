@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/clonedeep';
+import * as clonedeep from 'lodash/cloneDeep';
 import FieldRangeHandler from '../../tools/FieldRangeHandler';
 import NumRangeHandler from '../../tools/NumRangeHandler';
 import TSRangeHandler from '../../tools/TSRangeHandler';
@@ -13,7 +13,6 @@ import MatroidBase from './vos/MatroidBase';
 import MatroidBaseCutResult from './vos/MatroidBaseCutResult';
 import MatroidCutResult from './vos/MatroidCutResult';
 import moment = require('moment');
-import RangeHandler from '../../tools/RangeHandler';
 
 export default class MatroidController {
 

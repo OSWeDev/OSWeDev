@@ -1,0 +1,22 @@
+.form-group
+    label {{ t(field.translatable_title) }}
+
+    .btn-group.link_ref
+        router-link.btn.btn-sm.btn-success(:to="getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
+            i.fa.fa-plus-circle
+
+    multiselect(
+        v-model="field_value",        
+        :custom-label="field.voIdToHumanReadable",        
+        :options="select_options",
+        :placeholder="t(field.translatable_place_holder)",
+        :loading="isLoadingOptions",
+        :id="field.datatable_field_uid",
+        :searchable="true",
+        :internal-search="false",
+        :allow-empty="true",
+        :preselectFirst="false",
+        @search-change="asyncLoadOptions",
+        @input="onChangeField",
+        :multiple="true"
+    )

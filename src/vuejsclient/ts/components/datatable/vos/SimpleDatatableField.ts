@@ -6,6 +6,7 @@ import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesN
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
@@ -136,6 +137,15 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
 
                 default:
+
+                    for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                        let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+
+                        if (moduleTableField.field_type == tableFieldTypeController.name) {
+                            return tableFieldTypeController.defaultDataToReadIHM(field_value, moduleTableField, vo);
+                        }
+                    }
+
                     return field_value.toString();
             }
         } catch (error) {
@@ -253,6 +263,15 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment(value);
 
                 default:
+
+                    for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
+                        let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
+
+                        if (moduleTableField.field_type == tableFieldTypeController.name) {
+                            return tableFieldTypeController.defaultReadIHMToData(value, moduleTableField, vo);
+                        }
+                    }
+
                     return value;
             }
         } catch (error) {

@@ -59,6 +59,7 @@ import ModuleTranslationsImportServer from './Translation/import/ModuleTranslati
 import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
 import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenance';
+import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
 
 export default abstract class ModuleServiceBase {
 
@@ -275,6 +276,7 @@ export default abstract class ModuleServiceBase {
             ModuleMailer.getInstance(),
             ModuleSASSSkinConfigurator.getInstance(),
             ModuleVar.getInstance(),
+            ModuleTableFieldTypes.getInstance(),
         ];
     }
 
@@ -308,7 +310,8 @@ export default abstract class ModuleServiceBase {
             ModuleVersioned.getInstance(),
             ModuleGeneratePDF.getInstance(),
             ModuleTranslationsImport.getInstance(),
-            ModuleMaintenance.getInstance()
+            ModuleMaintenance.getInstance(),
+            ModuleTableFieldTypes.getInstance(),
         ];
     }
 

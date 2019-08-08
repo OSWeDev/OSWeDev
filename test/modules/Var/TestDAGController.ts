@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/clonedeep';
+import * as clonedeep from 'lodash/cloneDeep';
 import 'mocha';
 import { expect } from 'chai';
 import VarsController from '../../../src/shared/modules/Var/VarsController';

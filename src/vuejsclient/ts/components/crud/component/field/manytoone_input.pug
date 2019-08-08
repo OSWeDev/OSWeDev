@@ -1,0 +1,26 @@
+.form-group
+    label {{ t(field.translatable_title) }}
+        template(v-if="field.is_required")
+            i.fa.fa-asterisk.mandatory
+
+    .btn-group.link_ref.hidden-print
+        template(v-if="field_value")
+            a.btn.btn-sm.btn-primary(:href="'/admin#' + getCRUDUpdateLink(field.targetModuleTable.vo_type, field_value)" target='_blank')
+                i.fa.fa-pencil
+        a.btn.btn-sm.btn-success(:href="'/admin#' + getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
+            i.fa.fa-plus-circle
+
+    multiselect(
+        v-model="field_value",
+        :custom-label="field.voIdToHumanReadable",
+        :options="select_options",
+        :placeholder="t(field.translatable_place_holder)",
+        :loading="isLoadingOptions",
+        :id="field.datatable_field_uid",
+        :searchable="true",
+        :internal-search="false",
+        :allow-empty="!field.is_required",
+        :preselectFirst="field.is_required",
+        @search-change="asyncLoadOptions",
+        @input="onChangeField"
+    )
