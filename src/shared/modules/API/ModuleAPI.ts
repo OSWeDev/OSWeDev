@@ -86,35 +86,52 @@ export default class ModuleAPI extends Module {
 
             let api_res = null;
 
-            if (apiDefinition.api_type == APIDefinition.API_TYPE_GET) {
+            switch (apiDefinition.api_type) {
+                case APIDefinition.API_TYPE_GET:
 
-                let url_param: string =
-                    apiDefinition.PARAM_TRANSLATE_TO_URL ? await apiDefinition.PARAM_TRANSLATE_TO_URL(translated_param) :
-                        (translated_param ? translated_param.toString() : "");
+                    let url_param: string =
+                        apiDefinition.PARAM_TRANSLATE_TO_URL ? await apiDefinition.PARAM_TRANSLATE_TO_URL(translated_param) :
+                            (translated_param ? translated_param.toString() : "");
 
-                api_res = await ModuleAjaxCache.getInstance().get(
-                    (ModuleAPI.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
-                    API_TYPES_IDS_involved) as U;
-            } else {
+                    api_res = await ModuleAjaxCache.getInstance().get(
+                        (ModuleAPI.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
+                        API_TYPES_IDS_involved) as U;
+                    break;
 
-                if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
+                case APIDefinition.API_TYPE_POST_FOR_GET:
 
-                    let filePath: string = await ModuleAjaxCache.getInstance().post(
+                    api_res = await ModuleAjaxCache.getInstance().get(
                         (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
                         ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
-                        null) as string;
+                        null,
+                        'application/json; charset=utf-8',
+                        null,
+                        null,
+                        true) as U;
+                    break;
 
-                    let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
-                    $('body').append(iframe);
-                    return;
-                } else {
-                    api_res = await ModuleAjaxCache.getInstance().post(
-                        (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
-                        API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
-                        null) as U;
-                }
+                case APIDefinition.API_TYPE_POST:
+                    if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
+
+                        let filePath: string = await ModuleAjaxCache.getInstance().post(
+                            (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
+                            API_TYPES_IDS_involved,
+                            ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
+                            null) as string;
+
+                        let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
+                        $('body').append(iframe);
+                        return;
+                    } else {
+                        api_res = await ModuleAjaxCache.getInstance().post(
+                            (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
+                            API_TYPES_IDS_involved,
+                            ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
+                            null) as U;
+                    }
+                    break;
+
             }
 
             // On tente de traduire si on reconnait un type de vo
@@ -141,6 +158,9 @@ export default class ModuleAPI extends Module {
 
         // Gestion des paramètres optionnels
         pattern = pattern.replace(/([/]:[^:\/?]+[?])/ig, '(/[^/]*)?');
+
+        // Par contre on doit bien avoir un truc complet donc on ajoute les indices de début et fin
+        pattern = '^' + pattern + '$';
 
         return new RegExp(pattern, "ig").test(requestUrl);
     }

@@ -6,7 +6,6 @@ import * as createLocaleMiddleware from 'express-locale';
 import * as expressSession from 'express-session';
 import * as sharedsession from 'express-socket.io-session';
 import * as fs from 'fs';
-import * as jwt from 'jsonwebtoken';
 import * as path from 'path';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
@@ -29,12 +28,13 @@ import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModuleCronServer from './modules/Cron/ModuleCronServer';
+import ModuleFileServer from './modules/File/ModuleFileServer';
+import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServer';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import ModuleFileServer from './modules/File/ModuleFileServer';
-import ModuleMaintenance from '../shared/modules/Maintenance/ModuleMaintenance';
-import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServer';
+
+require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
 

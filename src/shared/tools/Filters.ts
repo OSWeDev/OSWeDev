@@ -184,8 +184,12 @@ export let amountFilter = new FilterObj(
     }
 );
 
+/**
+ * @param evol_from_prct Renvoie 2,2% au lieu de 102.2% pour indiquer une évolution plutôt qu'un rapport simple entre 2 éléments par exemple
+ * @param explicit_sign Renvoie +2,2% au lieu de 2,2% pour indiquer le signe de façon explicit même quand il est positif
+ */
 export let percentFilter = new FilterObj(
-    function (value: number, fractionalDigits: number, pts: boolean = false) {
+    function (value: number, fractionalDigits: number, pts: boolean = false, explicit_sign: boolean = false, evol_from_prct: boolean = false) {
         if (value == undefined) {
             return value;
         }
@@ -203,7 +207,15 @@ export let percentFilter = new FilterObj(
             return null;
         }
 
-        return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits) + " " + pourcentage;
+        let res = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits) + " " + pourcentage;
+
+        if (explicit_sign) {
+            if (value > 0) {
+                res = '+' + res;
+            }
+        }
+
+        return res;
     },
     function (value) {
         let result = value

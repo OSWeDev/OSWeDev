@@ -49,7 +49,7 @@ export default class ModuleTableField<T> {
     // public static FIELD_TYPE_timestamp_with_time_zone: string = 'timestamp with time zone';
     public static FIELD_TYPE_day: string = 'day';
     public static FIELD_TYPE_timewithouttimezone: string = 'timewithouttimezone';
-    public static FIELD_TYPE_unix_timestamp: string = 'unix_timestamp';
+    // public static FIELD_TYPE_unix_timestamp: string = 'unix_timestamp'; remplacé par le tstz
     public static FIELD_TYPE_month: string = 'month';
 
     public field_value: T;
@@ -240,7 +240,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_foreign_key:
                 return (db_type == "int8") || (db_type == "bigint") || (db_type == "integer");
 
-            case ModuleTableField.FIELD_TYPE_unix_timestamp:
+            case ModuleTableField.FIELD_TYPE_tstz:
                 return (db_type == "int8") || (db_type == "bigint");
 
             case ModuleTableField.FIELD_TYPE_amount:
@@ -281,9 +281,6 @@ export default class ModuleTableField<T> {
             //     return db_type == "daterange[]";
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                 return db_type == "numrange[]";
-
-            case ModuleTableField.FIELD_TYPE_tstz:
-                return db_type == 'bigint';
 
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return db_type == "tsrange";
@@ -328,7 +325,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_image_ref:
             case ModuleTableField.FIELD_TYPE_foreign_key:
-            case ModuleTableField.FIELD_TYPE_unix_timestamp:
+            case ModuleTableField.FIELD_TYPE_tstz:
                 return "bigint";
 
             case ModuleTableField.FIELD_TYPE_string_array:
@@ -367,9 +364,6 @@ export default class ModuleTableField<T> {
             //     return "daterange[]";
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                 return "numrange[]";
-
-            case ModuleTableField.FIELD_TYPE_tstz:
-                return 'bigint';
 
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return "tsrange";
@@ -417,17 +411,17 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_password:
                 return this.passwordIsValidProposition(data);
 
-            case ModuleTableField.FIELD_TYPE_unix_timestamp:
-                if (data == null || data == "") {
-                    return null;
-                }
+            // case ModuleTableField.FIELD_TYPE_unix_timestamp:
+            //     if (data == null || data == "") {
+            //         return null;
+            //     }
 
-                // DIRTY : Pour éviter une dep circulaire de modules, on utilise le nom du module pour le retrouver
-                if (ModulesManager.getInstance().getModuleByNameAndRole('format_dates_nombres', Module.SharedModuleRoleName)['formatYYYYMMDD_HHmmss_to_Moment'](data) != null) {
-                    return null;
-                }
+            //     // DIRTY : Pour éviter une dep circulaire de modules, on utilise le nom du module pour le retrouver
+            //     if (ModulesManager.getInstance().getModuleByNameAndRole('format_dates_nombres', Module.SharedModuleRoleName)['formatYYYYMMDD_HHmmss_to_Moment'](data) != null) {
+            //         return null;
+            //     }
 
-                return ModuleTableField.VALIDATION_CODE_TEXT_format_unix_timestamp_invalid;
+            //     return ModuleTableField.VALIDATION_CODE_TEXT_format_unix_timestamp_invalid;
 
             case ModuleTableField.FIELD_TYPE_image_field:
             case ModuleTableField.FIELD_TYPE_image_ref:

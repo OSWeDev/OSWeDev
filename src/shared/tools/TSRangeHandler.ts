@@ -426,10 +426,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         let range_min_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.min, segment_type);
         let range_min_moment: Moment = moment(range_min_ts.dateIndex);
 
-        if (range_min_moment.isBefore(range.min)) {
-            range_min_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_min_ts, segment_type, -1);
-            range_min_moment = moment(range_min_ts.dateIndex);
-        }
+        // if (range_min_moment.isBefore(range.min)) {
+        //     range_min_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_min_ts, segment_type, -1);
+        //     range_min_moment = moment(range_min_ts.dateIndex);
+        // }
 
         if (range_min_moment.isAfter(range.max)) {
             return null;
@@ -439,21 +439,21 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return null;
         }
 
-        if (range.min_inclusiv) {
-            return range_min_moment;
-        }
+        // if (range.min_inclusiv) {
+        //     return range_min_moment;
+        // }
 
-        if (range_min_moment.isAfter(range.min)) {
-            return range_min_moment;
-        }
+        // if (range_min_moment.isAfter(range.min)) {
+        //     return range_min_moment;
+        // }
 
-        range_min_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_min_ts, segment_type, -1);
+        // range_min_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_min_ts, segment_type, -1);
 
-        if (((!range.max_inclusiv) && (range.max.isSame(moment(range_min_ts.dateIndex))) || (range.max.isBefore(moment(range_min_ts.dateIndex))))) {
-            return null;
-        }
+        // if (((!range.max_inclusiv) && (range.max.isSame(moment(range_min_ts.dateIndex))) || (range.max.isBefore(moment(range_min_ts.dateIndex))))) {
+        //     return null;
+        // }
 
-        return moment(range_min_ts.dateIndex);
+        return range_min_moment; //moment(range_min_ts.dateIndex);
     }
 
     /**
@@ -470,30 +470,22 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
         let range_max_moment: Moment = moment(range_max_ts.dateIndex);
 
+        if ((!range.max_inclusiv) && (range_max_moment.isSame(range.max))) {
+            range_max_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_max_ts, segment_type);
+            range_max_moment = moment(range_max_ts.dateIndex);
+        }
 
-        if (range_max_moment.isBefore(range.min)) {
+        let range_max_end_moment: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
+
+        if (range_max_end_moment.isBefore(range.min)) {
             return null;
         }
 
-        if ((!range.min_inclusiv) && (range_max_moment.isSameOrBefore(range.min))) {
+        if ((!range.min_inclusiv) && (range_max_end_moment.isSameOrBefore(range.min))) {
             return null;
         }
 
-        if (range.max_inclusiv) {
-            return range_max_moment;
-        }
-
-        if (range_max_moment.isBefore(range.max)) {
-            return range_max_moment;
-        }
-
-        range_max_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_max_ts, segment_type);
-
-        if (((!range.min_inclusiv) && (range.min.isSame(moment(range_max_ts.dateIndex))) || (range.min.isAfter(moment(range_max_ts.dateIndex))))) {
-            return null;
-        }
-
-        return moment(range_max_ts.dateIndex);
+        return range_max_moment;
     }
 
 

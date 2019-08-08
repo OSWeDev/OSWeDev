@@ -316,6 +316,10 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     get var_data(): IVarDataVOBase {
 
+        if (!this.entered_once) {
+            return null;
+        }
+
         if ((!this.getVarDatas) || (!this.var_param)) {
             return null;
         }
@@ -328,22 +332,27 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     private intersect_in() {
-        this.register();
         this.entered_once = true;
+        this.register();
     }
 
     private intersect_out() {
-        if (!this.entered_once) {
-            return;
-        }
         this.unregister();
     }
 
     private register(var_param: IVarDataParamVOBase = null) {
+        if (!this.entered_once) {
+            return;
+        }
+
         VarsController.getInstance().registerDataParam(var_param ? var_param : this.var_param, this.reload_on_mount);
     }
 
     private unregister(var_param: IVarDataParamVOBase = null) {
+        if (!this.entered_once) {
+            return;
+        }
+
         VarsController.getInstance().unregisterDataParam(var_param ? var_param : this.var_param);
     }
 

@@ -18,6 +18,13 @@ export default class DateHandler {
     private constructor() {
     }
 
+    public getUnixForBDD(date: Moment): number {
+        if ((date == null) || (typeof date == 'undefined')) {
+            return null;
+        }
+        return date.unix();
+    }
+
     public formatDateTimeForAPI(date: Moment): string {
         if ((date == null) || (typeof date == 'undefined')) {
             return null;

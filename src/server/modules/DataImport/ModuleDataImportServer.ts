@@ -128,6 +128,23 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID.bind(this));
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricProgression.bind(this));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Ré-importation planifiée'
+        }, 'imports.reimport.planified.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler'
+        }, 'import.format.modal.cancel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Continuer'
+        }, 'import.format.modal.continue.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lignes KO'
+        }, 'import.format.modal.nb_unvalidated_format_elements.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lignes OK'
+        }, 'import.format.modal.nb_validated_format_elements.___LABEL___'));
+
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Format d\'import'

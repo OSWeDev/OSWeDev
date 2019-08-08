@@ -1,19 +1,19 @@
-import * as debounce from 'lodash/debounce';
-import Module from '../Module';
-import * as moment from 'moment';
 // if false
 // FIXME RIEN A FAIRE ICI
 import * as $ from 'jquery';
-// endif
-import RequestsCacheVO from './vos/RequestsCacheVO';
-import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
-import CacheInvalidationRegexpRuleVO from './vos/CacheInvalidationRegexpRuleVO';
-import CacheInvalidationRulesVO from './vos/CacheInvalidationRulesVO';
+import * as debounce from 'lodash/debounce';
+import * as moment from 'moment';
 import { Duration } from 'moment';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import RequestsWrapperResult from './vos/RequestsWrapperResult';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import Module from '../Module';
+import CacheInvalidationRegexpRuleVO from './vos/CacheInvalidationRegexpRuleVO';
+import CacheInvalidationRulesVO from './vos/CacheInvalidationRulesVO';
+import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
+// endif
+import RequestsCacheVO from './vos/RequestsCacheVO';
+import RequestsWrapperResult from './vos/RequestsWrapperResult';
 
 export default class ModuleAjaxCache extends Module {
 
@@ -55,6 +55,14 @@ export default class ModuleAjaxCache extends Module {
         this.forceActivationOnInstallation();
     }
 
+    public getIndex(url: string, postdatas: any): string {
+        try {
+            return url + (postdatas ? '###___###' + JSON.stringify(postdatas) : '');
+        } catch (error) {
+            console.error('Index impossible à créer:' + url + ':' + postdatas + ':' + error + ':');
+        }
+    }
+
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<RequestResponseCacheVO[], RequestsWrapperResult>(
             ModuleAjaxCache.APINAME_REQUESTS_WRAPPER,
@@ -62,16 +70,36 @@ export default class ModuleAjaxCache extends Module {
         ));
     }
 
-    public async get(url: string, api_types_involved: string[]) {
+    /**
+     *
+     * @param url
+     * @param api_types_involved
+     * @param postdatas USE ONLY : si post for get
+     * @param dataType USE ONLY : si post for get
+     * @param contentType USE ONLY : si post for get
+     * @param processData USE ONLY : si post for get
+     * @param timeout USE ONLY : si post for get
+     * @param post_for_get USE ONLY : si post for get
+     */
+    public async get(
+        url: string,
+        api_types_involved: string[],
+        postdatas = null,
+        dataType: string = 'json',
+        contentType: string = 'application/json; charset=utf-8',
+        processData = null,
+        timeout: number = null,
+        post_for_get: boolean = false) {
 
         let self = this;
 
         return new Promise((resolve, reject) => {
 
             // If in cache
-            if (self.cache.requestResponseCaches[url]) {
+            let index = this.getIndex(url, postdatas);
+            if (self.cache.requestResponseCaches[index]) {
 
-                let cache: RequestResponseCacheVO = self.cache.requestResponseCaches[url];
+                let cache: RequestResponseCacheVO = self.cache.requestResponseCaches[index];
                 // Un contrôle de cohérence possible : le api_types_involved doit contenir l'union de toutes les fois où on utilise ce cache
 
                 // If resolved / rejected
@@ -97,33 +125,67 @@ export default class ModuleAjaxCache extends Module {
                     self.addToWaitingRequestsStack(cache);
                 }
             } else {
-                let cache = self.addCache(url, api_types_involved, resolve, reject);
+                let cache = self.addCache(
+                    url,
+                    postdatas,
+                    dataType,
+                    contentType,
+                    processData,
+                    timeout,
+                    api_types_involved,
+                    resolve,
+                    reject,
+                    post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
                 self.addToWaitingRequestsStack(cache);
             }
         });
     }
 
+    /**
+     *
+     * @param url URL de l'api
+     * @param api_types_involved Les api_types_ids que l'on doit invalider dans le cache puisque modifiés par le post
+     * @param postdatas
+     * @param dataType
+     * @param contentType
+     * @param processData
+     * @param timeout
+     * @param post_for_get True indique qu'on invalide rien et qu'on fait juste la requête
+     */
     public post(
         url: string, api_types_involved: string[], postdatas = null, dataType: string = 'json',
-        contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null) {
+        contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false) {
 
         let self = this;
 
         let res = new Promise((resolve, reject) => {
 
             // On ajoute le système de catch code retour pour les POST aussi
-            let cache = self.addCache(url, api_types_involved, resolve, reject);
-            // On invalide le cache directement
-            self.invalidateCachedItem(cache);
+            let cache = self.addCache(
+                url,
+                postdatas,
+                dataType,
+                contentType,
+                processData,
+                timeout,
+                api_types_involved,
+                resolve,
+                reject,
+                post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_POST);
 
-            self.invalidateCachesFromApiTypesInvolved(api_types_involved);
+            if (!post_for_get) {
+                // On invalide le cache directement
+                self.invalidateCachedItem(cache);
+
+                self.invalidateCachesFromApiTypesInvolved(api_types_involved);
+            }
 
             let options: any = {
                 type: "POST",
                 url: url
             };
-            if ((typeof postdatas != 'undefined') && (postdatas != null)) {
-                options.data = postdatas;
+            if ((typeof cache.postdatas != 'undefined') && (cache.postdatas != null)) {
+                options.data = cache.postdatas;
             }
             if (contentType == null) {
                 options.contentType = false;
@@ -133,16 +195,18 @@ export default class ModuleAjaxCache extends Module {
             if (dataType != null) {
                 options.dataType = dataType;
             }
-            if (processData != null) {
-                options.processData = processData;
+            if (cache.processData != null) {
+                options.cache.processData = cache.processData;
             }
-            if (timeout != null) {
-                options.timeout = timeout;
+            if (cache.timeout != null) {
+                options.cache.timeout = cache.timeout;
             }
+            self.addCallback(cache, resolve, reject);
+
             if ($.ajax) {
                 return $.ajax(options)
                     .done((r) => {
-                        resolve(r);
+                        self.resolve_request(cache, r);
                     })
                     .fail((err) => {
                         self.traitementFailRequest(err, cache);
@@ -150,7 +214,7 @@ export default class ModuleAjaxCache extends Module {
                         console.log("post failed :" + url + ":" + postdatas + ":" + err);
                     });
             } else {
-                resolve(null);
+                self.resolve_request(cache, null);
             }
         });
 
@@ -217,20 +281,34 @@ export default class ModuleAjaxCache extends Module {
     // Type de gestion des requetes :
     //  - requete : string
 
-    private addCache(url: string, api_types_involved: string[], resolve: (datas) => void, reject: (datas) => void) {
-        if (!this.cache.requestResponseCaches[url]) {
-            this.cache.requestResponseCaches[url] = new RequestResponseCacheVO(url, api_types_involved);
-            this.cache.requestResponseCaches[url].resolve_callbacks.push(resolve);
-            this.cache.requestResponseCaches[url].reject_callbacks.push(reject);
+    private addCache(
+        url: string,
+        postdatas: any,
+        dataType: string,
+        contentType: string,
+        processData,
+        timeout: number,
+        api_types_involved: string[], resolve: (datas) => void, reject: (datas) => void, type: number = RequestResponseCacheVO.API_TYPE_GET) {
+
+        let index = this.getIndex(url, postdatas);
+        if (!this.cache.requestResponseCaches[index]) {
+            this.cache.requestResponseCaches[index] = new RequestResponseCacheVO(url, api_types_involved, type);
+            this.cache.requestResponseCaches[index].postdatas = postdatas;
+            this.cache.requestResponseCaches[index].dataType = dataType;
+            this.cache.requestResponseCaches[index].contentType = contentType;
+            this.cache.requestResponseCaches[index].processData = processData;
+            this.cache.requestResponseCaches[index].timeout = timeout;
+            this.cache.requestResponseCaches[index].resolve_callbacks.push(resolve);
+            this.cache.requestResponseCaches[index].reject_callbacks.push(reject);
 
             // On indique si on peut stacker ou pas
-            //  pour l'instant on essaie de stacker tout ce qui part vers les apis
-            if (url.match(/^\/api_handler\/.*/ig)) {
-                this.cache.requestResponseCaches[url].wrappable_request = true;
+            //  pour l'instant on essaie de stacker tout ce qui part vers les apis sauf les post
+            if (url.match(/^\/api_handler\/.*/ig) && (type != RequestResponseCacheVO.API_TYPE_POST)) {
+                this.cache.requestResponseCaches[index].wrappable_request = true;
             }
         }
 
-        return this.cache.requestResponseCaches[url];
+        return this.cache.requestResponseCaches[index];
     }
 
     private addCallback(cache: RequestResponseCacheVO, resolve: (datas) => void, reject: (datas) => void) {
@@ -307,7 +385,7 @@ export default class ModuleAjaxCache extends Module {
 
         if (401 == err.status) {
             (window as any).location.replace('/login');
-        } else if (((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) && (request.tries < 3)) {
+        } else if (((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) && (request.tries < 3) && (request.type != RequestResponseCacheVO.API_TYPE_POST)) {
             request.tries += 1;
             setTimeout(() => {
                 self.addToWaitingRequestsStack(request);
@@ -415,11 +493,13 @@ export default class ModuleAjaxCache extends Module {
                     for (let i in requests) {
                         let wrapped_request = requests[i];
 
-                        if ((!wrapped_request.url) || (typeof results.requests_results[wrapped_request.url] === 'undefined')) {
+                        let index = this.getIndex(wrapped_request.url, wrapped_request.postdatas);
+
+                        if ((!wrapped_request.url) || (typeof results.requests_results[index] === 'undefined')) {
                             throw new Error('Pas de résultat pour la requête :' + wrapped_request.url + ":");
                         }
 
-                        self.resolve_request(wrapped_request, results.requests_results[wrapped_request.url]);
+                        self.resolve_request(wrapped_request, results.requests_results[index]);
                     }
                 } catch (error) {
                     // Si ça échoue, on utilise juste le système normal de requêtage individuel.
@@ -435,25 +515,41 @@ export default class ModuleAjaxCache extends Module {
         if (self.waitingForRequest && (self.waitingForRequest.length > 0)) {
             let request: RequestResponseCacheVO = self.waitingForRequest.shift();
 
-            // TODO fixme en cas d'erreur les post renvoient des GET ... pas valide...
-            if ($.ajaxSetup) {
-                $.ajaxSetup({
-                    timeout: 30000
-                }); // in milliseconds
-            }
+            switch (request.type) {
+                case RequestResponseCacheVO.API_TYPE_GET:
+                    if ($.ajaxSetup) {
+                        $.ajaxSetup({
+                            timeout: 30000
+                        }); // in milliseconds
+                    }
 
-            if ($.get) {
-                $.get(
-                    request.url,
-                    (datas) => {
-                        self.resolve_request(request, datas);
-                    })
-                    .fail((err) => {
-                        self.traitementFailRequest(err, request);
-                    });
-            } else {
-                let resolve_callback = request.resolve_callbacks.shift();
-                resolve_callback(null);
+                    if ($.get) {
+                        $.get(
+                            request.url,
+                            (datas) => {
+                                self.resolve_request(request, datas);
+                            })
+                            .fail((err) => {
+                                self.traitementFailRequest(err, request);
+                            });
+                    } else {
+                        let resolve_callback = request.resolve_callbacks.shift();
+                        resolve_callback(null);
+                    }
+                    break;
+
+                case RequestResponseCacheVO.API_TYPE_POST:
+                    console.error('Should never happen :processRequests:TYPE == POST:');
+                    break;
+
+                case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
+                    let res = await this.post(
+                        request.url, request.api_types_involved, request.postdatas,
+                        request.dataType, request.contentType, request.processData, request.timeout,
+                        request.type == RequestResponseCacheVO.API_TYPE_POST_FOR_GET);
+
+                    this.resolve_request(request, res);
+                    break;
             }
         }
 
@@ -466,10 +562,13 @@ export default class ModuleAjaxCache extends Module {
         // }), self.timerProcessRequests);
     }
 
-    private resolve_request(request, datas) {
-        request.datas = datas;
-        request.datasDate = moment();
-        request.state = RequestResponseCacheVO.STATE_RESOLVED;
+    private resolve_request(request: RequestResponseCacheVO, datas) {
+
+        if (request.type != RequestResponseCacheVO.API_TYPE_POST) {
+            request.datas = datas;
+            request.datasDate = moment();
+            request.state = RequestResponseCacheVO.STATE_RESOLVED;
+        }
 
         while (request.resolve_callbacks && request.resolve_callbacks.length) {
             let resolve_callback = request.resolve_callbacks.shift();

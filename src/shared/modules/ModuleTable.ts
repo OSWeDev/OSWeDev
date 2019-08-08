@@ -2,14 +2,14 @@ import * as clonedeep from 'lodash/cloneDeep';
 import * as moment from 'moment';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
+import NumRangeHandler from '../tools/NumRangeHandler';
+import TSRangeHandler from '../tools/TSRangeHandler';
 import IDistantVOBase from './IDistantVOBase';
 import Module from './Module';
-import { default as ModuleDBField, default as ModuleTableField } from './ModuleTableField';
+import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
-import NumRangeHandler from '../tools/NumRangeHandler';
-import TSRangeHandler from '../tools/TSRangeHandler';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -64,7 +64,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public hook_datatable_install: (db) => {} = null;
 
     public module: Module;
-    public fields: Array<ModuleDBField<any>>;
+    public fields: Array<ModuleTableField<any>>;
     public suffix: string;
     public prefix: string;
     public database: string;
@@ -95,7 +95,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         tmp_module: Module,
         tmp_vo_type: string,
         voConstructor: () => T,
-        tmp_fields: Array<ModuleDBField<any>>,
+        tmp_fields: Array<ModuleTableField<any>>,
         default_label_field: ModuleTableField<any>,
         label: string | DefaultTranslation = null
     ) {
@@ -139,6 +139,22 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
+    }
+
+    get sortedFields(): Array<ModuleTableField<any>> {
+        let res: Array<ModuleTableField<any>> = Array.from(this.fields);
+
+        res.sort((a: ModuleTableField<any>, b: ModuleTableField<any>) => {
+            if (a.field_id < b.field_id) {
+                return -1;
+            }
+            if (a.field_id > b.field_id) {
+                return 1;
+            }
+            return 0;
+        });
+
+        return res;
     }
 
     public addAlias(api_type_id_alias: string): ModuleTable<any> {
@@ -289,8 +305,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         let res: { [field_id: string]: string } = {};
         let n = 0;
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let i in this.sortedFields) {
+            let field = this.sortedFields[i];
 
             res[field.field_id] = ModuleTable.OFFUSC_IDs[n];
             n++;
@@ -306,8 +322,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         let res: { [api_id: string]: string } = {};
         let n = 0;
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let i in this.sortedFields) {
+            let field = this.sortedFields[i];
 
             res[ModuleTable.OFFUSC_IDs[n]] = field.field_id;
             n++;
@@ -346,12 +362,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             switch (field.field_type) {
 
-                case ModuleTableField.FIELD_TYPE_unix_timestamp:
-
-                    let field_as_moment: moment.Moment = e[field.field_id] as moment.Moment;
-                    res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
-                    break;
-
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                     res[new_id] = NumRangeHandler.getInstance().translate_to_api(e[field.field_id]);
                     break;
@@ -361,7 +371,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    res[new_id] = e[field.field_id] ? e[field.field_id].unix() : null;
+                    let field_as_moment: moment.Moment = e[field.field_id] as moment.Moment;
+                    res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     break;
 
                 default:
@@ -400,11 +411,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
             let old_id = fieldIdToAPIMap[field.field_id];
 
             switch (field.field_type) {
-
-                case ModuleTableField.FIELD_TYPE_unix_timestamp:
-
-                    res[field.field_id] = moment(e[old_id]);
-                    break;
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                     res[field.field_id] = NumRangeHandler.getInstance().translate_from_api(e[old_id]);
@@ -448,7 +454,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             switch (field.field_type) {
 
-                case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                case ModuleTableField.FIELD_TYPE_tstz:
 
                     let field_as_moment: moment.Moment = res[field.field_id] as moment.Moment;
                     res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
@@ -460,10 +466,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     res[field.field_id] = TSRangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
-                    break;
-
-                case ModuleTableField.FIELD_TYPE_tstz:
-                    res[field.field_id] = res[field.field_id] ? res[field.field_id].unix() : null;
                     break;
 
                 default:
@@ -519,19 +521,15 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 e[field.field_id] = TSRangeHandler.getInstance().translate_from_bdd(e[field.field_id]);
             }
 
-            if (field.field_type == ModuleTableField.FIELD_TYPE_tstz) {
-                e[field.field_id] = e[field.field_id] ? moment(parseInt(e[field.field_id]) * 1000) : null;
-            }
-
             if ((field.field_type == ModuleTableField.FIELD_TYPE_day) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_date) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_month)) {
                 e[field.field_id] = (e[field.field_id]) ? DateHandler.getInstance().formatDayForIndex(moment(e[field.field_id])) : e[field.field_id];
             }
 
-            if (field.field_type == ModuleTableField.FIELD_TYPE_unix_timestamp) {
+            if (field.field_type == ModuleTableField.FIELD_TYPE_tstz) {
                 try {
-                    e[field.field_id] = (e[field.field_id] && moment(parseInt(e[field.field_id])).isValid()) ? moment(parseInt(e[field.field_id])) : e[field.field_id];
+                    e[field.field_id] = (e[field.field_id] && moment(parseInt(e[field.field_id]) * 1000).isValid()) ? moment(parseInt(e[field.field_id]) * 1000) : e[field.field_id];
                 } catch (error) {
                     e[field.field_id] = e[field.field_id];
                 }

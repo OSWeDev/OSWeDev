@@ -46,6 +46,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Traductions'
+        }, 'TranslationsImportDefaultFormatLabels.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Traductions'
         }, 'menu.menuelements.__i__import_translation.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Traductions'

@@ -1,17 +1,17 @@
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import DatatableField from './DatatableField';
-import VueComponentBase from '../../VueComponentBase';
-import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import DateHandler from '../../../../../shared/tools/DateHandler';
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import LocaleManager from '../../../../../shared/tools/LocaleManager';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
+import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
+import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import ModuleTable from '../../../../../shared/modules/ModuleTable';
+import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
+import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import DateHandler from '../../../../../shared/tools/DateHandler';
+import LocaleManager from '../../../../../shared/tools/LocaleManager';
+import VueComponentBase from '../../VueComponentBase';
+import DatatableField from './DatatableField';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
@@ -34,9 +34,6 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_enum:
                     return LocaleManager.getInstance().i18n.t(moduleTableField.enum_values[field_value]);
-
-                case ModuleTableField.FIELD_TYPE_tstz:
-                    return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
@@ -136,8 +133,8 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                     return field_value;
 
-                case ModuleTableField.FIELD_TYPE_unix_timestamp:
-                    return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(field_value);
+                case ModuleTableField.FIELD_TYPE_tstz:
+                    return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
 
                 default:
 
@@ -262,7 +259,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_string_array:
                     return '{' + value.join() + '}';
 
-                case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                case ModuleTableField.FIELD_TYPE_tstz:
                     return ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment(value);
 
                 default:

@@ -5,6 +5,13 @@ import NumRange from '../modules/DataRender/vos/NumRange';
 
 export default abstract class RangeHandler<T> {
 
+    public static isValid<T>(range: IRange<T>): boolean {
+        if ((!range) || (range.min == null) || (range.max == null) || (typeof range.min == 'undefined') || (typeof range.max == 'undefined') || (typeof range.min_inclusiv == 'undefined') || (typeof range.max_inclusiv == 'undefined')) {
+            return false;
+        }
+        return true;
+    }
+
     protected static RANGE_MATCHER = /(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
 
     protected constructor() { }
@@ -400,6 +407,47 @@ export default abstract class RangeHandler<T> {
 
     public abstract parseRange<U extends IRange<T>>(rangeLiteral: string): U;
 
+    public getIndex(range: IRange<T>): string {
+
+        if ((!range) || (!RangeHandler.isValid(range))) {
+            return null;
+        }
+
+        let res: string = "";
+
+        res += (range.min_inclusiv ? '[' : '(');
+        res += this.getFormattedMinForAPI(range);
+        res += ',';
+        res += this.getFormattedMaxForAPI(range);
+        res += (range.max_inclusiv ? ']' : ')');
+
+        return res;
+    }
+
+    public getIndexRanges(ranges: Array<IRange<T>>): string {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let res: string = "[";
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            let range_index = this.getIndex(range);
+
+            if (!range_index) {
+                return null;
+            }
+
+            res += (res == '[' ? '' : ',');
+            res += range_index;
+        }
+
+        return res;
+    }
+
     public getFormattedMinForAPI(range: IRange<T>): string {
         if (!range) {
             return null;
@@ -713,6 +761,54 @@ export default abstract class RangeHandler<T> {
 
     public abstract get_range_shifted_by_x_segments(range: IRange<T>, shift_value: number, shift_segment_type: number): IRange<T>;
 
+    public is_same(a: IRange<T>, b: IRange<T>): boolean {
+        if ((!a) || (!b)) {
+            return false;
+        }
+
+        if ((a.min != b.min) || (a.min_inclusiv != b.min_inclusiv)) {
+            return false;
+        }
+
+        if ((a.max != b.max) || (a.max_inclusiv != b.max_inclusiv)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public are_same(as: Array<IRange<T>>, bs: Array<IRange<T>>): boolean {
+        if ((!as) || (!bs)) {
+            return false;
+        }
+
+        if (as.length != bs.length) {
+            return false;
+        }
+
+        for (let i in as) {
+
+            let a = as[i];
+
+            let found: boolean = false;
+            for (let j in bs) {
+
+                let b = bs[j];
+
+                if (this.is_same(a, b)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     protected parseRangeSegment(whole, quoted) {
         if (quoted) {
             return quoted.replace(/\\(.)/g, "$1");
@@ -722,7 +818,6 @@ export default abstract class RangeHandler<T> {
         }
         return whole;
     }
-
 
 }
 

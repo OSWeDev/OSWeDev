@@ -86,7 +86,12 @@ export default class VarPieChartComponent extends VueComponentBase {
     private get_filtered_value(var_data: ISimpleNumberVarData) {
 
         if (!var_data) {
-            return null;
+            return 0;
+        }
+
+        // On peut pas avoir des valeurs null pour les graphs, on change en 0
+        if (var_data.value == null) {
+            return 0;
         }
 
         if (!this.filter) {

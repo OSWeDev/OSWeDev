@@ -299,7 +299,7 @@ export default class FieldRangeHandler extends RangeHandler<any> {
             case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_tstz:
-            case ModuleTableField.FIELD_TYPE_unix_timestamp:
+                // case ModuleTableField.FIELD_TYPE_unix_timestamp:
 
                 return TSRangeHandler.getInstance();
         }

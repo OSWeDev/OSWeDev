@@ -219,6 +219,22 @@ describe('TimeSegmentHandler', () => {
 
     it('test getPreviousTimeSegment', () => {
         expect(TimeSegmentHandler.getInstance().getPreviousTimeSegment({
+            dateIndex: '2019-01-01',
+            type: TimeSegment.TYPE_YEAR
+        })).to.deep.equal({
+            dateIndex: '2018-01-01',
+            type: TimeSegment.TYPE_YEAR
+        });
+
+        expect(TimeSegmentHandler.getInstance().getPreviousTimeSegment({
+            dateIndex: '2019-01-01',
+            type: TimeSegment.TYPE_YEAR
+        }, TimeSegment.TYPE_YEAR, -1)).to.deep.equal({
+            dateIndex: '2020-01-01',
+            type: TimeSegment.TYPE_YEAR
+        });
+
+        expect(TimeSegmentHandler.getInstance().getPreviousTimeSegment({
             dateIndex: '2019-04-15',
             type: TimeSegment.TYPE_DAY
         }, TimeSegment.TYPE_DAY)).to.deep.equal({
