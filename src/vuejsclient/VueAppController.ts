@@ -44,9 +44,9 @@ export default abstract class VueAppController {
             self.base_url = await ModuleDAO.getInstance().getBaseUrl();
         })());
 
-        promises.push(ModuleAjaxCache.getInstance().get('/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED).then((d) => {
-            datas = JSON.parse(d as string);
-        }));
+        promises.push((async () => {
+            datas = JSON.parse(await ModuleAjaxCache.getInstance().get('/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
+        })());
 
         promises.push((async () => {
             self.data_user_roles = await ModuleAccessPolicy.getInstance().getMyRoles();
@@ -60,9 +60,9 @@ export default abstract class VueAppController {
             self.has_access_to_onpage_translation = await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS);
         })());
 
-        promises.push(ModuleAjaxCache.getInstance().get('/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED).then((d) => {
-            self.SERVER_HEADERS = JSON.parse(d as string);
-        }));
+        promises.push((async () => {
+            self.SERVER_HEADERS = JSON.parse(await ModuleAjaxCache.getInstance().get('/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
+        })());
 
         await Promise.all(promises);
 

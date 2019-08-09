@@ -651,6 +651,12 @@ export default class VueComponentBase extends Vue
         return null;
     }
 
+    protected on_every_update_simple_number_sign_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+        el.className = (!!simple_value) ?
+            ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
+    }
+
     protected activateEdition() {
         AppVuexStoreManager.getInstance().appVuexStore.commit("activateEdition");
     }

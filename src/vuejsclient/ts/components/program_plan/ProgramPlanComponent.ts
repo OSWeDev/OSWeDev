@@ -253,7 +253,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
             promises.push((async () => {
                 self.set_can_edit_self(await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_EDIT_OWN_RDVS));
             })());
-            promises.push(self.reloadAsyncData());
+            promises.push((async () => {
+                await self.reloadAsyncData();
+            })());
 
             await Promise.all(promises);
 

@@ -189,9 +189,19 @@ export let amountFilter = new FilterObj(
  * @param explicit_sign Renvoie +2,2% au lieu de 2,2% pour indiquer le signe de façon explicit même quand il est positif
  */
 export let percentFilter = new FilterObj(
-    function (value: number, fractionalDigits: number, pts: boolean = false, explicit_sign: boolean = false, evol_from_prct: boolean = false) {
+    function (value: number, fractionalDigits: number, pts: boolean = false, explicit_sign: boolean = false, evol_from_prct: boolean = false, treat_999_as_infinite: boolean = true) {
         if (value == undefined) {
             return value;
+        }
+
+        if (!isFinite(value) || isNaN(value)) {
+            return null;
+        }
+
+        let returns_infinity: boolean = (treat_999_as_infinite && value >= 999) || (treat_999_as_infinite && value <= -999);
+
+        if ((!!evol_from_prct) && (!returns_infinity)) {
+            value -= 1;
         }
 
         value *= 100;
@@ -203,11 +213,7 @@ export let percentFilter = new FilterObj(
             pourcentage = "%";
         }
 
-        if (!isFinite(value) || isNaN(value)) {
-            return null;
-        }
-
-        let res = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits) + " " + pourcentage;
+        let res = returns_infinity ? '&infin;' : ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits) + " " + pourcentage;
 
         if (explicit_sign) {
             if (value > 0) {

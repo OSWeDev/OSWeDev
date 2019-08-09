@@ -86,10 +86,15 @@ export default abstract class VueAppBase {
         let self = this;
         let promises = [];
 
-        promises.push(ModuleAjaxCache.getInstance().get('/api/isdev', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED).then((e) => {
-            Vue.config.devtools = e ? true : false;
-        }));
-        promises.push(this.appController.initialize());
+        promises.push((async () => {
+            Vue.config.devtools = false;
+            if (!!await ModuleAjaxCache.getInstance().get('/api/isdev', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED)) {
+                Vue.config.devtools = true;
+            }
+        })());
+        promises.push((async () => {
+            await this.appController.initialize();
+        })());
 
         await Promise.all(promises);
 
@@ -103,7 +108,9 @@ export default abstract class VueAppBase {
             let module_: VueModuleBase = ModulesManager.getInstance().getModuleByNameAndRole(i, VueModuleBase.IVueModuleRoleName) as VueModuleBase;
 
             if (module_) {
-                promises.push(module_.initializeAsync());
+                promises.push((async () => {
+                    await module_.initializeAsync();
+                })());
             }
         }
         await Promise.all(promises);

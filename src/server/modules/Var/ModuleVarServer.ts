@@ -79,6 +79,24 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Valeur totale des matroids chargés'
         }, 'var.desc_mode.loaded_datas_matroids_sum_value.___LABEL___'));
+
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Nombre de deps'
+        }, 'var.desc_mode.dependencies_number.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Deps en % de l\'arbre'
+        }, 'var.desc_mode.dependencies_tree_prct.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '% de vars enregistrées'
+        }, 'var_desc_registrations.vardag_registered_prct.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '% de vars enregistrées / var_id'
+        }, 'var_desc_registrations.vardag_registered_prct_by_var_id.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Taille de l\'arbre'
+        }, 'var_desc_registrations.vardag_size.___LABEL___'));
     }
 
     public registerServerApiHandlers() {

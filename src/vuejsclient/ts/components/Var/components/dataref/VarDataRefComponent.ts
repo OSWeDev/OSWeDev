@@ -57,6 +57,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     @Prop({ default: false })
     public consider_zero_value_as_null: boolean;
 
+    @Prop({ default: true })
+    public use_intersector: boolean;
+
     private entered_once: boolean = false;
 
     get is_being_updated(): boolean {
@@ -325,6 +328,12 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         return this.getVarDatas[VarsController.getInstance().getIndex(this.var_param)];
+    }
+
+    public mounted() {
+        if (!this.use_intersector) {
+            this.intersect_in();
+        }
     }
 
     public destroyed() {

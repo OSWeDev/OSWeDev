@@ -575,7 +575,9 @@ export default class VarsController {
             let promises = [];
 
             for (let i in params) {
-                promises.push(this.registerDataParamAndReturnVarData(params[i], reload_on_register, ignore_unvalidated_datas));
+                promises.push((async () => {
+                    await this.registerDataParamAndReturnVarData(params[i], reload_on_register, ignore_unvalidated_datas);
+                })());
             }
             await Promise.all(promises);
 
@@ -584,7 +586,7 @@ export default class VarsController {
 
                 let data: TData = this.getVarData(param, true);
 
-                if (data && data.value_ts) {
+                if (!!data) {
                     res.push(data);
                 }
             }
@@ -1504,7 +1506,9 @@ export default class VarsController {
         for (let i in var_imported_data_vo_types) {
             let var_imported_data_vo_type: string = var_imported_data_vo_types[i];
 
-            promises.push(this.loadVarImportedDataVoType(var_imported_data_vo_type, var_ids_by_imported_data_vo_types[var_imported_data_vo_type]));
+            promises.push((async () => {
+                await this.loadVarImportedDataVoType(var_imported_data_vo_type, var_ids_by_imported_data_vo_types[var_imported_data_vo_type]);
+            })());
         }
         await Promise.all(promises);
     }
@@ -1606,7 +1610,9 @@ export default class VarsController {
                         let datasource_batch = datasources_batches[i];
 
                         let datasource_controller: IDataSourceController<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[i];
-                        promises.push(datasource_controller.load_for_batch(datasource_batch));
+                        promises.push((async () => {
+                            await datasource_controller.load_for_batch(datasource_batch);
+                        })());
                     }
                     await Promise.all(promises);
 
@@ -1701,7 +1707,9 @@ export default class VarsController {
         for (let ds_name in var_params_by_source_deps) {
             let ds_controller: IDataSourceController<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name];
 
-            promises.push(ds_controller.load_for_batch(var_params_by_source_deps[ds_name]));
+            promises.push((async () => {
+                await ds_controller.load_for_batch(var_params_by_source_deps[ds_name]);
+            })());
         }
         await Promise.all(promises);
     }
