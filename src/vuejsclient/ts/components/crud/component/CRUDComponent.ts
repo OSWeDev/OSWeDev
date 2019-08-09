@@ -725,7 +725,7 @@ export default class CRUDComponent extends VueComponentBase {
         this.deleting_vo = false;
     }
 
-    private validateInput(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
+    private changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
         vo[field.datatable_field_uid] = value;
 
         if (this.crud && this.crud.isReadOnlyData) {

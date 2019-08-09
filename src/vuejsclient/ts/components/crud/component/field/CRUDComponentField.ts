@@ -103,7 +103,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
         this.field_value = input.value;
 
-        this.$emit('validateInput', this.vo, this.field, this.field_value);
+        this.$emit('changeValue', this.vo, this.field, this.field_value);
     }
 
     private updateDateRange(input: any) {
@@ -265,7 +265,7 @@ export default class CRUDComponentField extends VueComponentBase {
             this.select_options = newOptions;
         }
 
-        this.$emit('validateInput', this.vo, this.field, this.field_value);
+        this.$emit('changeValue', this.vo, this.field, this.field_value);
         this.$emit('onChangeVO', this.vo);
 
         if (this.field.onChange) {
@@ -279,7 +279,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
     private inputValue(value: any) {
         this.field_value = value;
-        this.$emit('validateInput', this.vo, this.field, this.field_value);
+        this.$emit('changeValue', this.vo, this.field, this.field_value);
     }
 
     get is_custom_field_type(): boolean {
