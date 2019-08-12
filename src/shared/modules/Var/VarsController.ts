@@ -128,6 +128,8 @@ export default class VarsController {
     // Imporssible de stocker dans le var_param qui est souvent copié avcec object.assign.... ou alors faut blocker et passer par une factory (mais en js on peut ps bloquer en fait object.assign ...)
     private checked_var_indexes: { [index: string]: boolean } = {};
 
+    private debounced_updatedatas_wrapper = debounce(this.updateDatasWrapper, this.var_debouncer);
+
     protected constructor() {
     }
 
@@ -628,59 +630,6 @@ export default class VarsController {
         }
 
         this.varDAG.unregisterIndexes([index]);
-    }
-
-    get debouncedUpdateDatas() {
-
-        if (this.updateSemaphore) {
-            // ça veut dire qu'on demande un update alors qu'un est déjà en cours.
-            // Il faut pouvoir revenir s'en occuper
-            this.updateSemaphore_needs_reload = true;
-            return () => { };
-        }
-
-        let self = this;
-        return debounce(async () => {
-            // Il faut stocker une info de type sémaphore pour refuser de lancer l'update pendant qu'il est en cours
-            // Mais du coup quand l'update est terminé, il est important de vérifier si de nouvelles demandes de mise à jour ont eues lieues.
-            //  et si oui relancer une mise à jour.
-            // ATTENTION : Risque d'explosion de la pile des appels si on a un temps trop élevé de résolution des variables, par rapport à une mise
-            //  à jour automatique par exemple à intervale régulier, plus court que le temps de mise à jour.
-            if (self.updateSemaphore) {
-                return;
-            }
-            self.updateSemaphore_needs_reload = false;
-            self.updateSemaphore = true;
-            try {
-                if (!self.is_waiting) {
-                    await self.updateDatas();
-                }
-
-                if (self.is_waiting) {
-                    self.updateSemaphore_needs_reload = true;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-
-            self.updateSemaphore = false;
-
-            if ((!!self.actions_waiting_for_release_of_update_semaphore) && (self.actions_waiting_for_release_of_update_semaphore.length)) {
-                for (let i in self.actions_waiting_for_release_of_update_semaphore) {
-                    let action = self.actions_waiting_for_release_of_update_semaphore[i];
-
-                    await action();
-                }
-            }
-
-            self.actions_waiting_for_release_of_update_semaphore = [];
-
-            if (self.updateSemaphore_needs_reload) {
-                // Si on a eu des demandes pendant ce calcul on relance le plus vite possible
-                self.updateSemaphore_needs_reload = false;
-                self.debouncedUpdateDatas();
-            }
-        }, this.var_debouncer);
     }
 
     public getImportedVarsDatasByIndexFromArray<TImportedData extends IVarDataVOBase>(
@@ -1842,5 +1791,59 @@ export default class VarsController {
         }
 
         return this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
+    }
+
+    private async  updateDatasWrapper() {
+        // Il faut stocker une info de type sémaphore pour refuser de lancer l'update pendant qu'il est en cours
+        // Mais du coup quand l'update est terminé, il est important de vérifier si de nouvelles demandes de mise à jour ont eues lieues.
+        //  et si oui relancer une mise à jour.
+        // ATTENTION : Risque d'explosion de la pile des appels si on a un temps trop élevé de résolution des variables, par rapport à une mise
+        //  à jour automatique par exemple à intervale régulier, plus court que le temps de mise à jour.
+        if (this.updateSemaphore) {
+            return;
+        }
+        this.updateSemaphore_needs_reload = false;
+        this.updateSemaphore = true;
+        try {
+            if (!this.is_waiting) {
+                await this.updateDatas();
+            }
+
+            if (this.is_waiting) {
+                this.updateSemaphore_needs_reload = true;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+
+        this.updateSemaphore = false;
+
+        if ((!!this.actions_waiting_for_release_of_update_semaphore) && (this.actions_waiting_for_release_of_update_semaphore.length)) {
+            for (let i in this.actions_waiting_for_release_of_update_semaphore) {
+                let action = this.actions_waiting_for_release_of_update_semaphore[i];
+
+                await action();
+            }
+        }
+
+        this.actions_waiting_for_release_of_update_semaphore = [];
+
+        if (this.updateSemaphore_needs_reload) {
+            // Si on a eu des demandes pendant ce calcul on relance le plus vite possible
+            this.updateSemaphore_needs_reload = false;
+            this.debouncedUpdateDatas();
+        }
+    }
+
+    private debouncedUpdateDatas() {
+
+        if (this.updateSemaphore) {
+            // ça veut dire qu'on demande un update alors qu'un est déjà en cours.
+            // Il faut pouvoir revenir s'en occuper
+            this.updateSemaphore_needs_reload = true;
+            return;
+        }
+
+        this.debounced_updatedatas_wrapper();
     }
 }

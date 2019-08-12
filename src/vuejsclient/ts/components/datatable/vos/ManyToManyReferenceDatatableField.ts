@@ -16,7 +16,7 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
         super(DatatableField.MANY_TO_MANY_FIELD_TYPE, datatable_field_uid, targetModuleTable, sortedTargetFields, translatable_title);
     }
 
-    public setModuleTable(moduleTable: ModuleTable<any>) {
+    public setModuleTable(moduleTable: ModuleTable<any>): ManyToManyReferenceDatatableField<Target, Inter> {
         this.moduleTable = moduleTable;
 
         if (!this.translatable_title) {
@@ -26,6 +26,8 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
             this.translatable_title = this.translatable_title.substr(0, this.translatable_title.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         }
         // ? this.is_required = this.srcField.field_required;
+
+        return this;
     }
 
     public dataToHumanReadableField(e: IDistantVOBase): any {

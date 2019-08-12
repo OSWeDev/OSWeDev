@@ -152,7 +152,7 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
-    public abstract setModuleTable(moduleTable: ModuleTable<any>);
+    public abstract setModuleTable(moduleTable: ModuleTable<any>): DatatableField<T, U>;
 
     /**
      * A modifier pour gérer le dataToIHM en fonction des types d'entrée sortie.

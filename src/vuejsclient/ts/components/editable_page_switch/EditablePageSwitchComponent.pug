@@ -1,0 +1,27 @@
+.editable_page_switch(:class='{"highlight_inputs": !!highlight_inputs}')
+    .switch_button(v-if='show_switch')
+        toggle-button(
+            @change="switch_edition" 
+            :value="is_editing_page" 
+            :sync="true"
+            :width="200"
+            :disabled="is_saving"
+            :labels="{checked: label('editable_page_switch.edit'), unchecked: label('editable_page_switch.read')}")
+    .save_button(v-if='is_waiting_for_save && show_fixed_save_button')
+        button.btn.btn-sm.btn-success(
+            @click='call_save_handlers'
+            :disabled='is_saving'
+        )
+            i.fa.fa-floppy-o.fa-lg.btn_icon(aria-hidden="true")
+            | {{ label('editable_page_switch.save') }}
+        button.btn.btn-sm.btn-success(
+            @click='switch_edition'
+            :disabled='is_saving'
+        )
+            i.fa.fa-trash-o.fa-lg.btn_icon(aria-hidden="true")
+            | {{ label('editable_page_switch.cancel') }}
+        
+    .editable_page_content
+        slot
+
+                

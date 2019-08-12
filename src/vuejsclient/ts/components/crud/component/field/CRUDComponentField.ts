@@ -71,7 +71,6 @@ export default class CRUDComponentField extends VueComponentBase {
                             case ModuleTableField.FIELD_TYPE_daterange:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
-                                // case ModuleTableField.FIELD_TYPE_daterange_array:
                                 break;
 
                             default:
@@ -288,6 +287,14 @@ export default class CRUDComponentField extends VueComponentBase {
 
     get custom_field_types(): { [name: string]: TableFieldTypeControllerBase } {
         return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
+    }
+
+    get segmentation_type(): number {
+        if (this.field.type == 'Simple') {
+            return (this.field as SimpleDatatableField<any, any>).moduleTableField.segmentation_type;
+        }
+
+        return null;
     }
 
     get field_type(): string {

@@ -27,7 +27,7 @@ export default class ManyToOneReferenceDatatableField<Target extends IDistantVOB
         return this.moduleTable.getFieldFromId(this.module_table_field_id);
     }
 
-    public setModuleTable(moduleTable: ModuleTable<any>) {
+    public setModuleTable(moduleTable: ModuleTable<any>): ManyToOneReferenceDatatableField<Target> {
         this.moduleTable = moduleTable;
 
         if (!this.translatable_title) {
@@ -39,6 +39,8 @@ export default class ManyToOneReferenceDatatableField<Target extends IDistantVOB
 
         this.is_required = this.srcField.field_required;
         this.validate = this.validate ? this.validate : this.srcField.validate;
+
+        return this;
     }
 
     public getValidationTextCodeBase(): string {

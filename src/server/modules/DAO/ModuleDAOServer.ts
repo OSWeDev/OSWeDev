@@ -239,6 +239,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleTrigger.getInstance().registerTriggerHook(this.post_create_trigger_hook);
         // this.post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
         // ModuleTrigger.getInstance().registerTriggerHook(this.post_delete_trigger_hook);
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Modifier'
+        }, 'editable_page_switch.edit.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Consulter'
+        }, 'editable_page_switch.read.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Enregistrement...'
+        }, 'EditablePageController.save.start'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Erreur lors de l\'enregistrement'
+        }, 'EditablePageController.save.error'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Enregistrement terminé'
+        }, 'EditablePageController.save.success'));
     }
 
     public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {

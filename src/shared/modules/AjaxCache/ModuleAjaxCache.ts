@@ -49,6 +49,8 @@ export default class ModuleAjaxCache extends Module {
     private processRequestsSemaphore_needs_reload: boolean = false;
     private actions_waiting_for_release_of_processRequestsSemaphore: Array<() => Promise<void>> = [];
 
+    private debounced_requests_wrapper = debounce(this.processRequestsWrapper, this.ajaxcache_debouncer);
+
     private constructor() {
 
         super("ajax_cache", ModuleAjaxCache.MODULE_NAME);
@@ -411,7 +413,7 @@ export default class ModuleAjaxCache extends Module {
         }
     }
 
-    get debounced_processRequests() {
+    private debounced_processRequests() {
 
         if (this.processRequestsSemaphore) {
             // ça veut dire qu'on demande un process alors qu'un est déjà en cours.
@@ -420,42 +422,43 @@ export default class ModuleAjaxCache extends Module {
             return () => { };
         }
 
-        let self = this;
-        return debounce(async () => {
-            // Il faut stocker une info de type sémaphore pour refuser de lancer l'update pendant qu'il est en cours
-            // Mais du coup quand l'update est terminé, il est important de vérifier si de nouvelles demandes de mise à jour ont eues lieues.
-            //  et si oui relancer une mise à jour.
-            // ATTENTION : Risque d'explosion de la pile des appels si on a un temps trop élevé de résolution des variables, par rapport à une mise
-            //  à jour automatique par exemple à intervale régulier, plus court que le temps de mise à jour.
-            if (self.processRequestsSemaphore) {
-                return;
+        this.debounced_requests_wrapper();
+    }
+
+    private async processRequestsWrapper() {
+        // Il faut stocker une info de type sémaphore pour refuser de lancer l'update pendant qu'il est en cours
+        // Mais du coup quand l'update est terminé, il est important de vérifier si de nouvelles demandes de mise à jour ont eues lieues.
+        //  et si oui relancer une mise à jour.
+        // ATTENTION : Risque d'explosion de la pile des appels si on a un temps trop élevé de résolution des variables, par rapport à une mise
+        //  à jour automatique par exemple à intervale régulier, plus court que le temps de mise à jour.
+        if (this.processRequestsSemaphore) {
+            return;
+        }
+        this.processRequestsSemaphore_needs_reload = false;
+        this.processRequestsSemaphore = true;
+        try {
+            await this.processRequests();
+        } catch (error) {
+            console.error(error);
+        }
+
+        this.processRequestsSemaphore = false;
+
+        if ((!!this.actions_waiting_for_release_of_processRequestsSemaphore) && (this.actions_waiting_for_release_of_processRequestsSemaphore.length)) {
+            for (let i in this.actions_waiting_for_release_of_processRequestsSemaphore) {
+                let action = this.actions_waiting_for_release_of_processRequestsSemaphore[i];
+
+                await action();
             }
-            self.processRequestsSemaphore_needs_reload = false;
-            self.processRequestsSemaphore = true;
-            try {
-                await self.processRequests();
-            } catch (error) {
-                console.error(error);
-            }
+        }
 
-            self.processRequestsSemaphore = false;
+        this.actions_waiting_for_release_of_processRequestsSemaphore = [];
 
-            if ((!!self.actions_waiting_for_release_of_processRequestsSemaphore) && (self.actions_waiting_for_release_of_processRequestsSemaphore.length)) {
-                for (let i in self.actions_waiting_for_release_of_processRequestsSemaphore) {
-                    let action = self.actions_waiting_for_release_of_processRequestsSemaphore[i];
-
-                    await action();
-                }
-            }
-
-            self.actions_waiting_for_release_of_processRequestsSemaphore = [];
-
-            if (self.processRequestsSemaphore_needs_reload) {
-                // Si on a eu des demandes pendant ce calcul on relance le plus vite possible
-                self.processRequestsSemaphore_needs_reload = false;
-                self.debounced_processRequests();
-            }
-        }, this.ajaxcache_debouncer);
+        if (this.processRequestsSemaphore_needs_reload) {
+            // Si on a eu des demandes pendant ce calcul on relance le plus vite possible
+            this.processRequestsSemaphore_needs_reload = false;
+            this.debounced_processRequests();
+        }
     }
 
     // Le processus qui dépile les requêtes en attente

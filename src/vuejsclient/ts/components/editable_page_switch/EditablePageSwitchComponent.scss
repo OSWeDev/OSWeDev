@@ -1,0 +1,13 @@
+@import "skin-variables.scss";
+
+.editable_page_switch {
+    .switch_button {
+        float: right;
+    }
+}
+
+.editable_page_switch.highlight_inputs input,
+.highlight_editable_input input {
+    border: solid $button_primary_bg_color;
+    box-shadow: 1px 1px 2px $button_primary_bg_color;
+}

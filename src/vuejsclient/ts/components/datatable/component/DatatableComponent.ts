@@ -25,6 +25,8 @@ import SimpleDatatableField from '../vos/SimpleDatatableField';
 import './DatatableComponent.scss';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
 import DatatableComponentField from './fields/DatatableComponentField';
+import { ByteRange } from 'express-serve-static-core';
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -93,6 +95,8 @@ export default class DatatableComponent extends VueComponentBase {
 
     private watcherLoaded: boolean = false;
 
+    private debounced_update_datatable_data = debounce(this.update_datatable_data, 500);
+
     get isModuleParamTable() {
         return VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID] ?
             VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID].isModuleParamTable : false;
@@ -145,46 +149,49 @@ export default class DatatableComponent extends VueComponentBase {
                 if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
                     let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
 
-                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean) {
-                        if (j == 'FILTER__' + field.datatable_field_uid) {
+                    switch (simpleField.moduleTableField.field_type) {
+                        case ModuleTableField.FIELD_TYPE_boolean:
+                            if (j == 'FILTER__' + field.datatable_field_uid) {
 
-                            this.preload_custom_filters.push(field.datatable_field_uid);
+                                this.preload_custom_filters.push(field.datatable_field_uid);
 
-                            this.custom_filters_values[field.datatable_field_uid] =
-                                (this.$route.query[j] == 'TRUE') ?
-                                    this.custom_filters_options[field.datatable_field_uid][0] :
-                                    this.custom_filters_options[field.datatable_field_uid][1];
-                        }
-                        continue;
-                    }
-
-                    if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
-                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstz) ||
-                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                        // (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
-                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
-                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
-                        (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month)) {
-                        if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
-
-                            this.preload_custom_filters.push(field.datatable_field_uid);
-
-                            if (!this.custom_filters_values[field.datatable_field_uid]) {
-                                this.custom_filters_values[field.datatable_field_uid] = {};
+                                this.custom_filters_values[field.datatable_field_uid] =
+                                    (this.$route.query[j] == 'TRUE') ?
+                                        this.custom_filters_options[field.datatable_field_uid][0] :
+                                        this.custom_filters_options[field.datatable_field_uid][1];
                             }
-                            this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]));
-                        }
-                        if (j == 'FILTER__' + field.datatable_field_uid + '__END') {
+                            continue;
 
-                            this.preload_custom_filters.push(field.datatable_field_uid);
-
-                            if (!this.custom_filters_values[field.datatable_field_uid]) {
-                                this.custom_filters_values[field.datatable_field_uid] = {};
+                        case ModuleTableField.FIELD_TYPE_tstz:
+                            if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
+                                break;
                             }
-                            this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]));
-                        }
-                        continue;
+
+                        case ModuleTableField.FIELD_TYPE_date:
+                        case ModuleTableField.FIELD_TYPE_daterange:
+                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        case ModuleTableField.FIELD_TYPE_day:
+                        case ModuleTableField.FIELD_TYPE_timestamp:
+                        case ModuleTableField.FIELD_TYPE_month:
+                            if (j == 'FILTER__' + field.datatable_field_uid + '__START') {
+
+                                this.preload_custom_filters.push(field.datatable_field_uid);
+
+                                if (!this.custom_filters_values[field.datatable_field_uid]) {
+                                    this.custom_filters_values[field.datatable_field_uid] = {};
+                                }
+                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]));
+                            }
+                            if (j == 'FILTER__' + field.datatable_field_uid + '__END') {
+
+                                this.preload_custom_filters.push(field.datatable_field_uid);
+
+                                if (!this.custom_filters_values[field.datatable_field_uid]) {
+                                    this.custom_filters_values[field.datatable_field_uid] = {};
+                                }
+                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]));
+                            }
+                            continue;
                     }
                 }
 
@@ -275,16 +282,28 @@ export default class DatatableComponent extends VueComponentBase {
         for (let i in this.datatable.fields) {
             let field = this.datatable.fields[i];
 
-            if ((field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-                (((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
-                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                    // ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
-                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstz) ||
-                    ((field as SimpleDatatableField<AnalyserNode, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
-                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
-                    ((field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month))) {
-                res.push(field);
+            if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+                let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
+
+                switch (simpleField.moduleTableField.field_type) {
+
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
+                            break;
+                        }
+
+                    case ModuleTableField.FIELD_TYPE_date:
+                    case ModuleTableField.FIELD_TYPE_daterange:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_timestamp:
+                    case ModuleTableField.FIELD_TYPE_day:
+                    case ModuleTableField.FIELD_TYPE_month:
+                        res.push(field);
+                        break;
+
+                    default:
+                }
+
             }
         }
 
@@ -299,18 +318,23 @@ export default class DatatableComponent extends VueComponentBase {
 
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
                 let simpleField = (field as SimpleDatatableField<any, any>);
-                if ((simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_timestamp) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_date) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange) ||
-                    // (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_daterange_array) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_tstz) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_day) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_month) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) ||
-                    (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum)) {
-                    continue;
+
+                switch (simpleField.moduleTableField.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
+                            break;
+                        }
+
+                    case ModuleTableField.FIELD_TYPE_boolean:
+                    case ModuleTableField.FIELD_TYPE_timestamp:
+                    case ModuleTableField.FIELD_TYPE_date:
+                    case ModuleTableField.FIELD_TYPE_daterange:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_day:
+                    case ModuleTableField.FIELD_TYPE_month:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_html:
+                        continue;
                 }
             }
             if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
@@ -476,19 +500,15 @@ export default class DatatableComponent extends VueComponentBase {
                 switch (simpleField.moduleTableField.field_type) {
                     case ModuleTableField.FIELD_TYPE_boolean:
                         this.changeBooleanFilterValue(field.datatable_field_uid);
-                        continue;
+                        break;
 
                     case ModuleTableField.FIELD_TYPE_timestamp:
                     case ModuleTableField.FIELD_TYPE_daterange:
                     case ModuleTableField.FIELD_TYPE_tstz:
-                    // case ModuleTableField.FIELD_TYPE_daterange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
                     case ModuleTableField.FIELD_TYPE_month:
-                        this.changeTextFilterValue(field.datatable_field_uid);
-                        continue;
-
                     default:
                         this.changeTextFilterValue(field.datatable_field_uid);
                 }
@@ -520,13 +540,6 @@ export default class DatatableComponent extends VueComponentBase {
         for (let i in this.api_types_involved) {
             this.setWatcher(this.api_types_involved[i]);
         }
-    }
-
-    get debounced_update_datatable_data() {
-        let self = this;
-        return debounce(async () => {
-            await self.update_datatable_data();
-        }, 500);
     }
 
     private async update_datatable_data() {
@@ -803,7 +816,6 @@ export default class DatatableComponent extends VueComponentBase {
                                     return (row[field.datatable_field_uid] && istrue) || ((!row[field.datatable_field_uid]) && !istrue);
 
                                 case ModuleTableField.FIELD_TYPE_daterange:
-                                // case ModuleTableField.FIELD_TYPE_daterange_array:
                                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                                     if ((!query) || ((!query.start) && (!query.end))) {
                                         return true;
@@ -842,8 +854,21 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     return false;
 
-                                case ModuleTableField.FIELD_TYPE_date:
                                 case ModuleTableField.FIELD_TYPE_tstz:
+                                    if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
+                                        break;
+                                    }
+
+                                    if (!query) {
+                                        return true;
+                                    }
+
+                                    if (row[field.datatable_field_uid] && ((row[field.datatable_field_uid].toString().toLowerCase()).indexOf(query.toLowerCase()) >= 0)) {
+                                        return true;
+                                    }
+                                    return false;
+
+                                case ModuleTableField.FIELD_TYPE_date:
                                 case ModuleTableField.FIELD_TYPE_day:
                                 case ModuleTableField.FIELD_TYPE_timestamp:
                                     if ((!query) || ((!query.start) && (!query.end))) {

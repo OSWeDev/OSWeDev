@@ -12,6 +12,7 @@ import DateHandler from '../../../../../shared/tools/DateHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import VueComponentBase from '../../VueComponentBase';
 import DatatableField from './DatatableField';
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
@@ -47,7 +48,6 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value)) + ' ' + moment(field_value).format('HH:mm:ss');
 
                 case ModuleTableField.FIELD_TYPE_daterange:
-                    // case ModuleTableField.FIELD_TYPE_daterange_array:
 
                     // On stocke au format day - day
                     if (!field_value) {
@@ -134,7 +134,18 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return field_value;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    return ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                    switch (moduleTableField.segmentation_type) {
+                        case TimeSegment.TYPE_DAY:
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                        case TimeSegment.TYPE_MONTH:
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonth(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                        case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                        case TimeSegment.TYPE_WEEK:
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                        case TimeSegment.TYPE_YEAR:
+                            return field_value;
+                    }
 
                 default:
 
@@ -260,7 +271,18 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return '{' + value.join() + '}';
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    return ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment(value);
+                    switch (moduleTableField.segmentation_type) {
+                        case TimeSegment.TYPE_DAY:
+                            return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value), moduleTableField, false)) : null;
+                        case TimeSegment.TYPE_MONTH:
+                            return value ? DateHandler.getInstance().formatDayForSQL(moment(value).startOf('month')) : null;
+                        case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                            return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value), moduleTableField, false)) : null;
+                        case TimeSegment.TYPE_WEEK:
+                            return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value), moduleTableField, false)) : null;
+                        case TimeSegment.TYPE_YEAR:
+                            return parseInt(value);
+                    }
 
                 default:
 
@@ -369,6 +391,8 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
         this.is_required = this.moduleTableField.field_required;
         this.validate = this.validate ? this.validate : this.moduleTableField.validate;
+
+        return this;
     }
 
     public getValidationTextCodeBase(): string {

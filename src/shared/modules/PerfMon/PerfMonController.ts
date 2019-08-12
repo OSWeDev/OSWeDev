@@ -32,6 +32,14 @@ export default class PerfMonController {
 
     public setPerfMonFuncStatsStoreFunc(setPerfMonFuncStats: (perfMonFuncStat: PerfMonFuncStat[]) => void) {
         this.setPerfMonFuncStats = setPerfMonFuncStats;
+        let self = this;
+        this.debounced_setPerfMonFuncStats = debounce(async () => {
+
+            if (!!self.setPerfMonFuncStats) {
+
+                self.setPerfMonFuncStats(self.toUpdate_perfMonFuncStats);
+            }
+        }, 1400);
 
         if (!!this.setPerfMonFuncStats) {
 
@@ -111,20 +119,8 @@ export default class PerfMonController {
 
         if (!!this.setPerfMonFuncStats) {
             this.toUpdate_perfMonFuncStats.push(perfMonFuncStat);
-            this.debounced_setPerfMonFuncStat();
+            this.debounced_setPerfMonFuncStats();
         }
-    }
-
-    get debounced_setPerfMonFuncStat() {
-
-        let self = this;
-        return debounce(async () => {
-
-            if (!!self.setPerfMonFuncStats) {
-
-                self.setPerfMonFuncStats(self.toUpdate_perfMonFuncStats);
-            }
-        }, 500);
     }
 
     public getLastPerfMonFuncData(function_uid: string): PerfMonData {
@@ -134,4 +130,6 @@ export default class PerfMonController {
     public getPerfMonFuncStat(function_uid: string): PerfMonFuncStat {
         return this.perfMonFuncStatByFunctionUID[function_uid];
     }
+
+    private debounced_setPerfMonFuncStats: () => void = () => { };
 }

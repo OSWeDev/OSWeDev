@@ -230,6 +230,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     private calendar_key: number = 1;
 
+    private debounced_onchange_calendar_date = debounce(this.onchange_calendar_date, 1000);
+
     get route_path(): string {
         return this.global_route_path + ((!!this.program_id) ? this.program_id : 'g');
     }
@@ -849,11 +851,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private onchange_calendar_date_direct() {
 
         this.debounced_onchange_calendar_date();
-    }
-
-    get debounced_onchange_calendar_date() {
-
-        return debounce(this.onchange_calendar_date, 1000);
     }
 
     @Watch('viewname')

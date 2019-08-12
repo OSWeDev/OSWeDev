@@ -57,6 +57,7 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
 import VarPieChartComponent from './ts/components/Var/components/piechart/VarPieChartComponent';
+import CRUDComponentField from './ts/components/crud/component/field/CRUDComponentField';
 
 require('moment-json-parser').overrideDefault();
 
@@ -320,6 +321,7 @@ export default abstract class VueAppBase {
         Vue.component('var-bar-chart', VarDataBarChartComponent);
         Vue.component('var-pie-chart', VarPieChartComponent);
         Vue.component('Intersect', Intersect);
+        Vue.component('CRUDComponentField', CRUDComponentField);
 
 
         Vue.directive('var-directive', VarDirective.getInstance());

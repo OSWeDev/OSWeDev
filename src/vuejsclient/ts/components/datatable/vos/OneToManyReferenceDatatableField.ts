@@ -27,6 +27,8 @@ export default class OneToManyReferenceDatatableField<Target extends IDistantVOB
             this.translatable_title = this.translatable_title.substr(0, this.translatable_title.indexOf(DefaultTranslation.DEFAULT_LABEL_EXTENSION)) + "." + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         }
         // ? this.is_required = this.srcField.field_required;
+
+        return this;
     }
 
     public dataToReadIHM(e: number, vo: IDistantVOBase): any {

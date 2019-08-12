@@ -32,6 +32,8 @@ export default class ComponentDatatableField<T, U> extends DatatableField<T, U> 
         if (!this.translatable_title) {
             this.translatable_title = "fields.labels." + this.moduleTable.full_name + ".__component__" + this.datatable_field_uid + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         }
+
+        return this;
     }
 
     public dataToHumanReadableField(e: IDistantVOBase): U {

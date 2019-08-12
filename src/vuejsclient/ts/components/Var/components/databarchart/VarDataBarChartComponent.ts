@@ -224,8 +224,8 @@ export default class VarDataBarChartComponent extends VueComponentBase {
 
     get chartOptions() {
         return Object.assign({
-            responsive: true,
-            maintainAspectRatio: true,
+            // responsive: true,
+            // maintainAspectRatio: true,
         },
             this.options);
     }
