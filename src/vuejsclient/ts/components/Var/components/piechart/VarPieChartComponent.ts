@@ -188,8 +188,6 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     get chartOptions() {
         return Object.assign({
-            responsive: true,
-            maintainAspectRatio: true,
         },
             this.options);
     }
@@ -203,18 +201,27 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         let dataset_datas: number[] = [];
+        let backgrounds: string[] = [];
         for (let j in this.var_params) {
             let var_param: IVarDataParamVOBase = this.var_params[j];
 
             dataset_datas.push(this.get_filtered_value(this.getVarDatas[VarsController.getInstance().getIndex(var_param)] as ISimpleNumberVarData));
+            if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
+                backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
+            } else {
+                backgrounds.push('#e1ddd5');
+            }
         }
 
-        res.push({
+        let dataset = {
             label: (!!this.var_dataset_descriptor.label_translatable_code) ?
                 this.t(this.var_dataset_descriptor.label_translatable_code) :
                 this.t(VarsController.getInstance().get_translatable_name_code(this.var_dataset_descriptor.var_id)),
-            data: dataset_datas
-        });
+            data: dataset_datas,
+            backgroundColor: backgrounds
+        };
+
+        res.push(dataset);
 
         return res;
     }

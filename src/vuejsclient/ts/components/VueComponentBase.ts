@@ -651,10 +651,66 @@ export default class VueComponentBase extends Vue
         return null;
     }
 
+    protected math_round(value: number, decimals: number = 0, convert_to_prct: boolean = false) {
+
+        try {
+
+            if ((value == null) || (typeof value === 'undefined') || (isNaN(value))) {
+                return null;
+            }
+
+            let decimals_coef = Math.pow(10, decimals);
+            let res = value * decimals_coef;
+
+            return Math.round(res) / decimals_coef;
+        } catch (error) {
+        }
+        return null;
+    }
+
+    protected math_floor(value: number, decimals: number = 0, convert_to_prct: boolean = false) {
+
+        try {
+
+            if ((value == null) || (typeof value === 'undefined') || (isNaN(value))) {
+                return null;
+            }
+
+            let decimals_coef = Math.pow(10, decimals);
+            let res = value * decimals_coef;
+
+            return Math.floor(res) / decimals_coef;
+        } catch (error) {
+        }
+        return null;
+    }
+
+    protected math_ceil(value: number, decimals: number = 0, convert_to_prct: boolean = false) {
+
+        try {
+
+            if ((value == null) || (typeof value === 'undefined') || (isNaN(value))) {
+                return null;
+            }
+
+            let decimals_coef = Math.pow(10, decimals);
+            let res = value * decimals_coef;
+
+            return Math.ceil(res) / decimals_coef;
+        } catch (error) {
+        }
+        return null;
+    }
+
     protected on_every_update_simple_number_sign_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
         let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
         el.className = (!!simple_value) ?
             ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
+    }
+
+    protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+        el.className = ((!!simple_value) && (simple_value > 1)) ? 'text-success' : '';
     }
 
     protected activateEdition() {

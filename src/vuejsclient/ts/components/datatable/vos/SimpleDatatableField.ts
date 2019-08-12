@@ -136,15 +136,15 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {
                         case TimeSegment.TYPE_DAY:
-                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(field_value, moduleTableField, true));
                         case TimeSegment.TYPE_MONTH:
-                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonth(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonth(this.getMomentDateFieldInclusif(field_value, moduleTableField, true));
                         case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(field_value, moduleTableField, true));
                         case TimeSegment.TYPE_WEEK:
-                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(field_value, moduleTableField, true));
                         case TimeSegment.TYPE_YEAR:
-                            return field_value;
+                            return field_value.year();
                     }
 
                 default:
@@ -273,15 +273,15 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {
                         case TimeSegment.TYPE_DAY:
-                            return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value), moduleTableField, false)) : null;
+                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(true), moduleTableField, false) : null;
                         case TimeSegment.TYPE_MONTH:
-                            return value ? DateHandler.getInstance().formatDayForSQL(moment(value).startOf('month')) : null;
+                            return value ? moment(value).startOf('month').utc(true) : null;
                         case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value), moduleTableField, false)) : null;
+                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(true), moduleTableField, false) : null;
                         case TimeSegment.TYPE_WEEK:
-                            return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value), moduleTableField, false)) : null;
+                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('isoWeek').utc(true), moduleTableField, false) : null;
                         case TimeSegment.TYPE_YEAR:
-                            return parseInt(value);
+                            return moment().year(parseInt(value)).startOf('year').utc(true);
                     }
 
                 default:
@@ -327,9 +327,63 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         let date = moment(momentSrc);
         if (moduleTableField.is_inclusive_data != moduleTableField.is_inclusive_ihm) {
             if (moduleTableField.is_inclusive_data) {
-                date.add(is_data_to_ihm ? 1 : -1, 'day');
+
+                switch (moduleTableField.segmentation_type) {
+                    case TimeSegment.TYPE_HOUR:
+                        date.add(is_data_to_ihm ? 1 : -1, 'hour');
+                        break;
+                    case TimeSegment.TYPE_MINUTE:
+                        date.add(is_data_to_ihm ? 1 : -1, 'minute');
+                        break;
+                    case TimeSegment.TYPE_MONTH:
+                        date.add(is_data_to_ihm ? 1 : -1, 'month');
+                        break;
+                    case TimeSegment.TYPE_MS:
+                        date.add(is_data_to_ihm ? 1 : -1, 'ms');
+                        break;
+                    case TimeSegment.TYPE_SECOND:
+                        date.add(is_data_to_ihm ? 1 : -1, 'second');
+                        break;
+                    case TimeSegment.TYPE_WEEK:
+                        date.add(is_data_to_ihm ? 1 : -1, 'week');
+                        break;
+                    case TimeSegment.TYPE_YEAR:
+                    case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                        date.add(is_data_to_ihm ? 1 : -1, 'year');
+                        break;
+                    case TimeSegment.TYPE_DAY:
+                    default:
+                        date.add(is_data_to_ihm ? 1 : -1, 'day');
+                }
             } else {
-                date.add(is_data_to_ihm ? -1 : 1, 'day');
+
+                switch (moduleTableField.segmentation_type) {
+                    case TimeSegment.TYPE_HOUR:
+                        date.add(is_data_to_ihm ? -1 : 1, 'hour');
+                        break;
+                    case TimeSegment.TYPE_MINUTE:
+                        date.add(is_data_to_ihm ? -1 : 1, 'minute');
+                        break;
+                    case TimeSegment.TYPE_MONTH:
+                        date.add(is_data_to_ihm ? -1 : 1, 'month');
+                        break;
+                    case TimeSegment.TYPE_MS:
+                        date.add(is_data_to_ihm ? -1 : 1, 'ms');
+                        break;
+                    case TimeSegment.TYPE_SECOND:
+                        date.add(is_data_to_ihm ? -1 : 1, 'second');
+                        break;
+                    case TimeSegment.TYPE_WEEK:
+                        date.add(is_data_to_ihm ? -1 : 1, 'week');
+                        break;
+                    case TimeSegment.TYPE_YEAR:
+                    case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                        date.add(is_data_to_ihm ? -1 : 1, 'year');
+                    case TimeSegment.TYPE_DAY:
+                        break;
+                    default:
+                        date.add(is_data_to_ihm ? -1 : 1, 'day');
+                }
             }
         }
 

@@ -8,6 +8,7 @@ import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import MaintenanceVO from './vos/MaintenanceVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 
 export default class ModuleMaintenance extends Module {
 
@@ -69,13 +70,13 @@ export default class ModuleMaintenance extends Module {
         let author_id = new ModuleTableField('author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', true);
 
         let fields = [
-            new ModuleTableField('start_ts', ModuleTableField.FIELD_TYPE_tstz, 'Début de la maintenance', true),
-            new ModuleTableField('end_ts', ModuleTableField.FIELD_TYPE_tstz, 'Fin de la maintenance', true),
+            new ModuleTableField('start_ts', ModuleTableField.FIELD_TYPE_tstz, 'Début de la maintenance', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('end_ts', ModuleTableField.FIELD_TYPE_tstz, 'Fin de la maintenance', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('broadcasted_msg1', ModuleTableField.FIELD_TYPE_boolean, 'MSG1 broadcasté', true, true, false),
             new ModuleTableField('broadcasted_msg2', ModuleTableField.FIELD_TYPE_boolean, 'MSG2 broadcasté', true, true, false),
             new ModuleTableField('broadcasted_msg3', ModuleTableField.FIELD_TYPE_boolean, 'MSG3 broadcasté', true, true, false),
             new ModuleTableField('maintenance_over', ModuleTableField.FIELD_TYPE_boolean, 'Maintenance terminée', true, true, false),
-            new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true),
+            new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
             author_id,
         ];
 

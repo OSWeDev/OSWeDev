@@ -249,13 +249,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Enregistrement...'
-        }, 'EditablePageController.save.start'));
+        }, 'EditablePageController.save.start.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Erreur lors de l\'enregistrement'
-        }, 'EditablePageController.save.error'));
+        }, 'EditablePageController.save.error.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Enregistrement terminé'
-        }, 'EditablePageController.save.success'));
+        }, 'EditablePageController.save.success.___LABEL___'));
     }
 
     public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {

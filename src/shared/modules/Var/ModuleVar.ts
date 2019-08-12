@@ -14,6 +14,7 @@ import APIDAOIdsRangesParamsVO from '../DAO/vos/APIDAOIdsRangesParamsVO';
 import APIDAORangesParamsVO from '../DAO/vos/APIDAORangesParamsVO';
 import FieldRange from '../DataRender/vos/FieldRange';
 import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 
 export default class ModuleVar extends Module {
 
@@ -105,7 +106,7 @@ export default class ModuleVar extends Module {
                 [VarsController.VALUE_TYPE_COMPUTED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_COMPUTED],
                 [VarsController.VALUE_TYPE_MIXED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_MIXED]
             }),
-            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour', true, true, moment()),
+            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour', true, true, moment()).set_segmentation_type(TimeSegment.TYPE_SECOND),
             new ModuleTableField('missing_datas_infos', ModuleTableField.FIELD_TYPE_string_array, 'Datas manquantes', false),
         ]);
 

@@ -13,6 +13,7 @@
             template(v-else-if="field.moduleTableField.field_type == 'number[]'")
                 ul.multi-input(v-if="field_value")
                     li(v-for="value in field_value") {{ value }}
+
             template(v-else-if="field.moduleTableField.field_type == 'text[]'")
                 ul.multi-input(v-if="field_value")
                     li(v-for="value in field_value") {{ value }}
