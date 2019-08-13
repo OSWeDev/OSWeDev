@@ -205,6 +205,7 @@ export default class ModuleAccessPolicy extends Module {
         user.password_change_date = DateHandler.getInstance().formatDayForIndex(moment());
         user.invalidated = false;
         user.recovery_expiration = null;
+        user.recovery_challenge = null;
         user.reminded_pwd_1 = false;
         user.reminded_pwd_2 = false;
     }
