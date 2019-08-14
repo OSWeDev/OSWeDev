@@ -336,14 +336,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
      * DONT USE : N'utiliser que en cas de force majeure => exemple upgrade de format de BDD
      * @param query
      */
-    public async query(query: string = null): Promise<any> {
+    public async query(query: string = null, values: any = null): Promise<any> {
 
         // On vérifie qu'on peut faire des modifs de table modules
         if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
             return null;
         }
 
-        return await ModuleServiceBase.getInstance().db.query(query);
+        if (!!values) {
+
+            return await ModuleServiceBase.getInstance().db.query(query, values);
+        } else {
+            return await ModuleServiceBase.getInstance().db.query(query);
+        }
     }
 
     /**

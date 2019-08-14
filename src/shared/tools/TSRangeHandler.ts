@@ -9,6 +9,14 @@ import IRange from '../modules/DataRender/interfaces/IRange';
 import TimeHandler from './TimeHandler';
 
 export default class TSRangeHandler extends RangeHandler<Moment> {
+
+    /**
+     * DIRTY [ou pas?] Pseudo max int pour int8 en bdd (théotiquement -9223372036854775808 to 9223372036854775807
+     *  /1000 par sécurité doute sur les conversions, anyway peu de chance que ça impact anything
+     */
+    public static MIN_TS: Moment = moment(-9223372036854775800 / 1000);
+    public static MAX_TS: Moment = moment(9223372036854775800 / 1000);
+
     public static getInstance(): TSRangeHandler {
         if (!TSRangeHandler.instance) {
             TSRangeHandler.instance = new TSRangeHandler();
@@ -17,6 +25,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     private static instance: TSRangeHandler = null;
+
+    public getMaxRange(): TSRange {
+        return this.createNew(TSRangeHandler.MIN_TS, TSRangeHandler.MAX_TS, true, true);
+    }
 
     /**
      * TODO TU ASAP FIXME VARS

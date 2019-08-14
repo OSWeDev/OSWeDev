@@ -7,9 +7,10 @@ import IRange from '../modules/DataRender/interfaces/IRange';
 export default class NumRangeHandler extends RangeHandler<number> {
 
     /**
-     * FIXME DIRTY Pseudo max int pour int4 en bdd potentiellement need passer en int8
+     * DIRTY [ou pas?] Pseudo max int pour int8 en bdd (théotiquement -9223372036854775808 to 9223372036854775807
      */
-    public static MAX_INT: number = 2147483600;
+    public static MIN_INT: number = -9223372036854775800;
+    public static MAX_INT: number = 9223372036854775800;
 
     public static getInstance(): NumRangeHandler {
         if (!NumRangeHandler.instance) {
@@ -19,6 +20,10 @@ export default class NumRangeHandler extends RangeHandler<number> {
     }
 
     private static instance: NumRangeHandler = null;
+
+    public getMaxRange(): NumRange {
+        return this.createNew(NumRangeHandler.MIN_INT, NumRangeHandler.MAX_INT, true, true);
+    }
 
     /**
      * TODO TU ASAP FIXME VARS
