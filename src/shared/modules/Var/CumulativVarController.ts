@@ -27,7 +27,7 @@ export default class CumulativVarController {
 
         // Si on a une zone de balance, on doit vérifier qu'on est après la balance et dans ce cas on accepte la date de reset.
         // Sinon, on par de la date de reset Y-1
-        let date_reset: Moment = moment(date);
+        let date_reset: Moment = moment(date).startOf('day').utc(true);
         date_reset.month(yearly_reset_month);
         date_reset.date(yearly_reset_day_in_month);
 
