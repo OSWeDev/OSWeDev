@@ -50,11 +50,15 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
             }
 
             let date_modif_pass: Moment = moment(user.password_change_date);
-            let nb_days: number = moment().diff(date_modif_pass) / 1000 / 60 / 60 / 24;
-            let nb_days_to_invalidation: number = ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS) - nb_days;
+            // combien de jours avant date de changement de mdp ?
+            let nb_days: number = moment(date_modif_pass).diff(moment()) / 1000 / 60 / 60 / 24;
+
+            let expiration: Moment = moment(date_modif_pass).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS), 'days');
+            // let nb_days_to_invalidation: number = ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS) - nb_days;
 
             // Le cas de l'invalidation
-            if (nb_days_to_invalidation < 0) {
+            // cas où la date de changement de mdp est passée de plus de PARAM_NAME_PWD_INVALIDATION_DAYS jours
+            if (moment().isSameOrAfter(expiration)) {
 
                 user.invalidated = true;
                 user.password = '';
@@ -77,31 +81,13 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
                         });
                     }
                 }
+                return;
             }
 
-            // Premier rappel
-            if ((!user.reminded_pwd_1) && (nb_days_to_invalidation <= ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD1_DAYS))) {
-                user.reminded_pwd_1 = true;
-                await ModuleDAO.getInstance().insertOrUpdateVO(user);
-
-                if (translatable_mail_reminder1_subject) {
-                    let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_reminder1_subject.id);
-
-                    if (translated_mail_subject) {
-
-                        await ModuleMailerServer.getInstance().sendMail({
-                            to: user.email,
-                            subject: translated_mail_subject.translated,
-                            html: await ModuleMailerServer.getInstance().prepareHTML(reminder1_mail_html_template, user.lang_id, {
-                                EMAIL: user.email
-                            })
-                        });
-                    }
-                }
-            }
 
             // Second rappel
-            if ((!user.reminded_pwd_2) && (nb_days_to_invalidation <= ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD2_DAYS))) {
+            // cas où on est à moins de PARAM_NAME_REMINDER_PWD2_DAYS jours de la date de changement de mdp
+            if ((!user.reminded_pwd_2) && (nb_days <= ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD2_DAYS))) {
                 user.reminded_pwd_2 = true;
                 await ModuleDAO.getInstance().insertOrUpdateVO(user);
 
@@ -119,7 +105,32 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
                         });
                     }
                 }
+                return;
             }
+
+            // Premier rappel
+            // cas où on est à moins de PARAM_NAME_REMINDER_PWD1_DAYS jours de la date de changement de mdp
+            if ((!user.reminded_pwd_1) && (nb_days <= ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD1_DAYS))) {
+                user.reminded_pwd_1 = true;
+                await ModuleDAO.getInstance().insertOrUpdateVO(user);
+
+                if (translatable_mail_reminder1_subject) {
+                    let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_reminder1_subject.id);
+
+                    if (translated_mail_subject) {
+
+                        await ModuleMailerServer.getInstance().sendMail({
+                            to: user.email,
+                            subject: translated_mail_subject.translated,
+                            html: await ModuleMailerServer.getInstance().prepareHTML(reminder1_mail_html_template, user.lang_id, {
+                                EMAIL: user.email
+                            })
+                        });
+                    }
+                }
+                return;
+            }
+
         }
     }
 }

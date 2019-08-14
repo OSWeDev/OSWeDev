@@ -14,6 +14,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     private new_pwd1: string = "";
 
     private message: string = null;
+    private status: boolean = false;
 
     get logo_url(): string {
         let logo_url: string = ModuleSASSSkinConfigurator.getInstance().getParamValue('logo_url');
@@ -42,9 +43,11 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
         if (await ModuleAccessPolicy.getInstance().resetPwd(this.email, this.challenge, this.new_pwd1)) {
             this.snotify.success(this.label('reset.ok'));
             this.message = this.label('login.reset.answer_ok');
+            this.status = true;
         } else {
             this.snotify.error(this.label('reset.failed'));
             this.message = this.label('login.reset.answer_ko');
+            this.status = false;
         }
     }
 }
