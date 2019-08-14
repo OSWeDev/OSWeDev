@@ -725,6 +725,7 @@ export default class VarsController {
             return null;
         }
 
+        target = target.endOf('day').utc(true);
         let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
             target, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
         return TSRange.createNew(closest_earlier_reset_date, target, true, true);

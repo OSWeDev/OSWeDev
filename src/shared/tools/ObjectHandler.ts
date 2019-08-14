@@ -154,7 +154,7 @@ export default class ObjectHandler {
         for (let date_index in elts_by_date_index) {
             let elt = elts_by_date_index[date_index];
 
-            if (TSRangeHandler.getInstance().elt_intersects_range(moment(date_index), range)) {
+            if (TSRangeHandler.getInstance().elt_intersects_range(moment(date_index).startOf('day').utc(true), range)) {
                 res[date_index] = elt;
             }
         }
@@ -168,7 +168,7 @@ export default class ObjectHandler {
         for (let date_index in elts_by_date_index) {
             let elt = elts_by_date_index[date_index];
 
-            if (TSRangeHandler.getInstance().elt_intersects_any_range(moment(date_index), ranges)) {
+            if (TSRangeHandler.getInstance().elt_intersects_any_range(moment(date_index).startOf('day').utc(true), ranges)) {
                 res[date_index] = elt;
             }
         }
