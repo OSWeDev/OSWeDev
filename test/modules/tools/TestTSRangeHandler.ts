@@ -24,7 +24,7 @@ describe('TSRangeHandler', () => {
         expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, false, false))).to.equal(null);
         expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, false, true))).to.equal(null);
         expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, true, false))).to.equal(null);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, true, true))).to.equal(null);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, true, true))).to.equal(1);
 
         expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, true, true))).to.equal(1);
         expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, false, true))).to.equal(1);
@@ -102,6 +102,7 @@ describe('TSRangeHandler', () => {
     });
 
     it('test elt_intersects_range', () => {
+
         expect(TSRangeHandler.getInstance().elt_intersects_range(zero, TSRange.createNew(zero, zero, false, false))).to.equal(false);
         expect(TSRangeHandler.getInstance().elt_intersects_range(zero, TSRange.createNew(zero, zero, false, true))).to.equal(false);
         expect(TSRangeHandler.getInstance().elt_intersects_range(zero, TSRange.createNew(zero, zero, true, false))).to.equal(false);
