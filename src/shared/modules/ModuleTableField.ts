@@ -276,11 +276,11 @@ export default class ModuleTableField<T> {
                 return db_type == "daterange";
 
             case ModuleTableField.FIELD_TYPE_numrange_array:
-                return db_type == "numrange[]";
+                return (db_type == "numrange[]") || (db_type == "ARRAY");
             // case ModuleTableField.FIELD_TYPE_daterange_array:
             //     return db_type == "daterange[]";
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                return db_type == "numrange[]";
+                return (db_type == "numrange[]") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return db_type == "tsrange";
