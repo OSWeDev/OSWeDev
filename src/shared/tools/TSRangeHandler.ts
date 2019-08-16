@@ -14,8 +14,8 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
      * DIRTY [ou pas?] Pseudo max int pour int8 en bdd (théotiquement -9223372036854775808 to 9223372036854775807
      *  /1000 par sécurité doute sur les conversions, anyway peu de chance que ça impact anything
      */
-    public static MIN_TS: Moment = moment(-9223372036854775800 / 1000);
-    public static MAX_TS: Moment = moment(9223372036854775800 / 1000);
+    public static MIN_TS: Moment = moment(-9223372036854);
+    public static MAX_TS: Moment = moment(9223372036854);
 
     public static getInstance(): TSRangeHandler {
         if (!TSRangeHandler.instance) {

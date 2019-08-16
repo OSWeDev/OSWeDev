@@ -1,65 +1,67 @@
-import Module from '../../shared/modules/Module';
-import ModuleServerBase from './ModuleServerBase';
 import { Express } from 'express';
-import ModuleDBService from './ModuleDBService';
+import { IDatabase } from 'pg-promise';
+import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleAPI from '../../shared/modules/API/ModuleAPI';
-import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
-import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleCron from '../../shared/modules/Cron/ModuleCron';
-import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslation';
-import ModuleMailer from '../../shared/modules/Mailer/ModuleMailer';
-import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
-import ModuleDataExport from '../../shared/modules/DataExport/ModuleDataExport';
-import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
-import ModuleAPIServer from './API/ModuleAPIServer';
-import ModuleDAOServer from './DAO/ModuleDAOServer';
-import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
-import ModuleTranslationServer from './Translation/ModuleTranslationServer';
-import ModuleMailerServer from './Mailer/ModuleMailerServer';
-import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
-import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
-import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
-import { IDatabase } from 'pg-promise';
-import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
-import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
-import ModuleCronServer from './Cron/ModuleCronServer';
-import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
-import ConfigurationService from '../env/ConfigurationService';
-import ModulePushDataServer from './PushData/ModulePushDataServer';
-import ModulePushData from '../../shared/modules/PushData/ModulePushData';
-import ModuleFileServer from './File/ModuleFileServer';
-import ModuleFile from '../../shared/modules/File/ModuleFile';
-import ModuleImageServer from './Image/ModuleImageServer';
-import ModuleImage from '../../shared/modules/Image/ModuleImage';
-import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
-import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
-import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
+import ModuleBGThread from '../../shared/modules/BGThread/ModuleBGThread';
+import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
+import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
 import ModuleClient from '../../shared/modules/Commerce/Client/ModuleClient';
 import ModuleCommande from '../../shared/modules/Commerce/Commande/ModuleCommande';
-import ModuleAbonnement from '../../shared/modules/Commerce/Abonnement/ModuleAbonnement';
+import ModuleCommerce from '../../shared/modules/Commerce/ModuleCommerce';
 import ModulePaiement from '../../shared/modules/Commerce/Paiement/ModulePaiement';
-import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
-import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
-import ModuleClientServer from './Commerce/Client/ModuleClientServer';
-import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
-import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
-import ModuleCMS from '../../shared/modules/CMS/ModuleCMS';
-import ModuleCMSServer from './CMS/ModuleCMSServer';
-import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
-import ModuleVar from '../../shared/modules/Var/ModuleVar';
-import ModuleVarServer from './Var/ModuleVarServer';
+import ModuleProduit from '../../shared/modules/Commerce/Produit/ModuleProduit';
+import ModuleCron from '../../shared/modules/Cron/ModuleCron';
+import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
+import ModuleDataExport from '../../shared/modules/DataExport/ModuleDataExport';
+import ModuleDataImport from '../../shared/modules/DataImport/ModuleDataImport';
+import ModuleDataRender from '../../shared/modules/DataRender/ModuleDataRender';
 import ModuleDataSource from '../../shared/modules/DataSource/ModuleDataSource';
-import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
-import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
+import ModuleFile from '../../shared/modules/File/ModuleFile';
+import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleGeneratePDF from '../../shared/modules/GeneratePDF/ModuleGeneratePDF';
-import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
-import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
-import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
-import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
+import ModuleImage from '../../shared/modules/Image/ModuleImage';
+import ModuleMailer from '../../shared/modules/Mailer/ModuleMailer';
 import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenance';
+import Module from '../../shared/modules/Module';
+import ModulePushData from '../../shared/modules/PushData/ModulePushData';
+import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
+import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
+import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslation';
+import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
+import ModuleVar from '../../shared/modules/Var/ModuleVar';
+import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
+import ConfigurationService from '../env/ConfigurationService';
+import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
+import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
+import ModuleAPIServer from './API/ModuleAPIServer';
+import ModuleBGThreadServer from './BGThread/ModuleBGThreadServer';
+import ModuleCMSServer from './CMS/ModuleCMSServer';
+import ModuleAbonnementServer from './Commerce/Abonnement/ModuleAbonnementServer';
+import ModuleClientServer from './Commerce/Client/ModuleClientServer';
+import ModuleCommandeServer from './Commerce/Commande/ModuleCommandeServer';
+import ModuleCommerceServer from './Commerce/ModuleCommerceServer';
+import ModulePaiementServer from './Commerce/Paiement/ModulePaiementServer';
+import ModuleProduitServer from './Commerce/Produit/ModuleProduitServer';
+import ModuleCronServer from './Cron/ModuleCronServer';
+import ModuleDAOServer from './DAO/ModuleDAOServer';
+import ModuleDataExportServer from './DataExport/ModuleDataExportServer';
+import ModuleDataImportServer from './DataImport/ModuleDataImportServer';
+import ModuleDataRenderServer from './DataRender/ModuleDataRenderServer';
+import ModuleFileServer from './File/ModuleFileServer';
+import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
+import ModuleImageServer from './Image/ModuleImageServer';
+import ModuleMailerServer from './Mailer/ModuleMailerServer';
+import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
+import ModuleDBService from './ModuleDBService';
+import ModuleServerBase from './ModuleServerBase';
+import ModulePushDataServer from './PushData/ModulePushDataServer';
+import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
+import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
+import ModuleTranslationServer from './Translation/ModuleTranslationServer';
+import ModuleVarServer from './Var/ModuleVarServer';
+import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -277,6 +279,7 @@ export default abstract class ModuleServiceBase {
             ModuleSASSSkinConfigurator.getInstance(),
             ModuleVar.getInstance(),
             ModuleTableFieldTypes.getInstance(),
+            ModuleBGThread.getInstance()
         ];
     }
 
@@ -312,6 +315,7 @@ export default abstract class ModuleServiceBase {
             ModuleTranslationsImport.getInstance(),
             ModuleMaintenance.getInstance(),
             ModuleTableFieldTypes.getInstance(),
+            ModuleBGThread.getInstance()
         ];
     }
 
@@ -342,7 +346,8 @@ export default abstract class ModuleServiceBase {
             ModuleVersionedServer.getInstance(),
             ModuleGeneratePDFServer.getInstance(),
             ModuleTranslationsImportServer.getInstance(),
-            ModuleMaintenanceServer.getInstance()
+            ModuleMaintenanceServer.getInstance(),
+            ModuleBGThreadServer.getInstance()
         ];
     }
 }
