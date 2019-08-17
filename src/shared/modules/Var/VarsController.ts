@@ -311,9 +311,9 @@ export default class VarsController {
 
         // Si on doit l'afficher il faut que ce soit synchro dans le store, sinon on utilise le cache static
         let varData: T = null;
-        if (!!this.varDAG.nodes[index]) {
+        if (index && (!!this.varDAG.nodes[index]) && this.varDatas) {
 
-            if (!(index && this.varDatas && this.varDatas[index])) {
+            if (!this.varDatas[index]) {
                 return null;
             }
 
