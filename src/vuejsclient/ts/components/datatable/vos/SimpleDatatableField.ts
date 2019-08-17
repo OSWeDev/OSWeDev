@@ -208,7 +208,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
             switch (moduleTableField.field_type) {
                 case ModuleTableField.FIELD_TYPE_boolean:
-                    if ((value === true) || (value === "true") || (value === "on")) {
+                    if ((value === true) || (value === "true")) {
                         return true;
                     }
                     return false;

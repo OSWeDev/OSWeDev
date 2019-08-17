@@ -61,8 +61,17 @@ export default class CRUDComponentField extends VueComponentBase {
     }
 
     private validateInput(input: any) {
+
+        let input_value = input.value;
+        if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
+            ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+            input_value = input.checked;
+        }
+
+        // cas du checkbox où la value est useless ...
+
         if (this.field.required) {
-            if ((input.value == null) || (typeof input.value == "undefined")) {
+            if ((input_value == null) || (typeof input_value == "undefined")) {
 
                 switch (this.field.type) {
                     case DatatableField.SIMPLE_FIELD_TYPE:
@@ -90,7 +99,7 @@ export default class CRUDComponentField extends VueComponentBase {
             return;
         }
 
-        let error: string = this.field.validate(input.value);
+        let error: string = this.field.validate(input_value);
         let msg;
 
         if ((!error) || (error == "")) {
@@ -100,7 +109,7 @@ export default class CRUDComponentField extends VueComponentBase {
         }
         input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
 
-        this.field_value = input.value;
+        this.field_value = input_value;
 
         this.$emit('changeValue', this.vo, this.field, this.field_value);
     }
@@ -178,7 +187,7 @@ export default class CRUDComponentField extends VueComponentBase {
                 for (let j in simpleField.moduleTableField.enum_values) {
                     let id: number = parseInt(j.toString());
 
-                    if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(id) >= 0) {
+                    if ((!this.field_select_options_enabled) || (this.field_select_options_enabled.indexOf(id) >= 0)) {
                         newOptions.push(id);
                     }
                 }
