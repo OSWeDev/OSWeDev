@@ -487,11 +487,11 @@ export default abstract class RangeHandler<T> {
     public abstract getSegmentedMin_from_ranges(ranges: Array<IRange<T>>, segment_type?: number): T;
     public abstract getSegmentedMax_from_ranges(ranges: Array<IRange<T>>, segment_type?: number): T;
 
-    public abstract foreach(range: IRange<T>, callback: (value: T) => void, segment_type?: number, min_inclusiv?: T, max_inclusiv?: T);
+    public abstract async foreach(range: IRange<T>, callback: (value: T) => Promise<void> | void, segment_type?: number, min_inclusiv?: T, max_inclusiv?: T);
 
-    public foreach_ranges(ranges: Array<IRange<T>>, callback: (value: T) => void, segment_type?: number, min_inclusiv: T = null, max_inclusiv: T = null) {
+    public async foreach_ranges(ranges: Array<IRange<T>>, callback: (value: T) => Promise<void> | void, segment_type?: number, min_inclusiv: T = null, max_inclusiv: T = null) {
         for (let i in ranges) {
-            this.foreach(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv);
+            await this.foreach(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv);
         }
     }
 

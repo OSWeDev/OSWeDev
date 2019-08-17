@@ -335,7 +335,7 @@ export default class NumRangeHandler extends RangeHandler<number> {
         return res;
     }
 
-    public foreach(range: NumRange, callback: (value: number) => void, segment_type: number = NumSegment.TYPE_INT, min_inclusiv: number = null, max_inclusiv: number = null) {
+    public async foreach(range: NumRange, callback: (value: number) => Promise<void> | void, segment_type: number = NumSegment.TYPE_INT, min_inclusiv: number = null, max_inclusiv: number = null) {
         let min = this.getSegmentedMin(range, segment_type);
         let max = this.getSegmentedMax(range, segment_type);
 
@@ -354,7 +354,7 @@ export default class NumRangeHandler extends RangeHandler<number> {
         }
 
         for (let i = min; i <= max; i++) {
-            callback(i);
+            await callback(i);
         }
     }
 

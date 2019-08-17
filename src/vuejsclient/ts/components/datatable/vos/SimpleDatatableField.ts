@@ -136,16 +136,16 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {
                         case TimeSegment.TYPE_MONTH:
-                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonth(this.getMomentDateFieldInclusif(field_value, moduleTableField, true));
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('month').format('Y-MM-DD');
                         case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(field_value, moduleTableField, true));
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('day').format('Y-MM-DD');
                         case TimeSegment.TYPE_WEEK:
-                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(field_value, moduleTableField, true));
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('isoWeek').format('Y-MM-DD');
                         case TimeSegment.TYPE_YEAR:
                             return field_value.year();
                         case TimeSegment.TYPE_DAY:
                         default:
-                            return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(field_value, moduleTableField, true));
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).format('Y-MM-DD');
                     }
 
                 default:
@@ -208,7 +208,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
             switch (moduleTableField.field_type) {
                 case ModuleTableField.FIELD_TYPE_boolean:
-                    if ((value === true) || (value === "true")) {
+                    if ((value === true) || (value === "true") || (value === "on")) {
                         return true;
                     }
                     return false;

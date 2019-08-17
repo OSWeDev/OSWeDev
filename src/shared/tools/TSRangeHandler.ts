@@ -556,7 +556,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
 
-    public foreach(range: TSRange, callback: (value: Moment) => void, segment_type: number = TimeSegment.TYPE_DAY, min_inclusiv: Moment = null, max_inclusiv: Moment = null) {
+    public async foreach(range: TSRange, callback: (value: Moment) => Promise<void> | void, segment_type: number = TimeSegment.TYPE_DAY, min_inclusiv: Moment = null, max_inclusiv: Moment = null) {
 
         let actual_moment: Moment = this.getSegmentedMin(range, segment_type);
         let end_moment: Moment = this.getSegmentedMax(range, segment_type);
@@ -577,7 +577,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
 
         while (actual_moment && actual_moment.isSameOrBefore(end_moment)) {
 
-            callback(actual_moment);
+            await callback(actual_moment);
             actual_moment = moment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(actual_moment, segment_type, 1).dateIndex);
         }
     }
