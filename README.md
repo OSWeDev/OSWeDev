@@ -1,3 +1,7 @@
+# BREAKING CHANGE 19-08-2019
+
+ * ATTENTION aux foreach et foreach_ranges sur TSRangeHandler et NumRangeHandler => passent en async, il faut donc les await. Cela permet par contre d'utiliser des callbacks async.
+
 # BREAKING CHANGE 02-08-2019
 
  *  Suppression du API_TYPE_ID devenu inutile et gênant sur ces 3 apis du moduleDAO
