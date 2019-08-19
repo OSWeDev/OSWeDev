@@ -42,8 +42,9 @@ describe('TestFilters', () => {
 
         expect(percentFilter.read("a")).to.equal(null);
         expect(percentFilter.read("dix")).to.equal(null);
-        expect(percentFilter.read("1000000")).to.equal("100 000 000 %");
-        expect(percentFilter.read("-1000")).to.equal("-100 000 %");
+        expect(percentFilter.read("1000000")).to.equal("&infin;");
+        expect(percentFilter.read("-1000000")).to.equal("-&infin;");
+        expect(percentFilter.read("-1000")).to.equal("-&infin;");
     });
 
 

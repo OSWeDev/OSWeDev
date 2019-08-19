@@ -9,15 +9,15 @@ import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment'
 describe('TSRangeHandler', () => {
 
 
-    let zero = moment().startOf('day').add(1, 'hour');
-    let zero_cinq = moment(zero).add(12, 'hour');
-    let moins_zero_cinq = moment(zero).add(-12, 'hour');
-    let un = moment(zero).add(1, 'day');
-    let deux = moment(zero).add(2, 'day');
-    let moins_un = moment(zero).add(-1, 'day');
-    let moins_deux = moment(zero).add(-2, 'day');
+    let zero = moment().startOf('day').add(1, 'hour').utc(true);
+    let zero_cinq = moment(zero).add(12, 'hour').utc(true);
+    let moins_zero_cinq = moment(zero).add(-12, 'hour').utc(true);
+    let un = moment(zero).add(1, 'day').utc(true);
+    let deux = moment(zero).add(2, 'day').utc(true);
+    let moins_un = moment(zero).add(-1, 'day').utc(true);
+    let moins_deux = moment(zero).add(-2, 'day').utc(true);
 
-    let bidon = moment(zero).add(10, 'day');
+    let bidon = moment(zero).add(10, 'day').utc(true);
 
     it('test getCardinal', () => {
         expect(TSRangeHandler.getInstance().getCardinal(null)).to.equal(null);
@@ -26,20 +26,20 @@ describe('TSRangeHandler', () => {
         expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, true, false))).to.equal(null);
         expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, zero, true, true))).to.equal(1);
 
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, true, true))).to.equal(1);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, false, true))).to.equal(1);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, true, false))).to.equal(1);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, false, false))).to.equal(1);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, true, true))).to.equal(2);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, false, true))).to.equal(2);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, true, false))).to.equal(2);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(zero, un, false, false))).to.equal(2);
 
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true))).to.equal(1);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true))).to.equal(1);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false))).to.equal(1);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false))).to.equal(1);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true))).to.equal(2);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true))).to.equal(2);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false))).to.equal(2);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false))).to.equal(2);
 
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, true, true))).to.equal(4);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, true))).to.equal(4);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, true, false))).to.equal(4);
-        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, false))).to.equal(4);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, true, true))).to.equal(5);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, true))).to.equal(5);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, true, false))).to.equal(5);
+        expect(TSRangeHandler.getInstance().getCardinal(TSRange.createNew(moins_deux, deux, false, false))).to.equal(5);
     });
 
     it('test elt_intersects_any_range', () => {
@@ -209,325 +209,369 @@ describe('TSRangeHandler', () => {
         });
     });
 
-    it('test foreach', () => {
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([]);
+    it('test foreach', async () => {
+        let res: string[] = [];
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+        ]);
 
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([]);
+        res = [];
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+        ]);
 
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([]);
+        res = [];
 
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([]);
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+        ]);
 
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
+        res = [];
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+        ]);
 
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
-
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_un, un, true, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([
+        res = [];
+        await await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
             DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
-
-
-
-
-
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, zero, zero);
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, zero, zero);
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, zero, zero);
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, zero, zero);
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, zero, zero);
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, zero, zero);
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, zero, zero);
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, zero, zero);
-            return res;
-        })()).to.deep.equal([]);
-
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_un, un, true, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, moins_un, zero);
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, moins_un, zero);
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, moins_un, zero);
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, moins_un, zero);
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            }, TimeSegment.TYPE_DAY, moins_un, zero);
-            return res;
-        })()).to.deep.equal([DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
-    });
-
-    it('test foreach_ranges', () => {
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach_ranges([TSRange.createNew(zero, zero, true, true)], (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach_ranges([TSRange.createNew(zero, zero, true, false)], (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach_ranges([TSRange.createNew(zero, zero, false, true)], (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach_ranges([TSRange.createNew(zero, zero, false, false)], (date: moment.Moment) => {
-                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-            });
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach_ranges([
-                TSRange.createNew(zero, un, true, false),
-                TSRange.createNew(zero, un, false, false)], (date: moment.Moment) => {
-                    res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-                });
-            return res;
-        })()).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
         ]);
 
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach_ranges([
-                TSRange.createNew(zero, un, true, false),
-                TSRange.createNew(zero, un, false, false),
-                TSRange.createNew(zero, un, false, true)], (date: moment.Moment) => {
-                    res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-                });
-            return res;
-        })()).to.deep.equal([
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
+        ]);
+
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_un, un, true, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+        ]);
+
+
+
+
+
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, zero, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, zero, zero);
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, zero, zero);
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, zero, zero);
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, zero, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, zero, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, zero, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(zero, un, true, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, zero, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+        ]);
+
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_un, un, true, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, moins_un, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, moins_un, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, moins_un, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, moins_un, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false), (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        }, TimeSegment.TYPE_DAY, moins_un, zero);
+        expect(res).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+    });
+
+    it('test foreach_ranges', async () => {
+        let res: string[] = [];
+
+        await TSRangeHandler.getInstance().foreach_ranges([TSRange.createNew(zero, zero, true, true)], (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach_ranges([TSRange.createNew(zero, zero, true, false)], (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach_ranges([TSRange.createNew(zero, zero, false, true)], (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach_ranges([TSRange.createNew(zero, zero, false, false)], (date: moment.Moment) => {
+            res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+        });
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach_ranges([
+            TSRange.createNew(zero, un, true, false),
+            TSRange.createNew(zero, un, false, false)], (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            });
+        expect(res).to.deep.equal([
+
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
+        ]);
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach_ranges([
+            TSRange.createNew(zero, un, true, false),
+            TSRange.createNew(zero, un, false, false),
+            TSRange.createNew(zero, un, false, true)], (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            });
+        expect(res).to.deep.equal([
+
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
 
 
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach_ranges([
-                TSRange.createNew(zero, un, true, false),
-                TSRange.createNew(zero, un, false, false),
-                TSRange.createNew(zero, un, false, true),
-                TSRange.createNew(zero, un, true, true)], (date: moment.Moment) => {
-                    res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-                });
-            return res;
-        })()).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
+        res = [];
 
+        await TSRangeHandler.getInstance().foreach_ranges([
+            TSRange.createNew(zero, un, true, false),
+            TSRange.createNew(zero, un, false, false),
+            TSRange.createNew(zero, un, false, true),
+            TSRange.createNew(zero, un, true, true)], (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            });
+        expect(res).to.deep.equal([
 
-        expect((() => {
-            let res: string[] = [];
-            TSRangeHandler.getInstance().foreach_ranges([
-                TSRange.createNew(zero, un, true, false),
-                TSRange.createNew(zero, un, false, false),
-                TSRange.createNew(zero, un, false, true),
-                TSRange.createNew(zero, un, true, true),
-                TSRange.createNew(moins_un, un, true, true),
-                TSRange.createNew(moins_zero_cinq, zero_cinq, true, false),
-                TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)], (date: moment.Moment) => {
-                    res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
-                });
-            return res;
-        })()).to.deep.equal([
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
+
+
+        res = [];
+
+        await TSRangeHandler.getInstance().foreach_ranges([
+            TSRange.createNew(zero, un, true, false),
+            TSRange.createNew(zero, un, false, false),
+            TSRange.createNew(zero, un, false, true),
+            TSRange.createNew(zero, un, true, true),
+            TSRange.createNew(moins_un, un, true, true),
+            TSRange.createNew(moins_zero_cinq, zero_cinq, true, false),
+            TSRange.createNew(moins_zero_cinq, zero_cinq, false, false)], (date: moment.Moment) => {
+                res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
+            });
+        expect(res).to.deep.equal([
+
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
             DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
     });
 

@@ -49,6 +49,7 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import APIDAOApiTypeAndMatroidsParamsVO from '../../../shared/modules/DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
 import APIDAOApiTypeAndFieldRangesParamsVO from '../../../shared/modules/DAO/vos/APIDAOApiTypeAndFieldRangesParamsVO';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
+import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1273,6 +1274,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             where_clause += first_matroid ? "(" : ") OR (";
 
+            // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
+            // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
+            if (!!(matroid as IVarDataParamVOBase).var_id) {
+
+                if (!!datatable.getFieldFromId('var_id')) {
+                    where_clause += '(var_id = ' + (matroid as IVarDataParamVOBase).var_id + ') AND ';
+                }
+            }
+
             let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
 
             let first = true;
@@ -1291,6 +1301,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 where_clause += first ? "(" : ") AND (";
+                let ranges_query: string = '(\'{';
+                let ranges_query_type = '';
                 let first_in_clause = true;
 
                 for (let j in ranges) {
@@ -1301,20 +1313,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         return null;
                     }
 
-                    where_clause += first_in_clause ? "" : " OR ";
-
+                    ranges_query += first_in_clause ? "" : ",";
                     first = false;
                     first_in_clause = false;
                     first_matroid = false;
-
                     switch (field.field_type) {
-
                         case ModuleTableField.FIELD_TYPE_string:
                             if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
-                                where_clause += field.field_id + "::timestamp with time zone <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
+                                ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"' + '::tstzrange';
                                 break;
                             }
-
                         case ModuleTableField.FIELD_TYPE_amount:
                         case ModuleTableField.FIELD_TYPE_enum:
                         case ModuleTableField.FIELD_TYPE_file_ref:
@@ -1325,48 +1333,74 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_image_ref:
                         case ModuleTableField.FIELD_TYPE_int:
                         case ModuleTableField.FIELD_TYPE_prct:
-                            where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
-                            break;
-
                         case ModuleTableField.FIELD_TYPE_int_array:
-                            where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange @> ANY (" + field.field_id + "::numeric[])";
-                            break;
-
                         case ModuleTableField.FIELD_TYPE_numrange_array:
-                            where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange @> ANY (" + field.field_id + "::numrange[])";
+                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + '"';
+                            ranges_query_type = '::numrange[]';
                             break;
-
                         case ModuleTableField.FIELD_TYPE_date:
                         case ModuleTableField.FIELD_TYPE_day:
                         case ModuleTableField.FIELD_TYPE_month:
-                            where_clause += field.field_id + "::date <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange";
+                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"';
+                            ranges_query_type = '::daterange[]';
                             break;
-
+                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
                         case ModuleTableField.FIELD_TYPE_tstz:
-                            where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
+                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"';
+                            ranges_query_type = '::numrange[]';
                             break;
-
                         case ModuleTableField.FIELD_TYPE_timestamp:
                         case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                             // TODO FIXME
                             break;
-
                         case ModuleTableField.FIELD_TYPE_daterange:
-                            where_clause += field.field_id + " <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange";
+                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"';
+                            ranges_query_type = '::daterange[]';
                             break;
-
                         case ModuleTableField.FIELD_TYPE_tsrange:
-                            where_clause += field.field_id + " <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDateTimeForBDD(field_range.min) + "," + DateHandler.getInstance().formatDateTimeForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
+                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDateTimeForBDD(field_range.min) + "," + DateHandler.getInstance().formatDateTimeForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"';
+                            ranges_query_type = '::tstzrange[]';
                             break;
-
-                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                            where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::numrange @> ANY (" + field.field_id + "::numrange[])";
-                            break;
-
-                        // case ModuleTableField.FIELD_TYPE_daterange_array:
-                        //     where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange @> ANY (" + field.field_id + "::daterange[])";
-                        //     break;
                     }
+                }
+                ranges_query += '}\'' + ranges_query_type + ')';
+
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                        if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
+                            where_clause += field.field_id + "::timestamp with time zone <@ ANY " + ranges_query;
+                            break;
+                        }
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        where_clause += field.field_id + "::numeric <@ ANY " + ranges_query;
+                        break;
+                    case ModuleTableField.FIELD_TYPE_date:
+                    case ModuleTableField.FIELD_TYPE_day:
+                    case ModuleTableField.FIELD_TYPE_month:
+                        where_clause += field.field_id + "::date <@ ANY " + ranges_query;
+                        break;
+                    case ModuleTableField.FIELD_TYPE_daterange: // TODO FIXME
+                    case ModuleTableField.FIELD_TYPE_timestamp: // TODO FIXME
+                    case ModuleTableField.FIELD_TYPE_timewithouttimezone: // TODO FIXME
+                        where_clause += field.field_id + " <@ ANY " + ranges_query;
+                        break;
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    default:
+                        where_clause += ranges_query + " @> " + field.field_id;
+                        break;
                 }
             }
             if (first) {
@@ -1420,6 +1454,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             where_clause += first_matroid ? "(" : ") OR (";
+
+            // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
+            // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
+            if (!!(matroid as IVarDataParamVOBase).var_id) {
+
+                if (!!datatable.getFieldFromId('var_id')) {
+                    where_clause += '(var_id = ' + (matroid as IVarDataParamVOBase).var_id + ') AND ';
+                }
+            }
 
             let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
 
@@ -1567,6 +1610,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             where_clause += first_matroid ? "(" : ") OR (";
+
+            // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
+            // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
+            if (!!(matroid as IVarDataParamVOBase).var_id) {
+
+                if (!!datatable.getFieldFromId('var_id')) {
+                    where_clause += '(var_id = ' + (matroid as IVarDataParamVOBase).var_id + ') AND ';
+                }
+            }
 
             let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
 

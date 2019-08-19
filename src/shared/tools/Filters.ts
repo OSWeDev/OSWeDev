@@ -213,7 +213,7 @@ export let percentFilter = new FilterObj(
             pourcentage = "%";
         }
 
-        let res = returns_infinity ? '&infin;' : ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits) + " " + pourcentage;
+        let res = returns_infinity ? ((value < 0) ? '-&infin;' : '&infin;') : ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits) + " " + pourcentage;
 
         if (explicit_sign) {
             if (value > 0) {

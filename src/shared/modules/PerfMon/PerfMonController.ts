@@ -18,10 +18,19 @@ export default class PerfMonController {
 
     private static instance: PerfMonController = null;
 
-    public perfMonDataByFunctionUID: { [function_uid: string]: PerfMonData[] } = {};
+    // public perfMonDataByFunctionUID: { [function_uid: string]: PerfMonData[] } = {};
     public perfMonDataByUID: { [uid: string]: PerfMonData } = {};
     public perfMonFuncStatByFunctionUID: { [function_uid: string]: PerfMonFuncStat } = {};
     private setPerfMonFuncStats: (perfMonFuncStat: PerfMonFuncStat[]) => void = null;
+
+    private debounced_setPerfMonFuncStats = debounce(async () => {
+
+        if (!!PerfMonController.getInstance().setPerfMonFuncStats) {
+
+            PerfMonController.getInstance().setPerfMonFuncStats(PerfMonController.getInstance().toUpdate_perfMonFuncStats);
+        }
+    }, 1400);
+
 
     private toUpdate_perfMonFuncStats: PerfMonFuncStat[] = [];
 
@@ -32,23 +41,9 @@ export default class PerfMonController {
 
     public setPerfMonFuncStatsStoreFunc(setPerfMonFuncStats: (perfMonFuncStat: PerfMonFuncStat[]) => void) {
         this.setPerfMonFuncStats = setPerfMonFuncStats;
-        let self = this;
-        this.debounced_setPerfMonFuncStats = debounce(async () => {
-
-            if (!!self.setPerfMonFuncStats) {
-
-                self.setPerfMonFuncStats(self.toUpdate_perfMonFuncStats);
-            }
-        }, 1400);
 
         if (!!this.setPerfMonFuncStats) {
-
-            this.toUpdate_perfMonFuncStats = [];
-
-            for (let i in this.perfMonFuncStatByFunctionUID) {
-                this.toUpdate_perfMonFuncStats.push(this.perfMonFuncStatByFunctionUID[i]);
-            }
-            this.setPerfMonFuncStats(this.toUpdate_perfMonFuncStats);
+            this.debounced_setPerfMonFuncStats();
         }
     }
 
@@ -69,10 +64,10 @@ export default class PerfMonController {
 
         this.perfMonDataByUID[UID] = perfMonData;
 
-        if (!this.perfMonDataByFunctionUID[function_uid]) {
-            this.perfMonDataByFunctionUID[function_uid] = [];
-        }
-        this.perfMonDataByFunctionUID[function_uid].push(perfMonData);
+        // if (!this.perfMonDataByFunctionUID[function_uid]) {
+        //     this.perfMonDataByFunctionUID[function_uid] = [];
+        // }
+        // this.perfMonDataByFunctionUID[function_uid].push(perfMonData);
 
         return UID;
     }
@@ -117,19 +112,20 @@ export default class PerfMonController {
                 perfMonFuncStat.nb_calls, 'milliseconds');
         }
 
+        this.toUpdate_perfMonFuncStats.push(perfMonFuncStat);
+
+        delete this.perfMonDataByUID[perfMon_UID];
+
         if (!!this.setPerfMonFuncStats) {
-            this.toUpdate_perfMonFuncStats.push(perfMonFuncStat);
             this.debounced_setPerfMonFuncStats();
         }
     }
 
-    public getLastPerfMonFuncData(function_uid: string): PerfMonData {
-        return ((!!this.perfMonDataByFunctionUID[function_uid]) && (this.perfMonDataByFunctionUID[function_uid].length > 0)) ?
-            this.perfMonDataByFunctionUID[function_uid][this.perfMonDataByFunctionUID[function_uid].length - 1] : null;
-    }
+    // public getLastPerfMonFuncData(function_uid: string): PerfMonData {
+    //     return ((!!this.perfMonDataByFunctionUID[function_uid]) && (this.perfMonDataByFunctionUID[function_uid].length > 0)) ?
+    //         this.perfMonDataByFunctionUID[function_uid][this.perfMonDataByFunctionUID[function_uid].length - 1] : null;
+    // }
     public getPerfMonFuncStat(function_uid: string): PerfMonFuncStat {
         return this.perfMonFuncStatByFunctionUID[function_uid];
     }
-
-    private debounced_setPerfMonFuncStats: () => void = () => { };
 }

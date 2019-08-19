@@ -297,7 +297,11 @@ export default class MatroidController {
         //  qui seraient définis sur la structure de données, et qui indique un non filtrage, donc une intersection obligatoire
         //  à moins que l'autre matroid soit vide (cardinal = 0).
 
-        if ((!a) || (!MatroidController.getInstance().get_cardinal(a)) || (!b) || (!MatroidController.getInstance().get_cardinal(b))) {
+        // if ((!a) || (!MatroidController.getInstance().get_cardinal(a)) || (!b) || (!MatroidController.getInstance().get_cardinal(b))) {
+        //     return false;
+        // }
+
+        if ((!a) || (!b)) {
             return false;
         }
 
@@ -405,7 +409,8 @@ export default class MatroidController {
 
         // On choisit (arbitrairement) de projeter la coupe selon une base du matroid
         //  de manière totalement arbitraire aussi, on priorise la base de cardinal la plus élevée
-        let matroid_to_cut_bases: Array<MatroidBase<any>> = this.getMatroidBases(matroid_to_cut, true, false);
+        // on limite l'utilisation du get_cardinal très lourd pour peu de gain a priori let matroid_to_cut_bases: Array<MatroidBase<any>> = this.getMatroidBases(matroid_to_cut, true, false);
+        let matroid_to_cut_bases: Array<MatroidBase<any>> = this.getMatroidBases(matroid_to_cut);
 
         // Le matroid chopped est unique par définition et reprend simplement les bases chopped
         let chopped_matroid = this.cloneFrom(matroid_to_cut);

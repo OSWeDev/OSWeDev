@@ -1,4 +1,5 @@
 import TimeSegment from '../../../DataRender/vos/TimeSegment';
+import TimeSegmentHandler from '../../../../tools/TimeSegmentHandler';
 
 export default class TimeSegmentParamVO {
 
@@ -19,7 +20,7 @@ export default class TimeSegmentParamVO {
         if (!(req && req.params)) {
             return null;
         }
-        return new TimeSegmentParamVO(TimeSegment.fromDateAndType(req.params.date_index, parseInt(req.params.type.toString())));
+        return new TimeSegmentParamVO(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(req.params.date_index, parseInt(req.params.type.toString())));
     }
 
     public constructor(

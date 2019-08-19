@@ -1,12 +1,11 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import IRange from '../modules/DataRender/interfaces/IRange';
 import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import TSRange from '../modules/DataRender/vos/TSRange';
 import DateHandler from './DateHandler';
 import RangeHandler from './RangeHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
-import IRange from '../modules/DataRender/interfaces/IRange';
-import TimeHandler from './TimeHandler';
 
 export default class TSRangeHandler extends RangeHandler<Moment> {
 
@@ -428,7 +427,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMin(range: TSRange, segment_type: number = TimeSegment.TYPE_DAY): Moment {
+    public getSegmentedMin(range: TSRange, segment_type: number = TimeSegment.TYPE_DAY, offset: number = 0): Moment {
 
 
         if (!range) {
@@ -436,36 +435,20 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         }
 
         let range_min_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.min, segment_type);
-        let range_min_moment: Moment = moment(range_min_ts.dateIndex);
 
-        // if (range_min_moment.isBefore(range.min)) {
-        //     range_min_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_min_ts, segment_type, -1);
-        //     range_min_moment = moment(range_min_ts.dateIndex);
-        // }
-
-        if (range_min_moment.isAfter(range.max)) {
+        if (range_min_ts.date.isAfter(range.max)) {
             return null;
         }
 
-        if ((!range.max_inclusiv) && (range_min_moment.isSameOrAfter(range.max))) {
+        if ((!range.max_inclusiv) && (range_min_ts.date.isSameOrAfter(range.max))) {
             return null;
         }
 
-        // if (range.min_inclusiv) {
-        //     return range_min_moment;
-        // }
+        if (!!offset) {
+            TimeSegmentHandler.getInstance().incMoment(range_min_ts.date, segment_type, offset);
+        }
 
-        // if (range_min_moment.isAfter(range.min)) {
-        //     return range_min_moment;
-        // }
-
-        // range_min_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_min_ts, segment_type, -1);
-
-        // if (((!range.max_inclusiv) && (range.max.isSame(moment(range_min_ts.dateIndex))) || (range.max.isBefore(moment(range_min_ts.dateIndex))))) {
-        //     return null;
-        // }
-
-        return range_min_moment; //moment(range_min_ts.dateIndex);
+        return range_min_ts.date;
     }
 
     /**
@@ -473,18 +456,16 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMax(range: TSRange, segment_type: number = TimeSegment.TYPE_DAY): Moment {
+    public getSegmentedMax(range: TSRange, segment_type: number = TimeSegment.TYPE_DAY, offset: number = 0): Moment {
 
         if (!range) {
             return null;
         }
 
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
-        let range_max_moment: Moment = moment(range_max_ts.dateIndex);
 
-        if ((!range.max_inclusiv) && (range_max_moment.isSame(range.max))) {
-            range_max_ts = TimeSegmentHandler.getInstance().getPreviousTimeSegment(range_max_ts, segment_type);
-            range_max_moment = moment(range_max_ts.dateIndex);
+        if ((!range.max_inclusiv) && (range_max_ts.date.isSame(range.max))) {
+            TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
         }
 
         let range_max_end_moment: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
@@ -497,7 +478,11 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return null;
         }
 
-        return range_max_moment;
+        if (!!offset) {
+            TimeSegmentHandler.getInstance().incMoment(range_max_ts.date, segment_type, offset);
+        }
+
+        return range_max_ts.date;
     }
 
 
@@ -506,7 +491,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMin_from_ranges(ranges: TSRange[], segment_type: number = TimeSegment.TYPE_DAY): Moment {
+    public getSegmentedMin_from_ranges(ranges: TSRange[], segment_type: number = TimeSegment.TYPE_DAY, offset: number = 0): Moment {
 
         if ((!ranges) || (!ranges.length)) {
             return null;
@@ -525,6 +510,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             }
         }
 
+        if (!!offset) {
+            TimeSegmentHandler.getInstance().incMoment(res, segment_type, offset);
+        }
+
         return res;
     }
 
@@ -533,7 +522,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
      * @param range
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
-    public getSegmentedMax_from_ranges(ranges: TSRange[], segment_type: number = TimeSegment.TYPE_DAY): Moment {
+    public getSegmentedMax_from_ranges(ranges: TSRange[], segment_type: number = TimeSegment.TYPE_DAY, offset: number = 0): Moment {
 
         if ((!ranges) || (!ranges.length)) {
             return null;
@@ -552,6 +541,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             }
         }
 
+        if (!!offset) {
+            TimeSegmentHandler.getInstance().incMoment(res, segment_type, offset);
+        }
+
         return res;
     }
 
@@ -565,12 +558,24 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             return;
         }
 
-        if ((!!min_inclusiv) && min_inclusiv.isValid() && (min_inclusiv.isAfter(actual_moment))) {
-            actual_moment = min_inclusiv;
+        if ((!!min_inclusiv) && min_inclusiv.isValid()) {
+
+            // FIXME : needs rework for timesegments < day
+            min_inclusiv = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(min_inclusiv, segment_type).date;
+            if (min_inclusiv.isAfter(actual_moment)) {
+                actual_moment = min_inclusiv;
+            }
         }
-        if ((!!max_inclusiv) && max_inclusiv.isValid() && (max_inclusiv.isBefore(end_moment))) {
-            end_moment = max_inclusiv;
+
+        if ((!!max_inclusiv) && max_inclusiv.isValid()) {
+
+            // FIXME : needs rework for timesegments < day
+            max_inclusiv = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(max_inclusiv, segment_type).date;
+            if (max_inclusiv.isBefore(end_moment)) {
+                end_moment = max_inclusiv;
+            }
         }
+
         if (actual_moment.isAfter(end_moment)) {
             return;
         }
@@ -578,7 +583,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         while (actual_moment && actual_moment.isSameOrBefore(end_moment)) {
 
             await callback(actual_moment);
-            actual_moment = moment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(actual_moment, segment_type, 1).dateIndex);
+            TimeSegmentHandler.getInstance().incMoment(actual_moment, segment_type, 1);
         }
     }
 

@@ -1,3 +1,5 @@
+import { Moment } from 'moment';
+
 export default class TimeSegment {
     public static TYPE_NAMES: string[] = ["timesegment.year.type_name", "timesegment.month.type_name", "timesegment.day.type_name", "timesegment.week.type_name", "timesegment.rolling_year_month_start.type_name"];
     public static TYPE_YEAR: number = 0;
@@ -21,15 +23,16 @@ export default class TimeSegment {
         [TimeSegment.TYPE_MS]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_MS],
     };
 
-    public static fromDateAndType(dateIndex: string, type: number) {
-        let res = new TimeSegment();
-
-        res.dateIndex = dateIndex;
-        res.type = type;
-
-        return res;
+    /**
+     * DON'T USE this method to create TimeSegments, use only the TimeSegmentHandler to get corresponding segment from Moment and segment_type
+     */
+    public static createNew(date: Moment, type: number): TimeSegment {
+        return new TimeSegment(date, type);
     }
 
-    public dateIndex: string;
-    public type: number;
+    private constructor(public date: Moment, public type: number) { }
+
+    get dateIndex(): string {
+        return this.date ? this.date.format('Y-MM-DD') : null;
+    }
 }

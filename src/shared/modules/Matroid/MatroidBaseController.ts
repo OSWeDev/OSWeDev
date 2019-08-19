@@ -4,7 +4,6 @@ import FieldRange from '../DataRender/vos/FieldRange';
 import MatroidBase from './vos/MatroidBase';
 import MatroidBaseCutResult from './vos/MatroidBaseCutResult';
 import RangesCutResult from './vos/RangesCutResult';
-import SimpleNumberVarDataController from '../Var/simple_vars/SimpleNumberVarDataController';
 
 export default class MatroidBaseController {
 
@@ -43,8 +42,7 @@ export default class MatroidBaseController {
                 return null;
             }
 
-            let res_fieldrange = FieldRangeHandler.getInstance().cloneFrom(from_fieldrange);
-            cardinal += FieldRangeHandler.getInstance().getCardinal(res_fieldrange);
+            cardinal += FieldRangeHandler.getInstance().getCardinal(from_fieldrange);
         }
         return cardinal;
     }

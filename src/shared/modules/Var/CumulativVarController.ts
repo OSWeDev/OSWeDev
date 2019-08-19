@@ -19,7 +19,7 @@ export default class CumulativVarController {
      * FIXME TODO ASAP VARS TU
      * Renvoie la date de reset du compteur la plus proche possible, dans le passé (<=), de la date passée en paramètre
      */
-    public getClosestPreviousCompteurResetDate(date: Moment, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): Moment {
+    public getClosestPreviousCompteurResetDate(date: Moment, inclusive: boolean, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): Moment {
 
         if (!has_yearly_reset) {
             return null;
@@ -31,7 +31,7 @@ export default class CumulativVarController {
         date_reset.month(yearly_reset_month);
         date_reset.date(yearly_reset_day_in_month);
 
-        if (date_reset.isAfter(date, 'day')) {
+        if ((inclusive && date_reset.isAfter(date, 'day')) || ((!inclusive) && date_reset.isSameOrAfter(date, 'day'))) {
             date_reset.add(-1, 'year');
         }
         return date_reset;

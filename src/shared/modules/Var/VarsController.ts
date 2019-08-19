@@ -725,9 +725,9 @@ export default class VarsController {
             return null;
         }
 
-        target = target.endOf('day').utc(true);
+        TimeSegmentHandler.getInstance().incMoment(target, controller.segment_type, 1);
         let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
-            target, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
+            target, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
         return TSRange.createNew(closest_earlier_reset_date, target, true, true);
     }
 
@@ -770,9 +770,11 @@ export default class VarsController {
             for (let i in tsranged_param.ts_ranges) {
                 let ts_range = tsranged_param.ts_ranges[i];
 
-                let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type).utc(true);
+                let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
+                TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
                 let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
-                    end_range, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month).utc(true);
+                    end_range, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month).utc(true);
+
                 if (TSRangeHandler.getInstance().elt_intersects_range(closest_earlier_reset_date, ts_range)) {
                     ts_range.min = closest_earlier_reset_date;
                     ts_range.min_inclusiv = true;
@@ -784,19 +786,21 @@ export default class VarsController {
         for (let i in tsranged_param.ts_ranges) {
             let ts_range = tsranged_param.ts_ranges[i];
 
-            let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type).utc(true);
-            let start_range = TSRangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type).utc(true);
+            let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
+            let start_range = TSRangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type);
 
             if ((start_range == null) || (end_range == null)) {
                 continue;
             }
+
+            TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
 
             if ((!ts_range.min_inclusiv) || (!ts_range.max_inclusiv) ||
                 (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {
                 ts_range.min = start_range;
                 ts_range.max = end_range;
                 ts_range.min_inclusiv = true;
-                ts_range.max_inclusiv = true;
+                ts_range.max_inclusiv = false;
             }
 
             ts_ranges_.push(ts_range);
@@ -1235,8 +1239,14 @@ export default class VarsController {
                 //  plus tenter de couvrire les semaines restantes avec des calculs semaine.Alors que si on prend les 6 semaines en calculé, on couvre la totalité et on recalcule rien.
                 //  L'approximation est-elle suffisante, à voir dans le temps.
                 let matroids_list: ISimpleNumberVarMatroidData[] = [];
+
+                let cardinaux: { [id: number]: number } = {};
+                for (let j in matroids_inscrits) {
+                    let matroid_inscrit = matroids_inscrits[j];
+                    cardinaux[matroid_inscrit.id] = MatroidController.getInstance().get_cardinal(matroid_inscrit);
+                }
                 matroids_inscrits.sort((a: ISimpleNumberVarMatroidData, b: ISimpleNumberVarMatroidData) =>
-                    MatroidController.getInstance().get_cardinal(b) - MatroidController.getInstance().get_cardinal(a));
+                    cardinaux[b.id] - cardinaux[a.id]);
 
                 for (let j in matroids_inscrits) {
                     let matroid_inscrit = matroids_inscrits[j];

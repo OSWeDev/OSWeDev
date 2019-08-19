@@ -383,19 +383,19 @@ describe('NumRangeHandler', () => {
         expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 0, true, true))).to.equal(1);
 
         expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, true, true))).to.equal(2);
-        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, false, true))).to.equal(1);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, false, true))).to.equal(2);
         expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, true, false))).to.equal(1);
-        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, false, false))).to.equal(null);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(0, 1, false, false))).to.equal(1);
 
-        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, true, true))).to.equal(1);
-        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, false, true))).to.equal(1);
-        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, true, false))).to.equal(1);
-        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, false, false))).to.equal(1);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, true, true))).to.equal(2);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, false, true))).to.equal(2);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, true, false))).to.equal(2);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-0.5, 0.5, false, false))).to.equal(2);
 
         expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, true, true))).to.equal(5);
-        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, false, true))).to.equal(4);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, false, true))).to.equal(5);
         expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, true, false))).to.equal(4);
-        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, false, false))).to.equal(3);
+        expect(NumRangeHandler.getInstance().getCardinal(NumRange.createNew(-2, 2, false, false))).to.equal(4);
     });
 
     it('test elt_intersects_any_range', () => {
@@ -564,195 +564,195 @@ describe('NumRangeHandler', () => {
         });
     });
 
-    it('test foreach', () => {
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 0, true, true), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([0]);
+    it('test foreach', async () => {
+        let res: number[] = [];
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 0, true, false), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([]);
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 0, true, true), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            0]);
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 0, false, true), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([]);
+        res = [];
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 0, false, false), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([]);
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 0, true, false), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+        ]);
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 1, true, false), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([0]);
+        res = [];
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 1, false, false), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([]);
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 0, false, true), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+        ]);
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 1, false, true), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([1]);
+        res = [];
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 1, true, true), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([0, 1]);
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 0, false, false), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 1, true, false), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            0]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 1, false, false), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            0]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 1, false, true), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            0, 1]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(0, 1, true, true), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            0, 1]);
 
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(-1, 1, true, true), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([-1, 0, 1]);
+        res = [];
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(-0.5, 0.5, true, true), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([0]);
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(-1, 1, true, true), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            -1, 0, 1]);
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(-0.5, 0.5, true, false), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([0]);
+        res = [];
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(-0.5, 0.5, false, true), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([0]);
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(-0.5, 0.5, true, true), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            -1, 0]);
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach(NumRange.createNew(-0.5, 0.5, false, false), (num: number) => {
-                res.push(num);
-            });
-            return res;
-        })()).to.deep.equal([0]);
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(-0.5, 0.5, true, false), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            -1, 0]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(-0.5, 0.5, false, true), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            -1, 0]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach(NumRange.createNew(-0.5, 0.5, false, false), (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            -1, 0]);
     });
 
-    it('test foreach_ranges', () => {
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach_ranges([NumRange.createNew(0, 0, true, true)], (num: number) => {
+    it('test foreach_ranges', async () => {
+        let res: number[] = [];
+
+        await NumRangeHandler.getInstance().foreach_ranges([NumRange.createNew(0, 0, true, true)], (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+            0]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach_ranges([NumRange.createNew(0, 0, true, false)], (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach_ranges([NumRange.createNew(0, 0, false, true)], (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach_ranges([NumRange.createNew(0, 0, false, false)], (num: number) => {
+            res.push(num);
+        });
+        expect(res).to.deep.equal([
+        ]);
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach_ranges([
+            NumRange.createNew(0, 1, true, false),
+            NumRange.createNew(0, 1, false, false)], (num: number) => {
                 res.push(num);
             });
-            return res;
-        })()).to.deep.equal([0]);
+        expect(res).to.deep.equal([
+            0, 0]);
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach_ranges([NumRange.createNew(0, 0, true, false)], (num: number) => {
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach_ranges([
+            NumRange.createNew(0, 1, true, false),
+            NumRange.createNew(0, 1, false, false),
+            NumRange.createNew(0, 1, false, true)], (num: number) => {
                 res.push(num);
             });
-            return res;
-        })()).to.deep.equal([]);
+        expect(res).to.deep.equal([
+            0, 0, 0, 1]);
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach_ranges([NumRange.createNew(0, 0, false, true)], (num: number) => {
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach_ranges([
+            NumRange.createNew(0, 1, true, false),
+            NumRange.createNew(0, 1, false, false),
+            NumRange.createNew(0, 1, false, true),
+            NumRange.createNew(0, 1, true, true)], (num: number) => {
                 res.push(num);
             });
-            return res;
-        })()).to.deep.equal([]);
+        expect(res).to.deep.equal([
+            0, 0, 0, 1, 0, 1]);
 
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach_ranges([NumRange.createNew(0, 0, false, false)], (num: number) => {
+
+        res = [];
+
+        await NumRangeHandler.getInstance().foreach_ranges([
+            NumRange.createNew(0, 1, true, false),
+            NumRange.createNew(0, 1, false, false),
+            NumRange.createNew(0, 1, false, true),
+            NumRange.createNew(0, 1, true, true),
+            NumRange.createNew(-1, 1, true, true),
+            NumRange.createNew(-0.5, 0.5, true, false),
+            NumRange.createNew(-0.5, 0.5, false, false)], (num: number) => {
                 res.push(num);
             });
-            return res;
-        })()).to.deep.equal([]);
-
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach_ranges([
-                NumRange.createNew(0, 1, true, false),
-                NumRange.createNew(0, 1, false, false)], (num: number) => {
-                    res.push(num);
-                });
-            return res;
-        })()).to.deep.equal([0]);
-
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach_ranges([
-                NumRange.createNew(0, 1, true, false),
-                NumRange.createNew(0, 1, false, false),
-                NumRange.createNew(0, 1, false, true)], (num: number) => {
-                    res.push(num);
-                });
-            return res;
-        })()).to.deep.equal([0, 1]);
-
-
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach_ranges([
-                NumRange.createNew(0, 1, true, false),
-                NumRange.createNew(0, 1, false, false),
-                NumRange.createNew(0, 1, false, true),
-                NumRange.createNew(0, 1, true, true)], (num: number) => {
-                    res.push(num);
-                });
-            return res;
-        })()).to.deep.equal([0, 1, 0, 1]);
-
-
-        expect((() => {
-            let res: number[] = [];
-            NumRangeHandler.getInstance().foreach_ranges([
-                NumRange.createNew(0, 1, true, false),
-                NumRange.createNew(0, 1, false, false),
-                NumRange.createNew(0, 1, false, true),
-                NumRange.createNew(0, 1, true, true),
-                NumRange.createNew(-1, 1, true, true),
-                NumRange.createNew(-0.5, 0.5, true, false),
-                NumRange.createNew(-0.5, 0.5, false, false)], (num: number) => {
-                    res.push(num);
-                });
-            return res;
-        })()).to.deep.equal([0, 1, 0, 1, -1, 0, 1, 0, 0]);
+        expect(res).to.deep.equal([
+            0, 0, 0, 1, 0, 1, -1, 0, 1, -1, 0, -1, 0]);
     });
 
     it('test getFormattedMaxForAPI', () => {
