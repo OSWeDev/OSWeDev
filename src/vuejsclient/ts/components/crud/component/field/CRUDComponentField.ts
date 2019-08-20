@@ -16,6 +16,7 @@ import ImageComponent from '../../../image/ImageComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
+import Datatable from '../../../datatable/vos/Datatable';
 
 
 @Component({
@@ -42,6 +43,9 @@ export default class CRUDComponentField extends VueComponentBase {
 
     @Prop({ default: null })
     private field_select_options_enabled: number[];
+
+    @Prop()
+    private datatable: Datatable<IDistantVOBase>;
 
     private select_options: number[] = [];
     private isLoadingOptions: boolean = false;
@@ -161,7 +165,7 @@ export default class CRUDComponentField extends VueComponentBase {
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
                 if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
-                    options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(null, options);
+                    options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
                 }
             }
 
@@ -273,7 +277,7 @@ export default class CRUDComponentField extends VueComponentBase {
             this.select_options = newOptions;
         }
 
-        this.$emit('changeValue', this.vo, this.field, this.field_value);
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
         this.$emit('onChangeVO', this.vo);
 
         if (this.field.onChange) {

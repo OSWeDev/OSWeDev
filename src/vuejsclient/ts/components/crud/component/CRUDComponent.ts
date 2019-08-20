@@ -25,6 +25,8 @@ import CRUDComponentManager from '../CRUDComponentManager';
 import CRUD from '../vos/CRUD';
 import "./CRUDComponent.scss";
 import CRUDComponentField from './field/CRUDComponentField';
+import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
+import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -725,8 +727,26 @@ export default class CRUDComponent extends VueComponentBase {
         this.deleting_vo = false;
     }
 
-    private changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any) {
+    private changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any, datatable: Datatable<IDistantVOBase>) {
         vo[field.datatable_field_uid] = value;
+
+        for (let i in datatable.fields) {
+            let field_datatable: DatatableField<any, any> = datatable.fields[i];
+            if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+
+                let manyToOneField: ManyToOneReferenceDatatableField<any> = (field_datatable as ManyToOneReferenceDatatableField<any>);
+                let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+
+                if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
+                    options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
+                }
+
+                if (options) {
+                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                }
+            }
+
+        }
 
         if (this.crud && this.crud.isReadOnlyData) {
             this.is_only_readable = this.crud.isReadOnlyData(vo);
@@ -803,9 +823,9 @@ export default class CRUDComponent extends VueComponentBase {
         return this.crud.readDatatable.API_TYPE_ID;
     }
 
-    get createDatatableFields(): Array<DatatableField<any, any>> {
+    get createDatatable(): Datatable<IDistantVOBase> {
         if (this.crud && this.crud.createDatatable && this.crud.createDatatable.fields) {
-            return this.crud.createDatatable.fields;
+            return this.crud.createDatatable;
         }
 
         return null;

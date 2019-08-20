@@ -708,6 +708,20 @@ export default class VueComponentBase extends Vue
             ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
     }
 
+    /**
+     * Same as on_every_update_simple_number_sign_coloration_handler but revolves around 1 instead of 0. Used for prcts for example where 100% is the middle value
+     * @param varData
+     * @param el
+     * @param binding
+     * @param vnode
+     */
+    protected on_every_update_simple_number_1_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+        simple_value--;
+        el.className = (!!simple_value) ?
+            ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
+    }
+
     protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
         let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
         el.className = ((!!simple_value) && (simple_value > 1)) ? 'text-success' : '';
