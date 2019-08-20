@@ -599,6 +599,14 @@ export default class VueComponentBase extends Vue
         return res;
     }
 
+    protected simple_var_supp_zero(var_data: ISimpleNumberVarData): boolean {
+        if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
+            return false;
+        }
+
+        return var_data.value > 0;
+    }
+
     protected simple_var_supp_egal_zero(var_data: ISimpleNumberVarData): boolean {
         if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
             return false;
@@ -702,10 +710,73 @@ export default class VueComponentBase extends Vue
         return null;
     }
 
+    protected addClassName(className: string, el) {
+        if (!el.className) {
+            el.className = className;
+            return;
+        }
+
+        let classes = el.className.split(' ');
+        if ((!classes) || (!classes.length)) {
+            el.className = className;
+            return;
+        }
+
+        let found = false;
+        for (let i in classes) {
+            if (classes[i] == className) {
+                found = true;
+                return;
+            }
+        }
+
+        if (!found) {
+            el.className += ' ' + className;
+        }
+    }
+
+    protected removeClassName(className: string, el) {
+        if (!el.className) {
+            return;
+        }
+
+        let classes = el.className.split(' ');
+        let res = null;
+        for (let i in classes) {
+
+            if (classes[i] == className) {
+                continue;
+            }
+
+            res = (res ? res + ' ' + classes[i] : classes[i]);
+        }
+        el.className = (res ? res : '');
+    }
+
     protected on_every_update_simple_number_sign_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
         let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
-        el.className = (!!simple_value) ?
+
+        this.removeClassName('text-danger', el);
+        this.removeClassName('text-success', el);
+        this.removeClassName('text-warning', el);
+
+        let className = (!!simple_value) ?
             ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
+
+        this.addClassName(className, el);
+    }
+
+    protected on_every_update_simple_revert_number_sign_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+
+        this.removeClassName('text-danger', el);
+        this.removeClassName('text-success', el);
+        this.removeClassName('text-warning', el);
+
+        let className = (!!simple_value) ?
+            ['text-danger', 'text-success'][simple_value < 0 ? 1 : 0] : 'text-warning';
+
+        this.addClassName(className, el);
     }
 
     /**
@@ -718,13 +789,25 @@ export default class VueComponentBase extends Vue
     protected on_every_update_simple_number_1_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
         let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
         simple_value--;
-        el.className = (!!simple_value) ?
+
+        this.removeClassName('text-danger', el);
+        this.removeClassName('text-success', el);
+        this.removeClassName('text-warning', el);
+
+        let className = (!!simple_value) ?
             ['text-danger', 'text-success'][simple_value > 0 ? 1 : 0] : 'text-warning';
+
+        this.addClassName(className, el);
     }
 
     protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
         let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
-        el.className = ((!!simple_value) && (simple_value > 1)) ? 'text-success' : '';
+
+        this.removeClassName('text-success', el);
+
+        if ((!!simple_value) && (simple_value > 1)) {
+            this.addClassName('text-success', el);
+        }
     }
 
     protected activateEdition() {
