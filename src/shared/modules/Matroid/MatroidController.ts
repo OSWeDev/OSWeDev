@@ -459,17 +459,21 @@ export default class MatroidController {
                 res.remaining_items.push(this_base_remaining_matroid);
             }
 
-            chopped_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.chopped_items.ranges);
+            if (!!cut_result.chopped_items) {
 
-            // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
-            for (let k in chopped_matroid[matroid_to_cut_base.field_id]) {
-                let range = chopped_matroid[matroid_to_cut_base.field_id][k];
-                delete range.field_id;
-                delete range.api_type_id;
+                chopped_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.chopped_items.ranges);
+
+                // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
+                for (let k in chopped_matroid[matroid_to_cut_base.field_id]) {
+                    let range = chopped_matroid[matroid_to_cut_base.field_id][k];
+                    delete range.field_id;
+                    delete range.api_type_id;
+                }
+
             }
-
+            res.chopped_items.push(chopped_matroid);
         }
-        res.chopped_items.push(chopped_matroid);
+
 
         return res;
     }

@@ -2,6 +2,7 @@ import * as clonedeep from 'lodash/cloneDeep';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
 import NumRange from '../modules/DataRender/vos/NumRange';
+import VarControllerBase from '../modules/Var/VarControllerBase';
 
 export default abstract class RangeHandler<T> {
 
@@ -397,6 +398,7 @@ export default abstract class RangeHandler<T> {
     }
 
     public abstract createNew<U extends IRange<T>>(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean): U;
+    public abstract createNewForVar<U extends IRange<T>>(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean, controller?: VarControllerBase<any, any>): U;
     public abstract cloneFrom<U extends IRange<T>>(from: U): U;
 
     public abstract translate_to_api<U extends IRange<T>>(ranges: U[]): string[];
@@ -669,6 +671,10 @@ export default abstract class RangeHandler<T> {
 
     public create_single_element_range(elt: T): IRange<T> {
         return this.createNew(elt, elt, true, true);
+    }
+
+    public create_single_element_range_for_var(elt: T, controller: VarControllerBase<any, any>): IRange<T> {
+        return this.createNewForVar(elt, elt, true, true, controller);
     }
 
     /**

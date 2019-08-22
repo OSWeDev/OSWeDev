@@ -545,6 +545,8 @@ export default class VarsController {
     public async registerDataParamAndReturnVarData<TDataParam extends IVarDataParamVOBase>(
         param: TDataParam, reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false): Promise<IVarDataVOBase> {
 
+
+        this.changeTsRanges(param);
         // On check la validité de la date si daté
         this.checkDateIndex(param);
         // Idem pour les compteurs matroids
@@ -701,7 +703,7 @@ export default class VarsController {
      *  par exemple un compteur de solde d'heures veut la somme des soldes quotidiens depuis le dernier reset ou imports mais
      *  ils sont gérés plus tard
      */
-    public get_tsrange_on_resetable_var(var_id: number, target: moment.Moment): TSRange {
+    public get_tsrange_on_resetable_var(var_id: number, target: moment.Moment, min_inclusiv: boolean = true, max_inclusiv: boolean = true): TSRange {
 
         let controller = VarsController.getInstance().getVarControllerById(var_id);
 
@@ -725,10 +727,64 @@ export default class VarsController {
             return null;
         }
 
-        TimeSegmentHandler.getInstance().incMoment(target, controller.segment_type, 1);
+        if (max_inclusiv) {
+            TimeSegmentHandler.getInstance().incMoment(target, controller.segment_type, 1);
+        }
+        min_inclusiv = true;
+        max_inclusiv = false;
+
         let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
             target, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
-        return TSRange.createNew(closest_earlier_reset_date, target, true, true);
+        return TSRange.createNew(closest_earlier_reset_date, target, min_inclusiv, max_inclusiv);
+    }
+
+    public changeTsRanges(param: IVarDataParamVOBase): void {
+        if (!param) {
+            return;
+        }
+
+        let controller = VarsController.getInstance().getVarControllerById(param.var_id);
+
+        if (!controller) {
+            return;
+        }
+
+        let conf = controller.varConf;
+
+        if (!conf) {
+            return;
+        }
+
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[conf.var_data_vo_type];
+        if (!moduletable.isMatroidTable) {
+            return;
+        }
+
+        let tsranged_param = param as ITSRangesVarDataParam;
+        if (!tsranged_param.ts_ranges) {
+            return;
+        }
+
+        for (let i in tsranged_param.ts_ranges) {
+            let ts_range = tsranged_param.ts_ranges[i];
+
+            let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
+            let start_range = TSRangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type);
+
+            if ((start_range == null) || (end_range == null)) {
+                return null;
+            }
+
+            if (ts_range.max_inclusiv) {
+                TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
+            }
+
+            ts_range.min = start_range;
+            ts_range.max = end_range;
+            ts_range.min_inclusiv = true;
+            ts_range.max_inclusiv = false;
+
+        }
     }
 
     /**
@@ -771,7 +827,7 @@ export default class VarsController {
                 let ts_range = tsranged_param.ts_ranges[i];
 
                 let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
-                TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
+                // TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
                 let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
                     end_range, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month).utc(true);
 
@@ -786,22 +842,19 @@ export default class VarsController {
         for (let i in tsranged_param.ts_ranges) {
             let ts_range = tsranged_param.ts_ranges[i];
 
-            let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
-            let start_range = TSRangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type);
+            // A REGARDER
+            // // TODO JNE - A CHECKER
+            // if (ts_range.max_inclusiv) {
+            //     TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
+            // }
 
-            if ((start_range == null) || (end_range == null)) {
-                continue;
-            }
-
-            TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
-
-            if ((!ts_range.min_inclusiv) || (!ts_range.max_inclusiv) ||
-                (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {
-                ts_range.min = start_range;
-                ts_range.max = end_range;
-                ts_range.min_inclusiv = true;
-                ts_range.max_inclusiv = false;
-            }
+            // // if ((!ts_range.min_inclusiv) || (!ts_range.max_inclusiv) ||
+            // //     (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {
+            // ts_range.min = start_range;
+            // ts_range.max = end_range;
+            // ts_range.min_inclusiv = true;
+            // ts_range.max_inclusiv = false;
+            // }
 
             ts_ranges_.push(ts_range);
         }
@@ -812,7 +865,6 @@ export default class VarsController {
         tsranged_param.ts_ranges = ts_ranges_;
         return true;
     }
-
 
     public getVarConf(var_name: string): VarConfVOBase {
         return this.registered_vars ? (this.registered_vars[var_name] ? this.registered_vars[var_name] : null) : null;

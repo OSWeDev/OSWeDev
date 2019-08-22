@@ -5,6 +5,7 @@ import VOsTypesManager from '../modules/VOsTypesManager';
 import NumRangeHandler from './NumRangeHandler';
 import RangeHandler from './RangeHandler';
 import TSRangeHandler from './TSRangeHandler';
+import VarControllerBase from '../modules/Var/VarControllerBase';
 
 export default class FieldRangeHandler extends RangeHandler<any> {
     public static getInstance(): FieldRangeHandler {
@@ -255,6 +256,11 @@ export default class FieldRangeHandler extends RangeHandler<any> {
 
     public createNew<T, U extends IRange<T>>(api_type_id: string, field_id: string, min: T = null, max: T = null, min_inclusiv: boolean = null, max_inclusiv: boolean = null): U {
         return FieldRange.createNew(api_type_id, field_id, min, max, min_inclusiv, max_inclusiv) as any;
+    }
+
+    public createNewForVar<T, U extends IRange<T>>(min: T = null, max: T = null, min_inclusiv: boolean = null, max_inclusiv: boolean = null, controller: VarControllerBase<any, any> = null): U {
+        // TODO ASAP
+        return null;
     }
 
     public cloneFrom<T, U extends IRange<T>>(from: U): U {

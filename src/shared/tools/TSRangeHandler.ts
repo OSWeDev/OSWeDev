@@ -3,6 +3,7 @@ import { Moment } from 'moment';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import TSRange from '../modules/DataRender/vos/TSRange';
+import VarControllerBase from '../modules/Var/VarControllerBase';
 import DateHandler from './DateHandler';
 import RangeHandler from './RangeHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
@@ -375,7 +376,19 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     public createNew<U extends IRange<Moment>>(start: Moment = null, end: Moment = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): U {
-        return TSRange.createNew(start, end, start_inclusiv, end_inclusiv) as U;
+        return TSRange.createNew(start.clone(), end.clone(), start_inclusiv, end_inclusiv) as U;
+    }
+
+    public createNewForVar<U extends IRange<Moment>>(start: Moment = null, end: Moment = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null, controller: VarControllerBase<any, any> = null): U {
+        let finalEnd: Moment = end.clone();
+        if (controller) {
+            if (end_inclusiv) {
+                TimeSegmentHandler.getInstance().incMoment(finalEnd, controller.segment_type, 1);
+            }
+
+            end_inclusiv = false;
+        }
+        return this.createNew(start, finalEnd, start_inclusiv, end_inclusiv) as U;
     }
 
     public cloneFrom<U extends IRange<Moment>>(from: U): U {
@@ -435,12 +448,13 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         }
 
         let range_min_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.min, segment_type);
+        let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
 
-        if (range_min_ts.date.isAfter(range.max)) {
+        if (range_min_ts.date.isAfter(range_max_ts.date)) {
             return null;
         }
 
-        if ((!range.max_inclusiv) && (range_min_ts.date.isSameOrAfter(range.max))) {
+        if ((!range.max_inclusiv) && (range_min_ts.date.isSameOrAfter(range_max_ts.date))) {
             return null;
         }
 
@@ -464,17 +478,17 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
 
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
 
-        if ((!range.max_inclusiv) && (range_max_ts.date.isSame(range.max))) {
+        if ((!range.max_inclusiv) && (range_max_ts.date.isSame(range.max.clone().utc(true)))) {
             TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
         }
 
         let range_max_end_moment: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
 
-        if (range_max_end_moment.isBefore(range.min)) {
+        if (range_max_end_moment.isBefore(range.min.clone().utc(true))) {
             return null;
         }
 
-        if ((!range.min_inclusiv) && (range_max_end_moment.isSameOrBefore(range.min))) {
+        if ((!range.min_inclusiv) && (range_max_end_moment.isSameOrBefore(range.min.clone().utc(true)))) {
             return null;
         }
 

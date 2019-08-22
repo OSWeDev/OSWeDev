@@ -3,6 +3,7 @@ import RangeHandler from './RangeHandler';
 import NumSegmentHandler from './NumSegmentHandler';
 import NumSegment from '../modules/DataRender/vos/NumSegment';
 import IRange from '../modules/DataRender/interfaces/IRange';
+import VarControllerBase from '../modules/Var/VarControllerBase';
 
 export default class NumRangeHandler extends RangeHandler<number> {
 
@@ -42,6 +43,10 @@ export default class NumRangeHandler extends RangeHandler<number> {
     }
 
     public createNew<U extends IRange<number>>(start: number = null, end: number = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): U {
+        return NumRange.createNew(start, end, start_inclusiv, end_inclusiv) as U;
+    }
+
+    public createNewForVar<U extends IRange<number>>(start: number = null, end: number = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null, controller: VarControllerBase<any, any> = null): U {
         return NumRange.createNew(start, end, start_inclusiv, end_inclusiv) as U;
     }
 
