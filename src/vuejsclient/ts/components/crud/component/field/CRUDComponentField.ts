@@ -17,6 +17,7 @@ import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import CRUDComponentManager from '../../CRUDComponentManager';
 import Datatable from '../../../datatable/vos/Datatable';
+import DateHandler from '../../../../../../shared/tools/DateHandler';
 
 
 @Component({
@@ -61,7 +62,27 @@ export default class CRUDComponentField extends VueComponentBase {
     @Watch('field_select_options_enabled', { immediate: true })
     private reload_field_value(): void {
         this.field_value = this.vo[this.field.datatable_field_uid];
+
+        if (this.field_type == ModuleTableField.FIELD_TYPE_daterange && this.field_value) {
+            let date: string[] = this.field_value.toString().split('-');
+
+            if (date && date.length > 0) {
+                this.field_value_range[this.field.datatable_field_uid + '_start'] = this.formatDateForField(date[0]);
+                this.field_value_range[this.field.datatable_field_uid + '_end'] = this.formatDateForField(date[1]);
+            }
+        }
+
         this.prepare_select_options();
+    }
+
+    private formatDateForField(date: string, separator: string = '/'): string {
+        if (!date) {
+            return null;
+        }
+
+        let dateCut: string[] = date.split(separator);
+
+        return DateHandler.getInstance().formatDayForIndex(moment().year(parseInt(dateCut[2])).month(parseInt(dateCut[1]) - 1).date(parseInt(dateCut[0])));
     }
 
     private validateInput(input: any) {
@@ -115,7 +136,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
         this.field_value = input_value;
 
-        this.$emit('changeValue', this.vo, this.field, this.field_value);
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
     }
 
     private updateDateRange(input: any) {
@@ -291,7 +312,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
     private inputValue(value: any) {
         this.field_value = value;
-        this.$emit('changeValue', this.vo, this.field, this.field_value);
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
     }
 
     get is_custom_field_type(): boolean {
