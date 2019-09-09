@@ -1172,7 +1172,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
         }
-        where_clause += ")";
+        // where_clause += ")";
 
         if (first) {
             return null;
