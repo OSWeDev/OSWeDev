@@ -292,7 +292,7 @@ export default class ImportTypeXLSXHandler {
         return null;
     }
 
-    private getStringfromColumnDataString(column_data_string: any): string {
+    public getStringfromColumnDataString(column_data_string: any): string {
         let res = null;
 
         if (column_data_string.h && column_data_string.h != "") {
