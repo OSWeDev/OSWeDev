@@ -450,11 +450,11 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         let range_min_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.min, segment_type);
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
 
-        if (range_min_ts.date.isAfter(range_max_ts.date)) {
+        if (range_min_ts.date.isAfter(range_max_ts.date.clone().utc(true))) {
             return null;
         }
 
-        if ((!range.max_inclusiv) && (range_min_ts.date.isSameOrAfter(range_max_ts.date))) {
+        if ((!range.max_inclusiv) && (range_min_ts.date.isSameOrAfter(range.max.clone().utc(true)))) {
             return null;
         }
 

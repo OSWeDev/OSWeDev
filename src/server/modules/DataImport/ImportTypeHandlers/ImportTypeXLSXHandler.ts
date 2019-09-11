@@ -314,6 +314,26 @@ export default class ImportTypeXLSXHandler {
         return res;
     }
 
+    public parseExcelDate(dateValue, wbProps): Moment {
+        if (dateValue) {
+            // it is a string, but it really represents a number and not a date
+            if (typeof dateValue === 'string' && /^\d+$/.test(dateValue)) {
+                dateValue = parseFloat(dateValue);
+            }
+            if (typeof dateValue === 'number') {
+                var dt = XLSX.SSF.parse_date_code(dateValue, { date1904: (wbProps && wbProps.date1904 === '1') });
+                // new Date(2015, 9, 18);  // 18th October(!) 2015 in @JavaScript
+                var monthToJs = dt.m - 1;
+                return moment(new Date(dt.y, monthToJs, dt.d));
+            }
+            // else assume a string representing a date
+            // we use few allowed formats, but explicitly parse not strictly
+            var formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'MM/DD/YYYY'];
+            return moment(dateValue, formats, false);
+        }
+        return null;
+    }
+
     private importRawsData(
         dataImportFormat: DataImportFormatVO,
         dataImportColumns: DataImportColumnVO[],
@@ -409,26 +429,6 @@ export default class ImportTypeXLSXHandler {
         }
 
         return datas;
-    }
-
-    private parseExcelDate(dateValue, wbProps): Moment {
-        if (dateValue) {
-            // it is a string, but it really represents a number and not a date
-            if (typeof dateValue === 'string' && /^\d+$/.test(dateValue)) {
-                dateValue = parseFloat(dateValue);
-            }
-            if (typeof dateValue === 'number') {
-                var dt = XLSX.SSF.parse_date_code(dateValue, { date1904: (wbProps && wbProps.date1904 === '1') });
-                // new Date(2015, 9, 18);  // 18th October(!) 2015 in @JavaScript
-                var monthToJs = dt.m - 1;
-                return moment(new Date(dt.y, monthToJs, dt.d));
-            }
-            // else assume a string representing a date
-            // we use few allowed formats, but explicitly parse not strictly
-            var formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'MM/DD/YYYY'];
-            return moment(dateValue, formats, false);
-        }
-        return null;
     }
 
     private async loadWorkbook(importHistoric: DataImportHistoricVO, dataImportFormat: DataImportFormatVO, muted: boolean = true): Promise<WorkBook> {

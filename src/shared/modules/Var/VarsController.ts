@@ -775,15 +775,15 @@ export default class VarsController {
                 return null;
             }
 
-            if (ts_range.max_inclusiv) {
-                TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
+            TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
+
+            if ((!ts_range.min_inclusiv) || (ts_range.max_inclusiv) ||
+                (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {
+                ts_range.min = start_range;
+                ts_range.max = end_range;
+                ts_range.min_inclusiv = true;
+                ts_range.max_inclusiv = false;
             }
-
-            ts_range.min = start_range;
-            ts_range.max = end_range;
-            ts_range.min_inclusiv = true;
-            ts_range.max_inclusiv = false;
-
         }
     }
 
