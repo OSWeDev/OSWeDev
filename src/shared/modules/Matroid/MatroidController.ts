@@ -471,9 +471,9 @@ export default class MatroidController {
                 }
 
             }
-            res.chopped_items.push(chopped_matroid);
         }
 
+        res.chopped_items.push(chopped_matroid);
 
         return res;
     }

@@ -261,6 +261,38 @@ export default class TimeSegmentHandler {
         }
     }
 
+    public forceStartSegment(date: Moment, segment_type: number): void {
+
+        switch (segment_type) {
+            case TimeSegment.TYPE_HOUR:
+                date.startOf('hour');
+                break;
+            case TimeSegment.TYPE_MINUTE:
+                date.startOf('minute');
+                break;
+            case TimeSegment.TYPE_MONTH:
+                date.startOf('month');
+                break;
+            case TimeSegment.TYPE_MS:
+                date.startOf('ms');
+                break;
+            case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+            case TimeSegment.TYPE_YEAR:
+                date.startOf('year');
+                break;
+            case TimeSegment.TYPE_SECOND:
+                date.startOf('second');
+                break;
+            case TimeSegment.TYPE_WEEK:
+                date.startOf('week');
+                break;
+            case TimeSegment.TYPE_DAY:
+            default:
+                date.startOf('day');
+                break;
+        }
+    }
+
     /**
      * ATTENTION la date est directement modifiée, sans copie
      * @param date

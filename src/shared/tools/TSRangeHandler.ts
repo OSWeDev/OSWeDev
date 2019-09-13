@@ -384,6 +384,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         if (controller) {
             if (end_inclusiv) {
                 TimeSegmentHandler.getInstance().incMoment(finalEnd, controller.segment_type, 1);
+                TimeSegmentHandler.getInstance().forceStartSegment(finalEnd, controller.segment_type);
             }
 
             end_inclusiv = false;
