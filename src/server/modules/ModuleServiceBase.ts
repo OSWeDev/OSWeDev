@@ -62,6 +62,8 @@ import ModuleTranslationsImportServer from './Translation/import/ModuleTranslati
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
+import ModuleParamsServer from './Params/ModuleParamsServer';
+import ModuleParams from '../../shared/modules/Params/ModuleParams';
 
 export default abstract class ModuleServiceBase {
 
@@ -315,7 +317,8 @@ export default abstract class ModuleServiceBase {
             ModuleTranslationsImport.getInstance(),
             ModuleMaintenance.getInstance(),
             ModuleTableFieldTypes.getInstance(),
-            ModuleBGThread.getInstance()
+            ModuleBGThread.getInstance(),
+            ModuleParams.getInstance()
         ];
     }
 
@@ -347,7 +350,8 @@ export default abstract class ModuleServiceBase {
             ModuleGeneratePDFServer.getInstance(),
             ModuleTranslationsImportServer.getInstance(),
             ModuleMaintenanceServer.getInstance(),
-            ModuleBGThreadServer.getInstance()
+            ModuleBGThreadServer.getInstance(),
+            ModuleParamsServer.getInstance()
         ];
     }
 }
