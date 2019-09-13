@@ -729,6 +729,7 @@ export default class VarsController {
 
         if (max_inclusiv) {
             TimeSegmentHandler.getInstance().incMoment(target, controller.segment_type, 1);
+            TimeSegmentHandler.getInstance().forceStartSegment(target, controller.segment_type);
         }
         min_inclusiv = true;
         max_inclusiv = false;
@@ -776,6 +777,7 @@ export default class VarsController {
             }
 
             TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
+            TimeSegmentHandler.getInstance().forceStartSegment(end_range, controller.segment_type);
 
             if ((!ts_range.min_inclusiv) || (ts_range.max_inclusiv) ||
                 (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {

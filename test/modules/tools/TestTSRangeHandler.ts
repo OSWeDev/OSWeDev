@@ -102,7 +102,6 @@ describe('TSRangeHandler', () => {
     });
 
     it('test elt_intersects_range', () => {
-
         expect(TSRangeHandler.getInstance().elt_intersects_range(zero, TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(TSRangeHandler.getInstance().elt_intersects_range(zero, TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(TSRangeHandler.getInstance().elt_intersects_range(zero, TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
