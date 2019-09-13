@@ -68,6 +68,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             }
 
             let elt = '';
+            elt += range.segment_type;
             elt += range.min_inclusiv ? '[' : '(';
             elt += range.min.unix();
             elt += ',';
