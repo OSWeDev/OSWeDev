@@ -21,6 +21,7 @@ export default class APIDAOIdsRangesParamsVO {
             range_txt += param.ranges[i].max + "-";
             range_txt += (param.ranges[i].min_inclusiv ? "i" : "") + "-";
             range_txt += (param.ranges[i].max_inclusiv ? "i" : "") + "-";
+            range_txt += param.ranges[i].segment_type + "-";
         }
         return param ? param.API_TYPE_ID + '/' + range_txt : '';
     }
@@ -35,7 +36,7 @@ export default class APIDAOIdsRangesParamsVO {
         for (let i in ranges_txt) {
 
             let range_elts = ranges_txt[i].split('-');
-            ranges.push(NumRange.createNew(parseFloat(range_elts[0]), parseFloat(range_elts[1]), range_elts[2] == 'i', range_elts[3] == 'i'));
+            ranges.push(NumRange.createNew(parseFloat(range_elts[0]), parseFloat(range_elts[1]), range_elts[2] == 'i', range_elts[3] == 'i', parseFloat(range_elts[4])));
         }
         return new APIDAOIdsRangesParamsVO(req.params.api_type_id, ranges);
     }

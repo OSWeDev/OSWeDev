@@ -9,10 +9,10 @@ export default class FieldRange<T> implements IRange<T>  {
      * @param min_inclusiv defaults to true
      * @param max_inclusiv defaults to true
      */
-    public static createNew<T>(api_type_id: string, field_id: string, min: T = null, max: T = null, min_inclusiv: boolean = true, max_inclusiv: boolean = true): FieldRange<T> {
+    public static createNew<T>(api_type_id: string, field_id: string, min: T, max: T, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): FieldRange<T> {
 
         let relevantHandler = FieldRangeHandler.getInstance().getRelevantHandlerFromStrings(api_type_id, field_id);
-        let range: IRange<T> = relevantHandler ? relevantHandler.createNew(min, max, min_inclusiv, max_inclusiv) : null;
+        let range: IRange<T> = relevantHandler ? relevantHandler.createNew(min, max, min_inclusiv, max_inclusiv, segment_type) : null;
         if (!range) {
             return null;
         }
@@ -26,7 +26,7 @@ export default class FieldRange<T> implements IRange<T>  {
 
     public static cloneFrom<T>(from: FieldRange<T>): FieldRange<T> {
         let relevantHandler = FieldRangeHandler.getInstance().getRelevantHandlerFromStrings(from.api_type_id, from.field_id);
-        let range: IRange<T> = relevantHandler ? relevantHandler.createNew(from.min, from.max, from.min_inclusiv, from.max_inclusiv) : null;
+        let range: IRange<T> = relevantHandler ? relevantHandler.createNew(from.min, from.max, from.min_inclusiv, from.max_inclusiv, from.segment_type) : null;
         if (!range) {
             return null;
         }
@@ -46,6 +46,8 @@ export default class FieldRange<T> implements IRange<T>  {
 
     public min_inclusiv: boolean;
     public max_inclusiv: boolean;
+
+    public segment_type: number;
 
     private constructor() { }
 }

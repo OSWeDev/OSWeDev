@@ -10,6 +10,9 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
+import NumSegment from './DataRender/vos/NumSegment';
+import TimeSegmentHandler from '../tools/TimeSegmentHandler';
+import TimeSegment from './DataRender/vos/TimeSegment';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -514,6 +517,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 }
             }
 
+            // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
+            //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
             if (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) {
                 e[field.field_id] = NumRangeHandler.getInstance().translate_from_bdd(e[field.field_id]);
             }

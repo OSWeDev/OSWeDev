@@ -5,7 +5,6 @@ import VOsTypesManager from '../modules/VOsTypesManager';
 import NumRangeHandler from './NumRangeHandler';
 import RangeHandler from './RangeHandler';
 import TSRangeHandler from './TSRangeHandler';
-import VarControllerBase from '../modules/Var/VarControllerBase';
 
 export default class FieldRangeHandler extends RangeHandler<any> {
     public static getInstance(): FieldRangeHandler {
@@ -29,7 +28,7 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         let relevantHandler = this.getRelevantHandler(range);
         let res = relevantHandler ? relevantHandler.get_range_shifted_by_x_segments(range as any, shift_value, shift_segment_type) : null;
 
-        return res ? this.createNew(range.api_type_id, range.field_id, res.min, res.max, res.min_inclusiv, res.max_inclusiv) : null;
+        return res ? this.createNewField(range.api_type_id, range.field_id, res.min, res.max, res.min_inclusiv, res.max_inclusiv, range.segment_type) : null;
     }
 
     /**
@@ -197,7 +196,7 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         throw new Error('Not Implemented');
     }
 
-    public translate_from_bdd(ranges: string[]): any[] {
+    public translate_from_bdd(ranges: string[], segment_type: number): any[] {
         throw new Error('Not Implemented');
     }
 
@@ -209,7 +208,11 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         throw new Error('Not Implemented');
     }
 
-    public parseRange(rangeLiteral: string): any {
+    public parseRangeBDD(rangeLiteral: string, segment_type: number): any {
+        throw new Error('Not Implemented');
+    }
+
+    public parseRangeAPI(rangeLiteral: string): any {
         throw new Error('Not Implemented');
     }
 
@@ -254,13 +257,12 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         return res;
     }
 
-    public createNew<T, U extends IRange<T>>(api_type_id: string, field_id: string, min: T = null, max: T = null, min_inclusiv: boolean = null, max_inclusiv: boolean = null): U {
-        return FieldRange.createNew(api_type_id, field_id, min, max, min_inclusiv, max_inclusiv) as any;
+    public createNewField<T, U extends IRange<T>>(api_type_id: string, field_id: string, min: T, max: T, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): U {
+        return FieldRange.createNew(api_type_id, field_id, min, max, min_inclusiv, max_inclusiv, segment_type) as any;
     }
 
-    public createNewForVar<T, U extends IRange<T>>(min: T = null, max: T = null, min_inclusiv: boolean = null, max_inclusiv: boolean = null, controller: VarControllerBase<any, any> = null): U {
-        // TODO ASAP
-        return null;
+    public createNew<T, U extends IRange<T>>(min: T, max: T, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): U {
+        throw new Error('Not implemented');
     }
 
     public cloneFrom<T, U extends IRange<T>>(from: U): U {
@@ -452,7 +454,7 @@ export default class FieldRangeHandler extends RangeHandler<any> {
         for (let i in ranges) {
             let range: IRange<T> = ranges[i];
 
-            res.push(FieldRange.createNew(api_type_id, field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv));
+            res.push(FieldRange.createNew(api_type_id, field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv, range.segment_type));
         }
         return res;
     }

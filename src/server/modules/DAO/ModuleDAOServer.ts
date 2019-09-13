@@ -50,6 +50,8 @@ import APIDAOApiTypeAndMatroidsParamsVO from '../../../shared/modules/DAO/vos/AP
 import APIDAOApiTypeAndFieldRangesParamsVO from '../../../shared/modules/DAO/vos/APIDAOApiTypeAndFieldRangesParamsVO';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
+import FieldRangeHandler from '../../../shared/tools/FieldRangeHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1261,18 +1263,77 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let where_clause: string = "";
-
-        let first_matroid = true;
+        let vos: T[] = [];
         for (let matroid_i in matroids) {
-            let matroid = matroids[matroid_i];
+            let matroid: IMatroid = matroids[matroid_i];
 
             if (!matroid) {
                 console.error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
                 return null;
             }
 
-            where_clause += first_matroid ? "(" : ") OR (";
+            vos = vos.concat(await this.filterVosByMatroid<T>(api_type_id, matroid, fields_ids_mapper));
+        }
+
+        // On filtre suivant les droits d'accès
+        return await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+    }
+
+    private async filterVosByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
+        if (!matroid) {
+            return null;
+        }
+
+        if (!api_type_id) {
+            return null;
+        }
+
+        if (!fields_ids_mapper) {
+            return null;
+        }
+
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+        if (!datatable) {
+            return null;
+        }
+
+        // Sur chaque base, on doit faire un regroupement, une union des ranges avant de faire la requête
+        //  On veut pour chaque base les éléments qui sont FOREACH (ranges_bdd) => range_bdd <@ ANY ranges_requete
+        //  On doit identifier les bases qui (une fois groupées) sont de cardinal 1 et les autres
+        //  Si une base est de cardinal 1, on peut faire la requete en range_requete @> ALL(ranges_bdd)
+        //  Et une fois la requete faite (on récupère tous les résultats) pour les bases avec un cardinal > 1
+        //  on vérifie chaque résultat sur cette base manuellement
+        // TODO FIXME : appliquer aussi au filtrage par ranges
+
+        // On stocke les ranges par field cible en bdd
+        let matroid_fields_ranges_by_datatable_field_id: { [field_id: string]: Array<FieldRange<any>> } = this.get_matroid_fields_ranges_by_datatable_field_id(matroid, datatable, fields_ids_mapper);
+
+        // On calcul les unions
+        for (let field_id in matroid_fields_ranges_by_datatable_field_id) {
+            matroid_fields_ranges_by_datatable_field_id[field_id] = FieldRangeHandler.getInstance().getRangesUnion(matroid_fields_ranges_by_datatable_field_id[field_id]) as Array<FieldRange<any>>;
+        }
+
+        // On sépare les fields dont le cardinal est 1 et les autres
+        let cardinal_1_fields_ranges: { [field_id: string]: Array<IRange<any>> } = {};
+        let cardinal_not_1_fields_ranges: { [field_id: string]: Array<IRange<any>> } = {};
+        for (let field_id in matroid_fields_ranges_by_datatable_field_id) {
+            let matroid_field_range_by_datatable_field_id = matroid_fields_ranges_by_datatable_field_id[field_id];
+
+            if ((!!matroid_field_range_by_datatable_field_id) && (matroid_field_range_by_datatable_field_id.length == 1)) {
+                cardinal_1_fields_ranges[field_id] = matroid_field_range_by_datatable_field_id;
+            } else {
+                cardinal_not_1_fields_ranges[field_id] = matroid_field_range_by_datatable_field_id;
+            }
+        }
+
+        // Si on a 0 bases de cardinal 1, on doit se baser sur l'intégralité des données
+        let vos: T[] = [];
+        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(cardinal_1_fields_ranges)) {
+            vos = await ModuleDAO.getInstance().getVos<T>(api_type_id);
+        } else {
+            // Sinon on peut faire la requête sur les bases de cardinal 1
+            let where_clause: string = "";
 
             // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
             // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
@@ -1285,90 +1346,88 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
 
-            let first = true;
-            for (let i in matroid_fields) {
-                let matroid_field = matroid_fields[i];
-                let ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
-                let field = datatable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
+            // On veut la matrice inverse
+            let fields_ids_mapper_inverted: { [datatable_field_id: string]: string } = {};
+            for (let matroid_field_id in fields_ids_mapper) {
+                fields_ids_mapper_inverted[fields_ids_mapper[matroid_field_id]] = matroid_field_id;
+            }
 
-                if (!field) {
+            let first = true;
+            for (let field_id in cardinal_1_fields_ranges) {
+                let matroid_field = matroid_fields[fields_ids_mapper_inverted[field_id] ? fields_ids_mapper_inverted[field_id] : field_id];
+                let field_range: IRange<any> = cardinal_1_fields_ranges[field_id][0];
+                let field = datatable.getFieldFromId(field_id);
+
+                if ((!field) || (!field_range)) {
+                    console.error('((!field) || (!field_range)) on filterVosByMatroid should not happen');
                     continue;
                 }
 
-                if ((!ranges) || (!ranges.length)) {
-                    console.error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                where_clause += first ? "(" : ") AND (";
+
+
+
+
+                let ranges_query: string = '(';
+                let ranges_query_type = '';
+
+                if (!RangeHandler.isValid(field_range)) {
+                    console.error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
                     return null;
                 }
 
-                where_clause += first ? "(" : ") AND (";
-                let ranges_query: string = '(\'{';
-                let ranges_query_type = '';
-                let first_in_clause = true;
-
-                for (let j in ranges) {
-                    let field_range: IRange<any> = ranges[j];
-
-                    if (!RangeHandler.isValid(field_range)) {
-                        console.error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
-                        return null;
-                    }
-
-                    ranges_query += first_in_clause ? "" : ",";
-                    first = false;
-                    first_in_clause = false;
-                    first_matroid = false;
-                    switch (field.field_type) {
-                        case ModuleTableField.FIELD_TYPE_string:
-                            if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
-                                ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"' + '::tstzrange';
-                                break;
-                            }
-                        case ModuleTableField.FIELD_TYPE_amount:
-                        case ModuleTableField.FIELD_TYPE_enum:
-                        case ModuleTableField.FIELD_TYPE_file_ref:
-                        case ModuleTableField.FIELD_TYPE_float:
-                        case ModuleTableField.FIELD_TYPE_foreign_key:
-                        case ModuleTableField.FIELD_TYPE_hours_and_minutes:
-                        case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                        case ModuleTableField.FIELD_TYPE_image_ref:
-                        case ModuleTableField.FIELD_TYPE_int:
-                        case ModuleTableField.FIELD_TYPE_prct:
-                        case ModuleTableField.FIELD_TYPE_int_array:
-                        case ModuleTableField.FIELD_TYPE_numrange_array:
-                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + '"';
-                            ranges_query_type = '::numrange[]';
+                first = false;
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_string:
+                        if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
+                            ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'' + '::tstzrange';
                             break;
-                        case ModuleTableField.FIELD_TYPE_date:
-                        case ModuleTableField.FIELD_TYPE_day:
-                        case ModuleTableField.FIELD_TYPE_month:
-                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"';
-                            ranges_query_type = '::daterange[]';
-                            break;
-                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        case ModuleTableField.FIELD_TYPE_tstz:
-                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"';
-                            ranges_query_type = '::numrange[]';
-                            break;
-                        case ModuleTableField.FIELD_TYPE_timestamp:
-                        case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-                            // TODO FIXME
-                            break;
-                        case ModuleTableField.FIELD_TYPE_daterange:
-                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"';
-                            ranges_query_type = '::daterange[]';
-                            break;
-                        case ModuleTableField.FIELD_TYPE_tsrange:
-                            ranges_query += '"' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDateTimeForBDD(field_range.min) + "," + DateHandler.getInstance().formatDateTimeForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '"';
-                            ranges_query_type = '::tstzrange[]';
-                            break;
-                    }
+                        }
+                    case ModuleTableField.FIELD_TYPE_amount:
+                    case ModuleTableField.FIELD_TYPE_enum:
+                    case ModuleTableField.FIELD_TYPE_file_ref:
+                    case ModuleTableField.FIELD_TYPE_float:
+                    case ModuleTableField.FIELD_TYPE_foreign_key:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+                    case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+                    case ModuleTableField.FIELD_TYPE_image_ref:
+                    case ModuleTableField.FIELD_TYPE_int:
+                    case ModuleTableField.FIELD_TYPE_prct:
+                    case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                        ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + '\'';
+                        ranges_query_type = '::numrange';
+                        break;
+                    case ModuleTableField.FIELD_TYPE_date:
+                    case ModuleTableField.FIELD_TYPE_day:
+                    case ModuleTableField.FIELD_TYPE_month:
+                        ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'';
+                        ranges_query_type = '::daterange';
+                        break;
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                    case ModuleTableField.FIELD_TYPE_tstz:
+                        ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'';
+                        ranges_query_type = '::numrange';
+                        break;
+                    case ModuleTableField.FIELD_TYPE_timestamp:
+                    case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                        // TODO FIXME
+                        break;
+                    case ModuleTableField.FIELD_TYPE_daterange:
+                        ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'';
+                        ranges_query_type = '::daterange';
+                        break;
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                        ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDateTimeForBDD(field_range.min) + "," + DateHandler.getInstance().formatDateTimeForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'';
+                        ranges_query_type = '::tstzrange';
+                        break;
                 }
-                ranges_query += '}\'' + ranges_query_type + ')';
+                ranges_query += '' + ranges_query_type + ')';
 
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
                         if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
-                            where_clause += field.field_id + "::timestamp with time zone <@ ANY " + ranges_query;
+                            where_clause += field.field_id + "::timestamp with time zone <@ " + ranges_query;
                             break;
                         }
                     case ModuleTableField.FIELD_TYPE_amount:
@@ -1382,45 +1441,106 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_int:
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_tstz:
-                        where_clause += field.field_id + "::numeric <@ ANY " + ranges_query;
+                        where_clause += field.field_id + "::numeric <@ " + ranges_query;
                         break;
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
                     case ModuleTableField.FIELD_TYPE_month:
-                        where_clause += field.field_id + "::date <@ ANY " + ranges_query;
+                        where_clause += field.field_id + "::date <@ " + ranges_query;
                         break;
                     case ModuleTableField.FIELD_TYPE_daterange: // TODO FIXME
                     case ModuleTableField.FIELD_TYPE_timestamp: // TODO FIXME
                     case ModuleTableField.FIELD_TYPE_timewithouttimezone: // TODO FIXME
-                        where_clause += field.field_id + " <@ ANY " + ranges_query;
+                        where_clause += field.field_id + " <@ " + ranges_query;
                         break;
                     case ModuleTableField.FIELD_TYPE_int_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_tsrange:
                     default:
-                        where_clause += ranges_query + " @> " + field.field_id;
+                        where_clause += ranges_query + " @> ALL (" + field.field_id + ")";
                         break;
                 }
             }
             if (first) {
                 return null;
             }
-            where_clause += ")";
 
-        }
-        where_clause += ")";
+            where_clause += ')';
 
-        if (first_matroid) {
-            return null;
+            vos = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t WHERE " + where_clause + ";") as T[]);
         }
 
-        let vos: T[] = datatable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + datatable.full_name + " t WHERE " + where_clause + ";") as T[]);
+        // et ensuite on filtre sur les bases de cardinal supp 1 au niveau code
+        if ((!!cardinal_not_1_fields_ranges) && (cardinal_not_1_fields_ranges.length)) {
 
-        // On filtre suivant les droits d'accès
-        return await this.filterVOsAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
+            let filtered_vos: T[] = [];
+            for (let i in vos) {
+                let vo = vos[i];
+
+                let is_ok: boolean = true;
+                for (let field_id in cardinal_not_1_fields_ranges) {
+                    let cardinal_not_1_field_ranges: Array<IRange<any>> = cardinal_not_1_fields_ranges[field_id];
+
+                    let found: boolean = false;
+                    for (let j in cardinal_not_1_field_ranges) {
+                        let range = cardinal_not_1_field_ranges[j];
+
+                        if (FieldRangeHandler.getInstance().range_includes_range(range, vo[field_id])) {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        is_ok = false;
+                        break;
+                    }
+                }
+
+                if (is_ok) {
+                    filtered_vos.push(vo);
+                }
+            }
+
+            vos = filtered_vos;
+        }
+
+        return vos;
     }
 
+
+    private get_matroid_fields_ranges_by_datatable_field_id(matroid: IMatroid, datatable: ModuleTable<any>, fields_ids_mapper: { [matroid_field_id: string]: string }): { [field_id: string]: Array<FieldRange<any>> } {
+
+        let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+        let matroid_fields_ranges_by_datatable_field_id: { [field_id: string]: Array<FieldRange<any>> } = {};
+        for (let i in matroid_fields) {
+            let matroid_field = matroid_fields[i];
+            let ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
+            let field = datatable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
+
+            if (!field) {
+                continue;
+            }
+
+            if ((!ranges) || (!ranges.length)) {
+                console.error('Matroid field vide ou inexistant:' + datatable.vo_type + ':' + matroid_fields[i].field_id + ':');
+                return null;
+            }
+
+            if (!matroid_fields_ranges_by_datatable_field_id[field.field_id]) {
+                matroid_fields_ranges_by_datatable_field_id[field.field_id] = [];
+            }
+
+            for (let j in ranges) {
+                let range: IRange<any> = ranges[j];
+                matroid_fields_ranges_by_datatable_field_id[field.field_id].push(FieldRangeHandler.getInstance().createNewField(
+                    datatable.vo_type, field.field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv, range.segment_type));
+            }
+        }
+
+        return matroid_fields_ranges_by_datatable_field_id;
+    }
 
     private async filterVosByMatroidsIntersections<T extends IDistantVOBase>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<T[]> {
         let matroids: IMatroid[] = param ? param.matroids : null;

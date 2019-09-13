@@ -226,9 +226,9 @@ export default class MatroidController {
             let base_ranges: Array<FieldRange<any>> = [];
 
             for (let j in matroid[field.field_id]) {
-                let range = matroid[field.field_id][j];
+                let range: IRange<any> = matroid[field.field_id][j];
 
-                base_ranges.push(FieldRangeHandler.getInstance().createNew(matroid._type, field.field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv));
+                base_ranges.push(FieldRangeHandler.getInstance().createNewField(matroid._type, field.field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv, range.segment_type));
             }
 
             matroid_bases.push(MatroidBase.createNew(matroid._type, field.field_id, base_ranges));
@@ -433,7 +433,14 @@ export default class MatroidController {
             let field_ranges: Array<FieldRange<any>> = [];
             for (let j in cutter_field_ranges) {
                 let cutter_field_range = cutter_field_ranges[j];
-                field_ranges.push(FieldRange.createNew(matroid_to_cut_base.api_type_id, matroid_to_cut_base.field_id, cutter_field_range.min, cutter_field_range.max, cutter_field_range.min_inclusiv, cutter_field_range.max_inclusiv));
+                field_ranges.push(FieldRange.createNew(
+                    matroid_to_cut_base.api_type_id,
+                    matroid_to_cut_base.field_id,
+                    cutter_field_range.min,
+                    cutter_field_range.max,
+                    cutter_field_range.min_inclusiv,
+                    cutter_field_range.max_inclusiv,
+                    cutter_field_range.segment_type));
             }
 
             let matroidbase_cutter = MatroidBase.createNew(
@@ -471,9 +478,8 @@ export default class MatroidController {
                 }
 
             }
-            res.chopped_items.push(chopped_matroid);
         }
-
+        res.chopped_items.push(chopped_matroid);
 
         return res;
     }

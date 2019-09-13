@@ -1,13 +1,13 @@
+import NumSegmentHandler from '../../../tools/NumSegmentHandler';
 import IRange from '../interfaces/IRange';
+import NumSegment from './NumSegment';
 
 export default class NumRange implements IRange<number> {
 
     /**
      * Test d'incohérence sur des ensembles qui indiqueraient inclure le min mais pas le max et où min == max (ou inversement)
-     * @param min_inclusiv defaults to true
-     * @param max_inclusiv defaults to true
      */
-    public static createNew(min: number = null, max: number = null, min_inclusiv: boolean = true, max_inclusiv: boolean = true): NumRange {
+    public static createNew(min: number, max: number, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): NumRange {
 
         if (typeof min === 'undefined') {
             return null;
@@ -37,12 +37,83 @@ export default class NumRange implements IRange<number> {
 
         let res: NumRange = new NumRange();
 
-        res.max = max;
-        res.max_inclusiv = max_inclusiv;
-        res.min = min;
-        res.min_inclusiv = min_inclusiv;
+        res.segment_type = segment_type;
+
+        let end_range = NumRange.getSegmentedMax(min, min_inclusiv, max, max_inclusiv, segment_type);
+        let start_range = NumRange.getSegmentedMin(min, min_inclusiv, max, max_inclusiv, segment_type);
+
+        if ((start_range == null) || (end_range == null)) {
+            return null;
+        }
+
+        end_range = NumSegmentHandler.getInstance().incNum(end_range, segment_type, 1);
+
+        res.max = end_range;
+        res.max_inclusiv = false;
+        res.min = start_range;
+        res.min_inclusiv = true;
 
         return res;
+    }
+
+    /**
+     * TODO ASAP TU
+     */
+    public static getSegmentedMin(min: number, min_inclusiv: boolean, max: number, max_inclusiv: boolean, segment_type: number): number {
+
+
+        if ((min == null) || (typeof min == 'undefined')) {
+            return null;
+        }
+
+        if ((max == null) || (typeof max == 'undefined')) {
+            return null;
+        }
+
+        let range_min_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(min, segment_type);
+        let range_max_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(max, segment_type);
+
+        if (range_min_ts.num > range_max_ts.num) {
+            return null;
+        }
+
+        if ((!max_inclusiv) && (range_min_ts.num >= max)) {
+            return null;
+        }
+
+        return range_min_ts.num;
+    }
+
+    /**
+     * TODO ASAP TU
+     */
+    public static getSegmentedMax(min: number, min_inclusiv: boolean, max: number, max_inclusiv: boolean, segment_type: number): number {
+
+        if ((min == null) || (typeof min == 'undefined')) {
+            return null;
+        }
+
+        if ((max == null) || (typeof max == 'undefined')) {
+            return null;
+        }
+
+        let range_max_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(max, segment_type);
+
+        if ((!max_inclusiv) && (range_max_ts.num == max)) {
+            NumSegmentHandler.getInstance().decNumSegment(range_max_ts);
+        }
+
+        let range_max_end: number = NumSegmentHandler.getInstance().getEndNumSegment(range_max_ts);
+
+        if (range_max_end < min) {
+            return null;
+        }
+
+        if ((!min_inclusiv) && (range_max_end <= min)) {
+            return null;
+        }
+
+        return range_max_ts.num;
     }
 
     public static cloneFrom(from: NumRange): NumRange {
@@ -52,6 +123,7 @@ export default class NumRange implements IRange<number> {
         res.max_inclusiv = from.max_inclusiv;
         res.min = from.min;
         res.min_inclusiv = from.min_inclusiv;
+        res.segment_type = from.segment_type;
 
         return res;
     }
@@ -61,6 +133,8 @@ export default class NumRange implements IRange<number> {
 
     public min_inclusiv: boolean;
     public max_inclusiv: boolean;
+
+    public segment_type: number;
 
     private constructor() { }
 }
