@@ -1,8 +1,6 @@
 import * as clonedeep from 'lodash/cloneDeep';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
-import NumRange from '../modules/DataRender/vos/NumRange';
-import VarControllerBase from '../modules/Var/VarControllerBase';
 
 export default abstract class RangeHandler<T> {
 
@@ -13,9 +11,38 @@ export default abstract class RangeHandler<T> {
         return true;
     }
 
-    protected static RANGE_MATCHER = /(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
+    protected static RANGE_MATCHER_API = /([0-9]+)(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
+    protected static RANGE_MATCHER_BDD = /(\[|\()("((?:\\"|[^"])*)"|[^"]*),("((?:\\"|[^"])*)"|[^"]*)(\]|\))/;
 
     protected constructor() { }
+
+    /**
+     * TODO FIXME ASAP TU
+     */
+    public range_includes_range(range_a: IRange<T>, range_b: IRange<T>): boolean {
+        if (!range_b) {
+            return false;
+        }
+
+        if (!range_a) {
+            return false;
+        }
+
+        let segmented_min_a: T = this.getSegmentedMin(range_a);
+        let segmented_min_b: T = this.getSegmentedMin(range_b);
+        let segmented_max_a: T = this.getSegmentedMax(range_a);
+        let segmented_max_b: T = this.getSegmentedMax(range_b);
+
+        if (this.isSupp(range_a, segmented_min_a, segmented_min_b)) {
+            return false;
+        }
+
+        if (this.isInf(range_a, segmented_max_a, segmented_max_b)) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * On essaie de réduire le nombre d'ensemble si certains s'entrecoupent
@@ -295,8 +322,15 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        let fakeRange = this.createNew(a, a, true, true);
-        return this.range_intersects_any_range(fakeRange, ranges);
+        for (let i in ranges) {
+            let range_b = ranges[i];
+
+            if (this.elt_intersects_range(a, range_b)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -309,8 +343,23 @@ export default abstract class RangeHandler<T> {
             return false;
         }
 
-        let fakeRange = this.createNew(a, a, true, true);
-        return this.range_intersects_range(fakeRange, range);
+        if (this.isInf(range, a, range.min)) {
+            return false;
+        }
+
+        if (this.isSupp(range, a, range.max)) {
+            return false;
+        }
+
+        if (this.equals(range, a, range.min) && !range.min_inclusiv) {
+            return false;
+        }
+
+        if (this.equals(range, a, range.max) && !range.max_inclusiv) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -365,7 +414,7 @@ export default abstract class RangeHandler<T> {
             }
 
             if (!res) {
-                res = this.createNew(range.min, range.max, range.min_inclusiv, range.max_inclusiv);
+                res = this.createNew(range.min, range.max, range.min_inclusiv, range.max_inclusiv, range.segment_type);
                 continue;
             }
 
@@ -397,17 +446,17 @@ export default abstract class RangeHandler<T> {
         return res;
     }
 
-    public abstract createNew<U extends IRange<T>>(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean): U;
-    public abstract createNewForVar<U extends IRange<T>>(start?: T, end?: T, start_inclusiv?: boolean, end_inclusiv?: boolean, controller?: VarControllerBase<any, any>): U;
+    public abstract createNew<U extends IRange<T>>(start: T, end: T, start_inclusiv: boolean, end_inclusiv: boolean, segment_type: number): U;
     public abstract cloneFrom<U extends IRange<T>>(from: U): U;
 
     public abstract translate_to_api<U extends IRange<T>>(ranges: U[]): string[];
     public abstract translate_from_api<U extends IRange<T>>(ranges: string[]): U[];
 
     public abstract translate_to_bdd<U extends IRange<T>>(ranges: U[]): string;
-    public abstract translate_from_bdd<U extends IRange<T>>(ranges: string[]): U[];
+    public abstract translate_from_bdd<U extends IRange<T>>(ranges: string[], segment_type: number): U[];
 
-    public abstract parseRange<U extends IRange<T>>(rangeLiteral: string): U;
+    public abstract parseRangeBDD<U extends IRange<T>>(rangeLiteral: string, segment_type: number): U;
+    public abstract parseRangeAPI<U extends IRange<T>>(rangeLiteral: string): U;
 
     public getIndex(range: IRange<T>): string {
 
@@ -669,12 +718,8 @@ export default abstract class RangeHandler<T> {
     //         is_min_des_max_inf_to_cut_max ? range_cutter.max_inclusiv : range_to_cut.max_inclusiv)], (res && res.length) ? res : null);
     // }
 
-    public create_single_element_range(elt: T): IRange<T> {
-        return this.createNew(elt, elt, true, true);
-    }
-
-    public create_single_element_range_for_var(elt: T, controller: VarControllerBase<any, any>): IRange<T> {
-        return this.createNewForVar(elt, elt, true, true, controller);
+    public create_single_element_range(elt: T, segment_type: number): IRange<T> {
+        return this.createNew(elt, elt, true, true, segment_type);
     }
 
     /**

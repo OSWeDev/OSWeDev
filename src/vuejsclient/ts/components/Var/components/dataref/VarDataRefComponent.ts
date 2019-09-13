@@ -31,7 +31,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     public var_param: IVarDataParamVOBase;
 
     @Prop({ default: null })
-    public var_value_callback: (var_value: IVarDataVOBase) => any;
+    public var_value_callback: (var_value: IVarDataVOBase, component: VarDataRefComponent) => any;
 
     @Prop({ default: null })
     public filter: () => any;
@@ -101,7 +101,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return (this.var_data as ISimpleNumberVarData).value;
         }
 
-        return this.var_value_callback(this.var_data);
+        return this.var_value_callback(this.var_data, this);
     }
 
     get is_selected_var(): boolean {

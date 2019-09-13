@@ -19,6 +19,8 @@ import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarsController from '../../../shared/modules/Var/VarsController';
+import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 
 // MONTHS MIXIN
 let months = [
@@ -808,6 +810,10 @@ export default class VueComponentBase extends Vue
         if ((!!simple_value) && (simple_value > 1)) {
             this.addClassName('text-success', el);
         }
+    }
+
+    protected varparam_index(varparam: IVarDataParamVOBase) {
+        return VarsController.getInstance().getIndex(varparam);
     }
 
     protected activateEdition() {

@@ -48,7 +48,7 @@ export default class VarDirective {
             return;
         }
 
-        VarsController.getInstance().unregisterCallbacks(var_param, VarDirective.getInstance().getVarUpdateCallbackUIDs(binding));
+        VarsController.getInstance().unregisterCallbacks(var_param, VarDirective.getInstance().getVarUpdateCallbackUIDs(binding, vnode));
     }
 
     private getVarUpdateCallbacks(el, binding, vnode, var_param: IVarDataParamVOBase): VarUpdateCallback[] {
@@ -77,7 +77,7 @@ export default class VarDirective {
         return varUpdateCallbacks;
     }
 
-    private getVarUpdateCallbackUIDs(binding): number[] {
+    private getVarUpdateCallbackUIDs(binding, vnode): number[] {
 
         let res: number[] = [];
 

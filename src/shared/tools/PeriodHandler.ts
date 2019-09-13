@@ -106,6 +106,7 @@ export default class PeriodHandler {
             this.lowerMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)),
             this.upperMoment(period, TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type)),
             true,
-            true);
+            true,
+            segment_type);
     }
 }

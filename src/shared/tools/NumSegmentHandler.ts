@@ -23,6 +23,56 @@ export default class NumSegmentHandler {
     // }
 
     /**
+     * ATTENTION : modifie le TS sans copie
+     * @param timeSegment
+     * @param type defaults to the type of the timeSegment provided as first argument
+     * @param offset defaults to 1.
+     */
+    public decNumSegment(timeSegment: NumSegment, type: number = null, offset: number = 1): void {
+        if (!timeSegment) {
+            return null;
+        }
+
+        type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
+        timeSegment.num = this.decNum(timeSegment.num, type, offset);
+    }
+
+    /**
+     * ATTENTION : modifie le TS sans copie
+     * @param timeSegment
+     * @param type defaults to the type of the timeSegment provided as first argument
+     * @param offset defaults to 1.
+     */
+    public incNumSegment(timeSegment: NumSegment, type: number = null, offset: number = 1): void {
+        if (!timeSegment) {
+            return null;
+        }
+
+        type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
+        timeSegment.num = this.incNum(timeSegment.num, type, offset);
+    }
+
+
+    /**
+     * ATTENTION le num n'est pas modifié mais renvoyé
+     */
+    public incNum(num: number, segment_type: number, offset: number): number {
+
+        switch (segment_type) {
+            case NumSegment.TYPE_INT:
+            default:
+                return num + offset;
+        }
+    }
+
+    /**
+     * ATTENTION le num n'est pas modifié mais renvoyé
+     */
+    public decNum(num: number, segment_type: number, offset: number): number {
+        return this.incNum(num, segment_type, -offset);
+    }
+
+    /**
      *
      * @param start
      * @param end
@@ -384,7 +434,8 @@ export default class NumSegmentHandler {
                 NumSegmentHandler.getInstance().getStartNumSegment(segments[i]),
                 NumSegmentHandler.getInstance().getEndNumSegment(segments[i]),
                 true,
-                false);
+                false,
+                segments[i].type);
             res.push(range);
         }
 

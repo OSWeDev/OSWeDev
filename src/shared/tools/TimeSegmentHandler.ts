@@ -686,7 +686,8 @@ export default class TimeSegmentHandler {
                 TimeSegmentHandler.getInstance().getStartTimeSegment(segments[i]),
                 TimeSegmentHandler.getInstance().getEndTimeSegment(segments[i]),
                 true,
-                false);
+                false,
+                segments[i].type);
             res.push(range);
         }
 

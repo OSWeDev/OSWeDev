@@ -5,4 +5,6 @@ export default interface IRange<T> {
 
     min_inclusiv: boolean;
     max_inclusiv: boolean;
+
+    segment_type: number;
 }

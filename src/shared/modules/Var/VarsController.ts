@@ -703,7 +703,7 @@ export default class VarsController {
      *  par exemple un compteur de solde d'heures veut la somme des soldes quotidiens depuis le dernier reset ou imports mais
      *  ils sont gérés plus tard
      */
-    public get_tsrange_on_resetable_var(var_id: number, target: moment.Moment, min_inclusiv: boolean = true, max_inclusiv: boolean = true): TSRange {
+    public get_tsrange_on_resetable_var(var_id: number, target: moment.Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
 
         let controller = VarsController.getInstance().getVarControllerById(var_id);
 
@@ -736,7 +736,7 @@ export default class VarsController {
 
         let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
             target, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
-        return TSRange.createNew(closest_earlier_reset_date, target, min_inclusiv, max_inclusiv);
+        return TSRange.createNew(closest_earlier_reset_date, target, min_inclusiv, max_inclusiv, segment_type);
     }
 
     public changeTsRanges(param: IVarDataParamVOBase): void {
@@ -776,16 +776,16 @@ export default class VarsController {
                 return null;
             }
 
-            if (ts_range.max_inclusiv) {
-                TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
-                TimeSegmentHandler.getInstance().forceStartSegment(end_range, controller.segment_type);
+            TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
+            TimeSegmentHandler.getInstance().forceStartSegment(end_range, controller.segment_type);
+
+            if ((!ts_range.min_inclusiv) || (ts_range.max_inclusiv) ||
+                (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {
+                ts_range.min = start_range;
+                ts_range.max = end_range;
+                ts_range.min_inclusiv = true;
+                ts_range.max_inclusiv = false;
             }
-
-            ts_range.min = start_range;
-            ts_range.max = end_range;
-            ts_range.min_inclusiv = true;
-            ts_range.max_inclusiv = false;
-
         }
     }
 

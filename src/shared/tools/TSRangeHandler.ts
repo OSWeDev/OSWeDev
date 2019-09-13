@@ -3,7 +3,6 @@ import { Moment } from 'moment';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import TSRange from '../modules/DataRender/vos/TSRange';
-import VarControllerBase from '../modules/Var/VarControllerBase';
 import DateHandler from './DateHandler';
 import RangeHandler from './RangeHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
@@ -27,7 +26,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     private static instance: TSRangeHandler = null;
 
     public getMaxRange(): TSRange {
-        return this.createNew(TSRangeHandler.MIN_TS, TSRangeHandler.MAX_TS, true, true);
+        return this.createNew(TSRangeHandler.MIN_TS, TSRangeHandler.MAX_TS, true, true, TimeSegment.TYPE_MS);
     }
 
     /**
@@ -41,15 +40,15 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
 
         switch (shift_segment_type) {
             case TimeSegment.TYPE_MONTH:
-                return this.createNew(moment(range.min).add(shift_value, 'month'), moment(range.max).add(shift_value, 'month'), range.min_inclusiv, range.max_inclusiv);
+                return this.createNew(moment(range.min).add(shift_value, 'month'), moment(range.max).add(shift_value, 'month'), range.min_inclusiv, range.max_inclusiv, range.segment_type);
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
             case TimeSegment.TYPE_YEAR:
-                return this.createNew(moment(range.min).add(shift_value, 'year'), moment(range.max).add(shift_value, 'year'), range.min_inclusiv, range.max_inclusiv);
+                return this.createNew(moment(range.min).add(shift_value, 'year'), moment(range.max).add(shift_value, 'year'), range.min_inclusiv, range.max_inclusiv, range.segment_type);
             case TimeSegment.TYPE_WEEK:
-                return this.createNew(moment(range.min).add(shift_value, 'week'), moment(range.max).add(shift_value, 'week'), range.min_inclusiv, range.max_inclusiv);
+                return this.createNew(moment(range.min).add(shift_value, 'week'), moment(range.max).add(shift_value, 'week'), range.min_inclusiv, range.max_inclusiv, range.segment_type);
             case TimeSegment.TYPE_DAY:
             default:
-                return this.createNew(moment(range.min).add(shift_value, 'day'), moment(range.max).add(shift_value, 'day'), range.min_inclusiv, range.max_inclusiv);
+                return this.createNew(moment(range.min).add(shift_value, 'day'), moment(range.max).add(shift_value, 'day'), range.min_inclusiv, range.max_inclusiv, range.segment_type);
         }
     }
 
@@ -92,7 +91,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             for (let i in ranges) {
                 let range = ranges[i];
 
-                res.push(this.parseRange(range));
+                res.push(this.parseRangeAPI(range));
             }
         } catch (error) {
         }
@@ -141,7 +140,10 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
 
             for (let i in ranges) {
                 let range = ranges[i];
-                res.push(this.parseRange(range));
+
+                // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
+                //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
+                res.push(this.parseRangeBDD(range, TimeSegment.TYPE_MS));
             }
         } catch (error) {
         }
@@ -156,21 +158,49 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
      * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
      * @param rangeLiteral
      */
-    public parseRange<U extends TSRange>(rangeLiteral: string): U {
-        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER);
+    public parseRangeBDD<U extends TSRange>(rangeLiteral: string, segment_type: number): U {
+        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
 
         if (!matches) {
             return null;
         }
 
         try {
+
             let lower = parseInt(matches[2]) * 1000;
             let upper = parseInt(matches[4]) * 1000;
             return this.createNew(
                 moment(lower),
                 moment(upper),
                 matches[1] == '[',
-                matches[6] == ']');
+                matches[6] == ']',
+                segment_type);
+        } catch (error) { }
+        return null;
+    }
+
+    /**
+     * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
+     * @param rangeLiteral
+     */
+    public parseRangeAPI<U extends TSRange>(rangeLiteral: string): U {
+        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_API);
+
+        if (!matches) {
+            return null;
+        }
+
+        try {
+
+            let segment_type = parseInt(matches[1].toString());
+            let lower = parseInt(matches[3]) * 1000;
+            let upper = parseInt(matches[5]) * 1000;
+            return this.createNew(
+                moment(lower),
+                moment(upper),
+                matches[2] == '[',
+                matches[7] == ']',
+                segment_type);
         } catch (error) { }
         return null;
     }
@@ -357,7 +387,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
             }
 
             if (!res) {
-                res = this.createNew(range.min, range.max, range.min_inclusiv, range.max_inclusiv);
+                res = this.createNew(range.min, range.max, range.min_inclusiv, range.max_inclusiv, range.segment_type);
                 continue;
             }
 
@@ -375,21 +405,8 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         return res;
     }
 
-    public createNew<U extends IRange<Moment>>(start: Moment = null, end: Moment = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): U {
-        return TSRange.createNew(start.clone(), end.clone(), start_inclusiv, end_inclusiv) as U;
-    }
-
-    public createNewForVar<U extends IRange<Moment>>(start: Moment = null, end: Moment = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null, controller: VarControllerBase<any, any> = null): U {
-        let finalEnd: Moment = end.clone();
-        if (controller) {
-            if (end_inclusiv) {
-                TimeSegmentHandler.getInstance().incMoment(finalEnd, controller.segment_type, 1);
-                TimeSegmentHandler.getInstance().forceStartSegment(finalEnd, controller.segment_type);
-            }
-
-            end_inclusiv = false;
-        }
-        return this.createNew(start, finalEnd, start_inclusiv, end_inclusiv) as U;
+    public createNew<U extends IRange<Moment>>(start: Moment, end: Moment, start_inclusiv: boolean, end_inclusiv: boolean, segment_type: number): U {
+        return TSRange.createNew(start.clone(), end.clone(), start_inclusiv, end_inclusiv, segment_type) as U;
     }
 
     public cloneFrom<U extends IRange<Moment>>(from: U): U {
@@ -451,11 +468,11 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         let range_min_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.min, segment_type);
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
 
-        if (range_min_ts.date.isAfter(range_max_ts.date)) {
+        if (range_min_ts.date.isAfter(range_max_ts.date.clone().utc(true))) {
             return null;
         }
 
-        if ((!range.max_inclusiv) && (range_min_ts.date.isSameOrAfter(range_max_ts.date))) {
+        if ((!range.max_inclusiv) && (range_min_ts.date.isSameOrAfter(range.max.clone().utc(true)))) {
             return null;
         }
 

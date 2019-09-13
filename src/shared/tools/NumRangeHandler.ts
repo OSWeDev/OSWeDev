@@ -23,7 +23,7 @@ export default class NumRangeHandler extends RangeHandler<number> {
     private static instance: NumRangeHandler = null;
 
     public getMaxRange(): NumRange {
-        return this.createNew(NumRangeHandler.MIN_INT, NumRangeHandler.MAX_INT, true, true);
+        return this.createNew(NumRangeHandler.MIN_INT, NumRangeHandler.MAX_INT, true, true, NumSegment.TYPE_INT);
     }
 
     /**
@@ -38,16 +38,12 @@ export default class NumRangeHandler extends RangeHandler<number> {
         switch (shift_segment_type) {
             case NumSegment.TYPE_INT:
             default:
-                return this.createNew(range.min + shift_value, range.max + shift_value, range.min_inclusiv, range.max_inclusiv);
+                return this.createNew(range.min + shift_value, range.max + shift_value, range.min_inclusiv, range.max_inclusiv, range.segment_type);
         }
     }
 
-    public createNew<U extends IRange<number>>(start: number = null, end: number = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null): U {
-        return NumRange.createNew(start, end, start_inclusiv, end_inclusiv) as U;
-    }
-
-    public createNewForVar<U extends IRange<number>>(start: number = null, end: number = null, start_inclusiv: boolean = null, end_inclusiv: boolean = null, controller: VarControllerBase<any, any> = null): U {
-        return NumRange.createNew(start, end, start_inclusiv, end_inclusiv) as U;
+    public createNew<U extends IRange<number>>(start: number, end: number, start_inclusiv: boolean, end_inclusiv: boolean, segment_type: number): U {
+        return NumRange.createNew(start, end, start_inclusiv, end_inclusiv, segment_type) as U;
     }
 
     public cloneFrom<U extends IRange<number>>(from: U): U {
@@ -69,6 +65,7 @@ export default class NumRangeHandler extends RangeHandler<number> {
             }
 
             let elt = '';
+            elt += range.segment_type;
             elt += range.min_inclusiv ? '[' : '(';
             elt += range.min;
             elt += ',';
@@ -92,7 +89,7 @@ export default class NumRangeHandler extends RangeHandler<number> {
             for (let i in ranges) {
                 let range = ranges[i];
 
-                res.push(this.parseRange(range));
+                res.push(this.parseRangeAPI(range));
             }
         } catch (error) {
         }
@@ -142,7 +139,9 @@ export default class NumRangeHandler extends RangeHandler<number> {
             for (let i in ranges) {
                 let range = ranges[i];
 
-                res.push(this.parseRange(range));
+                // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
+                //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
+                res.push(this.parseRangeBDD(range, NumSegment.TYPE_INT));
             }
         } catch (error) {
         }
@@ -157,23 +156,46 @@ export default class NumRangeHandler extends RangeHandler<number> {
      * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
      * @param rangeLiteral
      */
-    public parseRange<U extends NumRange>(rangeLiteral: string): U {
-        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER);
+    public parseRangeBDD<U extends NumRange>(rangeLiteral: string, segment_type: number): U {
+        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_BDD);
 
         if (!matches) {
             return null;
         }
 
-        var lower = this.parseRangeSegment(matches[2], matches[3]);
-        var upper = this.parseRangeSegment(matches[4], matches[5]);
+        let lower = this.parseRangeSegment(matches[2], matches[3]);
+        let upper = this.parseRangeSegment(matches[4], matches[5]);
 
         return this.createNew(
             parseFloat(lower),
             parseFloat(upper),
             matches[1] == '[',
-            matches[6] == ']');
+            matches[6] == ']',
+            segment_type);
     }
 
+    /**
+     * Strongly inspired by https://github.com/WhoopInc/node-pg-range/blob/master/lib/parser.js
+     * @param rangeLiteral
+     */
+    public parseRangeAPI<U extends NumRange>(rangeLiteral: string): U {
+        var matches = rangeLiteral.match(RangeHandler.RANGE_MATCHER_API);
+
+        if (!matches) {
+            return null;
+        }
+
+        let segment_type = parseInt(matches[1].toString());
+        let lower = this.parseRangeSegment(matches[3], matches[4]);
+        let upper = this.parseRangeSegment(matches[5], matches[6]);
+
+        return this.createNew(
+            parseFloat(lower),
+            parseFloat(upper),
+            matches[2] == '[',
+            matches[7] == ']',
+            segment_type);
+    }
 
     /**
      * @param range_a
@@ -338,6 +360,68 @@ export default class NumRangeHandler extends RangeHandler<number> {
         }
 
         return res;
+    }
+
+    /**
+     * ATTENTION très gourmand en perf très rapidement, il ne faut utiliser que sur de très petits ensembles
+     * @param range
+     * @param callback
+     * @param segment_type
+     */
+    // public async foreach_combinaison_ranges(ranges: NumRange[], callback: (value: number) => Promise<void> | void, segment_type: number = NumSegment.TYPE_INT) {
+
+    //     // Identifier la liste des segments concernés, sur l'ensemble des ranges
+    //     let segments_concernes: number[] = [];
+
+    //     for (let i in ranges) {
+    //         let range: NumRange = ranges[i];
+
+    //         let seg = this.getSegmentedMin(range);
+    //         while (seg <= this.getSegmentedMax(range)) {
+
+    //             if (segments_concernes.indexOf(seg) <0){
+    //                 segments_concernes.push(seg);
+    //             }
+
+    //             switch (segment_type) {
+    //                 case NumSegment.TYPE_INT:
+    //                 default:
+    //                     seg++;
+    //                     break;
+    //             }
+    //         }
+    //     }
+
+    //     // Pour chaque cardinal possible, (de 1 à length de segments_concernes), construire les combinaisons, et callback
+    //     for (let cardinal = 1; cardinal <= segments_concernes.length; cardinal++){
+
+
+    //     }
+    // }
+
+    /**
+     * ATTENTION très gourmand en perf très rapidement, il ne faut utiliser que sur de très petits ensembles
+     * Le segment_type est forcé à int
+     */
+    public get_combinaisons(combinaisons: NumRange[][], combinaison_actuelle: NumRange[], elts: number[], index: number, cardinal: number) {
+
+        if (cardinal <= 0) {
+            if ((!!combinaison_actuelle) && (!!combinaison_actuelle.length)) {
+                combinaisons.push(combinaison_actuelle);
+            }
+            return;
+        }
+
+        cardinal--;
+
+        for (let i = index; i < (elts.length - cardinal); i++) {
+
+            let deploy_combinaison: NumRange[] = (combinaison_actuelle && combinaison_actuelle.length) ? NumRangeHandler.getInstance().cloneArrayFrom(combinaison_actuelle) : [];
+
+            deploy_combinaison.push(NumRangeHandler.getInstance().create_single_element_range(elts[i], NumSegment.TYPE_INT));
+
+            this.get_combinaisons(combinaisons, deploy_combinaison, elts, i + 1, cardinal);
+        }
     }
 
     public async foreach(range: NumRange, callback: (value: number) => Promise<void> | void, segment_type: number = NumSegment.TYPE_INT, min_inclusiv: number = null, max_inclusiv: number = null) {
