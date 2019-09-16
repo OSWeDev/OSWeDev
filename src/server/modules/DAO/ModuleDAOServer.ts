@@ -1759,6 +1759,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 where_clause += first ? "(" : ") AND (";
 
+                let ranges_clause = "'{";
                 for (let j in ranges) {
                     let field_range: IRange<any> = ranges[j];
 
@@ -1770,14 +1771,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     first = false;
                     first_matroid = false;
 
+                    ranges_clause += (ranges_clause == "'{") ? '' : ',';
+
                     switch (field.field_type) {
 
                         case ModuleTableField.FIELD_TYPE_numrange_array:
-                            where_clause += "'{\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"}' = " + field.field_id + "";
+                            ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"";
                             break;
 
                         case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                            where_clause += "'{\"" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "\"}' = " + field.field_id + "";
+                            ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "\"";
                             break;
 
                         default:
@@ -1785,6 +1788,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             return null;
                     }
                 }
+                ranges_clause += "}'";
+
+                where_clause += ranges_clause + " = " + field.field_id;
             }
             if (first) {
                 return null;
