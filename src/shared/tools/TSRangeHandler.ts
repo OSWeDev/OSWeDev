@@ -469,11 +469,11 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
         let range_min_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.min, segment_type);
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
 
-        if (range_min_ts.date.isAfter(range_max_ts.date.clone().utc(true))) {
+        if (range_min_ts.date.isAfter(moment(range_max_ts.date).utc(true))) {
             return null;
         }
 
-        if ((!range.max_inclusiv) && (range_min_ts.date.isSameOrAfter(range.max.clone().utc(true)))) {
+        if ((!range.max_inclusiv) && (range_min_ts.date.isSameOrAfter(moment(range.max).utc(true)))) {
             return null;
         }
 
@@ -497,17 +497,17 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
 
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(range.max, segment_type);
 
-        if ((!range.max_inclusiv) && (range_max_ts.date.isSame(range.max.clone().utc(true)))) {
+        if ((!range.max_inclusiv) && (range_max_ts.date.isSame(moment(range.max).utc(true)))) {
             TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
         }
 
         let range_max_end_moment: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
 
-        if (range_max_end_moment.isBefore(range.min.clone().utc(true))) {
+        if (range_max_end_moment.isBefore(moment(range.min).utc(true))) {
             return null;
         }
 
-        if ((!range.min_inclusiv) && (range_max_end_moment.isSameOrBefore(range.min.clone().utc(true)))) {
+        if ((!range.min_inclusiv) && (range_max_end_moment.isSameOrBefore(moment(range.min).utc(true)))) {
             return null;
         }
 
