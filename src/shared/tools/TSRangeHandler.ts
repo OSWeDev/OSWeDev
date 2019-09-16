@@ -407,7 +407,7 @@ export default class TSRangeHandler extends RangeHandler<Moment> {
     }
 
     public createNew<U extends IRange<Moment>>(start: Moment, end: Moment, start_inclusiv: boolean, end_inclusiv: boolean, segment_type: number): U {
-        return TSRange.createNew(start.clone(), end.clone(), start_inclusiv, end_inclusiv, segment_type) as U;
+        return TSRange.createNew(moment(start), moment(end), start_inclusiv, end_inclusiv, segment_type) as U;
     }
 
     public cloneFrom<U extends IRange<Moment>>(from: U): U {
