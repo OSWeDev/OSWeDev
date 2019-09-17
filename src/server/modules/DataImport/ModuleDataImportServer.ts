@@ -129,6 +129,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricProgression.bind(this));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Réimporter'
+        }, 'reimport_component.reimporter.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Réimporter'
+        }, 'fields.labels.ref.module_data_import_dih.__component__reimporter.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Ré-importation planifiée'
         }, 'imports.reimport.planified.___LABEL___'));
 

@@ -11,7 +11,9 @@ import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import VueAppController from '../../../VueAppController';
+import ComponentDatatableField from '../datatable/vos/ComponentDatatableField';
+import ReimportComponent from './reimport_component/reimport_component';
+import './scss/data_import.scss';
 
 export default class DataImportAdminVueModule extends VueModuleBase {
 
@@ -68,6 +70,13 @@ export default class DataImportAdminVueModule extends VueModuleBase {
                 new MenuLeaf("DataImportHistoricVO", MenuElementBase.PRIORITY_HIGH, "fa-history"),
                 importsMenuBranch) : null,
             this.routes);
+
+        // On adapte le CRUD des imports pour avoir un bouton de réimport et une colonne de visualisation graphique de l'état
+        let historic_crud = CRUDComponentManager.getInstance().cruds_by_api_type_id[DataImportHistoricVO.API_TYPE_ID];
+
+        historic_crud.readDatatable.unshiftField(new ComponentDatatableField('reimporter', ReimportComponent, 'file_id'));
+
+
         CRUDComponentManager.getInstance().registerCRUD(
             DataImportFormatVO.API_TYPE_ID,
             null,

@@ -31,6 +31,8 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
+import TimeHandler from '../../tools/TimeHandler';
+import ThreadHandler from '../../tools/ThreadHandler';
 
 export default class VarsController {
 
@@ -129,6 +131,12 @@ export default class VarsController {
     private checked_var_indexes: { [index: string]: boolean } = {};
 
     private debounced_updatedatas_wrapper = debounce(this.updateDatasWrapper, this.var_debouncer);
+
+
+    private get_cardinal_time: number = 0;
+    private intesect_time: number = 0;
+
+
 
     protected constructor() {
     }
@@ -1295,13 +1303,17 @@ export default class VarsController {
                 let matroids_list: ISimpleNumberVarMatroidData[] = [];
 
                 let cardinaux: { [id: number]: number } = {};
+
+                // let before = moment();
                 for (let j in matroids_inscrits) {
                     let matroid_inscrit = matroids_inscrits[j];
                     cardinaux[matroid_inscrit.id] = MatroidController.getInstance().get_cardinal(matroid_inscrit);
                 }
                 matroids_inscrits.sort((a: ISimpleNumberVarMatroidData, b: ISimpleNumberVarMatroidData) =>
                     cardinaux[b.id] - cardinaux[a.id]);
+                // this.get_cardinal_time += moment().diff(before);
 
+                // before = moment();
                 for (let j in matroids_inscrits) {
                     let matroid_inscrit = matroids_inscrits[j];
 
@@ -1310,6 +1322,10 @@ export default class VarsController {
                     }
                     matroids_list.push(matroid_inscrit);
                 }
+                // this.intesect_time += moment().diff(before);
+
+                // console.log('CARD:' + this.get_cardinal_time + ':INTERS:' + this.intesect_time + ':');
+                // await ThreadHandler.getInstance().sleep(50);
 
                 // On veut en tirer 2 choses :
                 //  La somme des valeurs précompilées sur la matroids_list, comme base de calcul

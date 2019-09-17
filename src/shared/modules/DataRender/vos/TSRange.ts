@@ -1,8 +1,7 @@
 import moment = require('moment');
-import IRange from '../interfaces/IRange';
-import TSRangeHandler from '../../../tools/TSRangeHandler';
-import TimeSegment from './TimeSegment';
 import TimeSegmentHandler from '../../../tools/TimeSegmentHandler';
+import IRange from '../interfaces/IRange';
+import TimeSegment from './TimeSegment';
 
 export default class TSRange implements IRange<moment.Moment> {
 

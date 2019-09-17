@@ -1,0 +1,53 @@
+@import 'skin-variables';
+
+body.page-Manage.dih .crud-wrapper {
+
+    .field[field_name="state"]:hover {
+        span {
+	        font-size: 13px;
+        }
+
+        span::before {
+	        display:none;
+        }
+    }
+
+    .field[field_name="state"]{
+        span {
+            font-size: 0;
+        	cursor:pointer;
+        }
+
+        span::before {
+            font-size: 13px;
+            color: white;
+            padding: 4px;
+            border-radius: 3px;
+        }
+
+        span::before {
+            content: 'Import...';
+            background: royalblue;
+        }
+
+        span.N_cessite_un_r_import::before {
+            content: 'Réimport';
+            background: $light_warning;
+        }
+
+        span.Post-trait_::before {
+            content: 'OK';
+            background: $success_color;
+        }
+
+        span.Import_interdit::before {
+            content: 'Interdit';
+            background: $danger_color;
+        }
+
+        span.Post-traitement__chou_::before {
+            content: 'Echec';
+            background: $danger_color;
+        }
+    }
+}
