@@ -79,9 +79,9 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             for (let i in this.registered_BGThreads) {
                 let bgthread: IBGThread = this.registered_BGThreads[i];
 
-                console.log('BGThread:LANCEMENT:' + bgthread.name);
+                // console.log('BGThread:LANCEMENT:' + bgthread.name);
                 need_more_time = need_more_time || await bgthread.work();
-                console.log('BGThread:FIN:' + bgthread.name);
+                // console.log('BGThread:FIN:' + bgthread.name);
             }
 
             if (need_more_time) {

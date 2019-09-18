@@ -1,0 +1,15 @@
+.UserNotifsMarkerComponent
+    
+    .nav-item(@click='switch_notifs_visibility')
+
+        template(v-if='get_is_updating')
+            .user_notif_wrapper.updating.nav-link
+                .main_icon
+                    i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+        template(v-else)
+            .user_notif_wrapper.not_updating.nav-link
+                .main_icon
+                    i.fa.fa-bell-o.fa-fw(aria-hidden="true")
+                .marker(v-if='get_nb_unread > 0') {{ get_nb_unread }}
+
+    UserNotifsViewerComponent(v-show='get_notif_viewer_opened')

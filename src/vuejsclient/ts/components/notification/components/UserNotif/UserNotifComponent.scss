@@ -1,0 +1,44 @@
+@import 'base/skin.scss';
+
+.UserNotifComponent {
+
+    .type_icon_wrapper {
+
+        i.fa {
+            float: left;
+            font-size: 1.5em;
+            margin: 10px;
+            margin-right: 1em;
+        }
+
+        .type_icon_error {
+            color: $danger_color;
+        }
+
+        .type_icon_warn {
+            color: $button_warning_color;
+        }
+
+        .type_icon_info {
+            color: royalblue;
+        }
+
+        .type_icon_success {
+            color: $success_color;
+        }
+    }
+
+    .notif_mark_as_read {
+        text-align: right;
+        font-size: smaller;
+        color: darkblue;
+        text-decoration: underline;
+        padding: 5px;
+        cursor: pointer;
+    }
+
+    .notif_date {
+        font-size: x-small;
+        color: #555;
+    }
+}

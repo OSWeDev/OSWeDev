@@ -1,0 +1,17 @@
+.UserNotifsViewerComponent
+
+    .row.notifs_viewer_header
+        .col-md-12
+            i.fa.fa-times.fa-fw.push-right(aria-hidden="true" @click='set_notif_viewer_opened(false)')
+            .notifs_viewer_title {{ label('UserNotifsViewerComponent.title') }}
+        
+    .row.notifs_viewer_content
+        .col-md-12
+
+            template(v-if='get_nb_unread > 0')
+                template(v-for='notif in notifs_by_priority')
+                    .card.notifs_viewer_notif
+                        UserNotifComponent(:notification='notif')
+
+            template(v-else)
+                .card.notifs_viewer_placeholder {{ label('UserNotifsViewerComponent.placeholder') }}

@@ -58,6 +58,7 @@ import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
 import VarPieChartComponent from './ts/components/Var/components/piechart/VarPieChartComponent';
 import CRUDComponentField from './ts/components/crud/component/field/CRUDComponentField';
+import UserNotifsMarkerComponent from './ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
 
 require('moment-json-parser').overrideDefault();
 
@@ -310,6 +311,7 @@ export default abstract class VueAppBase {
         Vue.use(VueQuillEditor);
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.use(ToggleButton);
+        Vue.component('UserNotifsMarkerComponent', UserNotifsMarkerComponent);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
         Vue.component('vue-dropzone', vueDropzone);

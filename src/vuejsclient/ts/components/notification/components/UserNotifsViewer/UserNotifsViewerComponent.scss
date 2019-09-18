@@ -1,0 +1,32 @@
+.UserNotifsViewerComponent{
+
+    .notifs_viewer_header {
+
+        i.fa-times {
+            float: right;
+            font-size: 1.5em;
+            color: #000;
+            cursor: pointer;
+        }
+
+        .notifs_viewer_title {
+            text-transform: uppercase;
+            color: #333;
+            font-size: 1.2em;
+            margin-bottom: 8px;
+        }
+    }
+
+    .notifs_viewer_content {
+        min-width: 35em;
+        min-height: 25em;
+        max-height: 30em;
+        overflow-x: hidden;
+        overflow-y: auto;
+
+        .card {
+            padding: 1.2em;
+            margin-top: 1em;
+        }
+    }
+}

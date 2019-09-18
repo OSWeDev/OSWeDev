@@ -128,6 +128,25 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID.bind(this));
         postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricProgression.bind(this));
 
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler les imports en cours'
+        }, 'import.cancel_unfinished_imports.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annulation des imports en cours...'
+        }, 'import.cancel_unfinished_imports.cancelling.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler les imports en cours?'
+        }, 'import.cancel_unfinished_imports.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Remplacer l\'import existant ?'
+        }, 'import.new_historic_confirmation.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Remplacer l\'import existant'
+        }, 'import.new_historic_confirmation.title.___LABEL___'));
+
+
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Réimporter'
         }, 'reimport_component.reimporter.___LABEL___'));

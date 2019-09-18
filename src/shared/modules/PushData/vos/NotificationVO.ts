@@ -1,5 +1,5 @@
+import { Moment } from 'moment';
 import IDistantVOBase from '../../IDistantVOBase';
-import ConversionHandler from '../../../tools/ConversionHandler';
 
 export default class NotificationVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "notification";
@@ -36,6 +36,6 @@ export default class NotificationVO implements IDistantVOBase {
     public dao_notif_vo_id: number;
     public dao_notif_type: number;
 
-    public creation_date: string;
-    public read_date: string;
+    public creation_date: Moment;
+    public read_date: Moment;
 }

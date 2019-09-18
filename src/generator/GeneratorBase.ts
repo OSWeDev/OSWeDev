@@ -10,6 +10,7 @@ import ModulesManager from '../shared/modules/ModulesManager';
 import IGeneratorWorker from './IGeneratorWorker';
 import ActivateDataImport from './patchs/ActivateDataImport';
 import ActivateDataRender from './patchs/ActivateDataRender';
+import ChangeTypeDatesNotificationVO from './patchs/ChangeTypeDatesNotificationVO';
 
 export default abstract class GeneratorBase {
 
@@ -33,7 +34,8 @@ export default abstract class GeneratorBase {
 
         this.pre_modules_workers = [
             ActivateDataImport.getInstance(),
-            ActivateDataRender.getInstance()
+            ActivateDataRender.getInstance(),
+            ChangeTypeDatesNotificationVO.getInstance()
         ];
 
         this.post_modules_workers = [];

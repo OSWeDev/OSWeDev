@@ -10,6 +10,9 @@ import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import DateHandler from '../../../shared/tools/DateHandler';
 import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -43,6 +46,19 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
         let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate.bind(this));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Aucune notification en attente'
+        }, 'UserNotifsViewerComponent.placeholder.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Notifications'
+        }, 'UserNotifsViewerComponent.title.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer'
+        }, 'UserNotifComponent.mark_as_read.___LABEL___'));
     }
 
 
@@ -172,13 +188,34 @@ export default class ModulePushDataServer extends ModuleServerBase {
         await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
 
-    public async broadcastSimple(msg_type: number, code_text: string) {
+    public async broadcastLoggedSimple(msg_type: number, code_text: string) {
         let promises = [];
+
+        let ids: number[] = [];
         for (let userId_ in this.registeredSockets) {
             let userId = parseInt(userId_.toString());
 
+            if (ids.indexOf(userId) < 0) {
+                ids.push(userId);
+            } else {
+                continue;
+            }
+
             promises.push((async () => {
                 await this.notifySimple(userId, msg_type, code_text);
+            })());
+        }
+        await Promise.all(promises);
+    }
+
+    public async broadcastAllSimple(msg_type: number, code_text: string) {
+        let promises = [];
+        let users = await ModuleDAO.getInstance().getVos<UserVO>(UserVO.API_TYPE_ID);
+        for (let i in users) {
+            let user = users[i];
+
+            promises.push((async () => {
+                await this.notifySimple(user.id, msg_type, code_text);
             })());
         }
         await Promise.all(promises);
@@ -214,7 +251,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
     private async handleNotificationCreation(notif: NotificationVO): Promise<boolean> {
-        notif.creation_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        notif.creation_date = moment();
         return true;
     }
 
@@ -223,7 +260,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         let enbase: NotificationVO = await ModuleDAO.getInstance().getVoById<NotificationVO>(NotificationVO.API_TYPE_ID, notif.id);
 
         if ((!enbase.read) && notif.read) {
-            notif.read_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+            notif.read_date = moment();
         }
         return true;
     }
@@ -246,6 +283,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 }
                 // if sent then consider it read
                 notification.read = true;
+                notification.read_date = moment();
             }
 
             // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur

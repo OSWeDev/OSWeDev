@@ -1,0 +1,16 @@
+.UserNotifComponent
+
+    .type_icon_wrapper
+        template(v-if='is_error')
+            i.fa.fa-exclamation-triangle.fa-fw.type_icon_error(aria-hidden="true")
+        template(v-if='is_warn')
+            i.fa.fa-exclamation-triangle.fa-fw.type_icon_warn(aria-hidden="true")        
+        template(v-if='is_info')
+            i.fa.fa-exclamation-circle.fa-fw.type_icon_info(aria-hidden="true")
+        template(v-if='is_success')
+            i.fa.fa-check-circle.fa-fw.type_icon_success(aria-hidden="true")
+
+    .notif_date {{ date_notification }}
+    .notif_content {{ t(notification.simple_notif_label) }}
+
+    .notif_mark_as_read(@click='read_notification(notification)') {{ label('UserNotifComponent.mark_as_read') }}
