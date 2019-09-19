@@ -128,9 +128,9 @@ export default class ModuleVar extends Module {
             new ModuleTableField('var_data_vo_type', ModuleTableField.FIELD_TYPE_string, 'VoType des données du jour'),
             new ModuleTableField('var_imported_data_vo_type', ModuleTableField.FIELD_TYPE_string, 'VoType des données importées'),
 
-            new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Code de traduction du nom'),
-            new ModuleTableField('translatable_description', ModuleTableField.FIELD_TYPE_string, 'Code de traduction de la description'),
-            new ModuleTableField('translatable_params_desc', ModuleTableField.FIELD_TYPE_string, 'Code de traduction de la desc des params'),
+            new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_translatable_text, 'Code de traduction du nom'),
+            new ModuleTableField('translatable_description', ModuleTableField.FIELD_TYPE_translatable_text, 'Code de traduction de la description'),
+            new ModuleTableField('translatable_params_desc', ModuleTableField.FIELD_TYPE_translatable_text, 'Code de traduction de la desc des params'),
 
             new ModuleTableField('has_yearly_reset', ModuleTableField.FIELD_TYPE_boolean, 'Reset annuel ?', true, true, false),
             new ModuleTableField('yearly_reset_day_in_month', ModuleTableField.FIELD_TYPE_int, 'Jour du mois de reset (1-31)', false, true, 1),

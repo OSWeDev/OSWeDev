@@ -251,7 +251,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeRole() {
-        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
         let parent_role_id = new ModuleTableField('parent_role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Rôle parent');
 
         let datatable_fields = [
@@ -283,7 +283,7 @@ export default class ModuleAccessPolicy extends Module {
 
     private initializeModuleAccessPolicyGroup() {
 
-        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
         let datatable_fields = [
             label_field,
             new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
@@ -295,7 +295,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     private initializeModuleAccessPolicy() {
-        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
+        let label_field = new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_translatable_text, 'Nom', true);
         let field_accpolgroup_id = new ModuleTableField('group_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Group', false);
         let field_module_id = new ModuleTableField('module_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Module', false);
         let datatable_fields = [

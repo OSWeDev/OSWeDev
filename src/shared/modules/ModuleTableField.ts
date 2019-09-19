@@ -51,6 +51,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_timewithouttimezone: string = 'timewithouttimezone';
     // public static FIELD_TYPE_unix_timestamp: string = 'unix_timestamp'; remplacé par le tstz
     public static FIELD_TYPE_month: string = 'month';
+    public static FIELD_TYPE_translatable_text: string = 'translatable_text';
 
     public field_value: T;
     public field_loaded: boolean;
@@ -296,6 +297,7 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_image_field:
@@ -379,6 +381,7 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_image_field:
@@ -446,6 +449,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_tsrange:

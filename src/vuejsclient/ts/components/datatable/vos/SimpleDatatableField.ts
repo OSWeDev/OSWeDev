@@ -29,6 +29,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_amount:
                     return VueComponentBase.const_filters.amount.read(field_value);
 
+                case ModuleTableField.FIELD_TYPE_translatable_text:
+                    return LocaleManager.getInstance().label(field_value);
+
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
                     return VueComponentBase.const_filters.hour.read(field_value);

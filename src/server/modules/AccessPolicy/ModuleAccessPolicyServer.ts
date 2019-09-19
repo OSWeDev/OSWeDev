@@ -218,6 +218,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Droit'
         }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____group_id'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Admin'
+        }, 'access.roles.names.admin.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non connecté'
+        }, 'access.roles.names.anonymous.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Connecté'
+        }, 'access.roles.names.logged.___LABEL___'));
     }
 
     public registerServerApiHandlers() {

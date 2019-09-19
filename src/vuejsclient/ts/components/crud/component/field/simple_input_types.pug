@@ -6,6 +6,8 @@
         input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
     template(v-if="field_type == 'text'")
         input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+    template(v-if="field_type == 'translatable_text'")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
     template(v-else-if="field_type == 'boolean'")
         template(v-if="field.is_required")
             input.form-control(type="checkbox" v-model="field_value" :disabled="field.is_readonly" @input="validateInput($event.target)")

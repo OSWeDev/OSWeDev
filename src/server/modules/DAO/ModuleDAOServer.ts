@@ -1027,6 +1027,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 switch (field.field_type) {
 
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
                         if (datatable.getFieldFromId(field_range.field_id).field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
                             where_clause += field.field_id + "::timestamp with time zone <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
                         }
@@ -1379,6 +1380,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 first = false;
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
                         if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
                             ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'' + '::tstzrange';
                             break;
@@ -1426,6 +1428,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 switch (field.field_type) {
                     case ModuleTableField.FIELD_TYPE_string:
+                    case ModuleTableField.FIELD_TYPE_translatable_text:
                         if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
                             where_clause += field.field_id + "::timestamp with time zone <@ " + ranges_query;
                             break;
@@ -1621,6 +1624,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     switch (field.field_type) {
 
                         case ModuleTableField.FIELD_TYPE_string:
+                        case ModuleTableField.FIELD_TYPE_translatable_text:
                             if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
                                 where_clause += field.field_id + "::timestamp with time zone <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
                             }
