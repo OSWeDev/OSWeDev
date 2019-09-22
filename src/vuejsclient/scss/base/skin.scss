@@ -188,3 +188,19 @@ i.fa.fa-spin:before {
     float: right;
 }
 
+@media(max-width: 1030px) {
+
+    .main-header .navbar-custom-menu {
+        display: none;
+    }
+
+    .UserNotifsMarkerComponent .UserNotifsViewerComponent {
+        top: 7em;
+        right: 2%;
+        max-width: 96%;
+    }
+
+    .UserNotifsViewerComponent .notifs_viewer_content {
+        min-width: 0; 
+    }
+}
