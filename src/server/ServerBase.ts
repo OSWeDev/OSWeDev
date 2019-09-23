@@ -154,7 +154,14 @@ export default abstract class ServerBase {
         let httpContext = ServerBase.getInstance().getHttpContext();
 
         this.app.use(helmet());
-
+        this.app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
+        this.app.use(helmet.contentSecurityPolicy({
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", 'fonts.googleapis.com'],
+                fontSrc: ["'self'", 'fonts.googleapis.com']
+            }
+        }))
         if (this.envParam.COMPRESS) {
             this.app.use(compression());
         }
