@@ -59,9 +59,17 @@ export default class VarDAGNode extends DAGNode {
 
     public setImportedData(imported: IVarDataVOBase, dag: VarDAG) {
 
-        if (!this.hasMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA)) {
+        if (!this.hasMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA) && imported) {
             this.addMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA, dag);
         }
+
+        // Si pas d'import, on considère que l'on veut le supprimer
+        if (!imported) {
+            if (this.hasMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA)) {
+                this.removeMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA, dag);
+            }
+        }
+
         this.imported = imported;
     }
 
