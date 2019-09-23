@@ -583,6 +583,17 @@ export default class VarsController {
     public async registerDataParamAndReturnVarData<TDataParam extends IVarDataParamVOBase>(
         param: TDataParam, reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false): Promise<IVarDataVOBase> {
 
+        /**
+         * Quand on recalcule des vars, on peut avoir des index qui changent pas mais des ids qui évoluent, il faut reprendre le nouveau
+         *  si on dit explicitement que c'est un rechargement
+         */
+        if (reload_on_register) {
+            let index = this.getIndex(param);
+
+            if ((!!this.varDAG.nodes[index]) && (!!this.varDAG.nodes[index].param) && (this.varDAG.nodes[index].param.id != param.id)) {
+                this.varDAG.nodes[index].param.id = param.id;
+            }
+        }
 
         this.changeTsRanges(param);
         // On check la validité de la date si daté
