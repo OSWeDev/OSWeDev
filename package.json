@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.8.9",
+    "version": "0.8.931",
     "description": "",
     "scripts": {
         "test": "nyc mocha",
@@ -55,6 +55,7 @@
         "express-socket.io-session": "1.3.5",
         "fullcalendar": "3.9.0",
         "fullcalendar-scheduler": "1.9.4",
+        "helmet": "^3.21.1",
         "http": "0.0.0",
         "http-proxy-middleware": "0.17.4",
         "https": "^1.0.0",
