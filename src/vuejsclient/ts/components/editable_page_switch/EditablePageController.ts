@@ -37,18 +37,32 @@ export default class EditablePageController {
 
     private pushEditInfo(edit_info: EditablePageEditInfo, list: EditablePageEditInfo[]) {
 
-        if ((!edit_info.vo) || (!edit_info.vo._type) || (!edit_info.vo.id)) {
+        if ((!edit_info.vo) || (!edit_info.vo._type)) {
             return;
         }
-
-        if ((!edit_info.field) || (!edit_info.field.module_table_field_id)) {
+        if ((!!edit_info.field) && (!edit_info.vo.id)) {
+            console.error('On ne peut pas éditer le field d\'un vo qui n\'est pas en base');
             return;
         }
 
         for (let i in list) {
             let e = list[i];
 
-            if ((e.vo.id == edit_info.vo.id) && (e.vo._type == edit_info.vo._type)) {
+            if ((edit_info.UID == e.UID) || ((!!edit_info.vo.id) && (e.vo.id == edit_info.vo.id) && (e.vo._type == edit_info.vo._type))) {
+
+                if ((!edit_info.field) && (!e.field)) {
+                    e.vo = edit_info.vo;
+                    return;
+                }
+
+                if (!edit_info.field) {
+                    continue;
+                }
+
+                if (!e.field) {
+                    continue;
+                }
+
                 if (e.field.module_table_field_id == edit_info.field.module_table_field_id) {
                     e.field_value = edit_info.field_value;
                     return;
@@ -68,26 +82,52 @@ export default class EditablePageController {
         for (let i in this.edit_infos_waiting_for_save) {
             let edit_info: EditablePageEditInfo = this.edit_infos_waiting_for_save[i];
 
-            let tmp = edit_info.vo ? edit_info.vo[edit_info.field.module_table_field_id] : null;
-            try {
+            let edit_info_result: boolean = true;
 
-                VarsController.getInstance().stageUpdateVoUpdate(edit_info.vo, null);
+            if (!!edit_info.field) {
 
-                edit_info.vo[edit_info.field.module_table_field_id] = edit_info.field_value;
+                let tmp = edit_info.vo ? edit_info.vo[edit_info.field.module_table_field_id] : null;
+                try {
 
-                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
-
-                if ((!!res) && (!!res.id)) {
                     VarsController.getInstance().stageUpdateVoUpdate(edit_info.vo, null);
-                    continue;
+
+                    edit_info.vo[edit_info.field.module_table_field_id] = edit_info.field_value;
+
+                    let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
+
+                    if ((!!res) && (!!res.id)) {
+                        edit_info.vo.id = parseInt(res.id.toString());
+                        VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    edit_info_result = false;
+
+                    if (!!edit_info.vo) {
+                        edit_info.vo[edit_info.field.module_table_field_id] = tmp;
+                    }
                 }
-            } catch (error) {
-                console.error(error);
+            } else {
+
+                try {
+                    let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(edit_info.vo);
+
+                    if ((!!res) && (!!res.id)) {
+                        edit_info.vo.id = parseInt(res.id.toString());
+                        VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    edit_info_result = false;
+                }
             }
 
-            has_errors = true;
-            if (!!edit_info.vo) {
-                edit_info.vo[edit_info.field.module_table_field_id] = tmp;
+            if (!edit_info_result) {
+                has_errors = true;
+            }
+
+            if (!!edit_info.callback) {
+                await edit_info.callback(edit_info, edit_info_result);
             }
         }
 
