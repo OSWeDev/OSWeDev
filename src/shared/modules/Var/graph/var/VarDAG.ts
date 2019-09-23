@@ -13,6 +13,9 @@ export default class VarDAG extends DAG<VarDAGNode> {
     public static VARDAG_MARKER_VAR_ID: string = 'VAR_ID_';
     public static VARDAG_MARKER_DATASOURCE_NAME: string = 'DATASOURCE_NAME_';
 
+    public static VARDAG_MARKER_loadImportedOrPrecompiledDatas_todo: string = "loadImportedOrPrecompiledDatas_todo";
+    public static VARDAG_MARKER_loadImportedOrPrecompiledDatas_ok: string = "loadImportedOrPrecompiledDatas_ok";
+
     public static VARDAG_MARKER_NEEDS_DEPS_LOADING: string = 'NEEDS_DEPS_LOADING';
     public static VARDAG_MARKER_DEPS_LOADED: string = 'DEPS_LOADED';
 
@@ -31,6 +34,8 @@ export default class VarDAG extends DAG<VarDAGNode> {
     public static VARDAG_MARKER_MARKED_FOR_UPDATE: string = 'MARKED_FOR_UPDATE';
     public static VARDAG_MARKER_ONGOING_UPDATE: string = 'ONGOING_UPDATE';
     public static VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE: string = 'MARKED_FOR_NEXT_UPDATE';
+
+    public static VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE_IMPORT_RELOAD: string = 'MARKED_FOR_NEXT_UPDATE_IMPORT_RELOAD';
 
     public dependencies_heatmap_lvl_0: number = 0;
     public dependencies_heatmap_lvl_1: number = null;

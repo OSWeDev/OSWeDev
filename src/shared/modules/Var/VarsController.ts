@@ -438,7 +438,7 @@ export default class VarsController {
     //     this.debouncedUpdateDatas();
     // }
 
-    public stageUpdateData<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
+    public stageUpdateData<TDataParam extends IVarDataParamVOBase>(param: TDataParam, force_reload_if_updating: boolean = false) {
 
         let index: string = this.getIndex(param);
         if ((!index) || (!this.varDAG.nodes[index])) {
@@ -447,7 +447,8 @@ export default class VarsController {
 
         let node = this.varDAG.nodes[index];
         // Si en cours d'update, on marque pour le prochain batch et on ne demande pas la mise à jour ça sert à rien
-        if (this.step_number != 1) {
+        if ((this.step_number != 1) && (!force_reload_if_updating)) {
+
             if ((!node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) && (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE)) &&
                 (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE))) {
                 node.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, this.varDAG);
@@ -456,6 +457,35 @@ export default class VarsController {
             node.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.varDAG);
             this.debouncedUpdateDatas();
         }
+    }
+
+    public stageUpdateDataAndReloadImports<TDataParam extends IVarDataParamVOBase>(param: TDataParam, remove_import: boolean = false) {
+
+        let index: string = this.getIndex<TDataParam>(param);
+        if ((!index) || (!this.varDAG.nodes[index])) {
+            return;
+        }
+
+        this.varDAG.nodes[index].removeMarker(VarDAG.VARDAG_MARKER_loadImportedOrPrecompiledDatas_ok, this.varDAG, true);
+
+        this.varDAG.nodes[index].removeMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, this.varDAG, true);
+        this.varDAG.nodes[index].addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, this.varDAG);
+
+        this.loaded_imported_datas_of_vars_ids[param.var_id] = false;
+
+        if (remove_import) {
+            if (this.imported_datas_by_var_id) {
+                if (this.imported_datas_by_var_id[param.var_id]) {
+                    delete this.imported_datas_by_var_id[param.var_id][index];
+                }
+
+                delete this.imported_datas_by_index[index];
+            }
+
+            this.varDAG.nodes[index].setImportedData(null, this.varDAG);
+        }
+
+        this.stageUpdateData(param, true);
     }
 
     public checkDateIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): void {
@@ -1448,8 +1478,8 @@ export default class VarsController {
      */
     private async loadImportedOrPrecompiledDatas() {
 
-        let marker_todo = "loadImportedOrPrecompiledDatas_todo";
-        let marker_ok = "loadImportedOrPrecompiledDatas_ok";
+        let marker_todo = VarDAG.VARDAG_MARKER_loadImportedOrPrecompiledDatas_todo;
+        let marker_ok = VarDAG.VARDAG_MARKER_loadImportedOrPrecompiledDatas_ok;
 
         // On initialise d'abord la liste des noeuds à gérer
         this.markNoeudsAGererImportMatroids(marker_todo, marker_ok);
@@ -1580,7 +1610,7 @@ export default class VarsController {
     private async solveDeps() {
 
         let all_ok: boolean = (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
-            (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) ||
+            (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) &&
             ((!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING]) ||
                 (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING].length));
 
@@ -1611,7 +1641,7 @@ export default class VarsController {
             // await this.varDAG.visitAllMarkedOrUnmarkedNodes(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, true, new VarDAGVisitorDefineNodeDeps(this.varDAG));
 
             all_ok = (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
-                (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) ||
+                (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) &&
                 ((!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING]) ||
                     (!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING].length));
 

@@ -49,6 +49,19 @@ export default class EditablePageSwitchComponent extends VueComponentBase {
     })
     private highlight_inputs: boolean;
 
+    @Prop({
+        default: false
+    })
+    private default_is_editing: boolean;
+
+    private async mounted() {
+        if (!!this.default_is_editing) {
+            this.set_is_editing_page(true);
+        } else {
+            this.set_is_editing_page(false);
+        }
+    }
+
     private async call_save_handlers(): Promise<boolean> {
 
         if (this.is_saving) {
