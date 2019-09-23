@@ -1,3 +1,4 @@
+import * as helmet from 'helmet';
 import * as child_process from 'child_process';
 import * as compression from 'compression';
 import * as express from 'express';
@@ -35,6 +36,7 @@ import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 
 require('moment-json-parser').overrideDefault();
+require('helmet');
 
 export default abstract class ServerBase {
 
@@ -150,6 +152,8 @@ export default abstract class ServerBase {
 
         this.app = express();
         let httpContext = ServerBase.getInstance().getHttpContext();
+
+        this.app.use(helmet());
 
         if (this.envParam.COMPRESS) {
             this.app.use(compression());
