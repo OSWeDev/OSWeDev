@@ -10,6 +10,8 @@ export default class VarDAGDefineNodePropagateRequest {
     public varDAGVisitorDefineNodePropagateRequest(node: VarDAGNode, dag: VarDAG): boolean {
 
         if (node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE) || (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE))) {
+
+            node.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, dag, true);
             return false;
         }
 
