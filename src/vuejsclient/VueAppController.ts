@@ -26,6 +26,8 @@ export default abstract class VueAppController {
     public SERVER_HEADERS;
     public base_url: string;
 
+    public csrf_token: string = null;
+
     /**
      * Module un peu spécifique qui peut avoir un impact sur les perfs donc on gère son accès le plus vite possible
      */
@@ -39,6 +41,12 @@ export default abstract class VueAppController {
         let promises = [];
         let self = this;
         let datas;
+
+        let res = await ModuleAjaxCache.getInstance().get('/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
+        if (!res) {
+            return;
+        }
+        this.csrf_token = res['csrfToken'];
 
         promises.push((async () => {
             self.base_url = await ModuleDAO.getInstance().getBaseUrl();

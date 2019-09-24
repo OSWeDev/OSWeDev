@@ -1,6 +1,6 @@
 // import * as helmet from 'helmet';
-// import * as csurf from 'csrf';
-// import * as cookieParser from 'cookie-parser';
+import * as csrf from 'csurf';
+import * as cookieParser from 'cookie-parser';
 import * as child_process from 'child_process';
 import * as compression from 'compression';
 import * as express from 'express';
@@ -36,7 +36,7 @@ import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServ
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-
+// var csurf = require('csurf');
 require('moment-json-parser').overrideDefault();
 // require('helmet');
 
@@ -47,6 +47,8 @@ export default abstract class ServerBase {
     }
 
     protected static instance: ServerBase = null;
+
+    public csrfProtection;
 
     protected db: IDatabase<any>;
     protected spawn;
@@ -61,7 +63,6 @@ export default abstract class ServerBase {
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
     private session;
-
     // private subscription;
 
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
@@ -70,6 +71,7 @@ export default abstract class ServerBase {
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
         ModulesManager.getInstance().isServerSide = true;
+        this.csrfProtection = csrf({ cookie: true });
     }
 
     public abstract getHttpContext();
@@ -154,6 +156,8 @@ export default abstract class ServerBase {
 
         this.app = express();
         let httpContext = ServerBase.getInstance().getHttpContext();
+
+        this.app.use(cookieParser());
 
         // this.app.use(helmet({
         //     referrerPolicy: ({ policy: 'same-origin' }),
@@ -430,6 +434,11 @@ export default abstract class ServerBase {
         this.app.set('view engine', 'jade');
         this.app.set('views', 'src/client/views');
 
+        // Send CSRF token for session
+        this.app.get('/api/getcsrftoken', ServerBase.getInstance().csrfProtection, function (req, res) {
+            return res.json({ csrfToken: req.csrfToken() });
+        });
+
         this.app.get('/login', (req, res) => {
             res.sendFile(path.resolve('./src/login/public/generated/login.html'));
         });
@@ -443,7 +452,7 @@ export default abstract class ServerBase {
         });
 
 
-        this.app.post('/recover', async (req, res) => {
+        this.app.post('/recover', ServerBase.getInstance().csrfProtection, async (req, res) => {
             const session = req.session;
 
             // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
@@ -475,7 +484,7 @@ export default abstract class ServerBase {
             });
         });
 
-        this.app.post('/reset', async (req, res) => {
+        this.app.post('/reset', ServerBase.getInstance().csrfProtection, async (req, res) => {
             const session = req.session;
 
             // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...

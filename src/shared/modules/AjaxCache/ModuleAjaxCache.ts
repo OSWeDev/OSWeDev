@@ -14,6 +14,8 @@ import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
 // endif
 import RequestsCacheVO from './vos/RequestsCacheVO';
 import RequestsWrapperResult from './vos/RequestsWrapperResult';
+import ServerBase from '../../../server/ServerBase';
+import VueAppController from '../../../vuejsclient/VueAppController';
 
 export default class ModuleAjaxCache extends Module {
 
@@ -202,6 +204,12 @@ export default class ModuleAjaxCache extends Module {
             }
             if (cache.timeout != null) {
                 options.cache.timeout = cache.timeout;
+            }
+            if (!!VueAppController.getInstance().csrf_token) {
+                if (!options.headers) {
+                    options.headers = {};
+                }
+                options.headers['X-CSRF-Token'] = VueAppController.getInstance().csrf_token;
             }
             self.addCallback(cache, resolve, reject);
 

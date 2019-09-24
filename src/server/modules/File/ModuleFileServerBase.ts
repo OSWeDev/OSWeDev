@@ -22,7 +22,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     }
 
     public registerExpressApis(app: Express): void {
-        app.post(this.api_upload_uri, formidable(), this.uploadFile.bind(this));
+        app.post(this.api_upload_uri, ServerBase.getInstance().csrfProtection, formidable(), this.uploadFile.bind(this));
     }
 
     public registerServerApiHandlers() {

@@ -23,6 +23,7 @@ import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ServerBase from '../../ServerBase';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -237,6 +238,6 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         res.send(log.message);
     }
     private registerExpressApi_renderData(app: Express) {
-        app.post('/modules/ModuleDataRender/renderData/:renderer_name', formidable(), this.resolveExpressApi_renderData.bind(this));
+        app.post('/modules/ModuleDataRender/renderData/:renderer_name', ServerBase.getInstance().csrfProtection, formidable(), this.resolveExpressApi_renderData.bind(this));
     }
 }

@@ -7,6 +7,7 @@ import DataRendererVO from '../../../../../shared/modules/DataRender/vos/DataRen
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
+import VueAppController from '../../../../VueAppController';
 
 
 @Component({
@@ -52,6 +53,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
                 data: formData,
                 contentType: false,
                 processData: false,
+                headers: { 'X-CSRF-Token': VueAppController.getInstance().csrf_token }
             });
             this.snotify.success("Génération des données terminée !");
             return true;

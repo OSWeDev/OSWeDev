@@ -2,6 +2,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import { Express, Request, Response } from 'express';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
+import ServerBase from '../../ServerBase';
 
 export default class ModuleAPIServer extends ModuleServerBase {
 
@@ -31,11 +32,11 @@ export default class ModuleAPIServer extends ModuleServerBase {
                     break;
                 case APIDefinition.API_TYPE_POST:
                     console.log("AJOUT API POST :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
-                    app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     break;
                 case APIDefinition.API_TYPE_POST_FOR_GET:
                     console.log("AJOUT API POST FOR GET :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
-                    app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     break;
             }
         }
