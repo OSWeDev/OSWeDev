@@ -1,4 +1,6 @@
 import * as helmet from 'helmet';
+import * as csurf from 'csrf';
+// import * as cookieParser from 'cookie-parser';
 import * as child_process from 'child_process';
 import * as compression from 'compression';
 import * as express from 'express';
@@ -36,7 +38,7 @@ import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 
 require('moment-json-parser').overrideDefault();
-require('helmet');
+// require('helmet');
 
 export default abstract class ServerBase {
 
@@ -54,7 +56,7 @@ export default abstract class ServerBase {
     protected envParam: EnvParam;
     protected version;
     private connectionString: string;
-    private jwtSecret: string;
+    // private jwtSecret: string;
     private modulesService: ModuleServiceBase;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
@@ -83,7 +85,7 @@ export default abstract class ServerBase {
         this.uiDebug = null; // JNE MODIF FLK process.env.UI_DEBUG;
         this.port = process.env.PORT ? process.env.PORT : this.envParam.PORT;
 
-        this.jwtSecret = 'This is the jwt secret for the rest part';
+        // this.jwtSecret = 'This is the jwt secret for the rest part';
 
         let pgp: pg_promise.IMain = pg_promise({});
         this.db = pgp(this.connectionString);
@@ -153,15 +155,35 @@ export default abstract class ServerBase {
         this.app = express();
         let httpContext = ServerBase.getInstance().getHttpContext();
 
-        this.app.use(helmet());
-        this.app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
-        this.app.use(helmet.contentSecurityPolicy({
-            directives: {
-                defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", 'fonts.googleapis.com'],
-                fontSrc: ["'self'", 'fonts.googleapis.com']
-            }
-        }))
+        // this.app.use(helmet({
+        //     referrerPolicy: ({ policy: 'same-origin' }),
+        //     contentSecurityPolicy: ({
+        //         directives: {
+        //             'default-src': ["'self'"],
+        //             'style-src': ["'self'", 'fonts.googleapis.com'],
+        //             'script-src': ["'self'", 'fonts.googleapis.com'],
+        //             'font-src': ["'self'", 'fonts.googleapis.com']
+        //         }
+        //     }),
+        //     featurePolicy: ({
+        //         features: {
+        //             autoplay: ["'none'"],
+        //             camera: ["'none'"],
+        //             vibrate: ["'none'"],
+        //             geolocation: ["'none'"],
+        //             accelerometer: ["'none'"],
+        //             magnetometer: ["'none'"],
+        //             microphone: ["'none'"],
+        //             payment: ["'none'"],
+        //             usb: ["'none'"],
+        //         }
+        //     })
+        // }
+        // ));
+
+        // const csrfMiddleware = new csurf();
+        // this.app.use(csrfMiddleware);
+
         if (this.envParam.COMPRESS) {
             this.app.use(compression());
         }
