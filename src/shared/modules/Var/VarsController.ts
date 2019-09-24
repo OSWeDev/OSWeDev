@@ -1458,7 +1458,8 @@ export default class VarsController {
                     // On doit aussi rajouter tous les marqueurs qu'un noeud doit avoir à cette étape
                     outgoing.addMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED, this.varDAG);
                     // outgoing.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.varDAG, true);
-                    outgoing.addMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG);
+                    outgoing.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.varDAG);
+                    // outgoing.addMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG);
                 }
             }
 
