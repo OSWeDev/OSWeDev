@@ -6,6 +6,7 @@ export default class VarBarDataSetDescriptor extends VarDataSetDescriptor {
     public bg_color: string = null;
     public type: string = null;
     public var_param_transformer: (param: IVarDataParamVOBase) => IVarDataParamVOBase = null;
+    public var_value_filter: (param: IVarDataParamVOBase, value: number) => boolean = null;
 
     public constructor(
         public var_id: number,
@@ -27,6 +28,11 @@ export default class VarBarDataSetDescriptor extends VarDataSetDescriptor {
 
     public set_type(type: string): VarBarDataSetDescriptor {
         this.type = type;
+        return this;
+    }
+
+    public set_var_value_filter(var_value_filter: (param: IVarDataParamVOBase, value: number) => boolean): VarBarDataSetDescriptor {
+        this.var_value_filter = var_value_filter;
         return this;
     }
 

@@ -245,7 +245,13 @@ export default class VarDataBarChartComponent extends VueComponentBase {
             for (let j in this.var_params) {
 
                 let var_param: IVarDataParamVOBase = this.get_var_param(this.var_params[j], var_dataset_descriptor);
-                dataset_datas.push(this.get_filtered_value(this.getVarDatas[VarsController.getInstance().getIndex(var_param)] as ISimpleNumberVarData));
+                let var_data_value: number = this.get_filtered_value(this.getVarDatas[VarsController.getInstance().getIndex(var_param)] as ISimpleNumberVarData);
+
+                if ((!!var_dataset_descriptor.var_value_filter) && !var_dataset_descriptor.var_value_filter(var_param, var_data_value)) {
+                    dataset_datas.push(null);
+                } else {
+                    dataset_datas.push(var_data_value);
+                }
             }
 
             let dataset = {
