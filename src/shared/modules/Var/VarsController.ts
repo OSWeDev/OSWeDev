@@ -590,6 +590,11 @@ export default class VarsController {
         if (reload_on_register) {
             let index = this.getIndex(param);
 
+            if (!index) {
+                console.error('Une var est probablement mal instantiée');
+                return null;
+            }
+
             if ((!!this.varDAG.nodes[index]) && (!!this.varDAG.nodes[index].param) && (this.varDAG.nodes[index].param.id != param.id)) {
                 this.varDAG.nodes[index].param.id = param.id;
             }
