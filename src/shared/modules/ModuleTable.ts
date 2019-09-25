@@ -471,6 +471,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = TSRangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
                     break;
 
+                case ModuleTableField.FIELD_TYPE_timestamp:
+                    // A priori c'est without time zone du coup....
+                    if (res[field.field_id]) {
+                        res[field.field_id] = moment(res[field.field_id]).utc(true);
+                    }
+                    break;
+
                 default:
             }
         }
