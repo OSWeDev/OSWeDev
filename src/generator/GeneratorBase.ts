@@ -11,6 +11,7 @@ import IGeneratorWorker from './IGeneratorWorker';
 import ActivateDataImport from './patchs/ActivateDataImport';
 import ActivateDataRender from './patchs/ActivateDataRender';
 import ChangeTypeDatesNotificationVO from './patchs/ChangeTypeDatesNotificationVO';
+import ChangeCronDateHeurePlanifiee from './patchs/ChangeCronDateHeurePlanifiee';
 
 export default abstract class GeneratorBase {
 
@@ -35,7 +36,8 @@ export default abstract class GeneratorBase {
         this.pre_modules_workers = [
             ActivateDataImport.getInstance(),
             ActivateDataRender.getInstance(),
-            ChangeTypeDatesNotificationVO.getInstance()
+            ChangeTypeDatesNotificationVO.getInstance(),
+            ChangeCronDateHeurePlanifiee.getInstance(),
         ];
 
         this.post_modules_workers = [];
