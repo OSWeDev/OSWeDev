@@ -409,6 +409,10 @@ export default class ImportTypeXLSXHandler {
                                 } else if (column_data_string.v && column_data_string.v != "") {
                                     rowData[dataImportColumn.vo_field_name] = column_data_string.v.toString().replace(" ", "").replace(",", ".");
                                 }
+
+                                if (rowData[dataImportColumn.vo_field_name] && rowData[dataImportColumn.vo_field_name] != '') {
+                                    rowData[dataImportColumn.vo_field_name] = parseFloat(rowData[dataImportColumn.vo_field_name]).toString();
+                                }
                                 break;
                             case DataImportColumnVO.TYPE_STRING:
                             default:

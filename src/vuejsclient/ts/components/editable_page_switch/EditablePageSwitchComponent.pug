@@ -1,5 +1,5 @@
 .editable_page_switch(:class='{"highlight_inputs": !!highlight_inputs}')
-    .switch_button(v-if='show_switch')
+    .switch_button.hidden-print(v-if='show_switch')
         toggle-button(
             @change="switch_edition" 
             :value="is_editing_page" 
@@ -7,7 +7,7 @@
             :width="200"
             :disabled="is_saving"
             :labels="{checked: label('editable_page_switch.edit'), unchecked: label('editable_page_switch.read')}")
-    .save_button(v-if='is_waiting_for_save && show_fixed_save_button')
+    .save_button.hidden-print(v-if='is_waiting_for_save && show_fixed_save_button')
         button.btn.btn-sm.btn-success(
             @click='call_save_handlers'
             :disabled='is_saving'

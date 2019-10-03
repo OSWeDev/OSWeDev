@@ -1,0 +1,8 @@
+.editable_page_switch_repeater
+    toggle-button(
+        @change="switch_edition" 
+        :value="is_editing_page" 
+        :sync="true"
+        :width="200"
+        :disabled="is_saving"
+        :labels="{checked: label('editable_page_switch.edit'), unchecked: label('editable_page_switch.read')}")

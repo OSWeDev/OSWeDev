@@ -48,16 +48,38 @@ export default class VarDAG extends DAG<VarDAGNode> {
     private dependencies_heatmap_version: number = 0;
 
 
-    public registerParams(params: IVarDataParamVOBase[], ignore_unvalidated_datas: boolean = false) {
+    public registerParams(params: IVarDataParamVOBase[], reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false) {
         for (let i in params) {
             let param: IVarDataParamVOBase = params[i];
             let index: string = VarsController.getInstance().getIndex(param);
 
             if (!index) {
+                console.error('Une var est probablement mal instantiée');
                 continue;
             }
 
             let node: VarDAGNode = this.nodes[index];
+
+            /**
+             * Quand on recalcule des vars, on peut avoir des index qui changent pas mais des ids qui évoluent, il faut reprendre le nouveau
+             *  si on dit explicitement que c'est un rechargement
+             */
+            if (reload_on_register && !!node) {
+
+                if ((!!node.param) && (node.param.id != param.id)) {
+                    node.param.id = param.id;
+                }
+
+                // On doit aussi clean le node pour le remettre à 0 pour les calculs à venir
+                if (VarsController.getInstance().imported_datas_by_var_id && VarsController.getInstance().imported_datas_by_var_id[param.var_id]) {
+                    delete VarsController.getInstance().imported_datas_by_var_id[param.var_id][index];
+                }
+                if (VarsController.getInstance().imported_datas_by_index && VarsController.getInstance().imported_datas_by_index[index]) {
+                    delete VarsController.getInstance().imported_datas_by_index[index];
+                }
+                node.setImportedData(null, this);
+            }
+
 
             if (!node) {
 

@@ -49,5 +49,10 @@ body.page-Manage.dih .crud-wrapper {
             content: 'Echec';
             background: $danger_color;
         }
+
+        span.Import__chou_::before {
+            content: 'Echec';
+            background: $danger_color;
+        }
     }
 }
