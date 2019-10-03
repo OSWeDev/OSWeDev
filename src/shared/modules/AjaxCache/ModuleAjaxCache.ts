@@ -82,6 +82,10 @@ export default class ModuleAjaxCache extends Module {
         VueAppController.getInstance().csrf_token = res['csrfToken'];
     }
 
+    public async hook_module_async_login_initialization() {
+        await this.hook_module_async_client_admin_initialization();
+    }
+
     /**
      *
      * @param url
