@@ -5,6 +5,7 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import ModuleFile from '../../../../shared/modules/File/ModuleFile';
+import VueAppController from '../../../VueAppController';
 
 @Component({
     template: require('./FileComponent.pug'),
@@ -82,6 +83,9 @@ export default class FileComponent extends VueComponentBase {
         let onSuccess = (!!this.options) ? this.options.success : null;
         let dropoptions = {
             url: '/ModuleFileServer/upload',
+            headers: {
+                'X-CSRF-Token': VueAppController.getInstance().csrf_token,
+            },
             createImageThumbnails: true,
             maxFiles: 1,
             clickable: true,
