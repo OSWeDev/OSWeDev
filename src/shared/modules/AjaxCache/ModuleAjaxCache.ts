@@ -74,6 +74,14 @@ export default class ModuleAjaxCache extends Module {
         ));
     }
 
+    public async hook_module_async_client_admin_initialization() {
+        let res = await ModuleAjaxCache.getInstance().get('/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
+        if (!res) {
+            return;
+        }
+        VueAppController.getInstance().csrf_token = res['csrfToken'];
+    }
+
     /**
      *
      * @param url

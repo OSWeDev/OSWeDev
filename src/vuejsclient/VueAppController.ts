@@ -42,12 +42,6 @@ export default abstract class VueAppController {
         let self = this;
         let datas;
 
-        let res = await ModuleAjaxCache.getInstance().get('/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
-        if (!res) {
-            return;
-        }
-        this.csrf_token = res['csrfToken'];
-
         promises.push((async () => {
             self.base_url = await ModuleDAO.getInstance().getBaseUrl();
         })());
