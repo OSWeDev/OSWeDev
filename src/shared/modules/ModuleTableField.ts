@@ -290,7 +290,7 @@ export default class ModuleTableField<T> {
                 return db_type == "time without time zone";
 
             case ModuleTableField.FIELD_TYPE_prct:
-                return (db_type == "ref.pct") || (db_type == "numeric");
+                return (db_type == "ref.pct") || (db_type == "float8") || (db_type == "double precision") || (db_type == "numeric");
 
             case 'real':
                 return db_type == "real";
@@ -373,6 +373,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 return "time without time zone";
 
+            // Est-ce qu'on mettrait pas float 8 simplement...
             case ModuleTableField.FIELD_TYPE_prct:
                 return "ref.pct";
 

@@ -132,7 +132,7 @@ export default class ModuleProduit extends Module {
         let datatable_fields = [
             default_label_field,
             new ModuleTableField('actif', ModuleTableField.FIELD_TYPE_boolean, 'Actif', true),
-            new ModuleTableField('prix', ModuleTableField.FIELD_TYPE_float, 'Prix', true),
+            new ModuleTableField('prix', ModuleTableField.FIELD_TYPE_amount, 'Prix', true),
             new ModuleTableField('tva', ModuleTableField.FIELD_TYPE_prct, 'TVA', true),
             field_type_produit_id,
             new ModuleTableField('picto', ModuleTableField.FIELD_TYPE_string, 'Picto'),
