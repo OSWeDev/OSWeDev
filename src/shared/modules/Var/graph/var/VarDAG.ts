@@ -47,6 +47,13 @@ export default class VarDAG extends DAG<VarDAGNode> {
 
     private dependencies_heatmap_version: number = 0;
 
+    public clearDAG() {
+
+        let nodes_names: string[] = Array.from(this.nodes_names);
+        for (let i in nodes_names) {
+            this.deletedNode(nodes_names[i], () => false);
+        }
+    }
 
     public registerParams(params: IVarDataParamVOBase[], reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false) {
         for (let i in params) {

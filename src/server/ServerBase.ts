@@ -431,6 +431,26 @@ export default abstract class ServerBase {
             res.sendFile(path.resolve('./src/admin/public/generated/admin.html'));
         });
 
+        // Accès aux logs iisnode
+        this.app.get('/iisnode/:file_name', async (req: Request, res) => {
+
+            let file_name = req.params.file_name;
+
+            if ((!file_name)
+                || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS))
+                || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS))) {
+
+                if (!await ModuleAccessPolicy.getInstance().getLoggedUser()) {
+                    let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                    res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
+                    return;
+                }
+                res.redirect('/');
+                return;
+            }
+            res.sendFile(path.resolve('./iisnode/' + file_name));
+        });
+
         this.app.set('view engine', 'jade');
         this.app.set('views', 'src/client/views');
 

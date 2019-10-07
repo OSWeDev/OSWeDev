@@ -6,6 +6,7 @@ import { ModuleNotificationAction, ModuleNotificationGetter } from '../../store/
 import UserNotifComponent from '../UserNotif/UserNotifComponent';
 import './UserNotifsViewerComponent.scss';
 import moment = require('moment');
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./UserNotifsViewerComponent.pug'),
@@ -25,6 +26,17 @@ export default class UserNotifsViewerComponent extends VueComponentBase {
 
     @ModuleNotificationAction
     public set_notif_viewer_opened: (notif_viewer_opened: boolean) => void;
+    @ModuleNotificationAction
+    public read_notification: (notification: NotificationVO) => void;
+
+    private async delete_all() {
+
+        this.set_notif_viewer_opened(false);
+        for (let i in this.get_notifications_by_ids) {
+            let notif = this.get_notifications_by_ids[i];
+            this.read_notification(notif);
+        }
+    }
 
     get notifs_by_priority(): NotificationVO[] {
         let res: NotificationVO[] = [];

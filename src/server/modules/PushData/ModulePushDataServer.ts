@@ -59,6 +59,10 @@ export default class ModulePushDataServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Supprimer'
         }, 'UserNotifComponent.mark_as_read.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tout supprimer'
+        }, 'UserNotifsViewerComponent.footer_delete_all.___LABEL___'));
     }
 
 

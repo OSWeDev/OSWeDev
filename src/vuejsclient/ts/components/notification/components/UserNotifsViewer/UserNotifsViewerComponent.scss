@@ -29,4 +29,19 @@
             margin-top: 1em;
         }
     }
+
+    .notifs_viewer_footer {
+
+        text-decoration-line: underline;
+
+        cursor: pointer;
+
+        >.col-md-12 {
+            padding-top: 1em;
+        }
+
+        i.fa-trash {
+            float: left;
+        }
+    }
 }

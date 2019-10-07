@@ -63,6 +63,12 @@ export default class CRUDComponentField extends VueComponentBase {
     private reload_field_value(): void {
         this.field_value = this.vo[this.field.datatable_field_uid];
 
+        // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
+        if (!this.datatable) {
+            this.field_value = this.field.dataToUpdateIHM(this.field_value, this.vo);
+        }
+
+        // JNE : je sais pas si il faut se placer au dessus ou en dessous de ça ...
         if (this.field_type == ModuleTableField.FIELD_TYPE_daterange && this.field_value) {
             let date: string[] = this.field_value.toString().split('-');
 
@@ -296,6 +302,11 @@ export default class CRUDComponentField extends VueComponentBase {
                 }
             }
             this.select_options = newOptions;
+        }
+
+        // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
+        if (!this.datatable) {
+            this.field_value = this.field.UpdateIHMToData(this.field_value, this.vo);
         }
 
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);

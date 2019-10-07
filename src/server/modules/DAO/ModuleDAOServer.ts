@@ -52,6 +52,9 @@ import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import FieldRangeHandler from '../../../shared/tools/FieldRangeHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import NumRangeHandler from '../../../shared/tools/NumRangeHandler';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1630,17 +1633,29 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             }
                             break;
 
-                        case ModuleTableField.FIELD_TYPE_amount:
+                        case ModuleTableField.FIELD_TYPE_int:
                         case ModuleTableField.FIELD_TYPE_enum:
+                        case ModuleTableField.FIELD_TYPE_image_ref:
                         case ModuleTableField.FIELD_TYPE_file_ref:
-                        case ModuleTableField.FIELD_TYPE_float:
                         case ModuleTableField.FIELD_TYPE_foreign_key:
+                            // Si on vise un type int, on sait que si le max = min + 1 et segment type du range = int et max exclusiv on est cool, on peut passer par un = directement.
+                            // Sinon on fait comme pour les float et autres, on prend >= ou > et <= ou < suivant inclusive ou inclusive
+                            if ((field_range.segment_type == NumSegment.TYPE_INT) && (field_range.min_inclusiv && !field_range.max_inclusiv) && (field_range.min == (field_range.max - 1))) {
+                                // TODO : généraliser le concept, là on spécifie un truc très particulier pour faire vite et efficace, mais ya d'autres cas qu'on peut optimiser de la sorte
+                                where_clause += field.field_id + " = " + field_range.min;
+                                break;
+                            }
+
+                        case ModuleTableField.FIELD_TYPE_amount:
+                        case ModuleTableField.FIELD_TYPE_float:
                         case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                         case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                        case ModuleTableField.FIELD_TYPE_image_ref:
-                        case ModuleTableField.FIELD_TYPE_int:
                         case ModuleTableField.FIELD_TYPE_prct:
-                            where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
+                            where_clause += field.field_id + " >" + (field_range.min_inclusiv ? "=" : "") + " " + field_range.min + " and " + field.field_id + " <" + (field_range.max_inclusiv ? "=" : "") + " " + field_range.max;
+                            break;
+
+                        case ModuleTableField.FIELD_TYPE_tstz:
+                            where_clause += field.field_id + " >" + (field_range.min_inclusiv ? "=" : "") + " " + DateHandler.getInstance().getUnixForBDD(field_range.min) + " and " + field.field_id + " <" + (field_range.max_inclusiv ? "=" : "") + " " + DateHandler.getInstance().getUnixForBDD(field_range.max);
                             break;
 
                         case ModuleTableField.FIELD_TYPE_int_array:
@@ -1655,10 +1670,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         case ModuleTableField.FIELD_TYPE_day:
                         case ModuleTableField.FIELD_TYPE_month:
                             where_clause += field.field_id + "::date <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange";
-                            break;
-
-                        case ModuleTableField.FIELD_TYPE_tstz:
-                            where_clause += field.field_id + "::numeric <@ '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                             break;
 
                         case ModuleTableField.FIELD_TYPE_timestamp:

@@ -164,8 +164,14 @@ export default class DatatableComponent extends VueComponentBase {
 
                         case ModuleTableField.FIELD_TYPE_tstz:
                             if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
-                                break;
+                                if (j == 'FILTER__' + field.datatable_field_uid) {
+
+                                    this.preload_custom_filters.push(field.datatable_field_uid);
+
+                                    this.custom_filters_values[field.datatable_field_uid] = this.$route.query[j];
+                                }
                             }
+                            continue;
 
                         case ModuleTableField.FIELD_TYPE_date:
                         case ModuleTableField.FIELD_TYPE_daterange:
@@ -857,7 +863,10 @@ export default class DatatableComponent extends VueComponentBase {
 
                                 case ModuleTableField.FIELD_TYPE_tstz:
                                     if (simpleField.moduleTableField.segmentation_type == TimeSegment.TYPE_YEAR) {
-                                        break;
+                                        if (!query) {
+                                            return true;
+                                        }
+                                        return ((!!row[field.datatable_field_uid]) && row[field.datatable_field_uid].toString().indexOf(query.toString()) >= 0);
                                     }
 
                                     if ((!query) || ((!query.start) && (!query.end))) {

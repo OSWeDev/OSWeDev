@@ -35,7 +35,9 @@ export default class CRUDComponentManager {
     public registerCRUDs<T extends IDistantVOBase>(
         API_TYPE_IDs: string[],
         menuPointers: MenuPointer[],
-        routes: RouteConfig[]) {
+        routes: RouteConfig[],
+        read_query: any[] = null,
+        routes_meta: any[] = null) {
 
         if ((!API_TYPE_IDs) || (!API_TYPE_IDs.length)) {
             return;
@@ -50,7 +52,7 @@ export default class CRUDComponentManager {
         }
 
         for (let i in API_TYPE_IDs) {
-            this.registerCRUD(API_TYPE_IDs[i], null, menuPointers[i], routes);
+            this.registerCRUD(API_TYPE_IDs[i], null, menuPointers[i], routes, read_query ? read_query[i] : null, routes_meta ? routes_meta[i] : null);
         }
     }
 
