@@ -687,7 +687,12 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             // Cas d'une modif par un utilisateur, on doit refuser le changement de statuts si c'est pas pour un réimport.
 
             if ((importHistoric.state != bdd_import.state) && (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)) {
-                return false;
+
+                // Cas particulier du changement de statuts sur un import en validation manuelle qui doit continuer de fonctionner....
+                if (!((bdd_import.state == ModuleDataImport.IMPORTATION_STATE_FORMATTED) && (!importHistoric.autovalidate))) {
+
+                    return false;
+                }
             }
         }
 
