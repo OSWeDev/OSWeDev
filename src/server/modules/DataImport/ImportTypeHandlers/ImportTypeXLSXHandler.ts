@@ -404,6 +404,8 @@ export default class ImportTypeXLSXHandler {
                             case DataImportColumnVO.TYPE_NUMBER:
                                 if (column_data_string.h && column_data_string.h != "") {
                                     rowData[dataImportColumn.vo_field_name] = column_data_string.h.toString().replace(" ", "").replace(",", ".");
+                                } else if (column_data_string.t == 'n' && column_data_string.v && column_data_string.v != "") {
+                                    rowData[dataImportColumn.vo_field_name] = column_data_string.v.toString().replace(" ", "").replace(",", ".");
                                 } else if (column_data_string.w && column_data_string.w != "") {
                                     rowData[dataImportColumn.vo_field_name] = column_data_string.w.toString().replace(" ", "").replace(",", ".");
                                 } else if (column_data_string.v && column_data_string.v != "") {
