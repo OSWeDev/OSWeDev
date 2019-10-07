@@ -43,11 +43,11 @@ export default class CRUDComponent extends VueComponentBase {
     @ModuleDAOAction
     public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
     @ModuleDAOAction
-    public updateData: (vo: IDistantVOBase) => void;
+    public updateData: (vo: IDistantVOBase) => Promise<void>;
     @ModuleDAOAction
     public removeData: (infos: { API_TYPE_ID: string, id: number }) => void;
     @ModuleDAOAction
-    public storeData: (vo: IDistantVOBase) => void;
+    public storeData: (vo: IDistantVOBase) => Promise<void>;
     @ModuleCRUDAction
     public setSelectedVOs: (selectedVOs: IDistantVOBase[]) => void;
 
@@ -489,6 +489,8 @@ export default class CRUDComponent extends VueComponentBase {
         this.$router.push(this.callback_route);
         this.creating_vo = false;
 
+        this.callCallbackFunctionCreate();
+
         if (CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud.api_type_id].reset_newvo_after_each_creation) {
             this.prepareNewVO();
         }
@@ -689,6 +691,8 @@ export default class CRUDComponent extends VueComponentBase {
         this.snotify.success(this.label('crud.update.success'));
         this.$router.push(this.callback_route);
         this.updating_vo = false;
+
+        this.callCallbackFunctionUpdate();
     }
 
     private async deleteVO() {
@@ -803,6 +807,18 @@ export default class CRUDComponent extends VueComponentBase {
         ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved(this.api_types_involved);
         this.api_types_involved = [];
         await this.loaddatas();
+    }
+
+    private async callCallbackFunctionCreate(): Promise<void> {
+        if (CRUDComponentManager.getInstance().callback_function_create) {
+            await CRUDComponentManager.getInstance().callback_function_create(this.newVO);
+        }
+    }
+
+    private async callCallbackFunctionUpdate(): Promise<void> {
+        if (CRUDComponentManager.getInstance().callback_function_update) {
+            await CRUDComponentManager.getInstance().callback_function_update(this.editableVO);
+        }
     }
 
     get callback_route(): string {

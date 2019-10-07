@@ -123,7 +123,7 @@ export default class ModuleCommande extends Module {
         let field_informations_id: ModuleTableField<number> = new ModuleTableField('informations_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Informations', true);
 
         let datatable_fields = [
-            new ModuleTableField('prix_unitaire', ModuleTableField.FIELD_TYPE_float, 'Prix unitaire', true),
+            new ModuleTableField('prix_unitaire', ModuleTableField.FIELD_TYPE_amount, 'Prix unitaire', true),
             new ModuleTableField('quantite', ModuleTableField.FIELD_TYPE_float, 'Quantite', true),
             field_commande_id,
             field_produit_id,
