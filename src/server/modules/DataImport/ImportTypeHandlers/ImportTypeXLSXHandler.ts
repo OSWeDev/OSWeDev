@@ -406,6 +406,19 @@ export default class ImportTypeXLSXHandler {
                                     rowData[dataImportColumn.vo_field_name] = column_data_string.h.toString().replace(" ", "").replace(",", ".");
                                 } else if (column_data_string.t == 'n' && column_data_string.v && column_data_string.v != "") {
                                     rowData[dataImportColumn.vo_field_name] = column_data_string.v.toString().replace(" ", "").replace(",", ".");
+                                } else if (column_data_string.v && column_data_string.v != "") {
+                                    rowData[dataImportColumn.vo_field_name] = column_data_string.v.toString().replace(" ", "").replace(",", ".");
+                                } else if (column_data_string.w && column_data_string.w != "") {
+                                    rowData[dataImportColumn.vo_field_name] = column_data_string.w.toString().replace(" ", "").replace(",", ".");
+                                }
+
+                                if (rowData[dataImportColumn.vo_field_name] && rowData[dataImportColumn.vo_field_name] != '') {
+                                    rowData[dataImportColumn.vo_field_name] = parseFloat(rowData[dataImportColumn.vo_field_name]).toString();
+                                }
+                                break;
+                            case DataImportColumnVO.TYPE_NUMBER_COMA_DECIMAL_CSV:
+                                if (column_data_string.h && column_data_string.h != "") {
+                                    rowData[dataImportColumn.vo_field_name] = column_data_string.h.toString().replace(" ", "").replace(",", ".");
                                 } else if (column_data_string.w && column_data_string.w != "") {
                                     rowData[dataImportColumn.vo_field_name] = column_data_string.w.toString().replace(" ", "").replace(",", ".");
                                 } else if (column_data_string.v && column_data_string.v != "") {

@@ -32,6 +32,7 @@ export default class ModuleCronServer extends ModuleServerBase {
     private static instance: ModuleCronServer = null;
 
     public registered_cronWorkers: { [worker_uid: string]: ICronWorker } = {};
+    public cronWorkers_semaphores: { [worker_uid: string]: boolean } = {};
 
     private semaphore: boolean = false;
 
@@ -76,6 +77,7 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public registerCronWorker(cronWorker: ICronWorker) {
         this.registered_cronWorkers[cronWorker.worker_uid] = cronWorker;
+        this.cronWorkers_semaphores[cronWorker.worker_uid] = true;
     }
 
     public async planCronWorker(cronWorkerPlan: CronWorkerPlanification) {
@@ -188,8 +190,16 @@ export default class ModuleCronServer extends ModuleServerBase {
             return;
         }
 
+        if (!this.cronWorkers_semaphores[worker_uid]) {
+            return;
+        }
+
+        this.cronWorkers_semaphores[worker_uid] = false;
+
         console.log('CRON:LANCEMENT:' + worker_uid);
         await this.registered_cronWorkers[worker_uid].work();
         console.log('CRON:FIN:' + worker_uid);
+
+        this.cronWorkers_semaphores[worker_uid] = true;
     }
 }

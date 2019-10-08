@@ -3,9 +3,12 @@ import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataIm
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
+import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleDataImportServer from '../ModuleDataImportServer';
-import ThreadHandler from '../../../../shared/tools/ThreadHandler';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import { isNumber } from 'util';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -18,6 +21,10 @@ export default class DataImportBGThread implements IBGThread {
 
     private static instance: DataImportBGThread = null;
 
+    public current_timeout: number = 2000;
+    public MAX_timeout: number = 2000;
+    public MIN_timeout: number = 100;
+
     private constructor() {
     }
 
@@ -25,52 +32,47 @@ export default class DataImportBGThread implements IBGThread {
         return "DataImportBGThread";
     }
 
-    public async work(): Promise<boolean> {
+    public async work(): Promise<number> {
 
         try {
 
             // Objectif, on prend l'import en attente le plus ancien, et on l'importe tout simplement.
             //  en fin d'import, si on voit qu'il y en a un autre à importer, on demande d'aller plus vite.
 
-            let dih: DataImportHistoricVO = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, ' where state in ($1, $2, $3, $4) order by last_up_date desc limit 1;', [
+            let dih: DataImportHistoricVO = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, ' where state in ($1, $2, $3, $4, $5) order by last_up_date desc limit 1;', [
                 ModuleDataImport.IMPORTATION_STATE_UPLOADED,
                 ModuleDataImport.IMPORTATION_STATE_FORMATTED,
                 ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
-                ModuleDataImport.IMPORTATION_STATE_IMPORTED
+                ModuleDataImport.IMPORTATION_STATE_IMPORTED,
+                ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT
             ]);
 
             if (!dih) {
-                return false;
+                return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
-
-            console.debug('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
 
             if (!await this.handleImportHistoricProgression(dih)) {
-                // on doit pouvoir supprimer les logs inutiles de ce style...
-                console.debug('DataImportBGThread import en attente ou en erreur, et pas pressé.');
-                return false;
+                return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
+            console.debug('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
 
-            await ThreadHandler.getInstance().sleep(1000);
-
-            dih = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, ' where state in ($1, $2, $3, $4) order by last_up_date desc limit 1;', [
+            dih = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, ' where state in ($1, $2, $3, $4, $5) order by last_up_date desc limit 1;', [
                 ModuleDataImport.IMPORTATION_STATE_UPLOADED,
                 ModuleDataImport.IMPORTATION_STATE_FORMATTED,
                 ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
-                ModuleDataImport.IMPORTATION_STATE_IMPORTED
+                ModuleDataImport.IMPORTATION_STATE_IMPORTED,
+                ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT
             ]);
 
             if (!dih) {
-                console.debug('DataImportBGThread import terminé, et rien en attente.');
-                return false;
+                return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
-            console.debug('DataImportBGThread import avancé, mais il reste des tâches à gérer. Accélération.');
-            return true;
+            return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
             console.error(error);
         }
 
-        return false;
+        return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
     }
 
     private async handleImportHistoricProgression(importHistoric: DataImportHistoricVO): Promise<boolean> {
@@ -108,6 +110,34 @@ export default class DataImportBGThread implements IBGThread {
                 await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
                 ModuleDataImportServer.getInstance().posttreatDatas(importHistoric);
                 return true;
+
+            case ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT:
+
+                importHistoric.state = ModuleDataImport.IMPORTATION_STATE_POSTTREATED;
+                await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+
+                let new_importHistoric = new DataImportHistoricVO();
+                new_importHistoric.api_type_id = importHistoric.api_type_id;
+                new_importHistoric.autovalidate = true;
+                new_importHistoric.file_id = importHistoric.file_id;
+                new_importHistoric.import_type = importHistoric.import_type;
+                new_importHistoric.segment_type = importHistoric.segment_type;
+                new_importHistoric.segment_date_index = importHistoric.segment_date_index;
+                new_importHistoric.params = importHistoric.params;
+                new_importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
+                new_importHistoric.user_id = importHistoric.user_id;
+
+                let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_importHistoric);
+
+                if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+                    console.error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
+                    return false;
+                }
+                let id = parseInt(insertOrDeleteQueryResult.id);
+                if ((!id) || (!isNumber(id))) {
+                    console.error('!id dans handleImportHistoricProgression');
+                    return false;
+                }
 
             default:
                 return false;

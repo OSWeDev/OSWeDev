@@ -284,6 +284,11 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Logs'
         }, 'menu.menuelements.DataImportLogVO.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Import échoué. Voir les logs.'
+        }, 'import.errors.failed_importation_see_logs'));
+
     }
 
 
@@ -697,7 +702,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         }
 
         if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT) {
-            importHistoric.last_up_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+            importHistoric.last_up_date = moment();
         }
 
         if (!importHistoric.end_date) {
@@ -705,14 +710,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION) ||
                 (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT) ||
                 (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED)) {
-                importHistoric.end_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+                importHistoric.end_date = moment();
             }
         }
         return true;
     }
 
     private async handleImportHistoricDateCreation(importHistoric: DataImportHistoricVO): Promise<boolean> {
-        importHistoric.start_date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        importHistoric.start_date = moment();
         return true;
     }
 

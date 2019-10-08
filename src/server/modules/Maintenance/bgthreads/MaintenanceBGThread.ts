@@ -1,11 +1,12 @@
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
+import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModulePushDataServer from '../../PushData/ModulePushDataServer';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
 import moment = require('moment');
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 
 export default class MaintenanceBGThread implements IBGThread {
 
@@ -18,6 +19,10 @@ export default class MaintenanceBGThread implements IBGThread {
 
     private static instance: MaintenanceBGThread = null;
 
+    public current_timeout: number = ModuleBGThreadServer.DEFAULT_initial_timeout;
+    public MAX_timeout: number = ModuleBGThreadServer.DEFAULT_MAX_timeout;
+    public MIN_timeout: number = ModuleBGThreadServer.DEFAULT_MIN_timeout;
+
     private constructor() {
     }
 
@@ -25,7 +30,7 @@ export default class MaintenanceBGThread implements IBGThread {
         return "MaintenanceBGThread";
     }
 
-    public async work(): Promise<boolean> {
+    public async work(): Promise<number> {
 
         try {
 
@@ -37,7 +42,7 @@ export default class MaintenanceBGThread implements IBGThread {
             ModuleMaintenanceServer.getInstance().planned_maintenance = maintenance;
 
             if (!maintenance) {
-                return;
+                return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
             }
 
             let timeout_minutes_msg1: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
@@ -80,7 +85,7 @@ export default class MaintenanceBGThread implements IBGThread {
             console.error(error);
         }
 
-        return false;
+        return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
     }
 
     private async get_planned_maintenance(): Promise<MaintenanceVO> {

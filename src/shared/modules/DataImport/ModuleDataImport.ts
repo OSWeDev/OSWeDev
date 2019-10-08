@@ -293,7 +293,7 @@ export default class ModuleDataImport extends Module {
                 [ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]
             }),
             label_field,
-            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de démarrage', false),
+            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de démarrage', false),
             new ModuleTableField('segment_date_index', ModuleTableField.FIELD_TYPE_string, 'Segment cible', false),
             new ModuleTableField('segment_type', ModuleTableField.FIELD_TYPE_enum, 'Type de segment', false).setEnumValues({
                 [TimeSegment.TYPE_YEAR]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_YEAR],
@@ -302,8 +302,8 @@ export default class ModuleDataImport extends Module {
                 [TimeSegment.TYPE_WEEK]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_WEEK],
                 [TimeSegment.TYPE_ROLLING_YEAR_MONTH_START]: TimeSegment.TYPE_NAMES[TimeSegment.TYPE_ROLLING_YEAR_MONTH_START],
             }),
-            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_timestamp, 'Modification', false),
-            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_timestamp, 'Date de fin', false),
+            new ModuleTableField('last_up_date', ModuleTableField.FIELD_TYPE_tstz, 'Modification', false),
+            new ModuleTableField('end_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de fin', false),
             new ModuleTableField('params', ModuleTableField.FIELD_TYPE_string, 'Paramètres', false),
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'Vo importé', false),
             new ModuleTableField('import_type', ModuleTableField.FIELD_TYPE_enum, 'Type d\'import', true).setEnumValues({
@@ -323,7 +323,7 @@ export default class ModuleDataImport extends Module {
         this.datatables.push(this.datatable_historic);
 
 
-        label_field = new ModuleTableField('date', ModuleTableField.FIELD_TYPE_timestamp, 'Date', false);
+        label_field = new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date', false);
         field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
         let field_data_import_historic_id = new ModuleTableField('data_import_historic_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Historique', false);
         datatable_fields = [

@@ -1,4 +1,5 @@
 import IDistantVOBase from '../../IDistantVOBase';
+import { Moment } from 'moment';
 
 export default class DataImportHistoricVO implements IDistantVOBase {
     public static API_TYPE_ID: string = "dih";
@@ -22,11 +23,11 @@ export default class DataImportHistoricVO implements IDistantVOBase {
     public data_import_format_id: number;
 
     // Heure de création de l'historique
-    public start_date: string;
+    public start_date: Moment;
     // Heure de modification de l'historique
-    public last_up_date: string;
+    public last_up_date: Moment;
     // Heure de modification de l'historique vers un status de fin d'import (en erreur ou non)
-    public end_date: string;
+    public end_date: Moment;
 
     // JSON des params (site, boutique, ...)
     public params: string;

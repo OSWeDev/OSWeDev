@@ -6,6 +6,7 @@ export default class DataImportColumnVO implements IDistantVOBase {
     public static TYPE_STRING: string = "string";
     public static TYPE_DATE: string = "date";
     public static TYPE_NUMBER: string = "number";
+    public static TYPE_NUMBER_COMA_DECIMAL_CSV: string = "number_coma_csv";
 
     public static createNew(
         title: string, data_import_format_id: number,

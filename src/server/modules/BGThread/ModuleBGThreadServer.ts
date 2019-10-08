@@ -12,6 +12,19 @@ import IBGThread from './interfaces/IBGThread';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
+    public static TIMEOUT_COEF_LITTLE_BIT_SLOWER: number = 0.8;
+    public static TIMEOUT_COEF_SLOWER: number = 0.5;
+    public static TIMEOUT_COEF_SLEEP: number = 0.1;
+
+    public static TIMEOUT_COEF_LITTLE_BIT_FASTER: number = 1.25;
+    public static TIMEOUT_COEF_FASTER: number = 2;
+    public static TIMEOUT_COEF_RUN: number = 10;
+
+
+    public static DEFAULT_initial_timeout: number = 30000;
+    public static DEFAULT_MAX_timeout: number = 30000;
+    public static DEFAULT_MIN_timeout: number = 300;
+
     public static getInstance() {
         if (!ModuleBGThreadServer.instance) {
             ModuleBGThreadServer.instance = new ModuleBGThreadServer();
@@ -23,24 +36,8 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
     public registered_BGThreads: { [name: string]: IBGThread } = {};
 
-    private timeout: number = 30000;
-    private MAX_timeout: number = 30000;
-    private MIN_timeout: number = 300;
-
-    private timeout_coef: number = 10;
-
-
     private constructor() {
         super(ModuleBGThread.getInstance().name);
-    }
-
-    public async configure() {
-        let self = this;
-
-        // On lance le thread à ce niveau
-        setTimeout(function () {
-            self.execute_bgthreads();
-        }, this.timeout);
     }
 
     /**
@@ -67,33 +64,37 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
-    public registerBGThread(BGThread: IBGThread) {
-        this.registered_BGThreads[BGThread.name] = BGThread;
+    public registerBGThread(bgthread: IBGThread) {
+        this.registered_BGThreads[bgthread.name] = bgthread;
+
+        let self = this;
+        setTimeout(function () {
+            self.execute_bgthread(bgthread);
+        }, bgthread.current_timeout);
     }
 
-    private async execute_bgthreads() {
+    private async execute_bgthread(bgthread: IBGThread) {
         try {
 
-            // On lance les bgthreads, et si l'un d'entre eux demande à être rappelé rapidement, on change le ryhtme d'appel global (FIXME DIRTY on doit séparer les timeouts par bgthread, ... ya de grosses optis ici)
-            let need_more_time: boolean = false;
-            for (let i in this.registered_BGThreads) {
-                let bgthread: IBGThread = this.registered_BGThreads[i];
-
-                // console.log('BGThread:LANCEMENT:' + bgthread.name);
-                need_more_time = need_more_time || await bgthread.work();
-                // console.log('BGThread:FIN:' + bgthread.name);
+            if (!bgthread) {
+                return;
             }
 
-            if (need_more_time) {
-                this.timeout = this.timeout / this.timeout_coef;
-                if (this.timeout < this.MIN_timeout) {
-                    this.timeout = this.MIN_timeout;
-                }
-            } else {
-                this.timeout = this.timeout * this.timeout_coef;
-                if (this.timeout > this.MAX_timeout) {
-                    this.timeout = this.MAX_timeout;
-                }
+            let timeout_coef: number = 1;
+
+            timeout_coef = await bgthread.work();
+
+            if (!timeout_coef) {
+                timeout_coef = 1;
+            }
+
+            bgthread.current_timeout = bgthread.current_timeout * timeout_coef;
+            if (bgthread.current_timeout > bgthread.MAX_timeout) {
+                bgthread.current_timeout = bgthread.MAX_timeout;
+            }
+
+            if (bgthread.current_timeout < bgthread.MIN_timeout) {
+                bgthread.current_timeout = bgthread.MIN_timeout;
             }
         } catch (error) {
             console.error(error);
@@ -101,7 +102,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
 
         let self = this;
         setTimeout(function () {
-            self.execute_bgthreads();
-        }, this.timeout);
+            self.execute_bgthread(bgthread);
+        }, bgthread.current_timeout);
     }
 }

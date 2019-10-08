@@ -12,6 +12,9 @@ import ActivateDataImport from './patchs/ActivateDataImport';
 import ActivateDataRender from './patchs/ActivateDataRender';
 import ChangeTypeDatesNotificationVO from './patchs/ChangeTypeDatesNotificationVO';
 import ChangeCronDateHeurePlanifiee from './patchs/ChangeCronDateHeurePlanifiee';
+import Patch20191008ChangeDIHDateType from './patchs/Patch20191008ChangeDIHDateType';
+import Patch20191008ChangeDILDateType from './patchs/Patch20191008ChangeDILDateType';
+import Patch20191008SupprimerTacheReimport from './patchs/Patch20191008SupprimerTacheReimport';
 
 export default abstract class GeneratorBase {
 
@@ -38,6 +41,9 @@ export default abstract class GeneratorBase {
             ActivateDataRender.getInstance(),
             ChangeTypeDatesNotificationVO.getInstance(),
             ChangeCronDateHeurePlanifiee.getInstance(),
+            Patch20191008ChangeDIHDateType.getInstance(),
+            Patch20191008ChangeDILDateType.getInstance(),
+            Patch20191008SupprimerTacheReimport.getInstance()
         ];
 
         this.post_modules_workers = [];
