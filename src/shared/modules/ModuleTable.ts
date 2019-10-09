@@ -2,17 +2,15 @@ import * as clonedeep from 'lodash/cloneDeep';
 import * as moment from 'moment';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
-import NumRangeHandler from '../tools/NumRangeHandler';
-import TSRangeHandler from '../tools/TSRangeHandler';
+import RangeHandler from '../tools/RangeHandler';
+import NumRange from './DataRender/vos/NumRange';
+import TSRange from './DataRender/vos/TSRange';
 import IDistantVOBase from './IDistantVOBase';
 import Module from './Module';
 import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
-import NumSegment from './DataRender/vos/NumSegment';
-import TimeSegmentHandler from '../tools/TimeSegmentHandler';
-import TimeSegment from './DataRender/vos/TimeSegment';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -366,11 +364,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
             switch (field.field_type) {
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
-                    res[new_id] = NumRangeHandler.getInstance().translate_to_api(e[field.field_id]);
+                    res[new_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    res[new_id] = TSRangeHandler.getInstance().translate_to_api(e[field.field_id]);
+                    res[new_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
@@ -416,11 +414,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
             switch (field.field_type) {
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
-                    res[field.field_id] = NumRangeHandler.getInstance().translate_from_api(e[old_id]);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_api(NumRange.RANGE_TYPE, e[old_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    res[field.field_id] = TSRangeHandler.getInstance().translate_from_api(e[old_id]);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_api(TSRange.RANGE_TYPE, e[old_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
@@ -464,11 +462,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
-                    res[field.field_id] = NumRangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
+                    res[field.field_id] = RangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    res[field.field_id] = TSRangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
+                    res[field.field_id] = RangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_timestamp:
@@ -527,10 +525,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
             // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
             //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
             if (field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) {
-                e[field.field_id] = NumRangeHandler.getInstance().translate_from_bdd(e[field.field_id]);
+                e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, e[field.field_id]);
             }
             if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
-                e[field.field_id] = TSRangeHandler.getInstance().translate_from_bdd(e[field.field_id]);
+                e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, e[field.field_id]);
             }
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_day) ||

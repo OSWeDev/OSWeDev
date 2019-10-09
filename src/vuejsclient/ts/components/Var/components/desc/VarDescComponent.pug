@@ -43,7 +43,8 @@
                 
             h5.card-title {{ label('var.desc_mode.var_data') }}
             var-data(:var_param='var_param')
-    
+            i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_data')
+
             .row
                 .col-md-12
                     svg(width=400 height=300)

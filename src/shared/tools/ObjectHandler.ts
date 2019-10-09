@@ -1,9 +1,8 @@
 import IDistantVOBase from '../modules/IDistantVOBase';
 import NumRange from '../modules/DataRender/vos/NumRange';
-import NumRangeHandler from './NumRangeHandler';
 import TSRange from '../modules/DataRender/vos/TSRange';
-import TSRangeHandler from './TSRangeHandler';
 import moment = require('moment');
+import RangeHandler from './RangeHandler';
 
 export default class ObjectHandler {
     public static getInstance(): ObjectHandler {
@@ -126,7 +125,7 @@ export default class ObjectHandler {
         for (let id in elts_by_id) {
             let elt = elts_by_id[id];
 
-            if (NumRangeHandler.getInstance().elt_intersects_range(parseInt(id.toString()), range)) {
+            if (RangeHandler.getInstance().elt_intersects_range(parseInt(id.toString()), range)) {
                 res[id] = elt;
             }
         }
@@ -140,7 +139,7 @@ export default class ObjectHandler {
         for (let id in elts_by_id) {
             let elt = elts_by_id[id];
 
-            if (NumRangeHandler.getInstance().elt_intersects_any_range(parseInt(id.toString()), ranges)) {
+            if (RangeHandler.getInstance().elt_intersects_any_range(parseInt(id.toString()), ranges)) {
                 res[id] = elt;
             }
         }
@@ -154,7 +153,7 @@ export default class ObjectHandler {
         for (let date_index in elts_by_date_index) {
             let elt = elts_by_date_index[date_index];
 
-            if (TSRangeHandler.getInstance().elt_intersects_range(moment(date_index).startOf('day').utc(true), range)) {
+            if (RangeHandler.getInstance().elt_intersects_range(moment(date_index).startOf('day').utc(true), range)) {
                 res[date_index] = elt;
             }
         }
@@ -168,7 +167,7 @@ export default class ObjectHandler {
         for (let date_index in elts_by_date_index) {
             let elt = elts_by_date_index[date_index];
 
-            if (TSRangeHandler.getInstance().elt_intersects_any_range(moment(date_index).startOf('day').utc(true), ranges)) {
+            if (RangeHandler.getInstance().elt_intersects_any_range(moment(date_index).startOf('day').utc(true), ranges)) {
                 res[date_index] = elt;
             }
         }

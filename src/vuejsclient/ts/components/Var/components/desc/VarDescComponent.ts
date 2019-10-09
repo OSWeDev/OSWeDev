@@ -441,4 +441,8 @@ export default class VarDescComponent extends VueComponentBase {
     private un_select_var() {
         this.setDescSelectedIndex(null);
     }
+
+    private async update_var_data() {
+        VarsController.getInstance().registerDataParamAndReturnVarData(this.var_param, true, true);
+    }
 }

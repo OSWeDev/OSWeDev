@@ -7,6 +7,22 @@ import NumSegment from '../../../src/shared/modules/DataRender/vos/NumSegment';
 
 describe('NumRangeHandler', () => {
 
+
+    it('test range_includes_range', () => {
+        expect(NumRangeHandler.getInstance().range_includes_range(null, null)).to.equal(false);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(NumRangeHandler.getInstance().range_includes_range(null, NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), null)).to.equal(true);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), null)).to.equal(true);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT), null)).to.equal(false);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(1, 23, true, false, NumSegment.TYPE_INT), NumRange.createNew(12, 13, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(1, 12, true, false, NumSegment.TYPE_INT), NumRange.createNew(12, 13, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(12, 13, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 23, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(1, 23, true, false, NumSegment.TYPE_INT), NumRange.createNew(12, 25, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(1, 23, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 25, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(NumRangeHandler.getInstance().range_includes_range(NumRange.createNew(1, 23, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 10, true, false, NumSegment.TYPE_INT))).to.equal(false);
+    });
+
     it('test cut_range', () => {
         expect(NumRangeHandler.getInstance().cut_range(null, null)).to.equal(null);
         expect(NumRangeHandler.getInstance().cut_range(null, NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(

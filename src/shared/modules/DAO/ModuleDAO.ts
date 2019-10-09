@@ -1,27 +1,24 @@
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import INamedVO from '../../interfaces/INamedVO';
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import Module from '../Module';
-import APIDAOParamVO from './vos/APIDAOParamVO';
-import APIDAOParamsVO from './vos/APIDAOParamsVO';
-import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
-import APIDAORefFieldParamsVO from './vos/APIDAORefFieldParamsVO';
-import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import INamedVO from '../../interfaces/INamedVO';
-import APIDAONamedParamVO from './vos/APIDAONamedParamVO';
-import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
-import VOsTypesManager from '../VOsTypesManager';
-import APIDAORefFieldsAndFieldsStringParamsVO from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
-import NumRange from '../DataRender/vos/NumRange';
-import APIDAOIdsRangesParamsVO from './vos/APIDAOIdsRangesParamsVO';
-import FieldRange from '../DataRender/vos/FieldRange';
-import APIDAORangesParamsVO from './vos/APIDAORangesParamsVO';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import NumRange from '../DataRender/vos/NumRange';
 import IMatroid from '../Matroid/interfaces/IMatroid';
-import APIDAOApiTypeAndFieldRangesParamsVO from './vos/APIDAOApiTypeAndFieldRangesParamsVO';
+import Module from '../Module';
+import VOsTypesManager from '../VOsTypesManager';
 import APIDAOApiTypeAndMatroidsParamsVO from './vos/APIDAOApiTypeAndMatroidsParamsVO';
+import APIDAOIdsRangesParamsVO from './vos/APIDAOIdsRangesParamsVO';
+import APIDAONamedParamVO from './vos/APIDAONamedParamVO';
+import APIDAOParamsVO from './vos/APIDAOParamsVO';
+import APIDAOParamVO from './vos/APIDAOParamVO';
+import APIDAORefFieldParamsVO from './vos/APIDAORefFieldParamsVO';
+import APIDAORefFieldsAndFieldsStringParamsVO from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
+import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
+import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 
 export default class ModuleDAO extends Module {
 
@@ -40,14 +37,14 @@ export default class ModuleDAO extends Module {
     public static APINAME_GET_VOS_BY_IDS = "GET_VOS_BY_IDS";
     public static APINAME_GET_VOS_BY_IDS_RANGES = "GET_VOS_BY_IDS_RANGES";
     public static APINAME_GET_VOS = "GET_VOS";
-    public static APINAME_FILTER_VOS_BY_FIELD_RANGES = "FILTER_VOS_BY_FIELD_RANGES";
-    public static APINAME_FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS = "FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS";
+    // public static APINAME_FILTER_VOS_BY_FIELD_RANGES = "FILTER_VOS_BY_FIELD_RANGES";
+    // public static APINAME_FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS = "FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS";
     public static APINAME_GET_VOS_BY_REFFIELD_IDS = "GET_VOS_BY_REFFIELD_IDS";
     public static APINAME_GET_VOS_BY_REFFIELDS_IDS = "GET_VOS_BY_REFFIELDS_IDS";
     public static APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING = "GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING";
     public static APINAME_GET_NAMED_VO_BY_NAME = "GET_NAMED_VO_BY_NAME";
     public static APINAME_GET_BASE_URL = "GET_BASE_URL";
-    public static APINAME_GET_VOS_BY_EXACT_FIELD_RANGE = "GET_VOS_BY_EXACT_FIELD_RANGE";
+    // public static APINAME_GET_VOS_BY_EXACT_FIELD_RANGE = "GET_VOS_BY_EXACT_FIELD_RANGE";
 
     public static APINAME_GET_VOS_BY_EXACT_MATROIDS = "GET_VOS_BY_EXACT_MATROIDS";
     public static APINAME_FILTER_VOS_BY_MATROIDS = "FILTER_VOS_BY_MATROIDS";
@@ -132,23 +129,23 @@ export default class ModuleDAO extends Module {
             APIDAOIdsRangesParamsVO.translateFromREQ
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndFieldRangesParamsVO, IDistantVOBase[]>(
-            ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES,
-            (param: APIDAOApiTypeAndFieldRangesParamsVO) => (param ? [param.API_TYPE_ID] : null),
-            APIDAOApiTypeAndFieldRangesParamsVO.translateCheckAccessParams
-        ));
+        // ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndFieldRangesParamsVO, IDistantVOBase[]>(
+        //     ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES,
+        //     (param: APIDAOApiTypeAndFieldRangesParamsVO) => (param ? [param.API_TYPE_ID] : null),
+        //     APIDAOApiTypeAndFieldRangesParamsVO.translateCheckAccessParams
+        // ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndFieldRangesParamsVO, IDistantVOBase[]>(
-            ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS,
-            (param: APIDAOApiTypeAndFieldRangesParamsVO) => (param ? [param.API_TYPE_ID] : null),
-            APIDAOApiTypeAndFieldRangesParamsVO.translateCheckAccessParams
-        ));
+        // ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndFieldRangesParamsVO, IDistantVOBase[]>(
+        //     ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS,
+        //     (param: APIDAOApiTypeAndFieldRangesParamsVO) => (param ? [param.API_TYPE_ID] : null),
+        //     APIDAOApiTypeAndFieldRangesParamsVO.translateCheckAccessParams
+        // ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndFieldRangesParamsVO, IDistantVOBase[]>(
-            ModuleDAO.APINAME_GET_VOS_BY_EXACT_FIELD_RANGE,
-            (param: APIDAOApiTypeAndFieldRangesParamsVO) => (param ? [param.API_TYPE_ID] : null),
-            APIDAOApiTypeAndFieldRangesParamsVO.translateCheckAccessParams
-        ));
+        // ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndFieldRangesParamsVO, IDistantVOBase[]>(
+        //     ModuleDAO.APINAME_GET_VOS_BY_EXACT_FIELD_RANGE,
+        //     (param: APIDAOApiTypeAndFieldRangesParamsVO) => (param ? [param.API_TYPE_ID] : null),
+        //     APIDAOApiTypeAndFieldRangesParamsVO.translateCheckAccessParams
+        // ));
 
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
@@ -275,29 +272,29 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<string, T[]>(ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES, API_TYPE_ID, ranges);
     }
 
-    public async getVosByExactFieldRange<T extends IDistantVOBase>(API_TYPE_ID: string, field_ranges: Array<FieldRange<any>>): Promise<T[]> {
-        if ((!field_ranges) || (!field_ranges.length)) {
-            return null;
-        }
+    // public async getVosByExactFieldRange<T extends IDistantVOBase>(API_TYPE_ID: string, field_ranges: Array<FieldRange<any>>): Promise<T[]> {
+    //     if ((!field_ranges) || (!field_ranges.length)) {
+    //         return null;
+    //     }
 
-        return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndFieldRangesParamsVO, T[]>(ModuleDAO.APINAME_GET_VOS_BY_EXACT_FIELD_RANGE, API_TYPE_ID, field_ranges);
-    }
+    //     return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndFieldRangesParamsVO, T[]>(ModuleDAO.APINAME_GET_VOS_BY_EXACT_FIELD_RANGE, API_TYPE_ID, field_ranges);
+    // }
 
-    public async filterVosByFieldRanges<T extends IDistantVOBase>(API_TYPE_ID: string, field_ranges: Array<FieldRange<any>>): Promise<T[]> {
-        if ((!field_ranges) || (!field_ranges.length)) {
-            return null;
-        }
+    // public async filterVosByFieldRanges<T extends IDistantVOBase>(API_TYPE_ID: string, field_ranges: Array<FieldRange<any>>): Promise<T[]> {
+    //     if ((!field_ranges) || (!field_ranges.length)) {
+    //         return null;
+    //     }
 
-        return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndFieldRangesParamsVO, T[]>(ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES, API_TYPE_ID, field_ranges);
-    }
+    //     return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndFieldRangesParamsVO, T[]>(ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES, API_TYPE_ID, field_ranges);
+    // }
 
-    public async filterVosByFieldRangesIntersections<T extends IDistantVOBase>(API_TYPE_ID: string, field_ranges: Array<FieldRange<any>>): Promise<T[]> {
-        if ((!field_ranges) || (!field_ranges.length)) {
-            return null;
-        }
+    // public async filterVosByFieldRangesIntersections<T extends IDistantVOBase>(API_TYPE_ID: string, field_ranges: Array<FieldRange<any>>): Promise<T[]> {
+    //     if ((!field_ranges) || (!field_ranges.length)) {
+    //         return null;
+    //     }
 
-        return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndFieldRangesParamsVO, T[]>(ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS, API_TYPE_ID, field_ranges);
-    }
+    //     return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndFieldRangesParamsVO, T[]>(ModuleDAO.APINAME_FILTER_VOS_BY_FIELD_RANGES_INTERSECTIONS, API_TYPE_ID, field_ranges);
+    // }
 
     public async getVosByExactMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
         if ((!matroids) || (!matroids.length)) {

@@ -1,5 +1,7 @@
 export default interface IRange<T> {
 
+    range_type: number;
+
     min: T;
     max: T;
 

@@ -4,6 +4,8 @@ import NumSegment from './NumSegment';
 
 export default class NumRange implements IRange<number> {
 
+    public static RANGE_TYPE: number = 1;
+
     /**
      * Test d'incohérence sur des ensembles qui indiqueraient inclure le min mais pas le max et où min == max (ou inversement)
      */
@@ -73,15 +75,15 @@ export default class NumRange implements IRange<number> {
         let range_min_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(min, segment_type);
         let range_max_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(max, segment_type);
 
-        if (range_min_ts.num > range_max_ts.num) {
+        if (range_min_ts.index > range_max_ts.index) {
             return null;
         }
 
-        if ((!max_inclusiv) && (range_min_ts.num >= max)) {
+        if ((!max_inclusiv) && (range_min_ts.index >= max)) {
             return null;
         }
 
-        return range_min_ts.num;
+        return range_min_ts.index;
     }
 
     /**
@@ -99,7 +101,7 @@ export default class NumRange implements IRange<number> {
 
         let range_max_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(max, segment_type);
 
-        if ((!max_inclusiv) && (range_max_ts.num == max)) {
+        if ((!max_inclusiv) && (range_max_ts.index == max)) {
             NumSegmentHandler.getInstance().decNumSegment(range_max_ts);
         }
 
@@ -113,7 +115,7 @@ export default class NumRange implements IRange<number> {
             return null;
         }
 
-        return range_max_ts.num;
+        return range_max_ts.index;
     }
 
     public static cloneFrom(from: NumRange): NumRange {
@@ -135,6 +137,7 @@ export default class NumRange implements IRange<number> {
     public max_inclusiv: boolean;
 
     public segment_type: number;
+    public range_type: number = NumRange.RANGE_TYPE;
 
     private constructor() { }
 }

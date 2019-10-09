@@ -1,6 +1,6 @@
 import NumRange from '../modules/DataRender/vos/NumRange';
 import NumSegment from '../modules/DataRender/vos/NumSegment';
-import NumRangeHandler from './NumRangeHandler';
+import RangeHandler from './RangeHandler';
 
 export default class NumSegmentHandler {
     public static getInstance(): NumSegmentHandler {
@@ -34,7 +34,7 @@ export default class NumSegmentHandler {
         }
 
         type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
-        timeSegment.num = this.decNum(timeSegment.num, type, offset);
+        timeSegment.index = this.decNum(timeSegment.index, type, offset);
     }
 
     /**
@@ -49,7 +49,7 @@ export default class NumSegmentHandler {
         }
 
         type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
-        timeSegment.num = this.incNum(timeSegment.num, type, offset);
+        timeSegment.index = this.incNum(timeSegment.index, type, offset);
     }
 
 
@@ -100,7 +100,7 @@ export default class NumSegmentHandler {
 
         for (let i = min; ((!exclude_end) && (i <= max)) || ((!!exclude_end) && (i < max)); i += step) {
             let numSegment: NumSegment = new NumSegment();
-            numSegment.num = i;
+            numSegment.index = i;
             numSegment.type = num_segment_type;
             res.push(numSegment);
         }
@@ -159,7 +159,7 @@ export default class NumSegmentHandler {
      * @returns Inclusive lower bound of the NumSegment
      */
     public getStartNumSegment(numSegment: NumSegment): number {
-        return numSegment.num;
+        return numSegment.index;
     }
 
     /**
@@ -176,7 +176,7 @@ export default class NumSegmentHandler {
         switch (numSegment.type) {
             case NumSegment.TYPE_INT:
             default:
-                return numSegment.num + 1;
+                return numSegment.index + 1;
         }
     }
 
@@ -260,7 +260,7 @@ export default class NumSegmentHandler {
         switch (type) {
             case NumSegment.TYPE_INT:
             default:
-                res.num = numSegment.num - offset;
+                res.index = numSegment.index - offset;
         }
 
         return res;
@@ -282,7 +282,7 @@ export default class NumSegmentHandler {
         switch (type) {
             case NumSegment.TYPE_INT:
             default:
-                res.num = Math.floor(num);
+                res.index = Math.floor(num);
         }
 
         if (offset) {
@@ -394,18 +394,18 @@ export default class NumSegmentHandler {
         let res: number[] = [];
 
         for (let i in segments) {
-            res.push(segments[i].num);
+            res.push(segments[i].index);
         }
 
         return res;
     }
 
     public get_num_ranges(segments: NumSegment[]): NumRange[] {
-        return NumRangeHandler.getInstance().getRangesUnion(this.get_num_ranges_(segments));
+        return RangeHandler.getInstance().getRangesUnion(this.get_num_ranges_(segments));
     }
 
     public get_surrounding_ts_range(segments: NumSegment[]): NumRange {
-        return NumRangeHandler.getInstance().getMinSurroundingRange(this.get_num_ranges_(segments));
+        return RangeHandler.getInstance().getMinSurroundingRange(this.get_num_ranges_(segments));
     }
 
     public get_segment_from_range_start(num_range: NumRange, segment_type: number): NumSegment {
@@ -413,7 +413,7 @@ export default class NumSegmentHandler {
             return null;
         }
 
-        let min = NumRangeHandler.getInstance().getSegmentedMin(num_range, segment_type);
+        let min = RangeHandler.getInstance().getSegmentedMin(num_range, segment_type);
         return this.getCorrespondingNumSegment(min, segment_type);
     }
 
@@ -422,7 +422,7 @@ export default class NumSegmentHandler {
             return null;
         }
 
-        let max = NumRangeHandler.getInstance().getSegmentedMax(num_range, segment_type);
+        let max = RangeHandler.getInstance().getSegmentedMax(num_range, segment_type);
         return this.getCorrespondingNumSegment(max, segment_type);
     }
 

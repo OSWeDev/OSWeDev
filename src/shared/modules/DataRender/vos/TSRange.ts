@@ -5,6 +5,9 @@ import TimeSegment from './TimeSegment';
 
 export default class TSRange implements IRange<moment.Moment> {
 
+
+    public static RANGE_TYPE: number = 2;
+
     /**
      * Test d'incohérence sur des ensembles qui indiqueraient inclure le min mais pas le max et où min == max (ou inversement)
      * @param min_inclusiv defaults to true
@@ -59,15 +62,15 @@ export default class TSRange implements IRange<moment.Moment> {
         let range_min_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(min, segment_type);
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(max, segment_type);
 
-        if (range_min_ts.date.isAfter(range_max_ts.date)) {
+        if (range_min_ts.index.isAfter(range_max_ts.index)) {
             return null;
         }
 
-        if ((!max_inclusiv) && (range_min_ts.date.isSameOrAfter(max))) {
+        if ((!max_inclusiv) && (range_min_ts.index.isSameOrAfter(max))) {
             return null;
         }
 
-        return range_min_ts.date;
+        return range_min_ts.index;
     }
 
     /**
@@ -85,7 +88,7 @@ export default class TSRange implements IRange<moment.Moment> {
 
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(max, segment_type);
 
-        if ((!max_inclusiv) && (range_max_ts.date.isSame(max))) {
+        if ((!max_inclusiv) && (range_max_ts.index.isSame(max))) {
             TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
         }
 
@@ -99,7 +102,7 @@ export default class TSRange implements IRange<moment.Moment> {
             return null;
         }
 
-        return range_max_ts.date;
+        return range_max_ts.index;
     }
 
     public static cloneFrom(from: TSRange): TSRange {
@@ -121,6 +124,7 @@ export default class TSRange implements IRange<moment.Moment> {
     public max_inclusiv: boolean;
 
     public segment_type: number;
+    public range_type: number = TSRange.RANGE_TYPE;
 
     private constructor() { }
 }

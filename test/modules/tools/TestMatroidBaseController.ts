@@ -45,23 +45,23 @@ describe('MatroidBaseController', () => {
     it('test matroidbase_intersects_matroidbase', () => {
 
         let matroid_base_1 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 1, true, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 1, true, true, NumSegment.TYPE_INT)
         ]);
         let matroid_base_2 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 2, 2, true, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 2, 2, true, true, NumSegment.TYPE_INT)
         ]);
         let matroid_base_1_2 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, true, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, true, true, NumSegment.TYPE_INT)
         ]);
 
         let matroid_base_moins1_zero = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, zero_cinq, true, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, zero_cinq, true, true, TimeSegment.TYPE_DAY)
         ]);
         let matroid_base_zero = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_zero_cinq, zero_cinq, true, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)
         ]);
         let matroid_base_moins1 = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, moins_un, true, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY)
         ]);
 
 
@@ -115,23 +115,23 @@ describe('MatroidBaseController', () => {
     it('test matroidbase_intersects_any_matroidbase', () => {
 
         let matroid_base_1 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 1, true, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 1, true, true, NumSegment.TYPE_INT)
         ]);
         let matroid_base_2 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 2, 2, true, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 2, 2, true, true, NumSegment.TYPE_INT)
         ]);
         let matroid_base_1_2 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, true, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, true, true, NumSegment.TYPE_INT)
         ]);
 
         let matroid_base_moins1_zero = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, zero_cinq, true, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, zero_cinq, true, true, TimeSegment.TYPE_DAY)
         ]);
         let matroid_base_zero = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_zero_cinq, zero_cinq, true, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)
         ]);
         let matroid_base_moins1 = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, moins_un, true, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY)
         ]);
 
 
@@ -199,37 +199,37 @@ describe('MatroidBaseController', () => {
         expect(MatroidBaseController.getInstance().cut_matroid_base(null, null)).to.equal(null);
 
         let matroid_base_1 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 1, true, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 1, true, true, NumSegment.TYPE_INT)
         ]);
         let matroid_base_2 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 2, 2, true, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 2, 2, true, true, NumSegment.TYPE_INT)
         ]);
         let matroid_base_1_2 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, true, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, true, true, NumSegment.TYPE_INT)
         ]);
 
         let matroid_base_1_2_moins_1 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, false, true)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, false, true, NumSegment.TYPE_INT)
         ]);
         let matroid_base_1_2_moins_2 = MatroidBase.createNew(matroid_type, 'employee_id_ranges', [
-            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, true, false)
+            FieldRange.createNew(matroid_type, 'employee_id_ranges', 1, 2, true, false, NumSegment.TYPE_INT)
         ]);
 
         let matroid_base_moins1_zero = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, zero_cinq, true, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, zero_cinq, true, true, TimeSegment.TYPE_DAY)
         ]);
         let matroid_base_zero = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_zero_cinq, zero_cinq, true, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)
         ]);
         let matroid_base_moins1 = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, moins_un, true, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, moins_un, true, true, TimeSegment.TYPE_DAY)
         ]);
 
         let matroid_base_moins1_zero_moins_moins1 = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_un, zero_cinq, false, true)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)
         ]);
         let matroid_base_moins1_zero_moins_zero = MatroidBase.createNew(matroid_type, 'ts_ranges', [
-            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, moins_zero_cinq, true, false)
+            FieldRange.createNew(matroid_type, 'ts_ranges', moins_deux, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)
         ]);
 
         expect(MatroidBaseController.getInstance().cut_matroid_base(null, matroid_base_1)).to.deep.equal(new MatroidBaseCutResult(

@@ -76,15 +76,6 @@ export default class VarDAG extends DAG<VarDAGNode> {
                 if ((!!node.param) && (node.param.id != param.id)) {
                     node.param.id = param.id;
                 }
-
-                // On doit aussi clean le node pour le remettre à 0 pour les calculs à venir
-                if (VarsController.getInstance().imported_datas_by_var_id && VarsController.getInstance().imported_datas_by_var_id[param.var_id]) {
-                    delete VarsController.getInstance().imported_datas_by_var_id[param.var_id][index];
-                }
-                if (VarsController.getInstance().imported_datas_by_index && VarsController.getInstance().imported_datas_by_index[index]) {
-                    delete VarsController.getInstance().imported_datas_by_index[index];
-                }
-                node.setImportedData(null, this);
             }
 
 
@@ -97,6 +88,35 @@ export default class VarDAG extends DAG<VarDAGNode> {
             }
 
             node.ignore_unvalidated_datas = ignore_unvalidated_datas;
+
+            if (reload_on_register) {
+                // On doit aussi clean le node pour le remettre à 0 pour les calculs à venir
+                if (VarsController.getInstance().imported_datas_by_var_id && VarsController.getInstance().imported_datas_by_var_id[param.var_id]) {
+                    delete VarsController.getInstance().imported_datas_by_var_id[param.var_id][index];
+                }
+                if (VarsController.getInstance().imported_datas_by_index && VarsController.getInstance().imported_datas_by_index[index]) {
+                    delete VarsController.getInstance().imported_datas_by_index[index];
+                }
+
+                if (VarsController.getInstance().varDatasBATCHCache && VarsController.getInstance().varDatasBATCHCache[index]) {
+                    delete VarsController.getInstance().varDatasBATCHCache[index];
+                }
+                if (VarsController.getInstance().varDatas && VarsController.getInstance().varDatas[index]) {
+                    delete VarsController.getInstance().varDatas[index];
+                }
+                if (VarsController.getInstance().varDatasStaticCache && VarsController.getInstance().varDatasStaticCache[index]) {
+                    delete VarsController.getInstance().varDatasStaticCache[index];
+                }
+
+                node.setImportedData(null, this);
+                node.loaded_datas_matroids = null;
+                node.computed_datas_matroids = null;
+                node.loaded_datas_matroids_sum_value = null;
+                node.removeMarkers(this);
+                node.initializeNode(this);
+                node.addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, this);
+            }
+
             node.addMarker(VarDAG.VARDAG_MARKER_REGISTERED, this);
         }
     }
