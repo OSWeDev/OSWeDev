@@ -362,6 +362,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return vo;
     }
 
+    /**
+     * Cas très spécifique du recover de MDP => attention cette fonction ne doit jamais être utiliser en dehors sinon on offre le listage des users à tous (c'est pas le but...)
+     */
+    public async selectOneUserForRecovery(login: string): Promise<UserVO> {
+        let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+
+        let vo: UserVO = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1)", [login]) as UserVO);
+        return vo;
+    }
+
     // /**
     //  * Version serveur pour alléger certains traitements qui permet de regrouper en batch les modifs sur des cas où finalement on considère que la modif est pas urgente et donc on peut éviter de faire 1000 appels par seconde
     //  *  ATTENTION : ça signifie 2 choses :
