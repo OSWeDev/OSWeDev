@@ -38,9 +38,9 @@ export default class NumSegmentHandler {
     }
 
     /**
-     * ATTENTION : modifie le TS sans copie
+     * ATTENTION : modifie le segment sans copie
      * @param timeSegment
-     * @param type defaults to the type of the timeSegment provided as first argument
+     * @param type defaults to the type of the NumSegment provided as first argument
      * @param offset defaults to 1.
      */
     public incNumSegment(timeSegment: NumSegment, type: number = null, offset: number = 1): void {
@@ -52,6 +52,21 @@ export default class NumSegmentHandler {
         timeSegment.index = this.incNum(timeSegment.index, type, offset);
     }
 
+    public isEltInSegment(elt: number, segment: NumSegment): boolean {
+        if ((!elt) || (!segment)) {
+            return false;
+        }
+
+        let end: number;
+
+        switch (segment.type) {
+            case NumSegment.TYPE_INT:
+            default:
+                end = segment.index + 1;
+        }
+
+        return (elt >= segment.index) && (elt < end);
+    }
 
     /**
      * ATTENTION le num n'est pas modifié mais renvoyé

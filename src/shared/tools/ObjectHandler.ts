@@ -126,7 +126,9 @@ export default class ObjectHandler {
             let elt = elts_by_id[id];
 
             if (RangeHandler.getInstance().elt_intersects_range(parseInt(id.toString()), range)) {
-                res[id] = elt;
+                if (typeof elt != 'undefined') {
+                    res[id] = elt;
+                }
             }
         }
 

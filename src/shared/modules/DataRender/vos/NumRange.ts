@@ -73,6 +73,11 @@ export default class NumRange implements IRange<number> {
         }
 
         let range_min_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(min, segment_type);
+
+        if (!min_inclusiv) {
+            NumSegmentHandler.getInstance().incNumSegment(range_min_ts);
+        }
+
         let range_max_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(max, segment_type);
 
         if (range_min_ts.index > range_max_ts.index) {
@@ -99,13 +104,13 @@ export default class NumRange implements IRange<number> {
             return null;
         }
 
-        let range_max_ts: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(max, segment_type);
+        let range_max_segment: NumSegment = NumSegmentHandler.getInstance().getCorrespondingNumSegment(max, segment_type);
 
-        if ((!max_inclusiv) && (range_max_ts.index == max)) {
-            NumSegmentHandler.getInstance().decNumSegment(range_max_ts);
+        if ((!max_inclusiv) && NumSegmentHandler.getInstance().isEltInSegment(max, range_max_segment)) {
+            NumSegmentHandler.getInstance().decNumSegment(range_max_segment);
         }
 
-        let range_max_end: number = NumSegmentHandler.getInstance().getEndNumSegment(range_max_ts);
+        let range_max_end: number = NumSegmentHandler.getInstance().getEndNumSegment(range_max_segment);
 
         if (range_max_end < min) {
             return null;
@@ -115,7 +120,7 @@ export default class NumRange implements IRange<number> {
             return null;
         }
 
-        return range_max_ts.index;
+        return range_max_segment.index;
     }
 
     public static cloneFrom(from: NumRange): NumRange {

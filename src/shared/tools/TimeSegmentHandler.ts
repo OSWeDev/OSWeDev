@@ -532,7 +532,7 @@ export default class TimeSegmentHandler {
         return res;
     }
 
-    public isMomentInTimeSegment(date: Moment, time_segment: TimeSegment): boolean {
+    public isEltInSegment(date: Moment, time_segment: TimeSegment): boolean {
         if ((!date) || (!time_segment)) {
             return false;
         }

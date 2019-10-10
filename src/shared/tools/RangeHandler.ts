@@ -186,23 +186,8 @@ export default class RangeHandler {
             return false;
         }
 
-        if (this.range_intersects_range(range_a, range_b)) {
-            return true;
-        }
-
-        // Reste à tester les ensembles contigus
-        if (range_a.min_inclusiv != range_b.max_inclusiv) {
-            if (this.is_elt_equals_elt(range_a.range_type, range_a.min, range_b.max)) {
-                return true;
-            }
-        }
-        if (range_b.min_inclusiv != range_a.max_inclusiv) {
-            if (this.is_elt_equals_elt(range_a.range_type, range_b.min, range_a.max)) {
-                return true;
-            }
-        }
-
-        return false;
+        return this.is_elt_equals_elt(range_a.range_type, this.inc_elt(range_a.range_type, this.getSegmentedMax(range_a), range_a.segment_type, 1), this.getSegmentedMin(range_b)) ||
+            this.is_elt_equals_elt(range_a.range_type, this.inc_elt(range_b.range_type, this.getSegmentedMax(range_b), range_b.segment_type, 1), this.getSegmentedMin(range_a));
     }
 
     /**
@@ -218,10 +203,7 @@ export default class RangeHandler {
             return false;
         }
 
-        if (range_a.min_inclusiv && (!range_b.min_inclusiv)) {
-            return this.is_elt_equals_or_inf_elt(range_a.range_type, range_a.min, range_b.min);
-        }
-        return this.is_elt_inf_elt(range_a.range_type, range_a.min, range_b.min);
+        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMin(range_a), this.getSegmentedMin(range_b));
     }
 
 
@@ -238,11 +220,7 @@ export default class RangeHandler {
             return false;
         }
 
-        if (range_a.min_inclusiv != range_b.min_inclusiv) {
-            return false;
-        }
-
-        return this.is_elt_equals_elt(range_a.range_type, range_a.min, range_b.min);
+        return this.is_elt_equals_elt(range_a.range_type, this.getSegmentedMin(range_a), this.getSegmentedMin(range_b));
     }
 
     /**
@@ -258,10 +236,7 @@ export default class RangeHandler {
             return false;
         }
 
-        if ((!range_a.max_inclusiv) && range_b.max_inclusiv) {
-            return this.is_elt_equals_or_inf_elt(range_a.range_type, range_a.max, range_b.max);
-        }
-        return this.is_elt_inf_elt(range_a.range_type, range_a.max, range_b.max);
+        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMax(range_a), this.getSegmentedMax(range_b));
     }
 
     /**
@@ -277,10 +252,7 @@ export default class RangeHandler {
             return false;
         }
 
-        if (range_a.max_inclusiv != range_b.max_inclusiv) {
-            return false;
-        }
-        return this.is_elt_equals_elt(range_a.range_type, range_a.max, range_b.max);
+        return this.is_elt_equals_elt(range_a.range_type, this.getSegmentedMax(range_a), this.getSegmentedMax(range_b));
     }
 
     /**
@@ -296,7 +268,7 @@ export default class RangeHandler {
             return false;
         }
 
-        return this.is_elt_inf_elt(range_a.range_type, range_a.min, range_b.max);
+        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMin(range_a), this.getSegmentedMax(range_b));
     }
 
     /**
@@ -312,11 +284,7 @@ export default class RangeHandler {
             return false;
         }
 
-        if ((!range_a.min_inclusiv) || (!range_b.max_inclusiv)) {
-            return false;
-        }
-
-        return this.is_elt_equals_elt(range_a.range_type, range_a.min, range_b.max);
+        return this.is_elt_equals_elt(range_a.range_type, this.getSegmentedMin(range_a), this.getSegmentedMax(range_b));
     }
 
     /**
@@ -332,10 +300,7 @@ export default class RangeHandler {
             return false;
         }
 
-        if ((!range_a.max_inclusiv) || (!range_b.min_inclusiv)) {
-            return this.is_elt_equals_or_inf_elt(range_a.range_type, range_a.max, range_b.min);
-        }
-        return this.is_elt_inf_elt(range_a.range_type, range_a.max, range_b.min);
+        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMax(range_a), this.getSegmentedMin(range_b));
     }
 
     /**
@@ -1238,16 +1203,16 @@ export default class RangeHandler {
      */
     public getSegmentedMin<T>(range: IRange<T>, segment_type: number = null, offset: number = 0): T {
 
+        if (!range) {
+            return null;
+        }
+
         if (segment_type == null) {
             if (range.range_type == NumRange.RANGE_TYPE) {
                 segment_type = NumSegment.TYPE_INT;
             } else {
                 segment_type = TimeSegment.TYPE_DAY;
             }
-        }
-
-        if (!range) {
-            return null;
         }
 
         if (range.range_type == NumRange.RANGE_TYPE) {
@@ -1288,16 +1253,17 @@ export default class RangeHandler {
      * @param segment_type pas utilisé pour le moment, on pourra l'utiliser pour un incrément décimal par exemple
      */
     public getSegmentedMax<T>(range: IRange<T>, segment_type: number = null, offset: number = 0): T {
+
+        if (!range) {
+            return null;
+        }
+
         if (segment_type == null) {
             if (range.range_type == NumRange.RANGE_TYPE) {
                 segment_type = NumSegment.TYPE_INT;
             } else {
                 segment_type = TimeSegment.TYPE_DAY;
             }
-        }
-
-        if (!range) {
-            return null;
         }
 
         if (range.range_type == NumRange.RANGE_TYPE) {
@@ -1436,11 +1402,7 @@ export default class RangeHandler {
      * ATTENTION très gourmand en perf très rapidement, il ne faut utiliser que sur de très petits ensembles
      * Le segment_type est forcé à int
      */
-    public get_combinaisons<T>(combinaisons: Array<Array<IRange<T>>>, combinaison_actuelle: Array<IRange<T>>, elts: T[], index: number, cardinal: number) {
-
-        if ((!combinaisons) || (!combinaisons.length) || (!combinaisons[0].length)) {
-            return null;
-        }
+    public get_combinaisons<T>(range_type: number, combinaisons: Array<Array<IRange<T>>>, combinaison_actuelle: Array<IRange<T>>, elts: T[], index: number, cardinal: number) {
 
         if (cardinal <= 0) {
             if ((!!combinaison_actuelle) && (!!combinaison_actuelle.length)) {
@@ -1455,9 +1417,9 @@ export default class RangeHandler {
 
             let deploy_combinaison: Array<IRange<T>> = (combinaison_actuelle && combinaison_actuelle.length) ? RangeHandler.getInstance().cloneArrayFrom(combinaison_actuelle) : [];
 
-            deploy_combinaison.push(this.create_single_elt_range(combinaisons[0][0].range_type, elts[i], NumSegment.TYPE_INT));
+            deploy_combinaison.push(this.create_single_elt_range(range_type, elts[i], NumSegment.TYPE_INT));
 
-            this.get_combinaisons(combinaisons, deploy_combinaison, elts, i + 1, cardinal);
+            this.get_combinaisons(range_type, combinaisons, deploy_combinaison, elts, i + 1, cardinal);
         }
     }
 

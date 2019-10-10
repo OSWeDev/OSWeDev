@@ -73,6 +73,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private post_create_trigger_hook: DAOTriggerHook;
     // private post_delete_trigger_hook: DAOTriggerHook;
 
+    private insertOrUpdateVOs_debounced_vos_by_ids: { [id: number]: IDistantVOBase[] } = {};
+
     private constructor() {
         super(ModuleDAO.getInstance().name);
     }
@@ -359,6 +361,36 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let vo: UserVO = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) AND password = crypt($2, password)", [login, password]) as UserVO);
         return vo;
     }
+
+    // /**
+    //  * Version serveur pour alléger certains traitements qui permet de regrouper en batch les modifs sur des cas où finalement on considère que la modif est pas urgente et donc on peut éviter de faire 1000 appels par seconde
+    //  *  ATTENTION : ça signifie 2 choses :
+    //  *      - si un update passe en parralèle sur un VO, donc après la demande à cette fonction mais avant le timeout du debounce, on se retrouve à insérer une data en base dont la date est plus ancienne.... 
+    //  *      - si on demande 3 updates sur une data et qu'on change 3 champs différents, on aura au final que la dernière modif demandée qui sera appliquée, donc on changera un champs, pas 3
+    //  */
+    // public async insertOrUpdateVOs_debounced(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
+
+    //     // Le fonctionnement : On fait un appel à une version debounced de insertor_update qui insèrera une liste de vos issue de insertOrUpdateVOs_debounced_vos_by_ids :
+    //     //  On prend tous les index 0 => les créations
+    //     //  On prend le dernier (pop) de chaque id (les updates)
+    //     for (let i in vos){
+    //         let vo = vos[i];
+
+    //         let vo_id = vo.id ? vo.id : 0;
+
+    //         if (!this.insertOrUpdateVOs_debounced_vos_by_ids[vo_id]){
+    //             this.insertOrUpdateVOs_debounced_vos_by_ids[vo_id] = [];
+    //         }
+    //         this.insertOrUpdateVOs_debounced_vos_by_ids[vo_id].push(vo);
+    //     }
+
+    //     if (this.insertOrUpdateVOs_debounced_semaphore){
+    //         return;
+    //     }
+    //     this.insertOrUpdateVOs_debounced_semaphore = true;
+
+
+    // }
 
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
 

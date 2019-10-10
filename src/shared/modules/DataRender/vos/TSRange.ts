@@ -60,6 +60,11 @@ export default class TSRange implements IRange<moment.Moment> {
         }
 
         let range_min_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(min, segment_type);
+
+        if (!min_inclusiv) {
+            TimeSegmentHandler.getInstance().incTimeSegment(range_min_ts);
+        }
+
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(max, segment_type);
 
         if (range_min_ts.index.isAfter(range_max_ts.index)) {
@@ -88,7 +93,7 @@ export default class TSRange implements IRange<moment.Moment> {
 
         let range_max_ts: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(max, segment_type);
 
-        if ((!max_inclusiv) && (range_max_ts.index.isSame(max))) {
+        if ((!max_inclusiv) && TimeSegmentHandler.getInstance().isEltInSegment(max, range_max_ts)) {
             TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
         }
 
