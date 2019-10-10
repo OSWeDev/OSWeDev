@@ -1343,8 +1343,8 @@ export default class VarsController {
                     cardinaux[matroid_inscrit.id] = MatroidController.getInstance().get_cardinal(matroid_inscrit);
                     tmp_matroids_list.push(matroid_inscrit);
                 }
-                matroids_list = tmp_matroids_list;
-                if ((!matroids_list) || (matroids_list.length <= 0)) {
+                matroids_inscrits = tmp_matroids_list;
+                if ((!matroids_inscrits) || (matroids_inscrits.length <= 0)) {
                     return;
                 }
 
