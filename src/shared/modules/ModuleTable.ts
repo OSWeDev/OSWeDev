@@ -68,6 +68,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public module: Module;
     public fields: Array<ModuleTableField<any>>;
+    public sortedFields: Array<ModuleTableField<any>>;
     public suffix: string;
     public prefix: string;
     public database: string;
@@ -135,6 +136,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         this.fields = tmp_fields;
 
+        this.setSortedFields();
+
         if (this.module && this.module.name) {
             this.set_bdd_ref("ref", this.module.name, this.vo_type, "module");
         }
@@ -144,7 +147,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
     }
 
-    get sortedFields(): Array<ModuleTableField<any>> {
+    public setSortedFields(): void {
         let res: Array<ModuleTableField<any>> = Array.from(this.fields);
 
         res.sort((a: ModuleTableField<any>, b: ModuleTableField<any>) => {
@@ -157,7 +160,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             return 0;
         });
 
-        return res;
+        this.sortedFields = res;
     }
 
     public addAlias(api_type_id_alias: string): ModuleTable<any> {
