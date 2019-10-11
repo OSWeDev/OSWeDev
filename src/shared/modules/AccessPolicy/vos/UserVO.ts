@@ -8,6 +8,7 @@ export default class UserVO {
 
     public name: string;
     public email: string;
+    public phone: string;
     public password: string;
     public password_change_date: string;
     public reminded_pwd_1: boolean;

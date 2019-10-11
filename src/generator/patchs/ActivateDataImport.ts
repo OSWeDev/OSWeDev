@@ -22,6 +22,11 @@ export default class ActivateDataImport implements IGeneratorWorker {
      * Objectif : Forcer le module import actif pour les anciens projets, maintenant que le module de trad l'utilise
      */
     public async work(db: IDatabase<any>) {
-        await db.none("update admin.modules set actif = true where name = 'data_import';");
+        try {
+
+            await db.none("update admin.modules set actif = true where name = 'data_import';");
+        } catch (error) {
+            console.error('ActivateDataImport : ' + error);
+        }
     }
 }

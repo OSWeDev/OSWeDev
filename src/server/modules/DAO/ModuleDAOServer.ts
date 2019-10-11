@@ -375,7 +375,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     // /**
     //  * Version serveur pour alléger certains traitements qui permet de regrouper en batch les modifs sur des cas où finalement on considère que la modif est pas urgente et donc on peut éviter de faire 1000 appels par seconde
     //  *  ATTENTION : ça signifie 2 choses :
-    //  *      - si un update passe en parralèle sur un VO, donc après la demande à cette fonction mais avant le timeout du debounce, on se retrouve à insérer une data en base dont la date est plus ancienne.... 
+    //  *      - si un update passe en parralèle sur un VO, donc après la demande à cette fonction mais avant le timeout du debounce, on se retrouve à insérer une data en base dont la date est plus ancienne....
     //  *      - si on demande 3 updates sur une data et qu'on change 3 champs différents, on aura au final que la dernière modif demandée qui sera appliquée, donc on changera un champs, pas 3
     //  */
     // public async insertOrUpdateVOs_debounced(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {

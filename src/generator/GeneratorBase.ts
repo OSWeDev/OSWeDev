@@ -10,11 +10,14 @@ import ModulesManager from '../shared/modules/ModulesManager';
 import IGeneratorWorker from './IGeneratorWorker';
 import ActivateDataImport from './patchs/ActivateDataImport';
 import ActivateDataRender from './patchs/ActivateDataRender';
-import ChangeTypeDatesNotificationVO from './patchs/ChangeTypeDatesNotificationVO';
 import ChangeCronDateHeurePlanifiee from './patchs/ChangeCronDateHeurePlanifiee';
+import ChangeTypeDatesNotificationVO from './patchs/ChangeTypeDatesNotificationVO';
 import Patch20191008ChangeDIHDateType from './patchs/Patch20191008ChangeDIHDateType';
 import Patch20191008ChangeDILDateType from './patchs/Patch20191008ChangeDILDateType';
 import Patch20191008SupprimerTacheReimport from './patchs/Patch20191008SupprimerTacheReimport';
+import Patch20191010CheckBasicSchemas from './patchs/Patch20191010CheckBasicSchemas';
+import Patch20191010CreateDefaultAdminAccountIfNone from './patchs/Patch20191010CreateDefaultAdminAccountIfNone';
+import Patch20191010CreateDefaultLangFRIfNone from './patchs/Patch20191010CreateDefaultLangFRIfNone';
 
 export default abstract class GeneratorBase {
 
@@ -37,6 +40,7 @@ export default abstract class GeneratorBase {
         ModulesManager.getInstance().isServerSide = true;
 
         this.pre_modules_workers = [
+            Patch20191010CheckBasicSchemas.getInstance(),
             ActivateDataImport.getInstance(),
             ActivateDataRender.getInstance(),
             ChangeTypeDatesNotificationVO.getInstance(),
@@ -46,7 +50,10 @@ export default abstract class GeneratorBase {
             Patch20191008SupprimerTacheReimport.getInstance()
         ];
 
-        this.post_modules_workers = [];
+        this.post_modules_workers = [
+            Patch20191010CreateDefaultLangFRIfNone.getInstance(),
+            Patch20191010CreateDefaultAdminAccountIfNone.getInstance()
+        ];
     }
 
     public async generate() {

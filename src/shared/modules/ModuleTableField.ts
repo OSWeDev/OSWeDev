@@ -1,11 +1,9 @@
 import { isArray, isBoolean, isNull, isNumber } from 'util';
 import IDistantVOBase from './IDistantVOBase';
-import Module from './Module';
-import ModulesManager from './ModulesManager';
 import ModuleTable from './ModuleTable';
+import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
-import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';
 
 export default class ModuleTableField<T> {
 
@@ -82,6 +80,11 @@ export default class ModuleTableField<T> {
     public hidden_print: boolean = false;
 
     /**
+     * Permet de faire des fields array sur n'importe quel autre type (en théorie :) )
+     */
+    public is_array: boolean = false;
+
+    /**
      * Utilisé par les matroids pour définir la segmentation de chaque champs directement au niveau de la structure de données
      */
     public segmentation_type: number = null;
@@ -141,6 +144,12 @@ export default class ModuleTableField<T> {
 
     public setModuleTable(moduleTable: ModuleTable<any>): ModuleTableField<T> {
         this.module_table = moduleTable;
+
+        return this;
+    }
+
+    public setIsArray(): ModuleTableField<T> {
+        this.is_array = true;
 
         return this;
     }
