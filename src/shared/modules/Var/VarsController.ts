@@ -1443,6 +1443,14 @@ export default class VarsController {
 
                     outgoing.addMarker(marker_todo, this.varDAG);
 
+                    // On demande les deps de datasources
+                    let deps_ds: Array<IDataSourceController<any, any>> = VarsController.getInstance().getVarControllerById(outgoing.param.var_id).getDataSourcesDependencies();
+                    for (let depi in deps_ds) {
+                        let dep_ds = deps_ds[depi];
+
+                        node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCE_NAME + dep_ds.name, this.varDAG);
+                    }
+
                     // On doit aussi rajouter tous les marqueurs qu'un noeud doit avoir à cette étape
                     outgoing.addMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED, this.varDAG);
                     // outgoing.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.varDAG, true);
