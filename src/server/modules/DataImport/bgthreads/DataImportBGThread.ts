@@ -1,4 +1,7 @@
 import moment = require('moment');
+import { isNumber } from 'util';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
@@ -6,9 +9,6 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleDataImportServer from '../ModuleDataImportServer';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import { isNumber } from 'util';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -20,6 +20,8 @@ export default class DataImportBGThread implements IBGThread {
     }
 
     private static instance: DataImportBGThread = null;
+
+    private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by last_up_date desc limit 1;';
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
@@ -39,7 +41,8 @@ export default class DataImportBGThread implements IBGThread {
             // Objectif, on prend l'import en attente le plus ancien, et on l'importe tout simplement.
             //  en fin d'import, si on voit qu'il y en a un autre à importer, on demande d'aller plus vite.
 
-            let dih: DataImportHistoricVO = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, ' where state in ($1, $2, $3, $4, $5) order by last_up_date desc limit 1;', [
+            let dih: DataImportHistoricVO = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID,
+                DataImportBGThread.request, [
                 ModuleDataImport.IMPORTATION_STATE_UPLOADED,
                 ModuleDataImport.IMPORTATION_STATE_FORMATTED,
                 ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
@@ -56,7 +59,8 @@ export default class DataImportBGThread implements IBGThread {
             }
             console.debug('DataImportBGThread DIH[' + dih.id + '] state:' + dih.state + ':');
 
-            dih = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, ' where state in ($1, $2, $3, $4, $5) order by last_up_date desc limit 1;', [
+            dih = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID,
+                DataImportBGThread.request, [
                 ModuleDataImport.IMPORTATION_STATE_UPLOADED,
                 ModuleDataImport.IMPORTATION_STATE_FORMATTED,
                 ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
