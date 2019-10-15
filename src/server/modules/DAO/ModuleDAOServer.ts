@@ -48,6 +48,9 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
+import CutResultController from '../../../shared/modules/Matroid/CutResultController';
+import MatroidCutResult from '../../../shared/modules/Matroid/vos/MatroidCutResult';
+import RangesCutResult from '../../../shared/modules/Matroid/vos/RangesCutResult';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1383,7 +1386,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+            let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(matroid._type);
+            let matroid_fields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
+
+            for (let i in matroid_fields) {
+                let matroid_field = matroid_fields[i];
+
+                matroid_fields_by_ids[matroid_field.field_id] = matroid_field;
+            }
 
             // On veut la matrice inverse
             let fields_ids_mapper_inverted: { [datatable_field_id: string]: string } = {};
@@ -1393,7 +1403,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let first = true;
             for (let field_id in cardinal_1_fields_ranges) {
-                let matroid_field = matroid_fields[fields_ids_mapper_inverted[field_id] ? fields_ids_mapper_inverted[field_id] : field_id];
+
+                let matroid_field = matroid_fields_by_ids[fields_ids_mapper_inverted[field_id] ? fields_ids_mapper_inverted[field_id] : field_id];
                 let field_range: IRange<any> = cardinal_1_fields_ranges[field_id][0];
                 let field = datatable.getFieldFromId(field_id);
 
@@ -1524,6 +1535,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     let cardinal_not_1_field_ranges: Array<IRange<any>> = cardinal_not_1_fields_ranges[field_id];
 
                     let found: boolean = false;
+                    let cut_result: RangesCutResult<IRange<any>> = null;
                     for (let j in cardinal_not_1_field_ranges) {
                         let range = cardinal_not_1_field_ranges[j];
 
@@ -1550,18 +1562,36 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             case ModuleTableField.FIELD_TYPE_daterange:
                             case ModuleTableField.FIELD_TYPE_timestamp:
                             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-                                if (RangeHandler.getInstance().range_includes_range(range, vo[field_id])) {
-                                    found = true;
-                                    break;
+                                if (!cut_result) {
+                                    cut_result = RangeHandler.getInstance().cut_range(range, vo[field_id]);
+                                    if ((!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                        found = true;
+                                        break;
+                                    }
+                                } else {
+                                    cut_result = RangeHandler.getInstance().cut_ranges(range, RangeHandler.getInstance().cloneArrayFrom(cut_result.remaining_items));
+                                    if ((!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                        found = true;
+                                        break;
+                                    }
                                 }
 
                             case ModuleTableField.FIELD_TYPE_int_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                             case ModuleTableField.FIELD_TYPE_tsrange:
-                                if (RangeHandler.getInstance().range_includes_ranges(range, vo[field_id])) {
-                                    found = true;
-                                    break;
+                                if (!cut_result) {
+                                    cut_result = RangeHandler.getInstance().cut_ranges(range, vo[field_id]);
+                                    if ((!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                        found = true;
+                                        break;
+                                    }
+                                } else {
+                                    cut_result = RangeHandler.getInstance().cut_ranges(range, RangeHandler.getInstance().cloneArrayFrom(cut_result.remaining_items));
+                                    if ((!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                        found = true;
+                                        break;
+                                    }
                                 }
                         }
                     }
