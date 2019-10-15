@@ -51,6 +51,7 @@ import DAOTriggerHook from './triggers/DAOTriggerHook';
 import CutResultController from '../../../shared/modules/Matroid/CutResultController';
 import MatroidCutResult from '../../../shared/modules/Matroid/vos/MatroidCutResult';
 import RangesCutResult from '../../../shared/modules/Matroid/vos/RangesCutResult';
+import { type } from 'os';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1563,6 +1564,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             case ModuleTableField.FIELD_TYPE_timestamp:
                             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                                 if (!cut_result) {
+                                    cut_result = RangeHandler.getInstance().cut_range(range, RangeHandler.getInstance().create_single_elt_range(range.range_type, vo[field_id], range.segment_type));
+                                    if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                        found = true;
+                                        break;
+                                    }
+                                } else {
+                                    cut_result = RangeHandler.getInstance().cut_ranges(range, RangeHandler.getInstance().cloneArrayFrom(cut_result.remaining_items));
+                                    if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+
+                            case ModuleTableField.FIELD_TYPE_tsrange:
+                                if (!cut_result) {
                                     cut_result = RangeHandler.getInstance().cut_range(range, vo[field_id]);
                                     if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
                                         found = true;
@@ -1579,7 +1595,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             case ModuleTableField.FIELD_TYPE_int_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                            case ModuleTableField.FIELD_TYPE_tsrange:
                                 if (!cut_result) {
                                     cut_result = RangeHandler.getInstance().cut_ranges(range, vo[field_id]);
                                     if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
