@@ -1564,13 +1564,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                                 if (!cut_result) {
                                     cut_result = RangeHandler.getInstance().cut_range(range, vo[field_id]);
-                                    if ((!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                    if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
                                         found = true;
                                         break;
                                     }
                                 } else {
                                     cut_result = RangeHandler.getInstance().cut_ranges(range, RangeHandler.getInstance().cloneArrayFrom(cut_result.remaining_items));
-                                    if ((!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                    if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
                                         found = true;
                                         break;
                                     }
@@ -1582,13 +1582,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             case ModuleTableField.FIELD_TYPE_tsrange:
                                 if (!cut_result) {
                                     cut_result = RangeHandler.getInstance().cut_ranges(range, vo[field_id]);
-                                    if ((!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                    if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
                                         found = true;
                                         break;
                                     }
                                 } else {
                                     cut_result = RangeHandler.getInstance().cut_ranges(range, RangeHandler.getInstance().cloneArrayFrom(cut_result.remaining_items));
-                                    if ((!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
+                                    if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
                                         found = true;
                                         break;
                                     }
