@@ -40,6 +40,7 @@ include ../../../../views/mixins/loading.pug
                             template(v-if="newVO")
                                 template(v-if="createDatatable", v-for="field in createDatatable.fields")
                                     crud_field(
+                                        v-show="!field.hidden",
                                         :field="field",
                                         :vo="newVO",
                                         :default_field_data="newVO[field.datatable_field_uid]",
@@ -70,6 +71,7 @@ include ../../../../views/mixins/loading.pug
                             template(v-if="selectedVO && editableVO")
                                 template(v-for="field in crud.updateDatatable.fields")
                                     crud_field(
+                                        v-show="!field.hidden",
                                         :field="field",
                                         :vo="editableVO",
                                         :default_field_data="editableVO[field.datatable_field_uid]",
