@@ -773,7 +773,8 @@ export default class VarsController {
     }
 
     public getTSRangeToCall(target: moment.Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
-        return TSRangeHandler.getInstance().createNew(
+        return RangeHandler.getInstance().createNew(
+            TSRange.RANGE_TYPE,
             moment('1900-01-01').startOf('day').utc(true),
             moment(target),
             min_inclusiv,
