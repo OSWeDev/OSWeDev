@@ -321,6 +321,45 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'La saisie est invalide. Vérifiez l\'adresse mail, le code envoyé sur cette même adresse et le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.answer_ko.___LABEL___'));
+
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Accéder au site'
+        }, 'mails.pwd.recovery.submit'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Récupération du mot de passe'
+        }, 'mails.pwd.recovery.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Entrez le code %%VAR%%CODE_CHALLENGE%% et votre nouveau mot de passe sur la page de modification du mot de passe accessible en cliquant sur le lien ci-dessous.'
+        }, 'mails.pwd.recovery.html'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre mot de passe a expiré'
+        }, 'mails.pwd.invalidation.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre mot de passe a été invalidé. Vous pouvez utiliser la page de récupération du mot de passe accessible en cliquant sur le lien ci-dessous.'
+        }, 'mails.pwd.invalidation.html'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre mot de passe a expiré'
+        }, 'mails.pwd.invalidation.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre mot de passe arrive à expiration'
+        }, 'mails.pwd.reminder1.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre mot de passe arrive à expiration'
+        }, 'mails.pwd.reminder2.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre mot de passe arrive à expiration'
+        }, 'mails.pwd.reminder1.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre mot de passe expire dans 20 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
+        }, 'mails.pwd.reminder1.html'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre mot de passe arrive à expiration'
+        }, 'mails.pwd.reminder2.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Votre mot de passe expire dans 3 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
+        }, 'mails.pwd.reminder2.html'));
     }
 
     public registerServerApiHandlers() {

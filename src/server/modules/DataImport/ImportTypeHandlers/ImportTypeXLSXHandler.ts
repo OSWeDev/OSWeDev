@@ -309,6 +309,9 @@ export default class ImportTypeXLSXHandler {
             res = res.replace(/&lt;/ig, '<');
             res = res.replace(/&gt;/ig, '>');
             res = res.replace(/&amp;/ig, '&');
+
+            // a priori "" ça veut dire escape de "
+            res = res.replace(/""/ig, '"');
         }
 
         return res;
