@@ -772,6 +772,16 @@ export default class VarsController {
         return TSRange.createNew(closest_earlier_reset_date, target, min_inclusiv, max_inclusiv, segment_type);
     }
 
+    public getTSRangeToCall(target: moment.Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
+        return TSRangeHandler.getInstance().createNew(
+            moment('1900-01-01').startOf('day').utc(true),
+            moment(target),
+            min_inclusiv,
+            max_inclusiv,
+            segment_type
+        );
+    }
+
     public changeTsRanges(param: IVarDataParamVOBase): void {
         if (!param) {
             return;
@@ -1452,6 +1462,14 @@ export default class VarsController {
                     let outgoing = node.outgoing[k];
 
                     outgoing.addMarker(marker_todo, this.varDAG);
+
+                    // On demande les deps de datasources
+                    let deps_ds: Array<IDataSourceController<any, any>> = VarsController.getInstance().getVarControllerById(outgoing.param.var_id).getDataSourcesDependencies();
+                    for (let depi in deps_ds) {
+                        let dep_ds = deps_ds[depi];
+
+                        node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCE_NAME + dep_ds.name, this.varDAG);
+                    }
 
                     // On doit aussi rajouter tous les marqueurs qu'un noeud doit avoir à cette étape
                     outgoing.addMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED, this.varDAG);
