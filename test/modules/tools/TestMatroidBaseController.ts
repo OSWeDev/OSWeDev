@@ -1,21 +1,15 @@
 import { expect } from 'chai';
 import 'mocha';
 import * as moment from 'moment';
+import FieldRange from '../../../src/shared/modules/DataRender/vos/FieldRange';
 import NumSegment from '../../../src/shared/modules/DataRender/vos/NumSegment';
-import MatroidController from '../../../src/shared/modules/Matroid/MatroidController';
-import IVarMatroidDataVO from '../../../src/shared/modules/Var/interfaces/IVarMatroidDataVO';
-import VarsController from '../../../src/shared/modules/Var/VarsController';
-import VOsTypesManager from '../../../src/shared/modules/VOsTypesManager';
+import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
+import MatroidBaseController from '../../../src/shared/modules/Matroid/MatroidBaseController';
+import MatroidBase from '../../../src/shared/modules/Matroid/vos/MatroidBase';
+import MatroidBaseCutResult from '../../../src/shared/modules/Matroid/vos/MatroidBaseCutResult';
 import ModuleTable from '../../../src/shared/modules/ModuleTable';
 import ModuleTableField from '../../../src/shared/modules/ModuleTableField';
-import MatroidBase from '../../../src/shared/modules/Matroid/vos/MatroidBase';
-import FieldRange from '../../../src/shared/modules/DataRender/vos/FieldRange';
-import NumRange from '../../../src/shared/modules/DataRender/vos/NumRange';
-import TSRange from '../../../src/shared/modules/DataRender/vos/TSRange';
-import MatroidCutResult from '../../../src/shared/modules/Matroid/vos/MatroidCutResult';
-import MatroidBaseController from '../../../src/shared/modules/Matroid/MatroidBaseController';
-import TimeSegment from '../../../src/shared/modules/DataRender/vos/TimeSegment';
-import MatroidBaseCutResult from '../../../src/shared/modules/Matroid/vos/MatroidBaseCutResult';
+import VOsTypesManager from '../../../src/shared/modules/VOsTypesManager';
 
 describe('MatroidBaseController', () => {
 

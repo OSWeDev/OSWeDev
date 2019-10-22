@@ -52,6 +52,7 @@ import CutResultController from '../../../shared/modules/Matroid/CutResultContro
 import MatroidCutResult from '../../../shared/modules/Matroid/vos/MatroidCutResult';
 import RangesCutResult from '../../../shared/modules/Matroid/vos/RangesCutResult';
 import { type } from 'os';
+import { Duration } from 'moment';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1435,6 +1436,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'' + '::tstzrange';
                             break;
                         }
+                        break;
                     case ModuleTableField.FIELD_TYPE_amount:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_file_ref:
@@ -1447,8 +1449,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_int_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
-                        ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + '\'';
-                        ranges_query_type = '::numrange';
+                        if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) {
+                            ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + '\'';
+                            ranges_query_type = '::numrange';
+                            break;
+                        } else if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
+                            ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + (field_range.min as Duration).asMilliseconds() + "," + (field_range.max as Duration).asMilliseconds() + (field_range.max_inclusiv ? "]" : ")") + '\'';
+                            ranges_query_type = '::numrange';
+                            break;
+                        }
+                        break;
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    case ModuleTableField.FIELD_TYPE_hourrange:
+                        if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
+                            ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + (field_range.min as Duration).asMilliseconds() + "," + (field_range.max as Duration).asMilliseconds() + (field_range.max_inclusiv ? "]" : ")") + '\'';
+                            ranges_query_type = '::numrange';
+                            break;
+                        }
                         break;
                     case ModuleTableField.FIELD_TYPE_date:
                     case ModuleTableField.FIELD_TYPE_day:
@@ -1509,7 +1526,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_int_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableField.FIELD_TYPE_tsrange: // vraiment ?
+                    case ModuleTableField.FIELD_TYPE_hourrange: // vraiment ?
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
                     default:
                         where_clause += ranges_query + " @> ALL (" + field.field_id + ")";
                         break;
@@ -1578,6 +1597,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 }
 
                             case ModuleTableField.FIELD_TYPE_tsrange:
+                            case ModuleTableField.FIELD_TYPE_hourrange:
                                 if (!cut_result) {
                                     cut_result = RangeHandler.getInstance().cut_range(range, vo[field_id]);
                                     if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
@@ -1595,6 +1615,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             case ModuleTableField.FIELD_TYPE_int_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                            case ModuleTableField.FIELD_TYPE_hourrange_array:
                                 if (!cut_result) {
                                     cut_result = RangeHandler.getInstance().cut_ranges(range, vo[field_id]);
                                     if ((!cut_result) || (!cut_result.remaining_items) || (!cut_result.remaining_items.length) || !RangeHandler.getInstance().getCardinalFromArray(cut_result.remaining_items)) {
@@ -1793,6 +1814,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                         case ModuleTableField.FIELD_TYPE_tstzrange_array:
                             where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
+                            break;
+
+                        case ModuleTableField.FIELD_TYPE_hourrange:
+                            where_clause += field.field_id + " && '" + (field_range.min_inclusiv ? "[" : "(") + (field_range.min as Duration).asMilliseconds() + "," + (field_range.max as Duration).asMilliseconds() + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
+                            break;
+
+                        case ModuleTableField.FIELD_TYPE_hourrange_array:
+                            where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + (field_range.min as Duration).asMilliseconds() + "," + (field_range.max as Duration).asMilliseconds() + (field_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
                             break;
 
                         // case ModuleTableField.FIELD_TYPE_daterange_array:

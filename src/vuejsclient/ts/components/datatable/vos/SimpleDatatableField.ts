@@ -1,6 +1,8 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import HourRange from '../../../../../shared/modules/DataRender/vos/HourRange';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
@@ -9,10 +11,10 @@ import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import DateHandler from '../../../../../shared/tools/DateHandler';
+import HourHandler from '../../../../../shared/tools/HourHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import VueComponentBase from '../../VueComponentBase';
 import DatatableField from './DatatableField';
-import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
@@ -105,6 +107,49 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     }
 
                     return res_tstzranges;
+
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    if (!field_value) {
+                        return field_value;
+                    }
+
+                    let res_hourrange = "";
+
+                    let hourrange_: HourRange = field_value as HourRange;
+
+                    res_hourrange += (res_hourrange == "") ? '' : ' + ';
+
+                    res_hourrange += hourrange_.min_inclusiv ? '[' : '(';
+                    res_hourrange += HourHandler.getInstance().formatHourForIHM(hourrange_.min, moduleTableField.segmentation_type);
+                    res_hourrange += ',';
+                    res_hourrange += HourHandler.getInstance().formatHourForIHM(hourrange_.max, moduleTableField.segmentation_type);
+                    res_hourrange += hourrange_.max_inclusiv ? ']' : ')';
+
+                    return res_hourrange;
+
+                case ModuleTableField.FIELD_TYPE_hour:
+                    return HourHandler.getInstance().formatHourForIHM(field_value, moduleTableField.segmentation_type);
+
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    if (!field_value) {
+                        return field_value;
+                    }
+
+                    let res_hourranges = "";
+
+                    for (let i in field_value) {
+                        let hourrange: HourRange = field_value[i] as HourRange;
+
+                        res_hourranges += (res_hourranges == "") ? '' : ' + ';
+
+                        res_hourranges += hourrange.min_inclusiv ? '[' : '(';
+                        res_hourranges += HourHandler.getInstance().formatHourForIHM(hourrange.min, moduleTableField.segmentation_type);
+                        res_hourranges += ',';
+                        res_hourranges += HourHandler.getInstance().formatHourForIHM(hourrange.max, moduleTableField.segmentation_type);
+                        res_hourranges += hourrange.max_inclusiv ? ']' : ')';
+                    }
+
+                    return res_hourranges;
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                     if (!field_value) {

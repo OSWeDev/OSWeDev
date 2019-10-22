@@ -11,6 +11,8 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
+import HourRange from './DataRender/vos/HourRange';
+import HourSegment from './DataRender/vos/HourSegment';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -421,6 +423,18 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = RangeHandler.getInstance().translate_from_api(TSRange.RANGE_TYPE, e[old_id]);
                     break;
 
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_api(HourRange.RANGE_TYPE, e[old_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeAPI(HourRange.RANGE_TYPE, e[old_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_hour:
+                    res[field.field_id] = e[old_id] ? moment.duration(parseInt(e[old_id])) : null;
+                    break;
+
                 case ModuleTableField.FIELD_TYPE_tstz:
                     res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000) : null;
                     break;
@@ -530,6 +544,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
             if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
                 e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, e[field.field_id]);
             }
+            if (field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
+                e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, e[field.field_id]);
+            }
 
             if ((field.field_type == ModuleTableField.FIELD_TYPE_day) ||
                 (field.field_type == ModuleTableField.FIELD_TYPE_date) ||
@@ -540,6 +557,17 @@ export default class ModuleTable<T extends IDistantVOBase> {
             if (field.field_type == ModuleTableField.FIELD_TYPE_tstz) {
                 try {
                     e[field.field_id] = (e[field.field_id] && moment(parseInt(e[field.field_id]) * 1000).isValid()) ? moment(parseInt(e[field.field_id]) * 1000) : e[field.field_id];
+                } catch (error) {
+                    e[field.field_id] = e[field.field_id];
+                }
+            }
+            if (field.field_type == ModuleTableField.FIELD_TYPE_hourrange) {
+                e[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, e[field.field_id], HourSegment.TYPE_MS);
+            }
+
+            if (field.field_type == ModuleTableField.FIELD_TYPE_hour) {
+                try {
+                    e[field.field_id] = ((e[field.field_id] != null) && (typeof e[field.field_id] !== 'undefined')) ? moment.duration(parseInt(e[field.field_id])) : e[field.field_id];
                 } catch (error) {
                     e[field.field_id] = e[field.field_id];
                 }

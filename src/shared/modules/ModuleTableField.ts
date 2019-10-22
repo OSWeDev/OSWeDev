@@ -43,6 +43,9 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_tstz: string = 'tstz';
     public static FIELD_TYPE_tstzrange_array: string = 'tstzrange[]'; // TimeStamp With TimeZone range array
     public static FIELD_TYPE_tsrange: string = 'tsrange';
+    public static FIELD_TYPE_hour: string = 'hour';
+    public static FIELD_TYPE_hourrange: string = 'hourrange';
+    public static FIELD_TYPE_hourrange_array: string = 'hourrange[]';
     public static FIELD_TYPE_timestamp: string = 'timestamp';
     // public static FIELD_TYPE_timestamp_with_time_zone: string = 'timestamp with time zone';
     public static FIELD_TYPE_day: string = 'day';
@@ -295,6 +298,15 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return db_type == "tsrange";
 
+            case ModuleTableField.FIELD_TYPE_hour:
+                return (db_type == "int8") || (db_type == "bigint");
+
+            case ModuleTableField.FIELD_TYPE_hourrange:
+                return db_type == "int8range";
+
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+                return (db_type == "int8range[]") || (db_type == "ARRAY");
+
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 return db_type == "time without time zone";
 
@@ -327,6 +339,7 @@ export default class ModuleTableField<T> {
         switch (this.field_type) {
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableField.FIELD_TYPE_hour:
                 return "int8";
 
             case ModuleTableField.FIELD_TYPE_amount:
@@ -378,6 +391,12 @@ export default class ModuleTableField<T> {
 
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return "tsrange";
+
+            case ModuleTableField.FIELD_TYPE_hourrange:
+                return "int8range";
+
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+                return "int8range[]";
 
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 return "time without time zone";
@@ -463,6 +482,9 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_timestamp:
             case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_hour:
+            case ModuleTableField.FIELD_TYPE_hourrange:
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 return null;
 

@@ -9,7 +9,6 @@ import VOsTypesManager from '../../../src/shared/modules/VOsTypesManager';
 import ModuleTable from '../../../src/shared/modules/ModuleTable';
 import ModuleTableField from '../../../src/shared/modules/ModuleTableField';
 import MatroidBase from '../../../src/shared/modules/Matroid/vos/MatroidBase';
-import FieldRange from '../../../src/shared/modules/DataRender/vos/FieldRange';
 import NumRange from '../../../src/shared/modules/DataRender/vos/NumRange';
 import TSRange from '../../../src/shared/modules/DataRender/vos/TSRange';
 import MatroidCutResult from '../../../src/shared/modules/Matroid/vos/MatroidCutResult';
