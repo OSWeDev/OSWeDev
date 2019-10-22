@@ -15,6 +15,7 @@ import ModuleTableField from '../../../../../../shared/modules/ModuleTableField'
 import ModuleTable from '../../../../../../shared/modules/ModuleTable';
 import Datatable from '../../../datatable/vos/Datatable';
 import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
+import TimeHandler from '../../../../../../shared/tools/TimeHandler';
 
 @Component({
     template: require('./VarDescComponent.pug')
@@ -46,6 +47,10 @@ export default class VarDescComponent extends VueComponentBase {
     private var_datasources: { [datasource_name: string]: string } = {};
 
     private var_missing_datas: string[] = [];
+
+    private loaded_datas_matroids_desc: string = null;
+    private computed_datas_matroids_desc: string = null;
+    private var_params_desc: string = null;
 
     // get var_param_desc_component():any{
     //     if (!this.var_param){
@@ -185,67 +190,8 @@ export default class VarDescComponent extends VueComponentBase {
         return moduletable && moduletable.isMatroidTable;
     }
 
-    get loaded_datas_matroids_desc(): string {
-        if (!this.var_index) {
-            return null;
-        }
 
-        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
-
-        if ((!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
-            return null;
-        }
-
-        let res: string = "";
-        for (let i in node.loaded_datas_matroids) {
-            let matroid = node.loaded_datas_matroids[i];
-
-            res += ((res == "") ? "" : ";") + JSON.stringify(this.get_copy_with_explaining_fields(matroid));
-        }
-
-        return res;
-    }
-
-    get loaded_datas_matroids_sum_value_desc(): string {
-        if (!this.var_index) {
-            return null;
-        }
-
-        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
-
-        return ((typeof node.loaded_datas_matroids_sum_value !== 'undefined') && (node.loaded_datas_matroids_sum_value != null)) ? node.loaded_datas_matroids_sum_value.toString() : null;
-    }
-
-    get computed_datas_matroids_desc(): string {
-        if (!this.var_index) {
-            return null;
-        }
-
-        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
-
-        let res: string = "";
-        for (let i in node.computed_datas_matroids) {
-            let matroid = node.computed_datas_matroids[i];
-
-            res += ((res == "") ? "" : ";") + JSON.stringify(this.get_copy_with_explaining_fields(matroid));
-        }
-
-        return res;
-    }
-
-
-
-
-    get var_params_desc(): string {
-        if (!this.var_param) {
-            return null;
-        }
-
-        // return this.t(VarsController.getInstance().get_translatable_params_desc_code(this.var_param.var_id), this.get_copy_with_explaining_fields(this.var_param));
-        return JSON.stringify(this.get_copy_with_explaining_fields(this.var_param));
-    }
-
-    public get_copy_with_explaining_fields(matroid): IVarDataParamVOBase {
+    public async get_copy_with_explaining_fields(matroid): Promise<IVarDataParamVOBase> {
         if ((!this.var_param) || (!matroid)) {
             return null;
         }
@@ -279,7 +225,7 @@ export default class VarDescComponent extends VueComponentBase {
                 continue;
             }
 
-            param[field.field_id] = SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+            param[field.field_id] = await SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
         }
 
         return param;
@@ -442,7 +388,71 @@ export default class VarDescComponent extends VueComponentBase {
         this.setDescSelectedIndex(null);
     }
 
+    private async update_var_infos() {
+        await this.set_loaded_datas_matroids_desc();
+        await this.set_computed_datas_matroids_desc();
+        await this.set_var_params_desc();
+    }
+
     private async update_var_data() {
-        VarsController.getInstance().registerDataParamAndReturnVarData(this.var_param, true, true);
+        await VarsController.getInstance().registerDataParamAndReturnVarData(this.var_param, true, true);
+        await this.update_var_infos();
+    }
+
+    private async  set_loaded_datas_matroids_desc(): Promise<void> {
+        if (!this.var_index) {
+            this.loaded_datas_matroids_desc = null;
+        }
+
+        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+
+        if ((!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
+            this.loaded_datas_matroids_desc = null;
+        }
+
+        let res: string = "";
+        for (let i in node.loaded_datas_matroids) {
+            let matroid = node.loaded_datas_matroids[i];
+
+            res += ((res == "") ? "" : ";") + JSON.stringify(await this.get_copy_with_explaining_fields(matroid));
+        }
+
+        this.loaded_datas_matroids_desc = res;
+    }
+
+    get loaded_datas_matroids_sum_value_desc(): string {
+        if (!this.var_index) {
+            return null;
+        }
+
+        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+
+        return ((typeof node.loaded_datas_matroids_sum_value !== 'undefined') && (node.loaded_datas_matroids_sum_value != null)) ? node.loaded_datas_matroids_sum_value.toString() : null;
+    }
+
+    private async set_computed_datas_matroids_desc(): Promise<void> {
+        if (!this.var_index) {
+            this.computed_datas_matroids_desc = null;
+        }
+
+        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+
+        let res: string = "";
+        for (let i in node.computed_datas_matroids) {
+            let matroid = node.computed_datas_matroids[i];
+
+            res += ((res == "") ? "" : ";") + JSON.stringify(await this.get_copy_with_explaining_fields(matroid));
+        }
+
+        this.computed_datas_matroids_desc = res;
+    }
+
+    private async set_var_params_desc(): Promise<void> {
+        if (!this.var_param) {
+            this.var_params_desc = null;
+        }
+
+        // return this.t(VarsController.getInstance().get_translatable_params_desc_code(this.var_param.var_id), this.get_copy_with_explaining_fields(this.var_param));
+        this.var_params_desc = JSON.stringify(await this.get_copy_with_explaining_fields(this.var_param));
     }
 }

@@ -1,13 +1,14 @@
-import * as debounce from 'lodash/debounce';
 import { EventObjectInput, View } from 'fullcalendar';
 import * as $ from 'jquery';
+import * as debounce from 'lodash/debounce';
 import * as moment from 'moment';
-import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import ModuleTable from '../../../../shared/modules/ModuleTable';
 import IPlanEnseigne from '../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
 import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
@@ -41,7 +42,6 @@ import './ProgramPlanComponent.scss';
 import ProgramPlanControllerBase from './ProgramPlanControllerBase';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from './store/ProgramPlanStore';
 import ProgramPlanComponentTargetListing from './TargetListing/ProgramPlanComponentTargetListing';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
 
 
 @Component({
@@ -229,6 +229,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private valid_rdvs: IPlanRDV[] = [];
 
     private calendar_key: number = 1;
+
+    private fcConfig: any = null;
 
     private debounced_onchange_calendar_date = debounce(this.onchange_calendar_date, 1000);
 
@@ -632,7 +634,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return ProgramPlanControllerBase.getInstance().getResourceName(first_name, name);
     }
 
-    get planningResources() {
+    private async get_planningResources() {
         // On veut un tableau avec des éléments de ce type:
         // {
         //   id: 1,
@@ -673,7 +675,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     if (target_table && target_table.default_label_field) {
                         target_name = (!!target) ? target[target_table.default_label_field.field_id] : "";
                     } else if (target_table && target_table.table_label_function) {
-                        target_name = (!!target) ? target_table.table_label_function(target) : "";
+                        target_name = (!!target) ? await target_table.table_label_function(target) : "";
                     }
 
                     res.push({
@@ -1028,7 +1030,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
      * On peut être amenés à changer les paramètres en fonction des types disponibles :
      *  Si on a défini des taches et types de taches, on utilise plus les targets, et on pose des tasks sur des targets plutôt
      */
-    get fcConfig() {
+    @Watch('valid_targets', { immediate: true })
+    @Watch('valid_facilitators', { immediate: true })
+    private async set_fcConfig() {
 
         let resourceColumns = [];
         let facilitator_column = {
@@ -1074,7 +1078,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             slotLabelFormat.push('a');
         }
 
-        return {
+        this.fcConfig = {
             locale: 'fr',
             timeZone: 'locale',
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
@@ -1121,7 +1125,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             resourceLabelText: this.label('programplan.fc.resourcelabeltext.name'),
             slotLabelFormat,
             resourceColumns,
-            resources: this.planningResources,
+            resources: await this.get_planningResources(),
         };
     }
 
@@ -1832,6 +1836,21 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
             this.valid_facilitators.push(facilitator);
         }
+    }
+
+    @Watch('valid_targets', { deep: true, immediate: true })
+    @Watch('valid_facilitators', { deep: true, immediate: true })
+    @Watch('calendar_date', { deep: true, immediate: true })
+    @Watch('can_edit_any', { immediate: true })
+    private debounce_set_fcConfig() {
+        this.debounced_set_fcConfig();
+    }
+
+    get debounced_set_fcConfig() {
+        let self = this;
+        return debounce(async () => {
+            await self.set_fcConfig();
+        }, ProgramPlanControllerBase.getInstance().reset_rdvs_debouncer);
     }
 
     @Watch('valid_targets', { deep: true, immediate: true })

@@ -611,7 +611,7 @@ export default class DatatableComponent extends VueComponentBase {
                         case DatatableField.SIMPLE_FIELD_TYPE:
                             let simpleField: SimpleDatatableField<any, any> = (field) as SimpleDatatableField<any, any>;
 
-                            let value = field.dataToReadIHM(baseData[simpleField.moduleTableField.field_id], baseData);
+                            let value = await field.dataToReadIHM(baseData[simpleField.moduleTableField.field_id], baseData);
                             // Limite à 300 cars si c'est du html et strip html
                             if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
                                 try {
@@ -638,7 +638,7 @@ export default class DatatableComponent extends VueComponentBase {
                             break;
 
                         case DatatableField.COMPUTED_FIELD_TYPE:
-                            resData[field.datatable_field_uid] = field.dataToReadIHM(null, baseData);
+                            resData[field.datatable_field_uid] = await field.dataToReadIHM(null, baseData);
                             break;
 
                         case DatatableField.COMPONENT_FIELD_TYPE:

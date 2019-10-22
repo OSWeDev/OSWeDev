@@ -81,7 +81,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public from_api_version: (e: any) => T = null;
 
     public default_label_field: ModuleTableField<any> = null;
-    public table_label_function: (vo: T) => string = null;
+    public table_label_function: (vo: T) => Promise<string> = null;
     public table_label_function_field_ids_deps: string[] = null;
     public importable: boolean = false;
     public isModuleParamTable: boolean = false;
@@ -192,7 +192,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     }
 
     public define_default_label_function(
-        table_label_function: (vo: T) => string,
+        table_label_function: (vo: T) => Promise<string>,
         table_label_function_field_ids_deps: string[]): ModuleTable<any> {
 
         this.default_label_field = null;

@@ -18,7 +18,7 @@ import DatatableField from './DatatableField';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
-    public static defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public static async defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): Promise<any> {
         if ((field_value == null) || (typeof field_value == "undefined")) {
             return field_value;
         }
@@ -202,7 +202,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                         let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
                         if (moduleTableField.field_type == tableFieldTypeController.name) {
-                            return tableFieldTypeController.defaultDataToReadIHM(field_value, moduleTableField, vo);
+                            return await tableFieldTypeController.defaultDataToReadIHM(field_value, moduleTableField, vo);
                         }
                     }
 
@@ -214,7 +214,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         }
     }
 
-    public static defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public static async defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): Promise<any> {
         if ((field_value == null) || (typeof field_value == "undefined")) {
             return field_value;
         }
@@ -239,7 +239,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
 
                 default:
-                    return SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo);
+                    return await SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo);
             }
         } catch (error) {
             console.error(error);
@@ -446,24 +446,24 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         super(DatatableField.SIMPLE_FIELD_TYPE, datatable_field_uid, translatable_title);
     }
 
-    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
-        return SimpleDatatableField.defaultDataToReadIHM(e, this.moduleTableField, vo) as any;
+    public async dataToReadIHM(e: T, vo: IDistantVOBase): Promise<U> {
+        return await SimpleDatatableField.defaultDataToReadIHM(e, this.moduleTableField, vo) as any;
     }
-    public dataToUpdateIHM(e: T, vo: IDistantVOBase): U {
-        return SimpleDatatableField.defaultDataToUpdateIHM(e, this.moduleTableField, vo) as any;
+    public async dataToUpdateIHM(e: T, vo: IDistantVOBase): Promise<U> {
+        return await SimpleDatatableField.defaultDataToUpdateIHM(e, this.moduleTableField, vo) as any;
     }
-    public dataToCreateIHM(e: T, vo: IDistantVOBase): U {
-        return this.dataToUpdateIHM(e, vo);
+    public async dataToCreateIHM(e: T, vo: IDistantVOBase): Promise<U> {
+        return await this.dataToUpdateIHM(e, vo);
     }
 
-    public ReadIHMToData(e: U, vo: IDistantVOBase): T {
-        return SimpleDatatableField.defaultReadIHMToData(e, this.moduleTableField, vo) as any;
+    public async ReadIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
+        return await SimpleDatatableField.defaultReadIHMToData(e, this.moduleTableField, vo) as any;
     }
-    public UpdateIHMToData(e: U, vo: IDistantVOBase): T {
-        return SimpleDatatableField.defaultUpdateIHMToData(e, this.moduleTableField, vo) as any;
+    public async UpdateIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
+        return await SimpleDatatableField.defaultUpdateIHMToData(e, this.moduleTableField, vo) as any;
     }
-    public CreateIHMToData(e: U, vo: IDistantVOBase): T {
-        return this.UpdateIHMToData(e, vo);
+    public async CreateIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
+        return await this.UpdateIHMToData(e, vo);
     }
 
     get moduleTableField(): ModuleTableField<T> {
@@ -503,7 +503,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         return this.moduleTableField.getValidationTextCodeBase();
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): U {
-        return this.dataToReadIHM(e[this.datatable_field_uid], e);
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<U> {
+        return await this.dataToReadIHM(e[this.datatable_field_uid], e);
     }
 }

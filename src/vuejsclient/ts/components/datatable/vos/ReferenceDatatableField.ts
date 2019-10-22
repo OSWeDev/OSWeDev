@@ -21,7 +21,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         let self = this;
     }
 
-    public voIdToHumanReadable: (id: number) => string = (id: number) => {
+    public voIdToHumanReadable: (id: number) => Promise<string> = async (id: number) => {
         let res: string = "";
 
         if ((id == null) || (typeof id == 'undefined')) {
@@ -30,11 +30,11 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
 
         let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let data: Target = vos[this.targetModuleTable.vo_type][id];
-        res = this.dataToHumanReadable(data);
+        res = await this.dataToHumanReadable(data);
         return res ? res : '';
     }
 
-    public dataToHumanReadable: (e: Target) => string = (e: Target) => {
+    public dataToHumanReadable: (e: Target) => Promise<string> = async (e: Target) => {
         let res: string = "";
 
         if (!e) {
@@ -44,7 +44,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
         for (let i in this.sortedTargetFields) {
             let sortedTargetField = this.sortedTargetFields[i];
 
-            let field_value: string = sortedTargetField.dataToHumanReadableField(e);
+            let field_value: string = await sortedTargetField.dataToHumanReadableField(e);
             field_value = field_value ? field_value : "";
             res = ((res != "") ? res + " " + field_value : field_value);
         }

@@ -16,11 +16,11 @@ export default class ComputedDatatableField<T, U> extends DatatableField<T, U> {
         this.setUID_for_readDuplicateOnly(datatable_field_uid);
     }
 
-    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
-        return this.computeFieldValue(vo);
+    public async dataToReadIHM(e: T, vo: IDistantVOBase): Promise<U> {
+        return await this.computeFieldValue(vo);
     }
 
-    public ReadIHMToData(e: U, vo: IDistantVOBase): T {
+    public async ReadIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
         return undefined;
     }
 
@@ -35,7 +35,7 @@ export default class ComputedDatatableField<T, U> extends DatatableField<T, U> {
         return this;
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): U {
-        return this.dataToReadIHM(e[this.datatable_field_uid], e);
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<U> {
+        return await this.dataToReadIHM(e[this.datatable_field_uid], e);
     }
 }
