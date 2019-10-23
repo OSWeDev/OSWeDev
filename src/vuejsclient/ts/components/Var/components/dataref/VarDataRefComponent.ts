@@ -421,7 +421,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.setDescSelectedIndex(VarsController.getInstance().getIndex(this.var_param));
     }
 
-    private displayLoadedData(): void {
+    get loadedData() {
         if (!this.has_loaded_data || !this.add_infos) {
             return;
         }
@@ -433,7 +433,7 @@ export default class VarDataRefComponent extends VueComponentBase {
 
             res += ((res == "") ? "" : ";") + this.get_values_of_selected_fields(matroid, this.add_infos);
         }
-        this.snotify.info(res);
+        return (res);
     }
 
     public get_values_of_selected_fields(matroid, add_infos: string[]): string {
