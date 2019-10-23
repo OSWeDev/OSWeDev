@@ -5,6 +5,7 @@ import { Moment } from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Event } from 'vue-tables-2';
 import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
@@ -23,10 +24,8 @@ import ManyToOneReferenceDatatableField from '../vos/ManyToOneReferenceDatatable
 import OneToManyReferenceDatatableField from '../vos/OneToManyReferenceDatatableField';
 import SimpleDatatableField from '../vos/SimpleDatatableField';
 import './DatatableComponent.scss';
-import FileDatatableFieldComponent from './fields/file/file_datatable_field';
 import DatatableComponentField from './fields/DatatableComponentField';
-import { ByteRange } from 'express-serve-static-core';
-import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import FileDatatableFieldComponent from './fields/file/file_datatable_field';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -104,7 +103,7 @@ export default class DatatableComponent extends VueComponentBase {
 
     public async mounted() {
 
-        await this.loadDatatable();
+        this.loadDatatable();
 
         // Activate tooltip
         $('[data-toggle="tooltip"]').tooltip();
@@ -533,7 +532,7 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     @Watch('datatable')
-    private async loadDatatable() {
+    private loadDatatable() {
         this.selected_datas = {};
         this.loaded = false;
 
@@ -541,14 +540,14 @@ export default class DatatableComponent extends VueComponentBase {
 
         this.loaded = true;
 
-        await this.update_datatable_data();
+        this.update_datatable_data();
 
         for (let i in this.api_types_involved) {
             this.setWatcher(this.api_types_involved[i]);
         }
     }
 
-    private async update_datatable_data() {
+    private update_datatable_data() {
 
         if (!this.loaded) {
             return;
@@ -564,7 +563,7 @@ export default class DatatableComponent extends VueComponentBase {
         let baseDatas: IDistantVOBase[] = [];
 
         if (!!this.datatable.data_set_hook) {
-            baseDatas = await this.datatable.data_set_hook(baseDatas_byid);
+            baseDatas = this.datatable.data_set_hook(baseDatas_byid);
         }
 
         this.datatable_data = [];

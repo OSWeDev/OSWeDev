@@ -3,6 +3,8 @@ import * as moment from 'moment';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
 import RangeHandler from '../tools/RangeHandler';
+import HourRange from './DataRender/vos/HourRange';
+import HourSegment from './DataRender/vos/HourSegment';
 import NumRange from './DataRender/vos/NumRange';
 import TSRange from './DataRender/vos/TSRange';
 import IDistantVOBase from './IDistantVOBase';
@@ -11,8 +13,6 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
-import HourRange from './DataRender/vos/HourRange';
-import HourSegment from './DataRender/vos/HourSegment';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -67,7 +67,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public hook_datatable_install: (db) => {} = null;
 
     public module: Module;
-    public fields: Array<ModuleTableField<any>>;
+    // public fields: Array<ModuleTableField<any>>;
     public suffix: string;
     public prefix: string;
     public database: string;
@@ -93,6 +93,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public voConstructor: () => T = null;
 
     private vo_interfaces: { [interface_name: string]: boolean } = {};
+
+    private fields_: Array<ModuleTableField<any>> = [];
+    private fields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
 
     constructor(
         tmp_module: Module,
@@ -133,7 +136,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
         this.label = label;
 
-        this.fields = tmp_fields;
+        this.set_fields(tmp_fields);
 
         if (this.module && this.module.name) {
             this.set_bdd_ref("ref", this.module.name, this.vo_type, "module");
@@ -144,8 +147,27 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
     }
 
+    public get_fields(): Array<ModuleTableField<any>> {
+        return this.fields_;
+    }
+
+    public push_field(field: ModuleTableField<any>) {
+        this.fields_.push(field);
+        this.fields_by_ids[field.field_id] = field;
+    }
+
+    public set_fields(fields: Array<ModuleTableField<any>>) {
+        this.fields_ = fields;
+
+        this.fields_by_ids = {};
+        for (let i in this.fields_) {
+            let field = this.fields_[i];
+            this.fields_by_ids[field.field_id] = field;
+        }
+    }
+
     get sortedFields(): Array<ModuleTableField<any>> {
-        let res: Array<ModuleTableField<any>> = Array.from(this.fields);
+        let res: Array<ModuleTableField<any>> = Array.from(this.fields_);
 
         res.sort((a: ModuleTableField<any>, b: ModuleTableField<any>) => {
             if (a.field_id < b.field_id) {
@@ -234,15 +256,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             return null;
         }
 
-        for (let i in this.fields) {
-            let field: ModuleTableField<any> = this.fields[i];
-
-            if (field && field.field_id == field_id) {
-                return field;
-            }
-        }
-
-        return null;
+        return this.fields_by_ids[field_id];
     }
 
     /**
@@ -254,8 +268,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
             return null;
         }
 
-        for (let i in this.fields) {
-            let field: ModuleTableField<any> = this.fields[i];
+        for (let i in this.fields_) {
+            let field: ModuleTableField<any> = this.fields_[i];
 
             if (field && field.has_relation && field.manyToOne_target_moduletable && field.manyToOne_target_moduletable.vo_type == vo_type) {
                 return field;
@@ -293,8 +307,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
         this.full_name = this.database + '.' + this.name;
         this.uid = this.database + '_' + this.name;
 
-        for (let i in this.fields) {
-            this.fields[i].setTargetDatatable(this);
+        for (let i in this.fields_) {
+            this.fields_[i].setTargetDatatable(this);
         }
 
         this.label.code_text = "fields.labels." + this.full_name + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
@@ -347,19 +361,19 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         let res = {};
 
-        if (!this.fields) {
+        if (!this.fields_) {
             return clonedeep(e);
         }
 
         res['_type'] = e._type;
         res['id'] = e.id;
 
-        // C'est aussi ici qu'on peut décider de renommer les fields_ en fonction de l'ordre dans la def de moduletable
+        // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
         //  pour réduire au max l'objet envoyé, et l'offusquer un peu
         let fieldIdToAPIMap: { [field_id: string]: string } = this.getFieldIdToAPIMap();
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let i in this.fields_) {
+            let field = this.fields_[i];
 
             let new_id = fieldIdToAPIMap[field.field_id];
 
@@ -397,19 +411,19 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         let res: T = this.getNewVO();
 
-        if ((!this.fields) || (!res)) {
+        if ((!this.fields_) || (!res)) {
             return clonedeep(e);
         }
 
         res['_type'] = e._type;
         res['id'] = e.id;
 
-        // C'est aussi ici qu'on peut décider de renommer les fields_ en fonction de l'ordre dans la def de moduletable
+        // C'est aussi ici qu'on peut décider de renommer les fields__ en fonction de l'ordre dans la def de moduletable
         //  pour réduire au max l'objet envoyé, et l'offusquer un peu
         let fieldIdToAPIMap: { [field_id: string]: string } = this.getFieldIdToAPIMap();
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let i in this.fields_) {
+            let field = this.fields_[i];
 
             let old_id = fieldIdToAPIMap[field.field_id];
 
@@ -460,12 +474,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         let res = clonedeep(e);
 
-        if (!this.fields) {
+        if (!this.fields_) {
             return res;
         }
 
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let i in this.fields_) {
+            let field = this.fields_[i];
 
             switch (field.field_type) {
 
@@ -505,11 +519,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
         e.id = ConversionHandler.getInstance().forceNumber(e.id);
         e._type = this.vo_type;
 
-        if (!this.fields) {
+        if (!this.fields_) {
             return e;
         }
-        for (let i in this.fields) {
-            let field = this.fields[i];
+        for (let i in this.fields_) {
+            let field = this.fields_[i];
 
             if (field.field_type == ModuleTableField.FIELD_TYPE_timestamp) {
                 // A priori c'est without time zone du coup....

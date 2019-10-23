@@ -1,5 +1,5 @@
-import { Moment } from 'moment';
 import * as moment from 'moment';
+import { Moment } from 'moment';
 
 export default class RequestResponseCacheVO {
 
@@ -17,6 +17,8 @@ export default class RequestResponseCacheVO {
     public creationDate: Moment = moment();
     public datasDate: Moment = null;
     public url: string;
+
+    public index: string;
 
     public postdatas: any = null;
     public dataType: string = 'json';

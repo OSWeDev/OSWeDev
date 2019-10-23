@@ -1,18 +1,18 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
+import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
 import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
 import moment = require('moment');
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
-import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -413,29 +413,6 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
     }
 
-    private selectVar() {
-        if (!this.isDescMode) {
-            return;
-        }
-
-        this.setDescSelectedIndex(VarsController.getInstance().getIndex(this.var_param));
-    }
-
-    private displayLoadedData(): void {
-        if (!this.has_loaded_data || !this.add_infos) {
-            return;
-        }
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
-
-        let res: string = "";
-        for (let i in vardagnode.loaded_datas_matroids) {
-            let matroid = vardagnode.loaded_datas_matroids[i];
-
-            res += ((res == "") ? "" : ";") + this.get_values_of_selected_fields(matroid, this.add_infos);
-        }
-        this.snotify.info(res);
-    }
-
     public get_values_of_selected_fields(matroid, add_infos: string[]): string {
         if ((!this.var_param) || (!matroid)) {
             return null;
@@ -452,8 +429,8 @@ export default class VarDataRefComponent extends VueComponentBase {
         // let param: any = {};
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
 
-        for (let i in moduletable.fields) {
-            let field = moduletable.fields[i];
+        for (let i in moduletable.get_fields()) {
+            let field = moduletable.get_fields()[i];
 
             // les champs que l'on souhaite afficher doivent être dans add_infos, sinon on les passe
             if ((add_infos.length > 0) && (add_infos.indexOf(field.field_id) < 0)) {
@@ -485,5 +462,29 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         return res;
+    }
+
+    private displayLoadedData(): void {
+        if (!this.has_loaded_data || !this.add_infos) {
+            return;
+        }
+        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+
+        let res: string = "";
+        for (let i in vardagnode.loaded_datas_matroids) {
+            let matroid = vardagnode.loaded_datas_matroids[i];
+
+            res += ((res == "") ? "" : ";") + this.get_values_of_selected_fields(matroid, this.add_infos);
+        }
+        this.snotify.info(res);
+    }
+
+
+    private selectVar() {
+        if (!this.isDescMode) {
+            return;
+        }
+
+        this.setDescSelectedIndex(VarsController.getInstance().getIndex(this.var_param));
     }
 }

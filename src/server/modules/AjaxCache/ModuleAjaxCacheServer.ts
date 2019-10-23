@@ -1,4 +1,3 @@
-import { request } from 'https';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
@@ -93,12 +92,11 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                     }
             }
 
-            let index = ModuleAjaxCache.getInstance().getIndex(wrapped_request.url, wrapped_request.postdatas);
-            res.requests_results[index] = await apiDefinition.SERVER_HANDLER(param);
+            res.requests_results[wrapped_request.index] = await apiDefinition.SERVER_HANDLER(param);
 
             if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
                 (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
-                res.requests_results[index] = ModuleAPI.getInstance().try_translate_vo_to_api(res.requests_results[index]);
+                res.requests_results[wrapped_request.index] = ModuleAPI.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
             }
         }
 

@@ -1,3 +1,40 @@
+# BREAKING CHANGE 23-10-2019
+
+    Suite observation de gros gains de perfs sur le datatable en supprimant des await inutiles, on refactor en partie les vars pour supprimer des await devenus inutiles
+    A modifier en prenant fonction par fonction sur chaque projet et s'assurer qu'on impact bien tout... Attention aux tests derrière
+
+    VarsController:
+
+    - prepareForInsertOrUpdateAfterPwdChange
+    - handleTriggerUserVOCreate
+    - updateMatroidsAfterImport
+    - updateDepssAfterImport
+    - computeNode
+    - setUpdatingParamsToStore
+
+
+    VarControllerBase:
+
+    - getParamDependencies
+    - getSegmentedParamDependencies
+    - computeValue
+    - updateData
+
+
+    VarDAGDefineNodeDeps:
+
+    - defineNodeDeps
+
+
+    Datatable :
+    
+    - data_set_hook
+
+
+    DatatableComponent :
+
+    - update_datatable_data
+
 # BREAKING CHANGE 19-08-2019
 
  * ATTENTION aux foreach et foreach_ranges sur TSRangeHandler et NumRangeHandler => passent en async, il faut donc les await. Cela permet par contre d'utiliser des callbacks async.

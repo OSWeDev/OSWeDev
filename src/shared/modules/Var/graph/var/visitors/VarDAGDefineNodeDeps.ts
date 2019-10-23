@@ -16,10 +16,10 @@ export default class VarDAGDefineNodeDeps {
      * @param node
      * @param path
      */
-    public static async defineNodeDeps(node: VarDAGNode, varDag: VarDAG, new_nodes: { [index: string]: VarDAGNode }): Promise<VarDAGNode[]> {
+    public static defineNodeDeps(node: VarDAGNode, varDag: VarDAG, new_nodes: { [index: string]: VarDAGNode }): void {
 
         if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
-            return null;
+            return;
         }
 
         // On demande les deps de datasources
@@ -39,12 +39,12 @@ export default class VarDAGDefineNodeDeps {
             let ds_predeps: Array<IDataSourceController<any, any>> = VarsController.getInstance().getVarControllerById(node.param.var_id).getDataSourcesPredepsDependencies();
             if ((!!ds_predeps) && (!!ds_predeps.length)) {
                 node.addMarker(VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING, varDag);
-                return null;
+                return;
             }
         }
 
         // On demande les deps de vars
-        let deps: IVarDataParamVOBase[] = await VarsController.getInstance().getVarControllerById(node.param.var_id).getSegmentedParamDependencies(node, varDag);
+        let deps: IVarDataParamVOBase[] = VarsController.getInstance().getVarControllerById(node.param.var_id).getSegmentedParamDependencies(node, varDag);
         VarDAGDefineNodeDeps.add_node_deps(node, varDag, deps, new_nodes);
 
         node.removeMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, varDag, true);

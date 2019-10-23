@@ -1,17 +1,15 @@
+import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 import IDataSourceController from '../../../../src/shared/modules/DataSource/interfaces/IDataSourceController';
-import VarsCumulsController from '../../../../src/shared/modules/Var/cumuls/VarsCumulsController';
 import VarDAG from '../../../../src/shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../../src/shared/modules/Var/graph/var/VarDAGNode';
 import IVarDataParamVOBase from '../../../../src/shared/modules/Var/interfaces/IVarDataParamVOBase';
 import SimpleVarConfVO from '../../../../src/shared/modules/Var/simple_vars/SimpleVarConfVO';
-import VarCumulableControllerBase from '../../../../src/shared/modules/Var/VarCumulableControllerBase';
+import VarControllerBase from '../../../../src/shared/modules/Var/VarControllerBase';
 import VarsController from '../../../../src/shared/modules/Var/VarsController';
 import FakeDataParamController from './FakeDataParamController';
 import FakeDataParamVO from './vos/FakeDataParamVO';
 import FakeDataVO from './vos/FakeDataVO';
-import VarControllerBase from '../../../../src/shared/modules/Var/VarControllerBase';
 import moment = require('moment');
-import TimeSegment from '../../../../src/shared/modules/DataRender/vos/TimeSegment';
 
 export default class FakeVarController extends VarControllerBase<FakeDataVO, FakeDataParamVO> {
 
@@ -58,9 +56,9 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
      * @param BATCH_UID
      * @param param
      */
-    public async getParamDependencies(
+    public getParamDependencies(
         varDAGNode: VarDAGNode,
-        varDAG: VarDAG): Promise<IVarDataParamVOBase[]> {
+        varDAG: VarDAG): IVarDataParamVOBase[] {
         return null;
     }
 
@@ -68,7 +66,7 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
     /**
      * Fonction qui prépare la mise à jour d'une data
      */
-    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG) {
+    public updateData(varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
         let param: FakeDataParamVO = varDAGNode.param as FakeDataParamVO;
         let res: FakeDataVO = Object.assign({

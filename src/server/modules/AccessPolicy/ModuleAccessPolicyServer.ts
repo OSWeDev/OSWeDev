@@ -692,19 +692,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        await ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
+        ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
 
         return true;
     }
 
-    private async handleTriggerUserVOCreate(vo: UserVO): Promise<boolean> {
+    private handleTriggerUserVOCreate(vo: UserVO): boolean {
 
 
         if ((!vo) || (!vo.password)) {
             return true;
         }
 
-        await ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
+        ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
 
         return true;
     }

@@ -1090,7 +1090,7 @@ export default class VarsController {
                 this.propagateUpdateRequest();
 
                 // On indique dans le store la mise à jour des vars
-                await this.setUpdatingParamsToStore();
+                this.setUpdatingParamsToStore();
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
@@ -1103,7 +1103,7 @@ export default class VarsController {
                 this.clean_var_dag();
 
                 // On indique dans le store la mise à jour des vars
-                await this.setUpdatingParamsToStore();
+                this.setUpdatingParamsToStore();
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
@@ -1126,7 +1126,7 @@ export default class VarsController {
 
                 // On visite pour résoudre les calculs
                 while (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE] && this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE].length) {
-                    await this.computeNode(this.varDAG.nodes[this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE][0]]);
+                    this.computeNode(this.varDAG.nodes[this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_ONGOING_UPDATE][0]]);
                 }
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
@@ -1213,7 +1213,7 @@ export default class VarsController {
         }
     }
 
-    private async setUpdatingParamsToStore() {
+    private setUpdatingParamsToStore() {
         if (!!this.setUpdatingParamsByVarsIds) {
             let res: { [index: string]: boolean } = {};
 
@@ -1224,8 +1224,6 @@ export default class VarsController {
             }
 
             this.setUpdatingParamsByVarsIds(res);
-
-            // await ThreadHandler.getInstance().sleep(100);
         }
     }
 
@@ -1397,7 +1395,7 @@ export default class VarsController {
         await Promise.all(promises);
     }
 
-    private async updateMatroidsAfterImport(nodes: { [node_name: string]: VarDAGNode }) {
+    private updateMatroidsAfterImport(nodes: { [node_name: string]: VarDAGNode }) {
 
         for (let i in nodes) {
             let node: VarDAGNode = nodes[i];
@@ -1432,7 +1430,7 @@ export default class VarsController {
         }
     }
 
-    private async updateDepssAfterImport(nodes: { [node_name: string]: VarDAGNode }, marker_todo: string) {
+    private updateDepssAfterImport(nodes: { [node_name: string]: VarDAGNode }, marker_todo: string) {
 
         for (let i in nodes) {
             let node: VarDAGNode = nodes[i];
@@ -1455,7 +1453,7 @@ export default class VarsController {
                 let computed_datas_matroid = node.computed_datas_matroids[j];
 
                 let fake_vardagnode = new VarDAGNode(VarsController.getInstance().getIndex(computed_datas_matroid), null, computed_datas_matroid);
-                let deps: IVarDataParamVOBase[] = await node_controller.getSegmentedParamDependencies(fake_vardagnode, this.varDAG);
+                let deps: IVarDataParamVOBase[] = node_controller.getSegmentedParamDependencies(fake_vardagnode, this.varDAG);
 
                 VarDAGDefineNodeDeps.add_node_deps(node, this.varDAG, deps, {});
 
@@ -1533,8 +1531,8 @@ export default class VarsController {
             //      a- Si l'enfant a plusieurs parents, et pour chaque matroid à calculer différent chez les parents, on duplique l'enfant, et on adapte pour chacun le nouveau matroid demandé
             //          ATTENTION la copie concerne le noeud et tout l'arbre qui en découle => donc peut impacter plusieurs matroids aussi en dessous
             //      b- Sinon on applique le matroid à calculer parent
-            await this.updateMatroidsAfterImport(roots_locaux);
-            await this.updateDepssAfterImport(roots_locaux, marker_todo);
+            this.updateMatroidsAfterImport(roots_locaux);
+            this.updateDepssAfterImport(roots_locaux, marker_todo);
 
             //  5- On recommence avec la liste des noeuds à gérer mise à jour
             noeuds_a_gerer = this.getNoeudsAGererImportMatroids(marker_todo);
@@ -1651,7 +1649,7 @@ export default class VarsController {
                     if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
                         continue;
                     }
-                    await VarDAGDefineNodeDeps.defineNodeDeps(node, this.varDAG, new_nodes);
+                    VarDAGDefineNodeDeps.defineNodeDeps(node, this.varDAG, new_nodes);
                 }
                 nodes_names = Object.keys(new_nodes);
             }
@@ -1803,7 +1801,7 @@ export default class VarsController {
         await Promise.all(promises);
     }
 
-    private async computeNode(node: VarDAGNode) {
+    private computeNode(node: VarDAGNode) {
 
         let actual_node: VarDAGNode = node;
         let nodes_path: VarDAGNode[] = [];
@@ -1844,7 +1842,7 @@ export default class VarsController {
             } while (go_further);
 
             // On doit pouvoir compute à ce stade
-            await VarsController.getInstance().getVarControllerById(actual_node.param.var_id).computeValue(actual_node, this.varDAG);
+            VarsController.getInstance().getVarControllerById(actual_node.param.var_id).computeValue(actual_node, this.varDAG);
 
             if (this.registered_var_callbacks[actual_node.name] && this.registered_var_callbacks[actual_node.name].length) {
 

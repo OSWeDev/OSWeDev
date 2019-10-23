@@ -53,7 +53,7 @@ export default class PasswordReset {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         httpContext.set('IS_CLIENT', false);
 
-        await ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
+        ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
         await ModuleDAO.getInstance().insertOrUpdateVO(user);
         return true;
     }

@@ -174,8 +174,8 @@ export default class ModuleDataImport extends Module {
         // On crée le moduletable adapté, et on stocke l'info de l'existence de ce type importable
         let fields: Array<ModuleTableField<any>> = [];
 
-        for (let i in targetModuleTable.fields) {
-            let vofield = targetModuleTable.fields[i];
+        for (let i in targetModuleTable.get_fields()) {
+            let vofield = targetModuleTable.get_fields()[i];
 
             fields.push(Object.assign(new ModuleTableField<any>(vofield.field_id, vofield.field_type, vofield.field_label, vofield.field_required, vofield.has_default, vofield.field_default), vofield));
         }

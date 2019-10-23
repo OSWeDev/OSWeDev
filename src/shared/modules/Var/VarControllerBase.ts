@@ -2,6 +2,7 @@ import * as clonedeep from 'lodash/cloneDeep';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
+import IMatroid from '../Matroid/interfaces/IMatroid';
 import VarDAG from './graph/var/VarDAG';
 import VarDAGNode from './graph/var/VarDAGNode';
 import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
@@ -12,7 +13,6 @@ import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
 import moment = require('moment');
-import IMatroid from '../Matroid/interfaces/IMatroid';
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 
@@ -47,7 +47,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
      */
     public abstract getVarsIdsDependencies(): number[];
 
-    public async computeValue(varDAGNode: VarDAGNode, varDAG: VarDAG) {
+    public computeValue(varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
         let res: TData = null;
 
@@ -63,7 +63,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
             for (let i in varDAGNode.computed_datas_matroids) {
                 let data_matroid_to_compute = varDAGNode.computed_datas_matroids[i];
 
-                let computed_datas_matroid_res: ISimpleNumberVarMatroidData = await this.updateData(varDAGNode, varDAG, data_matroid_to_compute) as any;
+                let computed_datas_matroid_res: ISimpleNumberVarMatroidData = this.updateData(varDAGNode, varDAG, data_matroid_to_compute) as any;
 
                 if (res_matroid.value == null) {
                     res_matroid.value = computed_datas_matroid_res.value;
@@ -74,7 +74,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
             res = res_matroid as any;
         } else {
-            res = await this.updateData(varDAGNode, varDAG);
+            res = this.updateData(varDAGNode, varDAG);
         }
 
         if (!res) {
@@ -101,11 +101,11 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
         VarsController.getInstance().setVarData(res, true);
     }
 
-    public async getSegmentedParamDependencies(
+    public getSegmentedParamDependencies(
         varDAGNode: VarDAGNode,
-        varDAG: VarDAG): Promise<IVarDataParamVOBase[]> {
+        varDAG: VarDAG): IVarDataParamVOBase[] {
 
-        let res: IVarDataParamVOBase[] = await this.getParamDependencies(varDAGNode, varDAG);
+        let res: IVarDataParamVOBase[] = this.getParamDependencies(varDAGNode, varDAG);
         let res_: IVarDataParamVOBase[] = [];
 
         for (let i in res) {
@@ -135,9 +135,9 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
     /**
      * NEEDS to go protected
      */
-    public async abstract getParamDependencies(
+    public abstract getParamDependencies(
         varDAGNode: VarDAGNode,
-        varDAG: VarDAG): Promise<IVarDataParamVOBase[]>;
+        varDAG: VarDAG): IVarDataParamVOBase[];
 
     protected getTimeSegment(param: TDataParam): TimeSegment {
         let date_index: string = ((param as any) as IDateIndexedVarDataParam).date_index;
@@ -145,7 +145,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
         return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index), this.segment_type);
     }
 
-    protected async abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG, matroid_to_compute?: IMatroid): Promise<TData>;
+    protected abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG, matroid_to_compute?: IMatroid): TData;
 
     protected push_missing_datas_infos(var_data: TData, translatable_code: string) {
         if (!var_data) {

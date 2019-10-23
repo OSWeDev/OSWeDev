@@ -1,6 +1,4 @@
 import ModuleTable from '../../shared/modules/ModuleTable';
-import DefaultTranslationsServerManager from './Translation/DefaultTranslationsServerManager';
-import ConfigurationService from '../env/ConfigurationService';
 import ModuleTableField from '../../shared/modules/ModuleTableField';
 import TableColumnDescriptor from './TableColumnDescriptor';
 
@@ -45,7 +43,7 @@ export default class ModuleTableDBService {
         }
 
         // On doit entre autre ajouter la table en base qui gère les fields
-        if (moduleTable.fields && (moduleTable.fields.length > 0)) {
+        if (moduleTable.get_fields() && (moduleTable.get_fields().length > 0)) {
 
             // Changement radical, si on a une table déjà en place on vérifie la structure, principalement pour ajouter des champs supplémentaires
             //  et alerter si il y a des champs en base que l'on ne connait pas dans la structure métier
@@ -69,8 +67,8 @@ export default class ModuleTableDBService {
     private async check_datatable_structure(moduleTable: ModuleTable<any>, table_cols: TableColumnDescriptor[]) {
 
         let fields_by_field_id: { [field_id: string]: ModuleTableField<any> } = {};
-        for (let i in moduleTable.fields) {
-            let field = moduleTable.fields[i];
+        for (let i in moduleTable.get_fields()) {
+            let field = moduleTable.get_fields()[i];
             fields_by_field_id[field.field_id] = field;
         }
 
@@ -123,8 +121,8 @@ export default class ModuleTableDBService {
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor }) {
 
-        for (let i in moduleTable.fields) {
-            let field = moduleTable.fields[i];
+        for (let i in moduleTable.get_fields()) {
+            let field = moduleTable.get_fields()[i];
 
             if (!table_cols_by_name[field.field_id]) {
                 console.error('-');
@@ -154,8 +152,8 @@ export default class ModuleTableDBService {
         fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
         table_cols_by_name: { [col_name: string]: TableColumnDescriptor }) {
 
-        for (let i in moduleTable.fields) {
-            let field = moduleTable.fields[i];
+        for (let i in moduleTable.get_fields()) {
+            let field = moduleTable.get_fields()[i];
 
             if (!table_cols_by_name[field.field_id]) {
                 continue;
@@ -191,15 +189,15 @@ export default class ModuleTableDBService {
     private async create_new_datatable(moduleTable: ModuleTable<any>) {
         let pgSQL: string = 'CREATE TABLE IF NOT EXISTS ' + moduleTable.full_name + ' (';
         pgSQL += 'id bigserial NOT NULL';
-        for (let i = 0; i < moduleTable.fields.length; i++) {
-            let field = moduleTable.fields[i];
+        for (let i = 0; i < moduleTable.get_fields().length; i++) {
+            let field = moduleTable.get_fields()[i];
 
             pgSQL += ', ' + field.getPGSqlFieldDescription();
         }
 
         pgSQL += ', CONSTRAINT ' + moduleTable.name + '_pkey PRIMARY KEY (id)';
-        for (let i = 0; i < moduleTable.fields.length; i++) {
-            let field = moduleTable.fields[i];
+        for (let i = 0; i < moduleTable.get_fields().length; i++) {
+            let field = moduleTable.get_fields()[i];
 
             if (field.has_relation) {
                 pgSQL += ', ' + field.getPGSqlFieldConstraint();

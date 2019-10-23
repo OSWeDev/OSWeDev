@@ -51,14 +51,14 @@ export default abstract class BinaryVarOperatorControllerBase<
     /**
      * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
      */
-    public async getParamDependencies(
+    public getParamDependencies(
         varDAGNode: VarDAGNode,
-        varDAG: VarDAG): Promise<IVarDataParamVOBase[]> {
+        varDAG: VarDAG): IVarDataParamVOBase[] {
 
         return [this.get_left_param(varDAGNode, varDAG), this.get_right_param(varDAGNode, varDAG)];
     }
 
-    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): Promise<TData> {
+    public updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): TData {
 
         let param: TDataParam = varDAGNode.param as TDataParam;
         let index: string = VarsController.getInstance().getIndex(param);

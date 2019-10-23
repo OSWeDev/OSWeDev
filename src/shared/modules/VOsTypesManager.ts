@@ -1,5 +1,5 @@
-import ModuleTable from './ModuleTable';
 import IDistantVOBase from './IDistantVOBase';
+import ModuleTable from './ModuleTable';
 import ModuleTableField from './ModuleTableField';
 
 export default class VOsTypesManager {
@@ -44,8 +44,8 @@ export default class VOsTypesManager {
         let manyToOne1: ModuleTable<any> = null;
         let field_num: number = 0;
         let isManyToMany: boolean = false;
-        for (let j in moduleTable.fields) {
-            let field: ModuleTableField<any> = moduleTable.fields[j];
+        for (let j in moduleTable.get_fields()) {
+            let field: ModuleTableField<any> = moduleTable.get_fields()[j];
 
             // On ignore les 2 fields de service
             if (field.field_id == "id") {
@@ -99,8 +99,8 @@ export default class VOsTypesManager {
 
     public getManyToManyOtherField(manyToManyModuleTable: ModuleTable<any>, firstField: ModuleTableField<any>): ModuleTableField<any> {
 
-        for (let j in manyToManyModuleTable.fields) {
-            let field: ModuleTableField<any> = manyToManyModuleTable.fields[j];
+        for (let j in manyToManyModuleTable.get_fields()) {
+            let field: ModuleTableField<any> = manyToManyModuleTable.get_fields()[j];
 
             // On ignore les 2 fields de service
             if (field.field_id == "id") {

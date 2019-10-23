@@ -17,7 +17,7 @@ export default class Datatable<T extends IDistantVOBase> {
     /**
      * Fonction qui permet de rajouter ou filtrer des datas dans le set loadé de la base
      */
-    public data_set_hook: (datas_by_ids: { [id: number]: IDistantVOBase }) => Promise<IDistantVOBase[]> = async (datas_by_ids: { [id: number]: IDistantVOBase }) => {
+    public data_set_hook: (datas_by_ids: { [id: number]: IDistantVOBase }) => IDistantVOBase[] = (datas_by_ids: { [id: number]: IDistantVOBase }) => {
         return ObjectHandler.getInstance().arrayFromMap(datas_by_ids);
     }
 
@@ -38,7 +38,7 @@ export default class Datatable<T extends IDistantVOBase> {
         return this;
     }
 
-    public set_data_set_hook(data_set_hook: (datas_by_ids: { [id: number]: IDistantVOBase }) => Promise<IDistantVOBase[]>): Datatable<T> {
+    public set_data_set_hook(data_set_hook: (datas_by_ids: { [id: number]: IDistantVOBase }) => IDistantVOBase[]): Datatable<T> {
         this.data_set_hook = data_set_hook;
 
         return this;

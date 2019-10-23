@@ -601,6 +601,12 @@ export default class RangeHandler {
         }
     }
 
+    public foreach_ranges_sync<T>(ranges: Array<IRange<T>>, callback_sync: (value: T) => void | void, segment_type?: number, min_inclusiv: T = null, max_inclusiv: T = null) {
+        for (let i in ranges) {
+            this.foreach_sync(ranges[i], callback_sync, segment_type, min_inclusiv, max_inclusiv);
+        }
+    }
+
     /**
      * TODO FIXME ASAP VARS TU => refondre le cut range qui ne connait pas le segment_type et qui doit donc pas se baser dessus
      * @param range_cutter
@@ -719,7 +725,7 @@ export default class RangeHandler {
 
     public create_single_elt_range<T>(range_type: number, elt: T, segment_type: number): IRange<T> {
 
-        switch (segment_type) {
+        switch (range_type) {
 
             case NumRange.RANGE_TYPE:
                 return this.create_single_elt_NumRange(elt as any as number, segment_type) as any as IRange<T>;
@@ -1617,6 +1623,79 @@ export default class RangeHandler {
             deploy_combinaison.push(this.create_single_elt_range(range_type, elts[i], NumSegment.TYPE_INT));
 
             this.get_combinaisons(range_type, combinaisons, deploy_combinaison, elts, i + 1, cardinal);
+        }
+    }
+
+    public foreach_sync<T>(range: IRange<T>, callback_sync: (value: T) => void | void, segment_type: number = null, min_inclusiv: T = null, max_inclusiv: T = null) {
+        if (!range) {
+            return;
+        }
+
+        if (segment_type == null) {
+            switch (range.range_type) {
+
+                case NumRange.RANGE_TYPE:
+                    segment_type = NumSegment.TYPE_INT;
+                    break;
+
+                case HourRange.RANGE_TYPE:
+                    segment_type = HourSegment.TYPE_MINUTE;
+                    break;
+
+                case TSRange.RANGE_TYPE:
+                    segment_type = TimeSegment.TYPE_DAY;
+                    break;
+            }
+        }
+
+        let min: T = this.getSegmentedMin(range, segment_type);
+        let max: T = this.getSegmentedMax(range, segment_type);
+
+        if ((!this.is_valid_elt(range.range_type, range.min)) || (!this.is_valid_elt(range.range_type, range.max))) {
+            return;
+        }
+
+        if (this.is_valid_elt(range.range_type, min_inclusiv)) {
+
+            min_inclusiv = this.get_segment(range.range_type, min_inclusiv, segment_type).index;
+            if (this.is_elt_sup_elt(range.range_type, min_inclusiv, min)) {
+                min = min_inclusiv;
+            }
+        }
+        if (this.is_valid_elt(range.range_type, max_inclusiv)) {
+
+            max_inclusiv = this.get_segment(range.range_type, max_inclusiv, segment_type).index;
+            if (this.is_elt_inf_elt(range.range_type, max_inclusiv, max)) {
+                max = max_inclusiv;
+            }
+        }
+        if (this.is_elt_sup_elt(range.range_type, min, max)) {
+            return;
+        }
+
+        switch (range.range_type) {
+
+            case NumRange.RANGE_TYPE:
+                for (let i = min; i <= max; (i as any as number)++) {
+                    callback_sync(i);
+                }
+                return;
+
+            case HourRange.RANGE_TYPE:
+                while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
+
+                    callback_sync(min);
+                    HourSegmentHandler.getInstance().incElt(min as any as moment.Duration, segment_type, 1);
+                }
+                return;
+
+            case TSRange.RANGE_TYPE:
+                while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
+
+                    callback_sync(min);
+                    TimeSegmentHandler.getInstance().incMoment(min as any as Moment, segment_type, 1);
+                }
+                return;
         }
     }
 

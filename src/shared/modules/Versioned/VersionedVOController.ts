@@ -1,11 +1,9 @@
-import CRUD from '../../../vuejsclient/ts/components/crud/vos/CRUD';
 import IVOController from '../../interfaces/IVOController';
 import ModuleTable from '../../modules/ModuleTable';
+import UserVO from '../AccessPolicy/vos/UserVO';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
-import IVersionedVO from './interfaces/IVersionedVO';
 import moment = require('moment');
-import UserVO from '../AccessPolicy/vos/UserVO';
 
 export default class VersionedVOController implements IVOController {
 
@@ -40,20 +38,20 @@ export default class VersionedVOController implements IVOController {
         version_author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         version_author_id.setModuleTable(moduleTable);
 
-        moduleTable.fields.push(version_edit_author_id);
-        moduleTable.fields.push((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de modification', false)).setModuleTable(moduleTable));
+        moduleTable.push_field(version_edit_author_id);
+        moduleTable.push_field((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de modification', false)).setModuleTable(moduleTable));
 
-        moduleTable.fields.push(version_author_id);
-        moduleTable.fields.push((new ModuleTableField('version_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de création', false)).setModuleTable(moduleTable));
+        moduleTable.push_field(version_author_id);
+        moduleTable.push_field((new ModuleTableField('version_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de création', false)).setModuleTable(moduleTable));
 
-        moduleTable.fields.push((new ModuleTableField('version_num', ModuleTableField.FIELD_TYPE_int, 'Numéro de version', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField('version_num', ModuleTableField.FIELD_TYPE_int, 'Numéro de version', false)).setModuleTable(moduleTable));
 
-        moduleTable.fields.push((new ModuleTableField('trashed', ModuleTableField.FIELD_TYPE_boolean, 'Supprimé', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField('trashed', ModuleTableField.FIELD_TYPE_boolean, 'Supprimé', false)).setModuleTable(moduleTable));
 
         let parent_id = new ModuleTableField('parent_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Parent', false);
         parent_id.addManyToOneRelation(moduleTable);
         parent_id.setModuleTable(moduleTable);
-        moduleTable.fields.push(parent_id);
+        moduleTable.push_field(parent_id);
 
         // On copie les champs, pour les 3 tables à créer automatiquement :
         //  - La table versioned
@@ -77,8 +75,8 @@ export default class VersionedVOController implements IVOController {
 
             let fields: Array<ModuleTableField<any>> = [];
 
-            for (let i in moduleTable.fields) {
-                let vofield = moduleTable.fields[i];
+            for (let i in moduleTable.get_fields()) {
+                let vofield = moduleTable.get_fields()[i];
 
                 let cloned_field = new ModuleTableField<any>(vofield.field_id, vofield.field_type, vofield.field_label, vofield.field_required, vofield.has_default, vofield.field_default);
                 cloned_field.enum_values = vofield.enum_values;
@@ -90,8 +88,8 @@ export default class VersionedVOController implements IVOController {
             let importTable: ModuleTable<any> = new ModuleTable<any>(moduleTable.module, vo_type, moduleTable.getNewVO, fields, null, vo_type);
             importTable.set_bdd_ref(database, moduleTable.name);
 
-            for (let i in moduleTable.fields) {
-                let vofield = moduleTable.fields[i];
+            for (let i in moduleTable.get_fields()) {
+                let vofield = moduleTable.get_fields()[i];
 
                 if (!vofield.has_relation) {
                     continue;

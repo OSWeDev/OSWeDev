@@ -21,7 +21,6 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import DateHandler from '../../../shared/tools/DateHandler';
 import ServerBase from '../../ServerBase';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -735,8 +734,8 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
             res.nb_row_validated++;
 
-            for (let j in moduleTable.fields) {
-                let field = moduleTable.fields[j];
+            for (let j in moduleTable.get_fields()) {
+                let field = moduleTable.get_fields()[j];
 
                 if (!!vo[field.field_id]) {
                     res.nb_fields_validated++;

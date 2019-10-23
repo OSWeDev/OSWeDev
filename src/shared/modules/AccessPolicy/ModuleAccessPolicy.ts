@@ -199,7 +199,7 @@ export default class ModuleAccessPolicy extends Module {
         return await ModuleAPI.getInstance().handleAPI<void, RoleVO[]>(ModuleAccessPolicy.APINAME_GET_MY_ROLES);
     }
 
-    public async prepareForInsertOrUpdateAfterPwdChange(user: UserVO, new_pwd1: string): Promise<void> {
+    public prepareForInsertOrUpdateAfterPwdChange(user: UserVO, new_pwd1: string): void {
 
         user.password = new_pwd1;
         user.password_change_date = DateHandler.getInstance().formatDayForIndex(moment());

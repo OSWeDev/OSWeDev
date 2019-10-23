@@ -53,9 +53,9 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
     /**
      * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
      */
-    public async getParamDependencies(
+    public getParamDependencies(
         varDAGNode: VarDAGNode,
-        varDAG: VarDAG): Promise<IVarDataParamVOBase[]> {
+        varDAG: VarDAG): IVarDataParamVOBase[] {
 
         let res: TDataParam[] = [];
         let param: TDataParam = (varDAGNode.param as TDataParam);
@@ -74,7 +74,7 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
         return res;
     }
 
-    public async updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): Promise<TData> {
+    public updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): TData {
 
         let param: TDataParam = varDAGNode.param as TDataParam;
         let index: string = VarsController.getInstance().getIndex(param);

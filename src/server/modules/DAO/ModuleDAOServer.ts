@@ -1,3 +1,4 @@
+import { Duration } from 'moment';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
@@ -25,6 +26,7 @@ import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import RangesCutResult from '../../../shared/modules/Matroid/vos/RangesCutResult';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleVO from '../../../shared/modules/ModuleVO';
@@ -48,11 +50,6 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
-import CutResultController from '../../../shared/modules/Matroid/CutResultController';
-import MatroidCutResult from '../../../shared/modules/Matroid/vos/MatroidCutResult';
-import RangesCutResult from '../../../shared/modules/Matroid/vos/RangesCutResult';
-import { type } from 'os';
-import { Duration } from 'moment';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -581,13 +578,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             const setters = [];
-            for (const f in datatable.fields) {
+            for (const f in datatable.get_fields()) {
 
-                if (typeof vo[datatable.fields[f].field_id] == "undefined") {
+                if (typeof vo[datatable.get_fields()[f].field_id] == "undefined") {
                     continue;
                 }
 
-                setters.push(datatable.fields[f].field_id + ' = ${' + datatable.fields[f].field_id + '}');
+                setters.push(datatable.get_fields()[f].field_id + ' = ${' + datatable.get_fields()[f].field_id + '}');
             }
 
             sql = "UPDATE " + datatable.full_name + " SET " + setters.join(', ') + " WHERE id = ${id} RETURNING ID";
@@ -603,13 +600,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             const tableFields = [];
             const placeHolders = [];
-            for (const f in datatable.fields) {
-                if (typeof vo[datatable.fields[f].field_id] == "undefined") {
+            for (const f in datatable.get_fields()) {
+                if (typeof vo[datatable.get_fields()[f].field_id] == "undefined") {
                     continue;
                 }
 
-                tableFields.push(datatable.fields[f].field_id);
-                placeHolders.push('${' + datatable.fields[f].field_id + '}');
+                tableFields.push(datatable.get_fields()[f].field_id);
+                placeHolders.push('${' + datatable.get_fields()[f].field_id + '}');
             }
 
             sql = "INSERT INTO " + datatable.full_name + " (" + tableFields.join(', ') + ") VALUES (" + placeHolders.join(', ') + ") RETURNING id";
@@ -654,8 +651,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             for (let j in vos) {
                 let vo: IDistantVOBase = vos[j];
 
-                for (let i in datatable.fields) {
-                    let field: ModuleTableField<any> = datatable.fields[i];
+                for (let i in datatable.get_fields()) {
+                    let field: ModuleTableField<any> = datatable.get_fields()[i];
 
                     if (datatable.default_label_field &&
                         (field.field_id == datatable.default_label_field.field_id)) {
@@ -702,8 +699,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (vo && !await this.checkAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
             // a priori on a accès en list labels, mais pas en read. Donc on va filtrer tous les champs, sauf le label et id et _type
-            for (let i in datatable.fields) {
-                let field: ModuleTableField<any> = datatable.fields[i];
+            for (let i in datatable.get_fields()) {
+                let field: ModuleTableField<any> = datatable.get_fields()[i];
 
                 if (datatable.default_label_field &&
                     (field.field_id == datatable.default_label_field.field_id)) {

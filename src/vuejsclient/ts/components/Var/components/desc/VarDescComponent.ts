@@ -2,20 +2,16 @@ import * as d3 from 'd3';
 import * as dagreD3 from 'dagre-d3';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
+import IDataSourceController from '../../../../../../shared/modules/DataSource/interfaces/IDataSourceController';
 import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
 import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDescComponent.scss';
 import moment = require('moment');
-import IDataSourceController from '../../../../../../shared/modules/DataSource/interfaces/IDataSourceController';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import ModuleTable from '../../../../../../shared/modules/ModuleTable';
-import Datatable from '../../../datatable/vos/Datatable';
-import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
-import TimeHandler from '../../../../../../shared/tools/TimeHandler';
 
 @Component({
     template: require('./VarDescComponent.pug')
@@ -206,8 +202,8 @@ export default class VarDescComponent extends VueComponentBase {
         let param: any = {};
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
 
-        for (let i in moduletable.fields) {
-            let field = moduletable.fields[i];
+        for (let i in moduletable.get_fields()) {
+            let field = moduletable.get_fields()[i];
 
             if ([
                 //IVarDataParamVOBase

@@ -1,16 +1,16 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
-import Datatable from '../../datatable/vos/Datatable';
-import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
-import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
-import ComputedDatatableField from '../../datatable/vos/ComputedDatatableField';
-import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
+import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import IVersionedVO from '../../../../../shared/modules/Versioned/interfaces/IVersionedVO';
+import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import ComputedDatatableField from '../../datatable/vos/ComputedDatatableField';
+import Datatable from '../../datatable/vos/Datatable';
 import DatatableField from '../../datatable/vos/DatatableField';
+import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
+import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
+import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
+import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
+import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 
 
 export default class CRUD<T extends IDistantVOBase> {
@@ -45,8 +45,8 @@ export default class CRUD<T extends IDistantVOBase> {
         let crud: CRUD<T> = new CRUD(readDatatable);
         let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
-        for (let i in moduleTable.fields) {
-            let field: ModuleTableField<any> = moduleTable.fields[i];
+        for (let i in moduleTable.get_fields()) {
+            let field: ModuleTableField<any> = moduleTable.get_fields()[i];
 
             // On ignore les 2 fields de service
             if (field.field_id == "id") {
@@ -75,14 +75,14 @@ export default class CRUD<T extends IDistantVOBase> {
                     dt_field = new ManyToOneReferenceDatatableField<any>(
                         field.field_id,
                         VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
-                            new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id)
-                        ]);
+                        new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id)
+                    ]);
                 } else if (field.manyToOne_target_moduletable.table_label_function) {
                     dt_field = new ManyToOneReferenceDatatableField<any>(
                         field.field_id,
                         VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
-                            new ComputedDatatableField(field.field_id + '__target_label', field.manyToOne_target_moduletable.table_label_function)
-                        ]);
+                        new ComputedDatatableField(field.field_id + '__target_label', field.manyToOne_target_moduletable.table_label_function)
+                    ]);
                 }
             } else {
                 dt_field = new SimpleDatatableField(field.field_id);
@@ -125,8 +125,8 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            for (let j in otherModuleTable.fields) {
-                let field: ModuleTableField<any> = otherModuleTable.fields[j];
+            for (let j in otherModuleTable.get_fields()) {
+                let field: ModuleTableField<any> = otherModuleTable.get_fields()[j];
 
                 if (!field.is_visible_datatable) {
                     continue;
@@ -206,8 +206,8 @@ export default class CRUD<T extends IDistantVOBase> {
                 continue;
             }
 
-            for (let j in otherModuleTable.fields) {
-                let field: ModuleTableField<any> = otherModuleTable.fields[j];
+            for (let j in otherModuleTable.get_fields()) {
+                let field: ModuleTableField<any> = otherModuleTable.get_fields()[j];
 
                 if (!field.is_visible_datatable) {
                     continue;

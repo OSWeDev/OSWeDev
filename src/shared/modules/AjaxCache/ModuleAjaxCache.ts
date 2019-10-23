@@ -4,6 +4,7 @@ import * as $ from 'jquery';
 import * as debounce from 'lodash/debounce';
 import * as moment from 'moment';
 import { Duration } from 'moment';
+import VueAppController from '../../../vuejsclient/VueAppController';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
@@ -14,8 +15,6 @@ import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
 // endif
 import RequestsCacheVO from './vos/RequestsCacheVO';
 import RequestsWrapperResult from './vos/RequestsWrapperResult';
-import ServerBase from '../../../server/ServerBase';
-import VueAppController from '../../../vuejsclient/VueAppController';
 
 export default class ModuleAjaxCache extends Module {
 
@@ -59,7 +58,7 @@ export default class ModuleAjaxCache extends Module {
         this.forceActivationOnInstallation();
     }
 
-    public getIndex(url: string, postdatas: any): string {
+    public getUIDIndex(url: string, postdatas: any): string {
         try {
             return url + (postdatas ? '###___###' + JSON.stringify(postdatas) : '');
         } catch (error) {
@@ -112,10 +111,10 @@ export default class ModuleAjaxCache extends Module {
         return new Promise((resolve, reject) => {
 
             // If in cache
-            let index = this.getIndex(url, postdatas);
-            if (self.cache.requestResponseCaches[index]) {
+            let UIDindex = this.getUIDIndex(url, postdatas);
+            if (self.cache.requestResponseCaches[UIDindex]) {
 
-                let cache: RequestResponseCacheVO = self.cache.requestResponseCaches[index];
+                let cache: RequestResponseCacheVO = self.cache.requestResponseCaches[UIDindex];
                 // Un contrôle de cohérence possible : le api_types_involved doit contenir l'union de toutes les fois où on utilise ce cache
 
                 // If resolved / rejected
@@ -312,7 +311,7 @@ export default class ModuleAjaxCache extends Module {
         timeout: number,
         api_types_involved: string[], resolve: (datas) => void, reject: (datas) => void, type: number = RequestResponseCacheVO.API_TYPE_GET) {
 
-        let index = this.getIndex(url, postdatas);
+        let index = this.getUIDIndex(url, postdatas);
         if (!this.cache.requestResponseCaches[index]) {
             this.cache.requestResponseCaches[index] = new RequestResponseCacheVO(url, api_types_involved, type);
             this.cache.requestResponseCaches[index].postdatas = postdatas;
@@ -503,6 +502,14 @@ export default class ModuleAjaxCache extends Module {
             let requests: RequestResponseCacheVO[] = Array.from(self.waitingForRequest).filter((req) => req.wrappable_request);
             if (requests && (requests.length > 1)) {
 
+
+                // On map les index de retour
+                let correspondance: { [id_local: string]: string } = {};
+                for (let i in requests) {
+                    requests[i].index = i.toString();
+                    correspondance[i.toString()] = this.getUIDIndex(requests[i].url, requests[i].postdatas);
+                }
+
                 let everything_went_well: boolean = true;
 
                 // On encapsule les gets dans une requête de type post
@@ -516,13 +523,13 @@ export default class ModuleAjaxCache extends Module {
                     for (let i in requests) {
                         let wrapped_request = requests[i];
 
-                        let index = this.getIndex(wrapped_request.url, wrapped_request.postdatas);
-
-                        if ((!wrapped_request.url) || (typeof results.requests_results[index] === 'undefined')) {
+                        if ((!wrapped_request.url) || (typeof results.requests_results[i] === 'undefined')) {
                             throw new Error('Pas de résultat pour la requête :' + wrapped_request.url + ":");
                         }
 
-                        self.resolve_request(wrapped_request, results.requests_results[index]);
+                        wrapped_request.index = correspondance[i];
+
+                        self.resolve_request(wrapped_request, results.requests_results[i]);
                     }
                 } catch (error) {
                     // Si ça échoue, on utilise juste le système normal de requêtage individuel.
