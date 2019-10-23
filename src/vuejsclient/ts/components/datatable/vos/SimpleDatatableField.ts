@@ -1,6 +1,8 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import HourRange from '../../../../../shared/modules/DataRender/vos/HourRange';
 import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
+import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
@@ -9,14 +11,14 @@ import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import DateHandler from '../../../../../shared/tools/DateHandler';
+import HourHandler from '../../../../../shared/tools/HourHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import VueComponentBase from '../../VueComponentBase';
 import DatatableField from './DatatableField';
-import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
-    public static defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public static async defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): Promise<any> {
         if ((field_value == null) || (typeof field_value == "undefined")) {
             return field_value;
         }
@@ -106,6 +108,49 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                     return res_tstzranges;
 
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    if (!field_value) {
+                        return field_value;
+                    }
+
+                    let res_hourrange = "";
+
+                    let hourrange_: HourRange = field_value as HourRange;
+
+                    res_hourrange += (res_hourrange == "") ? '' : ' + ';
+
+                    res_hourrange += hourrange_.min_inclusiv ? '[' : '(';
+                    res_hourrange += HourHandler.getInstance().formatHourForIHM(hourrange_.min, moduleTableField.segmentation_type);
+                    res_hourrange += ',';
+                    res_hourrange += HourHandler.getInstance().formatHourForIHM(hourrange_.max, moduleTableField.segmentation_type);
+                    res_hourrange += hourrange_.max_inclusiv ? ']' : ')';
+
+                    return res_hourrange;
+
+                case ModuleTableField.FIELD_TYPE_hour:
+                    return HourHandler.getInstance().formatHourForIHM(field_value, moduleTableField.segmentation_type);
+
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    if (!field_value) {
+                        return field_value;
+                    }
+
+                    let res_hourranges = "";
+
+                    for (let i in field_value) {
+                        let hourrange: HourRange = field_value[i] as HourRange;
+
+                        res_hourranges += (res_hourranges == "") ? '' : ' + ';
+
+                        res_hourranges += hourrange.min_inclusiv ? '[' : '(';
+                        res_hourranges += HourHandler.getInstance().formatHourForIHM(hourrange.min, moduleTableField.segmentation_type);
+                        res_hourranges += ',';
+                        res_hourranges += HourHandler.getInstance().formatHourForIHM(hourrange.max, moduleTableField.segmentation_type);
+                        res_hourranges += hourrange.max_inclusiv ? ']' : ')';
+                    }
+
+                    return res_hourranges;
+
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                     if (!field_value) {
                         return field_value;
@@ -157,7 +202,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                         let tableFieldTypeController = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[j];
 
                         if (moduleTableField.field_type == tableFieldTypeController.name) {
-                            return tableFieldTypeController.defaultDataToReadIHM(field_value, moduleTableField, vo);
+                            return await tableFieldTypeController.defaultDataToReadIHM(field_value, moduleTableField, vo);
                         }
                     }
 
@@ -169,7 +214,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         }
     }
 
-    public static defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
+    public static async defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): Promise<any> {
         if ((field_value == null) || (typeof field_value == "undefined")) {
             return field_value;
         }
@@ -194,7 +239,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
 
                 default:
-                    return SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo);
+                    return await SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo);
             }
         } catch (error) {
             console.error(error);
@@ -401,24 +446,24 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         super(DatatableField.SIMPLE_FIELD_TYPE, datatable_field_uid, translatable_title);
     }
 
-    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
-        return SimpleDatatableField.defaultDataToReadIHM(e, this.moduleTableField, vo) as any;
+    public async dataToReadIHM(e: T, vo: IDistantVOBase): Promise<U> {
+        return await SimpleDatatableField.defaultDataToReadIHM(e, this.moduleTableField, vo) as any;
     }
-    public dataToUpdateIHM(e: T, vo: IDistantVOBase): U {
-        return SimpleDatatableField.defaultDataToUpdateIHM(e, this.moduleTableField, vo) as any;
+    public async dataToUpdateIHM(e: T, vo: IDistantVOBase): Promise<U> {
+        return await SimpleDatatableField.defaultDataToUpdateIHM(e, this.moduleTableField, vo) as any;
     }
-    public dataToCreateIHM(e: T, vo: IDistantVOBase): U {
-        return this.dataToUpdateIHM(e, vo);
+    public async dataToCreateIHM(e: T, vo: IDistantVOBase): Promise<U> {
+        return await this.dataToUpdateIHM(e, vo);
     }
 
-    public ReadIHMToData(e: U, vo: IDistantVOBase): T {
-        return SimpleDatatableField.defaultReadIHMToData(e, this.moduleTableField, vo) as any;
+    public async ReadIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
+        return await SimpleDatatableField.defaultReadIHMToData(e, this.moduleTableField, vo) as any;
     }
-    public UpdateIHMToData(e: U, vo: IDistantVOBase): T {
-        return SimpleDatatableField.defaultUpdateIHMToData(e, this.moduleTableField, vo) as any;
+    public async UpdateIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
+        return await SimpleDatatableField.defaultUpdateIHMToData(e, this.moduleTableField, vo) as any;
     }
-    public CreateIHMToData(e: U, vo: IDistantVOBase): T {
-        return this.UpdateIHMToData(e, vo);
+    public async CreateIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
+        return await this.UpdateIHMToData(e, vo);
     }
 
     get moduleTableField(): ModuleTableField<T> {
@@ -458,7 +503,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         return this.moduleTableField.getValidationTextCodeBase();
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): U {
-        return this.dataToReadIHM(e[this.datatable_field_uid], e);
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<U> {
+        return await this.dataToReadIHM(e[this.datatable_field_uid], e);
     }
 }

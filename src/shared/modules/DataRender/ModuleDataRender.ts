@@ -1,19 +1,17 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
 import { isNumber } from 'util';
-import DateHandler from '../../tools/DateHandler';
+import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import ModuleAPI from '../API/ModuleAPI';
+import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import Module from '../Module';
-import ModulesManager from '../ModulesManager';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import IRenderedData from './interfaces/IRenderedData';
 import DataRendererVO from './vos/DataRendererVO';
 import DataRenderingLogVO from './vos/DataRenderingLogVO';
 import TimeSegment from './vos/TimeSegment';
-import StringParamVO from '../API/vos/apis/StringParamVO';
-import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 
 export default class ModuleDataRender extends Module {
 
@@ -256,7 +254,7 @@ export default class ModuleDataRender extends Module {
                 continue;
             }
 
-            if (!TimeSegmentHandler.getInstance().isMomentInTimeSegment(moment(row.data_dateindex), timeSegment)) {
+            if (!TimeSegmentHandler.getInstance().isEltInSegment(moment(row.data_dateindex), timeSegment)) {
                 continue;
             }
 

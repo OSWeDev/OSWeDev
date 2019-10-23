@@ -1,5 +1,5 @@
-import FieldRangeHandler from '../../../tools/FieldRangeHandler';
-import FieldRange from '../../DataRender/vos/FieldRange';
+import IRange from '../../DataRender/interfaces/IRange';
+import RangeHandler from '../../../tools/RangeHandler';
 
 export default class MatroidBase<T> {
 
@@ -7,18 +7,18 @@ export default class MatroidBase<T> {
      * Test d'incohérence sur des ensembles qui indiqueraient inclure le min mais pas le max et où min == max (ou inversement)
      * @param ranges on clone les ranges passés en param
      */
-    public static createNew<T>(api_type_id: string, field_id: string, ranges: Array<FieldRange<T>>): MatroidBase<T> {
+    public static createNew<T>(api_type_id: string, field_id: string, ranges: Array<IRange<T>>): MatroidBase<T> {
         let res: MatroidBase<T> = new MatroidBase<T>();
 
         for (let i in ranges) {
 
-            let from_fieldrange: FieldRange<T> = ranges[i];
-            if (!from_fieldrange) {
+            let from_IRange: IRange<T> = ranges[i];
+            if (!from_IRange) {
                 return null;
             }
 
-            let res_fieldrange = FieldRangeHandler.getInstance().cloneFrom(from_fieldrange);
-            res.ranges_.push(res_fieldrange);
+            let res_IRange = RangeHandler.getInstance().cloneFrom(from_IRange);
+            res.ranges_.push(res_IRange);
         }
         res.api_type_id = api_type_id;
         res.field_id = field_id;
@@ -32,13 +32,13 @@ export default class MatroidBase<T> {
 
         for (let i in from.ranges) {
 
-            let from_fieldrange: FieldRange<T> = from.ranges[i];
-            if (!from_fieldrange) {
+            let from_IRange: IRange<T> = from.ranges[i];
+            if (!from_IRange) {
                 return null;
             }
 
-            let res_fieldrange = FieldRangeHandler.getInstance().cloneFrom(from_fieldrange);
-            res.ranges_.push(res_fieldrange);
+            let res_IRange = RangeHandler.getInstance().cloneFrom(from_IRange);
+            res.ranges_.push(res_IRange);
         }
         res.api_type_id = from.api_type_id;
         res.field_id = from.field_id;
@@ -49,11 +49,11 @@ export default class MatroidBase<T> {
     public api_type_id: string;
     public field_id: string;
 
-    private ranges_: Array<FieldRange<T>> = [];
+    private ranges_: Array<IRange<T>> = [];
 
     private constructor() { }
 
-    get ranges(): Array<FieldRange<T>> {
+    get ranges(): Array<IRange<T>> {
         return this.ranges_;
     }
 }

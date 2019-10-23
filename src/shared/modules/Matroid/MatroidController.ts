@@ -1,9 +1,6 @@
 import * as clonedeep from 'lodash/cloneDeep';
-import FieldRangeHandler from '../../tools/FieldRangeHandler';
-import NumRangeHandler from '../../tools/NumRangeHandler';
-import TSRangeHandler from '../../tools/TSRangeHandler';
+import RangeHandler from '../../tools/RangeHandler';
 import IRange from '../DataRender/interfaces/IRange';
-import FieldRange from '../DataRender/vos/FieldRange';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
@@ -67,8 +64,7 @@ export default class MatroidController {
         for (let i in fields) {
             let field = fields[i];
 
-            let controller = FieldRangeHandler.getInstance().getRelevantHandlerFromStrings(matroid._type, field.field_type);
-            res += '_' + controller.getIndexRanges(matroid[field.field_type]);
+            res += '_' + RangeHandler.getInstance().getIndexRanges(matroid[field.field_type]);
         }
 
         return res;
@@ -112,8 +108,7 @@ export default class MatroidController {
 
                 if (different_field_ids.length == 1) {
 
-                    let rangeHandler = FieldRangeHandler.getInstance().getRelevantHandlerFromStrings(moduletable.vo_type, different_field_ids[0]);
-                    matroid[different_field_ids[0]] = rangeHandler.getRangesUnion(tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]));
+                    matroid[different_field_ids[0]] = RangeHandler.getInstance().getRangesUnion(tested_matroid[different_field_ids[0]].concat(matroid[different_field_ids[0]]));
 
                     ignore_matroid = true;
                     break;
@@ -129,48 +124,6 @@ export default class MatroidController {
 
         return res;
     }
-
-    // public union(matroids: IMatroid[]): IMatroid[]{
-    //     let res: IMatroid[] = [];
-
-    //     // MAIS PAS DU TOUT :: DONC ON OUBLIE On définit l'union des matroids comme l'union des bases
-    //     //  (au sein d'une même variable ça semble accurate)
-
-    //     return res;
-    // }
-
-    // /**
-    //  * TODO FIXME ASAP VARS Si on a trop de ranges on peut pas envoyer la requête, il faut limiter le nombre de ranges ciblés au global (en scindant le matroide sur une base proablement)
-    //  * @param api_type_id
-    //  * @param matroid
-    //  */
-    // public async getVosFilteredByMatroid<T extends IDistantVOBase>(api_type_id: string, matroid: IMatroid): Promise<T[]> {
-
-    //     let field_ranges: Array<FieldRange<any>> = [];
-
-    //     let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(api_type_id);
-
-    //     for (let i in matroid_fields) {
-    //         let matroid_field = matroid_fields[i];
-    //         let matroid_field_ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
-
-    //         for (let j in matroid_field_ranges) {
-    //             let matroid_field_range = matroid_field_ranges[j];
-
-    //             field_ranges.push(FieldRangeHandler.getInstance().createNew(
-    //                 api_type_id, matroid_field.field_id,
-    //                 matroid_field_range.min, matroid_field_range.max,
-    //                 matroid_field_range.min_inclusiv, matroid_field_range.max_inclusiv));
-
-    //             if (field_ranges.length > 20) {
-    //                 console.error('getVosFilteredByMatroid:field_ranges.length>20');
-    //                 return null;
-    //             }
-    //         }
-    //     }
-
-    //     return await ModuleDAO.getInstance().filterVosByFieldRanges(api_type_id, field_ranges) as T[];
-    // }
 
     /**
      * FIXME TODO ASAP WITH TU
@@ -223,15 +176,7 @@ export default class MatroidController {
         for (let i in matroid_fields) {
 
             let field = matroid_fields[i];
-            let base_ranges: Array<FieldRange<any>> = [];
-
-            for (let j in matroid[field.field_id]) {
-                let range: IRange<any> = matroid[field.field_id][j];
-
-                base_ranges.push(FieldRangeHandler.getInstance().createNewField(matroid._type, field.field_id, range.min, range.max, range.min_inclusiv, range.max_inclusiv, range.segment_type));
-            }
-
-            matroid_bases.push(MatroidBase.createNew(matroid._type, field.field_id, base_ranges));
+            matroid_bases.push(MatroidBase.createNew(matroid._type, field.field_id, matroid[field.field_id]));
         }
 
         if (sort) {
@@ -275,8 +220,7 @@ export default class MatroidController {
                 return null;
             }
 
-            let controller = FieldRangeHandler.getInstance().getRelevantHandlerFromStrings(a._type, matroid_field.field_id);
-            if (controller.are_same(a_ranges, b_ranges)) {
+            if (RangeHandler.getInstance().are_same(a_ranges, b_ranges)) {
                 continue;
             }
 
@@ -330,7 +274,7 @@ export default class MatroidController {
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     for (let j in a_ranges) {
 
-                        if (TSRangeHandler.getInstance().range_intersects_any_range(a_ranges[j], b_ranges)) {
+                        if (RangeHandler.getInstance().range_intersects_any_range(a_ranges[j], b_ranges)) {
                             intersects = true;
                             break;
                         }
@@ -339,7 +283,7 @@ export default class MatroidController {
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                     for (let j in a_ranges) {
 
-                        if (NumRangeHandler.getInstance().range_intersects_any_range(a_ranges[j], b_ranges)) {
+                        if (RangeHandler.getInstance().range_intersects_any_range(a_ranges[j], b_ranges)) {
                             intersects = true;
                             break;
                         }
@@ -430,22 +374,9 @@ export default class MatroidController {
 
             let cutter_field_ranges: Array<IRange<any>> = matroid_cutter[matroid_to_cut_base.field_id];
 
-            let field_ranges: Array<FieldRange<any>> = [];
-            for (let j in cutter_field_ranges) {
-                let cutter_field_range = cutter_field_ranges[j];
-                field_ranges.push(FieldRange.createNew(
-                    matroid_to_cut_base.api_type_id,
-                    matroid_to_cut_base.field_id,
-                    cutter_field_range.min,
-                    cutter_field_range.max,
-                    cutter_field_range.min_inclusiv,
-                    cutter_field_range.max_inclusiv,
-                    cutter_field_range.segment_type));
-            }
-
             let matroidbase_cutter = MatroidBase.createNew(
                 matroid_to_cut_base.api_type_id, matroid_to_cut_base.field_id,
-                field_ranges);
+                cutter_field_ranges);
             let cut_result: MatroidBaseCutResult<MatroidBase<any>> = MatroidBaseController.getInstance().cut_matroid_base(matroidbase_cutter, matroid_to_cut_base);
 
             // ça marche que si il y a un remaining sur cette dimension, sinon on veut pas stocker des bases null...

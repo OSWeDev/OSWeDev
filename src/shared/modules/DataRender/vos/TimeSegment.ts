@@ -1,6 +1,7 @@
 import { Moment } from 'moment';
+import ISegment from '../interfaces/ISegment';
 
-export default class TimeSegment {
+export default class TimeSegment implements ISegment<Moment> {
     public static TYPE_NAMES: string[] = [
         "timesegment.year.type_name",
         "timesegment.month.type_name",
@@ -40,9 +41,9 @@ export default class TimeSegment {
         return new TimeSegment(date, type);
     }
 
-    private constructor(public date: Moment, public type: number) { }
+    private constructor(public index: Moment, public type: number) { }
 
     get dateIndex(): string {
-        return this.date ? this.date.format('Y-MM-DD') : null;
+        return this.index ? this.index.format('Y-MM-DD') : null;
     }
 }

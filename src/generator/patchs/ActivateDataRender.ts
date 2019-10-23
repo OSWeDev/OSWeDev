@@ -22,6 +22,11 @@ export default class ActivateDataRender implements IGeneratorWorker {
      * Objectif : Forcer le module render actif pour les anciens projets
      */
     public async work(db: IDatabase<any>) {
-        await db.none("update admin.modules set actif = true where name = 'data_render';");
+        try {
+
+            await db.none("update admin.modules set actif = true where name = 'data_render';");
+        } catch (error) {
+            console.error('ActivateDataRender : ' + error);
+        }
     }
 }

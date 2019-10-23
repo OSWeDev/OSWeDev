@@ -50,12 +50,18 @@ export default class DAGNode {
         this.markers[marker]++;
     }
 
+    public removeMarkers(dag: DAG<any>) {
+        for (let i in this.markers) {
+            this.removeMarker(i, this.dag, true);
+        }
+    }
+
     /**
      * Si un marker atteint 0 on le supprime
      */
     public removeMarker(marker: string, dag: DAG<any>, force_deletion: boolean = false) {
         if (!this.markers[marker]) {
-            console.error('Incohérence de DAG :' + this.name + ':removeMarker:' + marker + ':inexistant');
+            // console.error('Incohérence de DAG :' + this.name + ':removeMarker:' + marker + ':inexistant');
             return;
         }
 

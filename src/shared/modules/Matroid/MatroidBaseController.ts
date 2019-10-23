@@ -1,6 +1,6 @@
 import moment = require('moment');
-import FieldRangeHandler from '../../tools/FieldRangeHandler';
-import FieldRange from '../DataRender/vos/FieldRange';
+import RangeHandler from '../../tools/RangeHandler';
+import IRange from '../DataRender/interfaces/IRange';
 import MatroidBase from './vos/MatroidBase';
 import MatroidBaseCutResult from './vos/MatroidBaseCutResult';
 import RangesCutResult from './vos/RangesCutResult';
@@ -37,12 +37,11 @@ export default class MatroidBaseController {
 
         for (let i in matroid_base.ranges) {
 
-            let from_fieldrange: FieldRange<T> = matroid_base.ranges[i];
-            if (!from_fieldrange) {
+            if (!matroid_base.ranges[i]) {
                 return null;
             }
 
-            cardinal += FieldRangeHandler.getInstance().getCardinal(from_fieldrange);
+            cardinal += RangeHandler.getInstance().getCardinal(matroid_base.ranges[i]);
         }
         return cardinal;
     }
@@ -63,7 +62,7 @@ export default class MatroidBaseController {
         for (let i in a.ranges) {
             let range_a = a.ranges[i];
 
-            if (FieldRangeHandler.getInstance().range_intersects_any_range(range_a, b.ranges)) {
+            if (RangeHandler.getInstance().range_intersects_any_range(range_a, b.ranges)) {
                 return true;
             }
         }
@@ -96,17 +95,17 @@ export default class MatroidBaseController {
             return new MatroidBaseCutResult(null, matroidbase_to_cut);
         }
 
-        let cut_result: RangesCutResult<FieldRange<T>> = FieldRangeHandler.getInstance().cuts_ranges(matroidbase_cutter.ranges, matroidbase_to_cut.ranges);
+        let cut_result: RangesCutResult<IRange<T>> = RangeHandler.getInstance().cuts_ranges(matroidbase_cutter.ranges, matroidbase_to_cut.ranges);
 
         let res_chopped = (cut_result && cut_result.chopped_items && cut_result.chopped_items.length) ?
             MatroidBase.createNew(
                 matroidbase_to_cut.api_type_id, matroidbase_to_cut.field_id,
-                cut_result.chopped_items as Array<FieldRange<any>>) :
+                cut_result.chopped_items) :
             null;
         let res_remaining_items = (cut_result && cut_result.remaining_items && cut_result.remaining_items.length) ?
             MatroidBase.createNew(
                 matroidbase_to_cut.api_type_id, matroidbase_to_cut.field_id,
-                cut_result.remaining_items as Array<FieldRange<any>>) :
+                cut_result.remaining_items) :
             null;
 
         return (res_chopped || res_remaining_items) ? new MatroidBaseCutResult(

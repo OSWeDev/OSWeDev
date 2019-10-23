@@ -1,7 +1,6 @@
 import * as debounce from 'lodash/debounce';
 import ObjectHandler from '../../tools/ObjectHandler';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
-import TSRangeHandler from '../../tools/TSRangeHandler';
 import ModuleDAO from '../DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
 import TSRange from '../DataRender/vos/TSRange';
@@ -31,8 +30,7 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
-import TimeHandler from '../../tools/TimeHandler';
-import ThreadHandler from '../../tools/ThreadHandler';
+import RangeHandler from '../../tools/RangeHandler';
 
 export default class VarsController {
 
@@ -85,7 +83,9 @@ export default class VarsController {
 
     public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void = null;
 
-    private varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
+    public varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
+    public varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
+    public varDatasBATCHCache: { [index: string]: IVarDataVOBase } = {};
 
     // private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
     // private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
@@ -94,8 +94,6 @@ export default class VarsController {
     private removeVarData: (varDataParam: IVarDataParamVOBase) => void = null;
     private setStepNumber: (step_number: number) => void = null;
     private setIsStepping: (is_stepping: boolean) => void = null;
-
-    private varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
 
     private registered_vars: { [name: string]: VarConfVOBase } = {};
     private registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
@@ -120,8 +118,6 @@ export default class VarsController {
     /**
      * This is meant to handle the datas before sending it the store to avoid multiple overloading problems
      */
-    private varDatasBATCHCache: { [index: string]: IVarDataVOBase } = {};
-
 
     private datasource_deps_defined: boolean = false;
 
@@ -777,7 +773,8 @@ export default class VarsController {
     }
 
     public getTSRangeToCall(target: moment.Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
-        return TSRangeHandler.getInstance().createNew(
+        return RangeHandler.getInstance().createNew(
+            TSRange.RANGE_TYPE,
             moment('1900-01-01').startOf('day').utc(true),
             moment(target),
             min_inclusiv,
@@ -816,8 +813,8 @@ export default class VarsController {
         for (let i in tsranged_param.ts_ranges) {
             let ts_range = tsranged_param.ts_ranges[i];
 
-            let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
-            let start_range = TSRangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type);
+            let end_range = RangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
+            let start_range = RangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type);
 
             if ((start_range == null) || (end_range == null)) {
                 return null;
@@ -875,12 +872,12 @@ export default class VarsController {
             for (let i in tsranged_param.ts_ranges) {
                 let ts_range = tsranged_param.ts_ranges[i];
 
-                let end_range = TSRangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
+                let end_range = RangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
                 // TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
                 let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
                     end_range, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month).utc(true);
 
-                if (TSRangeHandler.getInstance().elt_intersects_range(closest_earlier_reset_date, ts_range)) {
+                if (RangeHandler.getInstance().elt_intersects_range(closest_earlier_reset_date, ts_range)) {
                     ts_range.min = closest_earlier_reset_date;
                     ts_range.min_inclusiv = true;
                 }
@@ -1340,14 +1337,28 @@ export default class VarsController {
                 //  plus tenter de couvrire les semaines restantes avec des calculs semaine.Alors que si on prend les 6 semaines en calculé, on couvre la totalité et on recalcule rien.
                 //  L'approximation est-elle suffisante, à voir dans le temps.
                 let matroids_list: ISimpleNumberVarMatroidData[] = [];
+                let tmp_matroids_list: ISimpleNumberVarMatroidData[] = [];
 
                 let cardinaux: { [id: number]: number } = {};
 
                 // let before = moment();
                 for (let j in matroids_inscrits) {
                     let matroid_inscrit = matroids_inscrits[j];
+
+                    if (node.ignore_unvalidated_datas) {
+                        if (!matroid_inscrit.value_ts) {
+                            continue;
+                        }
+                    }
+
                     cardinaux[matroid_inscrit.id] = MatroidController.getInstance().get_cardinal(matroid_inscrit);
+                    tmp_matroids_list.push(matroid_inscrit);
                 }
+                matroids_inscrits = tmp_matroids_list;
+                if ((!matroids_inscrits) || (matroids_inscrits.length <= 0)) {
+                    return;
+                }
+
                 matroids_inscrits.sort((a: ISimpleNumberVarMatroidData, b: ISimpleNumberVarMatroidData) =>
                     cardinaux[b.id] - cardinaux[a.id]);
                 // this.get_cardinal_time += moment().diff(before);
