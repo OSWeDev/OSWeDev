@@ -9,6 +9,10 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
 import moment = require('moment');
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
+import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
+import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -59,6 +63,12 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     @Prop({ default: true })
     public use_intersector: boolean;
+
+    @Prop({ default: false })
+    public add_infos: string[]; // tableau de champs que l'on veut afficher
+
+    @Prop({ default: false })
+    public add_infos_additional_params: any[];  // tableau des params pour chacun des champs présents dans add_infos
 
     private entered_once: boolean = false;
 
@@ -317,6 +327,27 @@ export default class VarDataRefComponent extends VueComponentBase {
         return this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)], true);
     }
 
+    get var_index(): string {
+        if (!this.var_param) {
+            return null;
+        }
+
+        return VarsController.getInstance().getIndex(this.var_param);
+    }
+
+    get has_loaded_data(): boolean {
+        if (!this.add_infos || this.add_infos.length == 0) {
+            return false;
+        }
+        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+
+        if ((!node) || (!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
+            return false;
+        }
+
+        return true;
+    }
+
     get var_data(): IVarDataVOBase {
 
         if (!this.entered_once) {
@@ -388,5 +419,71 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         this.setDescSelectedIndex(VarsController.getInstance().getIndex(this.var_param));
+    }
+
+    private displayLoadedData(): void {
+        if (!this.has_loaded_data || !this.add_infos) {
+            return;
+        }
+        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+
+        let res: string = "";
+        for (let i in vardagnode.loaded_datas_matroids) {
+            let matroid = vardagnode.loaded_datas_matroids[i];
+
+            res += ((res == "") ? "" : ";") + this.get_values_of_selected_fields(matroid, this.add_infos);
+        }
+        this.snotify.info(res);
+    }
+
+    public get_values_of_selected_fields(matroid, add_infos: string[]): string {
+        if ((!this.var_param) || (!matroid)) {
+            return null;
+        }
+
+        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+
+        if (!controller) {
+            return null;
+        }
+
+        let res: string = "";
+        let nb_fields: number = 0;
+        // let param: any = {};
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
+
+        for (let i in moduletable.fields) {
+            let field = moduletable.fields[i];
+
+            // les champs que l'on souhaite afficher doivent être dans add_infos, sinon on les passe
+            if ((add_infos.length > 0) && (add_infos.indexOf(field.field_id) < 0)) {
+                continue;
+            }
+            let pos: number = add_infos.indexOf(field.field_id);
+            res += (nb_fields > 0) ? ' : ' : '';
+
+            // est-ce qu'on doit afficher le nom du champ
+            res += (this.add_infos_additional_params[pos][0]) ? field.field_id : '';
+
+            // comment affiche t'on le tsrange (min, max, ou complet)
+            if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                let tstzrange: TSRange = matroid[field.field_id][0] as TSRange;
+                switch (this.add_infos_additional_params[pos][1]) {
+                    case 'min':
+                        res += tstzrange.min.format('DD/MM/Y');
+                        break;
+                    case 'max':
+                        res += tstzrange.max.format('DD/MM/Y');
+                        break;
+                    default:
+                        res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+                }
+            } else {
+                res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+            }
+            nb_fields++;
+        }
+
+        return res;
     }
 }

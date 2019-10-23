@@ -164,7 +164,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return field_value.toString();
             }
         } catch (error) {
-            console.error(error);
+            // console.error(error);
             return field_value;
         }
     }
