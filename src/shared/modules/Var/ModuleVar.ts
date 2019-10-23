@@ -1,20 +1,13 @@
-import Module from '../Module';
-import ModuleTableField from '../ModuleTableField';
-import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
-import ModuleTable from '../ModuleTable';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import DefaultTranslationManager from '../Translation/DefaultTranslationManager';
-import VarsController from './VarsController';
-import moment = require('moment');
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import Module from '../Module';
+import ModuleTable from '../ModuleTable';
+import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import ISimpleNumberVarData from './interfaces/ISimpleNumberVarData';
-import ModuleAPI from '../API/ModuleAPI';
-import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import APIDAOIdsRangesParamsVO from '../DAO/vos/APIDAOIdsRangesParamsVO';
-import APIDAORangesParamsVO from '../DAO/vos/APIDAORangesParamsVO';
-import FieldRange from '../DataRender/vos/FieldRange';
-import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
+import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
+import VarsController from './VarsController';
+import moment = require('moment');
 
 export default class ModuleVar extends Module {
 
@@ -27,8 +20,8 @@ export default class ModuleVar extends Module {
     public static POLICY_BO_IMPORTED_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_IMPORTED_ACCESS';
     public static POLICY_DESC_MODE_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.DESC_MODE_ACCESS';
 
-    public static APINAME_INVALIDATE_MATROID: string = 'invalidate_matroid';
-    public static APINAME_register_matroid_for_precalc: string = 'register_matroid_for_precalc';
+    // public static APINAME_INVALIDATE_MATROID: string = 'invalidate_matroid';
+    // public static APINAME_register_matroid_for_precalc: string = 'register_matroid_for_precalc';
 
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
@@ -54,32 +47,32 @@ export default class ModuleVar extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
-            ModuleVar.APINAME_INVALIDATE_MATROID,
-            (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
-        ));
+        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
+        //     ModuleVar.APINAME_INVALIDATE_MATROID,
+        //     (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
+        // ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
-            ModuleVar.APINAME_register_matroid_for_precalc,
-            (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
-        ));
+        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
+        //     ModuleVar.APINAME_register_matroid_for_precalc,
+        //     (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
+        // ));
     }
 
-    public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {
-        if ((!matroid_param) || (!matroid_param._type)) {
-            return null;
-        }
+    // public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {
+    //     if ((!matroid_param) || (!matroid_param._type)) {
+    //         return null;
+    //     }
 
-        return ModuleAPI.getInstance().handleAPI<APIDAORangesParamsVO, void>(ModuleVar.APINAME_INVALIDATE_MATROID, matroid_param);
-    }
+    //     return ModuleAPI.getInstance().handleAPI<APIDAORangesParamsVO, void>(ModuleVar.APINAME_INVALIDATE_MATROID, matroid_param);
+    // }
 
-    public async register_matroid_for_precalc(matroid_param: IVarMatroidDataParamVO): Promise<void> {
-        if ((!matroid_param) || (!matroid_param._type)) {
-            return null;
-        }
+    // public async register_matroid_for_precalc(matroid_param: IVarMatroidDataParamVO): Promise<void> {
+    //     if ((!matroid_param) || (!matroid_param._type)) {
+    //         return null;
+    //     }
 
-        return ModuleAPI.getInstance().handleAPI<APIDAORangesParamsVO, void>(ModuleVar.APINAME_register_matroid_for_precalc, matroid_param);
-    }
+    //     return ModuleAPI.getInstance().handleAPI<APIDAORangesParamsVO, void>(ModuleVar.APINAME_register_matroid_for_precalc, matroid_param);
+    // }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {
         await VarsController.getInstance().initialize();

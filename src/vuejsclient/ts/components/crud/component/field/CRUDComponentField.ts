@@ -228,7 +228,7 @@ export default class CRUDComponentField extends VueComponentBase {
         }
     }
 
-    private asyncLoadOptions(query) {
+    private async asyncLoadOptions(query) {
         this.isLoadingOptions = true;
 
         if ((!this.field) ||
@@ -247,7 +247,7 @@ export default class CRUDComponentField extends VueComponentBase {
         for (let i in options) {
             let option = options[i];
 
-            if (manyToOne.dataToHumanReadable(option).match(new RegExp(query, 'i'))) {
+            if ((await manyToOne.dataToHumanReadable(option)).match(new RegExp(query, 'i'))) {
 
                 if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);

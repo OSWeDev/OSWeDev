@@ -1,8 +1,7 @@
 .var_desc
     .card
         .card-header {{ var_name }}
-            i.fa.fa-eye-slash.fa-fw(aria-hidden="true" v-if='!is_selected_var' @click='select_var')
-            i.fa.fa-eye.fa-fw(aria-hidden="true" v-if='is_selected_var' @click='un_select_var')
+            i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_data')
         .card-body
             h5.card-title {{ label('var.desc_mode.var_description') }}
             p.card-text {{ var_description }}
@@ -43,7 +42,7 @@
                 
             h5.card-title {{ label('var.desc_mode.var_data') }}
             var-data(:var_param='var_param')
-    
+
             .row
                 .col-md-12
                     svg(width=400 height=300)

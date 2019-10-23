@@ -6,6 +6,7 @@ import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
 import ModulePushDataServer from '../../PushData/ModulePushDataServer';
+import ServerBase from '../../../ServerBase';
 
 export default class PasswordReset {
 
@@ -23,7 +24,7 @@ export default class PasswordReset {
 
     public async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " WHERE t.email = $1", [email]);
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
@@ -47,6 +48,10 @@ export default class PasswordReset {
         } catch (error) {
             return false;
         }
+
+        // On doit se comporter comme un server à ce stade
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        httpContext.set('IS_CLIENT', false);
 
         await ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
         await ModuleDAO.getInstance().insertOrUpdateVO(user);

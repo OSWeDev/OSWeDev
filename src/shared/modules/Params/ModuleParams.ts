@@ -18,6 +18,7 @@ export default class ModuleParams extends Module {
 
     public static APINAME_getParamValue: string = "getParamValue";
     public static APINAME_setParamValue: string = "setParamValue";
+    public static APINAME_setParamValue_if_not_exists: string = "setParamValue_if_not_exists";
 
     public static getInstance(): ModuleParams {
         if (!ModuleParams.instance) {
@@ -50,6 +51,12 @@ export default class ModuleParams extends Module {
             [ParamVO.API_TYPE_ID],
             SetParamParamVO.translateCheckAccessParams
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
+            ModuleParams.APINAME_setParamValue_if_not_exists,
+            [ParamVO.API_TYPE_ID],
+            SetParamParamVO.translateCheckAccessParams
+        ));
     }
 
     public initialize() {
@@ -72,5 +79,9 @@ export default class ModuleParams extends Module {
 
     public async setParamValue(param_name: string, param_value: string): Promise<void> {
         return await ModuleAPI.getInstance().handleAPI<SetParamParamVO, void>(ModuleParams.APINAME_setParamValue, param_name, param_value);
+    }
+
+    public async setParamValue_if_not_exists(param_name: string, param_value: string): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<SetParamParamVO, void>(ModuleParams.APINAME_setParamValue_if_not_exists, param_name, param_value);
     }
 }

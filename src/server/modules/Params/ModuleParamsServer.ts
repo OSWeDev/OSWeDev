@@ -33,6 +33,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleParams.APINAME_getParamValue, this.getParamValue.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue, this.setParamValue.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleParams.APINAME_setParamValue_if_not_exists, this.setParamValue_if_not_exists.bind(this));
     }
 
     /**
@@ -66,6 +67,20 @@ export default class ModuleParamsServer extends ModuleServerBase {
             param = new ParamVO();
             param.name = set_param.param_name;
         }
+        param.value = set_param.param_value;
+        param.last_up_date = moment();
+        await ModuleDAO.getInstance().insertOrUpdateVO(param);
+    }
+
+    public async setParamValue_if_not_exists(set_param: SetParamParamVO) {
+        let param: ParamVO = await ModuleDAO.getInstance().getNamedVoByName<ParamVO>(ParamVO.API_TYPE_ID, set_param.param_name);
+
+        if (!!param) {
+            return;
+        }
+
+        param = new ParamVO();
+        param.name = set_param.param_name;
         param.value = set_param.param_value;
         param.last_up_date = moment();
         await ModuleDAO.getInstance().insertOrUpdateVO(param);

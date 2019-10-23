@@ -17,11 +17,11 @@ export default class ComponentDatatableField<T, U> extends DatatableField<T, U> 
         this.setUID_for_readDuplicateOnly(datatable_field_uid);
     }
 
-    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
+    public async dataToReadIHM(e: T, vo: IDistantVOBase): Promise<U> {
         return null;
     }
 
-    public ReadIHMToData(e: U, vo: IDistantVOBase): T {
+    public async ReadIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
         return undefined;
     }
 
@@ -36,7 +36,7 @@ export default class ComponentDatatableField<T, U> extends DatatableField<T, U> 
         return this;
     }
 
-    public dataToHumanReadableField(e: IDistantVOBase): U {
+    public async dataToHumanReadableField(e: IDistantVOBase): Promise<U> {
         return null;
     }
 }

@@ -12,13 +12,13 @@ import IBGThread from './interfaces/IBGThread';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
-    public static TIMEOUT_COEF_LITTLE_BIT_SLOWER: number = 0.8;
-    public static TIMEOUT_COEF_SLOWER: number = 0.5;
-    public static TIMEOUT_COEF_SLEEP: number = 0.1;
+    public static TIMEOUT_COEF_LITTLE_BIT_SLOWER: number = 1.25;
+    public static TIMEOUT_COEF_SLOWER: number = 2;
+    public static TIMEOUT_COEF_SLEEP: number = 10;
 
-    public static TIMEOUT_COEF_LITTLE_BIT_FASTER: number = 1.25;
-    public static TIMEOUT_COEF_FASTER: number = 2;
-    public static TIMEOUT_COEF_RUN: number = 10;
+    public static TIMEOUT_COEF_LITTLE_BIT_FASTER: number = 0.8;
+    public static TIMEOUT_COEF_FASTER: number = 0.5;
+    public static TIMEOUT_COEF_RUN: number = 0.1;
 
 
     public static DEFAULT_initial_timeout: number = 30000;

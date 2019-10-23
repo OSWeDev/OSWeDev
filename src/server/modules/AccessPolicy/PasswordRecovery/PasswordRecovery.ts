@@ -10,6 +10,8 @@ import TranslationVO from '../../../../shared/modules/Translation/vos/Translatio
 
 import recovery_mail_html_template from './recovery_mail_html_template.html';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
+import ServerBase from '../../../ServerBase';
 
 export default class PasswordRecovery {
 
@@ -29,11 +31,15 @@ export default class PasswordRecovery {
 
     public async beginRecovery(email: string): Promise<boolean> {
 
-        let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " WHERE t.email = $1", [email]);
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
 
         if (!user) {
             return false;
         }
+
+        // On doit se comporter comme un server à ce stade
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        httpContext.set('IS_CLIENT', false);
 
         // on génère un code qu'on stocke dans le user en base (en datant) et qu'on envoie par mail
         let challenge: string = TextHandler.getInstance().generateChallenge();
