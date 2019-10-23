@@ -1673,6 +1673,7 @@ export default class RangeHandler {
                 for (let i = min; i <= max; (i as any as number)++) {
                     await callback(i);
                 }
+                return;
 
             case HourRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
@@ -1680,6 +1681,7 @@ export default class RangeHandler {
                     await callback(min);
                     HourSegmentHandler.getInstance().incElt(min as any as moment.Duration, segment_type, 1);
                 }
+                return;
 
             case TSRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
@@ -1687,6 +1689,7 @@ export default class RangeHandler {
                     await callback(min);
                     TimeSegmentHandler.getInstance().incMoment(min as any as Moment, segment_type, 1);
                 }
+                return;
         }
     }
 
