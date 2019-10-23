@@ -12,7 +12,7 @@
 
     multiselect(
         v-model="field_value",
-        :custom-label="field.voIdToHumanReadable",
+        :custom-label="voIdToHumanReadableFunction",
         :options="select_options",
         :placeholder="t(field.translatable_place_holder)",
         :loading="isLoadingOptions",

@@ -30,7 +30,7 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
         return this;
     }
 
-    public async dataToHumanReadableField(e: IDistantVOBase): Promise<any> {
+    public dataToHumanReadableField(e: IDistantVOBase): any {
         let res = "";
 
         let dest_ids: number[] = [];
@@ -47,13 +47,13 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
         }
 
         for (let desti in dest_ids) {
-            let thisvalue: string = await this.dataToHumanReadable(vos[this.targetModuleTable.vo_type][dest_ids[desti]]);
+            let thisvalue: string = this.dataToHumanReadable(vos[this.targetModuleTable.vo_type][dest_ids[desti]]);
             res += (res != "") ? " " + thisvalue : thisvalue;
         }
         return res;
     }
 
-    public async dataToReadIHM(e: number, vo: IDistantVOBase): Promise<any> {
+    public dataToReadIHM(e: number, vo: IDistantVOBase): any {
 
         let dest_ids: number[] = [];
 

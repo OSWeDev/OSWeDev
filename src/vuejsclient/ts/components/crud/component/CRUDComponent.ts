@@ -489,7 +489,7 @@ export default class CRUDComponent extends VueComponentBase {
         this.$router.push(this.callback_route);
         this.creating_vo = false;
 
-        this.callCallbackFunctionCreate();
+        await this.callCallbackFunctionCreate();
 
         if (CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud.api_type_id].reset_newvo_after_each_creation) {
             this.prepareNewVO();
@@ -546,7 +546,7 @@ export default class CRUDComponent extends VueComponentBase {
                     await ModuleDAO.getInstance().insertOrUpdateVOs(need_update_links);
                     for (let linki in need_update_links) {
 
-                        this.updateData(need_update_links[linki]);
+                        await this.updateData(need_update_links[linki]);
                     }
                 }
             }
@@ -692,7 +692,7 @@ export default class CRUDComponent extends VueComponentBase {
         this.$router.push(this.callback_route);
         this.updating_vo = false;
 
-        this.callCallbackFunctionUpdate();
+        await this.callCallbackFunctionUpdate();
     }
 
     private async deleteVO() {
@@ -795,8 +795,8 @@ export default class CRUDComponent extends VueComponentBase {
             fileVo[field.datatable_field_uid] = tmp;
 
             await ModuleDAO.getInstance().insertOrUpdateVOs([this.editableVO, fileVo]);
-            this.updateData(this.editableVO);
-            this.updateData(fileVo);
+            await this.updateData(this.editableVO);
+            await this.updateData(fileVo);
         }
 
         // On ferme la modal, devenue inutile

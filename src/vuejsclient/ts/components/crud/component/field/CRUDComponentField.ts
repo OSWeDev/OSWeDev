@@ -52,6 +52,7 @@ export default class CRUDComponentField extends VueComponentBase {
     private isLoadingOptions: boolean = false;
     private field_value: any = null;
     private field_value_range: any = {};
+    private voIdToHumanReadable: string = null;
 
     public async mounted() { }
 
@@ -60,12 +61,13 @@ export default class CRUDComponentField extends VueComponentBase {
     @Watch('datatable', { immediate: true })
     @Watch('default_field_data', { immediate: true })
     @Watch('field_select_options_enabled', { immediate: true })
-    private reload_field_value(): void {
+    private async reload_field_value(): Promise<void> {
         this.field_value = this.vo[this.field.datatable_field_uid];
+        this.voIdToHumanReadable = await this.field.dataToHumanReadableField(this.vo);
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
         if (!this.datatable) {
-            this.field_value = this.field.dataToUpdateIHM(this.field_value, this.vo);
+            this.field_value = await this.field.dataToUpdateIHM(this.field_value, this.vo);
         }
 
         // JNE : je sais pas si il faut se placer au dessus ou en dessous de ça ...
@@ -79,6 +81,10 @@ export default class CRUDComponentField extends VueComponentBase {
         }
 
         this.prepare_select_options();
+    }
+
+    private voIdToHumanReadableFunction(): string {
+        return this.voIdToHumanReadable;
     }
 
     private formatDateForField(date: string, separator: string = '/'): string {
@@ -283,7 +289,7 @@ export default class CRUDComponentField extends VueComponentBase {
         this.select_options = newOptions;
     }
 
-    private onChangeField() {
+    private async onChangeField() {
         if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
             let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
@@ -306,7 +312,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
         if (!this.datatable) {
-            this.field_value = this.field.UpdateIHMToData(this.field_value, this.vo);
+            this.field_value = await this.field.UpdateIHMToData(this.field_value, this.vo);
         }
 
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);

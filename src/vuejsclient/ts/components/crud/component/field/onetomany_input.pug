@@ -6,8 +6,8 @@
             i.fa.fa-plus-circle
 
     multiselect(
-        v-model="field_value",        
-        :custom-label="field.voIdToHumanReadable",        
+        v-model="field_value",
+        :custom-label="voIdToHumanReadableFunction",
         :options="select_options",
         :placeholder="t(field.translatable_place_holder)",
         :loading="isLoadingOptions",

@@ -158,7 +158,7 @@ export default abstract class DatatableField<T, U> {
      * A modifier pour gérer le dataToIHM en fonction des types d'entrée sortie.
      * Par défaut on renvoie sans modification. Attention au typage.
      */
-    public async dataToReadIHM(e: T, vo: IDistantVOBase): Promise<U> {
+    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
         return e as any;
     }
 
@@ -166,23 +166,23 @@ export default abstract class DatatableField<T, U> {
      * A modifier pour gérer le dataToIHM en fonction des types d'entrée sortie.
      * Par défaut on renvoie comme le read.
      */
-    public async dataToUpdateIHM(e: T, vo: IDistantVOBase): Promise<U> {
-        return await this.dataToReadIHM(e, vo);
+    public dataToUpdateIHM(e: T, vo: IDistantVOBase): U {
+        return this.dataToReadIHM(e, vo);
     }
 
     /**
      * A modifier pour gérer le dataToIHM en fonction des types d'entrée sortie.
      * Par défaut on renvoie comme le read.
      */
-    public async dataToCreateIHM(e: T, vo: IDistantVOBase): Promise<U> {
-        return await this.dataToReadIHM(e, vo);
+    public dataToCreateIHM(e: T, vo: IDistantVOBase): U {
+        return this.dataToReadIHM(e, vo);
     }
 
     /**
      * A modifier pour gérer le IHMToData en fonction des types d'entrée sortie.
      * Par défaut on renvoie sans modification. Attention au typage.
      */
-    public async ReadIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
+    public ReadIHMToData(e: U, vo: IDistantVOBase): T {
         return e as any;
     }
 
@@ -190,16 +190,16 @@ export default abstract class DatatableField<T, U> {
      * A modifier pour gérer le IHMToData en fonction des types d'entrée sortie.
      * Par défaut on renvoie comme le read.
      */
-    public async UpdateIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
-        return await this.ReadIHMToData(e, vo);
+    public UpdateIHMToData(e: U, vo: IDistantVOBase): T {
+        return this.ReadIHMToData(e, vo);
     }
 
     /**
      * A modifier pour gérer le IHMToData en fonction des types d'entrée sortie.
      * Par défaut on renvoie comme le read.
      */
-    public async CreateIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
-        return await this.ReadIHMToData(e, vo);
+    public CreateIHMToData(e: U, vo: IDistantVOBase): T {
+        return this.ReadIHMToData(e, vo);
     }
 
     public getValidationTextCodeBase(): string {
@@ -207,7 +207,7 @@ export default abstract class DatatableField<T, U> {
     }
 
 
-    public async dataToHumanReadableField(e: IDistantVOBase): Promise<U> {
+    public dataToHumanReadableField(e: IDistantVOBase): U {
         return null;
     }
 

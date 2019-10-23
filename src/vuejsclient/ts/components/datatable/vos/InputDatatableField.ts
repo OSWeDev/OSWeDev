@@ -13,11 +13,11 @@ export default class InputDatatableField<T, U> extends DatatableField<T, U> {
         this.setUID_for_readDuplicateOnly(datatable_field_uid);
     }
 
-    public async dataToReadIHM(e: T, vo: IDistantVOBase): Promise<U> {
+    public dataToReadIHM(e: T, vo: IDistantVOBase): U {
         return null;
     }
 
-    public async ReadIHMToData(e: U, vo: IDistantVOBase): Promise<T> {
+    public ReadIHMToData(e: U, vo: IDistantVOBase): T {
         return null;
     }
 

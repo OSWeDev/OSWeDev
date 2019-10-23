@@ -31,7 +31,7 @@ export default class OneToManyReferenceDatatableField<Target extends IDistantVOB
         return this;
     }
 
-    public async dataToReadIHM(e: number, vo: IDistantVOBase): Promise<any> {
+    public dataToReadIHM(e: number, vo: IDistantVOBase): any {
 
         let res: number[] = [];
 
