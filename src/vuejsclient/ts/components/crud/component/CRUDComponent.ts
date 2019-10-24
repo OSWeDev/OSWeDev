@@ -88,7 +88,7 @@ export default class CRUDComponent extends VueComponentBase {
             this.$router.replace({ query: this.read_query });
         }
         await this.reload_datas();
-        this.handle_modal_show_hide();
+        await this.handle_modal_show_hide();
     }
 
     @Watch("$route")
@@ -112,17 +112,23 @@ export default class CRUDComponent extends VueComponentBase {
             $('#deleteData').modal('hide');
         }
 
+        let vo: IDistantVOBase = this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id];
+        
+        if (CRUDComponentManager.getInstance().callback_handle_modal_show_hide) {
+            await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo);
+        }
+
         if (this.modal_show_create) {
             $('#createData').modal('show');
             return;
         }
         if (this.modal_show_update) {
-            this.setSelectedVOs([this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id]]);
+            this.setSelectedVOs([vo]);
             $('#updateData').modal('show');
             return;
         }
         if (this.modal_show_delete) {
-            this.setSelectedVOs([this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id]]);
+            this.setSelectedVOs([vo]);
             $('#deleteData').modal('show');
             return;
         }
