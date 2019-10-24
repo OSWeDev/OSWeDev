@@ -1,5 +1,4 @@
 import * as $ from 'jquery';
-import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
@@ -11,12 +10,14 @@ import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../../../shared/tools/DateHandler';
+import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DatatableComponent from '../../datatable/component/DatatableComponent';
 import Datatable from '../../datatable/vos/Datatable';
 import DatatableField from '../../datatable/vos/DatatableField';
 import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
+import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
 import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
@@ -25,8 +26,6 @@ import CRUDComponentManager from '../CRUDComponentManager';
 import CRUD from '../vos/CRUD';
 import "./CRUDComponent.scss";
 import CRUDComponentField from './field/CRUDComponentField';
-import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
-import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -43,11 +42,11 @@ export default class CRUDComponent extends VueComponentBase {
     @ModuleDAOAction
     public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
     @ModuleDAOAction
-    public updateData: (vo: IDistantVOBase) => Promise<void>;
+    public updateData: (vo: IDistantVOBase) => void;
     @ModuleDAOAction
     public removeData: (infos: { API_TYPE_ID: string, id: number }) => void;
     @ModuleDAOAction
-    public storeData: (vo: IDistantVOBase) => Promise<void>;
+    public storeData: (vo: IDistantVOBase) => void;
     @ModuleCRUDAction
     public setSelectedVOs: (selectedVOs: IDistantVOBase[]) => void;
 
@@ -546,7 +545,7 @@ export default class CRUDComponent extends VueComponentBase {
                     await ModuleDAO.getInstance().insertOrUpdateVOs(need_update_links);
                     for (let linki in need_update_links) {
 
-                        await this.updateData(need_update_links[linki]);
+                        this.updateData(need_update_links[linki]);
                     }
                 }
             }
@@ -795,8 +794,8 @@ export default class CRUDComponent extends VueComponentBase {
             fileVo[field.datatable_field_uid] = tmp;
 
             await ModuleDAO.getInstance().insertOrUpdateVOs([this.editableVO, fileVo]);
-            await this.updateData(this.editableVO);
-            await this.updateData(fileVo);
+            this.updateData(this.editableVO);
+            this.updateData(fileVo);
         }
 
         // On ferme la modal, devenue inutile

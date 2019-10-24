@@ -7,7 +7,7 @@
 
     multiselect(
         v-model="field_value",
-        :custom-label="voIdToHumanReadableFunction",
+        :custom-label="field.voIdToHumanReadable",
         :options="select_options",
         :placeholder="t(field.translatable_place_holder)",
         :loading="isLoadingOptions",
