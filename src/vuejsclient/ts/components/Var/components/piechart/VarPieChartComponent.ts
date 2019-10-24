@@ -49,6 +49,8 @@ export default class VarPieChartComponent extends VueComponentBase {
     // private datasets: any[] = [];
     private labels: string[] = [];
 
+    private rendered: boolean = false;
+
     public mounted() {
 
         this.render_chart_js();
@@ -134,6 +136,7 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         // this.set_datasets();
         this.set_labels();
+        this.onchange_all_data_loaded();
     }
 
     @Watch('var_dataset_descriptor')
@@ -166,6 +169,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         this.set_labels();
+        this.onchange_all_data_loaded();
     }
 
     @Watch("all_data_loaded")
@@ -232,8 +236,14 @@ export default class VarPieChartComponent extends VueComponentBase {
             return;
         }
 
+        if (!!this.rendered) {
+            // Issu de Bar
+            this.$data._chart.destroy();
+        }
+        this.rendered = true;
+
         // Issu de Pie
-        this['renderChart'](
+        (this as any).renderChart(
             this.chartData,
             this.chartOptions
         );

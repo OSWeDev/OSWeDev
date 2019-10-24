@@ -230,8 +230,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     private calendar_key: number = 1;
 
-    private fcConfig: any = null;
-
     private debounced_onchange_calendar_date = debounce(this.onchange_calendar_date, 1000);
 
     get route_path(): string {
@@ -634,7 +632,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         return ProgramPlanControllerBase.getInstance().getResourceName(first_name, name);
     }
 
-    private async get_planningResources() {
+    get planningResources() {
         // On veut un tableau avec des éléments de ce type:
         // {
         //   id: 1,
@@ -675,7 +673,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     if (target_table && target_table.default_label_field) {
                         target_name = (!!target) ? target[target_table.default_label_field.field_id] : "";
                     } else if (target_table && target_table.table_label_function) {
-                        target_name = (!!target) ? await target_table.table_label_function(target) : "";
+                        target_name = (!!target) ? target_table.table_label_function(target) : "";
                     }
 
                     res.push({
@@ -1026,13 +1024,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         this.snotify.success(this.label('programplan.fc.update.ok'));
     }
 
-    /**
-     * On peut être amenés à changer les paramètres en fonction des types disponibles :
-     *  Si on a défini des taches et types de taches, on utilise plus les targets, et on pose des tasks sur des targets plutôt
-     */
-    @Watch('valid_targets', { immediate: true })
-    @Watch('valid_facilitators', { immediate: true })
-    private async set_fcConfig() {
+    get fcConfig() {
 
         let resourceColumns = [];
         let facilitator_column = {
@@ -1078,7 +1070,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             slotLabelFormat.push('a');
         }
 
-        this.fcConfig = {
+        return {
             locale: 'fr',
             timeZone: 'locale',
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
@@ -1125,7 +1117,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             resourceLabelText: this.label('programplan.fc.resourcelabeltext.name'),
             slotLabelFormat,
             resourceColumns,
-            resources: await this.get_planningResources(),
+            resources: this.planningResources
         };
     }
 
@@ -1836,21 +1828,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
             }
             this.valid_facilitators.push(facilitator);
         }
-    }
-
-    @Watch('valid_targets', { deep: true, immediate: true })
-    @Watch('valid_facilitators', { deep: true, immediate: true })
-    @Watch('calendar_date', { deep: true, immediate: true })
-    @Watch('can_edit_any', { immediate: true })
-    private debounce_set_fcConfig() {
-        this.debounced_set_fcConfig();
-    }
-
-    get debounced_set_fcConfig() {
-        let self = this;
-        return debounce(async () => {
-            await self.set_fcConfig();
-        }, ProgramPlanControllerBase.getInstance().reset_rdvs_debouncer);
     }
 
     @Watch('valid_targets', { deep: true, immediate: true })

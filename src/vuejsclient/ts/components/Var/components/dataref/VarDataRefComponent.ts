@@ -177,6 +177,57 @@ export default class VarDataRefComponent extends VueComponentBase {
         return false;
     }
 
+    public get_values_of_selected_fields(matroid, add_infos: string[]): string {
+        if ((!this.var_param) || (!matroid)) {
+            return null;
+        }
+
+        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+
+        if (!controller) {
+            return null;
+        }
+
+        let res: string = "";
+        let nb_fields: number = 0;
+        // let param: any = {};
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
+
+        for (let i in moduletable.get_fields()) {
+            let field = moduletable.get_fields()[i];
+
+            // les champs que l'on souhaite afficher doivent être dans add_infos, sinon on les passe
+            if ((add_infos.length > 0) && (add_infos.indexOf(field.field_id) < 0)) {
+                continue;
+            }
+            let pos: number = add_infos.indexOf(field.field_id);
+            res += (nb_fields > 0) ? ' : ' : '';
+
+            // est-ce qu'on doit afficher le nom du champ
+            res += (this.add_infos_additional_params[pos][0]) ? field.field_id : '';
+
+            // comment affiche t'on le tsrange (min, max, ou complet)
+            if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+                let tstzrange: TSRange = matroid[field.field_id][0] as TSRange;
+                switch (this.add_infos_additional_params[pos][1]) {
+                    case 'min':
+                        res += tstzrange.min.format('DD/MM/Y');
+                        break;
+                    case 'max':
+                        res += tstzrange.max.format('DD/MM/Y');
+                        break;
+                    default:
+                        res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+                }
+            } else {
+                res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+            }
+            nb_fields++;
+        }
+
+        return res;
+    }
+
     get is_dependencies_heatmap_lvl_0(): boolean {
         if (!this.isDescMode) {
             return false;
@@ -411,57 +462,6 @@ export default class VarDataRefComponent extends VueComponentBase {
         if (new_var_param) {
             this.register();
         }
-    }
-
-    public get_values_of_selected_fields(matroid, add_infos: string[]): string {
-        if ((!this.var_param) || (!matroid)) {
-            return null;
-        }
-
-        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
-
-        if (!controller) {
-            return null;
-        }
-
-        let res: string = "";
-        let nb_fields: number = 0;
-        // let param: any = {};
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
-
-        for (let i in moduletable.get_fields()) {
-            let field = moduletable.get_fields()[i];
-
-            // les champs que l'on souhaite afficher doivent être dans add_infos, sinon on les passe
-            if ((add_infos.length > 0) && (add_infos.indexOf(field.field_id) < 0)) {
-                continue;
-            }
-            let pos: number = add_infos.indexOf(field.field_id);
-            res += (nb_fields > 0) ? ' : ' : '';
-
-            // est-ce qu'on doit afficher le nom du champ
-            res += (this.add_infos_additional_params[pos][0]) ? field.field_id : '';
-
-            // comment affiche t'on le tsrange (min, max, ou complet)
-            if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
-                let tstzrange: TSRange = matroid[field.field_id][0] as TSRange;
-                switch (this.add_infos_additional_params[pos][1]) {
-                    case 'min':
-                        res += tstzrange.min.format('DD/MM/Y');
-                        break;
-                    case 'max':
-                        res += tstzrange.max.format('DD/MM/Y');
-                        break;
-                    default:
-                        res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
-                }
-            } else {
-                res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
-            }
-            nb_fields++;
-        }
-
-        return res;
     }
 
     private displayLoadedData(): void {

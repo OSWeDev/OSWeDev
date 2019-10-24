@@ -13,6 +13,10 @@ import moment = require('moment');
 
 @Component({
     extends: Bar
+    // template: require('./VarDataBarChartComponent.pug'),
+    // components: {
+    //     Bar: Bar
+    // }
 })
 export default class VarDataBarChartComponent extends VueComponentBase {
     @ModuleVarGetter
@@ -49,9 +53,12 @@ export default class VarDataBarChartComponent extends VueComponentBase {
     // private datasets: any[] = [];
     private labels: string[] = [];
 
+    // private chartData: any = {};
+    // private chartOptions: any = {};
+    private rendered = false;
+
     public mounted() {
 
-        this.render_chart_js();
     }
 
     public destroyed() {
@@ -159,6 +166,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
 
         // this.set_datasets();
         this.set_labels();
+        this.onchange_all_data_loaded();
     }
 
     @Watch('var_dataset_descriptors')
@@ -201,6 +209,9 @@ export default class VarDataBarChartComponent extends VueComponentBase {
 
         // this.set_datasets();
         this.set_labels();
+        this.onchange_all_data_loaded();
+        // this.set_chartData();
+        // this.set_chartOptions();
     }
 
     @Watch("all_data_loaded")
@@ -208,8 +219,21 @@ export default class VarDataBarChartComponent extends VueComponentBase {
         if (this.all_data_loaded) {
             // this.set_datasets();
             this.set_labels();
+            // this.set_chartData();
+            // this.set_chartOptions();
+
+            this.render_chart_js();
         }
     }
+
+    // private set_chartData() {
+    //     if (!this.all_data_loaded) {
+    //         return null;
+    //     }
+
+    // Vue.set(this.chartData, 'labels', this.labels);
+    // Vue.set(this.chartData, 'datasets', this.datasets);
+    // }
 
     get chartData() {
         if (!this.all_data_loaded) {
@@ -221,6 +245,10 @@ export default class VarDataBarChartComponent extends VueComponentBase {
             datasets: this.datasets
         };
     }
+
+    // private set_chartOptions() {
+    //     this.chartOptions = this.options;
+    // }
 
     get chartOptions() {
         return Object.assign({
@@ -281,22 +309,29 @@ export default class VarDataBarChartComponent extends VueComponentBase {
 
     private render_chart_js() {
 
-        if (!this.chartData) {
-            return;
+        if (!!this.rendered) {
+            // Issu de Bar
+            this.$data._chart.destroy();
         }
+        this.rendered = true;
+
+        // if (!this.chartData) {
+        //     return;
+        // }
 
         // Issu de Bar
-        this['renderChart'](
+        (this as any).renderChart(
             this.chartData,
             this.chartOptions
         );
     }
 
-    @Watch('datasets')
-    private onchange_datasets() {
+    // @Watch('datasets')
+    // private onchange_datasets() {
 
-        this.render_chart_js();
-    }
+    //     this.set_chartData();
+    //     this.set_chartOptions();
+    // }
 
     private set_labels(): string[] {
         this.labels = [];
