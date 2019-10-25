@@ -112,8 +112,12 @@ export default class CRUDComponent extends VueComponentBase {
             $('#deleteData').modal('hide');
         }
 
-        let vo: IDistantVOBase = this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id];
-        
+        let vo: IDistantVOBase = null;
+
+        if (this.crud && this.crud.updateDatatable && this.crud.updateDatatable.API_TYPE_ID && this.getStoredDatas && this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id]) {
+            vo = this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id];
+        }
+
         if (CRUDComponentManager.getInstance().callback_handle_modal_show_hide) {
             await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo);
         }
