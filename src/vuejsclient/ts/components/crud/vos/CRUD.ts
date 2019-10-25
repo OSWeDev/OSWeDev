@@ -110,8 +110,9 @@ export default class CRUD<T extends IDistantVOBase> {
         moduleTable: ModuleTable<any>) {
 
         //  On fait le tour des tables manyToMany pour identifier les fields qui font référence à cette table
-        for (let i in VOsTypesManager.getInstance().manyToManyModuleTables) {
-            let otherModuleTable: ModuleTable<any> = VOsTypesManager.getInstance().manyToManyModuleTables[i];
+        let manyToManyModuleTables: Array<ModuleTable<any>> = VOsTypesManager.getInstance().get_manyToManyModuleTables();
+        for (let i in manyToManyModuleTables) {
+            let otherModuleTable: ModuleTable<any> = manyToManyModuleTables[i];
 
             if ((!otherModuleTable.module) || (!otherModuleTable.module.actif)) {
                 continue;

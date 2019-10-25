@@ -547,6 +547,85 @@ export default class DatatableComponent extends VueComponentBase {
         }
     }
 
+    /**
+     * Obj, on stock dans un cache qu'on renvoie les datas liées par les champs de ref.
+     */
+    private prepare_ref_fields_data_for_update(): { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } } {
+
+        let res: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } } = {};
+
+        for (let i in this.datatable.fields) {
+            let field: DatatableField<any, any> = this.datatable.fields[i];
+
+            switch (field.type) {
+
+                case DatatableField.COMPUTED_FIELD_TYPE:
+                case DatatableField.COMPONENT_FIELD_TYPE:
+                case DatatableField.SIMPLE_FIELD_TYPE:
+                case DatatableField.FILE_FIELD_TYPE:
+                    break;
+
+                case DatatableField.MANY_TO_ONE_FIELD_TYPE:
+                    // très simple, on a pas besoin d'un cache
+                    break;
+
+                case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                    let oneToManyField: OneToManyReferenceDatatableField<any> = (field) as OneToManyReferenceDatatableField<any>;
+
+                    for (let oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
+                        let targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
+
+                        if ((!!targetVo) && (!!targetVo[oneToManyField.destField.field_id])) {
+
+                            let baseData_id = targetVo[oneToManyField.destField.field_id];
+
+                            if (!res[field.datatable_field_uid]) {
+                                res[field.datatable_field_uid] = {};
+                            }
+
+                            if (!res[field.datatable_field_uid][baseData_id]) {
+                                res[field.datatable_field_uid][baseData_id] = {};
+                            }
+
+                            res[field.datatable_field_uid][baseData_id][targetVo.id] = targetVo;
+                        }
+                    }
+                    break;
+
+                case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+                    let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (field) as ManyToManyReferenceDatatableField<any, any>;
+
+                    let dest_ids: number[] = [];
+                    let interTargetRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
+                    let interSrcRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.moduleTable.vo_type);
+
+                    for (let interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
+                        let intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
+
+                        if ((!!intervo) && (!!intervo[interSrcRefField.field_id]) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
+
+                            let baseData_id = intervo[interSrcRefField.field_id];
+
+                            if (!res[field.datatable_field_uid]) {
+                                res[field.datatable_field_uid] = {};
+                            }
+
+                            if (!res[field.datatable_field_uid][baseData_id]) {
+                                res[field.datatable_field_uid][baseData_id] = {};
+                            }
+
+                            res[field.datatable_field_uid][baseData_id][intervo[interTargetRefField.field_id]] = this.getStoredDatas[manyToManyField.targetModuleTable.vo_type][intervo[interTargetRefField.field_id]];
+                        }
+                    }
+
+                default:
+                    break;
+            }
+        }
+
+        return res;
+    }
+
     private update_datatable_data() {
 
         if (!this.loaded) {
@@ -567,6 +646,8 @@ export default class DatatableComponent extends VueComponentBase {
         }
 
         this.datatable_data = [];
+
+        let prepared_ref_fields_data_for_update: { [datatable_field_uid: string]: { [baseData_id: number]: { [dest_id: number]: IDistantVOBase } } } = this.prepare_ref_fields_data_for_update();
 
         for (let j in baseDatas) {
             let baseData: IDistantVOBase = baseDatas[j];
@@ -665,14 +746,23 @@ export default class DatatableComponent extends VueComponentBase {
 
                             resData[field.datatable_field_uid] = [];
 
-                            for (let oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
-                                let targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
+                            // for (let oneToManyTargetId in this.getStoredDatas[oneToManyField.targetModuleTable.vo_type]) {
+                            //     let targetVo = this.getStoredDatas[oneToManyField.targetModuleTable.vo_type][oneToManyTargetId];
 
-                                if ((!!targetVo) && (targetVo[oneToManyField.destField.field_id] == baseData.id)) {
+                            //     if ((!!targetVo) && (targetVo[oneToManyField.destField.field_id] == baseData.id)) {
 
+                            //         resData[field.datatable_field_uid].push({
+                            //             id: oneToManyTargetId,
+                            //             label: oneToManyField.dataToHumanReadable(targetVo)
+                            //         });
+                            //     }
+                            // }
+
+                            if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id])) {
+                                for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id]) {
                                     resData[field.datatable_field_uid].push({
                                         id: oneToManyTargetId,
-                                        label: oneToManyField.dataToHumanReadable(targetVo)
+                                        label: oneToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id][oneToManyTargetId])
                                     });
                                 }
                             }
@@ -682,24 +772,34 @@ export default class DatatableComponent extends VueComponentBase {
                             let manyToManyField: ManyToManyReferenceDatatableField<any, any> = (field) as ManyToManyReferenceDatatableField<any, any>;
 
                             resData[field.datatable_field_uid] = [];
-                            let dest_ids: number[] = [];
-                            let interTargetRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
-                            let interSrcRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.moduleTable.vo_type);
+                            // let dest_ids: number[] = [];
+                            // let interTargetRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.targetModuleTable.vo_type);
+                            // let interSrcRefField = manyToManyField.interModuleTable.getRefFieldFromTargetVoType(manyToManyField.moduleTable.vo_type);
 
-                            for (let interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
-                                let intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
+                            // for (let interi in this.getStoredDatas[manyToManyField.interModuleTable.vo_type]) {
+                            //     let intervo = this.getStoredDatas[manyToManyField.interModuleTable.vo_type][interi];
 
-                                if (intervo && (intervo[interSrcRefField.field_id] == baseData.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
-                                    dest_ids.push(intervo[interTargetRefField.field_id]);
+                            //     if (intervo && (intervo[interSrcRefField.field_id] == baseData.id) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
+                            //         dest_ids.push(intervo[interTargetRefField.field_id]);
+                            //     }
+                            // }
+
+                            // for (let desti in dest_ids) {
+                            //     resData[field.datatable_field_uid].push({
+                            //         id: dest_ids[desti],
+                            //         label: manyToManyField.dataToHumanReadable(this.getStoredDatas[manyToManyField.targetModuleTable.vo_type][dest_ids[desti]])
+                            //     });
+                            // }
+
+                            if ((!!prepared_ref_fields_data_for_update) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid]) && (!!prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id])) {
+                                for (let oneToManyTargetId in prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id]) {
+                                    resData[field.datatable_field_uid].push({
+                                        id: oneToManyTargetId,
+                                        label: manyToManyField.dataToHumanReadable(prepared_ref_fields_data_for_update[field.datatable_field_uid][baseData.id][oneToManyTargetId])
+                                    });
                                 }
                             }
 
-                            for (let desti in dest_ids) {
-                                resData[field.datatable_field_uid].push({
-                                    id: dest_ids[desti],
-                                    label: manyToManyField.dataToHumanReadable(this.getStoredDatas[manyToManyField.targetModuleTable.vo_type][dest_ids[desti]])
-                                });
-                            }
                             break;
 
                         default:

@@ -83,7 +83,7 @@ export default class VOsTypesManager {
         return isManyToMany;
     }
 
-    get manyToManyModuleTables(): Array<ModuleTable<any>> {
+    public get_manyToManyModuleTables(): Array<ModuleTable<any>> {
         let res: Array<ModuleTable<any>> = [];
 
         for (let i in this.moduleTables_by_voType) {

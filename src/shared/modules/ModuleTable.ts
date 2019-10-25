@@ -97,6 +97,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     private fields_: Array<ModuleTableField<any>> = [];
     private fields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
 
+    private sortedFields: Array<ModuleTableField<any>> = [];
+
     constructor(
         tmp_module: Module,
         tmp_vo_type: string,
@@ -154,6 +156,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public push_field(field: ModuleTableField<any>) {
         this.fields_.push(field);
         this.fields_by_ids[field.field_id] = field;
+
+        this.set_sortedFields();
     }
 
     public set_fields(fields: Array<ModuleTableField<any>>) {
@@ -164,22 +168,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
             let field = this.fields_[i];
             this.fields_by_ids[field.field_id] = field;
         }
-    }
 
-    get sortedFields(): Array<ModuleTableField<any>> {
-        let res: Array<ModuleTableField<any>> = Array.from(this.fields_);
-
-        res.sort((a: ModuleTableField<any>, b: ModuleTableField<any>) => {
-            if (a.field_id < b.field_id) {
-                return -1;
-            }
-            if (a.field_id > b.field_id) {
-                return 1;
-            }
-            return 0;
-        });
-
-        return res;
+        this.set_sortedFields();
     }
 
     public addAlias(api_type_id_alias: string): ModuleTable<any> {
@@ -596,5 +586,19 @@ export default class ModuleTable<T extends IDistantVOBase> {
             es[i] = this.defaultforceNumeric(es[i]);
         }
         return es;
+    }
+
+    private set_sortedFields() {
+        this.sortedFields = Array.from(this.fields_);
+
+        this.sortedFields.sort((a: ModuleTableField<any>, b: ModuleTableField<any>) => {
+            if (a.field_id < b.field_id) {
+                return -1;
+            }
+            if (a.field_id > b.field_id) {
+                return 1;
+            }
+            return 0;
+        });
     }
 }
