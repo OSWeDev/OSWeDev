@@ -114,7 +114,7 @@ export default class CRUDComponent extends VueComponentBase {
 
         let vo: IDistantVOBase = null;
 
-        if (this.crud && this.crud.updateDatatable && this.crud.updateDatatable.API_TYPE_ID && this.getStoredDatas && this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id]) {
+        if (this.crud && this.crud.updateDatatable && this.crud.updateDatatable.API_TYPE_ID && this.getStoredDatas && this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID] && this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id]) {
             vo = this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id];
         }
 
