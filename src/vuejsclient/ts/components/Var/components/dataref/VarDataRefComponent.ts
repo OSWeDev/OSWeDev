@@ -464,7 +464,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
     }
 
-    private displayLoadedData(): void {
+    get loadedData() {
         if (!this.has_loaded_data || !this.add_infos) {
             return;
         }
@@ -476,7 +476,7 @@ export default class VarDataRefComponent extends VueComponentBase {
 
             res += ((res == "") ? "" : ";") + this.get_values_of_selected_fields(matroid, this.add_infos);
         }
-        this.snotify.info(res);
+        return (res);
     }
 
 

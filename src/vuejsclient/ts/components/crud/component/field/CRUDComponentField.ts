@@ -6,7 +6,9 @@ import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
+import DateHandler from '../../../../../../shared/tools/DateHandler';
 import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import Datatable from '../../../datatable/vos/Datatable';
 import DatatableField from '../../../datatable/vos/DatatableField';
 import ManyToOneReferenceDatatableField from '../../../datatable/vos/ManyToOneReferenceDatatableField';
 import ReferenceDatatableField from '../../../datatable/vos/ReferenceDatatableField';
@@ -15,9 +17,6 @@ import FileComponent from '../../../file/FileComponent';
 import ImageComponent from '../../../image/ImageComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
-import CRUDComponentManager from '../../CRUDComponentManager';
-import Datatable from '../../../datatable/vos/Datatable';
-import DateHandler from '../../../../../../shared/tools/DateHandler';
 
 
 @Component({
@@ -52,7 +51,6 @@ export default class CRUDComponentField extends VueComponentBase {
     private isLoadingOptions: boolean = false;
     private field_value: any = null;
     private field_value_range: any = {};
-    private voIdToHumanReadable: string = null;
 
     public async mounted() { }
 
@@ -61,13 +59,12 @@ export default class CRUDComponentField extends VueComponentBase {
     @Watch('datatable', { immediate: true })
     @Watch('default_field_data', { immediate: true })
     @Watch('field_select_options_enabled', { immediate: true })
-    private async reload_field_value(): Promise<void> {
+    private reload_field_value(): void {
         this.field_value = this.vo[this.field.datatable_field_uid];
-        this.voIdToHumanReadable = await this.field.dataToHumanReadableField(this.vo);
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
         if (!this.datatable) {
-            this.field_value = await this.field.dataToUpdateIHM(this.field_value, this.vo);
+            this.field_value = this.field.dataToUpdateIHM(this.field_value, this.vo);
         }
 
         // JNE : je sais pas si il faut se placer au dessus ou en dessous de ça ...
@@ -81,10 +78,6 @@ export default class CRUDComponentField extends VueComponentBase {
         }
 
         this.prepare_select_options();
-    }
-
-    private voIdToHumanReadableFunction(): string {
-        return this.voIdToHumanReadable;
     }
 
     private formatDateForField(date: string, separator: string = '/'): string {
@@ -234,7 +227,7 @@ export default class CRUDComponentField extends VueComponentBase {
         }
     }
 
-    private async asyncLoadOptions(query) {
+    private asyncLoadOptions(query) {
         this.isLoadingOptions = true;
 
         if ((!this.field) ||
@@ -253,7 +246,7 @@ export default class CRUDComponentField extends VueComponentBase {
         for (let i in options) {
             let option = options[i];
 
-            if ((await manyToOne.dataToHumanReadable(option)).match(new RegExp(query, 'i'))) {
+            if ((manyToOne.dataToHumanReadable(option)).match(new RegExp(query, 'i'))) {
 
                 if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
@@ -289,7 +282,7 @@ export default class CRUDComponentField extends VueComponentBase {
         this.select_options = newOptions;
     }
 
-    private async onChangeField() {
+    private onChangeField() {
         if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
             let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
@@ -312,7 +305,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
         if (!this.datatable) {
-            this.field_value = await this.field.UpdateIHMToData(this.field_value, this.vo);
+            this.field_value = this.field.UpdateIHMToData(this.field_value, this.vo);
         }
 
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);

@@ -1,5 +1,7 @@
 .form-group
     label {{ t(field.translatable_title) }}
+        template(v-if="field.is_required")
+            i.fa.fa-asterisk.mandatory
 
     .btn-group.link_ref
         router-link.btn.btn-sm.btn-success(:to="getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
@@ -7,15 +9,16 @@
 
     multiselect(
         v-model="field_value",
-        :custom-label="voIdToHumanReadableFunction",
+        :custom-label="field.voIdToHumanReadable",
         :options="select_options",
         :placeholder="t(field.translatable_place_holder)",
         :loading="isLoadingOptions",
         :id="field.datatable_field_uid",
         :searchable="true",
         :internal-search="false",
-        :allow-empty="true",
+        :allow-empty="!field.is_required",
         :preselectFirst="false",
+        :disabled="field.is_readonly",
         @search-change="asyncLoadOptions",
         @input="onChangeField",
         :multiple="true"
