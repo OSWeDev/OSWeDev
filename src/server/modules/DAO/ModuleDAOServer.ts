@@ -329,7 +329,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T);
+        let vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
+        datatable.forceNumeric(vo);
 
         // On filtre suivant les droits d'accès
         return await this.filterVOAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
@@ -360,7 +361,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async selectOneUser(login: string, password: string): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
-        let vo: UserVO = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) AND password = crypt($2, password)", [login, password]) as UserVO);
+        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) AND password = crypt($2, password)", [login, password]) as UserVO;
+        datatable.forceNumeric(vo);
         return vo;
     }
 
@@ -370,7 +372,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async selectOneUserForRecovery(login: string): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
-        let vo: UserVO = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1)", [login]) as UserVO);
+        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1)", [login]) as UserVO;
+        datatable.forceNumeric(vo);
         return vo;
     }
 
@@ -728,7 +731,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let vo: T = datatable.forceNumeric(await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t WHERE id=" + apiDAOParamVO.id + ";") as T);
+        let vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t WHERE id=" + apiDAOParamVO.id + ";") as T;
+        datatable.forceNumeric(vo);
 
         if (!vo) {
             return vo;
