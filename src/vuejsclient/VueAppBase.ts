@@ -1,5 +1,4 @@
 import 'bootstrap';
-import Intersect from 'vue-intersect';
 import "fullcalendar-scheduler";
 import "fullcalendar-scheduler/dist/scheduler.min.css";
 import "fullcalendar/dist/fullcalendar.min.css";
@@ -17,6 +16,7 @@ import Vue from 'vue';
 import VueDraggableResizable from 'vue-draggable-resizable';
 import FullCalendar from 'vue-full-calendar';
 import VueI18n from 'vue-i18n';
+import Intersect from 'vue-intersect';
 import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
@@ -41,8 +41,11 @@ import IVueModule from '../vuejsclient/ts/modules/IVueModule';
 import VueModuleBase from '../vuejsclient/ts/modules/VueModuleBase';
 import AjaxCacheComponent from './ts/components/AjaxCache/component/AjaxCacheComponent';
 import AjaxCacheComponentPlaceholder from './ts/components/ajaxcache/component/AjaxCacheComponentPlaceholder';
+import CRUDComponentField from './ts/components/crud/component/field/CRUDComponentField';
 import DefaultHomeComponent from './ts/components/DefaultHome/component/DefaultHomeComponent';
 import Error404Component from './ts/components/Error404/component/Error404Component';
+import MultipleSelectFilterComponent from './ts/components/multiple_select_filter/MultipleSelectFilterComponent';
+import UserNotifsMarkerComponent from './ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
 import OnPageTranslation from './ts/components/OnPageTranslation/component/OnPageTranslation';
 import OnPageTranslationPlaceholder from './ts/components/OnPageTranslation/component/OnPageTranslationPlaceholder';
 import VarDataBarChartComponent from './ts/components/Var/components/databarchart/VarDataBarChartComponent';
@@ -50,15 +53,13 @@ import VarDataRefComponent from './ts/components/Var/components/dataref/VarDataR
 import VarDatasRefsComponent from './ts/components/Var/components/datasrefs/VarDatasRefsComponent';
 import VarDataSumComponent from './ts/components/Var/components/datasum/VarDataSumComponent';
 import VarDescComponent from './ts/components/Var/components/desc/VarDescComponent';
+import VarPieChartComponent from './ts/components/Var/components/piechart/VarPieChartComponent';
 import VarDataIfComponent from './ts/components/Var/components/varif/VarDataIfComponent';
 import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
-import VarPieChartComponent from './ts/components/Var/components/piechart/VarPieChartComponent';
-import CRUDComponentField from './ts/components/crud/component/field/CRUDComponentField';
-import UserNotifsMarkerComponent from './ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
 
 require('moment-json-parser').overrideDefault();
 
@@ -324,6 +325,7 @@ export default abstract class VueAppBase {
         Vue.component('var-pie-chart', VarPieChartComponent);
         Vue.component('Intersect', Intersect);
         Vue.component('CRUDComponentField', CRUDComponentField);
+        Vue.component('MultipleSelectFilterComponent', MultipleSelectFilterComponent);
 
 
         Vue.directive('var-directive', VarDirective.getInstance());

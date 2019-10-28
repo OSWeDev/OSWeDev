@@ -1,8 +1,8 @@
-import IDistantVOBase from '../modules/IDistantVOBase';
 import NumRange from '../modules/DataRender/vos/NumRange';
 import TSRange from '../modules/DataRender/vos/TSRange';
-import moment = require('moment');
+import IDistantVOBase from '../modules/IDistantVOBase';
 import RangeHandler from './RangeHandler';
+import moment = require('moment');
 
 export default class ObjectHandler {
     public static getInstance(): ObjectHandler {
@@ -93,6 +93,25 @@ export default class ObjectHandler {
         return false;
     }
 
+
+    /**
+     * Returns true if the object has an attribute, even if the attribute is valued to null
+     * @param object
+     */
+    public hasOneAndOnlyOneAttribute(object): boolean {
+
+        let res: boolean = false;
+        for (let i in object) {
+
+            if (!res) {
+                res = true;
+            } else {
+                return false;
+            }
+        }
+
+        return res;
+    }
     /**
      * Returns first attribute value and destroys it. Might not work if object[i] is an object ? since we return a ref to a var we delete right next ...
      * @param object

@@ -1,0 +1,15 @@
+.multiple_select_filter
+    v-select.v-select-multiple(:placeholder="placeholder" v-model="tmp_filter_active_options" multiple :options="filter_options" label="label")
+        span(slot="no-options") Vide
+        template(slot="option", slot-scope="option")
+            .selected_filter_option(v-if="option.select_state == filter_state_selected")
+                i.fa.fa-object-group(aria-hidden='true')
+                span {{ option.label }}
+            .selectable_filter_option(v-if="option.select_state == filter_state_selectable")
+                i.fa.fa-object-group(aria-hidden='true')
+                span {{ option.label }}
+            .unselectable_filter_option(v-if="option.select_state == filter_state_unselectable", disabled="true")
+                i.fa.fa-object-group(aria-hidden='true')
+                span {{ option.label }}
+
+                
