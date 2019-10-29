@@ -1,4 +1,4 @@
-.multiple_select_filter
+.multiple_select_filter(v-show='(!!filter_options) && (filter_options.length > 1)')
     v-select.v-select-multiple(:placeholder="placeholder" v-model="tmp_filter_active_options" multiple :options="filter_options" label="label")
         span(slot="no-options") Vide
         template(slot="option", slot-scope="option")

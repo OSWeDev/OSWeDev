@@ -1,5 +1,6 @@
 import * as debounce from 'lodash/debounce';
 import ObjectHandler from '../../tools/ObjectHandler';
+import RangeHandler from '../../tools/RangeHandler';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import ModuleDAO from '../DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
@@ -30,7 +31,6 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
-import RangeHandler from '../../tools/RangeHandler';
 
 export default class VarsController {
 

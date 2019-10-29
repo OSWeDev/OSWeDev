@@ -47,17 +47,29 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     private store_module_is_namespaced: boolean;
 
     @Prop({
-        default: []
+        type: Array,
+        default: () => []
     })
     private depends_on_api_type_ids: string[];
     @Prop({
-        default: {}
+        type: Object,
+        default: () => { }
     })
     private depends_on_mandatory: { [api_type_id: string]: boolean };
     @Prop({
-        default: {}
+        type: Object,
+        default: () => { }
     })
     private depends_on_condition: { [api_type_id: string]: (vo: IDistantVOBase, dependent_active_options: DataFilterOption[], dependent_all_by_ids: { [id: number]: IDistantVOBase }) => boolean };
+
+    /**
+     * Permet d'appeler la condition sur la dependance même si le dependent_active_options est null, à gérer côté condition, pour savoir si on doit filtrer par le all_by_ids
+     */
+    @Prop({
+        type: Object,
+        default: () => { }
+    })
+    private depends_on_call_condition_on_empty_active_options: { [api_type_id: string]: boolean };
 
     private tmp_filter_active_options: DataFilterOption[] = [];
 
@@ -121,9 +133,9 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     }
 
     get selectables_by_ids(): { [id: number]: IDistantVOBase } {
-        try {
+        let res: { [id: number]: IDistantVOBase } = {};
 
-            let res: { [id: number]: IDistantVOBase } = {};
+        try {
 
             if ((!this.all_by_ids) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.all_by_ids))) {
                 return res;
@@ -147,6 +159,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                             vo_res = false;
                             break;
                         }
+
+                        if (this.depends_on_call_condition_on_empty_active_options[depends_on_api_type_id] && !this.depends_on_condition[depends_on_api_type_id](vo, null, depends_on_api_type_id_all_by_ids)) {
+                            vo_res = false;
+                            break;
+                        }
                         continue;
                     }
 
@@ -164,7 +181,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         } catch (error) {
             console.error(error);
         }
-        return {};
+        return res;
     }
 
     get all_by_ids(): { [id: number]: IDistantVOBase } {
