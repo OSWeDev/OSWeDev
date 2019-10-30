@@ -1467,7 +1467,7 @@ export default class VarsController {
                     for (let depi in deps_ds) {
                         let dep_ds = deps_ds[depi];
 
-                        node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCE_NAME + dep_ds.name, this.varDAG);
+                        outgoing.addMarker(VarDAG.VARDAG_MARKER_DATASOURCE_NAME + dep_ds.name, this.varDAG);
                     }
 
                     // On doit aussi rajouter tous les marqueurs qu'un noeud doit avoir à cette étape
