@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import { isString } from 'util';
 import * as XLSX from 'xlsx';
 import { CellAddress, WorkBook, WorkSheet } from 'xlsx';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
@@ -10,12 +11,11 @@ import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataIm
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
+import ModuleTable from '../../../../shared/modules/ModuleTable';
+import ModuleTableField from '../../../../shared/modules/ModuleTableField';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ImportLogger from '../logger/ImportLogger';
-import { isString } from 'util';
-import ModuleTable from '../../../../shared/modules/ModuleTable';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
-import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 
 export default class ImportTypeXLSXHandler {
     public static getInstance() {
@@ -465,7 +465,12 @@ export default class ImportTypeXLSXHandler {
         }
 
         try {
-            workbook = XLSX.readFile(fileVO.path);
+            if ((dataImportFormat.encoding == null) || (typeof dataImportFormat.encoding == 'undefined') || (dataImportFormat.encoding == DataImportFormatVO.TYPE_WINDOWS1252)) {
+                workbook = XLSX.readFile(fileVO.path);
+            } else {
+                // On tente d'ouvrir en UTF-8
+                workbook = XLSX.readFile(fileVO.path, { codepage: 65001 });
+            }
         } catch (error) {
             if (!muted) {
                 console.error(error);

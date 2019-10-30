@@ -319,11 +319,18 @@ export default class VarDataBarChartComponent extends VueComponentBase {
         //     return;
         // }
 
-        // Issu de Bar
-        (this as any).renderChart(
-            this.chartData,
-            this.chartOptions
-        );
+        try {
+
+            // Issu de Bar
+            (this as any).renderChart(
+                this.chartData,
+                this.chartOptions
+            );
+        } catch (error) {
+            console.warn('PB:render Bar Chart probablement trop tôt:' + error);
+            this.rendered = false;
+            setTimeout(this.render_chart_js, 500);
+        }
     }
 
     // @Watch('datasets')

@@ -145,6 +145,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             fr: 'Remplacer l\'import existant'
         }, 'import.new_historic_confirmation.title.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Windows1252'
+        }, 'import.encoding.windows1252.name'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'UTF8'
+        }, 'import.encoding.utf8.name'));
+
+
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

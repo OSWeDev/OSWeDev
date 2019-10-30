@@ -8,6 +8,10 @@ export default class DataImportFormatVO implements IDistantVOBase {
     public static TYPE_XLSX: number = 1;
     public static TYPE_CSV: number = 2;
 
+    public static TYPE_ENCODING_LABELS: string[] = ['import.encoding.utf8.name', 'import.encoding.windows1252.name'];
+    public static TYPE_UTF8: number = 0;
+    public static TYPE_WINDOWS1252: number = 1;
+
     public static TYPE_COLUMN_POSITION_LABELS: string[] = ['import.column_position.label.name', 'import.column_position.index.name'];
     public static TYPE_COLUMN_POSITION_LABEL: number = 0;
     public static TYPE_COLUMN_POSITION_INDEX: number = 1;
@@ -22,6 +26,7 @@ export default class DataImportFormatVO implements IDistantVOBase {
 
     public import_uid: string;
     public type: number;
+    public encoding: number;
 
     public type_sheet_position: number;
 

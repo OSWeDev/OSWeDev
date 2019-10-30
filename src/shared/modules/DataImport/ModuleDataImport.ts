@@ -230,6 +230,10 @@ export default class ModuleDataImport extends Module {
                 [DataImportFormatVO.TYPE_XLSX]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_XLSX],
                 [DataImportFormatVO.TYPE_CSV]: DataImportFormatVO.TYPE_LABELS[DataImportFormatVO.TYPE_CSV]
             }),
+            new ModuleTableField('encoding', ModuleTableField.FIELD_TYPE_enum, 'Encodage', false).setEnumValues({
+                [DataImportFormatVO.TYPE_UTF8]: DataImportFormatVO.TYPE_ENCODING_LABELS[DataImportFormatVO.TYPE_UTF8],
+                [DataImportFormatVO.TYPE_WINDOWS1252]: DataImportFormatVO.TYPE_ENCODING_LABELS[DataImportFormatVO.TYPE_WINDOWS1252],
+            }),
             new ModuleTableField('sheet_name', ModuleTableField.FIELD_TYPE_string, 'Nom de l\'onglet (XLS, XLSX)', false, true, ""),
             new ModuleTableField('sheet_index', ModuleTableField.FIELD_TYPE_int, 'Index de l\'onglet (XLS, XLSX) si nom indisponible', false, true, 0),
             new ModuleTableField('first_row_index', ModuleTableField.FIELD_TYPE_int, 'Index de la première ligne (1ère ligne = 0)', true),
