@@ -10,6 +10,7 @@ import IDataSourceController from '../DataSource/interfaces/IDataSourceControlle
 import IDistantVOBase from '../IDistantVOBase';
 import MatroidController from '../Matroid/MatroidController';
 import MatroidCutResult from '../Matroid/vos/MatroidCutResult';
+import ModulesManager from '../ModulesManager';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import CumulativVarController from './CumulativVarController';
@@ -1316,12 +1317,25 @@ export default class VarsController {
         for (let i in nodes) {
             let node = nodes[i];
 
+            let var_controller = this.getVarControllerById(node.param.var_id);
+            if (((!var_controller.can_load_precompiled_or_imported_datas_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
+                ((!var_controller.can_load_precompiled_or_imported_datas_server_side) && (!!ModulesManager.getInstance().isServerSide))) {
+                node.loaded_datas_matroids = [];
+                continue;
+            }
+
             promises.push((async () => {
 
                 let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
                 let matroids_inscrits: ISimpleNumberVarMatroidData[] = await ModuleDAO.getInstance().filterVosByMatroids<ISimpleNumberVarMatroidData, IVarDataParamVOBase>(moduletable.vo_type, [node.param], {});
 
                 if (!matroids_inscrits) {
+                    return;
+                }
+
+                // Si on est sur une var qui utilise que des imports ou precompiled atomiques, on peut passer rapidement ici, inutile de chercher à découper , vérifier les intersections il n'y en aura pas
+                if (var_controller.has_only_atomique_imports_or_precompiled_datas) {
+                    node.loaded_datas_matroids = Array.from(matroids_inscrits);
                     return;
                 }
 
@@ -1400,11 +1414,29 @@ export default class VarsController {
         for (let i in nodes) {
             let node: VarDAGNode = nodes[i];
 
+            node.loaded_datas_matroids_sum_value = null;
+            let var_controller = this.getVarControllerById(node.param.var_id);
+
+            if (((!var_controller.can_load_precompiled_or_imported_datas_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
+                ((!var_controller.can_load_precompiled_or_imported_datas_server_side) && (!!ModulesManager.getInstance().isServerSide))) {
+
+                if (((!var_controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
+                    ((!var_controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide))) {
+                    node.computed_datas_matroids = [];
+                    continue;
+                }
+
+                node.computed_datas_matroids = [MatroidController.getInstance().cloneFrom(node.param as IVarMatroidDataParamVO)] as IVarMatroidDataVO[];
+                continue;
+            }
+
             let matroids_list: ISimpleNumberVarMatroidData[] = node.loaded_datas_matroids as ISimpleNumberVarMatroidData[];
 
-            node.loaded_datas_matroids_sum_value = null;
-            let remaining_matroids = [MatroidController.getInstance().cloneFrom(node.param as IVarMatroidDataParamVO)];
-
+            let remaining_matroids = [];
+            if (!(((!var_controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
+                ((!var_controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide)))) {
+                remaining_matroids = [MatroidController.getInstance().cloneFrom(node.param as IVarMatroidDataParamVO)];
+            }
 
             for (let j in matroids_list) {
                 let matroid = matroids_list[j];
@@ -1417,6 +1449,11 @@ export default class VarsController {
                     node.loaded_datas_matroids_sum_value = matroid.value;
                 } else {
                     node.loaded_datas_matroids_sum_value += matroid.value;
+                }
+
+                if (((!var_controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
+                    ((!var_controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide))) {
+                    continue;
                 }
 
                 let cut_results: Array<MatroidCutResult<IVarMatroidDataParamVO>> = MatroidController.getInstance().cut_matroids(matroid, remaining_matroids);
@@ -1697,6 +1734,12 @@ export default class VarsController {
                         let datasource_batch = datasources_batches[i];
 
                         let datasource_controller: IDataSourceController<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[i];
+
+                        if (((!datasource_controller.can_use_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
+                            ((!datasource_controller.can_use_server_side) && (!!ModulesManager.getInstance().isServerSide))) {
+                            continue;
+                        }
+
                         promises.push((async () => {
                             await datasource_controller.load_for_batch(datasource_batch);
                         })());

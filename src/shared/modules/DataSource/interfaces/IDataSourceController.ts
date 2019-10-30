@@ -1,10 +1,20 @@
-import IVarDataVOBase from '../../Var/interfaces/IVarDataVOBase';
-import IVarDataParamVOBase from '../../Var/interfaces/IVarDataParamVOBase';
 import IDistantVOBase from '../../IDistantVOBase';
+import IVarDataParamVOBase from '../../Var/interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../../Var/interfaces/IVarDataVOBase';
 
 export default interface IDataSourceController<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 
     name: string;
+
+    /**
+     * Déclarer un datasource utilisable côté serveur
+     */
+    can_use_server_side: boolean;
+
+    /**
+     * Déclarer une datasource utilisable côté client
+     */
+    can_use_client_side: boolean;
 
     load_for_batch(vars_params: { [index: string]: TDataParam }): Promise<void>;
 

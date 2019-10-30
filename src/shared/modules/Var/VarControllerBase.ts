@@ -21,6 +21,31 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
      */
     public abstract segment_type: number;
 
+    /**
+     * Déclarer une var comme calculable côté serveur
+     */
+    public is_computable_server_side: boolean = true;
+
+    /**
+     * Déclarer une var comme calculable côté client
+     */
+    public is_computable_client_side: boolean = true;
+
+    /**
+     * Déclarer qu'une var n'utilise que des imports et/ou precompiled qui sont dissociés - cardinal 1 (atomiques)
+     */
+    public has_only_atomique_imports_or_precompiled_datas: boolean = false;
+
+    /**
+     * Déclarer une var comme pouvant utiliser des datas precompilées ou importées côté serveur
+     */
+    public can_load_precompiled_or_imported_datas_server_side: boolean = true;
+
+    /**
+     * Déclarer une var comme pouvant utiliser des datas precompilées ou importées côté client
+     */
+    public can_load_precompiled_or_imported_datas_client_side: boolean = true;
+
     protected constructor(
         public varConf: VarConfVOBase,
         public varDataParamController: VarDataParamControllerBase<TData, TDataParam>) {
