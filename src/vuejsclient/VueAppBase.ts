@@ -29,6 +29,7 @@ import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
 import * as vueDropzone from "vue2-dropzone";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
+import Datepicker from 'vuejs-datepicker';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
@@ -326,7 +327,7 @@ export default abstract class VueAppBase {
         Vue.component('Intersect', Intersect);
         Vue.component('CRUDComponentField', CRUDComponentField);
         Vue.component('MultipleSelectFilterComponent', MultipleSelectFilterComponent);
-
+        Vue.component('Datepicker', Datepicker);
 
         Vue.directive('var-directive', VarDirective.getInstance());
 
