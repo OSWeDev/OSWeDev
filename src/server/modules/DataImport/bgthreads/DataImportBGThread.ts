@@ -91,7 +91,7 @@ export default class DataImportBGThread implements IBGThread {
             case ModuleDataImport.IMPORTATION_STATE_UPLOADED:
                 importHistoric.state = ModuleDataImport.IMPORTATION_STATE_FORMATTING;
                 await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
-                ModuleDataImportServer.getInstance().formatDatas(importHistoric);
+                await ModuleDataImportServer.getInstance().formatDatas(importHistoric);
                 return true;
 
             case ModuleDataImport.IMPORTATION_STATE_FORMATTED:
@@ -106,13 +106,13 @@ export default class DataImportBGThread implements IBGThread {
             case ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT:
                 importHistoric.state = ModuleDataImport.IMPORTATION_STATE_IMPORTING;
                 await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
-                ModuleDataImportServer.getInstance().importDatas(importHistoric);
+                await ModuleDataImportServer.getInstance().importDatas(importHistoric);
                 return true;
 
             case ModuleDataImport.IMPORTATION_STATE_IMPORTED:
                 importHistoric.state = ModuleDataImport.IMPORTATION_STATE_POSTTREATING;
                 await ModuleDataImportServer.getInstance().updateImportHistoric(importHistoric);
-                ModuleDataImportServer.getInstance().posttreatDatas(importHistoric);
+                await ModuleDataImportServer.getInstance().posttreatDatas(importHistoric);
                 return true;
 
             case ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT:
