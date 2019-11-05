@@ -1,17 +1,18 @@
 import { Express, Request, Response } from 'express';
 import * as formidable from 'express-formidable';
+import * as fs from 'fs';
+import * as mkdirp from 'mkdirp';
+import * as path from 'path';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulePushDataServer from '../PushData/ModulePushDataServer';
-import FileVO from '../../../shared/modules/File/vos/FileVO';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as mkdirp from 'mkdirp';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
@@ -89,7 +90,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return new Promise((resolve, reject) => {
             mkdirp(folder, function (err) {
                 if (err) {
-                    console.error(err);
+                    ConsoleHandler.getInstance().error(err);
                     reject(err);
                 } else {
                     resolve();
@@ -118,11 +119,11 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return new Promise((resolve, reject) => {
             fs.writeFile(filepath, fileContent, function (err) {
                 if (err) {
-                    console.error(err);
+                    ConsoleHandler.getInstance().error(err);
                     resolve(err);
                     return;
                 }
-                console.log("File overwritten : " + filepath);
+                ConsoleHandler.getInstance().log("File overwritten : " + filepath);
                 resolve();
             });
         });
@@ -132,7 +133,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return new Promise((resolve, reject) => {
             fs.appendFile(filepath, fileContent, function (err) {
                 if (err) {
-                    console.error(err);
+                    ConsoleHandler.getInstance().error(err);
                     resolve(err);
                     return;
                 }
@@ -156,7 +157,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         try {
             import_file = req.files[Object.keys(req.files)[0]];
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'file.upload.error');
             res.json(JSON.stringify(null));
             return;
@@ -187,6 +188,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
             let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, param.num);
             return fs.existsSync(fileVo.path);
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
         }
         return false;
     }

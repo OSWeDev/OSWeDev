@@ -53,12 +53,12 @@
 //             let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_historic);
 
 //             if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-//                 console.error('!insertOrDeleteQueryResult dans ReimportCronWorker');
+//                 ConsoleHandler.getInstance().error('!insertOrDeleteQueryResult dans ReimportCronWorker');
 //                 continue;
 //             }
 //             let id = parseInt(insertOrDeleteQueryResult.id);
 //             if ((!id) || (!isNumber(id))) {
-//                 console.error('!id dans ReimportCronWorker');
+//                 ConsoleHandler.getInstance().error('!id dans ReimportCronWorker');
 //                 continue;
 //             }
 

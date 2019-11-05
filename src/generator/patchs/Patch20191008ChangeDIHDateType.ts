@@ -1,4 +1,5 @@
 import { IDatabase } from 'pg-promise';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../IGeneratorWorker';
 
 export default class Patch20191008ChangeDIHDateType implements IGeneratorWorker {
@@ -30,7 +31,7 @@ export default class Patch20191008ChangeDIHDateType implements IGeneratorWorker 
             await this.change_type_column_date_to_tstz(db, 'ref.module_data_import_dih', 'last_up_date');
             await this.change_type_column_date_to_tstz(db, 'ref.module_data_import_dih', 'end_date');
         } catch (error) {
-            console.error('Patch20191008ChangeDIHDateType : ' + error);
+            ConsoleHandler.getInstance().error('Patch20191008ChangeDIHDateType : ' + error);
         }
     }
 

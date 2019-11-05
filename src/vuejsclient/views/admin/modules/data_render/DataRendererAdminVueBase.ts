@@ -5,6 +5,7 @@ import { Prop } from 'vue-property-decorator';
 import ModuleDataRender from '../../../../../shared/modules/DataRender/ModuleDataRender';
 import DataRendererVO from '../../../../../shared/modules/DataRender/vos/DataRendererVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import VueAppController from '../../../../VueAppController';
@@ -59,7 +60,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
             return true;
         } catch (error) {
             this.snotify.error(error);
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
         return false;
     }

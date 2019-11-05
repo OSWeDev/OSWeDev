@@ -1,5 +1,6 @@
-import * as https from 'https';
 import * as http from 'http';
+import * as https from 'https';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleRequest extends ModuleServerBase {
@@ -40,7 +41,9 @@ export default class ModuleRequest extends ModuleServerBase {
 
                     try {
                         buffer = JSON.parse(buffer.toString());
-                    } catch (e) { }
+                    } catch (e) {
+                        ConsoleHandler.getInstance().error(e);
+                    }
 
                     resolve(buffer);
                 });

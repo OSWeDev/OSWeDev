@@ -24,6 +24,7 @@ import ModuleImage from '../../shared/modules/Image/ModuleImage';
 import ModuleMailer from '../../shared/modules/Mailer/ModuleMailer';
 import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenance';
 import Module from '../../shared/modules/Module';
+import ModuleParams from '../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
@@ -32,6 +33,7 @@ import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslatio
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
@@ -56,14 +58,13 @@ import ModuleMailerServer from './Mailer/ModuleMailerServer';
 import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
 import ModuleDBService from './ModuleDBService';
 import ModuleServerBase from './ModuleServerBase';
+import ModuleParamsServer from './Params/ModuleParamsServer';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
-import ModuleParamsServer from './Params/ModuleParamsServer';
-import ModuleParams from '../../shared/modules/Params/ModuleParams';
 
 export default abstract class ModuleServiceBase {
 
@@ -226,17 +227,17 @@ export default abstract class ModuleServiceBase {
                     registered_module
                 );
             } catch (e) {
-                console.error(
+                ConsoleHandler.getInstance().error(
                     "Erreur lors de l'installation du module \"" +
                     registered_module.name +
                     '".'
                 );
-                console.log(e);
+                ConsoleHandler.getInstance().log(e);
                 process.exit(0);
             }
         }
 
-        console.log("Tous les modules ont été installés");
+        ConsoleHandler.getInstance().log("Tous les modules ont été installés");
         return true;
     }
 
@@ -251,17 +252,17 @@ export default abstract class ModuleServiceBase {
                     );
                 }
             } catch (e) {
-                console.error(
+                ConsoleHandler.getInstance().error(
                     "Erreur lors de la configuration du module \"" +
                     registered_module.name +
                     '".'
                 );
-                console.log(e);
+                ConsoleHandler.getInstance().log(e);
                 process.exit(0);
             }
         }
 
-        console.log("Tous les modules ont été configurés");
+        ConsoleHandler.getInstance().log("Tous les modules ont été configurés");
         return true;
     }
 

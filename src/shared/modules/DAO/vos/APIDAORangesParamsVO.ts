@@ -33,7 +33,7 @@
 //         ranges: Array<FieldRange<any>>): Promise<APIDAORangesParamsVO> {
 
 //         if ((!ranges) || (!ranges.length) || (ranges.length > 20)) {
-//             console.error("translateCheckAccessParams:APIDAORangesParamsVO:" + JSON.stringify(ranges));
+//             ConsoleHandler.getInstance().error("translateCheckAccessParams:APIDAORangesParamsVO:" + JSON.stringify(ranges));
 //             return null;
 //         }
 //         return new APIDAORangesParamsVO(API_TYPE_ID, ranges);

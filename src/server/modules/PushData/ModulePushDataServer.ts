@@ -1,18 +1,18 @@
 import * as moment from 'moment';
 import * as socketIO from 'socket.io';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import ModuleServerBase from '../ModuleServerBase';
-import SocketWrapper from './vos/SocketWrapper';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import DateHandler from '../../../shared/tools/DateHandler';
-import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleServerBase from '../ModuleServerBase';
+import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
+import SocketWrapper from './vos/SocketWrapper';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -298,7 +298,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
             await ModuleDAO.getInstance().insertOrUpdateVO(notification);
         } catch (error) {
 
-            console.error('notify:' + notification.user_id + ':' + error);
+            ConsoleHandler.getInstance().error('notify:' + notification.user_id + ':' + error);
         }
     }
 }

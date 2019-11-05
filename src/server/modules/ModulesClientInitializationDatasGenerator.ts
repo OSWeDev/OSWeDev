@@ -1,8 +1,7 @@
-import ModuleServiceBase from "./ModuleServiceBase";
 import Module from "../../shared/modules/Module";
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ModuleFileServer from './File/ModuleFileServer';
-import ModulesManager from '../../shared/modules/ModulesManager';
-import ObjectHandler from '../../shared/tools/ObjectHandler';
+import ModuleServiceBase from "./ModuleServiceBase";
 
 export default class ModulesClientInitializationDatasGenerator {
 
@@ -41,6 +40,7 @@ export default class ModulesClientInitializationDatasGenerator {
                 await ModuleFileServer.getInstance().writeFile('./src/login/ts/generated/InitializeLoginModulesDatas.ts', fileContent_login);
                 await ModuleFileServer.getInstance().writeFile('./test/generated/InitializeTestModulesDatas.ts', fileContent_test);
             } catch (error) {
+                ConsoleHandler.getInstance().error(error);
                 reject(error);
             } finally {
                 resolve();

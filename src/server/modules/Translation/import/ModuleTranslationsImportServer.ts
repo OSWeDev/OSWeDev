@@ -14,6 +14,7 @@ import DefaultTranslation from '../../../../shared/modules/Translation/vos/Defau
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import DataImportModuleBase from '../../DataImport/DataImportModuleBase/DataImportModuleBase';
@@ -96,7 +97,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
             res = res && await this.merge_imported_datas_in_translations(datas, historic);
 
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             ImportLogger.getInstance().log(historic, format, "Erreur de posttraitement : " + error, DataImportLogVO.LOG_LEVEL_FATAL);
             res = false;
         }
@@ -171,7 +172,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
                 let insertRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(translatable);
 
                 if ((!insertRes) || (!insertRes.id)) {
-                    console.error('Erreur d\'insertion d\'un nouveau translatable en base :' + data.code_lang + ':' + data.code_text + ':' + data.translated + ':');
+                    ConsoleHandler.getInstance().error('Erreur d\'insertion d\'un nouveau translatable en base :' + data.code_lang + ':' + data.code_text + ':' + data.translated + ':');
                     continue;
                 }
 

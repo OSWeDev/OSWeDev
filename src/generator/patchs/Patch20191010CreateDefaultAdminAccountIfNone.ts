@@ -3,6 +3,7 @@ import ModuleDAOServer from '../../server/modules/DAO/ModuleDAOServer';
 import UserVO from '../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
 import LangVO from '../../shared/modules/Translation/vos/LangVO';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../IGeneratorWorker';
 
 export default class Patch20191010CreateDefaultAdminAccountIfNone implements IGeneratorWorker {
@@ -34,7 +35,7 @@ export default class Patch20191010CreateDefaultAdminAccountIfNone implements IGe
             }
             await this.createuser('admin', 'contact@wedev.fr');
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
     }
 
@@ -58,7 +59,7 @@ export default class Patch20191010CreateDefaultAdminAccountIfNone implements IGe
 
             await ModuleDAO.getInstance().insertOrUpdateVO(import_auto);
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
     }
 }

@@ -10,6 +10,7 @@ import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import HourHandler from '../../../../../shared/tools/HourHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
@@ -209,7 +210,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return field_value.toString();
             }
         } catch (error) {
-            // console.error(error);
+            // ConsoleHandler.getInstance().error(error);
             return field_value;
         }
     }
@@ -242,7 +243,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo);
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             return field_value;
         }
     }
@@ -347,7 +348,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return value;
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             return value;
         }
     }
@@ -368,7 +369,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return SimpleDatatableField.defaultReadIHMToData(value, moduleTableField, vo);
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             return value;
         }
     }

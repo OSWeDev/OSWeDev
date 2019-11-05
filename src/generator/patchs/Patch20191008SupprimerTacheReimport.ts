@@ -1,4 +1,5 @@
 import { IDatabase } from 'pg-promise';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../IGeneratorWorker';
 
 export default class Patch20191008SupprimerTacheReimport implements IGeneratorWorker {
@@ -25,7 +26,7 @@ export default class Patch20191008SupprimerTacheReimport implements IGeneratorWo
         try {
             await this.delete_cron_worker(db, 'ReimportCronWorker');
         } catch (error) {
-            console.error('Patch20191008SupprimerTacheReimport : ' + error);
+            ConsoleHandler.getInstance().error('Patch20191008SupprimerTacheReimport : ' + error);
         }
     }
 

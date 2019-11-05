@@ -1,10 +1,11 @@
-import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
-import ModulesManagerServer from '../../ModulesManagerServer';
+import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
+import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import ModuleTranslationsImport from '../../../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ImportTranslation from '../../../../shared/modules/Translation/import/vos/ImportTranslation';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import ModulesManagerServer from '../../ModulesManagerServer';
 
 export default class ModuleTranslationsImportDefaultFormats {
 
@@ -43,7 +44,7 @@ export default class ModuleTranslationsImportDefaultFormats {
         import_base_data_import_file = await ModuleDataImport.getInstance().getDataImportFile(default_import_format_name);
 
         if (!import_base_data_import_file) {
-            console.error('La création du format d\'import a échoué');
+            ConsoleHandler.getInstance().error('La création du format d\'import a échoué');
             return;
         }
 

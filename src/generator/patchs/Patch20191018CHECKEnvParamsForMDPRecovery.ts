@@ -1,6 +1,7 @@
 import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../../server/env/ConfigurationService';
 import EnvParam from '../../server/env/EnvParam';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../IGeneratorWorker';
 
 export default class Patch20191018CHECKEnvParamsForMDPRecovery implements IGeneratorWorker {
@@ -36,10 +37,10 @@ export default class Patch20191018CHECKEnvParamsForMDPRecovery implements IGener
         }
 
         if (param.URL_RECOVERY != "login#/recover") {
-            console.error('ATTENTION : très probablement une erreur sur le paramètre URL_RECOVERY qui doit être par défaut = à "login#/recover" .');
+            ConsoleHandler.getInstance().error('ATTENTION : très probablement une erreur sur le paramètre URL_RECOVERY qui doit être par défaut = à "login#/recover" .');
         }
         if (param.URL_RECOVERY_CHALLENGE != "login#/reset") {
-            console.error('ATTENTION : très probablement une erreur sur le paramètre URL_RECOVERY_CHALLENGE qui doit être par défaut = à "login#/reset" .');
+            ConsoleHandler.getInstance().error('ATTENTION : très probablement une erreur sur le paramètre URL_RECOVERY_CHALLENGE qui doit être par défaut = à "login#/reset" .');
         }
     }
 }

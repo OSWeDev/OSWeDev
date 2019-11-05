@@ -5,6 +5,7 @@ import DataFilterOption from '../../../../shared/modules/DataRender/vos/DataFilt
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './MultipleSelectFilterComponent.scss';
@@ -118,7 +119,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         try {
             this.tmp_filter_active_options = this.filter_active_options;
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
     }
 
@@ -127,7 +128,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
             return this.$store.state[this.store_module_uid][this.internal_store_filter_state_uid];
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
         return [];
     }
@@ -179,7 +180,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             }
             // return this.$store.state[this.store_module_uid][this.internal_store_selectables_by_ids_state_uid];
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
         return res;
     }
@@ -189,7 +190,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
             return this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
         return {};
     }

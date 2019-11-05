@@ -13,12 +13,16 @@ import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import BooleanParamVO from '../../../shared/modules/API/vos/apis/BooleanParamVO';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ServerBase from '../../ServerBase';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
@@ -28,9 +32,6 @@ import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
-import ModuleTable from '../../../shared/modules/ModuleTable';
-import IUserData from '../../../shared/modules/DAO/interface/IUserData';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -431,13 +432,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(dependency);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            console.error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
+            ConsoleHandler.getInstance().error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
             return null;
         }
 
         dependency.id = parseInt(insertOrDeleteQueryResult.id);
         AccessPolicyServerController.getInstance().registered_dependencies[dependency.src_pol_id].push(dependency);
-        console.error('Ajout de dépendance OK :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
+        ConsoleHandler.getInstance().error('Ajout de dépendance OK :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
         return dependency;
     }
 
@@ -453,6 +454,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
             return null;
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
             return null;
         }
     }
@@ -588,7 +590,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private consoledebug(msg: string) {
         if (this.debug_check_access) {
-            console.log(msg);
+            ConsoleHandler.getInstance().log(msg);
         }
     }
 
@@ -1095,7 +1097,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             return user;
         } catch (error) {
-            console.error("login:" + param.email + ":" + error);
+            ConsoleHandler.getInstance().error("login:" + param.email + ":" + error);
         }
         // res.redirect('/login');
 

@@ -1,8 +1,9 @@
 import Component from 'vue-class-component';
-import VueComponentBase from '../../../ts/components/VueComponentBase';
 import { Prop } from 'vue-property-decorator';
-import { ModuleEditablePageSwitchGetter, ModuleEditablePageSwitchAction } from './EditablePageSwitchStore';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './EditablePageSwitchComponent.scss';
+import { ModuleEditablePageSwitchAction, ModuleEditablePageSwitchGetter } from './EditablePageSwitchStore';
 
 @Component({
     template: require('./EditablePageSwitchComponent.pug'),
@@ -73,7 +74,7 @@ export default class EditablePageSwitchComponent extends VueComponentBase {
             let saving_handler = this.saving_handlers[i];
 
             if (!await saving_handler()) {
-                console.error('Echec de sauvegarde de la page');
+                ConsoleHandler.getInstance().error('Echec de sauvegarde de la page');
                 this.snotify.error(this.label('EditablePageSwitchComponent.try_leave.error'));
 
                 this.set_is_saving(false);

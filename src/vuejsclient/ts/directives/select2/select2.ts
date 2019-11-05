@@ -1,5 +1,6 @@
-import Vue from 'vue';
 import * as $ from 'jquery';
+import Vue from 'vue';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 
 export default Vue.directive('select2', {
     bind: function (el, binding, vnode) {
@@ -11,7 +12,7 @@ export default Vue.directive('select2', {
         Vue.nextTick(function () {
             // DIRTY : Incompatibilité quand on essaie de mettre les types select2 avec les types nodes....
             if (!select['select2']) {
-                console.error("FIXME: select2 not loading properly");
+                ConsoleHandler.getInstance().error("FIXME: select2 not loading properly");
                 return;
             }
             select['select2']({

@@ -1,9 +1,8 @@
-import ModuleDBField from '../../shared/modules/ModuleTableField';
-import ModuleDBTable from '../../shared/modules/ModuleTable';
-import ModuleParamChange from '../../shared/modules/ModuleParamChange';
 import Module from '../../shared/modules/Module';
-import ModuleTableDBService from './ModuleTableDBService';
+import ModuleParamChange from '../../shared/modules/ModuleParamChange';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../env/ConfigurationService';
+import ModuleTableDBService from './ModuleTableDBService';
 
 export default class ModuleDBService {
 
@@ -46,7 +45,7 @@ export default class ModuleDBService {
 
     public async module_install(module: Module) {
 
-        // console.log('Installation du module "' + module.name + '"');
+        // ConsoleHandler.getInstance().log('Installation du module "' + module.name + '"');
 
         // Cette fonction a pour vocation de vérifier la présence des configurations nécessaires au fonctionnement du module
         // 	Par exemple une table dédiée au stockage des infos du module, ... les params sont gérés directement par la définition des champs (this.params_fields)
@@ -59,7 +58,7 @@ export default class ModuleDBService {
 
     // ETAPE 1 de l'installation
     private async create_params_table(module: Module) {
-        // console.log(module.name + " - install - ETAPE 1");
+        // ConsoleHandler.getInstance().log(module.name + " - install - ETAPE 1");
 
         // On doit entre autre ajouter la table en base qui gère les fields
         if (module.fields && (module.fields.length > 0)) {
@@ -175,13 +174,13 @@ export default class ModuleDBService {
         // try {
         //     await this.db.query(query);
         // } catch (error) {
-        //     console.log(error);
+        //     ConsoleHandler.getInstance().log(error);
         // }
 
         // try {
         //     await this.db.query('ALTER FUNCTION admin.trigger_module_' + module.name + '() OWNER TO ' + this.bdd_owner + ';\n');
         // } catch (error) {
-        //     console.log(error);
+        //     ConsoleHandler.getInstance().log(error);
         // }
 
         // await this.db.query('DROP TRIGGER IF EXISTS trigger_module_' + module.name + ' ON admin.view_module_' + module.name + ';');
@@ -194,7 +193,7 @@ export default class ModuleDBService {
 
     // ETAPE 3 de l'installation
     private async add_module_to_modules_table(module: Module) {
-        // console.log(module.name + " - install - ETAPE 3");
+        // ConsoleHandler.getInstance().log(module.name + " - install - ETAPE 3");
 
 
         // Et le paramètre dans la table de gestion des modules pour activer ou désactiver ce module.
@@ -221,7 +220,7 @@ export default class ModuleDBService {
 
     // ETAPE 4 de l'installation
     private async create_datas_tables(module: Module) {
-        // console.log(module.name + " - install - ETAPE 4");
+        // ConsoleHandler.getInstance().log(module.name + " - install - ETAPE 4");
 
         for (let i in module.datatables) {
             let datatable = module.datatables[i];
@@ -234,7 +233,7 @@ export default class ModuleDBService {
 
     // ETAPE 5 de l'installation
     private async module_install_end(module: Module) {
-        // console.log(module.name + " - install - ETAPE 5");
+        // ConsoleHandler.getInstance().log(module.name + " - install - ETAPE 5");
         let self = this;
 
         // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
@@ -251,12 +250,12 @@ export default class ModuleDBService {
     private async loadParams(module: Module) {
 
 
-        // console.log('Rechargement de la conf du module ' + module.name);
+        // ConsoleHandler.getInstance().log('Rechargement de la conf du module ' + module.name);
 
         let rows = await this.db.query('select * from admin.module_' + module.name + ';');
 
         if ((!rows) || (!rows[0])) {
-            console.error("Les paramètres du module ne sont pas disponibles");
+            ConsoleHandler.getInstance().error("Les paramètres du module ne sont pas disponibles");
             return [];
         }
 
@@ -274,7 +273,7 @@ export default class ModuleDBService {
                     new ModuleParamChange<any>(field.field_id,
                         field.field_value,
                         params[field.field_id]));
-                console.log("Parameter changed:" + module.name + ":" + field.field_id + ":" + field.field_value + ":" + params[field.field_id] + ":");
+                ConsoleHandler.getInstance().log("Parameter changed:" + module.name + ":" + field.field_id + ":" + field.field_value + ":" + params[field.field_id] + ":");
             }
             field.field_value = params[field.field_id];
             field.field_loaded = true;

@@ -1,3 +1,4 @@
+import ConsoleHandler from '../../../../tools/ConsoleHandler';
 import DAGNode from './DAGNode';
 
 /**
@@ -40,7 +41,7 @@ export default class DAG<TNode extends DAGNode> {
         }
 
         if ((!this.nodes[fromName]) || (!this.nodes[toName])) {
-            console.error('Lien entre noeuds inexistants');
+            ConsoleHandler.getInstance().error('Lien entre noeuds inexistants');
             return;
         }
 
@@ -55,7 +56,7 @@ export default class DAG<TNode extends DAGNode> {
         // let checkCycle: DAGVisitorCheckCycle<any> = new DAGVisitorCheckCycle(fromName, this);
         // to.visit(checkCycle);
         // if (checkCycle.has_cycle) {
-        //     console.error('Incohérence dans l\'arbre des vars - cycle détecté');
+        //     ConsoleHandler.getInstance().error('Incohérence dans l\'arbre des vars - cycle détecté');
         //     return;
         // }
 

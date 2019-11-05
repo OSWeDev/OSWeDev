@@ -1,8 +1,9 @@
-import ModuleServerBase from '../ModuleServerBase';
 import { Express, Request, Response } from 'express';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ServerBase from '../../ServerBase';
+import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleAPIServer extends ModuleServerBase {
 
@@ -27,15 +28,15 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             switch (api.api_type) {
                 case APIDefinition.API_TYPE_GET:
-                    console.log("AJOUT API GET  :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
+                    ConsoleHandler.getInstance().log("AJOUT API GET  :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
                     app.get(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
                     break;
                 case APIDefinition.API_TYPE_POST:
-                    console.log("AJOUT API POST :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
+                    ConsoleHandler.getInstance().log("AJOUT API POST :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
                     app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     break;
                 case APIDefinition.API_TYPE_POST_FOR_GET:
-                    console.log("AJOUT API POST FOR GET :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
+                    ConsoleHandler.getInstance().log("AJOUT API POST FOR GET :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
                     app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     break;
             }

@@ -1,4 +1,5 @@
 import * as clonedeep from 'lodash/cloneDeep';
+import ConsoleHandler from '../../tools/ConsoleHandler';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
@@ -103,7 +104,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
         }
 
         if (!res) {
-            console.error('updateData should return res anyway');
+            ConsoleHandler.getInstance().error('updateData should return res anyway');
             res = clonedeep(varDAGNode.param);
             res.value_type = VarsController.VALUE_TYPE_COMPUTED;
         }

@@ -1,5 +1,5 @@
-import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -8,8 +8,12 @@ import IPlanFacilitator from '../../../../../../shared/modules/ProgramPlan/inter
 import IPlanManager from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
 import IPlanPartner from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanPartner';
 import IPlanRDV from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanRDVPrep from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
 import IPlanTarget from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
+import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import VueAppController from '../../../../../VueAppController';
 import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import VueFieldComponent from '../../../field/field';
 import VueComponentBase from '../../../VueComponentBase';
@@ -17,10 +21,6 @@ import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalPrep.scss";
-import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
-import VueAppController from '../../../../../VueAppController';
-import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 @Component({
     template: require('./ProgramPlanComponentModalPrep.pug'),
@@ -184,7 +184,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, this.selected_rdv.id);
             this.updateRdv(rdv);
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('programplan.rdv_modal.update_rdv.error'));
             return;
         }
@@ -407,7 +407,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                             let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
                             self.updateRdv(rdv);
                         } catch (error) {
-                            console.error(error);
+                            ConsoleHandler.getInstance().error(error);
                             self.snotify.error(self.label('programplan.create_prep.error'));
                             return;
                         }
@@ -461,7 +461,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                             let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
                             self.updateRdv(rdv);
                         } catch (error) {
-                            console.error(error);
+                            ConsoleHandler.getInstance().error(error);
                             self.snotify.error(self.label('programplan.update_prep.error'));
                             return;
                         }
@@ -521,7 +521,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                             }
                             self.removePrep(prep.id);
                         } catch (error) {
-                            console.error(error);
+                            ConsoleHandler.getInstance().error(error);
                             self.snotify.error(self.label('programplan.delete_prep.error'));
                             return;
                         }

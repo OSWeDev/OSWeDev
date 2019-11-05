@@ -1,5 +1,6 @@
 import { WriteStream } from 'fs';
 import * as moment from 'moment';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleFileServer from '../../modules/File/ModuleFileServer';
 
 export default class FileLogger {
@@ -90,7 +91,7 @@ export default class FileLogger {
 
                 res = matches[0] + moment().format(matches[1]) + matches[2];
             } catch (error) {
-                console.error(error);
+                ConsoleHandler.getInstance().error(error);
             }
         }
 

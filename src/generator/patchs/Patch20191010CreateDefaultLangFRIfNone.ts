@@ -2,6 +2,7 @@ import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../server/modules/DAO/ModuleDAOServer';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
 import LangVO from '../../shared/modules/Translation/vos/LangVO';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../IGeneratorWorker';
 
 export default class Patch20191010CreateDefaultLangFRIfNone implements IGeneratorWorker {
@@ -33,7 +34,7 @@ export default class Patch20191010CreateDefaultLangFRIfNone implements IGenerato
             }
             await this.createlang('fr');
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
     }
 
@@ -51,7 +52,7 @@ export default class Patch20191010CreateDefaultLangFRIfNone implements IGenerato
 
             await ModuleDAO.getInstance().insertOrUpdateVO(lang);
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
     }
 }

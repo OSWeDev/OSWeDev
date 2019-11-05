@@ -9,6 +9,7 @@ import NumSegment from '../modules/DataRender/vos/NumSegment';
 import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import TSRange from '../modules/DataRender/vos/TSRange';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
+import ConsoleHandler from './ConsoleHandler';
 import DateHandler from './DateHandler';
 import HourHandler from './HourHandler';
 import HourSegmentHandler from './HourSegmentHandler';
@@ -1031,6 +1032,7 @@ export default class RangeHandler {
                 res.push(this.parseRangeAPI(range_type, range));
             }
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
         }
 
         if ((!res) || (!res.length)) {
@@ -1115,6 +1117,7 @@ export default class RangeHandler {
                 }
             }
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
         }
 
         if ((!res) || (!res.length)) {
@@ -1168,7 +1171,9 @@ export default class RangeHandler {
                         matches[6] == ']',
                         segment_type) as any as U;
             }
-        } catch (error) { }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
         return null;
     }
 
@@ -1214,7 +1219,9 @@ export default class RangeHandler {
                         matches[7] == ']',
                         segment_type) as any as U;
             }
-        } catch (error) { }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
         return null;
     }
 
@@ -1317,6 +1324,7 @@ export default class RangeHandler {
                     return resn as any as T;
             }
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
         }
         return null;
     }

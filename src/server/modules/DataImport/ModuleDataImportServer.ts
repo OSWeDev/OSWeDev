@@ -21,6 +21,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ServerBase from '../../ServerBase';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -596,7 +597,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 postTreated = true;
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT, "Le post-traitement a échoué :" + error, "import.errors.failed_post_treatement_see_logs", DataImportLogVO.LOG_LEVEL_FATAL);
             return;
         }

@@ -1,5 +1,6 @@
 import { Moment } from 'moment';
 import { isNumber } from 'util';
+import ConsoleHandler from './ConsoleHandler';
 
 export default class TimeHandler {
     public static MINUTES_TIME_FOR_INDEX_FORMAT: string = 'HH:mm';
@@ -53,6 +54,7 @@ export default class TimeHandler {
 
             return ((hours >= 10) ? hours : '0' + hours) + ':' + ((minutes >= 10) ? minutes : '0' + minutes);
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
         }
         return null;
     }

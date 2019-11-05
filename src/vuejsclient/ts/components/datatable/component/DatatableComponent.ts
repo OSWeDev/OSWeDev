@@ -11,6 +11,7 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import AppVuexStoreManager from '../../../store/AppVuexStoreManager';
 import { ModuleCRUDAction } from '../../crud/store/CRUDStore';
@@ -806,7 +807,7 @@ export default class DatatableComponent extends VueComponentBase {
                             break;
                     }
                 } catch (error) {
-                    console.error(error);
+                    ConsoleHandler.getInstance().error(error);
                     resData[field.datatable_field_uid] = null;
                 }
             }

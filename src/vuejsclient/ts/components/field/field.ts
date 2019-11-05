@@ -1,4 +1,5 @@
 import { Component, Prop } from 'vue-property-decorator';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VueFilteredInputComponent from '../filtered_input/filtered_input';
 import VueComponentBase from '../VueComponentBase';
 
@@ -32,7 +33,7 @@ export default class VueFieldComponent extends VueComponentBase {
     private istextarea: boolean;
 
     private on_update_field(value) {
-        console.log('EVENT - FIELD - ' + value);
+        ConsoleHandler.getInstance().log('EVENT - FIELD - ' + value);
         this.$emit('updated_field', value);
     }
 }

@@ -28,6 +28,7 @@ import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTa
 import IPlanTaskType from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
@@ -759,7 +760,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!ModuleProgramPlanBase.getInstance().target_facilitator_type_id) {
 
             if (!this.get_tasks_by_ids[rdv.task_id]) {
-                console.error('TASK id introuvable:' + rdv.task_id);
+                ConsoleHandler.getInstance().error('TASK id introuvable:' + rdv.task_id);
                 return null;
             }
 
@@ -1006,7 +1007,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, rdv.id);
 
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('programplan.fc.update.error'));
 
             // On tente d'annuler le déplacement initial
@@ -1193,7 +1194,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                 if (!target_facilitator) {
                     this.snotify.error(this.label('programplan.fc.create.error'));
-                    console.error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
+                    ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
                     // this.setRdvById({ id: 0 } as any);
                     this.reset_rdvs();
                     return;
@@ -1212,7 +1213,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     if (!task_type.order_tasks_on_same_target) {
                         // Pas normal...
                         this.snotify.error(this.label('programplan.fc.create.error'));
-                        console.error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
+                        ConsoleHandler.getInstance().error("!task_type.order_tasks_on_same_target:event._type:" + event._type);
                         // this.setRdvById({ id: 0 } as any);
                         this.reset_rdvs();
                         return;
@@ -1268,7 +1269,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                     if ((!task_type_tasks) || (!task_type_tasks.length)) {
                         this.snotify.error(this.label('programplan.fc.create.error'));
-                        console.error("!task_type_tasks.length");
+                        ConsoleHandler.getInstance().error("!task_type_tasks.length");
                         // this.setRdvById({ id: 0 } as any);
                         this.reset_rdvs();
                         return;
@@ -1286,7 +1287,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                     if (!task) {
                         this.snotify.error(this.label('programplan.fc.create.no_task_left'));
-                        console.error("!task");
+                        ConsoleHandler.getInstance().error("!task");
                         // this.setRdvById({ id: 0 } as any);
                         this.reset_rdvs();
                         return;
@@ -1299,7 +1300,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 rdv.target_id = event.target_id;
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             // this.setRdvById({ id: 0 } as any);
             this.reset_rdvs();
             return;
@@ -1333,7 +1334,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, rdv.id);
 
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('programplan.fc.create.error'));
             // this.setRdvById({ id: 0 } as any);
             this.reset_rdvs();
@@ -1422,7 +1423,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
         if (!!ModuleProgramPlanBase.getInstance().task_type_id) {
             let task = this.get_tasks_by_ids[this.selected_rdv.task_id];
             if (!task) {
-                console.error('Impossible de retrouver le type de tache');
+                ConsoleHandler.getInstance().error('Impossible de retrouver le type de tache');
                 return;
             }
 
@@ -1433,7 +1434,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             let task_type = this.get_task_types_by_ids[task.task_type_id];
             if (!task_type) {
-                console.error('Impossible de retrouver le type de tache');
+                ConsoleHandler.getInstance().error('Impossible de retrouver le type de tache');
                 return;
             }
 
@@ -1506,7 +1507,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                     throw new Error('Erreur serveur');
                 }
             } catch (error) {
-                console.error(error);
+                ConsoleHandler.getInstance().error(error);
                 self.snotify.error(self.label('programplan.delete.error'));
                 return;
             }

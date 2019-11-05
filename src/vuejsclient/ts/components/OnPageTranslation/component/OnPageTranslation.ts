@@ -7,6 +7,7 @@ import ModuleTranslation from "../../../../../shared/modules/Translation/ModuleT
 import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import VueComponentBase from "../../../../ts/components/VueComponentBase";
 import VueAppController from '../../../../VueAppController';
@@ -344,7 +345,7 @@ export default class OnPageTranslation extends VueComponentBase {
 
             this.snotify.success('Import de trads OK, recharger.');
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             this.snotify.error(error);
         }
     }

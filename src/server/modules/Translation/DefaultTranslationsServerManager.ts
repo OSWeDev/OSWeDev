@@ -4,8 +4,9 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
 export default class DefaultTranslationsServerManager {
 
@@ -51,7 +52,7 @@ export default class DefaultTranslationsServerManager {
 
                 if (code_b.code_text.startsWith(code_a.code_text) && (code_b.code_text.lastIndexOf('.') != code_a.code_text.lastIndexOf('.'))) {
 
-                    console.error('TranslatableText : REMOVE :' + code_a.code_text);
+                    ConsoleHandler.getInstance().error('TranslatableText : REMOVE :' + code_a.code_text);
                     codes_to_deletes.push(code_a);
                     break;
                 }
@@ -77,12 +78,12 @@ export default class DefaultTranslationsServerManager {
             translatable = new TranslatableTextVO();
             translatable.code_text = default_translation.code_text;
             await ModuleDAO.getInstance().insertOrUpdateVO(translatable);
-            console.error("Ajout de translatable : " + JSON.stringify(translatable));
+            ConsoleHandler.getInstance().error("Ajout de translatable : " + JSON.stringify(translatable));
             translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, "where code_text=$1", [default_translation.code_text]);
         }
 
         if (!translatable) {
-            console.error("Impossible de créer le translatable : " + default_translation.code_text);
+            ConsoleHandler.getInstance().error("Impossible de créer le translatable : " + default_translation.code_text);
             return;
         }
 
@@ -97,7 +98,7 @@ export default class DefaultTranslationsServerManager {
             if (!translation_str) {
                 // On en crée artificiellement une à partir de la langue par défaut
                 if ((default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == null) || (typeof default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
-                    console.error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(default_translation));
+                    ConsoleHandler.getInstance().error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(default_translation));
                     continue;
                 }
 
@@ -116,7 +117,7 @@ export default class DefaultTranslationsServerManager {
             }
 
             if (!translation) {
-                console.error("Impossible de créer le translation : " + lang.id + ":" + translatable.id + ":" + translation_str);
+                ConsoleHandler.getInstance().error("Impossible de créer le translation : " + lang.id + ":" + translatable.id + ":" + translation_str);
                 return;
             }
         }

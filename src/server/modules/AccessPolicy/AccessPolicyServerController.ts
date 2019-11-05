@@ -1,16 +1,16 @@
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import Module from '../../../shared/modules/Module';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleVO from '../../../shared/modules/ModuleVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 
 export default class AccessPolicyServerController {
 
@@ -158,14 +158,14 @@ export default class AccessPolicyServerController {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(role);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            console.error('Ajout de role échoué:' + role.translatable_name + ':');
+            ConsoleHandler.getInstance().error('Ajout de role échoué:' + role.translatable_name + ':');
             return null;
         }
 
         role.id = parseInt(insertOrDeleteQueryResult.id);
         AccessPolicyServerController.getInstance().registered_roles[role.translatable_name] = role;
         AccessPolicyServerController.getInstance().registered_roles_by_ids[role.id] = role;
-        console.error('Ajout du role OK:' + role.translatable_name + ':');
+        ConsoleHandler.getInstance().error('Ajout du role OK:' + role.translatable_name + ':');
         return role;
     }
 
@@ -201,13 +201,13 @@ export default class AccessPolicyServerController {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(group);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            console.error('Ajout de groupe échoué :' + group.translatable_name + ':');
+            ConsoleHandler.getInstance().error('Ajout de groupe échoué :' + group.translatable_name + ':');
             return null;
         }
 
         group.id = parseInt(insertOrDeleteQueryResult.id);
         AccessPolicyServerController.getInstance().registered_policy_groups[translatable_name] = group;
-        console.error('Ajout du groupe OK :' + group.translatable_name + ':');
+        ConsoleHandler.getInstance().error('Ajout du groupe OK :' + group.translatable_name + ':');
         return group;
     }
 
@@ -256,10 +256,10 @@ export default class AccessPolicyServerController {
                 policyFromBDD.group_id = policy.group_id;
                 let insertOrDeleteQueryResult_modif: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policyFromBDD);
                 if ((!insertOrDeleteQueryResult_modif) || (!insertOrDeleteQueryResult_modif.id)) {
-                    console.error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
+                    ConsoleHandler.getInstance().error('Modification de droit échoué :' + policyFromBDD.translatable_name + ':');
                     return null;
                 }
-                console.error('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
+                ConsoleHandler.getInstance().error('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
             }
 
             AccessPolicyServerController.getInstance().registered_policies[translatable_name] = policyFromBDD;
@@ -269,14 +269,14 @@ export default class AccessPolicyServerController {
 
         let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(policy);
         if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            console.error('Ajout de droit échoué :' + policy.translatable_name + ':');
+            ConsoleHandler.getInstance().error('Ajout de droit échoué :' + policy.translatable_name + ':');
             return null;
         }
 
         policy.id = parseInt(insertOrDeleteQueryResult.id);
         AccessPolicyServerController.getInstance().registered_policies[translatable_name] = policy;
         AccessPolicyServerController.getInstance().registered_policies_by_ids[policy.id] = policy;
-        console.error('Ajout du droit OK :' + policy.translatable_name + ':');
+        ConsoleHandler.getInstance().error('Ajout du droit OK :' + policy.translatable_name + ':');
         return policy;
     }
 

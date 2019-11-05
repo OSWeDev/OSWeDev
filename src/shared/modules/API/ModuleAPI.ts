@@ -1,15 +1,15 @@
-import Module from '../Module';
 // if false
 // FIXME RIEN A FAIRE ICI
 import * as $ from 'jquery';
+import { isArray } from 'util';
+import ConsoleHandler from '../../tools/ConsoleHandler';
+import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
+import IDistantVOBase from '../IDistantVOBase';
+import Module from '../Module';
 // endif
 import ModulesManager from '../ModulesManager';
-import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
-import APIDefinition from './vos/APIDefinition';
-import { isArray } from 'util';
-import { EEXIST } from 'constants';
-import IDistantVOBase from '../IDistantVOBase';
 import VOsTypesManager from '../VOsTypesManager';
+import APIDefinition from './vos/APIDefinition';
 
 export default class ModuleAPI extends Module {
 
@@ -58,7 +58,7 @@ export default class ModuleAPI extends Module {
         if (api_params && isArray(api_params) && (api_params.length > 1)) {
             // On a besoin de faire appel à un traducteur
             if (!paramTranslator) {
-                console.error("PARAMTRANSLATOR manquant pour l'API " + api_name);
+                ConsoleHandler.getInstance().error("PARAMTRANSLATOR manquant pour l'API " + api_name);
                 return null;
             } else {
                 translated_param = await paramTranslator.apply(this, api_params);
@@ -195,7 +195,7 @@ export default class ModuleAPI extends Module {
         while (apiMember) {
 
             if ((!urlMembers[i]) || (!apiMember[1])) {
-                // console.error('Incohérence getFakeRequestParamsFromUrl :' + urlMembers[i] + ":" + apiMember[1] + ":");
+                // ConsoleHandler.getInstance().error('Incohérence getFakeRequestParamsFromUrl :' + urlMembers[i] + ":" + apiMember[1] + ":");
                 return res;
             }
 

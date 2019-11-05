@@ -1,24 +1,25 @@
-import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import ModuleServerBase from '../ModuleServerBase';
-import ICronWorker from './interfaces/ICronWorker';
-import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import * as moment from 'moment';
-import DateHandler from '../../../shared/tools/DateHandler';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import ModulePushDataServer from '../PushData/ModulePushDataServer';
-import ServerBase from '../../ServerBase';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
+import ModuleCron from '../../../shared/modules/Cron/ModuleCron';
+import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import DateHandler from '../../../shared/tools/DateHandler';
+import ServerBase from '../../ServerBase';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ModuleServerBase from '../ModuleServerBase';
+import ModulesManagerServer from '../ModulesManagerServer';
+import ModulePushDataServer from '../PushData/ModulePushDataServer';
+import ICronWorker from './interfaces/ICronWorker';
 
 export default class ModuleCronServer extends ModuleServerBase {
 
@@ -144,7 +145,7 @@ export default class ModuleCronServer extends ModuleServerBase {
                 }
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
         this.semaphore = false;
     }
@@ -196,9 +197,9 @@ export default class ModuleCronServer extends ModuleServerBase {
 
         this.cronWorkers_semaphores[worker_uid] = false;
 
-        console.log('CRON:LANCEMENT:' + worker_uid);
+        ConsoleHandler.getInstance().log('CRON:LANCEMENT:' + worker_uid);
         await this.registered_cronWorkers[worker_uid].work();
-        console.log('CRON:FIN:' + worker_uid);
+        ConsoleHandler.getInstance().log('CRON:FIN:' + worker_uid);
 
         this.cronWorkers_semaphores[worker_uid] = true;
     }

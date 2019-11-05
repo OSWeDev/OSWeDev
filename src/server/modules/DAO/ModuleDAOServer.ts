@@ -40,6 +40,7 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -299,7 +300,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
 
         if (!datatable) {
-            console.error("Impossible de trouver le datatable ! " + api_type_id);
+            ConsoleHandler.getInstance().error("Impossible de trouver le datatable ! " + api_type_id);
             return null;
         }
 
@@ -525,14 +526,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let vo = vos[i];
 
                 if (!vo._type) {
-                    console.error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
+                    ConsoleHandler.getInstance().error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
                     continue;
                 }
 
                 let datatable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
 
                 if (!datatable) {
-                    console.error("Impossible de trouver le datatable de ce _type ! " + JSON.stringify(vo));
+                    ConsoleHandler.getInstance().error("Impossible de trouver le datatable de ce _type ! " + JSON.stringify(vo));
                     continue;
                 }
 
@@ -558,14 +559,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase): Promise<string> {
 
         if (!vo._type) {
-            console.error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
+            ConsoleHandler.getInstance().error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
             return null;
         }
 
         let datatable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
 
         if (!datatable) {
-            console.error("Impossible de trouver le datatable de ce _type ! " + JSON.stringify(vo));
+            ConsoleHandler.getInstance().error("Impossible de trouver le datatable de ce _type ! " + JSON.stringify(vo));
             return null;
         }
 
@@ -909,7 +910,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     //         let field_range = field_ranges[i];
 
     //         if ((!field_range) || (api_type_id != field_range.api_type_id) || (!field_range.field_id) || (!datatable.getFieldFromId(field_range.field_id))) {
-    //             console.error('Champs introuvable ou incompatible :' + api_type_id + ':' + (field_range ? field_range.api_type_id : null) + ':' + (field_range ? field_range.field_id : null) + ':');
+    //             ConsoleHandler.getInstance().error('Champs introuvable ou incompatible :' + api_type_id + ':' + (field_range ? field_range.api_type_id : null) + ':' + (field_range ? field_range.field_id : null) + ':');
     //             return null;
     //         }
 
@@ -1037,7 +1038,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     //         let field_range = field_ranges[i];
 
     //         if ((!field_range) || (api_type_id != field_range.api_type_id) || (!field_range.field_id) || (!datatable.getFieldFromId(field_range.field_id))) {
-    //             console.error('Champs introuvable ou incompatible :' + api_type_id + ':' + (field_range ? field_range.api_type_id : null) + ':' + (field_range ? field_range.field_id : null) + ':');
+    //             ConsoleHandler.getInstance().error('Champs introuvable ou incompatible :' + api_type_id + ':' + (field_range ? field_range.api_type_id : null) + ':' + (field_range ? field_range.field_id : null) + ':');
     //             return null;
     //         }
 
@@ -1171,7 +1172,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     //         let field_range = field_ranges[i];
 
     //         if ((!field_range) || (api_type_id != field_range.api_type_id) || (!field_range.field_id) || (!datatable.getFieldFromId(field_range.field_id))) {
-    //             console.error('Champs introuvable ou incompatible :' + api_type_id + ':' + (field_range ? field_range.api_type_id : null) + ':' + (field_range ? field_range.field_id : null) + ':');
+    //             ConsoleHandler.getInstance().error('Champs introuvable ou incompatible :' + api_type_id + ':' + (field_range ? field_range.api_type_id : null) + ':' + (field_range ? field_range.field_id : null) + ':');
     //             return null;
     //         }
 
@@ -1179,7 +1180,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     //         if (!ranges_by_field_id[field_range.field_id]) {
     //             ranges_by_field_id[field_range.field_id] = [];
     //         } else {
-    //             console.error('cannot getVosByExactFieldRanges with non multiple ranges');
+    //             ConsoleHandler.getInstance().error('cannot getVosByExactFieldRanges with non multiple ranges');
     //             return null;
     //         }
     //         ranges_by_field_id[field_range.field_id].push(field_range);
@@ -1214,7 +1215,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     //                     break;
 
     //                 default:
-    //                     console.error('cannot getVosByExactFieldRanges with non range array fields');
+    //                     ConsoleHandler.getInstance().error('cannot getVosByExactFieldRanges with non range array fields');
     //                     return null;
     //             }
     //         }
@@ -1313,7 +1314,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let matroid: IMatroid = matroids[matroid_i];
 
             if (!matroid) {
-                console.error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
+                ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
                 return null;
             }
 
@@ -1412,7 +1413,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let field = datatable.getFieldFromId(field_id);
 
                 if ((!field) || (!field_range)) {
-                    console.error('((!field) || (!field_range)) on filterVosByMatroid should not happen');
+                    ConsoleHandler.getInstance().error('((!field) || (!field_range)) on filterVosByMatroid should not happen');
                     continue;
                 }
 
@@ -1425,7 +1426,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 let ranges_query_type = '';
 
                 if (!RangeHandler.getInstance().isValid(field_range)) {
-                    console.error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
+                    ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
                     return null;
                 }
 
@@ -1665,7 +1666,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             if ((!ranges) || (!ranges.length)) {
-                console.error('Matroid field vide ou inexistant:' + datatable.vo_type + ':' + matroid_fields[i].field_id + ':');
+                ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + datatable.vo_type + ':' + matroid_fields[i].field_id + ':');
                 return null;
             }
 
@@ -1703,7 +1704,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let matroid = matroids[matroid_i];
 
             if (!matroid) {
-                console.error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
+                ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
                 return null;
             }
 
@@ -1731,7 +1732,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 if ((!ranges) || (!ranges.length)) {
-                    console.error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                    ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
                     return null;
                 }
 
@@ -1742,7 +1743,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     let field_range: IRange<any> = ranges[j];
 
                     if (!RangeHandler.getInstance().isValid(field_range)) {
-                        console.error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
+                        ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
                         return null;
                     }
 
@@ -1876,7 +1877,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let matroid = matroids[matroid_i];
 
             if (!matroid) {
-                console.error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
+                ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
                 return null;
             }
 
@@ -1904,7 +1905,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 if ((!ranges) || (!ranges.length)) {
-                    console.error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                    ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
                     return null;
                 }
 
@@ -1915,7 +1916,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     let field_range: IRange<any> = ranges[j];
 
                     if (!RangeHandler.getInstance().isValid(field_range)) {
-                        console.error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
+                        ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
                         return null;
                     }
 
@@ -1935,7 +1936,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             break;
 
                         default:
-                            console.error('cannot getVosByExactFieldRanges with non range array fields');
+                            ConsoleHandler.getInstance().error('cannot getVosByExactFieldRanges with non range array fields');
                             return null;
                     }
                 }

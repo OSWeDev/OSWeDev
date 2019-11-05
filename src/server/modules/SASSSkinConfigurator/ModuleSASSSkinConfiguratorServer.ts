@@ -1,5 +1,6 @@
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleSASSSkinConfigurator from '../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
 
@@ -28,6 +29,7 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/vuejsclient/scss/generated/');
                 await ModuleFileServer.getInstance().writeFile('./src/vuejsclient/scss/generated/skin-variables.scss', fileContent);
             } catch (error) {
+                ConsoleHandler.getInstance().error(error);
                 reject(error);
             } finally {
                 resolve();
@@ -43,7 +45,7 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
         return fileContent;
     }
 
-    private getSassVariablesDefinition(variables: ModuleTableField<string>[]): string {
+    private getSassVariablesDefinition(variables: Array<ModuleTableField<string>>): string {
 
         let res = '';
 

@@ -1,18 +1,19 @@
-// if false
 // FIXME RIEN A FAIRE ICI
+// if false
 import * as $ from 'jquery';
+// endif
 import * as debounce from 'lodash/debounce';
 import * as moment from 'moment';
 import { Duration } from 'moment';
 import VueAppController from '../../../vuejsclient/VueAppController';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ConsoleHandler from '../../tools/ConsoleHandler';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import CacheInvalidationRegexpRuleVO from './vos/CacheInvalidationRegexpRuleVO';
 import CacheInvalidationRulesVO from './vos/CacheInvalidationRulesVO';
 import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
-// endif
 import RequestsCacheVO from './vos/RequestsCacheVO';
 import RequestsWrapperResult from './vos/RequestsWrapperResult';
 
@@ -62,7 +63,7 @@ export default class ModuleAjaxCache extends Module {
         try {
             return url + (postdatas ? '###___###' + JSON.stringify(postdatas) : '');
         } catch (error) {
-            console.error('Index impossible à créer:' + url + ':' + postdatas + ':' + error + ':');
+            ConsoleHandler.getInstance().error('Index impossible à créer:' + url + ':' + postdatas + ':' + error + ':');
         }
     }
 
@@ -232,7 +233,7 @@ export default class ModuleAjaxCache extends Module {
                     .fail((err) => {
                         self.traitementFailRequest(err, cache);
 
-                        console.log("post failed :" + url + ":" + postdatas + ":" + err);
+                        ConsoleHandler.getInstance().log("post failed :" + url + ":" + postdatas + ":" + err);
                     });
             } else {
                 self.resolve_request(cache, null);
@@ -412,7 +413,7 @@ export default class ModuleAjaxCache extends Module {
                 self.addToWaitingRequestsStack(request);
             }, 2000);
         } else {
-            console.log("request failed :" + request + ":" + err);
+            ConsoleHandler.getInstance().log("request failed :" + request + ":" + err);
             if ((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) {
                 (window as any).alert('Loading failure - Please reload your page');
             }
@@ -458,7 +459,7 @@ export default class ModuleAjaxCache extends Module {
         try {
             await this.processRequests();
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
 
         this.processRequestsSemaphore = false;
@@ -533,7 +534,7 @@ export default class ModuleAjaxCache extends Module {
                     }
                 } catch (error) {
                     // Si ça échoue, on utilise juste le système normal de requêtage individuel.
-                    console.error("Echec de requête groupée : " + error);
+                    ConsoleHandler.getInstance().error("Echec de requête groupée : " + error);
                     everything_went_well = false;
                 }
                 if (everything_went_well) {
@@ -569,7 +570,7 @@ export default class ModuleAjaxCache extends Module {
                     break;
 
                 case RequestResponseCacheVO.API_TYPE_POST:
-                    console.error('Should never happen :processRequests:TYPE == POST:');
+                    ConsoleHandler.getInstance().error('Should never happen :processRequests:TYPE == POST:');
                     break;
 
                 case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:

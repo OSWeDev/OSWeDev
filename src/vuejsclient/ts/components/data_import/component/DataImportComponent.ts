@@ -10,6 +10,7 @@ import DataImportLogVO from '../../../../../shared/modules/DataImport/vos/DataIm
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
@@ -19,7 +20,6 @@ import DataImportComponentBase from '../base/DataImportComponentBase';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import { ModuleDataImportAction, ModuleDataImportGetter } from '../store/DataImportStore';
 import './DataImportComponent.scss';
-import { watch } from 'fs';
 
 @Component({
     template: require('./DataImportComponent.pug'),
@@ -498,7 +498,7 @@ export default class DataImportComponent extends DataImportComponentBase {
             return;
         }
 
-        console.log('loadRawImportedDatas:' + timeSegment.dateIndex);
+        ConsoleHandler.getInstance().log('loadRawImportedDatas:' + timeSegment.dateIndex);
 
         for (let i in this.import_historics[timeSegment.dateIndex]) {
 

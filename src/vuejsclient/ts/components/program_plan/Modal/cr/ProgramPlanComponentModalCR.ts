@@ -1,5 +1,5 @@
-import * as moment from 'moment';
 import { Component, Prop } from 'vue-property-decorator';
+import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -10,6 +10,9 @@ import IPlanPartner from '../../../../../../shared/modules/ProgramPlan/interface
 import IPlanRDV from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanTarget from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
+import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
+import VueAppController from '../../../../../VueAppController';
 import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import VueFieldComponent from '../../../field/field';
 import VueComponentBase from '../../../VueComponentBase';
@@ -17,9 +20,6 @@ import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalCR.scss";
-import VueAppController from '../../../../../VueAppController';
-import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 @Component({
     template: require('./ProgramPlanComponentModalCR.pug'),
@@ -311,7 +311,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                             let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
                             self.updateRdv(rdv);
                         } catch (error) {
-                            console.error(error);
+                            ConsoleHandler.getInstance().error(error);
                             self.snotify.error(self.label('programplan.create_cr.error'));
                             return;
                         }
@@ -365,7 +365,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                             let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
                             self.updateRdv(rdv);
                         } catch (error) {
-                            console.error(error);
+                            ConsoleHandler.getInstance().error(error);
                             self.snotify.error(self.label('programplan.update_cr.error'));
                             return;
                         }
@@ -430,7 +430,7 @@ export default class ProgramPlanComponentModalCR extends VueComponentBase {
                             let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
                             self.updateRdv(rdv);
                         } catch (error) {
-                            console.error(error);
+                            ConsoleHandler.getInstance().error(error);
                             self.snotify.error(self.label('programplan.delete_cr.error'));
                             return;
                         }

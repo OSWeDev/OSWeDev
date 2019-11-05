@@ -1,8 +1,9 @@
+import ConsoleHandler from '../../../../../tools/ConsoleHandler';
 import ISimpleNumberVarData from '../../../interfaces/ISimpleNumberVarData';
-import VarControllerBase from '../../../VarControllerBase';
-import BinaryVarOperatorControllerBase from '../BinaryVarOperatorControllerBase';
 import IVarDataParamVOBase from '../../../interfaces/IVarDataParamVOBase';
+import VarControllerBase from '../../../VarControllerBase';
 import VarDataParamControllerBase from '../../../VarDataParamControllerBase';
+import BinaryVarOperatorControllerBase from '../BinaryVarOperatorControllerBase';
 
 export default class DivVarController<
     TDataLeft extends ISimpleNumberVarData & TDataParamLeft,
@@ -40,6 +41,7 @@ export default class DivVarController<
 
             return res;
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
         }
 
         return null;

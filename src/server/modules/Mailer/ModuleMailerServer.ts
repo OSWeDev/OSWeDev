@@ -1,13 +1,14 @@
-import ModuleServerBase from '../ModuleServerBase';
-import { SendMailOptions, Transport } from 'nodemailer';
 import * as nodemailer from 'nodemailer';
-import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
+import { SendMailOptions } from 'nodemailer';
 import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
+import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
+import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
+import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
-import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
-import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
+import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleMailerServer extends ModuleServerBase {
 
@@ -63,7 +64,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
         // On check que l'env permet d'envoyer des mails
         if (ConfigurationService.getInstance().getNodeConfiguration().BLOCK_MAIL_DELIVERY) {
-            console.warn('Envoi de mails interdit sur cet env: %s', mailOptions.subject);
+            ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env: ' + mailOptions.subject);
             return;
         }
 
@@ -78,10 +79,10 @@ export default class ModuleMailerServer extends ModuleServerBase {
             let mailtransport = nodemailer.createTransport(this.transporter);
             mailtransport.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    console.error(error);
+                    ConsoleHandler.getInstance().error(error);
                     resolve();
                 } else {
-                    console.log('Message sent: %s', info.messageId);
+                    ConsoleHandler.getInstance().log('Message sent: ' + info.messageId);
                     resolve();
                 }
             });

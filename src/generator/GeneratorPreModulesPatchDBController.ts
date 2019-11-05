@@ -1,4 +1,5 @@
 import { IDatabase } from 'pg-promise';
+import ConsoleHandler from '../shared/tools/ConsoleHandler';
 
 export default class GeneratorPreModulesPatchDBController {
 
@@ -17,7 +18,7 @@ export default class GeneratorPreModulesPatchDBController {
         try {
             await db.none("DROP TABLE " + table_name + ";");
         } catch (error) {
-            console.error('Si erreur != table ou colonne inexistante, il faut regarder manuellement :' + error);
+            ConsoleHandler.getInstance().error('Si erreur != table ou colonne inexistante, il faut regarder manuellement :' + error);
         }
     }
 
@@ -25,7 +26,7 @@ export default class GeneratorPreModulesPatchDBController {
         try {
             await db.none("ALTER TABLE " + table_name + " DROP COLUMN " + column_name + ";");
         } catch (error) {
-            console.error('Si erreur != table ou colonne inexistante, il faut regarder manuellement :' + error);
+            ConsoleHandler.getInstance().error('Si erreur != table ou colonne inexistante, il faut regarder manuellement :' + error);
         }
     }
 }

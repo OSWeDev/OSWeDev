@@ -1,8 +1,9 @@
-import EditablePageEditInfo from './EditablePageEditInfo';
-import VueAppBase from '../../../VueAppBase';
-import VarsController from '../../../../shared/modules/Var/VarsController';
-import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import VarsController from '../../../../shared/modules/Var/VarsController';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import VueAppBase from '../../../VueAppBase';
+import EditablePageEditInfo from './EditablePageEditInfo';
 
 let debounce = require('lodash/debounce');
 
@@ -41,7 +42,7 @@ export default class EditablePageController {
             return;
         }
         if ((!!edit_info.field) && (!edit_info.vo.id)) {
-            console.error('On ne peut pas éditer le field d\'un vo qui n\'est pas en base');
+            ConsoleHandler.getInstance().error('On ne peut pas éditer le field d\'un vo qui n\'est pas en base');
             return;
         }
 
@@ -100,7 +101,7 @@ export default class EditablePageController {
                         VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {
-                    console.error(error);
+                    ConsoleHandler.getInstance().error(error);
                     edit_info_result = false;
 
                     if (!!edit_info.vo) {
@@ -117,7 +118,7 @@ export default class EditablePageController {
                         VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {
-                    console.error(error);
+                    ConsoleHandler.getInstance().error(error);
                     edit_info_result = false;
                 }
             }

@@ -194,7 +194,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     //         let matroid_field_range: Array<FieldRange<any>> = FieldRangeHandler.getInstance().getFieldRangesFromRanges(moduletable.vo_type, field.field_id, matroid_param[field.field_id]);
 
     //         if ((!matroid_field_range) || (matroid_field_range.length != 1)) {
-    //             console.error('Impossible de questionner un matroid qui possède plusieurs ranges sur un de ses fields');
+    //             ConsoleHandler.getInstance().error('Impossible de questionner un matroid qui possède plusieurs ranges sur un de ses fields');
     //             return null;
     //         }
 

@@ -61,7 +61,7 @@ export default class DAGNode {
      */
     public removeMarker(marker: string, dag: DAG<any>, force_deletion: boolean = false) {
         if (!this.markers[marker]) {
-            // console.error('Incohérence de DAG :' + this.name + ':removeMarker:' + marker + ':inexistant');
+            // ConsoleHandler.getInstance().error('Incohérence de DAG :' + this.name + ':removeMarker:' + marker + ':inexistant');
             return;
         }
 

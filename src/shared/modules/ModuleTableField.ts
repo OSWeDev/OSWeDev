@@ -1,4 +1,5 @@
 import { isArray, isBoolean, isNull, isNumber } from 'util';
+import ConsoleHandler from '../tools/ConsoleHandler';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';
@@ -222,7 +223,7 @@ export default class ModuleTableField<T> {
             }
             return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '');
         } catch (error) {
-            console.info('Valeur par défaut incompatible avec la BDD pour le champs:' + this.field_id + ':' + error);
+            ConsoleHandler.getInstance().error('Valeur par défaut incompatible avec la BDD pour le champs:' + this.field_id + ':' + error);
         }
         return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '');
     }

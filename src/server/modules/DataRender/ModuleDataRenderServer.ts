@@ -14,16 +14,16 @@ import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ModuleTable from '../../../shared/modules/ModuleTable';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import TimeSegmentHandler from '../../../shared/tools/TimeSegmentHandler';
+import ServerBase from '../../ServerBase';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import DataRenderModuleBase from './DataRenderModuleBase/DataRenderModuleBase';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ServerBase from '../../ServerBase';
 
 export default class ModuleDataRenderServer extends ModuleServerBase {
 
@@ -163,7 +163,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         let render_time_segments_json: string = req.fields.render_time_segments_json as string;
         let render_time_segments: TimeSegment[] = JSON.parse(render_time_segments_json);
         let options: IRenderOptions = req.fields.options ? JSON.parse(req.fields.options as string) : null;
-        console.log('RENDER : ' + renderer_name);
+        ConsoleHandler.getInstance().log('RENDER : ' + renderer_name);
 
         // On ordonne tout de suite les segments, qui doivent dans tous les cas être en ordre chronologique
         render_time_segments.sort((a: TimeSegment, b: TimeSegment): number => {
@@ -193,7 +193,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         try {
             dataRender = await ModuleDataRender.getInstance().getDataRenderer(renderer_name);
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             log.state = DataRenderingLogVO.RENDERING_STATE_FAILED;
             log.message = error + "\n";
         }
@@ -212,7 +212,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
                 rendered = true;
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             log.state = DataRenderingLogVO.RENDERING_STATE_FAILED;
             log.message = error + "\n";
             rendered = false;
@@ -233,7 +233,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
         // A la limite, le await on s'en fout ici... pour les logs on prend le temps qu'on veut et on bloque pas l'exécution
         ModuleDAO.getInstance().insertOrUpdateVOs([log]);
 
-        console.error("handleApiError_importFile :" + log.message);
+        ConsoleHandler.getInstance().error("handleApiError_importFile :" + log.message);
         res.statusCode = DataRenderingLogVO.FAILED_HTML_STATUS;
         res.send(log.message);
     }

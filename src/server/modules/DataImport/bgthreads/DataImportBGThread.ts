@@ -5,6 +5,7 @@ import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/Insert
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import DataImportLogVO from '../../../../shared/modules/DataImport/vos/DataImportLogVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
@@ -73,7 +74,7 @@ export default class DataImportBGThread implements IBGThread {
             }
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
 
         return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
@@ -134,12 +135,12 @@ export default class DataImportBGThread implements IBGThread {
                 let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_importHistoric);
 
                 if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-                    console.error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
+                    ConsoleHandler.getInstance().error('!insertOrDeleteQueryResult dans handleImportHistoricProgression');
                     return false;
                 }
                 let id = parseInt(insertOrDeleteQueryResult.id);
                 if ((!id) || (!isNumber(id))) {
-                    console.error('!id dans handleImportHistoricProgression');
+                    ConsoleHandler.getInstance().error('!id dans handleImportHistoricProgression');
                     return false;
                 }
 

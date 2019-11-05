@@ -1,4 +1,5 @@
 import * as debounce from 'lodash/debounce';
+import ConsoleHandler from '../../tools/ConsoleHandler';
 import ObjectHandler from '../../tools/ObjectHandler';
 import RangeHandler from '../../tools/RangeHandler';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
@@ -268,7 +269,7 @@ export default class VarsController {
             // let BATCH_UID: number = this.BATCH_UIDs_by_var_id[var_id];
 
             // if (!((BATCH_UID != null) && (typeof BATCH_UID != 'undefined'))) {
-            //     console.error('setImportedDatasInBatchCache:Tried set datas in unknown batch');
+            //     ConsoleHandler.getInstance().error('setImportedDatasInBatchCache:Tried set datas in unknown batch');
             //     return;
             // }
 
@@ -598,7 +599,7 @@ export default class VarsController {
 
                 self.registerDataParam(param, reload_on_register, [var_callback_once], ignore_unvalidated_datas);
             } catch (error) {
-                console.error(error);
+                ConsoleHandler.getInstance().error(error);
                 reject(error);
             }
         });
@@ -629,6 +630,7 @@ export default class VarsController {
                 }
             }
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
             return null;
         }
 
@@ -1386,7 +1388,7 @@ export default class VarsController {
                 }
                 // this.intesect_time += moment().diff(before);
 
-                // console.log('CARD:' + this.get_cardinal_time + ':INTERS:' + this.intesect_time + ':');
+                // ConsoleHandler.getInstance().log('CARD:' + this.get_cardinal_time + ':INTERS:' + this.intesect_time + ':');
                 // await ThreadHandler.getInstance().sleep(50);
 
                 // On veut en tirer 2 choses :
@@ -1752,7 +1754,7 @@ export default class VarsController {
                     }
                 } else {
                     // Sinon on a pas tout ok, mais on sait pas résoudre, on indique une erreur
-                    console.error('echec solveDeps:des deps restent, mais impossible de les charger');
+                    ConsoleHandler.getInstance().error('echec solveDeps:des deps restent, mais impossible de les charger');
                     return;
                 }
             }
@@ -1994,7 +1996,7 @@ export default class VarsController {
                 this.updateSemaphore_needs_reload = true;
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
 
         this.updateSemaphore = false;

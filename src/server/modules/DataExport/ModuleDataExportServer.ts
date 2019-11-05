@@ -3,6 +3,7 @@ import { WorkBook } from 'xlsx';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
 import ExportDataToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
@@ -30,7 +31,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
             return null;
         }
 
-        console.log('EXPORT : ' + params.filename);
+        ConsoleHandler.getInstance().log('EXPORT : ' + params.filename);
 
         let worksheetColumns = [];
         let spreedsheetName: string = 'Data';

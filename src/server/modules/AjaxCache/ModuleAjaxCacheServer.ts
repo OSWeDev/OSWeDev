@@ -6,6 +6,7 @@ import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/Request
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -67,7 +68,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
             }
 
             if (!apiDefinition) {
-                console.error('API introuvable:' + wrapped_request.url + ':');
+                ConsoleHandler.getInstance().error('API introuvable:' + wrapped_request.url + ':');
                 break;
             }
 
@@ -88,7 +89,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                     try {
                         param = JSON.parse(wrapped_request.postdatas);
                     } catch (error) {
-                        console.error('Erreur récupération params poste_for_get wrapped:' + error + ':');
+                        ConsoleHandler.getInstance().error('Erreur récupération params poste_for_get wrapped:' + error + ':');
                     }
             }
 

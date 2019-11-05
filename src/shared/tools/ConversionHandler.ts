@@ -1,3 +1,5 @@
+import ConsoleHandler from './ConsoleHandler';
+
 export default class ConversionHandler {
 
     public static getInstance(): ConversionHandler {
@@ -16,6 +18,7 @@ export default class ConversionHandler {
         try {
             return ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
         } catch (e) {
+            ConsoleHandler.getInstance().error(e);
         }
         return null;
     }
@@ -32,6 +35,7 @@ export default class ConversionHandler {
                 res.push(parseFloat(e.toString()));
             }
         } catch (e) {
+            ConsoleHandler.getInstance().error(e);
         }
         return res;
     }

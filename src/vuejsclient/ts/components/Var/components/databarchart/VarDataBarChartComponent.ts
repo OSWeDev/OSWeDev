@@ -6,6 +6,7 @@ import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interface
 import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataBarChartComponent.scss';
@@ -327,7 +328,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
                 this.chartOptions
             );
         } catch (error) {
-            console.warn('PB:render Bar Chart probablement trop tôt:' + error);
+            ConsoleHandler.getInstance().warn('PB:render Bar Chart probablement trop tôt:' + error);
             this.rendered = false;
             setTimeout(this.render_chart_js, 500);
         }

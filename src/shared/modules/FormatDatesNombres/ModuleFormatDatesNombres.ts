@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { isNumber } from 'util';
+import ConsoleHandler from '../../tools/ConsoleHandler';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
 
@@ -46,6 +47,7 @@ export default class ModuleFormatDatesNombres extends Module {
                 return res;
             }
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
         }
         return null;
     }
@@ -126,6 +128,7 @@ export default class ModuleFormatDatesNombres extends Module {
                 return "-";
             }
         } catch (e) {
+            ConsoleHandler.getInstance().error(e);
             return "";
         }
         return "";
@@ -163,6 +166,7 @@ export default class ModuleFormatDatesNombres extends Module {
 
             res = number + res;
         } catch (e) {
+            ConsoleHandler.getInstance().error(e);
             return "NaN";
         }
         return this.formatNumber_sign(numberToFormat) + res;
@@ -225,6 +229,7 @@ export default class ModuleFormatDatesNombres extends Module {
             dectxt += decimals;
             return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + dectxt;
         } catch (e) {
+            ConsoleHandler.getInstance().error(e);
         }
 
         return "NaN";

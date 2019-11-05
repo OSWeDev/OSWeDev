@@ -1,8 +1,9 @@
+import moment = require('moment');
 // import * as helmet from 'helmet';
-import * as csrf from 'csurf';
-import * as cookieParser from 'cookie-parser';
 import * as child_process from 'child_process';
 import * as compression from 'compression';
+import * as cookieParser from 'cookie-parser';
+import * as csrf from 'csurf';
 import * as express from 'express';
 import { NextFunction, Request, Response } from 'express';
 import * as createLocaleMiddleware from 'express-locale';
@@ -26,6 +27,7 @@ import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../shared/modules/Translation/vos/TranslationVO';
+import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
@@ -104,7 +106,7 @@ export default abstract class ServerBase {
         this.app.use(config.IS_PRODUCTION ? staticsRouter() : staticsDevRouter());*/
 
         /*app.listen(config.SERVER_PORT, () => {
-            console.log(`App listening on port ${config.SERVER_PORT}!`);
+            ConsoleHandler.getInstance().log(`App listening on port ${config.SERVER_PORT}!`);
         });*/
 
 
@@ -204,7 +206,7 @@ export default abstract class ServerBase {
         // compiler_client.apply(new webpack.ProgressPlugin());
         // compiler_client.run(function (err, stats) {
         //     if (err) {
-        //         console.error("[CLIENT]:" + err);
+        //         ConsoleHandler.getInstance().error("[CLIENT]:" + err);
         //     }
         // });
 
@@ -379,7 +381,7 @@ export default abstract class ServerBase {
 
                 // On log en PROD
                 if (!ServerBase.getInstance().envParam.ISDEV) {
-                    console.log('REQUETE: ' + req.url + ' | USER: ' + req.session.user.name + ' | BODY: ' + JSON.stringify(req.body));
+                    ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER: ' + req.session.user.name + ' | BODY: ' + JSON.stringify(req.body));
                 }
             } else {
                 httpContext.set('UID', null);
@@ -548,7 +550,7 @@ export default abstract class ServerBase {
         this.app.get('/logout', (req, res) => {
             req.session.destroy((err) => {
                 if (err) {
-                    console.log(err);
+                    ConsoleHandler.getInstance().log(err);
                 } else {
                     res.redirect('/');
                 }
@@ -563,7 +565,7 @@ export default abstract class ServerBase {
         // reflect_headers
         this.app.get('/api/reflect_headers', (req, res) => {
 
-            // console.log(JSON.stringify(req.headers));
+            // ConsoleHandler.getInstance().log(JSON.stringify(req.headers));
             const result = JSON.stringify(req.headers);
             res.send(result);
         });
@@ -636,11 +638,18 @@ export default abstract class ServerBase {
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
+        //if (ConfigurationService.getInstance().getNodeConfiguration().ISDEV) {
+        require('longjohn');
+        //}
 
-        console.log('listening on port', ServerBase.getInstance().port);
+        process.on('uncaughtException', function (err) {
+            ConsoleHandler.getInstance().error("Node nearly failed: " + err.stack);
+        });
+
+        ConsoleHandler.getInstance().log('listening on port: ' + ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')
             .then(async () => {
-                console.log('connection to db successful');
+                ConsoleHandler.getInstance().log('connection to db successful');
 
                 let server = require('http').Server(ServerBase.getInstance().app);
                 let io = require('socket.io')(server);
@@ -658,23 +667,27 @@ export default abstract class ServerBase {
                     let session: Express.Session = socket.handshake['session'];
 
                     if (!session) {
-                        console.error('Impossible de charger la session dans SocketIO');
+                        ConsoleHandler.getInstance().error('Impossible de charger la session dans SocketIO');
                         return;
                     }
 
                     ModulePushDataServer.getInstance().registerSocket(session.user ? session.user.id : null, session.id, socket);
                     socket.on('my other event', function (data) {
-                        console.log(data);
+                        ConsoleHandler.getInstance().log(data);
                     });
                 }.bind(ServerBase.getInstance()));
+
+                io.on('error', function (err) {
+                    ConsoleHandler.getInstance().error("IO nearly failed: " + err.stack);
+                });
 
                 // ServerBase.getInstance().testNotifs();
 
                 await ServerBase.getInstance().hook_on_ready();
-                console.log('Server ready to go !');
+                ConsoleHandler.getInstance().log('Server ready to go !');
             })
             .catch((err) => {
-                console.log('error while connecting to db:', err.message || err);
+                ConsoleHandler.getInstance().log('error while connecting to db: ' + (err.message || err));
             });
 
         // pgp.end();
@@ -684,13 +697,13 @@ export default abstract class ServerBase {
 
     protected handleError(promise, res) {
         promise.catch((err) => {
-            console.error("error", err.message || err);
+            ConsoleHandler.getInstance().error("error: " + (err.message || err));
             return res.status(500).send(err.message || err);
         });
     }
 
     protected sendError(res, errormessage) {
-        console.error("error", errormessage);
+        ConsoleHandler.getInstance().error("error: " + errormessage);
         return res.status(500).send(errormessage);
     }
 

@@ -2,6 +2,7 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModulePushDataServer from '../../PushData/ModulePushDataServer';
@@ -82,7 +83,7 @@ export default class MaintenanceBGThread implements IBGThread {
                 await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
 
         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;

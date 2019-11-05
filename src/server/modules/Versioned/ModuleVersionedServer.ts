@@ -1,26 +1,17 @@
-import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModuleVar from '../../../shared/modules/Var/ModuleVar';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleServerBase from '../ModuleServerBase';
-import ModulesManagerServer from '../ModulesManagerServer';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VarsController from '../../../shared/modules/Var/VarsController';
-import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
-import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';
-import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
-import IVersionedVO from '../../../shared/modules/Versioned/interfaces/IVersionedVO';
-import DateHandler from '../../../shared/tools/DateHandler';
-import moment = require('moment');
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import IVersionedVO from '../../../shared/modules/Versioned/interfaces/IVersionedVO';
+import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';
+import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import DateHandler from '../../../shared/tools/DateHandler';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleServerBase from '../ModuleServerBase';
+import moment = require('moment');
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 
@@ -110,7 +101,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         let insertionRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
         if ((!insertionRes) || (!insertionRes.id)) {
-            console.error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(insertionRes));
+            ConsoleHandler.getInstance().error('handleTriggerVOPreDelete failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
         cloned.id = parseInt(insertionRes.id.toString());
@@ -142,7 +133,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         let insertionRes: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
         if ((!insertionRes) || (!insertionRes.id)) {
-            console.error('restoreTrashedVo failed:insertionRes:' + JSON.stringify(insertionRes));
+            ConsoleHandler.getInstance().error('restoreTrashedVo failed:insertionRes:' + JSON.stringify(insertionRes));
             return false;
         }
         cloned.id = parseInt(insertionRes.id.toString());

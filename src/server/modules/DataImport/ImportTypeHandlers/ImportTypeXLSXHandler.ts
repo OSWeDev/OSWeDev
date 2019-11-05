@@ -14,6 +14,7 @@ import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import ModuleTable from '../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ImportLogger from '../logger/ImportLogger';
 
@@ -438,6 +439,7 @@ export default class ImportTypeXLSXHandler {
                         }
                     }
                 } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
                     rowData.importation_state = ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED;
                     rowData.not_validated_msg = (rowData.not_validated_msg ? rowData.not_validated_msg + ', ' : '') + "Column error:" + dataImportColumn.title;
                 }
@@ -473,7 +475,7 @@ export default class ImportTypeXLSXHandler {
             }
         } catch (error) {
             if (!muted) {
-                console.error(error);
+                ConsoleHandler.getInstance().error(error);
                 ImportLogger.getInstance().log(importHistoric, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
             }
             return null;
@@ -490,7 +492,7 @@ export default class ImportTypeXLSXHandler {
             let sheet_name: string = workbook.SheetNames[index];
             worksheet = workbook.Sheets[sheet_name];
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             ImportLogger.getInstance().log(historic, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
         }
 
@@ -505,7 +507,7 @@ export default class ImportTypeXLSXHandler {
             let sheet_name: string = dataImportFormat.sheet_name;
             worksheet = workbook.Sheets[sheet_name];
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
             ImportLogger.getInstance().log(historic, dataImportFormat, error, DataImportLogVO.LOG_LEVEL_ERROR);
         }
 

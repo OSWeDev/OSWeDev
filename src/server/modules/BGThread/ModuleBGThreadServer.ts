@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleBGThread from '../../../shared/modules/BGThread/ModuleBGThread';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
@@ -97,7 +98,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 bgthread.current_timeout = bgthread.MIN_timeout;
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
 
         let self = this;

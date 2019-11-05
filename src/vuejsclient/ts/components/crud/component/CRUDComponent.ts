@@ -9,6 +9,7 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
@@ -489,6 +490,7 @@ export default class CRUDComponent extends VueComponentBase {
 
             this.storeData(createdVO);
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('crud.create.errors.create_failure') + ": " + error);
             this.creating_vo = false;
             return;
@@ -560,7 +562,7 @@ export default class CRUDComponent extends VueComponentBase {
                 }
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
     }
 
@@ -640,7 +642,7 @@ export default class CRUDComponent extends VueComponentBase {
                 }
             }
         } catch (error) {
-            console.error(error);
+            ConsoleHandler.getInstance().error(error);
         }
     }
 
@@ -692,6 +694,7 @@ export default class CRUDComponent extends VueComponentBase {
 
             this.updateData(updatedVO);
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('crud.update.errors.update_failure') + ": " + error);
             this.updating_vo = false;
             return;
@@ -730,6 +733,7 @@ export default class CRUDComponent extends VueComponentBase {
                 id: this.selectedVO.id
             });
         } catch (error) {
+            ConsoleHandler.getInstance().error(error);
             this.snotify.error(this.label('crud.delete.errors.delete_failure') + ": " + error);
             this.deleting_vo = false;
             return;

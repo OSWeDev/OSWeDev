@@ -1,3 +1,4 @@
+import ConsoleHandler from '../../../../tools/ConsoleHandler';
 import ObjectHandler from '../../../../tools/ObjectHandler';
 import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 import VarsController from '../../VarsController';
@@ -61,7 +62,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
             let index: string = VarsController.getInstance().getIndex(param);
 
             if (!index) {
-                console.error('Une var est probablement mal instantiée');
+                ConsoleHandler.getInstance().error('Une var est probablement mal instantiée');
                 continue;
             }
 

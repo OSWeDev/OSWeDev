@@ -6,6 +6,7 @@ import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
+import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
 import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import Datatable from '../../../datatable/vos/Datatable';
@@ -154,6 +155,7 @@ export default class CRUDComponentField extends VueComponentBase {
             try {
                 res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(start));
             } catch (error) {
+                ConsoleHandler.getInstance().error(error);
             }
         }
 
@@ -163,6 +165,7 @@ export default class CRUDComponentField extends VueComponentBase {
             try {
                 res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(end));
             } catch (error) {
+                ConsoleHandler.getInstance().error(error);
             }
         }
 
