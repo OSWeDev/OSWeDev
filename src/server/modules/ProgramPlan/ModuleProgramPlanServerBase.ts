@@ -183,6 +183,19 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             fr: 'Accès au ProgramPlan'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
+        let fo_see_fc: AccessPolicyVO = new AccessPolicyVO();
+        fo_see_fc.group_id = group.id;
+        fo_see_fc.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        fo_see_fc.translatable_name = ModuleProgramPlanBase.POLICY_FO_SEE_FC;
+        fo_see_fc = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_see_fc, new DefaultTranslation({
+            fr: 'Vision calendrier du ProgramPlan'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        let front_access_dependency_seefc: PolicyDependencyVO = new PolicyDependencyVO();
+        front_access_dependency_seefc.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        front_access_dependency_seefc.src_pol_id = fo_see_fc.id;
+        front_access_dependency_seefc.depends_on_pol_id = fo_access.id;
+        await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(front_access_dependency_seefc);
+
 
         let fo_edit: AccessPolicyVO = new AccessPolicyVO();
         fo_edit.group_id = group.id;

@@ -42,6 +42,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_ACCESS';
 
+    public static POLICY_FO_SEE_FC: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_SEE_FC';
     public static POLICY_FO_SEE_ALL_TEAMS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_SEE_ALL_TEAMS';
     public static POLICY_FO_SEE_OWN_TEAM: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_SEE_OWN_TEAM';
 

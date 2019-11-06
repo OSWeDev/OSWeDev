@@ -13,6 +13,11 @@ import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
 import SocketWrapper from './vos/SocketWrapper';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -221,6 +226,46 @@ export default class ModulePushDataServer extends ModuleServerBase {
             promises.push((async () => {
                 await this.notifySimple(user.id, msg_type, code_text);
             })());
+        }
+        await Promise.all(promises);
+    }
+
+    public async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string) {
+        let promises = [];
+
+        try {
+            let role: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, ' where translatable_name=$1;', [role_name]);
+            if (!role) {
+                ConsoleHandler.getInstance().error('broadcastRoleSimple:Role introuvable:' + role_name + ':');
+                return;
+            }
+
+            let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<UserRoleVO>(UserRoleVO.API_TYPE_ID, 'role_id', [role.id]);
+            if (!usersRoles) {
+                ConsoleHandler.getInstance().error('broadcastRoleSimple:usersRoles introuvables:' + role_name + ':' + role.id);
+                return;
+            }
+
+            let user_ids: number[] = [];
+            for (let i in usersRoles) {
+                user_ids.push(usersRoles[i].user_id);
+            }
+
+            let users: UserVO[] = await ModuleDAO.getInstance().getVosByIds<UserVO>(UserVO.API_TYPE_ID, user_ids);
+            if (!users) {
+                ConsoleHandler.getInstance().error('broadcastRoleSimple:users introuvables:' + role_name + ':' + role.id);
+                return;
+            }
+
+            for (let i in users) {
+                let user = users[i];
+
+                promises.push((async () => {
+                    await this.notifySimple(user.id, msg_type, code_text);
+                })());
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
         }
         await Promise.all(promises);
     }

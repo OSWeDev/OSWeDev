@@ -19,6 +19,7 @@ import Patch20191010CheckBasicSchemas from './patchs/Patch20191010CheckBasicSche
 import Patch20191010CreateDefaultAdminAccountIfNone from './patchs/Patch20191010CreateDefaultAdminAccountIfNone';
 import Patch20191010CreateDefaultLangFRIfNone from './patchs/Patch20191010CreateDefaultLangFRIfNone';
 import Patch20191018CHECKEnvParamsForMDPRecovery from './patchs/Patch20191018CHECKEnvParamsForMDPRecovery';
+import Patch20191106ForceAccessDefaultToVisionFCPP from './patchs/Patch20191106ForceAccessDefaultToVisionFCPP';
 
 export default abstract class GeneratorBase {
 
@@ -54,7 +55,8 @@ export default abstract class GeneratorBase {
         this.post_modules_workers = [
             Patch20191010CreateDefaultLangFRIfNone.getInstance(),
             Patch20191010CreateDefaultAdminAccountIfNone.getInstance(),
-            Patch20191018CHECKEnvParamsForMDPRecovery.getInstance()
+            Patch20191018CHECKEnvParamsForMDPRecovery.getInstance(),
+            Patch20191106ForceAccessDefaultToVisionFCPP.getInstance()
         ];
     }
 

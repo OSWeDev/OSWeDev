@@ -69,6 +69,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
     public can_edit_own_team: boolean;
     @ModuleProgramPlanGetter
     public can_edit_self: boolean;
+    @ModuleProgramPlanGetter
+    public can_see_fc: boolean;
 
     @ModuleProgramPlanGetter
     public selected_rdv: IPlanRDV;
@@ -111,6 +113,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     @ModuleProgramPlanAction
     public set_targets_groups_by_ids: (targets_groups_by_ids: { [id: number]: IPlanTargetGroup }) => void;
+
+    @ModuleProgramPlanAction
+    public set_can_see_fc: (can_see_fc: boolean) => void;
 
     @ModuleProgramPlanAction
     public addRdvsByIds: (rdvs_by_ids: { [id: number]: IPlanRDV }) => void;
@@ -246,6 +251,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
             promises.push((async () => {
                 self.set_can_edit_any(await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_EDIT));
+            })());
+            promises.push((async () => {
+                self.set_can_see_fc(await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_SEE_FC));
             })());
             promises.push((async () => {
                 self.set_can_edit_all(await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_EDIT_ALL_RDVS));

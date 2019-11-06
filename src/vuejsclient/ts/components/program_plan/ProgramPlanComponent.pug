@@ -15,10 +15,11 @@ include ../../../views/mixins/loading.pug
 
         program-plan-component-target-listing.hidden-print(v-show='show_targets' v-if="can_edit_any")
 
-        .row.hidden-print
+        .row.hidden-print(v-show='can_see_fc')
             input#pplan_date_input(type='date' v-model='calendar_date')
 
         full-calendar.fullcalendar_pplan(
+            v-show='can_see_fc'
             ref="calendar" 
             :key="calendar_key"
 

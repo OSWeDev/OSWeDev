@@ -40,6 +40,7 @@ export interface IProgramPlanState {
     can_edit_all: boolean;
     can_edit_own_team: boolean;
     can_edit_self: boolean;
+    can_see_fc: boolean;
     selected_rdv: IPlanRDV;
     filter_date_debut: moment.Moment;
     filter_date_fin: moment.Moment;
@@ -86,6 +87,7 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_edit_all: false,
             can_edit_own_team: false,
             can_edit_self: false,
+            can_see_fc: false,
             selected_rdv: null,
             targets_facilitators_by_ids: {},
             filter_date_debut: null,
@@ -110,6 +112,7 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_edit_all: (state: IProgramPlanState): boolean => state.can_edit_all,
             can_edit_own_team: (state: IProgramPlanState): boolean => state.can_edit_own_team,
             can_edit_self: (state: IProgramPlanState): boolean => state.can_edit_self,
+            can_see_fc: (state: IProgramPlanState): boolean => state.can_see_fc,
 
             get_targets_facilitators_by_ids: (state: IProgramPlanState): { [id: number]: IPlanTargetFacilitator } => state.targets_facilitators_by_ids,
 
@@ -191,6 +194,7 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             set_can_edit_all: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_all = can_edit,
             set_can_edit_own_team: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_own_team = can_edit,
             set_can_edit_self: (state: IProgramPlanState, can_edit: boolean) => state.can_edit_self = can_edit,
+            set_can_see_fc: (state: IProgramPlanState, can_edit: boolean) => state.can_see_fc = can_edit,
 
             set_selected_rdv: (state: IProgramPlanState, selected_rdv: IPlanRDV) => state.selected_rdv = selected_rdv,
 
@@ -428,6 +432,7 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             set_can_edit_all: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_edit_all(context, can_edit),
             set_can_edit_own_team: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_edit_own_team(context, can_edit),
             set_can_edit_self: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_edit_self(context, can_edit),
+            set_can_see_fc: (context: ProgramPlanContext, can_edit: boolean) => comit_set_can_see_fc(context, can_edit),
 
         };
     }
@@ -478,3 +483,4 @@ export const comit_set_can_edit_any = commit(ProgramPlanStore.getInstance().muta
 export const comit_set_can_edit_all = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_all);
 export const comit_set_can_edit_own_team = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_own_team);
 export const comit_set_can_edit_self = commit(ProgramPlanStore.getInstance().mutations.set_can_edit_self);
+export const comit_set_can_see_fc = commit(ProgramPlanStore.getInstance().mutations.set_can_see_fc);

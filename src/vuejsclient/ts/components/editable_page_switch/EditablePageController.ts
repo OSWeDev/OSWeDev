@@ -17,12 +17,14 @@ export default class EditablePageController {
 
     private static instance: EditablePageController;
 
+    public debounce_timer: number = 5000;
+
     private semaphore_saving: boolean = false;
 
     private edit_infos_waiting_for_save: EditablePageEditInfo[] = [];
     private edit_infos_waiting_for_next_save: EditablePageEditInfo[] = [];
 
-    private debounced_save_edit_infos = debounce(this.save_edit_infos, 2000);
+    private debounced_save_edit_infos = debounce(this.save_edit_infos, this.debounce_timer);
 
     public pushEditInfoToSave(edit_info: EditablePageEditInfo) {
 
