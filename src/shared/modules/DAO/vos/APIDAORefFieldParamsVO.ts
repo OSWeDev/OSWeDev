@@ -19,7 +19,7 @@ export default class APIDAORefFieldParamsVO {
         if (!(req && req.params)) {
             return null;
         }
-        let ids = req.params.ids.split('_');
+        let ids = req.params.ids ? req.params.ids.split('_') : null;
         for (let i in ids) {
             ids[i] = parseInt(ids[i]);
         }

@@ -48,7 +48,21 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             let param: T = null;
             if (api.PARAM_TRANSLATE_FROM_REQ) {
-                param = await api.PARAM_TRANSLATE_FROM_REQ(req);
+                try {
+                    param = await api.PARAM_TRANSLATE_FROM_REQ(req);
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                    switch (api.api_return_type) {
+                        case APIDefinition.API_RETURN_TYPE_JSON:
+                        case APIDefinition.API_RETURN_TYPE_FILE:
+                            res.json(null);
+                            return;
+                        case APIDefinition.API_RETURN_TYPE_RES:
+                        default:
+                            res.end(null);
+                            return;
+                    }
+                }
             } else {
                 if (((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
                     ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))) {
@@ -56,41 +70,38 @@ export default class ModuleAPIServer extends ModuleServerBase {
                 }
             }
 
-            if (api.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) {
-                let returnvalue = await api.SERVER_HANDLER(param);
-
-                if (typeof returnvalue == 'undefined') {
-                    returnvalue = {} as any;
+            let returnvalue = null;
+            try {
+                returnvalue = await api.SERVER_HANDLER(param);
+            } catch (error) {
+                ConsoleHandler.getInstance().error(error);
+                switch (api.api_return_type) {
+                    case APIDefinition.API_RETURN_TYPE_JSON:
+                    case APIDefinition.API_RETURN_TYPE_FILE:
+                        res.json(null);
+                        return;
+                    case APIDefinition.API_RETURN_TYPE_RES:
+                    default:
+                        res.end(null);
+                        return;
                 }
+            }
 
-                // if (!api.is_autonomous_res_handler) {
 
-                returnvalue = ModuleAPI.getInstance().try_translate_vo_to_api(returnvalue);
+            switch (api.api_return_type) {
+                case APIDefinition.API_RETURN_TYPE_JSON:
+                    if (typeof returnvalue == 'undefined') {
+                        returnvalue = {} as any;
+                    }
+                case APIDefinition.API_RETURN_TYPE_FILE:
+                    returnvalue = ModuleAPI.getInstance().try_translate_vo_to_api(returnvalue);
+                    res.json(returnvalue);
+                    return;
 
-                res.json(returnvalue);
-                // }
-            } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_RES) {
-                let returnvalue = await api.SERVER_HANDLER(param);
-
-                // if (!api.is_autonomous_res_handler) {
-                res.end(returnvalue);
-                // }
-            } else if (api.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
-
-                let returnvalue = await api.SERVER_HANDLER(param);
-
-                // if (!api.is_autonomous_res_handler) {
-
-                returnvalue = ModuleAPI.getInstance().try_translate_vo_to_api(returnvalue);
-
-                res.json(returnvalue);
-                // }
-            } else {
-                let returnvalue = await api.SERVER_HANDLER(param);
-
-                // if (!api.is_autonomous_res_handler) {
-                res.end(returnvalue);
-                // }
+                case APIDefinition.API_RETURN_TYPE_RES:
+                default:
+                    res.end(returnvalue);
+                    return;
             }
         };
     }
