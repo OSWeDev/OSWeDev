@@ -1,5 +1,4 @@
 import { IDatabase } from 'pg-promise';
-import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../IGeneratorWorker';
 
 export default class ChangeCronDateHeurePlanifiee implements IGeneratorWorker {
@@ -27,7 +26,7 @@ export default class ChangeCronDateHeurePlanifiee implements IGeneratorWorker {
             // On drop la table des notifications pour forcer sa création propre. Les anciennes notifications sont de toutes façons inutilisées pour le moment.
             await db.none("ALTER TABLE ref.module_cron_cronworkplan ALTER COLUMN date_heure_planifiee DROP NOT NULL;");
         } catch (error) {
-            ConsoleHandler.getInstance().error('ChangeCronDateHeurePlanifiee : ' + error);
+            console.error('ChangeCronDateHeurePlanifiee : ' + error);
         }
     }
 }

@@ -1355,6 +1355,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // On stocke les ranges par field cible en bdd
         let matroid_fields_ranges_by_datatable_field_id: { [field_id: string]: Array<IRange<any>> } = this.get_matroid_fields_ranges_by_datatable_field_id(matroid, datatable, fields_ids_mapper);
 
+        if (!matroid_fields_ranges_by_datatable_field_id) {
+            return null;
+        }
+
         // On calcul les unions
         for (let field_id in matroid_fields_ranges_by_datatable_field_id) {
             matroid_fields_ranges_by_datatable_field_id[field_id] = RangeHandler.getInstance().getRangesUnion(matroid_fields_ranges_by_datatable_field_id[field_id]) as Array<IRange<any>>;

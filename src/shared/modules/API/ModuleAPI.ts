@@ -1,12 +1,12 @@
 // if false
 // FIXME RIEN A FAIRE ICI
 import * as $ from 'jquery';
+// endif
 import { isArray } from 'util';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
-// endif
 import ModulesManager from '../ModulesManager';
 import VOsTypesManager from '../VOsTypesManager';
 import APIDefinition from './vos/APIDefinition';

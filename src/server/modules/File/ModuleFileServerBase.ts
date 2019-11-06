@@ -9,7 +9,6 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulePushDataServer from '../PushData/ModulePushDataServer';
@@ -90,7 +89,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return new Promise((resolve, reject) => {
             mkdirp(folder, function (err) {
                 if (err) {
-                    ConsoleHandler.getInstance().error(err);
+                    console.error(err);
                     reject(err);
                 } else {
                     resolve();
@@ -119,11 +118,11 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return new Promise((resolve, reject) => {
             fs.writeFile(filepath, fileContent, function (err) {
                 if (err) {
-                    ConsoleHandler.getInstance().error(err);
+                    console.error(err);
                     resolve(err);
                     return;
                 }
-                ConsoleHandler.getInstance().log("File overwritten : " + filepath);
+                console.log("File overwritten : " + filepath);
                 resolve();
             });
         });
@@ -133,7 +132,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         return new Promise((resolve, reject) => {
             fs.appendFile(filepath, fileContent, function (err) {
                 if (err) {
-                    ConsoleHandler.getInstance().error(err);
+                    console.error(err);
                     resolve(err);
                     return;
                 }
@@ -157,7 +156,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         try {
             import_file = req.files[Object.keys(req.files)[0]];
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            console.error(error);
             ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'file.upload.error');
             res.json(JSON.stringify(null));
             return;
@@ -188,7 +187,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
             let fileVo: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, param.num);
             return fs.existsSync(fileVo.path);
         } catch (error) {
-            ConsoleHandler.getInstance().error(error);
+            console.error(error);
         }
         return false;
     }

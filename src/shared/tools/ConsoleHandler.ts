@@ -1,4 +1,4 @@
-import { moment } from 'fullcalendar';
+import moment = require('moment');
 
 export default class ConsoleHandler {
 
@@ -17,15 +17,15 @@ export default class ConsoleHandler {
     }
 
     public error(error: string | Error): void {
-        ConsoleHandler.getInstance().error(this.get_text_msg(error));
+        console.error(this.get_text_msg(error));
     }
 
     public warn(error: string | Error): void {
-        ConsoleHandler.getInstance().error(this.get_text_msg(error));
+        console.error(this.get_text_msg(error));
     }
 
     public log(error: string | Error): void {
-        ConsoleHandler.getInstance().error(this.get_text_msg(error));
+        console.error(this.get_text_msg(error));
     }
 
     private get_text_msg(error: string | Error): string {
@@ -33,6 +33,6 @@ export default class ConsoleHandler {
     }
 
     private get_timestamp(): string {
-        return moment().format('YYYY-MM-DD HH:mm:SS.sss');
+        return moment().format('YYYY-MM-DD HH:mm:ss.SSS');
     }
 }

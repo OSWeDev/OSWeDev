@@ -1,5 +1,4 @@
 import { IDatabase } from 'pg-promise';
-import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import IGeneratorWorker from '../IGeneratorWorker';
 
 export default class Patch20191010CheckBasicSchemas implements IGeneratorWorker {
@@ -29,7 +28,7 @@ export default class Patch20191010CheckBasicSchemas implements IGeneratorWorker 
             await db.none("CREATE SCHEMA IF NOT EXISTS generator");
             await db.none("CREATE SCHEMA IF NOT EXISTS ref");
         } catch (error) {
-            ConsoleHandler.getInstance().error('Patch20191010CheckBasicSchemas : ' + error);
+            console.error('Patch20191010CheckBasicSchemas : ' + error);
         }
     }
 }

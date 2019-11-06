@@ -1,6 +1,5 @@
 import ModuleTable from '../../shared/modules/ModuleTable';
 import ModuleTableField from '../../shared/modules/ModuleTableField';
-import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import TableColumnDescriptor from './TableColumnDescriptor';
 
 export default class ModuleTableDBService {
@@ -20,7 +19,7 @@ export default class ModuleTableDBService {
     // Première étape : Installation de la table et de la vue pour NGA
     public async datatable_install(moduleTable: ModuleTable<any>) {
 
-        // ConsoleHandler.getInstance().log('Installation de la table "' + moduleTable.full_name + '" du module :"' + moduleTable.module.name + '"');
+        // console.log('Installation de la table "' + moduleTable.full_name + '" du module :"' + moduleTable.module.name + '"');
 
         await this.create_datatable(moduleTable);
 
@@ -36,7 +35,7 @@ export default class ModuleTableDBService {
 
     // ETAPE 1 de l'installation : Création de la table
     private async create_datatable(moduleTable: ModuleTable<any>) {
-        // ConsoleHandler.getInstance().log(moduleTable.full_name + " - install - ETAPE 1");
+        // console.log(moduleTable.full_name + " - install - ETAPE 1");
 
         // On va commencer par créer le schema si il existe pas
         if (!!moduleTable.database) {
@@ -103,10 +102,10 @@ export default class ModuleTableDBService {
             }
 
             if (!fields_by_field_id[i]) {
-                ConsoleHandler.getInstance().error('-');
-                ConsoleHandler.getInstance().error('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + moduleTable.full_name + ':');
-                ConsoleHandler.getInstance().error('ACTION: AUCUNE, résoudre manuellement');
-                ConsoleHandler.getInstance().error('---');
+                console.error('-');
+                console.error('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + moduleTable.full_name + ':');
+                console.error('ACTION: AUCUNE, résoudre manuellement');
+                console.error('---');
             }
         }
     }
@@ -126,18 +125,18 @@ export default class ModuleTableDBService {
             let field = moduleTable.get_fields()[i];
 
             if (!table_cols_by_name[field.field_id]) {
-                ConsoleHandler.getInstance().error('-');
-                ConsoleHandler.getInstance().error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_id + ':table:' + moduleTable.full_name + ':');
-                ConsoleHandler.getInstance().error('ACTION: Création automatique...');
+                console.error('-');
+                console.error('INFO  : Champs manquant dans la base de données par rapport à la description logicielle :' + field.field_id + ':table:' + moduleTable.full_name + ':');
+                console.error('ACTION: Création automatique...');
 
                 try {
                     let pgSQL: string = 'ALTER TABLE ' + moduleTable.full_name + ' ADD COLUMN ' + field.getPGSqlFieldDescription() + ';';
                     await this.db.none(pgSQL);
-                    ConsoleHandler.getInstance().error('ACTION: OK');
+                    console.error('ACTION: OK');
                 } catch (error) {
-                    ConsoleHandler.getInstance().error(error);
+                    console.error(error);
                 }
-                ConsoleHandler.getInstance().error('---');
+                console.error('---');
             }
         }
     }
@@ -164,25 +163,25 @@ export default class ModuleTableDBService {
 
             // On check les infos récupérées de la base : column_default, is_nullable, data_type
             if (field.field_required == (table_col.is_nullable != TableColumnDescriptor.IS_NOT_NULLABLE_VALUE)) {
-                ConsoleHandler.getInstance().error('-');
-                ConsoleHandler.getInstance().error('INFO  : Les propriétés isNullable et fieldRequired ne devraient pas être égales. BDD isNullable:' + table_col.is_nullable + ':moduleTableField:' + field.field_required + ':field:' + field.field_id + ':table:' + moduleTable.full_name + ':');
-                ConsoleHandler.getInstance().error('ACTION: Aucune. Résoudre manuellement');
-                ConsoleHandler.getInstance().error('---');
+                console.error('-');
+                console.error('INFO  : Les propriétés isNullable et fieldRequired ne devraient pas être égales. BDD isNullable:' + table_col.is_nullable + ':moduleTableField:' + field.field_required + ':field:' + field.field_id + ':table:' + moduleTable.full_name + ':');
+                console.error('ACTION: Aucune. Résoudre manuellement');
+                console.error('---');
             }
 
             // // En même temps ça parait pas gravissime
             // if (field.field_default == table_col.column_default) {
-            //     ConsoleHandler.getInstance().error('-');
-            //     ConsoleHandler.getInstance().error('INFO  : Les valeurs par défaut devraient être égales. BDD column_default:' + table_col.column_default + ':moduleTableField:' + field.field_default + ':table:' + moduleTable.full_name + ':');
-            //     ConsoleHandler.getInstance().error('ACTION: Aucune. Résoudre manuellement');
-            //     ConsoleHandler.getInstance().error('---');
+            //     console.error('-');
+            //     console.error('INFO  : Les valeurs par défaut devraient être égales. BDD column_default:' + table_col.column_default + ':moduleTableField:' + field.field_default + ':table:' + moduleTable.full_name + ':');
+            //     console.error('ACTION: Aucune. Résoudre manuellement');
+            //     console.error('---');
             // }
 
             if (!field.isAcceptableCurrentDBType(table_col.data_type)) {
-                ConsoleHandler.getInstance().error('-');
-                ConsoleHandler.getInstance().error('INFO  : Les types devraient être identiques. BDD data_type:' + table_col.data_type + ':moduleTableField:' + field.getPGSqlFieldType() + ':field:' + field.field_id + ':table:' + moduleTable.full_name + ':');
-                ConsoleHandler.getInstance().error('ACTION: Aucune. Résoudre manuellement');
-                ConsoleHandler.getInstance().error('---');
+                console.error('-');
+                console.error('INFO  : Les types devraient être identiques. BDD data_type:' + table_col.data_type + ':moduleTableField:' + field.getPGSqlFieldType() + ':field:' + field.field_id + ':table:' + moduleTable.full_name + ':');
+                console.error('ACTION: Aucune. Résoudre manuellement');
+                console.error('---');
             }
         }
     }
@@ -241,7 +240,7 @@ export default class ModuleTableDBService {
 
         // request += ';';
 
-        // // ConsoleHandler.getInstance().log('Création de la vue NGA pour la table ' + moduleTable.full_name);
+        // // console.log('Création de la vue NGA pour la table ' + moduleTable.full_name);
         // await this.db.query(request);
 
         // let simplefieldlist = '';
@@ -313,7 +312,7 @@ export default class ModuleTableDBService {
 
     // ETAPE 5 de l'installation
     private async datatable_install_end(moduleTable: ModuleTable<any>) {
-        // ConsoleHandler.getInstance().log(moduleTable.full_name + " - install - ETAPE 5");
+        // console.log(moduleTable.full_name + " - install - ETAPE 5");
 
         // On appelle le hook de fin d'installation
         if (moduleTable.hook_datatable_install) {

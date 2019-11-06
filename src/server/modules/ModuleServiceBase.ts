@@ -33,7 +33,6 @@ import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslatio
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
-import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
@@ -227,17 +226,17 @@ export default abstract class ModuleServiceBase {
                     registered_module
                 );
             } catch (e) {
-                ConsoleHandler.getInstance().error(
+                console.error(
                     "Erreur lors de l'installation du module \"" +
                     registered_module.name +
                     '".'
                 );
-                ConsoleHandler.getInstance().log(e);
+                console.log(e);
                 process.exit(0);
             }
         }
 
-        ConsoleHandler.getInstance().log("Tous les modules ont été installés");
+        console.log("Tous les modules ont été installés");
         return true;
     }
 
@@ -252,17 +251,17 @@ export default abstract class ModuleServiceBase {
                     );
                 }
             } catch (e) {
-                ConsoleHandler.getInstance().error(
+                console.error(
                     "Erreur lors de la configuration du module \"" +
                     registered_module.name +
                     '".'
                 );
-                ConsoleHandler.getInstance().log(e);
+                console.log(e);
                 process.exit(0);
             }
         }
 
-        ConsoleHandler.getInstance().log("Tous les modules ont été configurés");
+        console.log("Tous les modules ont été configurés");
         return true;
     }
 
