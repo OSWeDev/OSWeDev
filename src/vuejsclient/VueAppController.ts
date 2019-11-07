@@ -21,7 +21,6 @@ export default abstract class VueAppController {
     public data_user_roles: RoleVO[] = null;
     // public data_base_api_url;
     public data_default_locale;
-    public data_is_dev: boolean;
     public ALL_LOCALES: any;
     public SERVER_HEADERS;
     public base_url: string;
@@ -77,7 +76,6 @@ export default abstract class VueAppController {
         this.data_ui_debug = datas.data_ui_debug;
         // this.data_base_api_url = datas.data_base_api_url;
         this.data_default_locale = datas.data_default_locale;
-        this.data_is_dev = datas.data_is_dev;
     }
 
     public check_is_mobile(): boolean {

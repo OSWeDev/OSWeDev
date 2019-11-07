@@ -61,6 +61,7 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
+import EnvHandler from '../shared/tools/EnvHandler';
 
 require('moment-json-parser').overrideDefault();
 
@@ -92,9 +93,12 @@ export default abstract class VueAppBase {
 
         promises.push((async () => {
             Vue.config.devtools = false;
-            if (!!await ModuleAjaxCache.getInstance().get('/api/isdev', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED)) {
+            if (EnvHandler.getInstance().IS_DEV) {
                 Vue.config.devtools = true;
             }
+            // if (!!await ModuleAjaxCache.getInstance().get('/api/isdev', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED)) {
+            //     Vue.config.devtools = true;
+            // }
         })());
         promises.push((async () => {
             await this.appController.initialize();

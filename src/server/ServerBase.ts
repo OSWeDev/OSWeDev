@@ -38,6 +38,7 @@ import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServ
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
+import EnvHandler from '../shared/tools/EnvHandler';
 // var csurf = require('csurf');
 require('moment-json-parser').overrideDefault();
 // require('helmet');
@@ -380,7 +381,7 @@ export default abstract class ServerBase {
                 }
 
                 // On log en PROD
-                if (!ServerBase.getInstance().envParam.ISDEV) {
+                if (!EnvHandler.getInstance().IS_DEV) {
                     ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER: ' + req.session.user.name + ' | BODY: ' + JSON.stringify(req.body));
                 }
             } else {
@@ -594,7 +595,6 @@ export default abstract class ServerBase {
                     data_user: (!!session.user) ? session.user : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
-                    data_is_dev: ServerBase.getInstance().envParam.ISDEV
                 }
             ));
         });
@@ -606,11 +606,11 @@ export default abstract class ServerBase {
             res.send('GM_Modules = ' + JSON.stringify(GM.get_modules_infos(req.params.env)) + ';');
         });
 
-        // JNE : Savoir si on est en DEV depuis la Vue.js client
-        this.app.get('/api/isdev', (req, res) => {
-            res.json(ServerBase.getInstance().envParam.ISDEV);
-        });
-        // !JNE : Savoir si on est en DEV depuis la Vue.js client
+        // // JNE : Savoir si on est en DEV depuis la Vue.js client
+        // this.app.get('/api/isdev', (req, res) => {
+        //     res.json(ServerBase.getInstance().envParam.ISDEV);
+        // });
+        // // !JNE : Savoir si on est en DEV depuis la Vue.js client
 
         // Déclenchement du cron
         this.app.get('/cron', (req: Request, res) => {

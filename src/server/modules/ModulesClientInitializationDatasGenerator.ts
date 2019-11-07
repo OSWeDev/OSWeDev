@@ -1,6 +1,7 @@
 import ModuleServiceBase from "./ModuleServiceBase";
 import Module from "../../shared/modules/Module";
 import ModuleFileServer from './File/ModuleFileServer';
+import ConfigurationService from '../env/ConfigurationService';
 
 export default class ModulesClientInitializationDatasGenerator {
 
@@ -51,10 +52,18 @@ export default class ModulesClientInitializationDatasGenerator {
         let fileContent = "";
 
         fileContent += this.generateModulesCode(this.generateModuleImport, target);
+
+        fileContent += "import EnvHandler from 'oswedev/dist/shared/tools/EnvHandler';\n";
+
         fileContent += "\n";
         fileContent += "export default async function Initialize" + target + "ModulesDatas() {\n";
+
+        // Initialiser directement l'env param
+        fileContent += "    EnvHandler.getInstance().IS_DEV = " + (ConfigurationService.getInstance().getNodeConfiguration().ISDEV ? 'true' : 'false') + ';\n';
+
         fileContent += this.generateModulesCode(this.generateModuleData, target);
         fileContent += this.generateModulesCode(this.generateModuleAsyncInitialisation, target);
+
         fileContent += "}";
 
         return fileContent;
