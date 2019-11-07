@@ -11,6 +11,7 @@ import ModulesManager from '../ModulesManager';
 import VOsTypesManager from '../VOsTypesManager';
 import APIDefinition from './vos/APIDefinition';
 
+
 export default class ModuleAPI extends Module {
 
     public static BASE_API_URL: string = "/api_handler/";
@@ -55,6 +56,11 @@ export default class ModuleAPI extends Module {
         let paramTranslator: (...params) => Promise<T> = this.getParamTranslator<T>(api_name);
         let apiDefinition: APIDefinition<T, U> = this.registered_apis[api_name];
 
+        // // On ajoute la conversion msgpack à cette étape
+        // if (ModulesManager.getInstance().isServerSide && Buffer.isBuffer(translated_param)) {
+        //     translated_param = translated_param ? decode(translated_param as any as Buffer) : null;
+        // }
+
         if (api_params && isArray(api_params) && (api_params.length > 1)) {
             // On a besoin de faire appel à un traducteur
             if (!paramTranslator) {
@@ -98,7 +104,8 @@ export default class ModuleAPI extends Module {
 
                     api_res = await ModuleAjaxCache.getInstance().get(
                         (ModuleAPI.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
-                        API_TYPES_IDS_involved) as U;
+                        API_TYPES_IDS_involved,
+                        ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
                     break;
 
                 case APIDefinition.API_TYPE_POST_FOR_GET:
@@ -108,7 +115,7 @@ export default class ModuleAPI extends Module {
                         API_TYPES_IDS_involved,
                         ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
                         null,
-                        'application/json; charset=utf-8',
+                        ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
                         null,
                         null,
                         true) as U;
@@ -121,7 +128,8 @@ export default class ModuleAPI extends Module {
                             (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                             API_TYPES_IDS_involved,
                             ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
-                            null) as string;
+                            null,
+                            ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as string;
 
                         let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
                         $('body').append(iframe);
@@ -131,10 +139,10 @@ export default class ModuleAPI extends Module {
                             (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                             API_TYPES_IDS_involved,
                             ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
-                            null) as U;
+                            null,
+                            ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
                     }
                     break;
-
             }
 
             // On tente de traduire si on reconnait un type de vo

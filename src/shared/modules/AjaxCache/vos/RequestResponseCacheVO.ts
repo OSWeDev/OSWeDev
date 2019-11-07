@@ -17,12 +17,12 @@ export default class RequestResponseCacheVO {
     public creationDate: Moment = moment();
     public datasDate: Moment = null;
     public url: string;
+    public contentType: string = null;
 
     public index: string;
 
     public postdatas: any = null;
     public dataType: string = 'json';
-    public contentType: string = 'application/json; charset=utf-8';
     public processData = null;
     public timeout: number = null;
 

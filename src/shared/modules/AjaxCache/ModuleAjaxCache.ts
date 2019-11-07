@@ -1,8 +1,10 @@
 // FIXME RIEN A FAIRE ICI
 // if false
+import axios from 'axios';
 import * as $ from 'jquery';
 // endif
 import * as debounce from 'lodash/debounce';
+import { decode, encode } from "messagepack";
 import * as moment from 'moment';
 import { Duration } from 'moment';
 import VueAppController from '../../../vuejsclient/VueAppController';
@@ -17,6 +19,8 @@ import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
 import RequestsCacheVO from './vos/RequestsCacheVO';
 import RequestsWrapperResult from './vos/RequestsWrapperResult';
 
+
+
 export default class ModuleAjaxCache extends Module {
 
     public static MODULE_NAME: string = "AjaxCache";
@@ -24,6 +28,8 @@ export default class ModuleAjaxCache extends Module {
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleAjaxCache.MODULE_NAME;
 
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAjaxCache.MODULE_NAME + ".FO_ACCESS";
+
+    public static MSGPACK_REQUEST_TYPE: string = 'application/x-msgpack; charset=utf-8';
 
     public static APINAME_REQUESTS_WRAPPER: string = "REQUESTS_WRAPPER";
 
@@ -68,7 +74,7 @@ export default class ModuleAjaxCache extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<RequestResponseCacheVO[], RequestsWrapperResult>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<string[], RequestsWrapperResult>(
             ModuleAjaxCache.APINAME_REQUESTS_WRAPPER,
             []
         ));
@@ -170,7 +176,7 @@ export default class ModuleAjaxCache extends Module {
      */
     public post(
         url: string, api_types_involved: string[], postdatas = null, dataType: string = 'json',
-        contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false) {
+        contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false): Promise<any> {
 
         let self = this;
 
@@ -196,47 +202,71 @@ export default class ModuleAjaxCache extends Module {
                 self.invalidateCachesFromApiTypesInvolved(api_types_involved);
             }
 
-            let options: any = {
-                type: "POST",
-                url: url
-            };
-            if ((typeof cache.postdatas != 'undefined') && (cache.postdatas != null)) {
-                options.data = cache.postdatas;
-            }
-            if (contentType == null) {
-                options.contentType = false;
+            if (contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+                var buffer = encode(postdatas);
+                axios.post(
+                    url, buffer,
+                    {
+                        responseType: 'blob',
+                        headers: {
+                            'Content-Type': contentType,
+                            'Accept': 'application/x-msgpack'
+                        }
+                    }
+                ).then(function (response) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var pack = decode(new Uint8Array(reader.result as ArrayBuffer));
+                        resolve(pack);
+                    };
+                    reader.readAsArrayBuffer(response.data);
+                }).catch(function (error) {
+                    console.error(error);
+                    resolve(null);
+                });
             } else {
-                options.contentType = contentType;
-            }
-            if (dataType != null) {
-                options.dataType = dataType;
-            }
-            if (cache.processData != null) {
-                options.cache.processData = cache.processData;
-            }
-            if (cache.timeout != null) {
-                options.cache.timeout = cache.timeout;
-            }
-            if (!!VueAppController.getInstance().csrf_token) {
-                if (!options.headers) {
-                    options.headers = {};
+                let options: any = {
+                    type: "POST",
+                    url: url
+                };
+                if ((typeof cache.postdatas != 'undefined') && (cache.postdatas != null)) {
+                    options.data = cache.postdatas;
                 }
-                options.headers['X-CSRF-Token'] = VueAppController.getInstance().csrf_token;
-            }
-            self.addCallback(cache, resolve, reject);
+                if (contentType == null) {
+                    options.contentType = false;
+                } else {
+                    options.contentType = contentType;
+                }
+                if (dataType != null) {
+                    options.dataType = dataType;
+                }
+                if (cache.processData != null) {
+                    options.cache.processData = cache.processData;
+                }
+                if (cache.timeout != null) {
+                    options.cache.timeout = cache.timeout;
+                }
+                if (!!VueAppController.getInstance().csrf_token) {
+                    if (!options.headers) {
+                        options.headers = {};
+                    }
+                    options.headers['X-CSRF-Token'] = VueAppController.getInstance().csrf_token;
+                }
+                self.addCallback(cache, resolve, reject);
 
-            if ($.ajax) {
-                return $.ajax(options)
-                    .done((r) => {
-                        self.resolve_request(cache, r);
-                    })
-                    .fail((err) => {
-                        self.traitementFailRequest(err, cache);
+                if ($.ajax) {
+                    return $.ajax(options)
+                        .done((r) => {
+                            self.resolve_request(cache, r);
+                        })
+                        .fail((err) => {
+                            self.traitementFailRequest(err, cache);
 
-                        ConsoleHandler.getInstance().log("post failed :" + url + ":" + postdatas + ":" + err);
-                    });
-            } else {
-                self.resolve_request(cache, null);
+                            ConsoleHandler.getInstance().log("post failed :" + url + ":" + postdatas + ":" + err);
+                        });
+                } else {
+                    self.resolve_request(cache, null);
+                }
             }
         });
 
@@ -501,6 +531,15 @@ export default class ModuleAjaxCache extends Module {
         if (self.waitingForRequest && (self.waitingForRequest.length > 1)) {
 
             let requests: RequestResponseCacheVO[] = Array.from(self.waitingForRequest).filter((req) => req.wrappable_request);
+
+            let requested_urls: string[] = [];
+
+            for (let i in requests) {
+                let req = requests[i];
+
+                requested_urls.push(req.url);
+            }
+
             if (requests && (requests.length > 1)) {
 
 
@@ -515,7 +554,7 @@ export default class ModuleAjaxCache extends Module {
 
                 // On encapsule les gets dans une requête de type post
                 try {
-                    let results: RequestsWrapperResult = await this.post("/api_handler/requests_wrapper", [], JSON.stringify(requests)) as RequestsWrapperResult;
+                    let results: RequestsWrapperResult = await this.post("/api_handler/requests_wrapper", [], requested_urls, null, ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as RequestsWrapperResult;
 
                     if ((!results) || (!results.requests_results)) {
                         throw new Error('Pas de résultat pour la requête groupée.');
@@ -548,24 +587,51 @@ export default class ModuleAjaxCache extends Module {
 
             switch (request.type) {
                 case RequestResponseCacheVO.API_TYPE_GET:
-                    if ($.ajaxSetup) {
-                        $.ajaxSetup({
-                            timeout: 30000
-                        }); // in milliseconds
-                    }
 
-                    if ($.get) {
-                        $.get(
+                    if (request.contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+
+                        axios.get(
                             request.url,
-                            (datas) => {
-                                self.resolve_request(request, datas);
-                            })
-                            .fail((err) => {
-                                self.traitementFailRequest(err, request);
-                            });
+                            {
+                                responseType: 'blob',
+                                headers: {
+                                    'Content-Type': request.contentType,
+                                    'Accept': 'application/x-msgpack'
+                                }
+                            }
+                        ).then(function (response) {
+                            var reader = new FileReader();
+                            reader.onload = function (e) {
+                                var pack = decode(new Uint8Array(reader.result as ArrayBuffer));
+                                self.resolve_request(request, pack);
+                            };
+                            reader.readAsArrayBuffer(response.data);
+                        }).catch(function (error) {
+                            console.error(error);
+                            self.traitementFailRequest(error, request);
+                        });
+
                     } else {
-                        let resolve_callback = request.resolve_callbacks.shift();
-                        resolve_callback(null);
+
+                        if ($.ajaxSetup) {
+                            $.ajaxSetup({
+                                timeout: 30000
+                            }); // in milliseconds
+                        }
+
+                        if ($.get) {
+                            $.get(
+                                request.url,
+                                (datas) => {
+                                    self.resolve_request(request, datas);
+                                })
+                                .fail((err) => {
+                                    self.traitementFailRequest(err, request);
+                                });
+                        } else {
+                            let resolve_callback = request.resolve_callbacks.shift();
+                            resolve_callback(null);
+                        }
                     }
                     break;
 
