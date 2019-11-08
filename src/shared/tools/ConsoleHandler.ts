@@ -21,11 +21,11 @@ export default class ConsoleHandler {
     }
 
     public warn(error: string | Error): void {
-        console.error(this.get_text_msg(error));
+        console.warn(this.get_text_msg(error));
     }
 
     public log(error: string | Error): void {
-        console.error(this.get_text_msg(error));
+        console.log(this.get_text_msg(error));
     }
 
     private get_text_msg(error: string | Error): string {

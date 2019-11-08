@@ -83,6 +83,9 @@ export default abstract class ServerBase {
         await this.createMandatoryFolders();
 
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
+        EnvHandler.getInstance().IS_DEV = !!ConfigurationService.getInstance().getNodeConfiguration().ISDEV;
+        EnvHandler.getInstance().MSGPCK = !!ConfigurationService.getInstance().getNodeConfiguration().MSGPCK;
+        EnvHandler.getInstance().COMPRESS = !!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS;
         this.version = this.getVersion();
 
         this.connectionString = this.envParam.CONNECTION_STRING;
@@ -308,8 +311,10 @@ export default abstract class ServerBase {
             next();
         });
 
-        if (!EnvHandler.getInstance().IS_DEV) {
-            this.app.use(bodyParser.msgpack());
+        if (!!EnvHandler.getInstance().MSGPCK) {
+            this.app.use(bodyParser.msgpack({
+                limit: '100mb'
+            }));
             this.app.use(msgpackResponse({ auto_detect: true }));
         }
 

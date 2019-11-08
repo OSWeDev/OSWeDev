@@ -59,7 +59,9 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "export default async function Initialize" + target + "ModulesDatas() {\n";
 
         // Initialiser directement l'env param
-        fileContent += "    EnvHandler.getInstance().IS_DEV = " + (ConfigurationService.getInstance().getNodeConfiguration().ISDEV ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.getInstance().IS_DEV = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().ISDEV) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.getInstance().MSGPCK = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().MSGPCK) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.getInstance().COMPRESS = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS) ? 'true' : 'false') + ';\n';
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
         fileContent += this.generateModulesCode(this.generateModuleAsyncInitialisation, target);

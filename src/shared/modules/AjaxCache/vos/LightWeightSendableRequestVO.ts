@@ -1,0 +1,31 @@
+import RequestResponseCacheVO from './RequestResponseCacheVO';
+
+export default class LightWeightSendableRequestVO {
+
+    public static API_TYPE_GET: number = 0;
+    public static API_TYPE_POST: number = 1;
+    public static API_TYPE_POST_FOR_GET: number = 2;
+
+    public datas;
+    public url: string;
+    public contentType: string;
+
+    public index: string;
+
+    public postdatas: any;
+    public dataType: string;
+    public processData;
+
+    public type: number;
+
+    public constructor(request: RequestResponseCacheVO) {
+        this.url = request.url;
+        this.datas = Object.assign({}, request.datas);
+        this.contentType = request.contentType;
+        this.index = request.index;
+        this.postdatas = Object.assign({}, request.postdatas);
+        this.dataType = request.dataType;
+        this.processData = request.processData;
+        this.type = request.type;
+    }
+}

@@ -1,4 +1,5 @@
 import IMatroid from '../../Matroid/interfaces/IMatroid';
+import ModuleAPI from '../../API/ModuleAPI';
 
 export default class APIDAOApiTypeAndMatroidsParamsVO {
 
@@ -14,5 +15,6 @@ export default class APIDAOApiTypeAndMatroidsParamsVO {
         public API_TYPE_ID: string,
         public matroids: IMatroid[],
         public fields_ids_mapper: { [matroid_field_id: string]: string }) {
+        this.matroids = ModuleAPI.getInstance().try_translate_vo_to_api(matroids);
     }
 }

@@ -66,7 +66,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             } else {
                 if (((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
                     ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))) {
-                    param = req.body as T;
+                    param = ModuleAPI.getInstance().try_translate_vo_from_api(req.body) as T;
                 }
             }
 

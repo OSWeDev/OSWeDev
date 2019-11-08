@@ -10,6 +10,8 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
+import EnvHandler from '../../../shared/tools/EnvHandler';
 
 export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
@@ -49,13 +51,13 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
-    public async requests_wrapper(requests: RequestResponseCacheVO[]): Promise<RequestsWrapperResult> {
+    public async requests_wrapper(requests: LightWeightSendableRequestVO[]): Promise<RequestsWrapperResult> {
 
         let res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
 
         for (let i in requests) {
-            let wrapped_request: RequestResponseCacheVO = requests[i];
+            let wrapped_request: LightWeightSendableRequestVO = requests[i];
 
             let apiDefinition: APIDefinition<any, any> = null;
 
@@ -87,7 +89,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
                     try {
-                        param = JSON.parse(wrapped_request.postdatas);
+                        param = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
                     } catch (error) {
                         ConsoleHandler.getInstance().error('Erreur récupération params poste_for_get wrapped:' + error + ':');
                     }

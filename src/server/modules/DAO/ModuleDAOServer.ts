@@ -1290,7 +1290,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
 
     private async filterVosByMatroids<T extends IDistantVOBase>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<T[]> {
-        let matroids: IMatroid[] = param ? param.matroids : null;
+        let matroids: IMatroid[] = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.matroids) : null;
         let api_type_id: string = param ? param.API_TYPE_ID : null;
         let fields_ids_mapper: { [matroid_field_id: string]: string } = param ? param.fields_ids_mapper : null;
 
@@ -1682,7 +1682,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async filterVosByMatroidsIntersections<T extends IDistantVOBase>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<T[]> {
-        let matroids: IMatroid[] = param ? param.matroids : null;
+        let matroids: IMatroid[] = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.matroids) : null;
         let api_type_id: string = param ? param.API_TYPE_ID : null;
         let fields_ids_mapper: { [matroid_field_id: string]: string } = param ? param.fields_ids_mapper : null;
 
@@ -1855,7 +1855,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async getVosByExactMatroid<T extends IDistantVOBase>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<T[]> {
-        let matroids: IMatroid[] = param ? param.matroids : null;
+        let matroids: IMatroid[] = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.matroids) : null;
         let api_type_id: string = param ? param.API_TYPE_ID : null;
         let fields_ids_mapper: { [matroid_field_id: string]: string } = param ? param.fields_ids_mapper : null;
 

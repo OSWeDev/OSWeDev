@@ -19,6 +19,7 @@ import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
 import RequestsCacheVO from './vos/RequestsCacheVO';
 import RequestsWrapperResult from './vos/RequestsWrapperResult';
 import EnvHandler from '../../tools/EnvHandler';
+import LightWeightSendableRequestVO from './vos/LightWeightSendableRequestVO';
 
 
 
@@ -75,7 +76,7 @@ export default class ModuleAjaxCache extends Module {
     }
 
     public registerApis() {
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<string[], RequestsWrapperResult>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LightWeightSendableRequestVO[], LightWeightSendableRequestVO>(
             ModuleAjaxCache.APINAME_REQUESTS_WRAPPER,
             []
         ));
@@ -205,14 +206,20 @@ export default class ModuleAjaxCache extends Module {
 
             if (contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
                 var buffer = encode(postdatas);
+
+                let axios_headers: any = {
+                    'Content-Type': contentType,
+                    'Accept': 'application/x-msgpack'
+                };
+                if (!!VueAppController.getInstance().csrf_token) {
+                    axios_headers['X-CSRF-Token'] = VueAppController.getInstance().csrf_token;
+                }
+
                 axios.post(
                     url, buffer,
                     {
                         responseType: 'blob',
-                        headers: {
-                            'Content-Type': contentType,
-                            'Accept': 'application/x-msgpack'
-                        }
+                        headers: axios_headers
                     }
                 ).then(function (response) {
                     var reader = new FileReader();
@@ -532,14 +539,7 @@ export default class ModuleAjaxCache extends Module {
         if (self.waitingForRequest && (self.waitingForRequest.length > 1)) {
 
             let requests: RequestResponseCacheVO[] = Array.from(self.waitingForRequest).filter((req) => req.wrappable_request);
-
-            let requested_urls: string[] = [];
-
-            for (let i in requests) {
-                let req = requests[i];
-
-                requested_urls.push(req.url);
-            }
+            let sendable_objects: LightWeightSendableRequestVO[] = [];
 
             if (requests && (requests.length > 1)) {
 
@@ -547,15 +547,22 @@ export default class ModuleAjaxCache extends Module {
                 // On map les index de retour
                 let correspondance: { [id_local: string]: string } = {};
                 for (let i in requests) {
-                    requests[i].index = i.toString();
-                    correspondance[i.toString()] = this.getUIDIndex(requests[i].url, requests[i].postdatas);
+                    let request = requests[i];
+
+                    request.index = i.toString();
+                    correspondance[i.toString()] = this.getUIDIndex(request.url, request.postdatas);
+                    sendable_objects.push(new LightWeightSendableRequestVO(request));
                 }
 
                 let everything_went_well: boolean = true;
 
                 // On encapsule les gets dans une requête de type post
                 try {
-                    let results: RequestsWrapperResult = await this.post("/api_handler/requests_wrapper", [], requested_urls, null, EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as RequestsWrapperResult;
+                    let results: RequestsWrapperResult = await this.post(
+                        "/api_handler/requests_wrapper", [],
+                        (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
+                        null,
+                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as RequestsWrapperResult;
 
                     if ((!results) || (!results.requests_results)) {
                         throw new Error('Pas de résultat pour la requête groupée.');
@@ -644,7 +651,7 @@ export default class ModuleAjaxCache extends Module {
                     let res = await this.post(
                         request.url, request.api_types_involved, request.postdatas,
                         request.dataType, request.contentType, request.processData, request.timeout,
-                        request.type == RequestResponseCacheVO.API_TYPE_POST_FOR_GET);
+                        true);
 
                     this.resolve_request(request, res);
                     break;

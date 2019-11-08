@@ -10,6 +10,8 @@ export default class EnvHandler {
     private static instance: EnvHandler = null;
 
     public IS_DEV: boolean = false;
+    public MSGPCK: boolean = false;
+    public COMPRESS: boolean = false;
 
     private constructor() {
     }

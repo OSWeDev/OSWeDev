@@ -106,7 +106,7 @@ export default class ModuleAPI extends Module {
                     api_res = await ModuleAjaxCache.getInstance().get(
                         (ModuleAPI.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
+                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
                     break;
 
                 case APIDefinition.API_TYPE_POST_FOR_GET:
@@ -114,9 +114,9 @@ export default class ModuleAPI extends Module {
                     api_res = await ModuleAjaxCache.getInstance().get(
                         (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
+                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(this.try_translate_vos_to_api(translated_param)) : this.try_translate_vos_to_api(translated_param)) : null,
                         null,
-                        EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
+                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
                         null,
                         null,
                         true) as U;
@@ -128,9 +128,9 @@ export default class ModuleAPI extends Module {
                         let filePath: string = await ModuleAjaxCache.getInstance().post(
                             (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                             API_TYPES_IDS_involved,
-                            ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
+                            ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(this.try_translate_vos_to_api(translated_param)) : this.try_translate_vos_to_api(translated_param)) : null,
                             null,
-                            EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as string;
+                            (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as string;
 
                         let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
                         $('body').append(iframe);
@@ -139,9 +139,9 @@ export default class ModuleAPI extends Module {
                         api_res = await ModuleAjaxCache.getInstance().post(
                             (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
                             API_TYPES_IDS_involved,
-                            ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
+                            ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(this.try_translate_vos_to_api(translated_param)) : this.try_translate_vos_to_api(translated_param)) : null,
                             null,
-                            EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
+                            (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
                     }
                     break;
             }
