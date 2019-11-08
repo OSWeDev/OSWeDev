@@ -1,5 +1,5 @@
 import moment = require('moment');
-// import * as helmet from 'helmet';
+import * as bodyParser from 'body-parser-with-msgpack';
 import * as child_process from 'child_process';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
@@ -10,16 +10,17 @@ import * as createLocaleMiddleware from 'express-locale';
 import * as expressSession from 'express-session';
 import * as sharedsession from 'express-socket.io-session';
 import * as fs from 'fs';
+import * as msgpackResponse from 'msgpack-response';
 import * as path from 'path';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import * as sessionFileStore from 'session-file-store';
-// import * as webpush from 'web-push';
 import * as socketIO from 'socket.io';
 import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import ModulesManager from '../shared/modules/ModulesManager';
@@ -28,6 +29,7 @@ import LangVO from '../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
+import EnvHandler from '../shared/tools/EnvHandler';
 import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
@@ -38,10 +40,7 @@ import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServ
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import EnvHandler from '../shared/tools/EnvHandler';
-// var csurf = require('csurf');
 require('moment-json-parser').overrideDefault();
-// require('helmet');
 
 export default abstract class ServerBase {
 
@@ -192,7 +191,21 @@ export default abstract class ServerBase {
         // this.app.use(csrfMiddleware);
 
         if (this.envParam.COMPRESS) {
-            this.app.use(compression());
+            let shouldCompress = function (req, res) {
+                if (req.headers['x-no-compression']) {
+                    // don't compress responses with this request header
+                    return false;
+                }
+
+                // On check le cas du MSGPack qui est pas géré pour le moment pour indiquer compressible
+                if (req.headers['content-type'] == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
+                    return true;
+                }
+
+                // fallback to standard filter function
+                return compression.filter(req, res);
+            };
+            this.app.use(compression({ filter: shouldCompress }));
         }
 
         this.app.use(createLocaleMiddleware({
@@ -295,6 +308,12 @@ export default abstract class ServerBase {
             next();
         });
 
+        if (!EnvHandler.getInstance().IS_DEV) {
+            this.app.use(bodyParser.msgpack());
+            this.app.use(msgpackResponse({ auto_detect: true }));
+        }
+
+
         // Log request & response
         this.app.use((req: Request, res: Response, next: NextFunction) => {
             // logger.info('req', {
@@ -363,6 +382,7 @@ export default abstract class ServerBase {
         this.app.use(express.urlencoded({ extended: true, limit: '150mb' }));
 
         this.app.use(httpContext.middleware);
+
 
         // Example authorization middleware
         this.app.use(async (req, res, next) => {
