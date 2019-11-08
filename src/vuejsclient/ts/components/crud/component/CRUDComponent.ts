@@ -375,10 +375,9 @@ export default class CRUDComponent extends VueComponentBase {
                     // TODO FIXME ASAP VARS
                 }
 
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_int_array) {
-                    res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
-                }
-                if (simpleFieldType == ModuleTableField.FIELD_TYPE_string_array) {
+                if ((simpleFieldType == ModuleTableField.FIELD_TYPE_int_array) ||
+                    (simpleFieldType == ModuleTableField.FIELD_TYPE_string_array) ||
+                    (simpleFieldType == ModuleTableField.FIELD_TYPE_html_array)) {
                     res[field.datatable_field_uid] = !!res[field.datatable_field_uid] ? Array.from(res[field.datatable_field_uid]) : null;
                 }
 

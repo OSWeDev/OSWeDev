@@ -340,6 +340,7 @@ export default class DatatableComponent extends VueComponentBase {
                     case ModuleTableField.FIELD_TYPE_month:
                     case ModuleTableField.FIELD_TYPE_enum:
                     case ModuleTableField.FIELD_TYPE_html:
+                    case ModuleTableField.FIELD_TYPE_html_array:
                         continue;
                 }
             }
@@ -695,6 +696,7 @@ export default class DatatableComponent extends VueComponentBase {
                             let value = field.dataToReadIHM(baseData[simpleField.moduleTableField.field_id], baseData);
                             // Limite à 300 cars si c'est du html et strip html
                             if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html) {
+
                                 try {
 
                                     value = value.replace(/&nbsp;/gi, ' ');
@@ -714,6 +716,35 @@ export default class DatatableComponent extends VueComponentBase {
                                     value = value.substring(0, 300) + '...';
                                 }
                             }
+
+                            if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html_array) {
+
+                                for (let vi in value) {
+                                    let v = value[vi];
+
+                                    try {
+
+                                        v = v.replace(/&nbsp;/gi, ' ');
+                                        v = v.replace(/<\/div>/gi, '\n');
+                                        v = v.replace(/<\/span>/gi, '\n');
+                                        v = v.replace(/<\/ul>/gi, '\n');
+                                        v = v.replace(/<\/li>/gi, '\n');
+                                        v = v.replace(/<\/p>/gi, '\n');
+                                        v = v.replace(/<br>/gi, '\n');
+                                        v = v.replace(/<(?:.|\n)*?>/gm, '');
+                                        // v = $("<p>" + v + "</p>").text();
+                                    } catch (error) {
+                                        v = v;
+                                    }
+
+                                    if (v.length > 300) {
+                                        v = v.substring(0, 300) + '...';
+                                    }
+
+                                    value[vi] = v;
+                                }
+                            }
+
 
                             resData[field.datatable_field_uid] = value;
                             break;

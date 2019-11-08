@@ -23,6 +23,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_image_field: string = 'image';
     public static FIELD_TYPE_image_ref: string = 'image_ref';
     public static FIELD_TYPE_html: string = 'html';
+    public static FIELD_TYPE_html_array: string = 'html_array';
     public static FIELD_TYPE_boolean: string = 'boolean';
     public static FIELD_TYPE_password: string = 'password';
     public static FIELD_TYPE_string: string = 'text';
@@ -263,6 +264,7 @@ export default class ModuleTableField<T> {
                 return (db_type == "float8") || (db_type == "double precision") || (db_type == "numeric");
 
             case ModuleTableField.FIELD_TYPE_string_array:
+            case ModuleTableField.FIELD_TYPE_html_array:
                 return (db_type == "text[]") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_int_array:
@@ -354,6 +356,7 @@ export default class ModuleTableField<T> {
                 return "bigint";
 
             case ModuleTableField.FIELD_TYPE_string_array:
+            case ModuleTableField.FIELD_TYPE_html_array:
                 return "text[]";
 
             case ModuleTableField.FIELD_TYPE_int_array:
@@ -461,6 +464,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_file_field:
             case ModuleTableField.FIELD_TYPE_file_ref:
             case ModuleTableField.FIELD_TYPE_html:
+            case ModuleTableField.FIELD_TYPE_html_array:
             case ModuleTableField.FIELD_TYPE_int:
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_amount:

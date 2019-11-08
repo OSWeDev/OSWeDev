@@ -320,6 +320,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_string_array:
                     return '{' + value.join() + '}';
 
+                case ModuleTableField.FIELD_TYPE_html_array:
+                    return '{' + value.join() + '}';
+
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {
                         case TimeSegment.TYPE_MONTH:

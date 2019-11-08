@@ -17,6 +17,10 @@
             template(v-else-if="field.moduleTableField.field_type == 'text[]'")
                 ul.multi-input(v-if="field_value")
                     li(v-for="value in field_value") {{ value }}
+            template(v-else-if="field.moduleTableField.field_type == 'html[]'")
+                ul.multi-input(v-if="field_value")
+                    li(v-for="value in field_value")
+                        code {{ value }}
             template(v-else-if="field.moduleTableField.field_type == 'html'")
                 code {{ field_value }}
             template(v-else-if="field.moduleTableField.field_type == 'enum'")

@@ -93,6 +93,8 @@
         multi_input(:field_value="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="number", @input="validateMultiInput")
     template(v-else-if="field_type == 'text[]'")
         multi_input(:field_value="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input="validateMultiInput")
+    template(v-else-if="field_type == 'html[]'")
+        multi_input(:use_wysiwyg='true' :field_value="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input="validateMultiInput")
     template(v-else-if="is_custom_field_type && custom_field_types[field_type].create_update_component")
         .custom_read_field_component(
             :is="custom_field_types[field_type].create_update_component",

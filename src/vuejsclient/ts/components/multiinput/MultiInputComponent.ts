@@ -15,6 +15,9 @@ export default class MultiInputComponent extends VueComponentBase {
     public storeData: (vo: IDistantVOBase) => void;
 
     @Prop({ default: false })
+    protected use_wysiwyg: boolean;
+
+    @Prop({ default: false })
     protected required: boolean;
 
     @Prop({ default: false })
