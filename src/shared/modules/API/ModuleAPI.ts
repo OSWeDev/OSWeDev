@@ -10,6 +10,7 @@ import Module from '../Module';
 import ModulesManager from '../ModulesManager';
 import VOsTypesManager from '../VOsTypesManager';
 import APIDefinition from './vos/APIDefinition';
+import EnvHandler from '../../tools/EnvHandler';
 
 
 export default class ModuleAPI extends Module {
@@ -105,7 +106,7 @@ export default class ModuleAPI extends Module {
                     api_res = await ModuleAjaxCache.getInstance().get(
                         (ModuleAPI.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
                         API_TYPES_IDS_involved,
-                        ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
+                        EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
                     break;
 
                 case APIDefinition.API_TYPE_POST_FOR_GET:
@@ -115,7 +116,7 @@ export default class ModuleAPI extends Module {
                         API_TYPES_IDS_involved,
                         ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
                         null,
-                        ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
+                        EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
                         null,
                         null,
                         true) as U;
@@ -129,7 +130,7 @@ export default class ModuleAPI extends Module {
                             API_TYPES_IDS_involved,
                             ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
                             null,
-                            ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as string;
+                            EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as string;
 
                         let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
                         $('body').append(iframe);
@@ -140,7 +141,7 @@ export default class ModuleAPI extends Module {
                             API_TYPES_IDS_involved,
                             ((typeof translated_param != 'undefined') && (translated_param != null)) ? JSON.stringify(translated_param) : null,
                             null,
-                            ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
+                            EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
                     }
                     break;
             }

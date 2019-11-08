@@ -308,10 +308,10 @@ export default abstract class ServerBase {
             next();
         });
 
-        // if (ConfigurationService.getInstance().getNodeConfiguration().ISDEV) {
-        this.app.use(bodyParser.msgpack());
-        this.app.use(msgpackResponse({ auto_detect: true }));
-        // }
+        if (!EnvHandler.getInstance().IS_DEV) {
+            this.app.use(bodyParser.msgpack());
+            this.app.use(msgpackResponse({ auto_detect: true }));
+        }
 
 
         // Log request & response

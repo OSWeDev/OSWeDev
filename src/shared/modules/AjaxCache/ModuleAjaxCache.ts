@@ -18,6 +18,7 @@ import CacheInvalidationRulesVO from './vos/CacheInvalidationRulesVO';
 import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
 import RequestsCacheVO from './vos/RequestsCacheVO';
 import RequestsWrapperResult from './vos/RequestsWrapperResult';
+import EnvHandler from '../../tools/EnvHandler';
 
 
 
@@ -554,7 +555,7 @@ export default class ModuleAjaxCache extends Module {
 
                 // On encapsule les gets dans une requête de type post
                 try {
-                    let results: RequestsWrapperResult = await this.post("/api_handler/requests_wrapper", [], requested_urls, null, ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as RequestsWrapperResult;
+                    let results: RequestsWrapperResult = await this.post("/api_handler/requests_wrapper", [], requested_urls, null, EnvHandler.getInstance().IS_DEV ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as RequestsWrapperResult;
 
                     if ((!results) || (!results.requests_results)) {
                         throw new Error('Pas de résultat pour la requête groupée.');
