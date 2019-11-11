@@ -1,3 +1,7 @@
+# Si problème de compilation indiquant absence de Python
+    npm install --global --production windows-build-tools
+
+
 # Pour étudier les deps des projets (refs circulaires, références au client dans l'admin, ...)
     Installer Madge globalement
         npm -g install madge

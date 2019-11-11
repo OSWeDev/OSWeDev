@@ -21,6 +21,9 @@ import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalPrep.scss";
+import ICustomPrepCreateComponent from './interfaces/ICustomPrepCreateComponent';
+import ICustomPrepReadComponent from './interfaces/ICustomPrepReadComponent';
+import ICustomPrepUpdateComponent from './interfaces/ICustomPrepUpdateComponent';
 
 @Component({
     template: require('./ProgramPlanComponentModalPrep.pug'),
@@ -96,9 +99,9 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
     private edited_prep: IPlanRDVPrep = null;
 
-    private custom_prep_create_component = ProgramPlanControllerBase.getInstance().customPrepCreateComponent;
-    private custom_prep_read_component = ProgramPlanControllerBase.getInstance().customPrepReadComponent;
-    private custom_prep_update_component = ProgramPlanControllerBase.getInstance().customPrepUpdateComponent;
+    private custom_prep_create_component: ICustomPrepCreateComponent = ProgramPlanControllerBase.getInstance().customPrepCreateComponent;
+    private custom_prep_read_component: ICustomPrepReadComponent = ProgramPlanControllerBase.getInstance().customPrepReadComponent;
+    private custom_prep_update_component: ICustomPrepUpdateComponent = ProgramPlanControllerBase.getInstance().customPrepUpdateComponent;
 
     @Watch('selected_rdv', { immediate: true })
     private async onChangeSelectedRDV() {
