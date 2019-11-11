@@ -1,3 +1,11 @@
+# Pour étudier les deps des projets (refs circulaires, références au client dans l'admin, ...)
+    Installer Madge globalement
+        npm -g install madge
+    Et graphviz
+        https://graphviz.gitlab.io/_pages/Download/Download_windows.html
+    Et lancer madge sur l'un des fichiers de base 
+        Dans le rep src/admin par exemple :  madge --image graph.svg .\AdminApp.ts
+
 # BREAKING CHANGE 23-10-2019
 
     Suite observation de gros gains de perfs sur le datatable en supprimant des await inutiles, on refactor en partie les vars pour supprimer des await devenus inutiles

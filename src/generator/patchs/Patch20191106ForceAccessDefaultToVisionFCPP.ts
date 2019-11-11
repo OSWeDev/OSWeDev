@@ -1,13 +1,11 @@
 import { IDatabase } from 'pg-promise';
-import ConfigurationService from '../../server/env/ConfigurationService';
-import EnvParam from '../../server/env/EnvParam';
-import IGeneratorWorker from '../IGeneratorWorker';
 import ModuleAccessPolicyServer from '../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAccessPolicy from '../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyVO from '../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import RoleVO from '../../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
-import AccessPolicyVO from '../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ModuleProgramPlanBase from '../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import IGeneratorWorker from '../IGeneratorWorker';
 
 export default class Patch20191106ForceAccessDefaultToVisionFCPP implements IGeneratorWorker {
 

@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import DateHandler from '../../tools/DateHandler';
 import ModuleAPI from '../API/ModuleAPI';
 import BooleanParamVO from '../API/vos/apis/BooleanParamVO';
@@ -14,6 +15,7 @@ import VOsTypesManager from '../VOsTypesManager';
 import AccessPolicyGroupVO from './vos/AccessPolicyGroupVO';
 import AccessPolicyVO from './vos/AccessPolicyVO';
 import AddRoleToUserParamVO from './vos/apis/AddRoleToUserParamVO';
+import LoginParamVO from './vos/apis/LoginParamVO';
 import ResetPwdParamVO from './vos/apis/ResetPwdParamVO';
 import ToggleAccessParamVO from './vos/apis/ToggleAccessParamVO';
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
@@ -21,9 +23,6 @@ import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
-import LoginParamVO from './vos/apis/LoginParamVO';
-import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 
 export default class ModuleAccessPolicy extends Module {
 
