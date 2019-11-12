@@ -1,8 +1,8 @@
 import { IDatabase } from 'pg-promise';
-import ModuleDAOServer from '../../server/modules/DAO/ModuleDAOServer';
-import ModuleDAO from '../../shared/modules/DAO/ModuleDAO';
-import LangVO from '../../shared/modules/Translation/vos/LangVO';
-import IGeneratorWorker from '../IGeneratorWorker';
+import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
+import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20191010CreateDefaultLangFRIfNone implements IGeneratorWorker {
 
@@ -28,7 +28,7 @@ export default class Patch20191010CreateDefaultLangFRIfNone implements IGenerato
 
         try {
             let langs: LangVO[] = await ModuleDAO.getInstance().getVos<LangVO>(LangVO.API_TYPE_ID);
-            if ((langs != null) || (langs.length > 0)) {
+            if ((langs != null) && (langs.length > 0)) {
                 return;
             }
             await this.createlang('fr');

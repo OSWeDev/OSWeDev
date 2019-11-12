@@ -1,5 +1,5 @@
 import { IDatabase } from 'pg-promise';
-import IGeneratorWorker from '../IGeneratorWorker';
+import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class ChangeTypeDatesNotificationVO implements IGeneratorWorker {
 

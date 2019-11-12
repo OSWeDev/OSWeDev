@@ -65,6 +65,316 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Utilisateur'
         }, 'fields.labels.ref.user.___LABEL____lang_id'));
+
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non'
+        }, 'NO'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Oui'
+        }, 'YES'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler'
+        }, 'admin.logout.cancel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Choisissez "Déconnexion"'
+        }, 'admin.logout.content.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Déconnexion'
+        }, 'admin.logout.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Déconnexion'
+        }, 'admin.logout.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Import des traductions'
+        }, 'import.translations.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Codes textes'
+        }, 'menu.menuelements.TranslatableTextVOTranslationAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Internationalisation'
+        }, 'menu.menuelements.TranslationAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Traductions'
+        }, 'menu.menuelements.TranslationVOTranslationAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Import des traductions'
+        }, 'menu.menuelements.TranslationsImport.___LABEL___'));
+
+
+
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'CRON'
+        }, 'cron.component.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'CRON'
+        }, 'cron.component.head.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lancer les tâches'
+        }, 'cron.run_cron.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Ajouter'
+        }, 'crud.actions.create.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Exporter'
+        }, 'crud.actions.export.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Actualiser'
+        }, 'crud.actions.refresh.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Ajouter'
+        }, 'crud.create.modal.add.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler'
+        }, 'crud.create.modal.cancel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Nouveau'
+        }, 'crud.create.modal.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Ajout : En cours...'
+        }, 'crud.create.starting.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Ajout : OK'
+        }, 'crud.create.success.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler'
+        }, 'crud.delete.modal.cancel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer'
+        }, 'crud.delete.modal.content.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Echec de sélection'
+        }, 'crud.delete.modal.content.selection_failure.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer'
+        }, 'crud.delete.modal.content.warning.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer'
+        }, 'crud.delete.modal.delete.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer'
+        }, 'crud.delete.modal.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression : En cours...'
+        }, 'crud.delete.starting.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression : OK'
+        }, 'crud.delete.success.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non'
+        }, 'crud.field.boolean.false.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Non renseigné'
+        }, 'crud.field.boolean.n_a.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Oui'
+        }, 'crud.field.boolean.true.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Données - {datatable_title}'
+        }, 'crud.read.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Annuler'
+        }, 'crud.update.modal.cancel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Edition : Echec de sélection'
+        }, 'crud.update.modal.content.selection_failure.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Enregistrer'
+        }, 'crud.update.modal.save.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Modifier'
+        }, 'crud.update.modal.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Modification : En cours...'
+        }, 'crud.update.starting.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Modification : OK'
+        }, 'crud.update.success.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Modification : KO'
+        }, 'crud.update.errors.update_failure.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Actions'
+        }, 'datatable.actions_column.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Colonnes'
+        }, 'datatable.columns.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Affichage des résultats ###from-## à ###to-## (sur un total de ###count-##)|###count-## résultats|A résultat'
+        }, 'datatable.count.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Sélectionner ###column-##'
+        }, 'datatable.default_option.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Filtrer:'
+        }, 'datatable.filter.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Filtrer par ###column-##'
+        }, 'datatable.filter_by.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Recherche'
+        }, 'datatable.filter_place_holder.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Premier'
+        }, 'datatable.first.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Dernier'
+        }, 'datatable.last.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Résultats:'
+        }, 'datatable.limit.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Chargement...'
+        }, 'datatable.loading.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Aucun résultat'
+        }, 'datatable.no_results.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Page:'
+        }, 'datatable.page.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictCancelUpload'
+        }, 'dropzone.dictCancelUpload.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictCancelUploadConfirmation'
+        }, 'dropzone.dictCancelUploadConfirmation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictDefaultMessage'
+        }, 'dropzone.dictDefaultMessage.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictFallbackMessage'
+        }, 'dropzone.dictFallbackMessage.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictFallbackText'
+        }, 'dropzone.dictFallbackText.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictFileSizeUnits'
+        }, 'dropzone.dictFileSizeUnits.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictFileTooBig'
+        }, 'dropzone.dictFileTooBig.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictInvalidFileType'
+        }, 'dropzone.dictInvalidFileType.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictMaxFilesExceeded'
+        }, 'dropzone.dictMaxFilesExceeded.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictRemoveFile'
+        }, 'dropzone.dictRemoveFile.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictRemoveFileConfirmation'
+        }, 'dropzone.dictRemoveFileConfirmation.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictResponseError'
+        }, 'dropzone.dictResponseError.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'dictUploadCanceled'
+        }, 'dropzone.dictUploadCanceled.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Aucun historique'
+        }, 'import.modal.no_hisotoric.___LABEL___'));
+
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'CRON'
+        }, 'menu.menuelements.CronAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Exécution'
+        }, 'menu.menuelements.CronRun.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Planification'
+        }, 'menu.menuelements.CronWorkerPlanification.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Administration des fichiers'
+        }, 'menu.menuelements.FileAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Fichier'
+        }, 'menu.menuelements.FileVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Langues'
+        }, 'menu.menuelements.LangVOTranslationAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Modules'
+        }, 'menu.menuelements.ModuleVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Modules'
+        }, 'menu.menuelements.ModulesAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Role policy'
+        }, 'menu.menuelements.RolePolicyVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Rôle'
+        }, 'menu.menuelements.RoleVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Configuration des Vars'
+        }, 'menu.menuelements.SimpleVarConfVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Utilisateurs'
+        }, 'menu.menuelements.UserVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Variables'
+        }, 'menu.menuelements.VarAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Access policy'
+        }, 'menu.menuelements.module_access_policy.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Module Format dates/nombres'
+        }, 'menu.menuelements.module_format_dates_nombres.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Module Mailer'
+        }, 'menu.menuelements.module_mailer.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Module SASS'
+        }, 'menu.menuelements.module_sass_resource_planning_skin_configurator.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Fermer'
+        }, 'on_page_translation.close_button_title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Autres langues'
+        }, 'on_page_translation.hide_other_langs.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Importer les traductions'
+        }, 'on_page_translation.import_translations.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Ouvrir'
+        }, 'on_page_translation.open_button_title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Autres langues'
+        }, 'on_page_translation.show_other_langs.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Surcharger'
+        }, 'translations_import_params.overwrite.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Manuel utilisateur'
+        }, 'client.learning.book.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'http://www.wedev.fr/'
+        }, 'client.learning.link.manual.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'http://www.wedev.fr/'
+        }, 'client.learning.link.youtube.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tutoriel'
+        }, 'client.learning.youtube.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Déconnexion'
+        }, 'client.logout.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Wedev'
+        }, 'client.main-title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Admin'
+        }, 'client.menu-gauche.admin'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Menu principal'
+        }, 'client.menu-gauche.navigationPrincipale'));
+
     }
 
     /**

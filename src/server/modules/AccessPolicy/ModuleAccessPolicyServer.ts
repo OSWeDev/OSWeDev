@@ -216,6 +216,65 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onDeleteRoleVO.bind(this));
         preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onDeleteUserRoleVO.bind(this));
 
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Gestion des droits'
+        }, 'access_policy.admin.filters.filters-title.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Caché'
+        }, 'access_policy.admin.filters.hidden.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Visible'
+        }, 'access_policy.admin.filters.visible.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mise à jour des droits : OK'
+        }, 'access_policy.admin.set_policy.ok.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mise à jour des droits : En cours...'
+        }, 'access_policy.admin.set_policy.start.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Refusé'
+        }, 'access_policy.admin.table.denied.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Accordé'
+        }, 'access_policy.admin.table.granted.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: ''
+        }, 'access_policy.admin.table.headers.first_header.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Accès admin uniquement'
+        }, 'accpol.default_behaviour.access_denied_to_all_but_admin'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Accès utilisateur connecté'
+        }, 'accpol.default_behaviour.access_denied_to_anonymous'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Accès pour tous'
+        }, 'accpol.default_behaviour.access_granted_to_anyone'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Utilisateurs'
+        }, 'menu.menuelements.AccessPolicyAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Gestion des droits'
+        }, 'menu.menuelements.AccessPolicyComponent.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Gourpe d\'accès'
+        }, 'menu.menuelements.AccessPolicyGroupVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Accès'
+        }, 'menu.menuelements.AccessPolicyVO.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Droit'
         }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____group_id'));
@@ -632,6 +691,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 AccessPolicyServerController.getInstance().registered_roles_policies,
                 AccessPolicyServerController.getInstance().registered_policies_by_ids,
                 AccessPolicyServerController.getInstance().registered_dependencies);
+        }
+
+        if ((!AccessPolicyServerController.getInstance().registered_users_roles) || (!AccessPolicyServerController.getInstance().registered_users_roles[uid])) {
+            return false;
         }
 
         return AccessPolicyServerController.getInstance().checkAccessTo(

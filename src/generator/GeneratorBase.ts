@@ -8,18 +8,20 @@ import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigur
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
 import ModulesManager from '../shared/modules/ModulesManager';
 import IGeneratorWorker from './IGeneratorWorker';
-import ActivateDataImport from './patchs/ActivateDataImport';
-import ActivateDataRender from './patchs/ActivateDataRender';
-import ChangeCronDateHeurePlanifiee from './patchs/ChangeCronDateHeurePlanifiee';
-import ChangeTypeDatesNotificationVO from './patchs/ChangeTypeDatesNotificationVO';
-import Patch20191008ChangeDIHDateType from './patchs/Patch20191008ChangeDIHDateType';
-import Patch20191008ChangeDILDateType from './patchs/Patch20191008ChangeDILDateType';
-import Patch20191008SupprimerTacheReimport from './patchs/Patch20191008SupprimerTacheReimport';
-import Patch20191010CheckBasicSchemas from './patchs/Patch20191010CheckBasicSchemas';
-import Patch20191010CreateDefaultAdminAccountIfNone from './patchs/Patch20191010CreateDefaultAdminAccountIfNone';
-import Patch20191010CreateDefaultLangFRIfNone from './patchs/Patch20191010CreateDefaultLangFRIfNone';
-import Patch20191018CHECKEnvParamsForMDPRecovery from './patchs/Patch20191018CHECKEnvParamsForMDPRecovery';
-import Patch20191106ForceAccessDefaultToVisionFCPP from './patchs/Patch20191106ForceAccessDefaultToVisionFCPP';
+import Patch20191010CreateDefaultAdminAccountIfNone from './patchs/postmodules/Patch20191010CreateDefaultAdminAccountIfNone';
+import Patch20191010CreateDefaultLangFRIfNone from './patchs/postmodules/Patch20191010CreateDefaultLangFRIfNone';
+import Patch20191018CHECKEnvParamsForMDPRecovery from './patchs/postmodules/Patch20191018CHECKEnvParamsForMDPRecovery';
+import Patch20191106ForceAccessDefaultToVisionFCPP from './patchs/postmodules/Patch20191106ForceAccessDefaultToVisionFCPP';
+import Patch20191112AddPwdCryptTrigger from './patchs/postmodules/Patch20191112AddPwdCryptTrigger';
+import ActivateDataImport from './patchs/premodules/ActivateDataImport';
+import ActivateDataRender from './patchs/premodules/ActivateDataRender';
+import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
+import ChangeTypeDatesNotificationVO from './patchs/premodules/ChangeTypeDatesNotificationVO';
+import Patch20191008ChangeDIHDateType from './patchs/premodules/Patch20191008ChangeDIHDateType';
+import Patch20191008ChangeDILDateType from './patchs/premodules/Patch20191008ChangeDILDateType';
+import Patch20191008SupprimerTacheReimport from './patchs/premodules/Patch20191008SupprimerTacheReimport';
+import Patch20191010CheckBasicSchemas from './patchs/premodules/Patch20191010CheckBasicSchemas';
+import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112CheckExtensions';
 
 export default abstract class GeneratorBase {
 
@@ -43,6 +45,7 @@ export default abstract class GeneratorBase {
 
         this.pre_modules_workers = [
             Patch20191010CheckBasicSchemas.getInstance(),
+            Patch20191112CheckExtensions.getInstance(),
             ActivateDataImport.getInstance(),
             ActivateDataRender.getInstance(),
             ChangeTypeDatesNotificationVO.getInstance(),
@@ -53,6 +56,7 @@ export default abstract class GeneratorBase {
         ];
 
         this.post_modules_workers = [
+            Patch20191112AddPwdCryptTrigger.getInstance(),
             Patch20191010CreateDefaultLangFRIfNone.getInstance(),
             Patch20191010CreateDefaultAdminAccountIfNone.getInstance(),
             Patch20191018CHECKEnvParamsForMDPRecovery.getInstance(),

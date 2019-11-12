@@ -1,7 +1,7 @@
 import { IDatabase } from 'pg-promise';
-import ConfigurationService from '../../server/env/ConfigurationService';
-import EnvParam from '../../server/env/EnvParam';
-import IGeneratorWorker from '../IGeneratorWorker';
+import ConfigurationService from '../../../server/env/ConfigurationService';
+import EnvParam from '../../../server/env/EnvParam';
+import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20191018CHECKEnvParamsForMDPRecovery implements IGeneratorWorker {
 

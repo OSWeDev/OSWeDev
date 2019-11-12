@@ -87,6 +87,17 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Taille de l\'arbre'
         }, 'var_desc_registrations.vardag_size.___LABEL___'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Markers'
+        }, 'var.desc_mode.var_markers.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Actualiser le graph'
+        }, 'var_desc.create_graph.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'StepByStep'
+        }, 'var_desc.pause.___LABEL___'));
     }
 
     public registerServerApiHandlers() {
