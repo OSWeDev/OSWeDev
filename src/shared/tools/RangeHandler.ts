@@ -938,6 +938,12 @@ export default class RangeHandler {
                     case TimeSegment.TYPE_DAY:
                     default:
                         return this.createNew(range.range_type, moment(range.min).add(shift_value, 'day'), moment(range.max).add(shift_value, 'day'), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
+                    case TimeSegment.TYPE_HOUR:
+                    case TimeSegment.TYPE_MINUTE:
+                    case TimeSegment.TYPE_SECOND:
+                    case TimeSegment.TYPE_MS:
+                        let type = TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(shift_segment_type);
+                        return this.createNew(range.range_type, moment(range.min).add(shift_value, type), moment(range.max).add(shift_value, type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
                 }
         }
     }
@@ -974,48 +980,57 @@ export default class RangeHandler {
                 res = [];
             }
 
-            let elt = '';
-            elt += range.segment_type;
-            elt += range.min_inclusiv ? '[' : '(';
-
-            switch (range.range_type) {
-
-                case NumRange.RANGE_TYPE:
-                    elt += range.min;
-                    break;
-
-                case HourRange.RANGE_TYPE:
-                    elt += (range.min as any as moment.Duration).asMilliseconds();
-                    break;
-
-                case TSRange.RANGE_TYPE:
-                    elt += (range.min as any as Moment).unix();
-                    break;
-            }
-
-            elt += ',';
-
-            switch (range.range_type) {
-
-                case NumRange.RANGE_TYPE:
-                    elt += range.max;
-                    break;
-
-                case HourRange.RANGE_TYPE:
-                    elt += (range.max as any as moment.Duration).asMilliseconds();
-                    break;
-
-                case TSRange.RANGE_TYPE:
-                    elt += (range.max as any as Moment).unix();
-                    break;
-            }
-
-            elt += range.max_inclusiv ? ']' : ')';
-
-            res.push(elt);
+            res.push(this.translate_range_to_api(range));
         }
 
         return res;
+    }
+
+    /**
+     * TODO TU ASAP FIXME VARS
+     * On passe par une version text pour simplifier
+     */
+    public translate_range_to_api(range: NumRange): string {
+
+        let elt = '';
+        elt += range.segment_type;
+        elt += range.min_inclusiv ? '[' : '(';
+
+        switch (range.range_type) {
+
+            case NumRange.RANGE_TYPE:
+                elt += range.min;
+                break;
+
+            case HourRange.RANGE_TYPE:
+                elt += (range.min as any as moment.Duration).asMilliseconds();
+                break;
+
+            case TSRange.RANGE_TYPE:
+                elt += (range.min as any as Moment).unix();
+                break;
+        }
+
+        elt += ',';
+
+        switch (range.range_type) {
+
+            case NumRange.RANGE_TYPE:
+                elt += range.max;
+                break;
+
+            case HourRange.RANGE_TYPE:
+                elt += (range.max as any as moment.Duration).asMilliseconds();
+                break;
+
+            case TSRange.RANGE_TYPE:
+                elt += (range.max as any as Moment).unix();
+                break;
+        }
+
+        elt += range.max_inclusiv ? ']' : ')';
+
+        return elt;
     }
 
     /**
@@ -1044,49 +1059,56 @@ export default class RangeHandler {
     /**
      * TODO TU ASAP FIXME VARS
      */
-    public translate_to_bdd(ranges: NumRange[]): string {
+    public translate_to_bdd(ranges: Array<IRange<any>>): string {
         let res = null;
 
         for (let i in ranges) {
             let range = ranges[i];
 
             if (res == null) {
-                res = '{"';
+                res = '{';
             } else {
-                res += ',"';
+                res += ',';
             }
 
-            res += range.min_inclusiv ? '[' : '(';
-
-            switch (range.range_type) {
-                case NumRange.RANGE_TYPE:
-                    res += range.min;
-                    break;
-                case TSRange.RANGE_TYPE:
-                    res += (range.min as any as Moment).unix();
-                    break;
-                case HourRange.RANGE_TYPE:
-                    res += (range.min as any as moment.Duration).asMilliseconds();
-                    break;
-            }
-            res += ',';
-
-            switch (range.range_type) {
-                case NumRange.RANGE_TYPE:
-                    res += range.max;
-                    break;
-                case TSRange.RANGE_TYPE:
-                    res += (range.max as any as Moment).unix();
-                    break;
-                case HourRange.RANGE_TYPE:
-                    res += (range.max as any as moment.Duration).asMilliseconds();
-                    break;
-            }
-            res += range.max_inclusiv ? ']' : ')';
-
+            res += '"';
+            res += this.translate_range_to_bdd(range);
             res += '"';
         }
         res += "}";
+
+        return res;
+    }
+
+    public translate_range_to_bdd(range: IRange<any>): string {
+
+        let res = (range.min_inclusiv ? '[' : '(');
+
+        switch (range.range_type) {
+            case NumRange.RANGE_TYPE:
+                res += range.min;
+                break;
+            case TSRange.RANGE_TYPE:
+                res += (range.min as any as Moment).unix();
+                break;
+            case HourRange.RANGE_TYPE:
+                res += (range.min as any as moment.Duration).asMilliseconds();
+                break;
+        }
+        res += ',';
+
+        switch (range.range_type) {
+            case NumRange.RANGE_TYPE:
+                res += range.max;
+                break;
+            case TSRange.RANGE_TYPE:
+                res += (range.max as any as Moment).unix();
+                break;
+            case HourRange.RANGE_TYPE:
+                res += (range.max as any as moment.Duration).asMilliseconds();
+                break;
+        }
+        res += range.max_inclusiv ? ']' : ')';
 
         return res;
     }
@@ -1287,6 +1309,12 @@ export default class RangeHandler {
                     case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                     case TimeSegment.TYPE_YEAR:
                         return (max as any as Moment).diff(min, 'year') + 1;
+                    case TimeSegment.TYPE_HOUR:
+                    case TimeSegment.TYPE_MINUTE:
+                    case TimeSegment.TYPE_SECOND:
+                    case TimeSegment.TYPE_MS:
+                        let type = TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(segment_type);
+                        return (max as any as Moment).diff(min, type) + 1;
                 }
                 break;
         }
@@ -1476,7 +1504,7 @@ export default class RangeHandler {
                     return null;
                 }
 
-                return range_max_num.index as any as T;
+                return range_max_seg.index as any as T;
 
 
             case TSRange.RANGE_TYPE:

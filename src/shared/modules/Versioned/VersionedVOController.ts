@@ -39,10 +39,10 @@ export default class VersionedVOController implements IVOController {
         version_author_id.setModuleTable(moduleTable);
 
         moduleTable.push_field(version_edit_author_id);
-        moduleTable.push_field((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de modification', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_tstz, 'Date de modification', false)).setModuleTable(moduleTable));
 
         moduleTable.push_field(version_author_id);
-        moduleTable.push_field((new ModuleTableField('version_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de création', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField('version_timestamp', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', false)).setModuleTable(moduleTable));
 
         moduleTable.push_field((new ModuleTableField('version_num', ModuleTableField.FIELD_TYPE_int, 'Numéro de version', false)).setModuleTable(moduleTable));
 

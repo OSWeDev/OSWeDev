@@ -299,7 +299,7 @@ export default class ModuleTableField<T> {
                 return (db_type == "numrange[]") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return db_type == "tsrange";
+                return db_type == "numrange";
 
             case ModuleTableField.FIELD_TYPE_hour:
                 return (db_type == "int8") || (db_type == "bigint");
@@ -394,7 +394,7 @@ export default class ModuleTableField<T> {
                 return "numrange[]";
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return "tsrange";
+                return "numrange";
 
             case ModuleTableField.FIELD_TYPE_hourrange:
                 return "int8range";

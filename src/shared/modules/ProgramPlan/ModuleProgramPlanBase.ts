@@ -714,7 +714,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         let task_id;
         let target_id;
-        let label_field = new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_timestamp, 'Début', false);
+        let label_field = new ModuleTableField('start_time', ModuleTableField.FIELD_TYPE_tstz, 'Début', false);
         let facilitator_id;
         let program_id;
 
@@ -730,7 +730,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         additional_fields.unshift(
             label_field,
-            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_timestamp, 'Fin', false),
+            new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
             new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, ' Statut', true, true, ModuleProgramPlanBase.RDV_STATE_CREATED).setEnumValues(
                 states)
         );

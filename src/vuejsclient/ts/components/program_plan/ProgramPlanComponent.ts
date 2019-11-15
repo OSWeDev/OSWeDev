@@ -905,15 +905,15 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
         let rdv: IPlanRDV = this.getRdvsByIds[event.rdv_id] as IPlanRDV;
 
-        let tmp_start: string = rdv.start_time;
-        let tmp_end: string = rdv.end_time;
+        let tmp_start: moment.Moment = rdv.start_time;
+        let tmp_end: moment.Moment = rdv.end_time;
         let tmp_facilitator_id: number = rdv.facilitator_id;
         let tmp_target_id: number = rdv.target_id;
 
         let new_facilitator_id: number = null;
         let new_target_id: number = null;
-        let new_start_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.start));
-        let new_end_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.end));
+        let new_start_time: moment.Moment = moment(event.start);
+        let new_end_time: moment.Moment = moment(event.end);
 
         if (!!ModuleProgramPlanBase.getInstance().target_facilitator_type_id) {
             let new_target_facilitator_id: number = parseInt(event.resourceId);
@@ -1187,8 +1187,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         try {
             rdv = ProgramPlanControllerBase.getInstance().getRDVNewInstance();
-            rdv.start_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.start));
-            rdv.end_time = DateHandler.getInstance().formatDateTimeForBDD(moment(event.end));
+            rdv.start_time = moment(event.start);
+            rdv.end_time = moment(event.end);
 
             if (!!ModuleProgramPlanBase.getInstance().program_type_id) {
                 rdv.program_id = this.program_id;

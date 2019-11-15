@@ -55,19 +55,144 @@ export default class TimeSegmentHandler {
                     return TimeSegment.TYPE_WEEK;
                 }
                 return TimeSegment.TYPE_DAY;
+            case TimeSegment.TYPE_HOUR:
+                if (segment_type_b == TimeSegment.TYPE_YEAR) {
+                    return TimeSegment.TYPE_YEAR;
+                }
+                if (segment_type_b == TimeSegment.TYPE_ROLLING_YEAR_MONTH_START) {
+                    return TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MONTH) {
+                    return TimeSegment.TYPE_MONTH;
+                }
+                if (segment_type_b == TimeSegment.TYPE_WEEK) {
+                    return TimeSegment.TYPE_WEEK;
+                }
+                if (segment_type_b == TimeSegment.TYPE_DAY) {
+                    return TimeSegment.TYPE_DAY;
+                }
+                return TimeSegment.TYPE_HOUR;
+            case TimeSegment.TYPE_MINUTE:
+                if (segment_type_b == TimeSegment.TYPE_YEAR) {
+                    return TimeSegment.TYPE_YEAR;
+                }
+                if (segment_type_b == TimeSegment.TYPE_ROLLING_YEAR_MONTH_START) {
+                    return TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MONTH) {
+                    return TimeSegment.TYPE_MONTH;
+                }
+                if (segment_type_b == TimeSegment.TYPE_WEEK) {
+                    return TimeSegment.TYPE_WEEK;
+                }
+                if (segment_type_b == TimeSegment.TYPE_DAY) {
+                    return TimeSegment.TYPE_DAY;
+                }
+                if (segment_type_b == TimeSegment.TYPE_HOUR) {
+                    return TimeSegment.TYPE_HOUR;
+                }
+                return TimeSegment.TYPE_MINUTE;
+            case TimeSegment.TYPE_SECOND:
+                if (segment_type_b == TimeSegment.TYPE_YEAR) {
+                    return TimeSegment.TYPE_YEAR;
+                }
+                if (segment_type_b == TimeSegment.TYPE_ROLLING_YEAR_MONTH_START) {
+                    return TimeSegment.TYPE_ROLLING_YEAR_MONTH_START;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MONTH) {
+                    return TimeSegment.TYPE_MONTH;
+                }
+                if (segment_type_b == TimeSegment.TYPE_WEEK) {
+                    return TimeSegment.TYPE_WEEK;
+                }
+                if (segment_type_b == TimeSegment.TYPE_DAY) {
+                    return TimeSegment.TYPE_DAY;
+                }
+                if (segment_type_b == TimeSegment.TYPE_HOUR) {
+                    return TimeSegment.TYPE_HOUR;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MINUTE) {
+                    return TimeSegment.TYPE_MINUTE;
+                }
+                return TimeSegment.TYPE_HOUR;
+            case TimeSegment.TYPE_MS:
+                return segment_type_b;
         }
     }
 
     public getSmallestTimeSegmentationType(segment_type_a: number, segment_type_b: number): number {
         switch (segment_type_a) {
+            case TimeSegment.TYPE_MS:
+                return TimeSegment.TYPE_MS;
+            case TimeSegment.TYPE_SECOND:
+                if (segment_type_b == TimeSegment.TYPE_MS) {
+                    return TimeSegment.TYPE_MS;
+                }
+                return TimeSegment.TYPE_MS;
+            case TimeSegment.TYPE_MINUTE:
+                if (segment_type_b == TimeSegment.TYPE_MS) {
+                    return TimeSegment.TYPE_MS;
+                }
+                if (segment_type_b == TimeSegment.TYPE_SECOND) {
+                    return TimeSegment.TYPE_SECOND;
+                }
+                return TimeSegment.TYPE_MS;
+            case TimeSegment.TYPE_HOUR:
+                if (segment_type_b == TimeSegment.TYPE_MS) {
+                    return TimeSegment.TYPE_MS;
+                }
+                if (segment_type_b == TimeSegment.TYPE_SECOND) {
+                    return TimeSegment.TYPE_SECOND;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MINUTE) {
+                    return TimeSegment.TYPE_MINUTE;
+                }
+                return TimeSegment.TYPE_MS;
+
             case TimeSegment.TYPE_DAY:
+                if (segment_type_b == TimeSegment.TYPE_MS) {
+                    return TimeSegment.TYPE_MS;
+                }
+                if (segment_type_b == TimeSegment.TYPE_SECOND) {
+                    return TimeSegment.TYPE_SECOND;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MINUTE) {
+                    return TimeSegment.TYPE_MINUTE;
+                }
+                if (segment_type_b == TimeSegment.TYPE_HOUR) {
+                    return TimeSegment.TYPE_HOUR;
+                }
                 return TimeSegment.TYPE_DAY;
             case TimeSegment.TYPE_WEEK:
+                if (segment_type_b == TimeSegment.TYPE_MS) {
+                    return TimeSegment.TYPE_MS;
+                }
+                if (segment_type_b == TimeSegment.TYPE_SECOND) {
+                    return TimeSegment.TYPE_SECOND;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MINUTE) {
+                    return TimeSegment.TYPE_MINUTE;
+                }
+                if (segment_type_b == TimeSegment.TYPE_HOUR) {
+                    return TimeSegment.TYPE_HOUR;
+                }
                 if (segment_type_b == TimeSegment.TYPE_DAY) {
                     return TimeSegment.TYPE_DAY;
                 }
                 return TimeSegment.TYPE_WEEK;
             case TimeSegment.TYPE_MONTH:
+                if (segment_type_b == TimeSegment.TYPE_MS) {
+                    return TimeSegment.TYPE_MS;
+                }
+                if (segment_type_b == TimeSegment.TYPE_SECOND) {
+                    return TimeSegment.TYPE_SECOND;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MINUTE) {
+                    return TimeSegment.TYPE_MINUTE;
+                }
+                if (segment_type_b == TimeSegment.TYPE_HOUR) {
+                    return TimeSegment.TYPE_HOUR;
+                }
                 if (segment_type_b == TimeSegment.TYPE_DAY) {
                     return TimeSegment.TYPE_DAY;
                 }
@@ -76,6 +201,18 @@ export default class TimeSegmentHandler {
                 }
                 return TimeSegment.TYPE_MONTH;
             case TimeSegment.TYPE_YEAR:
+                if (segment_type_b == TimeSegment.TYPE_MS) {
+                    return TimeSegment.TYPE_MS;
+                }
+                if (segment_type_b == TimeSegment.TYPE_SECOND) {
+                    return TimeSegment.TYPE_SECOND;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MINUTE) {
+                    return TimeSegment.TYPE_MINUTE;
+                }
+                if (segment_type_b == TimeSegment.TYPE_HOUR) {
+                    return TimeSegment.TYPE_HOUR;
+                }
                 if (segment_type_b == TimeSegment.TYPE_DAY) {
                     return TimeSegment.TYPE_DAY;
                 }
@@ -87,6 +224,18 @@ export default class TimeSegmentHandler {
                 }
                 return TimeSegment.TYPE_YEAR;
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                if (segment_type_b == TimeSegment.TYPE_MS) {
+                    return TimeSegment.TYPE_MS;
+                }
+                if (segment_type_b == TimeSegment.TYPE_SECOND) {
+                    return TimeSegment.TYPE_SECOND;
+                }
+                if (segment_type_b == TimeSegment.TYPE_MINUTE) {
+                    return TimeSegment.TYPE_MINUTE;
+                }
+                if (segment_type_b == TimeSegment.TYPE_HOUR) {
+                    return TimeSegment.TYPE_HOUR;
+                }
                 if (segment_type_b == TimeSegment.TYPE_DAY) {
                     return TimeSegment.TYPE_DAY;
                 }
@@ -137,6 +286,15 @@ export default class TimeSegmentHandler {
             default:
                 date = date.startOf('day');
                 stop_at = stop_at.startOf('day');
+                break;
+            case TimeSegment.TYPE_HOUR:
+            case TimeSegment.TYPE_MINUTE:
+            case TimeSegment.TYPE_SECOND:
+            case TimeSegment.TYPE_MS:
+                let type = this.getCorrespondingMomentUnitOfTime(time_segment_type);
+                date = date.startOf(type);
+                stop_at = stop_at.startOf(type);
+                break;
         }
 
         while (((!exclude_end) && date.isSameOrBefore(stop_at)) || (exclude_end && (date.isBefore(stop_at) || (date.isSame(stop_at, 'day') && stop_at.isSame(start, 'day'))))) {
@@ -158,6 +316,14 @@ export default class TimeSegmentHandler {
                 case TimeSegment.TYPE_DAY:
                 default:
                     date = moment(date).add(1, 'day');
+                    break;
+                case TimeSegment.TYPE_HOUR:
+                case TimeSegment.TYPE_MINUTE:
+                case TimeSegment.TYPE_SECOND:
+                case TimeSegment.TYPE_MS:
+                    let type = this.getCorrespondingMomentUnitOfTime(time_segment_type);
+                    date = moment(date).add(1, type);
+                    break;
             }
         }
 
@@ -192,6 +358,23 @@ export default class TimeSegmentHandler {
             default:
                 type = TimeSegment.TYPE_MONTH;
                 date = date_segment.startOf('month');
+                break;
+            case TimeSegment.TYPE_HOUR:
+                type = TimeSegment.TYPE_DAY;
+                date = date_segment.startOf('day');
+                break;
+            case TimeSegment.TYPE_MINUTE:
+                type = TimeSegment.TYPE_HOUR;
+                date = date_segment.startOf('hour');
+                break;
+            case TimeSegment.TYPE_SECOND:
+                type = TimeSegment.TYPE_MINUTE;
+                date = date_segment.startOf('minute');
+                break;
+            case TimeSegment.TYPE_MS:
+                type = TimeSegment.TYPE_SECOND;
+                date = date_segment.startOf('second');
+                break;
         }
 
         let res: TimeSegment = TimeSegment.createNew(date, type);
@@ -323,22 +506,35 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let res: Moment = moment(timeSegment.index).startOf('day').utc(true);
+        let res: Moment = null;
+        let type = this.getCorrespondingMomentUnitOfTime(timeSegment.type);
 
         switch (timeSegment.type) {
             case TimeSegment.TYPE_YEAR:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
+                res = moment(timeSegment.index).startOf('day').utc(true);
                 res = res.add(1, 'year');
                 break;
             case TimeSegment.TYPE_MONTH:
+                res = moment(timeSegment.index).startOf('day').utc(true);
                 res = res.add(1, 'month');
                 break;
             case TimeSegment.TYPE_WEEK:
+                res = moment(timeSegment.index).startOf('day').utc(true);
                 res = res.add(1, 'week');
                 break;
             case TimeSegment.TYPE_DAY:
             default:
+                res = moment(timeSegment.index).startOf('day').utc(true);
                 res = res.add(1, 'day');
+                break;
+            case TimeSegment.TYPE_HOUR:
+            case TimeSegment.TYPE_MINUTE:
+            case TimeSegment.TYPE_SECOND:
+            case TimeSegment.TYPE_MS:
+                res = moment(timeSegment.index).startOf(type).utc(true);
+                res = res.add(1, type);
+                break;
         }
 
         return res;
@@ -372,6 +568,13 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_DAY:
             default:
                 res = res.add(1, 'day');
+                break;
+            case TimeSegment.TYPE_HOUR:
+            case TimeSegment.TYPE_MINUTE:
+            case TimeSegment.TYPE_SECOND:
+            case TimeSegment.TYPE_MS:
+                res = res.add(1, this.getCorrespondingMomentUnitOfTime(timeSegment.type));
+                break;
         }
 
         switch (type_inclusion) {
@@ -385,6 +588,13 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_DAY:
             default:
                 res = res.add(-1, 'day');
+                break;
+            case TimeSegment.TYPE_HOUR:
+            case TimeSegment.TYPE_MINUTE:
+            case TimeSegment.TYPE_SECOND:
+            case TimeSegment.TYPE_MS:
+                res = res.add(-1, this.getCorrespondingMomentUnitOfTime(type_inclusion));
+                break;
         }
 
         return res;
@@ -455,6 +665,13 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_DAY:
             default:
                 res.index = res.index.add(-offset, 'day');
+                break;
+            case TimeSegment.TYPE_HOUR:
+            case TimeSegment.TYPE_MINUTE:
+            case TimeSegment.TYPE_SECOND:
+            case TimeSegment.TYPE_MS:
+                res.index = res.index.add(-offset, this.getCorrespondingMomentUnitOfTime(type));
+                break;
         }
 
         return res;
@@ -523,6 +740,19 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_DAY:
             default:
                 res.index = res.index.startOf('day').utc(true);
+                break;
+            case TimeSegment.TYPE_HOUR:
+                res.index = res.index.startOf('hour').utc(true);
+                break;
+            case TimeSegment.TYPE_MINUTE:
+                res.index = res.index.startOf('minute').utc(true);
+                break;
+            case TimeSegment.TYPE_SECOND:
+                res.index = res.index.startOf('second').utc(true);
+                break;
+            case TimeSegment.TYPE_MS:
+                res.index = res.index.startOf('ms').utc(true);
+                break;
         }
 
         if (offset) {
@@ -553,6 +783,19 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_DAY:
             default:
                 end = moment(time_segment.index).add(1, 'day').utc(true);
+                break;
+            case TimeSegment.TYPE_HOUR:
+                end = moment(time_segment.index).add(1, 'hour').utc(true);
+                break;
+            case TimeSegment.TYPE_MINUTE:
+                end = moment(time_segment.index).add(1, 'minute').utc(true);
+                break;
+            case TimeSegment.TYPE_SECOND:
+                end = moment(time_segment.index).add(1, 'second').utc(true);
+                break;
+            case TimeSegment.TYPE_MS:
+                end = moment(time_segment.index).add(1, 'ms').utc(true);
+                break;
         }
 
         return date.isSameOrAfter(time_segment.index) && date.isBefore(end);
@@ -597,6 +840,23 @@ export default class TimeSegmentHandler {
             default:
                 start = start.startOf('day');
                 end = moment(start).add(1, 'day').utc(true);
+                break;
+            case TimeSegment.TYPE_HOUR:
+                start = start.startOf('hour');
+                end = moment(start).add(1, 'hour').utc(true);
+                break;
+            case TimeSegment.TYPE_MINUTE:
+                start = start.startOf('minute');
+                end = moment(start).add(1, 'minute').utc(true);
+                break;
+            case TimeSegment.TYPE_SECOND:
+                start = start.startOf('second');
+                end = moment(start).add(1, 'second').utc(true);
+                break;
+            case TimeSegment.TYPE_MS:
+                start = start.startOf('ms');
+                end = moment(start).add(1, 'ms').utc(true);
+                break;
         }
 
         return ts2.index.isSameOrAfter(start) && ts2.index.isBefore(end);
@@ -674,6 +934,14 @@ export default class TimeSegmentHandler {
             case TimeSegment.TYPE_YEAR:
             case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                 return 'year';
+            case TimeSegment.TYPE_HOUR:
+                return 'hour';
+            case TimeSegment.TYPE_MINUTE:
+                return 'minute';
+            case TimeSegment.TYPE_SECOND:
+                return 'second';
+            case TimeSegment.TYPE_MS:
+                return 'ms';
         }
         return null;
     }

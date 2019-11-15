@@ -13,6 +13,7 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
+import TimeSegment from './DataRender/vos/TimeSegment';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -377,6 +378,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[new_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
                     break;
 
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                    res[new_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    res[new_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
+                    break;
+
                 case ModuleTableField.FIELD_TYPE_tstz:
                     let field_as_moment: moment.Moment = moment(e[field.field_id]);
                     res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
@@ -435,6 +444,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     res[field.field_id] = RangeHandler.getInstance().parseRangeAPI(HourRange.RANGE_TYPE, e[old_id]);
                     break;
 
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeAPI(TSRange.RANGE_TYPE, e[old_id]);
+                    break;
+
                 case ModuleTableField.FIELD_TYPE_hour:
                     res[field.field_id] = e[old_id] ? moment.duration(parseInt(e[old_id])) : null;
                     break;
@@ -485,6 +498,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     res[field.field_id] = RangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                    res[field.field_id] = RangeHandler.getInstance().translate_range_to_bdd(res[field.field_id]);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                    res[field.field_id] = RangeHandler.getInstance().translate_range_to_bdd(res[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_timestamp:
@@ -566,6 +587,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstz:
                     e[field.field_id] = moment(parseInt(field_value) * 1000);
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_tsrange:
+                    e[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, TimeSegment.TYPE_MS);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hourrange:
