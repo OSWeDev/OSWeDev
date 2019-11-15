@@ -1,8 +1,8 @@
 // import * as helmet from 'helmet';
-import * as csrf from 'csurf';
-import * as cookieParser from 'cookie-parser';
 import * as child_process from 'child_process';
 import * as compression from 'compression';
+import * as cookieParser from 'cookie-parser';
+import * as csrf from 'csurf';
 import * as express from 'express';
 import { NextFunction, Request, Response } from 'express';
 import * as createLocaleMiddleware from 'express-locale';
@@ -636,6 +636,9 @@ export default abstract class ServerBase {
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
+        process.on('uncaughtException', function (err) {
+            console.error("Node nearly failed: " + err.stack);
+        });
 
         console.log('listening on port', ServerBase.getInstance().port);
         ServerBase.getInstance().db.one('SELECT 1')
@@ -667,6 +670,10 @@ export default abstract class ServerBase {
                         console.log(data);
                     });
                 }.bind(ServerBase.getInstance()));
+
+                io.on('error', function (err) {
+                    console.error("IO nearly failed: " + err.stack);
+                });
 
                 // ServerBase.getInstance().testNotifs();
 
