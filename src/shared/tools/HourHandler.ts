@@ -40,7 +40,7 @@ export default class HourHandler {
 
         try {
 
-            let splitted: string[] = hour.split(/:h[.]/ig);
+            let splitted: string[] = hour.split(/[:h.]/);
 
             let duration_ms: number = 0;
             switch (segment_type) {

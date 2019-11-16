@@ -1,37 +1,47 @@
 import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
-import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import Datatable from '../../../datatable/vos/Datatable';
 import DatatableField from '../../../datatable/vos/DatatableField';
 import ManyToOneReferenceDatatableField from '../../../datatable/vos/ManyToOneReferenceDatatableField';
 import ReferenceDatatableField from '../../../datatable/vos/ReferenceDatatableField';
 import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import FileComponent from '../../../file/FileComponent';
+import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
+import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 
 
 @Component({
     template: require('./CRUDComponentField.pug'),
     components: {
-        fileinput: FileComponent,
-        imageinput: ImageComponent,
-        multi_input: MultiInputComponent,
+        FileComponent: FileComponent,
+        ImageComponent: ImageComponent,
+        MultiInputComponent: MultiInputComponent,
+        HourrangeInputComponent: HourrangeInputComponent,
+        TSRangesInputComponent: TSRangesInputComponent
     }
 })
 export default class CRUDComponentField extends VueComponentBase {
 
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
+    @ModuleDAOAction
+    private storeDatasByIds: (params: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) => void;
 
     @Prop()
     private field: DatatableField<any, any>;
@@ -55,12 +65,19 @@ export default class CRUDComponentField extends VueComponentBase {
 
     public async mounted() { }
 
+    get time_segment_day() {
+        return TimeSegment.TYPE_DAY;
+    }
+
+    // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
     @Watch('field', { immediate: true })
     @Watch('vo', { immediate: true })
     @Watch('datatable', { immediate: true })
     @Watch('default_field_data', { immediate: true })
     @Watch('field_select_options_enabled', { immediate: true })
-    private reload_field_value(): void {
+    private async reload_field_value() {
+
+        // this.startLoading();
         this.field_value = this.vo[this.field.datatable_field_uid];
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
@@ -78,7 +95,8 @@ export default class CRUDComponentField extends VueComponentBase {
             }
         }
 
-        this.prepare_select_options();
+        await this.prepare_select_options();
+        // this.stopLoading();
     }
 
     private formatDateForField(date: string, separator: string = '/'): string {
@@ -182,14 +200,19 @@ export default class CRUDComponentField extends VueComponentBase {
         this.$emit('uploadedFile', this.vo, this.field, fileVo);
     }
 
-    private prepare_select_options() {
+    private async prepare_select_options() {
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
             let newOptions: number[] = [];
 
             let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
-            let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+
+            // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+            let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+            this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
+
+            // let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
 
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
@@ -230,7 +253,7 @@ export default class CRUDComponentField extends VueComponentBase {
         }
     }
 
-    private asyncLoadOptions(query) {
+    private async asyncLoadOptions(query) {
         this.isLoadingOptions = true;
 
         if ((!this.field) ||
@@ -243,7 +266,12 @@ export default class CRUDComponentField extends VueComponentBase {
         }
 
         let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
-        let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+
+        // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+        let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+        this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
+
+        // let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
         let newOptions: number[] = [];
 
         for (let i in options) {
@@ -285,11 +313,15 @@ export default class CRUDComponentField extends VueComponentBase {
         this.select_options = newOptions;
     }
 
-    private onChangeField() {
+    private async onChangeField() {
         if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
             let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
-            let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+
+            // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+            let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOneField.targetModuleTable.vo_type));
+            this.storeDatasByIds({ API_TYPE_ID: manyToOneField.targetModuleTable.vo_type, vos_by_ids: options });
+            // let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
 
             if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                 options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);

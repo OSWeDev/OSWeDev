@@ -1,9 +1,17 @@
-.row
-    .col-md-12        
-        div.row(v-for="i in nb_values", :index="i-1")
-            div.col-md-10
-                quill-editor(v-if='use_wysiwyg' v-model="values[i - 1]" :required="required" :disabled="disabled" @input="emitInput")
-                input.form-control(v-else v-model="values[i - 1]", :type="type_input", :required="required", :disabled="disabled", @input="emitInput")
-            div.actions.col-md-2
-                i.fa.fa-plus-circle(v-if="i == nb_values", v-on:click="addNumberToField($event.target)")
-                i.fa.fa-minus-circle(v-if="(i-1) != 0", v-on:click="removeNumberToField($event.target)")
+.multi_input
+    .row(v-for="(value, i) in values")
+        .col-md-10
+            template(v-if="use_wysiwyg")
+                quill-editor(v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput")
+            template(v-else)
+                template(v-if="type_input == 'slot'")
+                    slot(v-bind:value="values[i]" v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" :field='field' :vo='vo')
+                template(v-else-if="type_input == 'custom'")
+                    custom_field_component(v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" :field='field' :vo='vo')
+                template(v-else)
+                    input.form-control(v-else v-model="values[i]", :type="type_input", :required="required", :disabled="disabled", @input="emitInput")
+        .actions.col-md-2
+            i.fa.fa-minus-circle(v-if="values.length > min_values", @click="removeValue(i)")
+
+    .actions.col-md-2(v-if="values.length < max_values")
+        i.fa.fa-plus-circle(@click="addValue")

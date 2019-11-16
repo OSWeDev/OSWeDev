@@ -11,6 +11,7 @@ import 'quill/dist/quill.bubble.css';
 import 'quill/dist/quill.core.css';
 import 'quill/dist/quill.snow.css';
 import 'select2';
+import VCalendar from 'v-calendar';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
 import VueDraggableResizable from 'vue-draggable-resizable';
@@ -315,6 +316,13 @@ export default abstract class VueAppBase {
         Vue.use(VueRouter);
         Vue.use(FullCalendar);
         Vue.use(VueQuillEditor);
+
+        // Use v-calendar, v-date-picker & v-popover components
+        Vue.use(VCalendar, {
+            firstDayOfWeek: 2,
+            locale: default_locale
+        });
+
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.use(ToggleButton);
         Vue.component('UserNotifsMarkerComponent', UserNotifsMarkerComponent);

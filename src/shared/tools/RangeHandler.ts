@@ -1187,8 +1187,8 @@ export default class RangeHandler {
                     let upperTSRange = parseInt(matches[4]) * 1000;
                     return this.createNew(
                         range_type,
-                        moment(lowerTSRange),
-                        moment(upperTSRange),
+                        moment(lowerTSRange).utc(),
+                        moment(upperTSRange).utc(),
                         matches[1] == '[',
                         matches[6] == ']',
                         segment_type) as any as U;
@@ -1235,8 +1235,8 @@ export default class RangeHandler {
                     let upperTSRange = parseInt(matches[5]) * 1000;
                     return this.createNew(
                         range_type,
-                        moment(lowerTSRange),
-                        moment(upperTSRange),
+                        moment(lowerTSRange).utc(),
+                        moment(upperTSRange).utc(),
                         matches[2] == '[',
                         matches[7] == ']',
                         segment_type) as any as U;

@@ -41,17 +41,33 @@
         input.form-control(type="date" v-model="field_value_range[field.datatable_field_uid + '_start']" :disabled="field.is_readonly" @input="updateDateRange($event.target)")
         input.form-control(type="date" v-model="field_value_range[field.datatable_field_uid + '_end']" :disabled="field.is_readonly" @input="updateDateRange($event.target)")
     template(v-else-if="field_type == 'daterange[]'")
-        // FIXME TODO ASAP VARS
+        // FIXME TODO ASAP
     template(v-else-if="field_type == 'tstzrange[]'")
-        // FIXME TODO ASAP VARS
+        // FIXME TODO ASAP
+
+    template(v-else-if="field_type == 'tsrange[]'")
+        template(v-if="field.moduleTableField.segmentation_type == time_segment_day")
+            TSRangesInputComponent(
+                v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
+                :disabled="field.is_readonly" @input="validateInput($event.target)")
+        template(v-else)
+            // FIXME TODO ASAP
+
     template(v-else-if="field_type == 'numrange[]'")
-        // FIXME TODO ASAP VARS
+        // FIXME TODO ASAP
     template(v-else-if="field_type == 'hourrange[]'")
-        // FIXME TODO ASAP VARS
+        MultiInputComponent(
+            :custom_field_component="HourrangeInputComponent"
+            v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
+            :disabled="field.is_readonly" type_input="slot" @input_with_infos="validateMultiInput")
+                
     template(v-else-if="field_type == 'hourrange'")
-        // FIXME TODO ASAP VARS
+        HourrangeInputComponent(
+            v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
+            :disabled="field.is_readonly" @input="validateInput($event.target)")
+
     template(v-else-if="field_type == 'hour'")
-        // FIXME TODO ASAP VARS
+        // FIXME TODO ASAP
         
     template(v-else-if="field_type == 'tstz'")
         template(v-if="segmentation_type == 0")
@@ -68,9 +84,9 @@
     template(v-else-if="field_type == 'html'")
         quill-editor(v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
     template(v-else-if="(field_type == 'file')&&(vo._type == 'file')")
-        fileinput(:filevo="vo" @uploaded="uploadedFile(...arguments)")
+        FileComponent(:filevo="vo" @uploaded="uploadedFile(...arguments)")
     template(v-else-if="(field_type == 'image')&&(vo._type == 'image')")
-        imageinput(:filevo="vo" @uploaded="uploadedFile(...arguments)")
+        ImageComponent(:filevo="vo" @uploaded="uploadedFile(...arguments)")
     template(v-else-if="field_type == 'timewithouttimezone'")
         input.form-control(type="time" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
     template(v-else-if="field_type == 'unix_timestamp'")
@@ -90,11 +106,11 @@
             @search-change="asyncLoadEnumOptions",
             @input="onChangeField")
     template(v-else-if="field_type == 'number[]'")
-        multi_input(:field_value="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="number", @input="validateMultiInput")
+        MultiInputComponent(v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="number", @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'text[]'")
-        multi_input(:field_value="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input="validateMultiInput")
+        MultiInputComponent(v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'html[]'")
-        multi_input(:use_wysiwyg='true' :field_value="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input="validateMultiInput")
+        MultiInputComponent(:use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input_with_infos="validateMultiInput")
     template(v-else-if="is_custom_field_type && custom_field_types[field_type].create_update_component")
         .custom_read_field_component(
             :is="custom_field_types[field_type].create_update_component",
