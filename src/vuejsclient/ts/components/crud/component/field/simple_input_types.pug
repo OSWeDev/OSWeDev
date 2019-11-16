@@ -4,13 +4,13 @@
             i.fa.fa-asterisk.mandatory
     template(v-if="field_type == 'password'")
         input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
-    template(v-if="field_type == 'text'")
+    template(v-else-if="field_type == 'text'")
         input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
-    template(v-if="field_type == 'translatable_text'")
+    template(v-else-if="field_type == 'translatable_text'")
         input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
     template(v-else-if="field_type == 'boolean'")
         template(v-if="field.is_required")
-            input.form-control(type="checkbox" v-model="field_value" :disabled="field.is_readonly" @input="validateInput($event.target)")
+            input(type="checkbox" v-model="field_value" :disabled="field.is_readonly" @input="validateInput($event.target)")
         template(v-else)
             .form-check
                 input.form-check-input(type="radio" v-model="field_value" :value="null" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___N_A_' + random_number" @input="validateInput($event.target)")
@@ -42,16 +42,11 @@
         input.form-control(type="date" v-model="field_value_range[field.datatable_field_uid + '_end']" :disabled="field.is_readonly" @input="updateDateRange($event.target)")
     template(v-else-if="field_type == 'daterange[]'")
         // FIXME TODO ASAP
-    template(v-else-if="field_type == 'tstzrange[]'")
-        // FIXME TODO ASAP
-
-    template(v-else-if="field_type == 'tsrange[]'")
-        template(v-if="field.moduleTableField.segmentation_type == time_segment_day")
-            TSRangesInputComponent(
-                v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-                :disabled="field.is_readonly" @input="validateInput($event.target)")
-        template(v-else)
-            // FIXME TODO ASAP
+    // FIXME TODO ASAP field_type == 'tstzrange[]' autres segmentations
+    template(v-else-if="is_segmented_day_tsrange_array")
+        TSRangesInputComponent(
+            v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
+            :disabled="field.is_readonly" @input="validateInput($event.target)")
 
     template(v-else-if="field_type == 'numrange[]'")
         // FIXME TODO ASAP

@@ -1,6 +1,8 @@
 import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -20,10 +22,9 @@ import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
-import VueComponentBase from '../../../VueComponentBase';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
-import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
-import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import VueComponentBase from '../../../VueComponentBase';
+let debounce = require('lodash/debounce');
 
 
 @Component({
@@ -63,10 +64,15 @@ export default class CRUDComponentField extends VueComponentBase {
     private field_value: any = null;
     private field_value_range: any = {};
 
+    private can_insert_or_update_target: boolean = false;
+
+    private debounced_reload_field_value = debounce(this.reload_field_value, 50);
+
     public async mounted() { }
 
-    get time_segment_day() {
-        return TimeSegment.TYPE_DAY;
+    get is_segmented_day_tsrange_array() {
+        let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
+        return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
     }
 
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
@@ -75,9 +81,14 @@ export default class CRUDComponentField extends VueComponentBase {
     @Watch('datatable', { immediate: true })
     @Watch('default_field_data', { immediate: true })
     @Watch('field_select_options_enabled', { immediate: true })
+    private on_reload_field_value() {
+        this.debounced_reload_field_value();
+    }
+
     private async reload_field_value() {
 
-        // this.startLoading();
+        this.can_insert_or_update_target = false;
+
         this.field_value = this.vo[this.field.datatable_field_uid];
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
@@ -95,8 +106,21 @@ export default class CRUDComponentField extends VueComponentBase {
             }
         }
 
+        let self = this;
+        if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
+            ModuleAccessPolicy.getInstance().checkAccess(
+                ModuleDAO.getInstance().getAccessPolicyName(
+                    ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
+                    (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)).then((res: boolean) => {
+                        self.can_insert_or_update_target = res;
+                    });
+        }
+
+        this.isLoadingOptions = true;
         await this.prepare_select_options();
-        // this.stopLoading();
+        this.isLoadingOptions = false;
     }
 
     private formatDateForField(date: string, separator: string = '/'): string {
