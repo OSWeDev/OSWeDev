@@ -143,6 +143,7 @@ export default class MatroidController {
             switch (field.field_type) {
                 // case ModuleTableField.FIELD_TYPE_daterange_array:
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     break;
 
@@ -281,6 +282,7 @@ export default class MatroidController {
                     }
                     break;
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
                     for (let j in a_ranges) {
 
                         if (RangeHandler.getInstance().range_intersects_any_range(a_ranges[j], b_ranges)) {

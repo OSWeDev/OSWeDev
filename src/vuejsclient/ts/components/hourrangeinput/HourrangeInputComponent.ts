@@ -62,5 +62,6 @@ export default class HourrangeInputComponent extends VueComponentBase {
 
         this.new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.field.moduleTableField.segmentation_type);
         this.$emit('input', this.new_value);
+        this.$emit('input_with_infos', this.new_value, this.field, this.vo);
     }
 }

@@ -50,6 +50,11 @@
 
     template(v-else-if="field_type == 'numrange[]'")
         // FIXME TODO ASAP
+    template(v-else-if="field_type == 'isoweekdays'")
+        IsoWeekDaysInputComponent(
+            v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
+            :disabled="field.is_readonly"  @input_with_infos="validateSimpleInput")
+
     template(v-else-if="field_type == 'hourrange[]'")
         MultiInputComponent(
             :custom_field_component="hourrange_input_component"

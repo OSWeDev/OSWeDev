@@ -24,6 +24,8 @@ import ImageComponent from '../../../image/ImageComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 let debounce = require('lodash/debounce');
 
 
@@ -34,7 +36,8 @@ let debounce = require('lodash/debounce');
         ImageComponent: ImageComponent,
         MultiInputComponent: MultiInputComponent,
         HourrangeInputComponent: HourrangeInputComponent,
-        TSRangesInputComponent: TSRangesInputComponent
+        TSRangesInputComponent: TSRangesInputComponent,
+        IsoWeekDaysInputComponent: IsoWeekDaysInputComponent
     }
 })
 export default class CRUDComponentField extends VueComponentBase {
@@ -60,6 +63,9 @@ export default class CRUDComponentField extends VueComponentBase {
     @Prop({ default: null })
     private field_select_options_enabled: number[];
 
+    @Prop({ default: false })
+    private auto_update_field_value: boolean;
+
     @Prop()
     private datatable: Datatable<IDistantVOBase>;
 
@@ -78,6 +84,7 @@ export default class CRUDComponentField extends VueComponentBase {
         let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
         return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
     }
+
 
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
     @Watch('field', { immediate: true })
@@ -158,6 +165,7 @@ export default class CRUDComponentField extends VueComponentBase {
                             case ModuleTableField.FIELD_TYPE_hourrange_array:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
+                            case ModuleTableField.FIELD_TYPE_isoweekdays:
                                 break;
 
                             default:
@@ -189,7 +197,11 @@ export default class CRUDComponentField extends VueComponentBase {
 
         this.field_value = input_value;
 
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        if (this.auto_update_field_value) {
+            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+        } else {
+            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        }
     }
 
     private validateSimpleInput(input_value: any) {
@@ -197,7 +209,44 @@ export default class CRUDComponentField extends VueComponentBase {
         // TODO FIXME VALIDATE
         this.field_value = input_value;
 
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        if (this.auto_update_field_value) {
+            this.vo[this.field.datatable_field_uid] = this.field_value;
+        } else {
+            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        }
+    }
+
+    private validateMultiInput(values: any[]) {
+        if (this.auto_update_field_value) {
+            this.vo[this.field.datatable_field_uid] = values;
+        } else {
+            this.$emit('validateMultiInput', values, this.field, this.vo);
+        }
+    }
+
+
+    private changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any, datatable: Datatable<IDistantVOBase>) {
+        vo[field.datatable_field_uid] = value;
+
+        if (!datatable) {
+            return;
+        }
+        for (let i in datatable.fields) {
+            let field_datatable: DatatableField<any, any> = datatable.fields[i];
+            if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+
+                let manyToOneField: ManyToOneReferenceDatatableField<any> = (field_datatable as ManyToOneReferenceDatatableField<any>);
+                let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+
+                if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
+                    options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
+                }
+
+                if (options) {
+                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                }
+            }
+        }
     }
 
     private updateDateRange(input: any) {
@@ -380,7 +429,11 @@ export default class CRUDComponentField extends VueComponentBase {
             this.field_value = this.field.UpdateIHMToData(this.field_value, this.vo);
         }
 
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        if (this.auto_update_field_value) {
+            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+        } else {
+            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        }
         this.$emit('onChangeVO', this.vo);
 
         if (this.field.onChange) {
@@ -388,13 +441,14 @@ export default class CRUDComponentField extends VueComponentBase {
         }
     }
 
-    private validateMultiInput(values: any[]) {
-        this.$emit('validateMultiInput', values, this.field, this.vo);
-    }
-
     private inputValue(value: any) {
         this.field_value = value;
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+
+        if (this.auto_update_field_value) {
+            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+        } else {
+            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        }
     }
 
     get is_custom_field_type(): boolean {

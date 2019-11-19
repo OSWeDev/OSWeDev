@@ -367,6 +367,10 @@ export default class CRUDComponent extends VueComponentBase {
                     // TODO FIXME ASAP VARS
                 }
 
+                if (simpleFieldType == ModuleTableField.FIELD_TYPE_isoweekdays) {
+                    // TODO FIXME ASAP VARS
+                }
+
                 // if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange_array) {
                 //     // TODO FIXME ASAP VARS
                 // }
@@ -427,6 +431,9 @@ export default class CRUDComponent extends VueComponentBase {
                     }
 
                     if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
+                        // TODO FIXME ASAP VARS
+                    }
+                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_isoweekdays) {
                         // TODO FIXME ASAP VARS
                     }
 

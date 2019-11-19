@@ -371,6 +371,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             switch (field.field_type) {
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     res[new_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
@@ -424,6 +425,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             switch (field.field_type) {
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
                     res[field.field_id] = RangeHandler.getInstance().translate_from_api(NumRange.RANGE_TYPE, e[old_id]);
                     break;
 
@@ -488,6 +490,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     res[field.field_id] = RangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
@@ -558,6 +561,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
                     // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
                     //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
                     e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value);
