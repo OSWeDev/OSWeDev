@@ -1,9 +1,8 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import { ModuleDAOAction } from '../dao/store/DaoStore';
-import VueComponentBase from '../VueComponentBase';
 import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
+import VueComponentBase from '../VueComponentBase';
 import './MultiInputComponent.scss';
 
 @Component({
@@ -11,12 +10,6 @@ import './MultiInputComponent.scss';
     components: {}
 })
 export default class MultiInputComponent extends VueComponentBase {
-
-    @Prop({ default: 0 })
-    private min_values: number;
-
-    @Prop({ default: 999 })
-    private max_values: number;
 
     @Prop({ default: null })
     private value_constructor: () => any;
@@ -78,5 +71,13 @@ export default class MultiInputComponent extends VueComponentBase {
     private removeValue(i): void {
         this.values.splice(i, 1);
         this.emitInput();
+    }
+
+    get min_values(): number {
+        return this.field ? this.field.min_values : 0;
+    }
+
+    get max_values(): number {
+        return this.field ? this.field.max_values : 999;
     }
 }

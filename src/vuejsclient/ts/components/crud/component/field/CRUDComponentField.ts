@@ -44,6 +44,10 @@ export default class CRUDComponentField extends VueComponentBase {
     @ModuleDAOAction
     private storeDatasByIds: (params: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) => void;
 
+    get hourrange_input_component() {
+        return HourrangeInputComponent;
+    }
+
     @Prop()
     private field: DatatableField<any, any>;
 
@@ -151,6 +155,7 @@ export default class CRUDComponentField extends VueComponentBase {
                         switch ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type) {
                             case ModuleTableField.FIELD_TYPE_boolean:
                             case ModuleTableField.FIELD_TYPE_daterange:
+                            case ModuleTableField.FIELD_TYPE_hourrange_array:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
                                 break;
@@ -182,6 +187,14 @@ export default class CRUDComponentField extends VueComponentBase {
         }
         input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
 
+        this.field_value = input_value;
+
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+    }
+
+    private validateSimpleInput(input_value: any) {
+
+        // TODO FIXME VALIDATE
         this.field_value = input_value;
 
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);

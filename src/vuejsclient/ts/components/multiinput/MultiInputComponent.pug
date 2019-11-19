@@ -7,9 +7,9 @@
                 template(v-if="type_input == 'slot'")
                     slot(v-bind:value="values[i]" v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" :field='field' :vo='vo')
                 template(v-else-if="type_input == 'custom'")
-                    custom_field_component(v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" :field='field' :vo='vo')
+                    .custom_field_component(:is='custom_field_component' v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" :field='field' :vo='vo')
                 template(v-else)
-                    input.form-control(v-else v-model="values[i]", :type="type_input", :required="required", :disabled="disabled", @input="emitInput")
+                    input.form-control(v-model="values[i]", :type="type_input", :required="required", :disabled="disabled", @input="emitInput")
         .actions.col-md-2
             i.fa.fa-minus-circle(v-if="values.length > min_values", @click="removeValue(i)")
 

@@ -46,20 +46,20 @@
     template(v-else-if="is_segmented_day_tsrange_array")
         TSRangesInputComponent(
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="field.is_readonly" @input="validateInput($event.target)")
+            :disabled="field.is_readonly"  @input_with_infos="validateSimpleInput")
 
     template(v-else-if="field_type == 'numrange[]'")
         // FIXME TODO ASAP
     template(v-else-if="field_type == 'hourrange[]'")
         MultiInputComponent(
-            :custom_field_component="HourrangeInputComponent"
+            :custom_field_component="hourrange_input_component"
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="field.is_readonly" type_input="slot" @input_with_infos="validateMultiInput")
+            :disabled="field.is_readonly" type_input="custom" @input_with_infos="validateMultiInput")
                 
     template(v-else-if="field_type == 'hourrange'")
         HourrangeInputComponent(
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="field.is_readonly" @input="validateInput($event.target)")
+            :disabled="field.is_readonly" @input_with_infos="validateSimpleInput")
 
     template(v-else-if="field_type == 'hour'")
         // FIXME TODO ASAP

@@ -1469,7 +1469,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_hourrange:
                         if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
                             ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + (field_range.min as Duration).asMilliseconds() + "," + (field_range.max as Duration).asMilliseconds() + (field_range.max_inclusiv ? "]" : ")") + '\'';
-                            ranges_query_type = '::numrange';
+                            ranges_query_type = '::int8range';
                             break;
                         }
                         break;

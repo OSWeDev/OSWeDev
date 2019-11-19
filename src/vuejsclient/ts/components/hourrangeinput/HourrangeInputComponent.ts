@@ -33,8 +33,17 @@ export default class HourrangeInputComponent extends VueComponentBase {
     private hourrange_start: string = null;
     private hourrange_end: string = null;
 
+    private new_value: HourRange = null;
+
     @Watch('value', { immediate: true })
     private async onchange_value(): Promise<void> {
+
+        if (this.new_value == this.value) {
+            return;
+        }
+
+        this.new_value = this.value;
+
         if (!this.value) {
             this.hourrange_start = null;
             this.hourrange_end = null;
@@ -51,7 +60,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
         let hourstart: Duration = HourHandler.getInstance().formatHourFromIHM(this.hourrange_start, this.field.moduleTableField.segmentation_type);
         let hourend: Duration = HourHandler.getInstance().formatHourFromIHM(this.hourrange_end, this.field.moduleTableField.segmentation_type);
 
-        let new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.field.moduleTableField.segmentation_type);
-        this.$emit('input', new_value);
+        this.new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.field.moduleTableField.segmentation_type);
+        this.$emit('input', this.new_value);
     }
 }

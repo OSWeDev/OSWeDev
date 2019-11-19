@@ -32,8 +32,16 @@ export default class TSRangesInputComponent extends VueComponentBase {
 
     private selectedDates: Date[] = [];
 
+    private new_value: TSRange[] = null;
+
     @Watch('value', { immediate: true })
     private async onchange_value(): Promise<void> {
+        if (RangeHandler.getInstance().are_same(this.new_value, this.value)) {
+            return;
+        }
+
+
+        this.new_value = this.value;
         this.selectedDates = [];
 
         if (!this.value) {
@@ -48,13 +56,13 @@ export default class TSRangesInputComponent extends VueComponentBase {
     @Watch('selectedDates')
     private emitInput(): void {
 
-        let new_value: TSRange[] = [];
+        this.new_value = [];
         for (let i in this.selectedDates) {
             let selectedDate = this.selectedDates[i];
 
-            new_value.push(RangeHandler.getInstance().create_single_elt_TSRange(moment(selectedDate), this.field.moduleTableField.segmentation_type));
+            this.new_value.push(RangeHandler.getInstance().create_single_elt_TSRange(moment(selectedDate), this.field.moduleTableField.segmentation_type));
         }
-        new_value = RangeHandler.getInstance().getRangesUnion(new_value);
-        this.$emit('input', new_value);
+        this.new_value = RangeHandler.getInstance().getRangesUnion(this.new_value);
+        this.$emit('input', this.new_value);
     }
 }

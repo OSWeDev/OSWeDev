@@ -67,6 +67,9 @@ export default class ModuleTableField<T> {
     public field_label: DefaultTranslation;
     public manyToOne_target_moduletable: ModuleTable<any> = null;
 
+    public min_values: number = 0;
+    public max_values: number = 999;
+
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
      * Sur daterange : idem si date fin du range
@@ -140,6 +143,17 @@ export default class ModuleTableField<T> {
         return this;
     }
 
+    public set_max_values(max_values: number): ModuleTableField<T> {
+
+        this.max_values = max_values;
+        return this;
+    }
+
+    public set_min_values(min_values: number): ModuleTableField<T> {
+
+        this.min_values = min_values;
+        return this;
+    }
 
     public hide_from_datatable(): ModuleTableField<T> {
         this.is_visible_datatable = false;

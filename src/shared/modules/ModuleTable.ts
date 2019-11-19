@@ -371,17 +371,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
             switch (field.field_type) {
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
-                    res[new_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
-                    break;
-
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     res[new_id] = RangeHandler.getInstance().translate_to_api(e[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:
-                    res[new_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
-                    break;
-
                 case ModuleTableField.FIELD_TYPE_hourrange:
                     res[new_id] = RangeHandler.getInstance().translate_range_to_api(e[field.field_id]);
                     break;
@@ -493,17 +488,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
-                    res[field.field_id] = RangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
-                    break;
-
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     res[field.field_id] = RangeHandler.getInstance().translate_to_bdd(res[field.field_id]);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:
-                    res[field.field_id] = RangeHandler.getInstance().translate_range_to_bdd(res[field.field_id]);
-                    break;
-
                 case ModuleTableField.FIELD_TYPE_hourrange:
                     res[field.field_id] = RangeHandler.getInstance().translate_range_to_bdd(res[field.field_id]);
                     break;

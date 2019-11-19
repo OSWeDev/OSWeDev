@@ -16,6 +16,7 @@ import HourSegmentHandler from './HourSegmentHandler';
 import NumSegmentHandler from './NumSegmentHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
 import moment = require('moment');
+import { isArray } from 'util';
 
 export default class RangeHandler {
 
@@ -1059,15 +1060,46 @@ export default class RangeHandler {
     /**
      * TODO TU ASAP FIXME VARS
      */
-    public translate_to_bdd(ranges: Array<IRange<any>>): string {
+    public translate_to_bdd(ranges: Array<IRange<any>>): any {
         let res = null;
 
+        if (!ranges) {
+            return res;
+        }
+
+        // res = 'ARRAY[';
+        res = '{';
         for (let i in ranges) {
             let range = ranges[i];
 
-            if (res == null) {
-                res = '{';
-            } else {
+            // if (res != 'ARRAY[') {
+            //     res += ',';
+            // }
+
+            // res += '\'';
+            // res += this.translate_range_to_bdd(range);
+            // res += '\'';
+            // switch (range.range_type) {
+            //     case NumRange.RANGE_TYPE:
+            //     case TSRange.RANGE_TYPE:
+            //         break;
+            //     case HourRange.RANGE_TYPE:
+            //         res += '::int8range';
+            //         break;
+            // }
+            // let e;
+            // switch (range.range_type) {
+            //     case NumRange.RANGE_TYPE:
+            //     case TSRange.RANGE_TYPE:
+            //         e = this.translate_range_to_bdd(range);
+            //         break;
+            //     case HourRange.RANGE_TYPE:
+            //         e = '\'' + this.translate_range_to_bdd(range) + '\'' + '::int8range';
+            //         break;
+            // }
+            // res.push(e);
+
+            if (res != '{') {
                 res += ',';
             }
 
@@ -1075,7 +1107,8 @@ export default class RangeHandler {
             res += this.translate_range_to_bdd(range);
             res += '"';
         }
-        res += "}";
+        // res += ']';
+        res += '}';
 
         return res;
     }
@@ -1121,6 +1154,20 @@ export default class RangeHandler {
         let res: U[] = [];
         try {
 
+            // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis TODO FIXME comprendre la source du pb
+            if (!ranges) {
+                return null;
+            }
+
+            if (!isArray(ranges)) {
+                let tmp_ranges = ((ranges as string).replace(/[{}"]/, '')).split(',');
+                ranges = [];
+                for (let i = 0; i < (tmp_ranges.length / 2); i++) {
+
+                    ranges.push(tmp_ranges[i * 2] + ',' + tmp_ranges[(i * 2) + 1]);
+                }
+            }
+
             for (let i in ranges) {
                 let range = ranges[i];
 
@@ -1162,8 +1209,21 @@ export default class RangeHandler {
         try {
 
             switch (range_type) {
-                case NumRange.RANGE_TYPE:
+
                 case HourRange.RANGE_TYPE:
+
+                    let lowerHourRange = this.parseRangeSegment(matches[2], matches[3]);
+                    let upperHourRange = this.parseRangeSegment(matches[4], matches[5]);
+
+                    return this.createNew(
+                        range_type,
+                        moment.duration(parseFloat(lowerHourRange)),
+                        moment.duration(parseFloat(upperHourRange)),
+                        matches[1] == '[',
+                        matches[6] == ']',
+                        segment_type) as any as U;
+
+                case NumRange.RANGE_TYPE:
 
                     let lowerNumRange = this.parseRangeSegment(matches[2], matches[3]);
                     let upperNumRange = this.parseRangeSegment(matches[4], matches[5]);
@@ -1215,8 +1275,20 @@ export default class RangeHandler {
 
             switch (range_type) {
 
-                case NumRange.RANGE_TYPE:
                 case HourRange.RANGE_TYPE:
+
+                    let lowerHourRange = this.parseRangeSegment(matches[3], matches[4]);
+                    let upperHourRange = this.parseRangeSegment(matches[5], matches[6]);
+
+                    return this.createNew(
+                        range_type,
+                        moment.duration(parseFloat(lowerHourRange)),
+                        moment.duration(parseFloat(upperHourRange)),
+                        matches[2] == '[',
+                        matches[7] == ']',
+                        segment_type) as any as U;
+
+                case NumRange.RANGE_TYPE:
 
                     let lowerNumRange = this.parseRangeSegment(matches[3], matches[4]);
                     let upperNumRange = this.parseRangeSegment(matches[5], matches[6]);
