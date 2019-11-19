@@ -260,13 +260,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
                 ModuleProgramPlanBase.getInstance().rdv_type_id,
                 ' where start_time < $2 and end_time >= $1',
-                [DateHandler.getInstance().formatDateTimeForBDD(start_time), DateHandler.getInstance().formatDateTimeForBDD(end_time)]);
+                [DateHandler.getInstance().getUnixForBDD(start_time), DateHandler.getInstance().getUnixForBDD(end_time)]);
         }
 
         return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
             ModuleProgramPlanBase.getInstance().rdv_type_id,
             ' where start_time < $2 and end_time >= $1 and program_id = $3',
-            [DateHandler.getInstance().formatDateTimeForBDD(start_time), DateHandler.getInstance().formatDateTimeForBDD(end_time), program_id]);
+            [DateHandler.getInstance().getUnixForBDD(start_time), DateHandler.getInstance().getUnixForBDD(end_time), program_id]);
     }
 
     private async registerFrontVisibilityAccessPolicies(group: AccessPolicyGroupVO, fo_access: AccessPolicyVO) {

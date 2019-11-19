@@ -251,7 +251,7 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
                     [
                         new ComputedDatatableField(
                             'rdv_date',
-                            (rdv: IPlanRDV) => ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(rdv.start_time)) + ' ' + TimeHandler.getInstance().formatMomentMinutePrecisionTime(moment(rdv.start_time)))
+                            (rdv: IPlanRDV) => ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(rdv.start_time) + ' ' + TimeHandler.getInstance().formatMomentMinutePrecisionTime(rdv.start_time))
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_prep_date'));
 
@@ -308,7 +308,7 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
                     [
                         new ComputedDatatableField(
                             'rdv_date',
-                            (rdv: IPlanRDV) => ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(rdv.start_time)) + ' ' + TimeHandler.getInstance().formatMomentMinutePrecisionTime(moment(rdv.start_time)))
+                            (rdv: IPlanRDV) => ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(rdv.start_time) + ' ' + TimeHandler.getInstance().formatMomentMinutePrecisionTime(rdv.start_time))
                     ]
                 ).setUID_for_readDuplicateOnly('rdv_cr_date'));
 

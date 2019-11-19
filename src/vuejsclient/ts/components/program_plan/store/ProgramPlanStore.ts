@@ -133,14 +133,14 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
                         continue;
                     }
 
-                    if (moment(rdv.start_time).isSameOrAfter(state.selected_rdv.start_time)) {
+                    if (rdv.start_time.isSameOrAfter(state.selected_rdv.start_time)) {
                         continue;
                     }
 
                     res.push(rdv);
                 }
 
-                res.sort((a: IPlanRDV, b: IPlanRDV) => moment(b.start_time).diff(moment(a.start_time)));
+                res.sort((a: IPlanRDV, b: IPlanRDV) => b.start_time.diff(a.start_time));
 
                 return res;
             },

@@ -983,13 +983,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                         let min_moment = moment(tmp_start);
                         let max_moment = moment(new_start_time);
-                        if (moment(tmp_start).isAfter(moment(new_start_time))) {
+                        if (tmp_start.isAfter(new_start_time)) {
 
                             min_moment = moment(new_start_time);
                             max_moment = moment(tmp_start);
                         }
 
-                        if (moment(all_rdv.start_time).isBetween(min_moment, max_moment)) {
+                        if (all_rdv.start_time.isBetween(min_moment, max_moment)) {
                             this.snotify.error(this.label('programplan.fc.update.cannot_change_rdv_order'));
                             throw new Error('Pas le droit de changer l\'ordre sur des RDVs à choix automatique.');
                         }
@@ -1249,7 +1249,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             continue;
                         }
 
-                        if (moment(all_rdv.start_time).isAfter(moment(rdv.start_time))) {
+                        if (all_rdv.start_time.isAfter(rdv.start_time)) {
                             this.snotify.error(this.label('programplan.fc.create.has_more_recent_task__denied'));
                             // this.setRdvById({ id: 0 } as any);
                             this.reset_rdvs();
@@ -1471,7 +1471,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
                         continue;
                     }
 
-                    if (moment(all_rdv.start_time).isAfter(moment(this.selected_rdv.start_time))) {
+                    if (all_rdv.start_time.isAfter(this.selected_rdv.start_time)) {
                         this.snotify.error(this.label('programplan.fc.delete.has_more_recent_event'));
                         return;
                     }
@@ -1720,20 +1720,20 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                 if (rdv.facilitator_id == facilitator.id) {
 
-                    if (((moment(rdv.start_time) < moment(this.filter_date_fin).add(1, 'days')) &&
-                        (moment(rdv.start_time) >= moment(this.filter_date_debut))) ||
-                        ((moment(rdv.end_time) <= moment(this.filter_date_fin).add(1, 'days')) &&
-                            (moment(rdv.end_time) > moment(this.filter_date_debut)))) {
+                    if (((rdv.start_time < moment(this.filter_date_fin).add(1, 'days')) &&
+                        (rdv.start_time >= moment(this.filter_date_debut))) ||
+                        ((rdv.end_time <= moment(this.filter_date_fin).add(1, 'days')) &&
+                            (rdv.end_time > moment(this.filter_date_debut)))) {
 
                         // Calculer l'index
-                        let offset_start = moment(rdv.start_time).diff(moment(date_debut), 'hours');
+                        let offset_start = rdv.start_time.diff(moment(date_debut), 'hours');
                         let offset_start_halfdays = Math.round(offset_start / (24 / this.nb_day_slices));
 
                         if (offset_start_halfdays < 0) {
                             offset_start_halfdays = 0;
                         }
 
-                        let offset_end = moment(rdv.end_time).diff(moment(date_debut), 'hours');
+                        let offset_end = rdv.end_time.diff(moment(date_debut), 'hours');
                         let offset_end_halfdays = Math.round(offset_end / (24 / this.nb_day_slices));
 
                         if (offset_end_halfdays >= nb_offsets) {
