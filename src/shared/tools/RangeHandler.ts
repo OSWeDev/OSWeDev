@@ -1557,6 +1557,10 @@ export default class RangeHandler {
                     return null;
                 }
 
+                if (!!offset) {
+                    NumSegmentHandler.getInstance().incNum(range_max_num.index, segment_type, offset);
+                }
+
                 return range_max_num.index as any as T;
 
             case HourRange.RANGE_TYPE:
@@ -1574,6 +1578,10 @@ export default class RangeHandler {
 
                 if ((!range.min_inclusiv) && this.is_elt_equals_or_inf_elt(range.range_type, range_max_d, range.min as any as moment.Duration)) {
                     return null;
+                }
+
+                if (!!offset) {
+                    HourSegmentHandler.getInstance().incElt(range_max_seg.index, segment_type, offset);
                 }
 
                 return range_max_seg.index as any as T;
