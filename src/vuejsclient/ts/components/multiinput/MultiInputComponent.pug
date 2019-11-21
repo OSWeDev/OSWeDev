@@ -7,7 +7,7 @@
                 template(v-if="type_input == 'slot'")
                     slot(v-bind:value="values[i]" v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" :field='field' :vo='vo')
                 template(v-else-if="type_input == 'custom'")
-                    .custom_field_component(:is='custom_field_component' v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" :field='field' :vo='vo')
+                    .custom_field_component(:is='custom_field_component' v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" @input_with_infos="emitInput" :field='field' :vo='vo')
                 template(v-else)
                     input.form-control(v-model="values[i]", :type="type_input", :required="required", :disabled="disabled", @input="emitInput")
         .actions.col-md-2

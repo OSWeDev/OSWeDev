@@ -144,6 +144,7 @@ export default class MatroidController {
                 // case ModuleTableField.FIELD_TYPE_daterange_array:
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     break;
 
@@ -273,15 +274,8 @@ export default class MatroidController {
             switch (matroid_field.field_type) {
                 // case ModuleTableField.FIELD_TYPE_daterange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    for (let j in a_ranges) {
-
-                        if (RangeHandler.getInstance().range_intersects_any_range(a_ranges[j], b_ranges)) {
-                            intersects = true;
-                            break;
-                        }
-                    }
-                    break;
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                     for (let j in a_ranges) {
 
@@ -319,6 +313,28 @@ export default class MatroidController {
     /**
      * FIXME TODO ASAP WITH TU
      */
+    public matroids_intersect_themselves_at_least_once(matroids: IMatroid[]): boolean {
+
+        if (!matroids) {
+            return false;
+        }
+
+        for (let i = 0; i < (matroids.length - 1); i++) {
+            for (let j = i + 1; j < matroids.length; j++) {
+                let a = matroids[i];
+                let b = matroids[j];
+
+                if (this.matroid_intersects_matroid(a, b)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     */
     public cut_matroids<T extends IMatroid>(matroid_cutter: T, matroids_to_cut: T[]): Array<MatroidCutResult<T>> {
 
         let res: Array<MatroidCutResult<T>> = [];
@@ -336,6 +352,28 @@ export default class MatroidController {
 
         return res;
     }
+
+    /**
+     * FIXME TODO ASAP WITH TU
+     */
+    public matroids_cut_matroids_get_remainings<T extends IMatroid>(matroid_cutters: T[], matroids_to_cut: T[]): T[] {
+
+        let remaining_matroids: T[] = [];
+        remaining_matroids = this.cloneFromRanges(matroids_to_cut);
+        for (let j in matroid_cutters) {
+
+            let matroid_cutter = matroid_cutters[j];
+
+            let cut_results: Array<MatroidCutResult<any>> = this.cut_matroids(matroid_cutter, remaining_matroids);
+            remaining_matroids = [];
+            for (let k in cut_results) {
+                remaining_matroids = remaining_matroids.concat(cut_results[k].remaining_items);
+            }
+        }
+
+        return remaining_matroids;
+    }
+
 
     /**
      * FIXME TODO ASAP WITH TU
@@ -453,6 +491,26 @@ export default class MatroidController {
             let matroid_field = matroid_fields[i];
 
             res[matroid_field.field_id] = clonedeep(from[matroid_field.field_id]);
+        }
+
+        return res;
+    }
+
+
+    /**
+     * Clones all but id
+     * @param from
+     */
+    public cloneFromRanges<T extends IMatroid>(from: T[]): T[] {
+
+        if (!from) {
+            return null;
+        }
+
+        let res: T[] = [];
+
+        for (let i in from) {
+            res[i] = this.cloneFrom(from[i]);
         }
 
         return res;

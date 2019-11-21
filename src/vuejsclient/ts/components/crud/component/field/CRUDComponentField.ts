@@ -199,9 +199,8 @@ export default class CRUDComponentField extends VueComponentBase {
 
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
-        } else {
-            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
         }
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
     }
 
     private validateSimpleInput(input_value: any) {
@@ -211,17 +210,16 @@ export default class CRUDComponentField extends VueComponentBase {
 
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = this.field_value;
-        } else {
-            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
         }
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
     }
 
     private validateMultiInput(values: any[]) {
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = values;
-        } else {
-            this.$emit('validateMultiInput', values, this.field, this.vo);
         }
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        this.$emit('validateMultiInput', values, this.field, this.vo);
     }
 
 
@@ -431,9 +429,8 @@ export default class CRUDComponentField extends VueComponentBase {
 
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
-        } else {
-            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
         }
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
         this.$emit('onChangeVO', this.vo);
 
         if (this.field.onChange) {
@@ -446,9 +443,8 @@ export default class CRUDComponentField extends VueComponentBase {
 
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
-        } else {
-            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
         }
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
     }
 
     get is_custom_field_type(): boolean {

@@ -1,0 +1,43 @@
+@import '../../../scss/base/skin.scss';
+
+.alert_view_component {
+
+    .type_icon_wrapper {
+
+        i.fa {
+            float: left;
+            font-size: 0.8em;
+            margin: 0px;
+            margin-right: 0.3em;
+        }
+
+        .alert_component_error {
+            color: $danger_color;
+        }
+
+        .alert_component_warn {
+            color: $button_warning_color;
+        }
+
+        .alert_component_info {
+            color: royalblue;
+        }
+
+        .alert_component_debug {
+            color: grey;
+        }
+    }
+
+    .alert_content{
+        background: white;
+        padding: 1em;
+        border-radius: 3px;
+        font-size: 0.8em;
+        text-align: justify;
+    }
+
+    .alert_date {
+        font-size: x-small;
+        color: #555;
+    }
+}
