@@ -34,6 +34,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_amount: string = 'amount';
     public static FIELD_TYPE_foreign_key: string = 'fkey';
     public static FIELD_TYPE_numrange_array: string = 'numrange[]';
+    public static FIELD_TYPE_isoweekdays: string = 'isoweekdays';
     public static FIELD_TYPE_int_array: string = 'number[]';
     public static FIELD_TYPE_string_array: string = 'text[]';
     public static FIELD_TYPE_prct: string = 'pct';
@@ -66,6 +67,9 @@ export default class ModuleTableField<T> {
     public module_table: ModuleTable<any> = null;
     public field_label: DefaultTranslation;
     public manyToOne_target_moduletable: ModuleTable<any> = null;
+
+    public min_values: number = 0;
+    public max_values: number = 999;
 
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
@@ -140,6 +144,17 @@ export default class ModuleTableField<T> {
         return this;
     }
 
+    public set_max_values(max_values: number): ModuleTableField<T> {
+
+        this.max_values = max_values;
+        return this;
+    }
+
+    public set_min_values(min_values: number): ModuleTableField<T> {
+
+        this.min_values = min_values;
+        return this;
+    }
 
     public hide_from_datatable(): ModuleTableField<T> {
         this.is_visible_datatable = false;
@@ -292,6 +307,7 @@ export default class ModuleTableField<T> {
                 return db_type == "daterange";
 
             case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
                 return (db_type == "numrange[]") || (db_type == "ARRAY");
             // case ModuleTableField.FIELD_TYPE_daterange_array:
             //     return db_type == "daterange[]";
@@ -299,7 +315,7 @@ export default class ModuleTableField<T> {
                 return (db_type == "numrange[]") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return db_type == "tsrange";
+                return db_type == "numrange";
 
             case ModuleTableField.FIELD_TYPE_hour:
                 return (db_type == "int8") || (db_type == "bigint");
@@ -387,6 +403,7 @@ export default class ModuleTableField<T> {
                 return "daterange";
 
             case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
                 return "numrange[]";
             // case ModuleTableField.FIELD_TYPE_daterange_array:
             //     return "daterange[]";
@@ -394,7 +411,7 @@ export default class ModuleTableField<T> {
                 return "numrange[]";
 
             case ModuleTableField.FIELD_TYPE_tsrange:
-                return "tsrange";
+                return "numrange";
 
             case ModuleTableField.FIELD_TYPE_hourrange:
                 return "int8range";
@@ -472,6 +489,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_daterange:
             case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
             // case ModuleTableField.FIELD_TYPE_daterange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_tstz:

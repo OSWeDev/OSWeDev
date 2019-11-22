@@ -1,6 +1,6 @@
 {
     "name": "oswedev",
-    "version": "0.9.19",
+    "version": "0.10.0",
     "description": "",
     "scripts": {
         "test": "nyc mocha",
@@ -90,6 +90,7 @@
         "ts-node": "7.0.1",
         "tslib": "1.9.3",
         "tslint": "5.11.0",
+        "v-calendar": "0.9.7",
         "vue-bootstrap-toggle": "1.1.4",
         "vue-chartjs": "3.3.1",
         "vue-draggable-resizable": "1.7.2",

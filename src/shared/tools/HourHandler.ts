@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import HourSegment from '../modules/DataRender/vos/HourSegment';
+import ConsoleHandler from './ConsoleHandler';
 
 export default class HourHandler {
 
@@ -30,6 +31,35 @@ export default class HourHandler {
             case HourSegment.TYPE_MS:
                 return this.force2DigitMin(hour.hours()) + ':' + this.force2DigitMin(hour.minutes()) + ':' + this.force2DigitMin(hour.seconds()) + '.' + this.force3Digit(hour.milliseconds());
         }
+    }
+
+    public formatHourFromIHM(hour: string, segment_type: number): moment.Duration {
+        if ((hour == null) || (typeof hour == 'undefined')) {
+            return null;
+        }
+
+        try {
+
+            let splitted: string[] = hour.split(/[:h.]/);
+
+            let duration_ms: number = 0;
+            switch (segment_type) {
+                case HourSegment.TYPE_MS:
+                    duration_ms += parseInt(splitted[3]);
+                case HourSegment.TYPE_SECOND:
+                    duration_ms += parseInt(splitted[2]) * 1000;
+                case HourSegment.TYPE_MINUTE:
+                    duration_ms += parseInt(splitted[1]) * 60 * 1000;
+                case HourSegment.TYPE_HOUR:
+                    duration_ms += parseInt(splitted[0]) * 60 * 60 * 1000;
+            }
+
+            return moment.duration(duration_ms);
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+
+        return null;
     }
 
     public formatHourForAPI(hour: moment.Duration): number {

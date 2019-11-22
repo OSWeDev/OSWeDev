@@ -3,10 +3,11 @@
         template(v-if="field.is_required")
             i.fa.fa-asterisk.mandatory
 
-    .btn-group.link_ref.hidden-print
+    .btn-group.link_ref.hidden-print(v-if='can_insert_or_update_target')
         template(v-if="field_value")
             a.btn.btn-sm.btn-primary(:href="'/admin#' + getCRUDUpdateLink(field.targetModuleTable.vo_type, field_value)" target='_blank')
                 i.fa.fa-pencil
+        template
         a.btn.btn-sm.btn-success(:href="'/admin#' + getCRUDCreateLink(field.targetModuleTable.vo_type)" target='_blank')
             i.fa.fa-plus-circle
 

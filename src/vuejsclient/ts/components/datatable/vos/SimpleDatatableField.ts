@@ -153,6 +153,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return res_hourranges;
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
                     if (!field_value) {
                         return field_value;
                     }
@@ -238,6 +239,11 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_month:
                     return DateHandler.getInstance().formatMonthFromVO(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
 
+                case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                case ModuleTableField.FIELD_TYPE_hourrange:
+                case ModuleTableField.FIELD_TYPE_isoweekdays:
+                case ModuleTableField.FIELD_TYPE_hourrange_array:
+                    return field_value;
 
                 default:
                     return SimpleDatatableField.defaultDataToReadIHM(field_value, moduleTableField, vo);
@@ -448,6 +454,16 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         datatable_field_uid: string,
         translatable_title: string = null) {
         super(DatatableField.SIMPLE_FIELD_TYPE, datatable_field_uid, translatable_title);
+    }
+
+    get max_values(): number {
+
+        return this.moduleTableField.max_values;
+    }
+
+    get min_values(): number {
+
+        return this.moduleTableField.min_values;
     }
 
     public dataToReadIHM(e: T, vo: IDistantVOBase): U {

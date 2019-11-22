@@ -39,10 +39,10 @@ export default class VersionedVOController implements IVOController {
         version_author_id.setModuleTable(moduleTable);
 
         moduleTable.push_field(version_edit_author_id);
-        moduleTable.push_field((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de modification', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField('version_edit_timestamp', ModuleTableField.FIELD_TYPE_tstz, 'Date de modification', false)).setModuleTable(moduleTable));
 
         moduleTable.push_field(version_author_id);
-        moduleTable.push_field((new ModuleTableField('version_timestamp', ModuleTableField.FIELD_TYPE_timestamp, 'Date de création', false)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField('version_timestamp', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', false)).setModuleTable(moduleTable));
 
         moduleTable.push_field((new ModuleTableField('version_num', ModuleTableField.FIELD_TYPE_int, 'Numéro de version', false)).setModuleTable(moduleTable));
 
@@ -68,6 +68,8 @@ export default class VersionedVOController implements IVOController {
             VersionedVOController.TRASHED_DATABASE,
             VersionedVOController.VERSIONED_TRASHED_DATABASE
         ];
+
+        let TRASHED_DATABASE: ModuleTable<any> = null;
 
         for (let e in vo_types) {
             let vo_type = vo_types[e];
@@ -95,9 +97,17 @@ export default class VersionedVOController implements IVOController {
                     continue;
                 }
 
-                importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(vofield.manyToOne_target_moduletable);
+                // Cas spécifique du lien parent_id, dans le vo trashed_versioned, qui doit pointer sur trashed du coup et pas sur ref
+                if ((vofield.field_id == 'parent_id') && (database == VersionedVOController.VERSIONED_TRASHED_DATABASE)) {
+                    importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(TRASHED_DATABASE);
+                } else {
+                    importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(vofield.manyToOne_target_moduletable);
+                }
             }
 
+            if (database == VersionedVOController.TRASHED_DATABASE) {
+                TRASHED_DATABASE = importTable;
+            }
             moduleTable.module.datatables.push(importTable);
         }
     }

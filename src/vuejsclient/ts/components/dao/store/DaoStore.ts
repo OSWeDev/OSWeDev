@@ -111,14 +111,17 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
             storeDatas(state: IDAOState, infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) {
 
-                if ((!infos.vos) || (typeof infos.vos.length == 'undefined') || (infos.vos.length <= 0) || (!infos.vos[0]._type)) {
-                    return;
+                Vue.set(state.storedDatasArray, infos.API_TYPE_ID, VOsTypesManager.getInstance().vosArray_to_vosByIds(infos.vos));
+                if (state.typeWatchers[infos.API_TYPE_ID]) {
+                    callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }
+            },
 
-                let _type: string = infos.vos[0]._type;
-                Vue.set(state.storedDatasArray, _type, VOsTypesManager.getInstance().vosArray_to_vosByIds(infos.vos));
-                if (state.typeWatchers[_type]) {
-                    callWatchers(state.typeWatchers[_type]);
+            storeDatasByIds(state: IDAOState, infos: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) {
+
+                Vue.set(state.storedDatasArray, infos.API_TYPE_ID, infos.vos_by_ids);
+                if (state.typeWatchers[infos.API_TYPE_ID]) {
+                    callWatchers(state.typeWatchers[infos.API_TYPE_ID]);
                 }
             },
 
@@ -160,6 +163,9 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
             storeDatas(context: DAOContext, infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) {
                 commitStoreDatas(context, infos);
             },
+            storeDatasByIds(context: DAOContext, infos: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) {
+                commitStoreDatasByIds(context, infos);
+            },
             removeData(context: DAOContext, infos: { API_TYPE_ID: string, id: number }) {
                 commitRemoveData(context, infos);
             },
@@ -182,3 +188,4 @@ export const commitStoreData = commit(DAOStore.getInstance().mutations.storeData
 export const commitStoreDatas = commit(DAOStore.getInstance().mutations.storeDatas);
 export const commitRemoveData = commit(DAOStore.getInstance().mutations.removeData);
 export const commitUpdateData = commit(DAOStore.getInstance().mutations.updateData);
+export const commitStoreDatasByIds = commit(DAOStore.getInstance().mutations.storeDatasByIds);

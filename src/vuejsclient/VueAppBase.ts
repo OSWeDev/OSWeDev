@@ -11,8 +11,9 @@ import 'quill/dist/quill.bubble.css';
 import 'quill/dist/quill.core.css';
 import 'quill/dist/quill.snow.css';
 import 'select2';
-import VTooltip from 'v-tooltip';
 import Vue from 'vue';
+import VCalendar from 'v-calendar';
+import VTooltip from 'v-tooltip';
 import VueDraggableResizable from 'vue-draggable-resizable';
 import FullCalendar from 'vue-full-calendar';
 import VueI18n from 'vue-i18n';
@@ -32,11 +33,11 @@ import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
-import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
+import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import IVueModule from '../vuejsclient/ts/modules/IVueModule';
 import VueModuleBase from '../vuejsclient/ts/modules/VueModuleBase';
@@ -61,7 +62,6 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
-import EnvHandler from '../shared/tools/EnvHandler';
 
 require('moment-json-parser').overrideDefault();
 
@@ -315,6 +315,13 @@ export default abstract class VueAppBase {
         Vue.use(VueRouter);
         Vue.use(FullCalendar);
         Vue.use(VueQuillEditor);
+
+        // Use v-calendar, v-date-picker & v-popover components
+        Vue.use(VCalendar, {
+            firstDayOfWeek: 2,
+            locale: default_locale
+        });
+
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.use(ToggleButton);
         Vue.component('UserNotifsMarkerComponent', UserNotifsMarkerComponent);

@@ -172,6 +172,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }));
     }
 
+    public async registerSimplePolicy(group_id: number, default_behaviour: number, translatable_name: string, default_translations: { [code_lang: string]: string }, moduleVO: ModuleVO): Promise<AccessPolicyVO> {
+        let access: AccessPolicyVO = new AccessPolicyVO();
+        access.group_id = group_id;
+        access.default_behaviour = default_behaviour;
+        access.translatable_name = translatable_name;
+        return await this.registerPolicy(access, new DefaultTranslation(default_translations), moduleVO);
+    }
+
+    public async addDependency(src_pol: AccessPolicyVO, default_behaviour: number, depends_on_pol_id: AccessPolicyVO): Promise<PolicyDependencyVO> {
+        let dep: PolicyDependencyVO = new PolicyDependencyVO();
+        dep.default_behaviour = default_behaviour;
+        dep.src_pol_id = src_pol.id;
+        dep.depends_on_pol_id = depends_on_pol_id.id;
+        return await this.registerPolicyDependency(dep);
+    }
+
     public registerCrons(): void {
         AccessPolicyCronWorkersHandler.getInstance();
     }

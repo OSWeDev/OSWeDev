@@ -367,6 +367,10 @@ export default class CRUDComponent extends VueComponentBase {
                     // TODO FIXME ASAP VARS
                 }
 
+                if (simpleFieldType == ModuleTableField.FIELD_TYPE_isoweekdays) {
+                    // TODO FIXME ASAP VARS
+                }
+
                 // if (simpleFieldType == ModuleTableField.FIELD_TYPE_daterange_array) {
                 //     // TODO FIXME ASAP VARS
                 // }
@@ -427,6 +431,9 @@ export default class CRUDComponent extends VueComponentBase {
                     }
 
                     if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
+                        // TODO FIXME ASAP VARS
+                    }
+                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_isoweekdays) {
                         // TODO FIXME ASAP VARS
                     }
 
@@ -746,22 +753,25 @@ export default class CRUDComponent extends VueComponentBase {
     private changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any, datatable: Datatable<IDistantVOBase>) {
         vo[field.datatable_field_uid] = value;
 
-        for (let i in datatable.fields) {
-            let field_datatable: DatatableField<any, any> = datatable.fields[i];
-            if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+        if (!!datatable) {
 
-                let manyToOneField: ManyToOneReferenceDatatableField<any> = (field_datatable as ManyToOneReferenceDatatableField<any>);
-                let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+            for (let i in datatable.fields) {
+                let field_datatable: DatatableField<any, any> = datatable.fields[i];
+                if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
-                if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
-                    options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
+                    let manyToOneField: ManyToOneReferenceDatatableField<any> = (field_datatable as ManyToOneReferenceDatatableField<any>);
+                    let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+
+                    if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
+                        options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
+                    }
+
+                    if (options) {
+                        field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                    }
                 }
 
-                if (options) {
-                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
-                }
             }
-
         }
 
         if (this.crud && this.crud.isReadOnlyData) {
@@ -771,9 +781,6 @@ export default class CRUDComponent extends VueComponentBase {
         }
     }
 
-    private validateMultiInput(values: any[], field: DatatableField<any, any>, vo: IDistantVOBase) {
-        vo[field.datatable_field_uid] = values;
-    }
 
     private onChangeVO(vo: IDistantVOBase) {
 

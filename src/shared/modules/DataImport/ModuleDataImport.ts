@@ -197,7 +197,7 @@ export default class ModuleDataImport extends Module {
             [ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT],
             [ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT]: ModuleDataImport.IMPORTATION_STATE_NAMES[ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT],
         }));
-        fields.push(new ModuleTableField<any>("creation_date", ModuleTableField.FIELD_TYPE_timestamp, "Date de création", false));
+        fields.push(new ModuleTableField<any>("creation_date", ModuleTableField.FIELD_TYPE_tstz, "Date de création", false));
         fields.push(new ModuleTableField<any>("not_imported_msg", ModuleTableField.FIELD_TYPE_string, "Msg import", false));
         fields.push(new ModuleTableField<any>("not_posttreated_msg", ModuleTableField.FIELD_TYPE_string, "Msg post-traitement", false));
         fields.unshift(field_historic_id);

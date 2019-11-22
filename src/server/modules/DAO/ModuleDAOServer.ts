@@ -1439,7 +1439,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_string:
                     case ModuleTableField.FIELD_TYPE_translatable_text:
                         if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
-                            ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'' + '::tstzrange';
+                            ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'' + '::tsrange';
                             break;
                         }
                         break;
@@ -1455,7 +1455,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_prct:
                     case ModuleTableField.FIELD_TYPE_int_array:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
-                        if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) {
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
+                        if ((matroid_field.field_type == ModuleTableField.FIELD_TYPE_numrange_array) || (matroid_field.field_type == ModuleTableField.FIELD_TYPE_isoweekdays)) {
                             ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + '\'';
                             ranges_query_type = '::numrange';
                             break;
@@ -1469,7 +1470,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_hourrange:
                         if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_hourrange_array) {
                             ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + (field_range.min as Duration).asMilliseconds() + "," + (field_range.max as Duration).asMilliseconds() + (field_range.max_inclusiv ? "]" : ")") + '\'';
-                            ranges_query_type = '::numrange';
+                            ranges_query_type = '::int8range';
                             break;
                         }
                         break;
@@ -1493,8 +1494,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         ranges_query_type = '::daterange';
                         break;
                     case ModuleTableField.FIELD_TYPE_tsrange:
-                        ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDateTimeForBDD(field_range.min) + "," + DateHandler.getInstance().formatDateTimeForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'';
-                        ranges_query_type = '::tstzrange';
+                        ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'';
+                        ranges_query_type = '::numrange';
                         break;
                 }
                 ranges_query += '' + ranges_query_type + ')';
@@ -1530,6 +1531,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         where_clause += field.field_id + " <@ " + ranges_query;
                         break;
                     case ModuleTableField.FIELD_TYPE_int_array:
+                    case ModuleTableField.FIELD_TYPE_isoweekdays:
                     case ModuleTableField.FIELD_TYPE_numrange_array:
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
                     case ModuleTableField.FIELD_TYPE_tsrange: // vraiment ?
@@ -1619,6 +1621,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                 }
 
                             case ModuleTableField.FIELD_TYPE_int_array:
+                            case ModuleTableField.FIELD_TYPE_isoweekdays:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                             case ModuleTableField.FIELD_TYPE_hourrange_array:
@@ -1795,6 +1798,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numeric[])";
                             break;
 
+                        case ModuleTableField.FIELD_TYPE_isoweekdays:
                         case ModuleTableField.FIELD_TYPE_numrange_array:
                             where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
                             break;
@@ -1815,7 +1819,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             break;
 
                         case ModuleTableField.FIELD_TYPE_tsrange:
-                            where_clause += field.field_id + " && '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDateTimeForBDD(field_range.min) + "," + DateHandler.getInstance().formatDateTimeForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
+                            where_clause += field.field_id + " && '" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::numrange";
                             break;
 
                         case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1932,6 +1936,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     switch (field.field_type) {
 
                         case ModuleTableField.FIELD_TYPE_numrange_array:
+                        case ModuleTableField.FIELD_TYPE_isoweekdays:
                             ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"";
                             break;
 

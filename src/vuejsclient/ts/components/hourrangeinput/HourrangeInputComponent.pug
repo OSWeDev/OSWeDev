@@ -1,0 +1,3 @@
+.hour_range_input
+    input(type='time' v-model="hourrange_start" :placeholder="label('hour_range_input.heure_debut')" :required="required", :disabled="disabled", @input="emitInput")
+    input(type='time' v-model="hourrange_end" :placeholder="label('hour_range_input.heure_fin')" :required="required", :disabled="disabled", @input="emitInput")

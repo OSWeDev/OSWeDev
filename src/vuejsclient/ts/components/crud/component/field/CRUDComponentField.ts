@@ -1,37 +1,55 @@
 import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
+import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
-import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import Datatable from '../../../datatable/vos/Datatable';
 import DatatableField from '../../../datatable/vos/DatatableField';
 import ManyToOneReferenceDatatableField from '../../../datatable/vos/ManyToOneReferenceDatatableField';
 import ReferenceDatatableField from '../../../datatable/vos/ReferenceDatatableField';
 import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import FileComponent from '../../../file/FileComponent';
+import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
+import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
+let debounce = require('lodash/debounce');
 
 
 @Component({
     template: require('./CRUDComponentField.pug'),
     components: {
-        fileinput: FileComponent,
-        imageinput: ImageComponent,
-        multi_input: MultiInputComponent,
+        FileComponent: FileComponent,
+        ImageComponent: ImageComponent,
+        MultiInputComponent: MultiInputComponent,
+        HourrangeInputComponent: HourrangeInputComponent,
+        TSRangesInputComponent: TSRangesInputComponent,
+        IsoWeekDaysInputComponent: IsoWeekDaysInputComponent
     }
 })
 export default class CRUDComponentField extends VueComponentBase {
 
     @ModuleDAOGetter
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
+    @ModuleDAOAction
+    private storeDatasByIds: (params: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) => void;
+
+    get hourrange_input_component() {
+        return HourrangeInputComponent;
+    }
 
     @Prop()
     private field: DatatableField<any, any>;
@@ -45,6 +63,9 @@ export default class CRUDComponentField extends VueComponentBase {
     @Prop({ default: null })
     private field_select_options_enabled: number[];
 
+    @Prop({ default: false })
+    private auto_update_field_value: boolean;
+
     @Prop()
     private datatable: Datatable<IDistantVOBase>;
 
@@ -53,14 +74,32 @@ export default class CRUDComponentField extends VueComponentBase {
     private field_value: any = null;
     private field_value_range: any = {};
 
+    private can_insert_or_update_target: boolean = false;
+
+    private debounced_reload_field_value = debounce(this.reload_field_value, 50);
+
     public async mounted() { }
 
+    get is_segmented_day_tsrange_array() {
+        let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
+        return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
+    }
+
+
+    // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
     @Watch('field', { immediate: true })
     @Watch('vo', { immediate: true })
     @Watch('datatable', { immediate: true })
     @Watch('default_field_data', { immediate: true })
     @Watch('field_select_options_enabled', { immediate: true })
-    private reload_field_value(): void {
+    private on_reload_field_value() {
+        this.debounced_reload_field_value();
+    }
+
+    private async reload_field_value() {
+
+        this.can_insert_or_update_target = false;
+
         this.field_value = this.vo[this.field.datatable_field_uid];
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
@@ -78,7 +117,21 @@ export default class CRUDComponentField extends VueComponentBase {
             }
         }
 
-        this.prepare_select_options();
+        let self = this;
+        if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
+            ModuleAccessPolicy.getInstance().checkAccess(
+                ModuleDAO.getInstance().getAccessPolicyName(
+                    ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
+                    (this.field as ReferenceDatatableField<any>).targetModuleTable.vo_type)).then((res: boolean) => {
+                        self.can_insert_or_update_target = res;
+                    });
+        }
+
+        this.isLoadingOptions = true;
+        await this.prepare_select_options();
+        this.isLoadingOptions = false;
     }
 
     private formatDateForField(date: string, separator: string = '/'): string {
@@ -109,8 +162,10 @@ export default class CRUDComponentField extends VueComponentBase {
                         switch ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type) {
                             case ModuleTableField.FIELD_TYPE_boolean:
                             case ModuleTableField.FIELD_TYPE_daterange:
+                            case ModuleTableField.FIELD_TYPE_hourrange_array:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
+                            case ModuleTableField.FIELD_TYPE_isoweekdays:
                                 break;
 
                             default:
@@ -142,7 +197,54 @@ export default class CRUDComponentField extends VueComponentBase {
 
         this.field_value = input_value;
 
+        if (this.auto_update_field_value) {
+            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+        }
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+    }
+
+    private validateSimpleInput(input_value: any) {
+
+        // TODO FIXME VALIDATE
+        this.field_value = input_value;
+
+        if (this.auto_update_field_value) {
+            this.vo[this.field.datatable_field_uid] = this.field_value;
+        }
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+    }
+
+    private validateMultiInput(values: any[]) {
+        if (this.auto_update_field_value) {
+            this.vo[this.field.datatable_field_uid] = values;
+        }
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        this.$emit('validateMultiInput', values, this.field, this.vo);
+    }
+
+
+    private changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any, datatable: Datatable<IDistantVOBase>) {
+        vo[field.datatable_field_uid] = value;
+
+        if (!datatable) {
+            return;
+        }
+        for (let i in datatable.fields) {
+            let field_datatable: DatatableField<any, any> = datatable.fields[i];
+            if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
+
+                let manyToOneField: ManyToOneReferenceDatatableField<any> = (field_datatable as ManyToOneReferenceDatatableField<any>);
+                let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+
+                if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
+                    options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
+                }
+
+                if (options) {
+                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                }
+            }
+        }
     }
 
     private updateDateRange(input: any) {
@@ -182,14 +284,19 @@ export default class CRUDComponentField extends VueComponentBase {
         this.$emit('uploadedFile', this.vo, this.field, fileVo);
     }
 
-    private prepare_select_options() {
+    private async prepare_select_options() {
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
             (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
             let newOptions: number[] = [];
 
             let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
-            let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+
+            // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+            let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+            this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
+
+            // let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
 
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
@@ -230,7 +337,7 @@ export default class CRUDComponentField extends VueComponentBase {
         }
     }
 
-    private asyncLoadOptions(query) {
+    private async asyncLoadOptions(query) {
         this.isLoadingOptions = true;
 
         if ((!this.field) ||
@@ -243,7 +350,12 @@ export default class CRUDComponentField extends VueComponentBase {
         }
 
         let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
-        let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+
+        // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+        let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+        this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
+
+        // let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
         let newOptions: number[] = [];
 
         for (let i in options) {
@@ -285,11 +397,15 @@ export default class CRUDComponentField extends VueComponentBase {
         this.select_options = newOptions;
     }
 
-    private onChangeField() {
+    private async onChangeField() {
         if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
             let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
-            let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+
+            // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+            let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOneField.targetModuleTable.vo_type));
+            this.storeDatasByIds({ API_TYPE_ID: manyToOneField.targetModuleTable.vo_type, vos_by_ids: options });
+            // let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
 
             if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                 options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
@@ -311,6 +427,9 @@ export default class CRUDComponentField extends VueComponentBase {
             this.field_value = this.field.UpdateIHMToData(this.field_value, this.vo);
         }
 
+        if (this.auto_update_field_value) {
+            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+        }
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
         this.$emit('onChangeVO', this.vo);
 
@@ -319,12 +438,12 @@ export default class CRUDComponentField extends VueComponentBase {
         }
     }
 
-    private validateMultiInput(values: any[]) {
-        this.$emit('validateMultiInput', values, this.field, this.vo);
-    }
-
     private inputValue(value: any) {
         this.field_value = value;
+
+        if (this.auto_update_field_value) {
+            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+        }
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
     }
 

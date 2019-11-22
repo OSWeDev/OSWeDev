@@ -1,0 +1,17 @@
+.alert_component
+
+    v-popover(:offset='offset' :placement='tooltip_placement')
+        .alert_component_content
+            template(v-if='is_error')
+                i.fa.fa-exclamation-triangle.fa-fw.alert_component_error(aria-hidden="true")
+            template(v-if='is_warn')
+                i.fa.fa-exclamation-triangle.fa-fw.alert_component_warn(aria-hidden="true")        
+            template(v-if='is_info')
+                i.fa.fa-exclamation-circle.fa-fw.alert_component_info(aria-hidden="true")
+            template(v-if='is_debug')
+                i.fa.fa-exclamation-circle.fa-fw.alert_component_debug(aria-hidden="true")
+
+        template(slot="popover")
+            template(v-for='alert in alerts')
+                AlertViewComponent(:alert='alert')
+  
