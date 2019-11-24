@@ -1,5 +1,5 @@
 .form-group(:class="field_type")
-    label {{ t(field.translatable_title) }}
+    label(v-if="show_title") {{ t(field.translatable_title) }}
         template(v-if="field.is_required")
             i.fa.fa-asterisk.mandatory
     template(v-if="field_type == 'password'")

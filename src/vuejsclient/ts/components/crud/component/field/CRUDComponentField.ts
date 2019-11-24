@@ -12,6 +12,7 @@ import TableFieldTypeControllerBase from '../../../../../../shared/modules/Table
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import Datatable from '../../../datatable/vos/Datatable';
 import DatatableField from '../../../datatable/vos/DatatableField';
@@ -21,11 +22,10 @@ import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
+import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
-import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 let debounce = require('lodash/debounce');
 
 
@@ -68,6 +68,12 @@ export default class CRUDComponentField extends VueComponentBase {
 
     @Prop()
     private datatable: Datatable<IDistantVOBase>;
+
+    @Prop({ default: true })
+    private show_insert_or_update_target: boolean;
+
+    @Prop({ default: true })
+    private show_title: boolean;
 
     private select_options: number[] = [];
     private isLoadingOptions: boolean = false;
