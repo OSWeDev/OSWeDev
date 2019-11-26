@@ -363,6 +363,9 @@ export default class CRUDComponent extends VueComponentBase {
                     }
                 }
 
+                if (simpleFieldType == ModuleTableField.FIELD_TYPE_refrange_array) {
+                    // TODO FIXME ASAP VARS
+                }
                 if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
                     // TODO FIXME ASAP VARS
                 }
@@ -430,6 +433,9 @@ export default class CRUDComponent extends VueComponentBase {
                         res[field.datatable_field_uid + "_end"] = undefined;
                     }
 
+                    if(simpleFieldType == ModuleTableField.FIELD_TYPE_refrange_array) {
+                        // TODO FIXME ASAP VARS
+                    }
                     if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
                         // TODO FIXME ASAP VARS
                     }

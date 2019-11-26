@@ -1,4 +1,5 @@
 .form-group(:class="field_type")
+    AlertComponent.simple_datatable_field_alert(:path='alert_path')
     label {{ t(field.translatable_title) }}
         template(v-if="field.is_required")
             i.fa.fa-asterisk.mandatory
@@ -78,7 +79,9 @@
             input.form-control(type="date" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
 
     template(v-else-if="field_type == 'tsrange'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        TSRangeInputComponent(
+            v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
+            :disabled="field.is_readonly" @input_with_infos="validateSimpleInput")
     template(v-else-if="field_type == 'timestamp'")
         input.form-control(type="number" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
     template(v-else-if="field_type == 'html'")

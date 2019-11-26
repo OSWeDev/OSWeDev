@@ -62,6 +62,7 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
+import AlertComponent from './ts/components/alert/AlertComponent';
 
 require('moment-json-parser').overrideDefault();
 
@@ -339,6 +340,7 @@ export default abstract class VueAppBase {
         Vue.component('CRUDComponentField', CRUDComponentField);
         Vue.component('MultipleSelectFilterComponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
+        Vue.component('AlertComponent', AlertComponent);
 
         Vue.directive('var-directive', VarDirective.getInstance());
 

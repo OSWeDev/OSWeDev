@@ -26,6 +26,7 @@ import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponen
 import VueComponentBase from '../../../VueComponentBase';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
+import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 let debounce = require('lodash/debounce');
 
 
@@ -37,7 +38,8 @@ let debounce = require('lodash/debounce');
         MultiInputComponent: MultiInputComponent,
         HourrangeInputComponent: HourrangeInputComponent,
         TSRangesInputComponent: TSRangesInputComponent,
-        IsoWeekDaysInputComponent: IsoWeekDaysInputComponent
+        IsoWeekDaysInputComponent: IsoWeekDaysInputComponent,
+        TSRangeInputComponent: TSRangeInputComponent
     }
 })
 export default class CRUDComponentField extends VueComponentBase {
@@ -46,10 +48,6 @@ export default class CRUDComponentField extends VueComponentBase {
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
     @ModuleDAOAction
     private storeDatasByIds: (params: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) => void;
-
-    get hourrange_input_component() {
-        return HourrangeInputComponent;
-    }
 
     @Prop()
     private field: DatatableField<any, any>;
@@ -79,6 +77,23 @@ export default class CRUDComponentField extends VueComponentBase {
     private debounced_reload_field_value = debounce(this.reload_field_value, 50);
 
     public async mounted() { }
+
+    get hourrange_input_component() {
+        return HourrangeInputComponent;
+    }
+
+    /**
+     * TODO FIXME : gérer tous les cas pas juste les simple datatable field
+     */
+    get alert_path(): string {
+        if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
+            return null;
+        }
+        let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
+        return field.get_alert_path();
+    }
 
     get is_segmented_day_tsrange_array() {
         let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
@@ -164,6 +179,7 @@ export default class CRUDComponentField extends VueComponentBase {
                             case ModuleTableField.FIELD_TYPE_daterange:
                             case ModuleTableField.FIELD_TYPE_hourrange_array:
                             case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                            case ModuleTableField.FIELD_TYPE_refrange_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
                             case ModuleTableField.FIELD_TYPE_isoweekdays:
                                 break;

@@ -143,6 +143,7 @@ export default class MatroidController {
             switch (field.field_type) {
                 // case ModuleTableField.FIELD_TYPE_daterange_array:
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -275,6 +276,7 @@ export default class MatroidController {
                 // case ModuleTableField.FIELD_TYPE_daterange_array:
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                     for (let j in a_ranges) {

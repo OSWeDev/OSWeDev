@@ -153,6 +153,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return res_hourranges;
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
+                case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                     if (!field_value) {
                         return field_value;

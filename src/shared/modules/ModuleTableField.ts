@@ -34,6 +34,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_amount: string = 'amount';
     public static FIELD_TYPE_foreign_key: string = 'fkey';
     public static FIELD_TYPE_numrange_array: string = 'numrange[]';
+    public static FIELD_TYPE_refrange_array: string = 'refrange[]';
     public static FIELD_TYPE_isoweekdays: string = 'isoweekdays';
     public static FIELD_TYPE_int_array: string = 'number[]';
     public static FIELD_TYPE_string_array: string = 'text[]';
@@ -131,6 +132,13 @@ export default class ModuleTableField<T> {
         this.target_database = null;
         this.target_table = null;
         this.target_field = null;
+    }
+
+    public get_alert_path(): string {
+        if (!this.module_table) {
+            return null;
+        }
+        return this.module_table.full_name + '.' + this.field_id;
     }
 
     public set_segmentation_type(segmentation_type: number): ModuleTableField<T> {
@@ -306,6 +314,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_daterange:
                 return db_type == "daterange";
 
+            case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
                 return (db_type == "numrange[]") || (db_type == "ARRAY");
@@ -402,6 +411,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_daterange:
                 return "daterange";
 
+            case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
                 return "numrange[]";
@@ -488,6 +498,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_boolean:
             case ModuleTableField.FIELD_TYPE_date:
             case ModuleTableField.FIELD_TYPE_daterange:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             // case ModuleTableField.FIELD_TYPE_daterange_array:
