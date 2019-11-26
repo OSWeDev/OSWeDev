@@ -43,10 +43,9 @@ include ../../../../views/mixins/loading.pug
                                         v-show="!field.hidden",
                                         :field="field",
                                         :vo="newVO",
-                                        :default_field_data="newVO[field.datatable_field_uid]",
                                         :field_select_options_enabled="field.select_options_enabled",
                                         :datatable="createDatatable",
-                                        @changeValue="changeValue",
+                                        :auto_update_field_value="true",
                                         @uploadedFile="uploadedFile",
                                         @onChangeVO="onChangeVO"
                                     )
@@ -73,10 +72,9 @@ include ../../../../views/mixins/loading.pug
                                         v-show="!field.hidden",
                                         :field="field",
                                         :vo="editableVO",
-                                        :default_field_data="editableVO[field.datatable_field_uid]",
                                         :field_select_options_enabled="field.select_options_enabled",
                                         :datatable="crud.updateDatatable",
-                                        @changeValue="changeValue",
+                                        :auto_update_field_value="true",
                                         @uploadedFile="uploadedFile",
                                         @onChangeVO="onChangeVO"
                                     )
