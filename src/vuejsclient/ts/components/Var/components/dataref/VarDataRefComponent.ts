@@ -13,6 +13,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
 import moment = require('moment');
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 
 @Component({
     template: require('./VarDataRefComponent.pug')
@@ -207,14 +208,14 @@ export default class VarDataRefComponent extends VueComponentBase {
             res += (this.add_infos_additional_params[pos][0]) ? field.field_id : '';
 
             // comment affiche t'on le tsrange (min, max, ou complet)
-            if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (controller.segment_type == TimeSegment.TYPE_DAY)) {
                 let tstzrange: TSRange = matroid[field.field_id][0] as TSRange;
                 switch (this.add_infos_additional_params[pos][1]) {
                     case 'min':
-                        res += tstzrange.min.format('DD/MM/Y');
+                        res += (tstzrange.min_inclusiv) ? tstzrange.min.format('DD/MM/Y') : tstzrange.min.clone().add(1, 'day').format('DD/MM/Y');
                         break;
                     case 'max':
-                        res += tstzrange.max.format('DD/MM/Y');
+                        res += (tstzrange.max_inclusiv) ? tstzrange.max.format('DD/MM/Y') : tstzrange.max.clone().add(-1, 'day').format('DD/MM/Y');
                         break;
                     default:
                         res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
