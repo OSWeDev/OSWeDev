@@ -1,3 +1,4 @@
+import * as isEqual from 'lodash/isEqual';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import DataFilterOptionsHandler from '../../../../shared/modules/DataRender/DataFilterOptionsHandler';
@@ -120,6 +121,23 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             this.tmp_filter_active_options = this.filter_active_options;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
+        }
+    }
+
+    @Watch('filter_active_options')
+    public async onchange_filter_active_options() {
+        if (!isEqual(this.tmp_filter_active_options, this.filter_active_options)) {
+            if (!this.filter_active_options || !this.filter_active_options.length) {
+                let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
+                if (ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(res)) {
+                    let selected = res[ObjectHandler.getInstance().getFirstAttributeName(res)];
+                    this.tmp_filter_active_options = [new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.get_label(selected), selected.id)];
+                } else {
+                    this.tmp_filter_active_options = this.filter_active_options;
+                }
+            } else {
+                this.tmp_filter_active_options = this.filter_active_options;
+            }
         }
     }
 

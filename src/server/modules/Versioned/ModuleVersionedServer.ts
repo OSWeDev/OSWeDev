@@ -58,11 +58,26 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         // TODO : ATTENTION par défaut c'est du without timezone en base, hors sur le serveur on a un timezone par défaut et sur les fullcalendar on est en without timezone par défaut ....
         let ts = DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true));
         let user: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
+        let robot_user: UserVO = null;
 
-        vo.version_author_id = user ? user.id : null;
+        if (!vo.version_author_id) {
+            if (!robot_user) {
+                robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
+            }
+
+            vo.version_author_id = user ? user.id : ((robot_user) ? robot_user.id : null);
+        }
+
         vo.version_timestamp = ts;
 
-        vo.version_edit_author_id = user ? user.id : null;
+        if (!vo.version_edit_author_id) {
+            if (!robot_user) {
+                robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
+            }
+
+            vo.version_edit_author_id = user ? user.id : ((robot_user) ? robot_user.id : null);
+        }
+
         vo.version_edit_timestamp = ts;
 
         return true;
@@ -80,7 +95,13 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         let user: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
 
-        vo.version_edit_author_id = user ? user.id : null;
+        if (user) {
+            vo.version_edit_author_id = user.id;
+        } else {
+            let robot_user: UserVO = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
+            vo.version_edit_author_id = robot_user ? robot_user.id : null;
+        }
+
         vo.version_edit_timestamp = DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true));
 
         vo.version_num++;
