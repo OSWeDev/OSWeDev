@@ -11,6 +11,7 @@ import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneRefer
 import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
 import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
+import RefRangesReferenceDatatableField from '../../datatable/vos/RefRangesReferenceDatatableField';
 
 
 export default class CRUD<T extends IDistantVOBase> {
@@ -71,18 +72,25 @@ export default class CRUD<T extends IDistantVOBase> {
             let dt_field: DatatableField<any, any> = null;
             if (field.manyToOne_target_moduletable) {
 
+                let dt_fields: Array<DatatableField<any, any>> = [
+                    new ComputedDatatableField(field.field_id + '__target_label', field.manyToOne_target_moduletable.table_label_function)
+                ];
                 if (field.manyToOne_target_moduletable.default_label_field) {
-                    dt_field = new ManyToOneReferenceDatatableField<any>(
-                        field.field_id,
-                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
+                    dt_fields = [
                         new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id)
-                    ]);
-                } else if (field.manyToOne_target_moduletable.table_label_function) {
+                    ];
+                }
+
+                if (field.field_type == ModuleTableField.FIELD_TYPE_refrange_array) {
+                    dt_field = new RefRangesReferenceDatatableField<any>(
+                        field.field_id,
+                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                        dt_fields);
+                } else {
                     dt_field = new ManyToOneReferenceDatatableField<any>(
                         field.field_id,
-                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type], [
-                        new ComputedDatatableField(field.field_id + '__target_label', field.manyToOne_target_moduletable.table_label_function)
-                    ]);
+                        VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
+                        dt_fields);
                 }
             } else {
                 dt_field = new SimpleDatatableField(field.field_id);

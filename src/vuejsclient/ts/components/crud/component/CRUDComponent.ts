@@ -27,6 +27,7 @@ import CRUDComponentManager from '../CRUDComponentManager';
 import CRUD from '../vos/CRUD';
 import "./CRUDComponent.scss";
 import CRUDComponentField from './field/CRUDComponentField';
+import RefRangesReferenceDatatableField from '../../datatable/vos/RefRangesReferenceDatatableField';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -208,7 +209,8 @@ export default class CRUDComponent extends VueComponentBase {
 
         if ((load_from_datatable_field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (load_from_datatable_field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
-            (load_from_datatable_field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
+            (load_from_datatable_field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (load_from_datatable_field.type == DatatableField.REF_RANGES_FIELD_TYPE)) {
             let reference: ReferenceDatatableField<any> = load_from_datatable_field as ReferenceDatatableField<any>;
             if (self.api_types_involved.indexOf(reference.targetModuleTable.vo_type) < 0) {
                 self.api_types_involved.push(reference.targetModuleTable.vo_type);
@@ -433,7 +435,7 @@ export default class CRUDComponent extends VueComponentBase {
                         res[field.datatable_field_uid + "_end"] = undefined;
                     }
 
-                    if(simpleFieldType == ModuleTableField.FIELD_TYPE_refrange_array) {
+                    if (simpleFieldType == ModuleTableField.FIELD_TYPE_refrange_array) {
                         // TODO FIXME ASAP VARS
                     }
                     if (simpleFieldType == ModuleTableField.FIELD_TYPE_numrange_array) {
@@ -777,6 +779,19 @@ export default class CRUDComponent extends VueComponentBase {
                     }
                 }
 
+                if (field_datatable.type == DatatableField.REF_RANGES_FIELD_TYPE) {
+
+                    let refField: RefRangesReferenceDatatableField<any> = (field_datatable as RefRangesReferenceDatatableField<any>);
+                    let options = this.getStoredDatas[refField.targetModuleTable.vo_type];
+
+                    if (!!refField.filterOptionsForUpdateOrCreateOnRefRanges) {
+                        options = refField.filterOptionsForUpdateOrCreateOnRefRanges(vo, options);
+                    }
+
+                    if (options) {
+                        field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                    }
+                }
             }
         }
 

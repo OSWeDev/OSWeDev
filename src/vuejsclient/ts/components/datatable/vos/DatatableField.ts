@@ -9,6 +9,7 @@ import CRUDComponentManager from '../../crud/CRUDComponentManager';
  */
 export default abstract class DatatableField<T, U> {
 
+    public static REF_RANGES_FIELD_TYPE: string = "RefRanges";
     public static MANY_TO_MANY_FIELD_TYPE: string = "ManyToMany";
     public static MANY_TO_ONE_FIELD_TYPE: string = "ManyToOne";
     public static ONE_TO_MANY_FIELD_TYPE: string = "OneToMany";

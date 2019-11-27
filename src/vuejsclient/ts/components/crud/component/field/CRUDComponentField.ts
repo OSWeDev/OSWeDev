@@ -27,6 +27,9 @@ import VueComponentBase from '../../../VueComponentBase';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
+import OneToManyReferenceDatatableField from '../../../datatable/vos/OneToManyReferenceDatatableField';
+import ManyToManyReferenceDatatableField from '../../../datatable/vos/ManyToManyReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../datatable/vos/RefRangesReferenceDatatableField';
 let debounce = require('lodash/debounce');
 
 
@@ -86,12 +89,26 @@ export default class CRUDComponentField extends VueComponentBase {
      * TODO FIXME : gérer tous les cas pas juste les simple datatable field
      */
     get alert_path(): string {
-        if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
-            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
-            return null;
+        let field = null;
+
+        switch (this.field.type) {
+            case DatatableField.MANY_TO_ONE_FIELD_TYPE:
+                field = (this.field as ManyToOneReferenceDatatableField<any>).srcField;
+                break;
+            case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                field = (this.field as OneToManyReferenceDatatableField<any>).destField;
+                break;
+            case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+                field = (this.field as ManyToManyReferenceDatatableField<any, any>).interModuleTable.getFieldFromId('id');
+                break;
+            case DatatableField.REF_RANGES_FIELD_TYPE:
+                field = (this.field as RefRangesReferenceDatatableField<any>).srcField;
+                break;
+            default:
+            case DatatableField.SIMPLE_FIELD_TYPE:
+                field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
+                break;
         }
-        let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
         return field.get_alert_path();
     }
 
@@ -135,7 +152,8 @@ export default class CRUDComponentField extends VueComponentBase {
         let self = this;
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) {
             ModuleAccessPolicy.getInstance().checkAccess(
                 ModuleDAO.getInstance().getAccessPolicyName(
                     ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE,
@@ -303,7 +321,8 @@ export default class CRUDComponentField extends VueComponentBase {
     private async prepare_select_options() {
         if ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
             (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) {
             let newOptions: number[] = [];
 
             let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
@@ -359,7 +378,8 @@ export default class CRUDComponentField extends VueComponentBase {
         if ((!this.field) ||
             ((this.field.type != DatatableField.MANY_TO_ONE_FIELD_TYPE) &&
                 (this.field.type != DatatableField.ONE_TO_MANY_FIELD_TYPE) &&
-                (this.field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE))) {
+                (this.field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE) &&
+                (this.field.type != DatatableField.REF_RANGES_FIELD_TYPE))) {
             this.snotify.warning(this.label('crud.multiselect.search.error'));
             this.isLoadingOptions = false;
             return;

@@ -13,6 +13,7 @@ import DefaultTranslation from '../../../../../shared/modules/Translation/vos/De
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
+import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import AppVuexStoreManager from '../../../store/AppVuexStoreManager';
 import { ModuleCRUDAction } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
@@ -27,6 +28,7 @@ import SimpleDatatableField from '../vos/SimpleDatatableField';
 import './DatatableComponent.scss';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
+import RefRangesReferenceDatatableField from '../vos/RefRangesReferenceDatatableField';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -141,7 +143,8 @@ export default class DatatableComponent extends VueComponentBase {
             if ((field.type != DatatableField.SIMPLE_FIELD_TYPE) &&
                 (field.type != DatatableField.MANY_TO_ONE_FIELD_TYPE) &&
                 (field.type != DatatableField.ONE_TO_MANY_FIELD_TYPE) &&
-                (field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE)) {
+                (field.type != DatatableField.MANY_TO_MANY_FIELD_TYPE) &&
+                (field.type != DatatableField.REF_RANGES_FIELD_TYPE)) {
                 continue;
             }
 
@@ -353,6 +356,9 @@ export default class DatatableComponent extends VueComponentBase {
             if (field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
                 continue;
             }
+            if (field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
+                continue;
+            }
             if (field.type == DatatableField.INPUT_FIELD_TYPE) {
                 continue;
             }
@@ -374,17 +380,20 @@ export default class DatatableComponent extends VueComponentBase {
         for (let i in this.datatable.fields) {
             let field = this.datatable.fields[i];
 
-            if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
-                let simpleField = (field as SimpleDatatableField<any, any>);
-                if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum) {
+            switch (field.type) {
+                case DatatableField.SIMPLE_FIELD_TYPE:
+                    let simpleField = (field as SimpleDatatableField<any, any>);
+                    if (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum) {
+                        res.push(field);
+                    }
+                    break;
+
+                case DatatableField.MANY_TO_ONE_FIELD_TYPE:
+                case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+                case DatatableField.REF_RANGES_FIELD_TYPE:
                     res.push(field);
-                }
-            } else if (field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
-                res.push(field);
-            } else if (field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) {
-                res.push(field);
-            } else if (field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) {
-                res.push(field);
+                    break;
             }
         }
 
@@ -432,13 +441,13 @@ export default class DatatableComponent extends VueComponentBase {
             let field_value = data[datatable_field.datatable_field_uid];
 
             switch (datatable_field.type) {
-                case OneToManyReferenceDatatableField.MANY_TO_ONE_FIELD_TYPE:
+                case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                     if (field_values.indexOf(field_value) < 0) {
                         field_values.push(field_value);
                     }
                     break;
-                case ManyToOneReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE:
-                case ManyToManyReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE:
+                case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+                case DatatableField.ONE_TO_MANY_FIELD_TYPE:
 
                     if ((!field_value) || (!field_value.length)) {
                         break;
@@ -451,6 +460,18 @@ export default class DatatableComponent extends VueComponentBase {
                         }
                     }
                     break;
+                case DatatableField.REF_RANGES_FIELD_TYPE:
+
+                    if ((!field_value) || (!field_value.length)) {
+                        break;
+                    }
+
+                    RangeHandler.getInstance().foreach_ranges_sync(field_value, (id: number) => {
+                        if (field_values.indexOf(id.toString()) < 0) {
+                            field_values.push(id.toString());
+                        }
+                    });
+                    break;
             }
         }
 
@@ -459,6 +480,7 @@ export default class DatatableComponent extends VueComponentBase {
         for (let i in field_values) {
 
             switch (datatable_field.type) {
+                case ManyToOneReferenceDatatableField.REF_RANGES_FIELD_TYPE:
                 case OneToManyReferenceDatatableField.MANY_TO_ONE_FIELD_TYPE:
                     this.custom_filters_options[datatable_field.datatable_field_uid].push({
                         label: (field_values[i] && field_values[i] != '') ? field_values[i] : '-',
@@ -567,6 +589,7 @@ export default class DatatableComponent extends VueComponentBase {
                 case DatatableField.FILE_FIELD_TYPE:
                     break;
 
+                case DatatableField.REF_RANGES_FIELD_TYPE:
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                     // très simple, on a pas besoin d'un cache
                     break;
@@ -619,6 +642,35 @@ export default class DatatableComponent extends VueComponentBase {
                             res[field.datatable_field_uid][baseData_id][intervo[interTargetRefField.field_id]] = this.getStoredDatas[manyToManyField.targetModuleTable.vo_type][intervo[interTargetRefField.field_id]];
                         }
                     }
+                    break;
+
+                // case DatatableField.REF_RANGES_FIELD_TYPE:
+                //     let refField: RefRangesReferenceDatatableField<any> = (field) as RefRangesReferenceDatatableField<any>;
+
+                //     RangeHandler.getInstance().foreach_ranges_sync()
+                //     let dest_ids: number[] = [];
+                //     let interTargetRefField = refField.interModuleTable.getRefFieldFromTargetVoType(refField.targetModuleTable.vo_type);
+                //     let interSrcRefField = refField.interModuleTable.getRefFieldFromTargetVoType(refField.moduleTable.vo_type);
+
+                //     for (let interi in this.getStoredDatas[refField.interModuleTable.vo_type]) {
+                //         let intervo = this.getStoredDatas[refField.interModuleTable.vo_type][interi];
+
+                //         if ((!!intervo) && (!!intervo[interSrcRefField.field_id]) && (dest_ids.indexOf(intervo[interTargetRefField.field_id]) < 0)) {
+
+                //             let baseData_id = intervo[interSrcRefField.field_id];
+
+                //             if (!res[field.datatable_field_uid]) {
+                //                 res[field.datatable_field_uid] = {};
+                //             }
+
+                //             if (!res[field.datatable_field_uid][baseData_id]) {
+                //                 res[field.datatable_field_uid][baseData_id] = {};
+                //             }
+
+                //             res[field.datatable_field_uid][baseData_id][intervo[interTargetRefField.field_id]] = this.getStoredDatas[refField.targetModuleTable.vo_type][intervo[interTargetRefField.field_id]];
+                //         }
+                //     }
+                //     break;
 
                 default:
                     break;
@@ -832,6 +884,23 @@ export default class DatatableComponent extends VueComponentBase {
                                 }
                             }
 
+                            break;
+
+                        case DatatableField.REF_RANGES_FIELD_TYPE:
+                            let refField: RefRangesReferenceDatatableField<any> = (field) as RefRangesReferenceDatatableField<any>;
+
+                            resData[field.datatable_field_uid] = [];
+
+                            if (this.getStoredDatas && this.getStoredDatas[refField.targetModuleTable.vo_type]) {
+
+                                RangeHandler.getInstance().foreach_ranges_sync(baseData[refField.srcField.field_id], (id: number) => {
+                                    let ref_data: IDistantVOBase = this.getStoredDatas[refField.targetModuleTable.vo_type][id];
+                                    resData[field.datatable_field_uid].push({
+                                        id: id,
+                                        label: refField.dataToHumanReadable(ref_data)
+                                    });
+                                });
+                            }
                             break;
 
                         default:
@@ -1096,6 +1165,7 @@ export default class DatatableComponent extends VueComponentBase {
                             }
                             return false;
 
+                        case DatatableField.REF_RANGES_FIELD_TYPE:
                         case DatatableField.MANY_TO_MANY_FIELD_TYPE:
                         case DatatableField.ONE_TO_MANY_FIELD_TYPE:
                             if ((!query) || (!query.length)) {
