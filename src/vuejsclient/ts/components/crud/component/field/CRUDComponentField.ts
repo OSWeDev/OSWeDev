@@ -12,24 +12,24 @@ import TableFieldTypeControllerBase from '../../../../../../shared/modules/Table
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import Datatable from '../../../datatable/vos/Datatable';
 import DatatableField from '../../../datatable/vos/DatatableField';
+import ManyToManyReferenceDatatableField from '../../../datatable/vos/ManyToManyReferenceDatatableField';
 import ManyToOneReferenceDatatableField from '../../../datatable/vos/ManyToOneReferenceDatatableField';
+import OneToManyReferenceDatatableField from '../../../datatable/vos/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../../datatable/vos/ReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../datatable/vos/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
+import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
+import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
-import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
-import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
-import OneToManyReferenceDatatableField from '../../../datatable/vos/OneToManyReferenceDatatableField';
-import ManyToManyReferenceDatatableField from '../../../datatable/vos/ManyToManyReferenceDatatableField';
-import RefRangesReferenceDatatableField from '../../../datatable/vos/RefRangesReferenceDatatableField';
 let debounce = require('lodash/debounce');
 
 
@@ -69,6 +69,12 @@ export default class CRUDComponentField extends VueComponentBase {
 
     @Prop()
     private datatable: Datatable<IDistantVOBase>;
+
+    @Prop({ default: true })
+    private show_insert_or_update_target: boolean;
+
+    @Prop({ default: true })
+    private show_title: boolean;
 
     private select_options: number[] = [];
     private isLoadingOptions: boolean = false;
@@ -388,10 +394,10 @@ export default class CRUDComponentField extends VueComponentBase {
         let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
 
         // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
-        let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
-        this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
+        // let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+        // this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
 
-        // let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+        let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
         let newOptions: number[] = [];
 
         for (let i in options) {
@@ -409,7 +415,7 @@ export default class CRUDComponentField extends VueComponentBase {
         this.select_options = newOptions;
     }
 
-    private asyncLoadEnumOptions() {
+    private asyncLoadEnumOptions(query) {
         this.isLoadingOptions = true;
 
         if ((!this.field) ||
@@ -424,8 +430,11 @@ export default class CRUDComponentField extends VueComponentBase {
 
         for (let i in simpleField.moduleTableField.enum_values) {
 
-            if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(parseInt(i)) >= 0) {
-                newOptions.push(parseInt(i));
+            if ((simpleField.enumIdToHumanReadable(parseInt(i))).match(new RegExp(query, 'i'))) {
+
+                if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(parseInt(i)) >= 0) {
+                    newOptions.push(parseInt(i));
+                }
             }
         }
 

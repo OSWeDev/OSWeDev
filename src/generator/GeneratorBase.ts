@@ -13,6 +13,7 @@ import Patch20191010CreateDefaultLangFRIfNone from './patchs/postmodules/Patch20
 import Patch20191018CHECKEnvParamsForMDPRecovery from './patchs/postmodules/Patch20191018CHECKEnvParamsForMDPRecovery';
 import Patch20191106ForceAccessDefaultToVisionFCPP from './patchs/postmodules/Patch20191106ForceAccessDefaultToVisionFCPP';
 import Patch20191112AddPwdCryptTrigger from './patchs/postmodules/Patch20191112AddPwdCryptTrigger';
+import Patch20191126CreateDefaultRobotUserAccount from './patchs/postmodules/Patch20191126CreateDefaultRobotUserAccount';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -52,7 +53,7 @@ export default abstract class GeneratorBase {
             ChangeCronDateHeurePlanifiee.getInstance(),
             Patch20191008ChangeDIHDateType.getInstance(),
             Patch20191008ChangeDILDateType.getInstance(),
-            Patch20191008SupprimerTacheReimport.getInstance()
+            Patch20191008SupprimerTacheReimport.getInstance(),
         ];
 
         this.post_modules_workers = [
@@ -60,7 +61,8 @@ export default abstract class GeneratorBase {
             Patch20191010CreateDefaultLangFRIfNone.getInstance(),
             Patch20191010CreateDefaultAdminAccountIfNone.getInstance(),
             Patch20191018CHECKEnvParamsForMDPRecovery.getInstance(),
-            Patch20191106ForceAccessDefaultToVisionFCPP.getInstance()
+            Patch20191106ForceAccessDefaultToVisionFCPP.getInstance(),
+            Patch20191126CreateDefaultRobotUserAccount.getInstance(),
         ];
     }
 

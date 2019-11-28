@@ -1,7 +1,24 @@
-import ConversionHandler from '../../../tools/ConversionHandler';
 
 export default class UserVO {
     public static API_TYPE_ID: string = "user";
+
+    public static createNew(
+        name: string,
+        email: string,
+        phone: string,
+        password: string,
+        lang_id: number
+    ): UserVO {
+        let user: UserVO = new UserVO();
+
+        user.name = name;
+        user.email = email;
+        user.phone = phone;
+        user.password = password;
+        user.lang_id = lang_id;
+
+        return user;
+    }
 
     public id: number;
     public _type: string = UserVO.API_TYPE_ID;
