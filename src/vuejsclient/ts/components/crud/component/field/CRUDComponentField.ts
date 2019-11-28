@@ -358,10 +358,10 @@ export default class CRUDComponentField extends VueComponentBase {
         let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
 
         // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
-        let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
-        this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
+        // let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+        // this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
 
-        // let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+        let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
         let newOptions: number[] = [];
 
         for (let i in options) {
@@ -379,7 +379,7 @@ export default class CRUDComponentField extends VueComponentBase {
         this.select_options = newOptions;
     }
 
-    private asyncLoadEnumOptions() {
+    private asyncLoadEnumOptions(query) {
         this.isLoadingOptions = true;
 
         if ((!this.field) ||
@@ -394,8 +394,11 @@ export default class CRUDComponentField extends VueComponentBase {
 
         for (let i in simpleField.moduleTableField.enum_values) {
 
-            if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(parseInt(i)) >= 0) {
-                newOptions.push(parseInt(i));
+            if ((simpleField.enumIdToHumanReadable(parseInt(i))).match(new RegExp(query, 'i'))) {
+
+                if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(parseInt(i)) >= 0) {
+                    newOptions.push(parseInt(i));
+                }
             }
         }
 
