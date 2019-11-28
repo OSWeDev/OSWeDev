@@ -6,6 +6,9 @@ include ../../../../../views/mixins/loading.pug
             template(v-if="field.type == 'Simple' || field.type == 'INPUT'")
                 include ./simple_input_types.pug
 
+            template(v-else-if="field.type == 'RefRanges'")
+                include ./refranges_input.pug
+
             template(v-else-if="field.type == 'ManyToOne'")
                 include ./manytoone_input.pug
 

@@ -10,6 +10,7 @@ import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../VueComponentBase';
 import './TSRangeInputComponent.scss';
 import moment = require('moment');
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 
 @Component({
     template: require('./TSRangeInputComponent.pug'),
@@ -65,5 +66,13 @@ export default class TSRangeInputComponent extends VueComponentBase {
         this.new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, tsstart, tsend, true, false, this.field.moduleTableField.segmentation_type);
         this.$emit('input', this.new_value);
         this.$emit('input_with_infos', this.new_value, this.field, this.vo);
+    }
+
+    get is_segmentation_mois(): boolean {
+        return this.value && (this.value.segment_type == TimeSegment.TYPE_MONTH);
+    }
+
+    get is_segmentation_day(): boolean {
+        return this.value && (this.value.segment_type == TimeSegment.TYPE_DAY);
     }
 }
