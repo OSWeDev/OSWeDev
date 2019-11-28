@@ -3,6 +3,7 @@ include ../../../../../views/mixins/loading.pug
 .field(v-if="((field.type == 'INPUT') || (field.datatable_field_uid == field.module_table_field_id)) && (field.isVisibleUpdateOrCreate(vo))", :field="field.datatable_field_uid", :field_type="field_type")
     template(v-if='!isLoadingOptions')
         template(v-show="!field.hidden")
+        
             template(v-if="field.type == 'Simple' || field.type == 'INPUT'")
                 include ./simple_input_types.pug
 

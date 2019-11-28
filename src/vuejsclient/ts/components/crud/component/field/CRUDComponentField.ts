@@ -30,6 +30,9 @@ import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 let debounce = require('lodash/debounce');
 
 
@@ -80,6 +83,7 @@ export default class CRUDComponentField extends VueComponentBase {
     private isLoadingOptions: boolean = false;
     private field_value: any = null;
     private field_value_range: any = {};
+    private field_value_refranges_selected_ids: number[] = [];
 
     private can_insert_or_update_target: boolean = false;
 
@@ -170,6 +174,30 @@ export default class CRUDComponentField extends VueComponentBase {
 
         this.isLoadingOptions = true;
         await this.prepare_select_options();
+
+
+        if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
+            this.field_value_refranges_selected_ids = [];
+
+            if ((!this.select_options) || (RangeHandler.getInstance().getCardinalFromArray(this.field_value) > this.select_options.length)) {
+                // Si on a plus d'option dans le range que dans les options du champ, on filtre par les options du champs
+                for (let i in this.select_options) {
+                    let id = parseInt(this.select_options[i].toString());
+                    if (RangeHandler.getInstance().elt_intersects_any_range(id, this.field_value)) {
+                        this.field_value_refranges_selected_ids.push(id);
+                    }
+                }
+            } else {
+
+                let options_by_id: { [id: number]: boolean } = ObjectHandler.getInstance().mapFromIdsArray(this.select_options);
+                // sinon on commence par le range
+                RangeHandler.getInstance().foreach_ranges_sync(this.field_value, (id: number) => {
+                    if (options_by_id[id]) {
+                        this.field_value_refranges_selected_ids.push(id);
+                    }
+                });
+            }
+        }
         this.isLoadingOptions = false;
     }
 
@@ -443,6 +471,18 @@ export default class CRUDComponentField extends VueComponentBase {
     }
 
     private async onChangeField() {
+
+        if (this.field_type == DatatableField.REF_RANGES_FIELD_TYPE) {
+            let ranges: NumRange[] = [];
+            for (let i in this.field_value_refranges_selected_ids) {
+                let id = parseInt(this.field_value_refranges_selected_ids[i].toString());
+
+                ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT));
+            }
+            ranges = RangeHandler.getInstance().getRangesUnion(ranges);
+            this.field_value = ranges;
+        }
+
         if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
 
             let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);

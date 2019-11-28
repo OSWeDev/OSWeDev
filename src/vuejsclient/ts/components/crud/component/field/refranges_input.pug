@@ -1,4 +1,5 @@
 .form-group
+    AlertComponent.datatable_field_alert.refranges_datatable_field_alert(:path='alert_path')
     label {{ t(field.translatable_title) }}
         template(v-if="field.is_required")
             i.fa.fa-asterisk.mandatory
@@ -14,7 +15,7 @@
     multiselect(
         :preselectFirst="false",
         :multiple="true",
-        v-model="field_value",
+        v-model="field_value_refranges_selected_ids",
         :custom-label="field.voIdToHumanReadable",
         :options="select_options",
         :placeholder="t(field.translatable_place_holder)",

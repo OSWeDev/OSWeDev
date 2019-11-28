@@ -51,6 +51,15 @@ export default class ObjectHandler {
         return res;
     }
 
+    public mapFromIdsArray(a: number[]): { [i: number]: boolean } {
+        let res: { [i: number]: boolean } = {};
+
+        for (let i in a) {
+            res[a[i]] = true;
+        }
+        return res;
+    }
+
     public getIdsList(vos: IDistantVOBase[]): number[] {
         let res: number[] = [];
 

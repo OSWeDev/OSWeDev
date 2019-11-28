@@ -1,4 +1,7 @@
 .form-group
+
+    AlertComponent.datatable_field_alert.manytoone_datatable_field_alert(:path='alert_path')
+
     label(v-if="show_title") {{ t(field.translatable_title) }}
         template(v-if="field.is_required")
             i.fa.fa-asterisk.mandatory

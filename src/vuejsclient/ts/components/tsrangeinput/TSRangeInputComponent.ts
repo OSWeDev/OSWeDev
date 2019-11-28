@@ -1,7 +1,8 @@
 import { Moment } from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import HourRange from '../../../../shared/modules/DataRender/vos/HourRange';
+import * as lang from "vuejs-datepicker/src/locale";
+import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
@@ -10,7 +11,6 @@ import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../VueComponentBase';
 import './TSRangeInputComponent.scss';
 import moment = require('moment');
-import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 
 @Component({
     template: require('./TSRangeInputComponent.pug'),
@@ -38,6 +38,12 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     private new_value: TSRange = null;
 
+    private format_datepicker_month: string = 'MM/yyyy';
+    private format_datepicker_day: string = 'dd/MM/yyyy';
+
+    private language = "fr";
+    private languages = lang;
+
     @Watch('value', { immediate: true })
     private async onchange_value(): Promise<void> {
 
@@ -63,16 +69,16 @@ export default class TSRangeInputComponent extends VueComponentBase {
         let tsstart: Moment = moment(this.tsrange_start).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.field.moduleTableField.segmentation_type));
         let tsend: Moment = moment(this.tsrange_end).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.field.moduleTableField.segmentation_type));
 
-        this.new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, tsstart, tsend, true, false, this.field.moduleTableField.segmentation_type);
+        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, tsstart, tsend, true, false, this.field.moduleTableField.segmentation_type);
         this.$emit('input', this.new_value);
         this.$emit('input_with_infos', this.new_value, this.field, this.vo);
     }
 
     get is_segmentation_mois(): boolean {
-        return this.value && (this.value.segment_type == TimeSegment.TYPE_MONTH);
+        return this.field && this.field.moduleTableField && (this.field.moduleTableField.segmentation_type == TimeSegment.TYPE_MONTH);
     }
 
     get is_segmentation_day(): boolean {
-        return this.value && (this.value.segment_type == TimeSegment.TYPE_DAY);
+        return this.field && this.field.moduleTableField && (this.field.moduleTableField.segmentation_type == TimeSegment.TYPE_DAY);
     }
 }
