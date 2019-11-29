@@ -175,12 +175,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                     return res_numranges;
 
+                case ModuleTableField.FIELD_TYPE_tsrange:
                 case ModuleTableField.FIELD_TYPE_int_array:
-                    return field_value;
-
                 case ModuleTableField.FIELD_TYPE_string_array:
-                    return field_value;
-
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                     return field_value;
 

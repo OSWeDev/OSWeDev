@@ -59,7 +59,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return;
         }
         this.tsrange_start = RangeHandler.getInstance().getSegmentedMin(this.value, this.field.moduleTableField.segmentation_type).toDate();
-        this.tsrange_end = RangeHandler.getInstance().getSegmentedMax(this.value, this.field.moduleTableField.segmentation_type, 1).toDate();
+        this.tsrange_end = RangeHandler.getInstance().getSegmentedMax(this.value, this.field.moduleTableField.segmentation_type).toDate();
     }
 
     @Watch('tsrange_start')
@@ -69,7 +69,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         let tsstart: Moment = moment(this.tsrange_start).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.field.moduleTableField.segmentation_type));
         let tsend: Moment = moment(this.tsrange_end).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.field.moduleTableField.segmentation_type));
 
-        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, tsstart, tsend, true, false, this.field.moduleTableField.segmentation_type);
+        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, tsstart, tsend, true, true, this.field.moduleTableField.segmentation_type);
         this.$emit('input', this.new_value);
         this.$emit('input_with_infos', this.new_value, this.field, this.vo);
     }
