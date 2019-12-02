@@ -1,5 +1,6 @@
 import * as debounce from 'lodash/debounce';
 import ObjectHandler from '../../tools/ObjectHandler';
+import RangeHandler from '../../tools/RangeHandler';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import ModuleDAO from '../DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
@@ -30,7 +31,6 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
-import RangeHandler from '../../tools/RangeHandler';
 
 export default class VarsController {
 
@@ -499,7 +499,8 @@ export default class VarsController {
         param: TDataParam,
         reload_on_register: boolean = false,
         var_callbacks: VarUpdateCallback[] = null,
-        ignore_unvalidated_datas: boolean = false) {
+        ignore_unvalidated_datas: boolean = false,
+        already_register: boolean = false) {
 
         if (!param) {
             return false;
@@ -513,12 +514,14 @@ export default class VarsController {
         if (this.updateSemaphore) {
             let self = this;
             this.actions_waiting_for_release_of_update_semaphore.push(async () => {
-                self.registerDataParam(param, reload_on_register, var_callbacks);
+                self.registerDataParam(param, reload_on_register, var_callbacks, ignore_unvalidated_datas, already_register);
             });
             return false;
         }
 
-        this.varDAG.registerParams([param], reload_on_register, ignore_unvalidated_datas);
+        if (!already_register) {
+            this.varDAG.registerParams([param], reload_on_register, ignore_unvalidated_datas);
+        }
 
         if (!!var_callbacks) {
 
