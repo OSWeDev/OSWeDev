@@ -149,6 +149,31 @@ export default class ObjectHandler {
         return null;
     }
 
+    /**
+     * Returns the path if exists in the object
+     */
+    public getPathInObject(object, path: string): any {
+
+        if ((!path) || (!object)) {
+            return null;
+        }
+
+        let path_elts = path.split('.');
+        let e = object;
+
+        for (let i in path_elts) {
+            let path_elt = path_elts[i];
+
+            if (!e[path_elt]) {
+                return null;
+            }
+            e = e[path_elt];
+        }
+
+        return e;
+    }
+
+
     public filterVosIdsByNumRange<T>(elts_by_id: { [id: number]: T }, range: NumRange): { [id: number]: T } {
         let res: { [id: number]: T } = {};
 

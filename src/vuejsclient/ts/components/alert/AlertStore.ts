@@ -44,7 +44,28 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
         };
 
         this.mutations = {
-            clear_alerts: (state: IAlertState): any => state.alerts = {},
+            clear_alerts: (state: IAlertState): any => {
+                let alerts = state.alerts;
+
+                state.alerts = {};
+
+                for (let i in alerts) {
+                    let path_alerts = alerts[i];
+
+                    for (let j in path_alerts) {
+                        let alert = path_alerts[j];
+
+                        if (alert.pinned) {
+
+                            if (!state.alerts[i]) {
+                                state.alerts[i] = [];
+                            }
+
+                            state.alerts[i].push(alert);
+                        }
+                    }
+                }
+            },
 
             register_alert: (state: IAlertState, alert: Alert) => {
                 if (!state.alerts[alert.path]) {
