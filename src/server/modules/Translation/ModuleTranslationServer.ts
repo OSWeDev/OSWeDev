@@ -434,6 +434,13 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Samedi'
         }, 'label.day.samedi.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'tous'
+        }, 'select_all.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'aucun'
+        }, 'select_none.___LABEL___'));
     }
 
     /**

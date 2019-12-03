@@ -34,6 +34,7 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 let debounce = require('lodash/debounce');
+import './CRUDComponentField.scss';
 
 
 @Component({
@@ -558,5 +559,37 @@ export default class CRUDComponentField extends VueComponentBase {
 
     get random_number(): number {
         return Math.floor(Math.random() * 1000);
+    }
+
+    /**
+     * On est sur un field de type array par définition
+     */
+    private async select_all() {
+        switch (this.field.type) {
+            case DatatableField.REF_RANGES_FIELD_TYPE:
+                this.field_value_refranges_selected_ids = Array.from(this.select_options);
+                break;
+            case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+            case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                this.field_value = Array.from(this.select_options);
+                break;
+        }
+        await this.onChangeField();
+    }
+
+    /**
+     * On est sur un field de type array par définition
+     */
+    private async select_none() {
+        switch (this.field.type) {
+            case DatatableField.REF_RANGES_FIELD_TYPE:
+                this.field_value_refranges_selected_ids = [];
+                break;
+            case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+            case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+                this.field_value = [];
+                break;
+        }
+        await this.onChangeField();
     }
 }

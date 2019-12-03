@@ -2,4 +2,18 @@
     .datatable_field_alert {
         float:right;
     }
+
+    .text_cliquable {
+        display:inline-block;
+        color:blue;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.8em;
+    }
+    
+    .inter_text {
+        display:inline-block;
+        font-size: 0.8em;
+        margin: 0em 0.2em;
+    }
 }
