@@ -29,6 +29,8 @@ import './DatatableComponent.scss';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
 import RefRangesReferenceDatatableField from '../vos/RefRangesReferenceDatatableField';
+import CustomFilterItem from './CustomFilterItem';
+import { isBoolean } from 'util';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -416,25 +418,25 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     private setBooleanFilterOptions(datatable_field_uid: string) {
-        this.custom_filters_options[datatable_field_uid] = [{
-            label: this.t('YES'),
-            value: true,
-            datatable_field_uid: datatable_field_uid
-        },
-        {
-            label: this.t('NO'),
-            value: false,
-            datatable_field_uid: datatable_field_uid
-        }];
+        this.custom_filters_options[datatable_field_uid] = [
+            new CustomFilterItem(this.t('YES'), true, datatable_field_uid),
+            new CustomFilterItem(this.t('NO'), false, datatable_field_uid)
+        ];
     }
 
     private setMultiSelectFilterOptions(datatable_field: DatatableField<any, any>) {
 
-        this.custom_filters_options[datatable_field.datatable_field_uid] = [];
+        this.custom_filters_options[datatable_field.datatable_field_uid] = this.getMultiSelectFilterOptions(datatable_field);
+    }
+
+    private getMultiSelectFilterOptions(datatable_field: DatatableField<any, any>): CustomFilterItem[] {
+
+        let res: CustomFilterItem[] = [];
 
         console.info('setMultiSelectFilterOptions: ' + datatable_field.datatable_field_uid);
 
-        let field_values: string[] = [];
+        let field_values: any[] = [];
+        let ids_marker: any[] = [];
 
         for (let i in this.datatable_data) {
             let data = this.datatable_data[i];
@@ -455,8 +457,9 @@ export default class DatatableComponent extends VueComponentBase {
 
                     for (let j in field_value) {
 
-                        if (field_values.indexOf(field_value[j]) < 0) {
+                        if (ids_marker.indexOf(field_value[j]['id']) < 0) {
                             field_values.push(field_value[j]);
+                            ids_marker.push(field_value[j]['id']);
                         }
                     }
                     break;
@@ -482,23 +485,25 @@ export default class DatatableComponent extends VueComponentBase {
             switch (datatable_field.type) {
                 case ManyToOneReferenceDatatableField.REF_RANGES_FIELD_TYPE:
                 case OneToManyReferenceDatatableField.MANY_TO_ONE_FIELD_TYPE:
-                    this.custom_filters_options[datatable_field.datatable_field_uid].push({
-                        label: (field_values[i] && field_values[i] != '') ? field_values[i] : '-',
-                        value: field_values[i],
-                        datatable_field_uid: datatable_field.datatable_field_uid
-                    });
+                    res.push(new CustomFilterItem(
+                        (field_values[i] && field_values[i] != '') ? field_values[i] : '-',
+                        field_values[i],
+                        datatable_field.datatable_field_uid
+                    ));
                     break;
                 case ManyToOneReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE:
                 case ManyToManyReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE:
 
-                    this.custom_filters_options[datatable_field.datatable_field_uid].push({
-                        label: (field_values[i] && field_values[i] != '') ? field_values[i]['label'] : '-',
-                        value: field_values[i]['id'],
-                        datatable_field_uid: datatable_field.datatable_field_uid
-                    });
+                    res.push(new CustomFilterItem(
+                        (field_values[i] && field_values[i] != '') ? field_values[i]['label'] : '-',
+                        field_values[i]['id'],
+                        datatable_field.datatable_field_uid
+                    ));
                     break;
             }
         }
+
+        return res;
     }
 
     private changeTextFilterValue(datatable_field_uid: string) {
@@ -1019,8 +1024,15 @@ export default class DatatableComponent extends VueComponentBase {
 
                             switch (simpleField.moduleTableField.field_type) {
                                 case ModuleTableField.FIELD_TYPE_boolean:
+
+                                    if ((query == null) || (typeof query == 'undefined')) {
+                                        return true;
+                                    }
+
                                     let istrue: boolean = (query == 'VRAI');
-                                    return (row[field.datatable_field_uid] && istrue) || ((!row[field.datatable_field_uid]) && !istrue);
+
+                                    let data_is_true = (!!row[field.datatable_field_uid]) && ((row[field.datatable_field_uid] == 'true') || (isBoolean(row[field.datatable_field_uid])));
+                                    return (data_is_true && istrue) || ((!data_is_true) && !istrue);
 
                                 case ModuleTableField.FIELD_TYPE_daterange:
                                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
@@ -1312,5 +1324,28 @@ export default class DatatableComponent extends VueComponentBase {
                 delete this.selected_datas[this.datatable_data[i].id];
             }
         }
+    }
+
+    private multiselectOptionLabel(filter_item: CustomFilterItem): string {
+        if ((filter_item == null) || (typeof filter_item == 'undefined')) {
+            return '';
+        }
+
+        return filter_item.label;
+    }
+
+    private updateMultiSelectFilterOptions(query, datatable_field) {
+        let options = this.getMultiSelectFilterOptions(datatable_field);
+        let res: CustomFilterItem[] = [];
+
+        for (let i in options) {
+            let option = options[i];
+
+            if ((new RegExp('.*' + query + '.*', 'i')).test(option.label)) {
+                res.push(option);
+            }
+        }
+
+        this.custom_filters_options[datatable_field.datatable_field_uid] = res;
     }
 }

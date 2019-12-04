@@ -199,6 +199,9 @@ export default class ModuleTableDBService {
         for (let i = 0; i < moduleTable.get_fields().length; i++) {
             let field = moduleTable.get_fields()[i];
 
+            if (field.field_type != ModuleTableField.FIELD_TYPE_foreign_key) {
+                continue;
+            }
             if (field.has_relation) {
                 pgSQL += ', ' + field.getPGSqlFieldConstraint();
             }

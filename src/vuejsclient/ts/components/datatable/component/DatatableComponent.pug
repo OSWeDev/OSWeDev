@@ -26,10 +26,69 @@ v-client-table(
         input.form-control.d-print-none(type="text" v-model="custom_filters_values[field.datatable_field_uid]")
 
     template(v-for="field in multiselect_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable')
-        v-select.v-select-multiple.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", multiple, :options="custom_filters_options[field.datatable_field_uid]")
+        //- v-select.v-select-multiple.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", multiple, :options="custom_filters_options[field.datatable_field_uid]")
+        template(v-if="custom_filters_options[field.datatable_field_uid]")
+            multiselect.d-print-none(
+                v-model="custom_filters_values[field.datatable_field_uid]"
+                :multiple="true"
+                :options="custom_filters_options[field.datatable_field_uid]"
+                :custom-label="multiselectOptionLabel"
+                :allow-empty="true"
+                :selectLabel='label("multiselect.selectLabel")'
+                :selectGroupLabel='label("multiselect.selectGroupLabel")'
+                :selectedLabel='label("multiselect.selectedLabel")'
+                :deselectLabel='label("multiselect.deselectLabel")'
+                :deselectGroupLabel='label("multiselect.deselectGroupLabel")'
+                :placeholder="t(field.translatable_place_holder)"
+                :preselectFirst="false"
+                :disabled="false"
+                :loading="false"
+                track-by="id"
+                :id="'filter__' + field.datatable_field_uid",
+            )
+
+        //- v-model="field_value_refranges_selected_ids",
+        //- :options="select_options",
+        //- @input="onChangeField"
+
+
+        //- :searchable="true",
+        //- :internal-search="false",
+        //- @search-change="asyncLoadOptions",
+
+        //- :searchable="true"
+        //- :internal-search="false"
+        //- @search-change="(query) => updateMultiSelectFilterOptions(query, field)"
+
+        //- :preselectFirst="false",
+        //- :multiple="true",
+        //- v-model="field_value_refranges_selected_ids",
+        //- :custom-label="field.voIdToHumanReadable",
+        //- :options="select_options",
+        //- :placeholder="t(field.translatable_place_holder)",
+        //- :loading="isLoadingOptions",
+        //- :id="field.datatable_field_uid",
+        //- :searchable="true",
+        //- :internal-search="false",
+        //- :allow-empty="!field.is_required",
+        //- :disabled="field.is_readonly",
+        //- @search-change="asyncLoadOptions",
+        //- @input="onChangeField"
 
     template(v-for="field in boolean_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable')
-        v-select.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", :options="custom_filters_options[field.datatable_field_uid]")
+        //- v-select.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", :options="custom_filters_options[field.datatable_field_uid]")
+        multiselect.d-print-none(
+            v-if="custom_filters_options[field.datatable_field_uid]"
+            v-model="custom_filters_values[field.datatable_field_uid]"
+            :placeholder="t(field.translatable_place_holder)"
+            :options="custom_filters_options[field.datatable_field_uid]"
+            :custom-label="multiselectOptionLabel"
+            :selectLabel='label("multiselect.selectLabel")'
+            :selectGroupLabel='label("multiselect.selectGroupLabel")'
+            :selectedLabel='label("multiselect.selectedLabel")'
+            :deselectLabel='label("multiselect.deselectLabel")'
+            :deselectGroupLabel='label("multiselect.deselectGroupLabel")'
+        )
 
     template(v-for="field in datatable.fields" :slot="field.datatable_field_uid" slot-scope="props")
         DatatableComponentField(

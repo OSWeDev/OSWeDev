@@ -79,6 +79,8 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     private filter_state_selectable: number = DataFilterOption.STATE_SELECTABLE;
     private filter_state_unselectable: number = DataFilterOption.STATE_UNSELECTABLE;
 
+    private actual_query: string = null;
+
     get filter_options(): DataFilterOption[] {
         let res: DataFilterOption[] = [];
 
@@ -98,7 +100,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
                 continue;
             }
 
-            res.push(new DataFilterOption(DataFilterOption.STATE_SELECTABLE, this.get_label(vo), vo.id));
+            let label = this.get_label(vo);
+            if (((!!this.actual_query) && (new RegExp('.*' + this.actual_query + '.*', 'i')).test(label)) || (!this.actual_query)) {
+
+                res.push(new DataFilterOption(DataFilterOption.STATE_SELECTABLE, label, vo.id));
+            }
         }
 
         DataFilterOptionsHandler.getInstance().sort_options(res);
@@ -119,6 +125,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     public async onRouteChange() {
         try {
             this.tmp_filter_active_options = this.filter_active_options;
+            this.actual_query = null;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
@@ -126,6 +133,7 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     @Watch('filter_active_options')
     public async onchange_filter_active_options() {
+        this.actual_query = null;
         if (!isEqual(this.tmp_filter_active_options, this.filter_active_options)) {
             if (!this.filter_active_options || !this.filter_active_options.length) {
                 let res = this.$store.state[this.store_module_uid][this.internal_store_all_by_ids_state_uid];
@@ -254,5 +262,17 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     get internal_store_all_by_ids_state_uid(): string {
         return 'all_' + this.api_type_id + '_by_ids';
+    }
+
+    private multiselectOptionLabel(filter_item: DataFilterOption): string {
+        if ((filter_item == null) || (typeof filter_item == 'undefined')) {
+            return '';
+        }
+
+        return filter_item.label;
+    }
+
+    private updateMultiSelectFilterOptions(query) {
+        this.actual_query = query;
     }
 }

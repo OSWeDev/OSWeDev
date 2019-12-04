@@ -153,6 +153,13 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
+    get alert_path(): string {
+        if (!this.moduleTable) {
+            return this.datatable_field_uid;
+        }
+        return this.moduleTable.full_name + '.' + this.datatable_field_uid;
+    }
+
     public abstract setModuleTable(moduleTable: ModuleTable<any>): DatatableField<T, U>;
 
     /**

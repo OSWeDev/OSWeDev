@@ -134,13 +134,6 @@ export default class ModuleTableField<T> {
         this.target_field = null;
     }
 
-    public get_alert_path(): string {
-        if (!this.module_table) {
-            return null;
-        }
-        return this.module_table.full_name + '.' + this.field_id;
-    }
-
     public set_segmentation_type(segmentation_type: number): ModuleTableField<T> {
         this.segmentation_type = segmentation_type;
         return this;
@@ -256,6 +249,10 @@ export default class ModuleTableField<T> {
         if (!this.has_relation) {
             return null;
         }
+        if (this.field_type != ModuleTableField.FIELD_TYPE_foreign_key) {
+            return null;
+        }
+
         return 'CONSTRAINT ' + this.field_id + '_fkey FOREIGN KEY (' + this.field_id + ') ' +
             'REFERENCES ' + this.target_database + '.' + this.target_table + ' (' + this.target_field + ') MATCH SIMPLE ' +
             'ON UPDATE NO ACTION ON DELETE CASCADE';

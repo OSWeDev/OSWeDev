@@ -441,6 +441,22 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'aucun'
         }, 'select_none.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Sélectionner'
+        }, 'multiselect.selectLabel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Sélectionner'
+        }, 'multiselect.selectGroupLabel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Sélectionné'
+        }, 'multiselect.selectedLabel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Dé-sélectionner'
+        }, 'multiselect.deselectLabel.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Dé-sélectionner'
+        }, 'multiselect.deselectGroupLabel.___LABEL___'));
     }
 
     /**

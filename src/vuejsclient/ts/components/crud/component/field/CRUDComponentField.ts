@@ -2,6 +2,8 @@ import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
@@ -13,14 +15,12 @@ import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import Datatable from '../../../datatable/vos/Datatable';
 import DatatableField from '../../../datatable/vos/DatatableField';
-import ManyToManyReferenceDatatableField from '../../../datatable/vos/ManyToManyReferenceDatatableField';
 import ManyToOneReferenceDatatableField from '../../../datatable/vos/ManyToOneReferenceDatatableField';
-import OneToManyReferenceDatatableField from '../../../datatable/vos/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../../datatable/vos/ReferenceDatatableField';
-import RefRangesReferenceDatatableField from '../../../datatable/vos/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
@@ -30,11 +30,8 @@ import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
-import RangeHandler from '../../../../../../shared/tools/RangeHandler';
-import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
-import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
-let debounce = require('lodash/debounce');
 import './CRUDComponentField.scss';
+let debounce = require('lodash/debounce');
 
 
 @Component({
@@ -99,29 +96,41 @@ export default class CRUDComponentField extends VueComponentBase {
     /**
      * TODO FIXME : gérer tous les cas pas juste les simple datatable field
      */
-    get alert_path(): string {
-        let field = null;
+    // get alert_path(): string {
+    //     let field = null;
 
-        switch (this.field.type) {
-            case DatatableField.MANY_TO_ONE_FIELD_TYPE:
-                field = (this.field as ManyToOneReferenceDatatableField<any>).srcField;
-                break;
-            case DatatableField.ONE_TO_MANY_FIELD_TYPE:
-                field = (this.field as OneToManyReferenceDatatableField<any>).destField;
-                break;
-            case DatatableField.MANY_TO_MANY_FIELD_TYPE:
-                field = (this.field as ManyToManyReferenceDatatableField<any, any>).interModuleTable.getFieldFromId('id');
-                break;
-            case DatatableField.REF_RANGES_FIELD_TYPE:
-                field = (this.field as RefRangesReferenceDatatableField<any>).srcField;
-                break;
-            default:
-            case DatatableField.SIMPLE_FIELD_TYPE:
-                field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
-                break;
+    //     switch (this.field.type) {
+    //         // case DatatableField.MANY_TO_ONE_FIELD_TYPE:
+    //         //     field = (this.field as ManyToOneReferenceDatatableField<any>).srcField;
+    //         //     break;
+    //         // case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+    //         //     field = (this.field as OneToManyReferenceDatatableField<any>).destField;
+    //         //     break;
+    //         // case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+    //         //     field = (this.field as ManyToManyReferenceDatatableField<any, any>).interModuleTable.getFieldFromId('id');
+    //         //     break;
+    //         // case DatatableField.REF_RANGES_FIELD_TYPE:
+    //         //     field = (this.field as RefRangesReferenceDatatableField<any>).srcField;
+    //         //     break;
+    //         // case DatatableField.SIMPLE_FIELD_TYPE:
+    //         //     field = (this.field as SimpleDatatableField<any, any>).datatable_field_uid;
+    //         //     break;
+    //         default:
+    //             field = (this.field as SimpleDatatableField<any, any>).datatable_field_uid;
+    //             break;
+    //     }
+
+
+
+    get alert_path(): string {
+        if (!this.field) {
+            return null;
         }
-        return field.get_alert_path();
+
+        return this.field.alert_path;
     }
+
+
 
     get is_segmented_day_tsrange_array() {
         let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
