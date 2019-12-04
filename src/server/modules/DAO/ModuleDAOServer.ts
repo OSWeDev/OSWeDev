@@ -1497,6 +1497,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         ranges_query += '\'' + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + '\'';
                         ranges_query_type = '::numrange';
                         break;
+
+                    case ModuleTableField.FIELD_TYPE_geopoint:
+                        // TODO
+                        break;
                 }
                 ranges_query += '' + ranges_query_type + ')';
 
@@ -1529,6 +1533,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     case ModuleTableField.FIELD_TYPE_timestamp: // TODO FIXME
                     case ModuleTableField.FIELD_TYPE_timewithouttimezone: // TODO FIXME
                         where_clause += field.field_id + " <@ " + ranges_query;
+                        break;
+                    case ModuleTableField.FIELD_TYPE_geopoint:
+                        // TODO
                         break;
                     case ModuleTableField.FIELD_TYPE_int_array:
                     case ModuleTableField.FIELD_TYPE_isoweekdays:
@@ -1638,6 +1645,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                                         break;
                                     }
                                 }
+                            case ModuleTableField.FIELD_TYPE_geopoint:
+                                // TODO
+                                break;
                         }
                     }
 
@@ -1834,6 +1844,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                             where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + (field_range.min as Duration).asMilliseconds() + "," + (field_range.max as Duration).asMilliseconds() + (field_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
                             break;
 
+                        case ModuleTableField.FIELD_TYPE_geopoint:
+                            // TODO
+                            break;
                         // case ModuleTableField.FIELD_TYPE_daterange_array:
                         //     where_clause += "'" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(field_range.min) + "," + DateHandler.getInstance().formatDayForIndex(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "'::daterange @> ANY (" + field.field_id + "::daterange[])";
                         //     break;

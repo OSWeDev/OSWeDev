@@ -1,16 +1,16 @@
 .form-group(:class="field_type")
-    label(v-if="show_title") {{ t(field.translatable_title) }}
+    label(v-if="show_title", :for="field.datatable_field_uid") {{ t(field.translatable_title) }}
         template(v-if="field.is_required")
             i.fa.fa-asterisk.mandatory
     template(v-if="field_type == 'password'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'text'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'translatable_text'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'boolean'")
         template(v-if="field.is_required")
-            input(type="checkbox" v-model="field_value" :disabled="field.is_readonly" @input="validateInput($event.target)")
+            input(type="checkbox" v-model="field_value" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
         template(v-else)
             .form-check
                 input.form-check-input(type="radio" v-model="field_value" :value="null" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___N_A_' + random_number" @input="validateInput($event.target)")
@@ -22,75 +22,75 @@
                 input.form-check-input(type="radio" v-model="field_value" :value="false" :disabled="field.is_readonly" :id="'materialChecked_' + field.datatable_field_uid + '___FALSE_' + random_number" @input="validateInput($event.target)")
                 label.form-check-label(:for="'materialChecked_' + field.datatable_field_uid + '___FALSE_' + random_number") {{ label('crud.field.boolean.false') }}
     template(v-else-if="field_type == 'number'")
-        input.form-control(type="number" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="number" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'amount'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'float'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'pct'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'HourAndMinuteWithoutLimit'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'HourAndMinute'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="(field_type == 'date') || (field_type == 'day')")
-        input.form-control(type="date" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="date" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'month'")
-        input.form-control(type="month" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="month" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'daterange'")
-        input.form-control(type="date" v-model="field_value_range[field.datatable_field_uid + '_start']" :disabled="field.is_readonly" @input="updateDateRange($event.target)")
-        input.form-control(type="date" v-model="field_value_range[field.datatable_field_uid + '_end']" :disabled="field.is_readonly" @input="updateDateRange($event.target)")
+        input.form-control(type="date" v-model="field_value_range[field.datatable_field_uid + '_start']" :disabled="field.is_readonly" @input="updateDateRange($event.target)" :id="field.datatable_field_uid")
+        input.form-control(type="date" v-model="field_value_range[field.datatable_field_uid + '_end']" :disabled="field.is_readonly" @input="updateDateRange($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'daterange[]'")
         // FIXME TODO ASAP
     // FIXME TODO ASAP field_type == 'tstzrange[]' autres segmentations
     template(v-else-if="is_segmented_day_tsrange_array")
         TSRangesInputComponent(
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="field.is_readonly"  @input_with_infos="validateSimpleInput")
+            :disabled="field.is_readonly"  @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
 
     template(v-else-if="field_type == 'numrange[]'")
         // FIXME TODO ASAP
     template(v-else-if="field_type == 'isoweekdays'")
         IsoWeekDaysInputComponent(
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="field.is_readonly"  @input_with_infos="validateSimpleInput")
+            :disabled="field.is_readonly"  @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
 
     template(v-else-if="field_type == 'hourrange[]'")
         MultiInputComponent(
             :custom_field_component="hourrange_input_component"
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="field.is_readonly" type_input="custom" @input_with_infos="validateMultiInput")
+            :disabled="field.is_readonly" type_input="custom" @input_with_infos="validateMultiInput" :id="field.datatable_field_uid")
                 
     template(v-else-if="field_type == 'hourrange'")
         HourrangeInputComponent(
             v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
-            :disabled="field.is_readonly" @input_with_infos="validateSimpleInput")
+            :disabled="field.is_readonly" @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
 
     template(v-else-if="field_type == 'hour'")
         // FIXME TODO ASAP
         
     template(v-else-if="field_type == 'tstz'")
         template(v-if="segmentation_type == 0")
-            input.form-control(type="number" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+            input.form-control(type="number" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
         template(v-else-if="segmentation_type == 1")
-            input.form-control(type="month" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+            input.form-control(type="month" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
         template(v-else-if="segmentation_type >= 2")
-            input.form-control(type="date" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+            input.form-control(type="date" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
 
     template(v-else-if="field_type == 'tsrange'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'timestamp'")
-        input.form-control(type="number" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="number" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'html'")
-        quill-editor(v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        quill-editor(v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="(field_type == 'file')&&(vo._type == 'file')")
-        FileComponent(:filevo="vo" @uploaded="uploadedFile(...arguments)")
+        FileComponent(:filevo="vo" @uploaded="uploadedFile(...arguments)" :id="field.datatable_field_uid")
     template(v-else-if="(field_type == 'image')&&(vo._type == 'image')")
-        ImageComponent(:filevo="vo" @uploaded="uploadedFile(...arguments)")
+        ImageComponent(:filevo="vo" @uploaded="uploadedFile(...arguments)", :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'timewithouttimezone'")
-        input.form-control(type="time" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="time" v-model="field_value" :id="field.datatable_field_uid", :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
     template(v-else-if="field_type == 'unix_timestamp'")
-        input.form-control(type="text" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
+        input.form-control(type="text" v-model="field_value" :id="field.datatable_field_uid", :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)")
     template(v-else-if="field_type == 'enum'")
         multiselect(
             v-model="field_value"
@@ -106,13 +106,14 @@
             @search-change="asyncLoadEnumOptions",
             @input="onChangeField")
     template(v-else-if="field_type == 'number[]'")
-        MultiInputComponent(v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="number", @input_with_infos="validateMultiInput")
+        MultiInputComponent(v-model="field_value", :id="field.datatable_field_uid",, :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="number", @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'text[]'")
-        MultiInputComponent(v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input_with_infos="validateMultiInput")
+        MultiInputComponent(v-model="field_value", :id="field.datatable_field_uid",, :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'html[]'")
-        MultiInputComponent(:use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input_with_infos="validateMultiInput")
+        MultiInputComponent(:id="field.datatable_field_uid",, :use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="field.is_readonly", type_input="text", @input_with_infos="validateMultiInput")
     template(v-else-if="is_custom_field_type && custom_field_types[field_type].create_update_component")
         .custom_read_field_component(
+            :id="field.datatable_field_uid",
             :is="custom_field_types[field_type].create_update_component",
             :vo="vo",
             :field="field",

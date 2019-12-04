@@ -1,7 +1,7 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueAppController from '../../../VueAppController';
@@ -75,6 +75,7 @@ export default class ImageComponent extends VueComponentBase {
             createImageThumbnails: true,
             maxFiles: 1,
             clickable: true,
+            timeout: 3600000,
             dictDefaultMessage: self.label('dropzone.dictDefaultMessage'),
             dictFallbackMessage: self.label('dropzone.dictFallbackMessage'),
             dictFallbackText: self.label('dropzone.dictFallbackText'),

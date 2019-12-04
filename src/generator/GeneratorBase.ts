@@ -23,6 +23,7 @@ import Patch20191008ChangeDILDateType from './patchs/premodules/Patch20191008Cha
 import Patch20191008SupprimerTacheReimport from './patchs/premodules/Patch20191008SupprimerTacheReimport';
 import Patch20191010CheckBasicSchemas from './patchs/premodules/Patch20191010CheckBasicSchemas';
 import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112CheckExtensions';
+import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
 
 export default abstract class GeneratorBase {
 
@@ -54,6 +55,7 @@ export default abstract class GeneratorBase {
             Patch20191008ChangeDIHDateType.getInstance(),
             Patch20191008ChangeDILDateType.getInstance(),
             Patch20191008SupprimerTacheReimport.getInstance(),
+            Patch20191202GeoPoint.getInstance(),
         ];
 
         this.post_modules_workers = [
