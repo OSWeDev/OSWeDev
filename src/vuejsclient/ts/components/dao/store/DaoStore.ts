@@ -125,6 +125,18 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
                 }
             },
 
+            storeMultipleDatasByIds(state: IDAOState, infos: Array<{ API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }>) {
+
+                for (let i in infos) {
+                    let info = infos[i];
+
+                    Vue.set(state.storedDatasArray, info.API_TYPE_ID, info.vos_by_ids);
+                    if (state.typeWatchers[info.API_TYPE_ID]) {
+                        callWatchers(state.typeWatchers[info.API_TYPE_ID]);
+                    }
+                }
+            },
+
             removeData(state: IDAOState, infos: { API_TYPE_ID: string, id: number }) {
 
                 if (!infos.API_TYPE_ID) {
@@ -166,6 +178,9 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
             storeDatasByIds(context: DAOContext, infos: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) {
                 commitStoreDatasByIds(context, infos);
             },
+            storeMultipleDatasByIds(context: DAOContext, infos: Array<{ API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }>) {
+                commit_storeMultipleDatasByIds(context, infos);
+            },
             removeData(context: DAOContext, infos: { API_TYPE_ID: string, id: number }) {
                 commitRemoveData(context, infos);
             },
@@ -189,3 +204,4 @@ export const commitStoreDatas = commit(DAOStore.getInstance().mutations.storeDat
 export const commitRemoveData = commit(DAOStore.getInstance().mutations.removeData);
 export const commitUpdateData = commit(DAOStore.getInstance().mutations.updateData);
 export const commitStoreDatasByIds = commit(DAOStore.getInstance().mutations.storeDatasByIds);
+export const commit_storeMultipleDatasByIds = commit(DAOStore.getInstance().mutations.storeMultipleDatasByIds);

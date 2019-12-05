@@ -108,6 +108,8 @@
             :preselectFirst="field.is_required",
             @search-change="asyncLoadEnumOptions",
             @input="onChangeField"
+
+            :placeholder="t(field.translatable_place_holder)",
             
             :selectLabel='label("multiselect.selectLabel")'
             :selectGroupLabel='label("multiselect.selectGroupLabel")'

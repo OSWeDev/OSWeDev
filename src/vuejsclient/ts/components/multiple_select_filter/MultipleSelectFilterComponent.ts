@@ -275,4 +275,8 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     private updateMultiSelectFilterOptions(query) {
         this.actual_query = query;
     }
+
+    private select_none() {
+        this.tmp_filter_active_options = [];
+    }
 }
