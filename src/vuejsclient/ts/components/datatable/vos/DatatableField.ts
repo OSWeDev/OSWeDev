@@ -89,6 +89,13 @@ export default abstract class DatatableField<T, U> {
         return this;
     }
 
+    public show(): DatatableField<T, U> {
+        this.hidden = false;
+        this.hidden_print = false;
+
+        return this;
+    }
+
     public hide_print(): DatatableField<T, U> {
         this.hidden_print = true;
 
