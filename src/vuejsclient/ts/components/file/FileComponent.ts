@@ -1,10 +1,10 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
-import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 import VueAppController from '../../../VueAppController';
 
 @Component({
@@ -89,6 +89,7 @@ export default class FileComponent extends VueComponentBase {
             createImageThumbnails: true,
             maxFiles: 1,
             clickable: true,
+            timeout: 3600000,
             dictDefaultMessage: self.label('dropzone.dictDefaultMessage'),
             dictFallbackMessage: self.label('dropzone.dictFallbackMessage'),
             dictFallbackText: self.label('dropzone.dictFallbackText'),

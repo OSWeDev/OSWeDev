@@ -1,10 +1,8 @@
-import * as $ from 'jquery';
 import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import IImportedData from '../../../../../shared/modules/DataImport/interfaces/IImportedData';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportFormatVO from '../../../../../shared/modules/DataImport/vos/DataImportFormatVO';
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
@@ -15,10 +13,10 @@ import { ModuleDAOAction, ModuleDAOGetter } from '../../../../ts/components/dao/
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import VueAppController from '../../../../VueAppController';
 import FileComponent from '../../file/FileComponent';
+import DataImportComponentBase from '../base/DataImportComponentBase';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import { ModuleDataImportAction, ModuleDataImportGetter } from '../store/DataImportStore';
 import './NoSegmentDataImportComponent.scss';
-import DataImportComponentBase from '../base/DataImportComponentBase';
 
 @Component({
     template: require('./NoSegmentDataImportComponent.pug'),
@@ -821,6 +819,7 @@ export default class NoSegmentDataImportComponent extends DataImportComponentBas
         return {
             createImageThumbnails: false,
             acceptedFiles: self.acceptedFiles,
+            timeout: 3600000,
             error: (infos, error_message) => {
                 self.snotify.error(error_message);
             },

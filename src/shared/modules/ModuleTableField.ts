@@ -517,6 +517,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_hourrange:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+            case ModuleTableField.FIELD_TYPE_geopoint:
                 return null;
 
             default:

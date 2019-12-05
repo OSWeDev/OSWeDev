@@ -1078,6 +1078,7 @@ export default class DataImportComponent extends DataImportComponentBase {
         return {
             createImageThumbnails: false,
             acceptedFiles: self.acceptedFiles,
+            timeout: 3600000,
             error: (infos, error_message) => {
                 self.snotify.error(error_message);
             },
@@ -1100,6 +1101,7 @@ export default class DataImportComponent extends DataImportComponentBase {
                 return {
                     createImageThumbnails: false,
                     acceptedFiles: self.acceptedFiles,
+                    timeout: 3600000,
                     error: (infos, error_message) => {
                         self.snotify.error(error_message);
                     },
