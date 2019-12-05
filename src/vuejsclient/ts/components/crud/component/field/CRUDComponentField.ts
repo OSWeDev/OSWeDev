@@ -387,7 +387,7 @@ export default class CRUDComponentField extends VueComponentBase {
             for (let j in options) {
                 let option = options[j];
 
-                if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(option.id) >= 0) {
+                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
                 }
             }
@@ -406,7 +406,7 @@ export default class CRUDComponentField extends VueComponentBase {
                 for (let j in simpleField.moduleTableField.enum_values) {
                     let id: number = parseInt(j.toString());
 
-                    if ((!this.field_select_options_enabled) || (this.field_select_options_enabled.indexOf(id) >= 0)) {
+                    if ((!this.select_options_enabled) || (this.select_options_enabled.indexOf(id) >= 0)) {
                         newOptions.push(id);
                     }
                 }
@@ -443,7 +443,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
             if ((manyToOne.dataToHumanReadable(option)).match(new RegExp(query, 'i'))) {
 
-                if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(option.id) >= 0) {
+                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
                 }
             }
@@ -470,7 +470,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
             if ((simpleField.enumIdToHumanReadable(parseInt(i))).match(new RegExp(query, 'i'))) {
 
-                if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(parseInt(i)) >= 0) {
+                if (!this.select_options_enabled || this.select_options_enabled.indexOf(parseInt(i)) >= 0) {
                     newOptions.push(parseInt(i));
                 }
             }
@@ -510,7 +510,7 @@ export default class CRUDComponentField extends VueComponentBase {
             for (let j in options) {
                 let option = options[j];
 
-                if (!this.field_select_options_enabled || this.field_select_options_enabled.indexOf(option.id) >= 0) {
+                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
                     newOptions.push(option.id);
                 }
             }
@@ -600,5 +600,9 @@ export default class CRUDComponentField extends VueComponentBase {
                 break;
         }
         await this.onChangeField();
+    }
+
+    get select_options_enabled(): number[] {
+        return (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
     }
 }
