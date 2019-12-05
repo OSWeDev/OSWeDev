@@ -21,6 +21,9 @@ export default class HourrangeInputComponent extends VueComponentBase {
     @Prop({ default: false })
     private disabled: boolean;
 
+    @Prop({ default: true })
+    private auto_next_day: boolean;
+
     @Prop({ default: null })
     private value: HourRange;
 
@@ -38,7 +41,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
     @Watch('value', { immediate: true })
     private async onchange_value(): Promise<void> {
 
-        if (this.new_value == this.value) {
+        if (RangeHandler.getInstance().is_same(this.new_value, this.value)) {
             return;
         }
 
@@ -59,6 +62,10 @@ export default class HourrangeInputComponent extends VueComponentBase {
 
         let hourstart: Duration = HourHandler.getInstance().formatHourFromIHM(this.hourrange_start, this.field.moduleTableField.segmentation_type);
         let hourend: Duration = HourHandler.getInstance().formatHourFromIHM(this.hourrange_end, this.field.moduleTableField.segmentation_type);
+
+        if (this.auto_next_day && hourend && (hourend.milliseconds <= hourstart.milliseconds)) {
+            hourend.add(24, 'hours');
+        }
 
         this.new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.field.moduleTableField.segmentation_type);
         this.$emit('input', this.new_value);
