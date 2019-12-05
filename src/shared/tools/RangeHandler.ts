@@ -1,5 +1,6 @@
 import * as clonedeep from 'lodash/cloneDeep';
 import { Moment } from 'moment';
+import { isArray } from 'util';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import ISegment from '../modules/DataRender/interfaces/ISegment';
 import HourRange from '../modules/DataRender/vos/HourRange';
@@ -16,7 +17,6 @@ import HourSegmentHandler from './HourSegmentHandler';
 import NumSegmentHandler from './NumSegmentHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
 import moment = require('moment');
-import { isArray } from 'util';
 
 export default class RangeHandler {
 
@@ -206,7 +206,7 @@ export default class RangeHandler {
      * @param range_a
      * @param range_b
      */
-    public isStartABeforeStartB<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public isStartABeforeStartB<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type?: number): boolean {
         if ((!range_a) || (!range_b)) {
             return false;
         }
@@ -215,7 +215,7 @@ export default class RangeHandler {
             return false;
         }
 
-        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMin(range_a), this.getSegmentedMin(range_b));
+        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMin(range_a, segment_type), this.getSegmentedMin(range_b, segment_type));
     }
 
 
@@ -223,7 +223,7 @@ export default class RangeHandler {
      * @param range_a
      * @param range_b
      */
-    public isStartASameStartB<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public isStartASameStartB<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type?: number): boolean {
         if ((!range_a) || (!range_b)) {
             return false;
         }
@@ -232,14 +232,14 @@ export default class RangeHandler {
             return false;
         }
 
-        return this.is_elt_equals_elt(range_a.range_type, this.getSegmentedMin(range_a), this.getSegmentedMin(range_b));
+        return this.is_elt_equals_elt(range_a.range_type, this.getSegmentedMin(range_a, segment_type), this.getSegmentedMin(range_b, segment_type));
     }
 
     /**
      * @param range_a
      * @param range_b
      */
-    public isEndABeforeEndB<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public isEndABeforeEndB<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type?: number): boolean {
         if ((!range_a) || (!range_b)) {
             return false;
         }
@@ -248,14 +248,14 @@ export default class RangeHandler {
             return false;
         }
 
-        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMax(range_a), this.getSegmentedMax(range_b));
+        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMax(range_a, segment_type), this.getSegmentedMax(range_b, segment_type));
     }
 
     /**
      * @param range_a
      * @param range_b
      */
-    public isEndASameEndB<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public isEndASameEndB<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type?: number): boolean {
         if ((!range_a) || (!range_b)) {
             return false;
         }
@@ -264,14 +264,14 @@ export default class RangeHandler {
             return false;
         }
 
-        return this.is_elt_equals_elt(range_a.range_type, this.getSegmentedMax(range_a), this.getSegmentedMax(range_b));
+        return this.is_elt_equals_elt(range_a.range_type, this.getSegmentedMax(range_a, segment_type), this.getSegmentedMax(range_b, segment_type));
     }
 
     /**
      * @param range_a
      * @param range_b
      */
-    public isStartABeforeEndB<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public isStartABeforeEndB<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type?: number): boolean {
         if ((!range_a) || (!range_b)) {
             return false;
         }
@@ -280,14 +280,14 @@ export default class RangeHandler {
             return false;
         }
 
-        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMin(range_a), this.getSegmentedMax(range_b));
+        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMin(range_a, segment_type), this.getSegmentedMax(range_b, segment_type));
     }
 
     /**
      * @param range_a
      * @param range_b
      */
-    public isStartASameEndB<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public isStartASameEndB<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type?: number): boolean {
         if ((!range_a) || (!range_b)) {
             return false;
         }
@@ -296,7 +296,7 @@ export default class RangeHandler {
             return false;
         }
 
-        return this.is_elt_equals_elt(range_a.range_type, this.getSegmentedMin(range_a), this.getSegmentedMax(range_b));
+        return this.is_elt_equals_elt(range_a.range_type, this.getSegmentedMin(range_a, segment_type), this.getSegmentedMax(range_b, segment_type));
     }
 
     /**
@@ -319,19 +319,19 @@ export default class RangeHandler {
      * @param range_a
      * @param range_b
      */
-    public range_intersects_range<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public range_intersects_range<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type?: number): boolean {
 
         if ((!range_a) || (!range_b)) {
             return false;
         }
 
-        if ((this.isStartABeforeStartB(range_a, range_b) || this.isStartASameStartB(range_a, range_b)) &&
-            (this.isStartABeforeEndB(range_b, range_a) || this.isStartASameEndB(range_b, range_a))) {
+        if ((this.isStartABeforeStartB(range_a, range_b, segment_type) || this.isStartASameStartB(range_a, range_b, segment_type)) &&
+            (this.isStartABeforeEndB(range_b, range_a, segment_type) || this.isStartASameEndB(range_b, range_a, segment_type))) {
             return true;
         }
 
-        if ((this.isStartABeforeStartB(range_b, range_a) || this.isStartASameStartB(range_b, range_a)) &&
-            (this.isStartABeforeEndB(range_a, range_b) || this.isStartASameEndB(range_a, range_b))) {
+        if ((this.isStartABeforeStartB(range_b, range_a, segment_type) || this.isStartASameStartB(range_b, range_a, segment_type)) &&
+            (this.isStartABeforeEndB(range_a, range_b, segment_type) || this.isStartASameEndB(range_a, range_b, segment_type))) {
             return true;
         }
 
@@ -615,13 +615,13 @@ export default class RangeHandler {
      * @param range_to_cut
      */
 
-    public cut_range<T, U extends IRange<T>>(range_cutter: U, range_to_cut: U): RangesCutResult<U> {
+    public cut_range<T, U extends IRange<T>>(range_cutter: U, range_to_cut: U, segment_type?: number): RangesCutResult<U> {
 
         if (!range_to_cut) {
             return null;
         }
 
-        if ((!range_cutter) || (!this.range_intersects_range(range_cutter, range_to_cut))) {
+        if ((!range_cutter) || (!this.range_intersects_range(range_cutter, range_to_cut, segment_type))) {
             return new RangesCutResult(null, [this.cloneFrom(range_to_cut)]);
         }
 
@@ -629,7 +629,7 @@ export default class RangeHandler {
         let coupe: U = this.cloneFrom(range_to_cut);
         let apres: U = this.cloneFrom(range_to_cut);
 
-        if (this.isStartABeforeStartB(range_to_cut, range_cutter)) {
+        if (this.isStartABeforeStartB(range_to_cut, range_cutter, segment_type)) {
             // SC > STC
             coupe.min = clonedeep(range_cutter.min);
             coupe.min_inclusiv = range_cutter.min_inclusiv;
@@ -646,7 +646,7 @@ export default class RangeHandler {
             avant = null;
         }
 
-        if (this.isStartASameEndB(range_cutter, range_to_cut)) {
+        if (this.isStartASameEndB(range_cutter, range_to_cut, segment_type)) {
             // SC = ETC
             coupe.min = clonedeep(range_cutter.min);
             coupe.min_inclusiv = range_cutter.min_inclusiv;
@@ -665,7 +665,7 @@ export default class RangeHandler {
             apres = null;
         }
 
-        if (this.isStartASameEndB(range_to_cut, range_cutter)) {
+        if (this.isStartASameEndB(range_to_cut, range_cutter, segment_type)) {
             // STC = EC
             coupe.min = clonedeep(range_to_cut.min);
             coupe.min_inclusiv = range_to_cut.min_inclusiv;
@@ -684,7 +684,7 @@ export default class RangeHandler {
             }
         }
 
-        if (this.isEndABeforeEndB(range_cutter, range_to_cut)) {
+        if (this.isEndABeforeEndB(range_cutter, range_to_cut, segment_type)) {
             // EC < ETC
             coupe.max = clonedeep(range_cutter.max);
             coupe.max_inclusiv = range_cutter.max_inclusiv;
@@ -756,20 +756,20 @@ export default class RangeHandler {
      * @param range_cutter
      * @param ranges_to_cut
      */
-    public cut_ranges<T, U extends IRange<T>>(range_cutter: U, ranges_to_cut: U[]): RangesCutResult<U> {
+    public cut_ranges<T, U extends IRange<T>>(range_cutter: U, ranges_to_cut: U[], segment_type?: number): RangesCutResult<U> {
 
         let res: RangesCutResult<U> = null;
 
         for (let i in ranges_to_cut) {
             let range_to_cut = ranges_to_cut[i];
 
-            res = this.addCutResults(res, this.cut_range(range_cutter, range_to_cut));
+            res = this.addCutResults(res, this.cut_range(range_cutter, range_to_cut, segment_type));
         }
 
         return res;
     }
 
-    public cuts_ranges<T, U extends IRange<T>>(ranges_cutter: U[], ranges_to_cut: U[]): RangesCutResult<U> {
+    public cuts_ranges<T, U extends IRange<T>>(ranges_cutter: U[], ranges_to_cut: U[], segment_type?: number): RangesCutResult<U> {
 
         if (!ranges_to_cut) {
             return null;
@@ -780,7 +780,7 @@ export default class RangeHandler {
         for (let i in ranges_cutter) {
             let range_cutter = ranges_cutter[i];
 
-            let temp_res = this.cut_ranges(range_cutter, res.remaining_items);
+            let temp_res = this.cut_ranges(range_cutter, res.remaining_items, segment_type);
             res.remaining_items = temp_res ? temp_res.remaining_items : null;
             res.chopped_items = temp_res ? (res.chopped_items ? (temp_res.chopped_items ? res.chopped_items.concat(temp_res.chopped_items) : null) : temp_res.chopped_items) : res.chopped_items;
         }
