@@ -94,6 +94,43 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
 
                 state.alerts[alert.path].splice(state.alerts[alert.path].length, 0, alert);
             },
+
+            register_alerts: (state: IAlertState, alerts: Alert[]) => {
+                for (let j in alerts) {
+                    let alert = alerts[j];
+
+                    if (!state.alerts[alert.path]) {
+                        Vue.set(state.alerts as any, alert.path, [alert]);
+                        continue;
+                    }
+
+                    let inserted: boolean = false;
+                    for (let i in state.alerts[alert.path]) {
+                        let a = state.alerts[alert.path][i];
+                        let index = parseInt(i.toString());
+
+                        if (a.type > alert.type) {
+                            continue;
+                        }
+
+                        if (a.type < alert.type) {
+                            inserted = true;
+                            state.alerts[alert.path].splice(index, 0, alert);
+                            break;
+                        }
+
+                        if (a.creation_date.isAfter(alert.creation_date)) {
+                            inserted = true;
+                            state.alerts[alert.path].splice(index, 0, alert);
+                            break;
+                        }
+                    }
+
+                    if (!inserted) {
+                        state.alerts[alert.path].splice(state.alerts[alert.path].length, 0, alert);
+                    }
+                }
+            },
         };
 
 
@@ -101,6 +138,7 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
         this.actions = {
             clear_alerts: (context: AlertContext): any => commit_clear_alerts(context, null),
             register_alert: (context: AlertContext, alert: Alert) => commit_register_alert(context, alert),
+            register_alerts: (context: AlertContext, alerts: Alert[]) => commit_register_alerts(context, alerts),
         };
     }
 }
@@ -112,3 +150,4 @@ export const ModuleAlertAction = namespace('AlertStore', Action);
 
 export const commit_clear_alerts = commit(AlertStore.getInstance().mutations.clear_alerts);
 export const commit_register_alert = commit(AlertStore.getInstance().mutations.register_alert);
+export const commit_register_alerts = commit(AlertStore.getInstance().mutations.register_alerts);

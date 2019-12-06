@@ -24,6 +24,9 @@ export default class HourrangeInputComponent extends VueComponentBase {
     @Prop({ default: true })
     private auto_next_day: boolean;
 
+    @Prop({ default: true })
+    private auto_max_one_day: boolean;
+
     @Prop({ default: null })
     private value: HourRange;
 
@@ -41,13 +44,14 @@ export default class HourrangeInputComponent extends VueComponentBase {
     @Watch('value', { immediate: true })
     private async onchange_value(): Promise<void> {
 
-        if (RangeHandler.getInstance().is_same(this.new_value, this.value)) {
+        if (this.new_value == this.value) {
             return;
         }
 
         this.new_value = this.value;
 
         if (!this.value) {
+            // TODO FIXME si la donnée est invalide, on peut pas la vider non plus sinon on peut jamais saisir un horaire...
             this.hourrange_start = null;
             this.hourrange_end = null;
             return;
@@ -63,8 +67,12 @@ export default class HourrangeInputComponent extends VueComponentBase {
         let hourstart: Duration = HourHandler.getInstance().formatHourFromIHM(this.hourrange_start, this.field.moduleTableField.segmentation_type);
         let hourend: Duration = HourHandler.getInstance().formatHourFromIHM(this.hourrange_end, this.field.moduleTableField.segmentation_type);
 
-        if (this.auto_next_day && hourend && (hourend.milliseconds <= hourstart.milliseconds)) {
+        if (this.auto_next_day && hourend && hourstart && (hourend.asMilliseconds() <= hourstart.asMilliseconds())) {
             hourend.add(24, 'hours');
+        }
+
+        if (this.auto_max_one_day && hourend && hourstart && (hourend.asMilliseconds() > hourstart.asMilliseconds()) && (hourend.asMilliseconds() > (60 * 24 * 60 * 1000))) {
+            hourend.add(-24, 'hours');
         }
 
         this.new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.field.moduleTableField.segmentation_type);

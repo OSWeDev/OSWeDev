@@ -42,6 +42,10 @@ export default class RefRangesReferenceDatatableField<Target extends IDistantVOB
         return this;
     }
 
+    public dataToUpdateIHM<T, U>(e: T, vo: IDistantVOBase): U {
+        return e as any as U;
+    }
+
     public dataToHumanReadableField(e: IDistantVOBase): any {
         let res = "";
 

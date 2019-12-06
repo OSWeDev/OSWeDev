@@ -44,6 +44,8 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarAction
     public setVarData: (varData: IVarDataVOBase) => void;
     @ModuleVarAction
+    public setVarsData: (varsData: IVarDataVOBase[]) => void;
+    @ModuleVarAction
     public removeVarData: (varDataParam: IVarDataParamVOBase) => void;
     @ModuleVarAction
     public setIsStepping: (is_stepping: boolean) => void;

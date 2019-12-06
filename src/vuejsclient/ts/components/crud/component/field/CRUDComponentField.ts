@@ -120,7 +120,16 @@ export default class CRUDComponentField extends VueComponentBase {
     //             break;
     //     }
 
+    public validateSimpleInput(input_value: any) {
 
+        // TODO FIXME VALIDATE
+        this.field_value = input_value;
+
+        if (this.auto_update_field_value) {
+            this.vo[this.field.datatable_field_uid] = this.field_value;
+        }
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+    }
 
     get alert_path(): string {
         if (!this.field) {
@@ -277,17 +286,6 @@ export default class CRUDComponentField extends VueComponentBase {
 
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
-        }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
-    }
-
-    private validateSimpleInput(input_value: any) {
-
-        // TODO FIXME VALIDATE
-        this.field_value = input_value;
-
-        if (this.auto_update_field_value) {
-            this.vo[this.field.datatable_field_uid] = this.field_value;
         }
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
     }

@@ -169,6 +169,21 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 Vue.set(state.varDatas as any, index, varData);
             },
 
+            setVarsData(state: IVarState, varsData: IVarDataVOBase[]) {
+                if (!varsData) {
+                    return;
+                }
+
+                for (let i in varsData) {
+
+                    let varData = varsData[i];
+
+                    let index: string = VarsController.getInstance().getIndex(varData);
+
+                    Vue.set(state.varDatas as any, index, varData);
+                }
+            },
+
             removeVarData(state: IVarState, varDataParam: IVarDataParamVOBase) {
 
                 if ((!varDataParam) ||
@@ -233,6 +248,9 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setVarData(context: VarContext, varData) {
                 commitSetVarData(context, varData);
             },
+            setVarsData(context: VarContext, varsData) {
+                commitSetVarsData(context, varsData);
+            },
             removeVarData(context: VarContext, varDataParam: IVarDataParamVOBase) {
                 commitRemoveVarData(context, varDataParam);
             },
@@ -249,6 +267,7 @@ export const ModuleVarGetter = namespace('VarStore', Getter);
 export const ModuleVarAction = namespace('VarStore', Action);
 
 export const commitSetVarData = commit(VarStore.getInstance().mutations.setVarData);
+export const commitSetVarsData = commit(VarStore.getInstance().mutations.setVarsData);
 export const commitRemoveVarData = commit(VarStore.getInstance().mutations.removeVarData);
 export const commitSetIsUpdating = commit(VarStore.getInstance().mutations.setIsUpdating);
 export const commitSetDescMode = commit(VarStore.getInstance().mutations.setDescMode);
