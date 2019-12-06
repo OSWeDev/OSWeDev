@@ -232,7 +232,15 @@ export default class CRUDComponentField extends VueComponentBase {
 
     private validateInput(input: any) {
 
-        let input_value = input.value;
+        let input_value: any = null;
+
+        if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
+            ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_html)) {
+            input_value = input;
+        } else {
+            input_value = input.value;
+        }
+
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
             ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
             input_value = input.checked;
@@ -253,6 +261,7 @@ export default class CRUDComponentField extends VueComponentBase {
                             case ModuleTableField.FIELD_TYPE_refrange_array:
                             case ModuleTableField.FIELD_TYPE_numrange_array:
                             case ModuleTableField.FIELD_TYPE_isoweekdays:
+                            case ModuleTableField.FIELD_TYPE_html:
                                 break;
 
                             default:
@@ -280,7 +289,11 @@ export default class CRUDComponentField extends VueComponentBase {
         } else {
             msg = this.t(error);
         }
-        input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
+        if ((this.field.type != DatatableField.SIMPLE_FIELD_TYPE) || ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
+            ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type != ModuleTableField.FIELD_TYPE_html))) {
+
+            input.setCustomValidity ? input.setCustomValidity(msg) : document.getElementById(input.id)['setCustomValidity'](msg);
+        }
 
         this.field_value = input_value;
 
