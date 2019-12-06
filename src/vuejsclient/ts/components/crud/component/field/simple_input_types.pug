@@ -85,7 +85,7 @@
     template(v-else-if="field_type == 'timestamp'")
         input.form-control(type="number" v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'html'")
-        quill-editor(v-model="field_value" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        quill-editor(v-model="field_value" ref="quilleditor" :required="field.is_required" :disabled="field.is_readonly" @input="validateInput" :id="field.datatable_field_uid")
     template(v-else-if="(field_type == 'file')&&(vo._type == 'file')")
         FileComponent(:filevo="vo" @uploaded="uploadedFile(...arguments)" :id="field.datatable_field_uid")
     template(v-else-if="(field_type == 'image')&&(vo._type == 'image')")
