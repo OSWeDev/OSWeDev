@@ -3,6 +3,7 @@ import VueComponentBase from '../../VueComponentBase';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import Vue from 'vue';
 import CRUDComponentManager from '../../crud/CRUDComponentManager';
+import Alert from '../../alert/Alert';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface
@@ -68,6 +69,8 @@ export default abstract class DatatableField<T, U> {
     public onChange: (vo: IDistantVOBase) => void;
     public isVisibleUpdateOrCreate: (vo: IDistantVOBase) => boolean;
 
+    public validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[] = null;
+
 
     /**
      *
@@ -126,6 +129,13 @@ export default abstract class DatatableField<T, U> {
 
         return this;
     }
+
+    public setValidatInputFunc(validate_input: (input_value: U, field: DatatableField<T, U>, vo: any) => Alert[]): DatatableField<T, U> {
+        this.validate_input = validate_input;
+
+        return this;
+    }
+
 
     /**
      * BEWARE : Only update for view datatables purposes with viewing multiple times the same field, on different angles.

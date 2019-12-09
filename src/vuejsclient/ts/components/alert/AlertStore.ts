@@ -131,6 +131,31 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
                     }
                 }
             },
+
+            replace_alerts: (state: IAlertState, params: { alert_path: string, alerts: Alert[] }) => {
+
+                let new_alerts: Alert[] = [];
+
+                // On reprend les alertes pinned :
+                if (!!state.alerts[params.alert_path]) {
+
+                    for (let i in state.alerts[params.alert_path]) {
+                        let alert: Alert = state.alerts[params.alert_path][i];
+
+                        if (!alert.pinned) {
+                            continue;
+                        }
+
+                        new_alerts.push(alert);
+                    }
+                }
+
+                if ((!!params.alerts) && (!!params.alerts.length)) {
+                    new_alerts = new_alerts.concat(params.alerts);
+                }
+
+                Vue.set(state.alerts as any, params.alert_path, new_alerts);
+            },
         };
 
 
@@ -139,6 +164,7 @@ export default class AlertStore implements IStoreModule<IAlertState, AlertContex
             clear_alerts: (context: AlertContext): any => commit_clear_alerts(context, null),
             register_alert: (context: AlertContext, alert: Alert) => commit_register_alert(context, alert),
             register_alerts: (context: AlertContext, alerts: Alert[]) => commit_register_alerts(context, alerts),
+            replace_alerts: (context: AlertContext, params: { alert_path: string, alerts: Alert[] }) => commit_replace_alerts(context, params),
         };
     }
 }
@@ -151,3 +177,4 @@ export const ModuleAlertAction = namespace('AlertStore', Action);
 export const commit_clear_alerts = commit(AlertStore.getInstance().mutations.clear_alerts);
 export const commit_register_alert = commit(AlertStore.getInstance().mutations.register_alert);
 export const commit_register_alerts = commit(AlertStore.getInstance().mutations.register_alerts);
+export const commit_replace_alerts = commit(AlertStore.getInstance().mutations.replace_alerts);

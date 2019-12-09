@@ -77,7 +77,7 @@ export default class CRUD<T extends IDistantVOBase> {
                 ];
                 if (field.manyToOne_target_moduletable.default_label_field) {
                     dt_fields = [
-                        new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id)
+                        new SimpleDatatableField(field.manyToOne_target_moduletable.default_label_field.field_id).setValidatInputFunc(field.validate_input)
                     ];
                 }
 
@@ -85,15 +85,15 @@ export default class CRUD<T extends IDistantVOBase> {
                     dt_field = new RefRangesReferenceDatatableField<any>(
                         field.field_id,
                         VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
-                        dt_fields);
+                        dt_fields).setValidatInputFunc(field.validate_input);
                 } else {
                     dt_field = new ManyToOneReferenceDatatableField<any>(
                         field.field_id,
                         VOsTypesManager.getInstance().moduleTables_by_voType[field.manyToOne_target_moduletable.vo_type],
-                        dt_fields);
+                        dt_fields).setValidatInputFunc(field.validate_input);
                 }
             } else {
-                dt_field = new SimpleDatatableField(field.field_id);
+                dt_field = new SimpleDatatableField(field.field_id).setValidatInputFunc(field.validate_input);
             }
 
             if ((!!dt_field) && field.hidden_print) {
@@ -247,7 +247,7 @@ export default class CRUD<T extends IDistantVOBase> {
                         [
                             new SimpleDatatableField(field.module_table.default_label_field.field_id)
                         ]
-                    ));
+                    ).setValidatInputFunc(field.validate_input));
                     continue;
                 }
 
@@ -260,7 +260,7 @@ export default class CRUD<T extends IDistantVOBase> {
                             new ComputedDatatableField(
                                 field.field_id + '__target_label',
                                 field.module_table.table_label_function)
-                        ]));
+                        ]).setValidatInputFunc(field.validate_input));
                     continue;
                 }
             }

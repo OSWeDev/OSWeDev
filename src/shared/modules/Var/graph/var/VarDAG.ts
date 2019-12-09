@@ -105,9 +105,9 @@ export default class VarDAG extends DAG<VarDAGNode> {
                 if (VarsController.getInstance().varDatas && VarsController.getInstance().varDatas[index]) {
                     delete VarsController.getInstance().varDatas[index];
                 }
-                if (VarsController.getInstance().varDatasStaticCache && VarsController.getInstance().varDatasStaticCache[index]) {
-                    delete VarsController.getInstance().varDatasStaticCache[index];
-                }
+                // if (VarsController.getInstance().varDatasStaticCache && VarsController.getInstance().varDatasStaticCache[index]) {
+                //     delete VarsController.getInstance().varDatasStaticCache[index];
+                // }
 
                 node.setImportedData(null, this);
                 node.loaded_datas_matroids = null;

@@ -5,6 +5,8 @@ import ModuleTable from './ModuleTable';
 import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
+import DatatableField from '../../vuejsclient/ts/components/datatable/vos/DatatableField';
+import Alert from '../../vuejsclient/ts/components/alert/Alert';
 
 export default class ModuleTableField<T> {
 
@@ -104,6 +106,11 @@ export default class ModuleTableField<T> {
      */
     public validate: (data: any) => string;
 
+    /**
+     * Nouvelle version de validation plus complète, qui doit remplacer l'ancienne version à terme
+     */
+    public validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[];
+
     constructor(
         public field_id: string,
         public field_type: string,
@@ -132,6 +139,11 @@ export default class ModuleTableField<T> {
         this.target_database = null;
         this.target_table = null;
         this.target_field = null;
+    }
+
+    public setValidatInputFunc(validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[]): ModuleTableField<T> {
+        this.validate_input = validate_input;
+        return this;
     }
 
     public set_segmentation_type(segmentation_type: number): ModuleTableField<T> {

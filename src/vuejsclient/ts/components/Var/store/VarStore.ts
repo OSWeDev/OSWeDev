@@ -169,7 +169,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 Vue.set(state.varDatas as any, index, varData);
             },
 
-            setVarsData(state: IVarState, varsData: IVarDataVOBase[]) {
+            setVarsData(state: IVarState, varsData: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) {
                 if (!varsData) {
                     return;
                 }
@@ -248,7 +248,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setVarData(context: VarContext, varData) {
                 commitSetVarData(context, varData);
             },
-            setVarsData(context: VarContext, varsData) {
+            setVarsData(context: VarContext, varsData: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) {
                 commitSetVarsData(context, varsData);
             },
             removeVarData(context: VarContext, varDataParam: IVarDataParamVOBase) {

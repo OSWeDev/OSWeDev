@@ -85,15 +85,17 @@ export default class VarsController {
 
     public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void = null;
 
-    public varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
+    // public varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
     public varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
     public varDatasBATCHCache: { [index: string]: IVarDataVOBase } = {};
 
     // private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
     // private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
 
-    private setVarData_: (varData: IVarDataVOBase) => void = null;
-    private removeVarData: (varDataParam: IVarDataParamVOBase) => void = null;
+    // private setVarData_: (varData: IVarDataVOBase) => void = null;
+    private setVarsData_: (varDatas: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) => void = null;
+
+    // private removeVarData: (varDataParam: IVarDataParamVOBase) => void = null;
     private setStepNumber: (step_number: number) => void = null;
     private setIsStepping: (is_stepping: boolean) => void = null;
 
@@ -130,6 +132,7 @@ export default class VarsController {
 
     private debounced_updatedatas_wrapper = debounce(this.updateDatasWrapper, this.var_debouncer);
 
+    // private debounced_removeVarData = debounce(this.removeVarsDatas_, 30000);
 
     private get_cardinal_time: number = 0;
     private intesect_time: number = 0;
@@ -217,12 +220,14 @@ export default class VarsController {
             return;
         }
 
-        for (let index in this.varDatasBATCHCache) {
-            let varData: IVarDataVOBase = this.varDatasBATCHCache[index];
 
-            // Set the data finally
-            this.setVarData(varData);
-        }
+        this.setVarsData_(this.varDatasBATCHCache);
+        // for (let index in this.varDatasBATCHCache) {
+        //     let varData: IVarDataVOBase = this.varDatasBATCHCache[index];
+
+        //     // Set the data finally
+        //     this.setVarData(varData);
+        // }
 
         this.varDatasBATCHCache = {};
     }
@@ -237,7 +242,7 @@ export default class VarsController {
         // WARNING : Might be strange some day when the static cache is updated by a BATCH since it should only
         //  be updated after the end of the batch, but the batch sometimes uses methods that need data that
         //  are being created by the batch itself.... if some funny datas are being calculated, you might want to check that thing
-        this.varDatasStaticCache[index] = varData;
+        // this.varDatasStaticCache[index] = varData;
 
         if (set_in_batch_cache) {
 
@@ -246,11 +251,11 @@ export default class VarsController {
             return;
         }
 
-        if (!!this.varDAG.nodes[index]) {
-            if (!!this.setVarData_) {
-                this.setVarData_(varData);
-            }
-        }
+        // if (!!this.varDAG.nodes[index]) {
+        //     if (!!this.setVarData_) {
+        //         this.setVarData_(varData);
+        //     }
+        // }
     }
 
     /**
@@ -275,15 +280,16 @@ export default class VarsController {
 
             this.varDatasBATCHCache = imported_datas[var_id_s];
 
-            // On met à jour le store pour l'affichage directement ici par ce qu'on peut déjà afficher les datas issues d'un import
-            for (let j in imported_datas[var_id_s]) {
-                let imported_data: T = imported_datas[var_id_s][j];
-                if (!!this.varDAG.nodes[this.getIndex(imported_data)]) {
-                    if (!!this.setVarData_) {
-                        this.setVarData_(imported_data);
-                    }
-                }
-            }
+            // Pour des raisons de perf on laisse le système des vars mettre à jour le cache à la fin du calcul uniquement
+            // // On met à jour le store pour l'affichage directement ici par ce qu'on peut déjà afficher les datas issues d'un import
+            // for (let j in imported_datas[var_id_s]) {
+            //     let imported_data: T = imported_datas[var_id_s][j];
+            //     if (!!this.varDAG.nodes[this.getIndex(imported_data)]) {
+            //         if (!!this.setVarData_) {
+            //             this.setVarData_(imported_data);
+            //         }
+            //     }
+            // }
         }
     }
 
@@ -324,13 +330,14 @@ export default class VarsController {
             }
 
             varData = this.varDatas[index] as T;
-        } else {
-            if (!(index && this.varDatasStaticCache && this.varDatasStaticCache[index])) {
-                return null;
-            }
-
-            varData = this.varDatasStaticCache[index] as T;
         }
+        // else {
+        //     if (!(index && this.varDatasStaticCache && this.varDatasStaticCache[index])) {
+        //         return null;
+        //     }
+
+        //     varData = this.varDatasStaticCache[index] as T;
+        // }
         if (!varData) {
             return null;
         }
@@ -339,8 +346,9 @@ export default class VarsController {
 
     public registerStoreHandlers<TData extends IVarDataVOBase>(
         getVarData: { [paramIndex: string]: TData },
-        setVarData: (varData: IVarDataVOBase) => void,
-        removeVarData: (varDataParam: IVarDataParamVOBase) => void,
+        // setVarData: (varData: IVarDataVOBase) => void,
+        setVarsData: (varDatas: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) => void,
+        // removeVarData: (varDataParam: IVarDataParamVOBase) => void,
         setUpdatingDatas: (updating: boolean) => void,
         getUpdatingParamsByVarsIds: { [index: string]: boolean },
         setUpdatingParamsByVarsIds: (updating_params_by_vars_ids: { [index: string]: boolean }) => void,
@@ -351,8 +359,9 @@ export default class VarsController {
         setStepNumber: (step_number: number) => void,
         set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void) {
         this.varDatas = getVarData;
-        this.setVarData_ = setVarData;
-        this.removeVarData = removeVarData;
+        // this.setVarData_ = setVarData;
+        this.setVarsData_ = setVarsData;
+        // this.removeVarData = removeVarData;
         this.setUpdatingDatas = setUpdatingDatas;
         this.getUpdatingParamsByVarsIds = getUpdatingParamsByVarsIds;
         this.setUpdatingParamsByVarsIds = setUpdatingParamsByVarsIds;
@@ -637,19 +646,21 @@ export default class VarsController {
         return (res && res.length) ? res : null;
     }
 
+    // FIXME todo à voir si en terme de perf on a un souci sur le fait de cumuler les infos de vars datas sans les supprimer de temps en temps.
+    //  Mais là les perfs de mise à jour du store sont affreuses, il faut debounce a minima, mais du coup risque de demander un remove de var sur une var register à nouveau entre la demande initiale et le debounce... donc attention
     public onVarDAGNodeRemoval(node: VarDAGNode) {
 
-        if ((!node) || (!node.param)) {
-            return;
-        }
-        let index: string = this.getIndex(node.param);
+        // if ((!node) || (!node.param)) {
+        //     return;
+        // }
+        // let index: string = this.getIndex(node.param);
 
-        if (!!this.varDatasStaticCache[index]) {
-            delete this.varDatasStaticCache[index];
-        }
-        if (!!this.setVarData_) {
-            this.removeVarData(node.param);
-        }
+        // // if (!!this.varDatasStaticCache[index]) {
+        // //     delete this.varDatasStaticCache[index];
+        // // }
+        // if (!!this.setVarData_) {
+        //     this.removeVarData(node.param);
+        // }
     }
 
     public unregisterDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {

@@ -31,6 +31,9 @@ import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
+import Alert from '../../../alert/Alert';
+import { ModuleAlertAction } from '../../../alert/AlertStore';
+import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 let debounce = require('lodash/debounce');
 
 
@@ -52,6 +55,12 @@ export default class CRUDComponentField extends VueComponentBase {
     public getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
     @ModuleDAOAction
     private storeDatasByIds: (params: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) => void;
+
+    @ModuleAlertAction
+    private replace_alerts: (params: { alert_path: string, alerts: Alert[] }) => void;
+
+    @ModuleAlertAction
+    private register_alert: (alert: Alert) => void;
 
     @Prop()
     private field: DatatableField<any, any>;
@@ -77,11 +86,23 @@ export default class CRUDComponentField extends VueComponentBase {
     @Prop({ default: true })
     private show_title: boolean;
 
+    @Prop({ default: false })
+    private inline_input_mode: boolean;
+    @Prop({ default: true })
+    private inline_input_show_clear: boolean;
+    @Prop({ default: true })
+    private inline_input_hide_label: boolean;
+    @Prop()
+    private inline_input_read_value: any;
+
+
     private select_options: number[] = [];
     private isLoadingOptions: boolean = false;
     private field_value: any = null;
     private field_value_range: any = {};
     private field_value_refranges_selected_ids: number[] = [];
+
+    private inline_input_is_editing: boolean = false;
 
     private can_insert_or_update_target: boolean = false;
 
@@ -121,6 +142,10 @@ export default class CRUDComponentField extends VueComponentBase {
     //     }
 
     public validateSimpleInput(input_value: any) {
+
+        if (this.inline_input_mode) {
+            return;
+        }
 
         // TODO FIXME VALIDATE
         this.field_value = input_value;
@@ -232,6 +257,10 @@ export default class CRUDComponentField extends VueComponentBase {
 
     private validateInput(input: any) {
 
+        if (this.inline_input_mode) {
+            return;
+        }
+
         let input_value: any = null;
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
@@ -304,6 +333,10 @@ export default class CRUDComponentField extends VueComponentBase {
     }
 
     private validateMultiInput(values: any[]) {
+        if (this.inline_input_mode) {
+            return;
+        }
+
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = values;
         }
@@ -337,6 +370,11 @@ export default class CRUDComponentField extends VueComponentBase {
     }
 
     private updateDateRange(input: any) {
+
+        if (this.inline_input_mode) {
+            return;
+        }
+
         // On veut stocker au format "day day"
         let start = this.field_value_range[this.field.datatable_field_uid + '_start'];
         let end = this.field_value_range[this.field.datatable_field_uid + '_end'];
@@ -493,6 +531,10 @@ export default class CRUDComponentField extends VueComponentBase {
 
     private async onChangeField() {
 
+        if (this.inline_input_mode) {
+            return;
+        }
+
         if (this.field_type == DatatableField.REF_RANGES_FIELD_TYPE) {
             let ranges: NumRange[] = [];
             for (let i in this.field_value_refranges_selected_ids) {
@@ -545,6 +587,11 @@ export default class CRUDComponentField extends VueComponentBase {
     }
 
     private inputValue(value: any) {
+
+        if (this.inline_input_mode) {
+            return;
+        }
+
         this.field_value = value;
 
         if (this.auto_update_field_value) {
@@ -615,5 +662,70 @@ export default class CRUDComponentField extends VueComponentBase {
 
     get select_options_enabled(): number[] {
         return (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
+    }
+
+    private inline_clear_value() {
+        this.field_value = null;
+
+        if (!!this.inline_input_is_editing) {
+            this.inline_input_is_editing = false;
+        }
+    }
+
+    private async validate_inline_input(input_value) {
+
+        let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(input_value, this.field, this.vo) : null;
+        if (alerts && alerts.length) {
+
+            // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
+            this.replace_alerts({
+                alert_path: this.field.alert_path,
+                alerts: alerts
+            });
+
+            for (let i in alerts) {
+                let alert = alerts[i];
+
+                if (alert.type >= Alert.TYPE_ERROR) {
+                    this.snotify.error(this.label('field.validate_input.error'));
+                    return;
+                }
+            }
+        }
+
+        this.field_value = input_value;
+
+        if (this.auto_update_field_value) {
+
+            // En édition inline + autoupdate, on veut pouvoir aller au plus rapide / simple et donc sauvegarder asap et informer également asap
+            let old_value: any = this.vo[this.field.datatable_field_uid];
+
+            this.vo[this.field.datatable_field_uid] = this.field.UpdateIHMToData(this.field_value, this.vo);
+
+            let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(this.vo);
+
+            if ((!result) || (!result.id)) {
+                await this.snotify.error(this.label('field.auto_update_field_value.failed'));
+                this.vo[this.field.datatable_field_uid] = old_value;
+
+                this.register_alert(new Alert(this.alert_path, 'field.auto_update_field_value.server_error'));
+
+                return;
+            } else {
+                await this.snotify.success(this.label('field.auto_update_field_value.succes'));
+            }
+        }
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+
+        this.inline_input_is_editing = false;
+    }
+
+    private prepare_inline_input() {
+        if (!this.field_value) {
+
+            // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
+            this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
+        }
+        this.inline_input_is_editing = true;
     }
 }
