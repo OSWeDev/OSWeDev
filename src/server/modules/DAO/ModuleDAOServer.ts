@@ -1277,9 +1277,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private async getNamedVoByName<U extends INamedVO>(param: APIDAONamedParamVO): Promise<U> {
-        // On définit des limites pour les noms de vos nommes, qui ne doivent contenir que les caractères suivants :
-        //  [a-z0-9A-Z-_ ./:,]
-        if ((!param) || (!/^[a-z0-9A-Z-_ ./:,]+$/.test(param.name))) {
+        // // On définit des limites pour les noms de vos nommes, qui ne doivent contenir que les caractères suivants(JNE : pourquoi ?????):
+        // //  [a-z0-9A-Z-_ ./:,]
+        // if ((!param) || (!/^[a-z0-9A-Z-_ ./:,]+$/.test(param.name))) {
+        //     return null;
+        // }
+
+        if (!param) {
             return null;
         }
         return await this.selectOne<U>(param.API_TYPE_ID, "where LOWER(name) = LOWER($1)", [param.name]);

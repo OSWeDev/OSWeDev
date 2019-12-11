@@ -3,7 +3,7 @@
     template(v-if='inline_input_mode')
         
         template(v-if='inline_input_show_clear')
-            i.inline_input_show_clear.fa.fa-trash.btn.btn-sm.btn-danger(@click='clear_value')
+            i.inline_input_show_clear.fa.fa-trash.btn.btn-sm.btn-danger(@click='inline_clear_value')
         
         template(v-if='inline_input_is_editing')
             i.inline_input_is_editing.fa.fa-check.btn.btn-sm.btn-success(@click='validate_inline_input')

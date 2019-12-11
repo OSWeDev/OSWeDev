@@ -85,7 +85,7 @@ export default class VarsController {
 
     public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void = null;
 
-    // public varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
+    public varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
     public varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
     public varDatasBATCHCache: { [index: string]: IVarDataVOBase } = {};
 
@@ -220,14 +220,16 @@ export default class VarsController {
             return;
         }
 
+        if (!!this.setVarsData_) {
+            this.setVarsData_(this.varDatasBATCHCache);
+        }
 
-        this.setVarsData_(this.varDatasBATCHCache);
-        // for (let index in this.varDatasBATCHCache) {
-        //     let varData: IVarDataVOBase = this.varDatasBATCHCache[index];
+        for (let index in this.varDatasBATCHCache) {
+            let varData: IVarDataVOBase = this.varDatasBATCHCache[index];
 
-        //     // Set the data finally
-        //     this.setVarData(varData);
-        // }
+            // Set the data finally
+            this.setVarData(varData);
+        }
 
         this.varDatasBATCHCache = {};
     }
@@ -242,7 +244,7 @@ export default class VarsController {
         // WARNING : Might be strange some day when the static cache is updated by a BATCH since it should only
         //  be updated after the end of the batch, but the batch sometimes uses methods that need data that
         //  are being created by the batch itself.... if some funny datas are being calculated, you might want to check that thing
-        // this.varDatasStaticCache[index] = varData;
+        this.varDatasStaticCache[index] = varData;
 
         if (set_in_batch_cache) {
 
@@ -330,14 +332,13 @@ export default class VarsController {
             }
 
             varData = this.varDatas[index] as T;
-        }
-        // else {
-        //     if (!(index && this.varDatasStaticCache && this.varDatasStaticCache[index])) {
-        //         return null;
-        //     }
+        } else {
+            if (!(index && this.varDatasStaticCache && this.varDatasStaticCache[index])) {
+                return null;
+            }
 
-        //     varData = this.varDatasStaticCache[index] as T;
-        // }
+            varData = this.varDatasStaticCache[index] as T;
+        }
         if (!varData) {
             return null;
         }
@@ -650,10 +651,10 @@ export default class VarsController {
     //  Mais là les perfs de mise à jour du store sont affreuses, il faut debounce a minima, mais du coup risque de demander un remove de var sur une var register à nouveau entre la demande initiale et le debounce... donc attention
     public onVarDAGNodeRemoval(node: VarDAGNode) {
 
-        // if ((!node) || (!node.param)) {
-        //     return;
-        // }
-        // let index: string = this.getIndex(node.param);
+        if ((!node) || (!node.param)) {
+            return;
+        }
+        let index: string = this.getIndex(node.param);
 
         // // if (!!this.varDatasStaticCache[index]) {
         // //     delete this.varDatasStaticCache[index];
@@ -661,6 +662,11 @@ export default class VarsController {
         // if (!!this.setVarData_) {
         //     this.removeVarData(node.param);
         // }
+
+
+        if (!!this.varDatasStaticCache[index]) {
+            delete this.varDatasStaticCache[index];
+        }
     }
 
     public unregisterDataParam<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
@@ -1302,6 +1308,13 @@ export default class VarsController {
         for (let i in nodes_by_name) {
             let node = nodes_by_name[i];
 
+            // Cas spécifique, mais récurrent, d'un noeud qui n'est pas root mais dont les ascendants ne peuvent dépendre d'un import en base
+            // Dans ce cas c'est beaucoup plus simple, et on court-circuite le système classique
+            if ((!node.needs_parent_to_load_precompiled_or_imported_data) && node.needs_to_load_precompiled_or_imported_data) {
+                res[node.name] = node;
+                continue;
+            }
+
             let isroot = true;
             if (node.hasIncoming) {
 
@@ -1310,6 +1323,10 @@ export default class VarsController {
                     let incoming = node.incoming[j];
 
                     if (nodes_by_name[incoming.name]) {
+
+                        // Ok c'est pas un root mais on peut pousser le truc un peu plus loin si on se dit que le parent est pas chargeable, on sait qu'on aura pas de réduction de scope donc on charge quand même
+                        //  par contre attention, on peut très bien avoir une var parente encore qui elle nécessite un chargement. Donc on va devoir remonter de façon récursive pour le coup. Ou alors on doit marquer les noeuds dès le départ
+                        //  pour indiquer qui a un parent qui nécessite de tester un chargement.
                         isroot = false;
                         break;
                     }
@@ -1326,6 +1343,8 @@ export default class VarsController {
 
     private async loadDatasForNodes(nodes: { [node_name: string]: VarDAGNode }) {
         let promises: Array<Promise<any>> = [];
+        let self = this;
+        let nodes_to_request: VarDAGNode[] = [];
 
         for (let i in nodes) {
             let node = nodes[i];
@@ -1337,6 +1356,13 @@ export default class VarsController {
                 continue;
             }
 
+            nodes_to_request.push(node);
+        }
+
+        for (let i in nodes_to_request) {
+
+            let node = nodes_to_request[i];
+
             promises.push((async () => {
 
                 let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
@@ -1346,6 +1372,7 @@ export default class VarsController {
                     return;
                 }
 
+                let var_controller = self.getVarControllerById(node.param.var_id);
                 // Si on est sur une var qui utilise que des imports ou precompiled atomiques, on peut passer rapidement ici, inutile de chercher à découper , vérifier les intersections il n'y en aura pas
                 if (var_controller.has_only_atomique_imports_or_precompiled_datas) {
                     node.loaded_datas_matroids = Array.from(matroids_inscrits);
