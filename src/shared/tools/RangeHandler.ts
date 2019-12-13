@@ -70,20 +70,20 @@ export default class RangeHandler {
         return true;
     }
 
-    public range_includes_ranges<T>(range_a: IRange<T>, ranges_b: Array<IRange<T>>): boolean {
+    public range_includes_ranges<T>(range_a: IRange<T>, ranges_b: Array<IRange<T>>, segment_type: number = null): boolean {
         if (!ranges_b) {
             return true;
         }
 
         for (let i in ranges_b) {
-            if (!this.range_includes_range(range_a, ranges_b[i])) {
+            if (!this.range_includes_range(range_a, ranges_b[i], segment_type)) {
                 return false;
             }
         }
         return true;
     }
 
-    public range_includes_range<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public range_includes_range<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type: number = null): boolean {
         if (!range_a) {
             return false;
         }
@@ -92,10 +92,10 @@ export default class RangeHandler {
             return true;
         }
 
-        let segmented_min_a: T = this.getSegmentedMin(range_a);
-        let segmented_min_b: T = this.getSegmentedMin(range_b);
-        let segmented_max_a: T = this.getSegmentedMax(range_a);
-        let segmented_max_b: T = this.getSegmentedMax(range_b);
+        let segmented_min_a: T = this.getSegmentedMin(range_a, segment_type);
+        let segmented_min_b: T = this.getSegmentedMin(range_b, segment_type);
+        let segmented_max_a: T = this.getSegmentedMax(range_a, segment_type);
+        let segmented_max_b: T = this.getSegmentedMax(range_b, segment_type);
 
         if (this.is_elt_sup_elt(range_a.range_type, segmented_min_a, segmented_min_b)) {
             return false;
@@ -112,7 +112,7 @@ export default class RangeHandler {
      * On essaie de réduire le nombre d'ensemble si certains s'entrecoupent
      * @param ranges
      */
-    public getRangesUnion<T>(ranges: Array<IRange<T>>): Array<IRange<T>> {
+    public getRangesUnion<T>(ranges: Array<IRange<T>>, segment_type: number = null): Array<IRange<T>> {
 
         if ((!ranges) || (!ranges.length)) {
             return null;
@@ -136,7 +136,7 @@ export default class RangeHandler {
             for (let j in res) {
                 let resrange: IRange<T> = res[j];
 
-                if (this.ranges_are_contiguous_or_intersect(resrange, range)) {
+                if (this.ranges_are_contiguous_or_intersect(resrange, range, segment_type)) {
                     res[j] = this.getMinSurroundingRange([resrange, range]);
                     got_contiguous = true;
                     break;
@@ -167,7 +167,7 @@ export default class RangeHandler {
                         continue;
                     }
 
-                    if (this.ranges_are_contiguous_or_intersect(resrangej, resrangek)) {
+                    if (this.ranges_are_contiguous_or_intersect(resrangej, resrangek, segment_type)) {
                         hasContiguousRanges = true;
                         res[j] = this.getMinSurroundingRange([resrangej, resrangek]);
                         res[k] = null;
@@ -188,7 +188,7 @@ export default class RangeHandler {
      * @param range_a
      * @param range_b
      */
-    public ranges_are_contiguous_or_intersect<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public ranges_are_contiguous_or_intersect<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type: number = null): boolean {
 
         if ((!range_a) || (!range_b)) {
             return false;
@@ -198,8 +198,8 @@ export default class RangeHandler {
             return false;
         }
 
-        return this.is_elt_equals_elt(range_a.range_type, this.inc_elt(range_a.range_type, this.getSegmentedMax(range_a), range_a.segment_type, 1), this.getSegmentedMin(range_b)) ||
-            this.is_elt_equals_elt(range_a.range_type, this.inc_elt(range_b.range_type, this.getSegmentedMax(range_b), range_b.segment_type, 1), this.getSegmentedMin(range_a));
+        return this.is_elt_equals_elt(range_a.range_type, this.inc_elt(range_a.range_type, this.getSegmentedMax(range_a, segment_type), range_a.segment_type, 1), this.getSegmentedMin(range_b, segment_type)) ||
+            this.is_elt_equals_elt(range_a.range_type, this.inc_elt(range_b.range_type, this.getSegmentedMax(range_b, segment_type), range_b.segment_type, 1), this.getSegmentedMin(range_a, segment_type));
     }
 
     /**
@@ -303,7 +303,7 @@ export default class RangeHandler {
      * @param range_a
      * @param range_b
      */
-    public isEndABeforeStartB<T>(range_a: IRange<T>, range_b: IRange<T>): boolean {
+    public isEndABeforeStartB<T>(range_a: IRange<T>, range_b: IRange<T>, segment_type: number = null): boolean {
         if ((!range_a) || (!range_b)) {
             return false;
         }
@@ -312,7 +312,7 @@ export default class RangeHandler {
             return false;
         }
 
-        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMax(range_a), this.getSegmentedMin(range_b));
+        return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMax(range_a, segment_type), this.getSegmentedMin(range_b, segment_type));
     }
 
     /**
@@ -338,7 +338,7 @@ export default class RangeHandler {
         return false;
     }
 
-    public any_range_intersects_any_range<T>(ranges_a: Array<IRange<T>>, ranges_b: Array<IRange<T>>): boolean {
+    public any_range_intersects_any_range<T>(ranges_a: Array<IRange<T>>, ranges_b: Array<IRange<T>>, segment_type: number = null): boolean {
 
         if ((!ranges_b) || (!ranges_a) || (!ranges_b.length) || (!ranges_a.length)) {
             return false;
@@ -347,7 +347,7 @@ export default class RangeHandler {
         for (let i in ranges_a) {
             let range_a = ranges_a[i];
 
-            if (this.range_intersects_any_range(range_a, ranges_b)) {
+            if (this.range_intersects_any_range(range_a, ranges_b, segment_type)) {
                 return true;
             }
         }
@@ -359,7 +359,7 @@ export default class RangeHandler {
      * @param range_a
      * @param ranges
      */
-    public range_intersects_any_range<T>(range_a: IRange<T>, ranges: Array<IRange<T>>): boolean {
+    public range_intersects_any_range<T>(range_a: IRange<T>, ranges: Array<IRange<T>>, segment_type: number = null): boolean {
 
         if ((!ranges) || (!range_a) || (!ranges.length)) {
             return false;
@@ -368,7 +368,7 @@ export default class RangeHandler {
         for (let i in ranges) {
             let range_b = ranges[i];
 
-            if (this.range_intersects_range(range_a, range_b)) {
+            if (this.range_intersects_range(range_a, range_b, segment_type)) {
                 return true;
             }
         }
@@ -785,8 +785,8 @@ export default class RangeHandler {
             res.chopped_items = temp_res ? (res.chopped_items ? (temp_res.chopped_items ? res.chopped_items.concat(temp_res.chopped_items) : null) : temp_res.chopped_items) : res.chopped_items;
         }
 
-        res.remaining_items = this.getRangesUnion(res.remaining_items) as U[];
-        res.chopped_items = this.getRangesUnion(res.chopped_items) as U[];
+        res.remaining_items = this.getRangesUnion(res.remaining_items, segment_type) as U[];
+        res.chopped_items = this.getRangesUnion(res.chopped_items, segment_type) as U[];
 
         return (res && (res.chopped_items || res.remaining_items)) ? res : null;
     }

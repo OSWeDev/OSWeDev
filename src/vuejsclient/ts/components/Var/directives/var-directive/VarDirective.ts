@@ -37,7 +37,7 @@ export default class VarDirective {
 
         let varUpdateCallbacks: VarUpdateCallback[] = VarDirective.getInstance().getVarUpdateCallbacks(el, binding, vnode, var_param);
 
-        VarsController.getInstance().registerDataParam(var_param, reload_on_register, varUpdateCallbacks);
+        VarsController.getInstance().registerDataParam(var_param, reload_on_register, varUpdateCallbacks, binding.value.ignore_unvalidated_datas, binding.value.already_register);
     }
 
     public async unbind(el, binding, vnode) {
