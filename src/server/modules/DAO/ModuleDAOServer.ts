@@ -51,6 +51,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
+import { JsonFeedEventSource } from 'fullcalendar';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -486,14 +487,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
 
             let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+            let failed: boolean = false;
 
             if (!sql) {
+                ConsoleHandler.getInstance().warn('Est-ce bien normal ? insertOrUpdateVO :(!sql):' + JSON.stringify(vo));
                 resolve(null);
+                return null;
             }
 
             let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, moduleTable.get_bdd_version(vo)).catch((reason) => {
+                ConsoleHandler.getInstance().error('insertOrUpdateVO :' + reason);
                 resolve(null);
+                failed = true;
             });
+
+            if (failed) {
+                return null;
+            }
 
             if (result && vo) {
                 if (isUpdate) {
