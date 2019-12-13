@@ -1,12 +1,11 @@
 import LocaleManager from '../../../../tools/LocaleManager';
 import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../interfaces/IVarDataVOBase';
+import IVarMatroidDataVO from '../../interfaces/IVarMatroidDataVO';
 import VarsController from '../../VarsController';
 import DAGNode from '../dag/DAGNode';
 import VarDAG from './VarDAG';
-import IVarMatroidDataVO from '../../interfaces/IVarMatroidDataVO';
-import IVarMatroidDataParamVO from '../../interfaces/IVarMatroidDataParamVO';
-import VOsTypesManager from '../../../VOsTypesManager';
+import ModulesManager from '../../../ModulesManager';
 
 export default class VarDAGNode extends DAGNode {
 
@@ -20,6 +19,9 @@ export default class VarDAGNode extends DAGNode {
     public loaded_datas_matroids_sum_value: number = null;
 
     public ignore_unvalidated_datas: boolean = false;
+
+    public needs_to_load_precompiled_or_imported_data: boolean = true;
+    public needs_parent_to_load_precompiled_or_imported_data: boolean = false;
 
     // Used for the deps heatmap
     public dependencies_count: number = null;
@@ -55,6 +57,18 @@ export default class VarDAGNode extends DAGNode {
         // } else {
         this.addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, dag);
         // }
+
+        // On en profite pour afficher l'info de la nécessité ou non de chargement de data pour les matroids
+        let var_controller = VarsController.getInstance().getVarControllerById(param.var_id);
+        if (((!var_controller.can_load_precompiled_or_imported_datas_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
+            ((!var_controller.can_load_precompiled_or_imported_datas_server_side) && (!!ModulesManager.getInstance().isServerSide))) {
+            this.needs_to_load_precompiled_or_imported_data = false;
+        } else {
+            this.needs_to_load_precompiled_or_imported_data = true;
+        }
+
+        // Par défaut on a pas de parent donc...
+        this.needs_parent_to_load_precompiled_or_imported_data = false;
     }
 
     public setImportedData(imported: IVarDataVOBase, dag: VarDAG) {

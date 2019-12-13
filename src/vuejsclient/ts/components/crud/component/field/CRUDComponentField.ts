@@ -103,6 +103,7 @@ export default class CRUDComponentField extends VueComponentBase {
     private field_value_refranges_selected_ids: number[] = [];
 
     private inline_input_is_editing: boolean = false;
+    private inline_input_is_busy: boolean = false;
 
     private can_insert_or_update_target: boolean = false;
 
@@ -185,6 +186,11 @@ export default class CRUDComponentField extends VueComponentBase {
     private async reload_field_value() {
 
         this.can_insert_or_update_target = false;
+
+        if (this.inline_input_mode && this.inline_input_read_value) {
+            // Si inline input mode et inline_input_read_value on esquive cette mise à jour puisque la valeur par défaut du champ est déjà définie à ce stade normalement
+            return;
+        }
 
         this.field_value = this.vo[this.field.datatable_field_uid];
 
@@ -664,17 +670,16 @@ export default class CRUDComponentField extends VueComponentBase {
         return (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
     }
 
-    private inline_clear_value() {
+    private async inline_clear_value() {
         this.field_value = null;
 
-        if (!!this.inline_input_is_editing) {
-            this.inline_input_is_editing = false;
-        }
+        await this.change_inline_field_value();
+        this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
     }
 
-    private async validate_inline_input(input_value) {
+    private async validate_inline_input() {
 
-        let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(input_value, this.field, this.vo) : null;
+        let alerts: Alert[] = this.field.validate_input ? this.field.validate_input(this.field_value, this.field, this.vo) : null;
         if (alerts && alerts.length) {
 
             // Si on a des alertes, d'une part on les register, d'autre part on check qu'on a pas des erreurs sinon il faut refuser l'input
@@ -693,7 +698,12 @@ export default class CRUDComponentField extends VueComponentBase {
             }
         }
 
-        this.field_value = input_value;
+        await this.change_inline_field_value();
+    }
+
+    private async change_inline_field_value() {
+
+        this.inline_input_is_busy = true;
 
         if (this.auto_update_field_value) {
 
@@ -709,6 +719,7 @@ export default class CRUDComponentField extends VueComponentBase {
                 this.vo[this.field.datatable_field_uid] = old_value;
 
                 this.register_alert(new Alert(this.alert_path, 'field.auto_update_field_value.server_error'));
+                this.inline_input_is_busy = false;
 
                 return;
             } else {
@@ -718,6 +729,8 @@ export default class CRUDComponentField extends VueComponentBase {
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
 
         this.inline_input_is_editing = false;
+
+        this.inline_input_is_busy = false;
     }
 
     private prepare_inline_input() {
@@ -727,5 +740,26 @@ export default class CRUDComponentField extends VueComponentBase {
             this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
         }
         this.inline_input_is_editing = true;
+    }
+
+    private cancel_input() {
+        this.inline_input_is_editing = false;
+        this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
+    }
+
+    @Watch('inline_input_read_value', { immediate: true })
+    private onchange_inline_input_read_value() {
+        if (!this.inline_input_mode) {
+            return;
+        }
+        this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
+    }
+
+    private async inline_input_submit() {
+        if (!this.inline_input_mode) {
+            return;
+        }
+
+        this.validate_inline_input();
     }
 }

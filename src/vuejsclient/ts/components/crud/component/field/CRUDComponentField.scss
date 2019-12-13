@@ -16,4 +16,40 @@
         font-size: 0.8em;
         margin: 0em 0.2em;
     }
+
+    .inline_input_show_clear,
+    .inline_input_is_editing,
+    .inline_input_cancel_input,
+    .inline_input_is_not_editing {
+
+        padding: 5px;
+        height: 1.8em;
+        padding-top: 0.3em;
+        font-size: 1em;
+        width: 1.8em;
+        vertical-align: bottom;
+        cursor: pointer;
+    }
+
+    .inline_input_show_clear.busy,
+    .inline_input_is_editing.busy,
+    .inline_input_cancel_input.busy,
+    .inline_input_is_not_editing.busy {
+        opacity:0.5;
+        color: #888 !important;
+        background-color: #AAA !important;
+        cursor: wait;
+    }
+}
+
+.inline_input_mode {
+    text-align: center;
+
+    input {
+        background: white;
+        border: none;
+        line-height: 1.7em;
+        vertical-align: bottom;
+        text-align: center;
+    }
 }

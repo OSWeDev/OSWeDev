@@ -4,6 +4,7 @@ import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 import VarsController from '../../VarsController';
 import DAG from '../dag/DAG';
 import VarDAGNode from './VarDAGNode';
+import ModulesManager from '../../../ModulesManager';
 
 export default class VarDAG extends DAG<VarDAGNode> {
 
@@ -105,9 +106,9 @@ export default class VarDAG extends DAG<VarDAGNode> {
                 if (VarsController.getInstance().varDatas && VarsController.getInstance().varDatas[index]) {
                     delete VarsController.getInstance().varDatas[index];
                 }
-                // if (VarsController.getInstance().varDatasStaticCache && VarsController.getInstance().varDatasStaticCache[index]) {
-                //     delete VarsController.getInstance().varDatasStaticCache[index];
-                // }
+                if (VarsController.getInstance().varDatasStaticCache && VarsController.getInstance().varDatasStaticCache[index]) {
+                    delete VarsController.getInstance().varDatasStaticCache[index];
+                }
 
                 node.setImportedData(null, this);
                 node.loaded_datas_matroids = null;
@@ -216,5 +217,19 @@ export default class VarDAG extends DAG<VarDAGNode> {
         this.dependencies_heatmap_version++;
 
         VarsController.getInstance().set_dependencies_heatmap_version(this.dependencies_heatmap_version);
+    }
+
+    public addEdge(fromName: string, toName: string) {
+        super.addEdge(fromName, toName);
+
+        // On ajoute l'info de nécessité de loading de datas ou pas pour simplifier à mort les chargements de datas des matroids
+        // Si le noeud from nécessite un chargement, on nécessite un chargement
+        let fromNode: VarDAGNode = this.nodes[fromName];
+        let toNode: VarDAGNode = this.nodes[toName];
+        if (fromNode.needs_to_load_precompiled_or_imported_data) {
+            toNode.needs_parent_to_load_precompiled_or_imported_data = true;
+        } else {
+            toNode.needs_parent_to_load_precompiled_or_imported_data = fromNode.needs_parent_to_load_precompiled_or_imported_data || toNode.needs_parent_to_load_precompiled_or_imported_data;
+        }
     }
 }
