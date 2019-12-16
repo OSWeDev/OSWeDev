@@ -17,6 +17,7 @@ import HourSegmentHandler from './HourSegmentHandler';
 import NumSegmentHandler from './NumSegmentHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
 import moment = require('moment');
+import IDistantVOBase from '../modules/IDistantVOBase';
 
 export default class RangeHandler {
 
@@ -53,6 +54,40 @@ export default class RangeHandler {
     private static instance: RangeHandler = null;
 
     private constructor() { }
+
+    public get_all_segmented_elements_from_range<T>(range: IRange<T>): T[] {
+
+        if (!range) {
+            return null;
+        }
+
+        let res: T[] = [];
+
+        this.foreach_sync(range, (e: T) => {
+            res.push(e);
+        }, range.segment_type);
+
+        return res;
+    }
+
+    public get_all_segmented_elements_from_ranges<T>(ranges: Array<IRange<T>>): T[] {
+
+        if (!ranges) {
+            return null;
+        }
+
+        let res: T[] = [];
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            this.foreach_sync(range, (e: T) => {
+                res.push(e);
+            }, range.segment_type);
+        }
+
+        return res;
+    }
 
     public isValid<T>(range: IRange<T>): boolean {
         if ((!range) || (typeof range.min_inclusiv == 'undefined') || (typeof range.max_inclusiv == 'undefined')) {
@@ -823,6 +858,18 @@ export default class RangeHandler {
 
             res.push(this.get_range_shifted_by_x_segments(range, shift_value, shift_segment_type));
         }
+        return res;
+    }
+
+    public get_ids_ranges_from_vos(vos: IDistantVOBase[] | { [id: number]: IDistantVOBase }): NumRange[] {
+        let res: NumRange[] = [];
+
+        for (let i in vos) {
+            let vo = vos[i];
+
+            res.push(this.create_single_elt_NumRange(vo.id, NumSegment.TYPE_INT));
+        }
+
         return res;
     }
 

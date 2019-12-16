@@ -338,7 +338,12 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+
+        if (!this.datatable) {
+            this.$emit('changeValue', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this.datatable);
+        } else {
+            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        }
     }
 
     private validateMultiInput(values: any[]) {
@@ -355,7 +360,12 @@ export default class CRUDComponentField extends VueComponentBase {
 
 
     private changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any, datatable: Datatable<IDistantVOBase>) {
-        vo[field.datatable_field_uid] = value;
+
+        if (!this.datatable) {
+            vo[field.datatable_field_uid] = this.field.UpdateIHMToData(value, this.vo);
+        } else {
+            vo[field.datatable_field_uid] = value;
+        }
 
         if (!datatable) {
             return;

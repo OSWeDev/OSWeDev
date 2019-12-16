@@ -146,6 +146,17 @@ export default class VarsController {
         return this.registered_vars_controller_;
     }
 
+    public vardatas_by_index_from_array<T extends IVarDataVOBase>(vardatas: T[]): { [index: string]: T } {
+        let res: { [index: string]: T } = {};
+
+        for (let i in vardatas) {
+            let vardata = vardatas[i];
+
+            res[this.getIndex(vardata)] = vardata;
+        }
+
+        return res;
+    }
 
     // /**
     //  * pour UnitTest TestUnit uniquement
