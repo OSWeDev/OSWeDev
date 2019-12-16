@@ -21,7 +21,7 @@
         :internal-search="false",
         :allow-empty="!field.is_required",
         :preselectFirst="false",
-        :disabled="field.is_readonly",
+        :disabled="is_readonly",
         @search-change="asyncLoadOptions",
         @input="onChangeField",
         :multiple="true"

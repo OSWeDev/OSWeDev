@@ -2,6 +2,7 @@ import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
 import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -16,6 +17,8 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import Alert from '../../../alert/Alert';
+import { ModuleAlertAction } from '../../../alert/AlertStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import Datatable from '../../../datatable/vos/Datatable';
 import DatatableField from '../../../datatable/vos/DatatableField';
@@ -31,9 +34,6 @@ import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
-import Alert from '../../../alert/Alert';
-import { ModuleAlertAction } from '../../../alert/AlertStore';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 let debounce = require('lodash/debounce');
 
 
@@ -94,6 +94,9 @@ export default class CRUDComponentField extends VueComponentBase {
     private inline_input_hide_label: boolean;
     @Prop()
     private inline_input_read_value: any;
+
+    @Prop({ default: false })
+    private is_disabled: boolean;
 
 
     private select_options: number[] = [];
@@ -761,5 +764,9 @@ export default class CRUDComponentField extends VueComponentBase {
         }
 
         this.validate_inline_input();
+    }
+
+    get is_readonly(): boolean {
+        return this.field.is_readonly || this.is_disabled;
     }
 }

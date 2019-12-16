@@ -24,7 +24,7 @@
         :searchable="true",
         :internal-search="false",
         :allow-empty="!field.is_required",
-        :disabled="field.is_readonly",
+        :disabled="is_readonly",
         @search-change="asyncLoadOptions",
         @input="onChangeField"
 
