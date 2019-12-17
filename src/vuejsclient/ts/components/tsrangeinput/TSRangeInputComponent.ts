@@ -32,6 +32,9 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private field: SimpleDatatableField<any, any>;
 
     @Prop({ default: null })
+    private segmentation_type: number;
+
+    @Prop({ default: null })
     private vo: IDistantVOBase;
 
     private tsrange_start: Date = null;
@@ -49,6 +52,19 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private language = "fr";
     private languages = lang;
 
+    private segmentation_type_: number = null;
+
+    @Watch('field', { immediate: true })
+    private onchange_field() {
+        if (!!this.field) {
+            if (this.segmentation_type == null) {
+                this.segmentation_type_ = this.field.moduleTableField.segmentation_type;
+                return;
+            }
+        }
+        this.segmentation_type_ = this.segmentation_type;
+    }
+
     @Watch('value', { immediate: true })
     private async onchange_value(): Promise<void> {
 
@@ -64,8 +80,8 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return;
         }
 
-        let min: Moment = RangeHandler.getInstance().getSegmentedMin(this.value, this.field.moduleTableField.segmentation_type);
-        let max: Moment = RangeHandler.getInstance().getSegmentedMax(this.value, this.field.moduleTableField.segmentation_type);
+        let min: Moment = RangeHandler.getInstance().getSegmentedMin(this.value, this.segmentation_type_);
+        let max: Moment = RangeHandler.getInstance().getSegmentedMax(this.value, this.segmentation_type_);
 
         this.tsrange_start = min.toDate();
         this.tsrange_end = max.toDate();
@@ -80,30 +96,35 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
-        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, this.ts_start, this.ts_end, true, true, this.field.moduleTableField.segmentation_type);
+        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, this.ts_start, this.ts_end, true, true, this.segmentation_type_);
         this.$emit('input', this.new_value);
-        this.$emit('input_with_infos', this.new_value, this.field, this.vo);
+
+        if (!!this.vo) {
+            this.$emit('input_with_infos', this.new_value, this.field, this.vo);
+        }
     }
 
     @Watch('tsrange_date')
     @Watch('tsrange_start_time')
     @Watch('tsrange_end_time')
     private on_change_tsrange_date_time(): void {
-        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, this.ts_start, this.ts_end, true, true, this.field.moduleTableField.segmentation_type);
+        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, this.ts_start, this.ts_end, true, true, this.segmentation_type_);
         this.$emit('input', this.new_value);
-        this.$emit('input_with_infos', this.new_value, this.field, this.vo);
+        if (!!this.vo) {
+            this.$emit('input_with_infos', this.new_value, this.field, this.vo);
+        }
     }
 
     get is_segmentation_mois(): boolean {
-        return this.field && this.field.moduleTableField && (this.field.moduleTableField.segmentation_type == TimeSegment.TYPE_MONTH);
+        return this.segmentation_type_ == TimeSegment.TYPE_MONTH;
     }
 
     get is_segmentation_day(): boolean {
-        return this.field && this.field.moduleTableField && (this.field.moduleTableField.segmentation_type == TimeSegment.TYPE_DAY);
+        return this.segmentation_type_ == TimeSegment.TYPE_DAY;
     }
 
     get is_segmentation_minute(): boolean {
-        return this.field && this.field.moduleTableField && (this.field.moduleTableField.segmentation_type == TimeSegment.TYPE_MINUTE);
+        return this.segmentation_type_ == TimeSegment.TYPE_MINUTE;
     }
 
     get ts_start(): Moment {
@@ -118,7 +139,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return start;
         }
 
-        return moment(this.tsrange_start).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.field.moduleTableField.segmentation_type));
+        return moment(this.tsrange_start).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.segmentation_type_));
     }
 
     get ts_end(): Moment {
@@ -133,6 +154,6 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return end;
         }
 
-        return moment(this.tsrange_end).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.field.moduleTableField.segmentation_type));
+        return moment(this.tsrange_end).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.segmentation_type_));
     }
 }
