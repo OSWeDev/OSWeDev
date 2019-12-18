@@ -367,6 +367,7 @@ export default class MatroidController {
             let matroid_cutter = matroid_cutters[j];
 
             let cut_results: Array<MatroidCutResult<any>> = this.cut_matroids(matroid_cutter, remaining_matroids);
+
             remaining_matroids = [];
             for (let k in cut_results) {
                 remaining_matroids = remaining_matroids.concat(cut_results[k].remaining_items);
@@ -376,6 +377,31 @@ export default class MatroidController {
         return remaining_matroids;
     }
 
+    /**
+     * FIXME TODO ASAP WITH TU
+     */
+    public matroids_cut_matroids<T extends IMatroid>(matroid_cutters: T[], matroids_to_cut: T[]): MatroidCutResult<T> {
+
+        let res: MatroidCutResult<T> = new MatroidCutResult<T>([], this.cloneFromRanges(matroids_to_cut));
+
+        for (let j in matroid_cutters) {
+
+            let matroid_cutter = matroid_cutters[j];
+
+            let cut_results: Array<MatroidCutResult<any>> = this.cut_matroids(matroid_cutter, res.remaining_items);
+
+            for (let k in cut_results) {
+                res.chopped_items = res.chopped_items.concat(cut_results[k].chopped_items);
+            }
+
+            res.remaining_items = [];
+            for (let k in cut_results) {
+                res.remaining_items = res.remaining_items.concat(cut_results[k].remaining_items);
+            }
+        }
+
+        return res;
+    }
 
     /**
      * FIXME TODO ASAP WITH TU

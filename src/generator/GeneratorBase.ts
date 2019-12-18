@@ -31,10 +31,10 @@ export default abstract class GeneratorBase {
         return GeneratorBase.instance;
     }
 
-    protected static instance: GeneratorBase = null;
+    protected static instance: GeneratorBase;
 
-    protected pre_modules_workers: IGeneratorWorker[] = null;
-    protected post_modules_workers: IGeneratorWorker[] = null;
+    protected pre_modules_workers: IGeneratorWorker[];
+    protected post_modules_workers: IGeneratorWorker[];
 
     private modulesService: ModuleServiceBase;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
