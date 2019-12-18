@@ -67,4 +67,14 @@ export default class TSRangesInputComponent extends VueComponentBase {
         this.$emit('input', this.new_value);
         this.$emit('input_with_infos', this.new_value, this.field, this.vo);
     }
+
+    get disabled_dates(): any {
+        if (!this.disabled) {
+            return null;
+        }
+
+        return {
+            weekdays: [1, 2, 3, 4, 5, 6, 7]
+        };
+    }
 }

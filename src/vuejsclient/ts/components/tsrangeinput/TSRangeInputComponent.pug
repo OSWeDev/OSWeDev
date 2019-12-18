@@ -10,6 +10,6 @@
             .col-md-6
                 Datepicker(v-model="tsrange_date" :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" class="form-control max-width" @input="on_change_tsrange_date_time")
             .col-md-3
-                input.form-control.max-width(v-model="tsrange_start_time", type="time", id="tsrange_start_time")
+                input.form-control.max-width(v-model="tsrange_start_time", type="time", id="tsrange_start_time" :disabled="disabled")
             .col-md-3
-                input.form-control.max-width(v-model="tsrange_end_time", type="time", id="tsrange_end_time")
+                input.form-control.max-width(v-model="tsrange_end_time", type="time", id="tsrange_end_time" :disabled="disabled")

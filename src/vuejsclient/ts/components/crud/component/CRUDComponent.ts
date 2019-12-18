@@ -21,13 +21,13 @@ import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyRef
 import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../datatable/vos/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import CRUD from '../vos/CRUD';
 import "./CRUDComponent.scss";
 import CRUDComponentField from './field/CRUDComponentField';
-import RefRangesReferenceDatatableField from '../../datatable/vos/RefRangesReferenceDatatableField';
 
 @Component({
     template: require('./CRUDComponent.pug'),
