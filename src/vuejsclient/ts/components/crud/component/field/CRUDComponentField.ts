@@ -178,10 +178,10 @@ export default class CRUDComponentField extends VueComponentBase {
 
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
     @Watch('field', { immediate: true })
-    @Watch('vo', { immediate: true })
-    @Watch('datatable', { immediate: true })
-    @Watch('default_field_data', { immediate: true })
-    @Watch('field_select_options_enabled', { immediate: true })
+    @Watch('vo')
+    @Watch('datatable')
+    @Watch('default_field_data')
+    @Watch('field_select_options_enabled')
     private on_reload_field_value() {
         this.debounced_reload_field_value();
     }
@@ -440,10 +440,11 @@ export default class CRUDComponentField extends VueComponentBase {
             let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
 
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
-            let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
-            this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
-
-            // let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+            let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
+                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+                this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
+            }
 
             if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
@@ -484,7 +485,7 @@ export default class CRUDComponentField extends VueComponentBase {
         }
     }
 
-    private async asyncLoadOptions(query) {
+    private async asyncLoadOptions(query: string) {
         this.isLoadingOptions = true;
 
         if ((!this.field) ||
@@ -500,28 +501,32 @@ export default class CRUDComponentField extends VueComponentBase {
         let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
 
         // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
-        // let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
-        // this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
 
         let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
+        if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
+            options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
+            this.storeDatasByIds({ API_TYPE_ID: manyToOne.targetModuleTable.vo_type, vos_by_ids: options });
+        }
+
         let newOptions: number[] = [];
 
         for (let i in options) {
             let option = options[i];
 
-            if ((manyToOne.dataToHumanReadable(option)).match(new RegExp(query, 'i'))) {
+            if (manyToOne.dataToHumanReadable(option).toLowerCase().indexOf(query.toLowerCase()) >= 0) {
 
-                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
+                if ((!this.select_options_enabled) || (this.select_options_enabled.indexOf(option.id) >= 0)) {
                     newOptions.push(option.id);
                 }
             }
         }
 
         this.isLoadingOptions = false;
+
         this.select_options = newOptions;
     }
 
-    private asyncLoadEnumOptions(query) {
+    private asyncLoadEnumOptions(query: string) {
         this.isLoadingOptions = true;
 
         if ((!this.field) ||
@@ -536,7 +541,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
         for (let i in simpleField.moduleTableField.enum_values) {
 
-            if ((simpleField.enumIdToHumanReadable(parseInt(i))).match(new RegExp(query, 'i'))) {
+            if (simpleField.enumIdToHumanReadable(parseInt(i)).toLowerCase().indexOf(query.toLowerCase()) >= 0) {
 
                 if (!this.select_options_enabled || this.select_options_enabled.indexOf(parseInt(i)) >= 0) {
                     newOptions.push(parseInt(i));
@@ -570,9 +575,12 @@ export default class CRUDComponentField extends VueComponentBase {
             let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
 
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
-            let options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOneField.targetModuleTable.vo_type));
-            this.storeDatasByIds({ API_TYPE_ID: manyToOneField.targetModuleTable.vo_type, vos_by_ids: options });
-            // let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+            let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
+            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
+                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOneField.targetModuleTable.vo_type));
+                this.storeDatasByIds({ API_TYPE_ID: manyToOneField.targetModuleTable.vo_type, vos_by_ids: options });
+            }
+
 
             if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                 options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
