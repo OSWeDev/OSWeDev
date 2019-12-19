@@ -9,6 +9,7 @@ import NumRange from '../modules/DataRender/vos/NumRange';
 import NumSegment from '../modules/DataRender/vos/NumSegment';
 import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import TSRange from '../modules/DataRender/vos/TSRange';
+import IDistantVOBase from '../modules/IDistantVOBase';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
 import ConsoleHandler from './ConsoleHandler';
 import DateHandler from './DateHandler';
@@ -17,7 +18,6 @@ import HourSegmentHandler from './HourSegmentHandler';
 import NumSegmentHandler from './NumSegmentHandler';
 import TimeSegmentHandler from './TimeSegmentHandler';
 import moment = require('moment');
-import IDistantVOBase from '../modules/IDistantVOBase';
 
 export default class RangeHandler {
 
@@ -348,6 +348,31 @@ export default class RangeHandler {
         }
 
         return this.is_elt_inf_elt(range_a.range_type, this.getSegmentedMax(range_a, segment_type), this.getSegmentedMin(range_b, segment_type));
+    }
+
+    public ranges_intersect_themselves<T>(ranges_a: Array<IRange<T>>, segment_type: number = null): boolean {
+
+        if ((!ranges_a) || (!ranges_a.length)) {
+            return false;
+        }
+
+        if (segment_type == null) {
+            segment_type = ranges_a[0].segment_type;
+        }
+
+        for (let i: number = 0; i < (ranges_a.length - 1); i++) {
+            let range_a = ranges_a[i];
+
+            for (let j: number = i + 1; j < ranges_a.length; j++) {
+                let range_b = ranges_a[j];
+
+                if (this.range_intersects_range(range_a, range_b, segment_type)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
