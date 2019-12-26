@@ -1,15 +1,15 @@
 
 export default class GeoPointVO {
 
-    public static createNew(longitude: number, latitude: number): GeoPointVO {
+    public static createNew(x: number, y: number): GeoPointVO {
         let geopoint: GeoPointVO = new GeoPointVO();
 
-        geopoint.longitude = longitude;
-        geopoint.latitude = latitude;
+        geopoint.x = x;
+        geopoint.y = y;
 
         return geopoint;
     }
 
-    public longitude: number;
-    public latitude: number;
+    public x: number;
+    public y: number;
 }

@@ -2,10 +2,12 @@ import * as clonedeep from 'lodash/cloneDeep';
 import * as moment from 'moment';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
+import GeoPointHandler from '../tools/GeoPointHandler';
 import RangeHandler from '../tools/RangeHandler';
 import HourRange from './DataRender/vos/HourRange';
 import HourSegment from './DataRender/vos/HourSegment';
 import NumRange from './DataRender/vos/NumRange';
+import TimeSegment from './DataRender/vos/TimeSegment';
 import TSRange from './DataRender/vos/TSRange';
 import IDistantVOBase from './IDistantVOBase';
 import Module from './Module';
@@ -13,7 +15,6 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
-import TimeSegment from './DataRender/vos/TimeSegment';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -509,6 +510,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     if (res[field.field_id]) {
                         res[field.field_id] = moment(res[field.field_id]).utc(true);
                     }
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_geopoint:
+                    res[field.field_id] = GeoPointHandler.getInstance().format(res[field.field_id]);
                     break;
 
                 default:

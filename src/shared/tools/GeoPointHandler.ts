@@ -75,7 +75,7 @@ export default class GeoPointHandler {
 
     public format(geopoint: GeoPointVO): string {
         if (geopoint) {
-            return '(' + geopoint.longitude + ',' + geopoint.latitude + ')';
+            return '(' + geopoint.x + ',' + geopoint.y + ')';
         }
 
         return null;
@@ -110,12 +110,12 @@ export default class GeoPointHandler {
     public longitude(point: string): number {
         let geopoint: GeoPointVO = this.geopoint(point);
 
-        return geopoint ? geopoint.longitude : null;
+        return geopoint ? geopoint.x : null;
     }
 
     public latitude(point: string): number {
         let geopoint: GeoPointVO = this.geopoint(point);
 
-        return geopoint ? geopoint.latitude : null;
+        return geopoint ? geopoint.y : null;
     }
 }
