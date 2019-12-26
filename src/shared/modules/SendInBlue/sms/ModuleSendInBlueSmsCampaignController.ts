@@ -1,5 +1,9 @@
-import { ClientResponse } from 'http';
-import * as SibAPI from 'sib-api-v3-typescript';
+import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
+import InsertOrDeleteQueryResult from '../../DAO/vos/InsertOrDeleteQueryResult';
+import ModuleSendInBlueController from '../ModuleSendInBlueController';
+import SendInBlueCampaignRecipientsVO from '../vos/SendInBlueCampaignRecipientsVO';
+import SendInBlueSmsCampaignDetailVO from '../vos/SendInBlueSmsCampaignDetailVO';
+import SendInBlueSmsCampaignsVO from '../vos/SendInBlueSmsCampaignsVO';
 
 export default class ModuleSendInBlueSmsCampaignController {
 
@@ -12,66 +16,68 @@ export default class ModuleSendInBlueSmsCampaignController {
 
     private static instance: ModuleSendInBlueSmsCampaignController = null;
 
-    public async getCampaign(campaignId: number): Promise<SibAPI.GetSmsCampaign> {
-        // TODO
-        let res: {
-            response: ClientResponse;
-            body: SibAPI.GetSmsCampaign;
-        } = await new SibAPI.SMSCampaignsApi().getSmsCampaign(campaignId);
+    private static PATH_CAMPAIGN: string = 'smsCampaigns';
+    private static PATH_CAMPAIGN_SEND_NOW: string = 'sendNow';
+    private static PATH_CAMPAIGN_SEND_TEST: string = 'sendTest';
 
-        if (res && res.response && res.response.statusCode == 200 && res.body) {
-            return res.body;
+    public async getCampaign(campaignId: number): Promise<SendInBlueSmsCampaignDetailVO> {
+        if (!campaignId) {
+            return null;
         }
 
-        return null;
+        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueSmsCampaignDetailVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN + '/' + campaignId);
     }
 
-    public async getCampaigns(): Promise<SibAPI.GetSmsCampaign[]> {
-        // TODO
-        let res: {
-            response: ClientResponse;
-            body: SibAPI.GetSmsCampaigns;
-        } = await new SibAPI.SMSCampaignsApi().getSmsCampaigns();
-
-        if (res && res.response && res.response.statusCode == 200 && res.body && res.body.campaigns) {
-            return res.body.campaigns;
-        }
-
-        return null;
+    public async getCampaigns(): Promise<SendInBlueSmsCampaignsVO> {
+        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueSmsCampaignsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN);
     }
 
-    public async create(name: string, sender: string, content: string, recipients: SibAPI.CreateSmsCampaignRecipients, scheduledAt: Date): Promise<number> {
-        // TODO
-        let campaign: SibAPI.CreateSmsCampaign = new SibAPI.CreateSmsCampaign();
-        campaign.name = name;
-        campaign.sender = sender;
-        campaign.content = content;
-        campaign.recipients = recipients;
-        campaign.scheduledAt = scheduledAt;
-
-        let res: {
-            response: ClientResponse;
-            body: SibAPI.CreateModel;
-        } = await new SibAPI.SMSCampaignsApi().createSmsCampaign(campaign);
-
-        if (res && res.response && res.response.statusCode == 200 && res.body && res.body.id) {
-            return res.body.id;
+    public async create(campaignName: string, content: string, recipients: SendInBlueCampaignRecipientsVO): Promise<SendInBlueSmsCampaignDetailVO> {
+        if (!campaignName || !content || !recipients || !recipients.lists || !recipients.lists.length) {
+            return null;
         }
 
-        return null;
+        let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+            ModuleRequest.METHOD_POST,
+            ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN,
+            {
+                name: campaignName,
+                sender: ModuleSendInBlueController.getInstance().getSenderName(),
+                content: content,
+                recipients: { exclusionListIds: recipients.exclusionLists, listIds: recipients.lists },
+            }
+        );
+
+        if (!res || !res.id) {
+            return null;
+        }
+
+        return this.getCampaign(parseInt(res.id));
     }
 
-    public async send(campaingId: number): Promise<boolean> {
-        // TODO
-        let res: {
-            response: ClientResponse;
-            body?: any;
-        } = await new SibAPI.SMSCampaignsApi().sendSmsCampaignNow(campaingId);
-
-        if (res && res.response && res.response.statusCode == 200 && res.body) {
-            return true;
+    public async send(campaignId: number, testSms: boolean = false, phoneTest: string = null): Promise<boolean> {
+        if (!campaignId) {
+            return null;
         }
 
-        return false;
+        let urlSend: string = ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN + '/' + campaignId + '/';
+
+        if (testSms) {
+            urlSend += ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN_SEND_TEST;
+        } else {
+            urlSend += ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN_SEND_NOW;
+        }
+
+        let res: { code: string, message: string } = await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ code: string, message: string }>(
+            ModuleRequest.METHOD_POST,
+            urlSend,
+            { phoneNumber: phoneTest }
+        );
+
+        if (!res || res.code) {
+            return false;
+        }
+
+        return true;
     }
 }

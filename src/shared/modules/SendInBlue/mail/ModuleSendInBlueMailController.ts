@@ -1,5 +1,7 @@
-import { ClientResponse } from 'http';
-import * as SibAPI from 'sib-api-v3-typescript';
+import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
+import ModuleSendInBlueController from '../ModuleSendInBlueController';
+import SendInBlueAttachmentVO from '../vos/SendInBlueAttachmentVO';
+import SendInBlueMailVO from '../vos/SendInBlueMailVO';
 
 export default class ModuleSendInBlueMailController {
 
@@ -12,46 +14,85 @@ export default class ModuleSendInBlueMailController {
 
     private static instance: ModuleSendInBlueMailController = null;
 
-    public async send(
-        sender: SibAPI.SendSmtpEmailSender,
-        to: SibAPI.SendSmtpEmailTo[],
-        bcc: SibAPI.SendSmtpEmailBcc[],
-        cc: SibAPI.SendSmtpEmailCc[],
-        htmlContent: string,
-        textContent: string,
-        subject: string,
-        replyTo: SibAPI.SendSmtpEmailReplyTo,
-        attachment: SibAPI.SendSmtpEmailAttachment[],
-        headers: any,
-        templateId: number,
-        params: any,
-        tags: string[]
-    ): Promise<string> {
-        // TODO
-        let mail: SibAPI.SendSmtpEmail = new SibAPI.SendSmtpEmail();
-        mail.sender = sender;
-        mail.to = to;
-        mail.bcc = bcc;
-        mail.cc = cc;
-        mail.htmlContent = htmlContent;
-        mail.textContent = textContent;
-        mail.subject = subject;
-        mail.replyTo = replyTo;
-        mail.attachment = attachment;
-        mail.headers = headers;
-        mail.templateId = templateId;
-        mail.params = params;
-        mail.tags = tags;
+    private static PATH_EMAIL: string = 'smtp/email';
 
-        let res: {
-            response: ClientResponse;
-            body: SibAPI.CreateSmtpEmail;
-        } = await new SibAPI.SMTPApi().sendTransacEmail(mail);
+    public async send(to: SendInBlueMailVO, subject: string, textContent: string, htmlContent: string, tags: string[] = null, templateId: number = null, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
+        let postParams: any = {
+            sender: ModuleSendInBlueController.getInstance().getSender(),
+            to: [to],
+            replyTo: ModuleSendInBlueController.getInstance().getReplyTo(),
+            subject: subject,
+            htmlContent: htmlContent,
+            textContent: textContent,
+        };
 
-        if (res && res.response && res.response.statusCode == 200 && res.body && res.body.messageId) {
-            return res.body.messageId;
+        if (bcc && bcc.length > 0) {
+            postParams.bcc = bcc;
         }
 
-        return null;
+        if (cc && cc.length > 0) {
+            postParams.cc = cc;
+        }
+
+        if (attachments && attachments.length > 0) {
+            postParams.attachments = attachments;
+        }
+
+        if (templateId) {
+            postParams.templateId = templateId;
+        }
+
+        if (tags) {
+            postParams.tags = tags;
+        }
+
+        let res: { messageId: string } = await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ messageId: string }>(
+            ModuleRequest.METHOD_POST,
+            ModuleSendInBlueMailController.PATH_EMAIL,
+            postParams
+        );
+
+        if (!res || !res.messageId) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public async sendWithTemplate(to: SendInBlueMailVO, templateId: number, tags: string[] = null, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
+        let postParams: any = {
+            sender: ModuleSendInBlueController.getInstance().getSender(),
+            to: [to],
+            templateId: templateId,
+            replyTo: ModuleSendInBlueController.getInstance().getReplyTo(),
+        };
+
+        if (bcc && bcc.length > 0) {
+            postParams.bcc = bcc;
+        }
+
+        if (cc && cc.length > 0) {
+            postParams.cc = cc;
+        }
+
+        if (attachments && attachments.length > 0) {
+            postParams.attachments = attachments;
+        }
+
+        if (tags) {
+            postParams.tags = tags;
+        }
+
+        let res: { messageId: string } = await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ messageId: string }>(
+            ModuleRequest.METHOD_POST,
+            ModuleSendInBlueMailController.PATH_EMAIL,
+            postParams
+        );
+
+        if (!res || !res.messageId) {
+            return false;
+        }
+
+        return true;
     }
 }

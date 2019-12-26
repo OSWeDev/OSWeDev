@@ -27,6 +27,7 @@ import Module from '../../shared/modules/Module';
 import ModuleParams from '../../shared/modules/Params/ModuleParams';
 import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
 import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslation';
@@ -60,6 +61,7 @@ import ModuleServerBase from './ModuleServerBase';
 import ModuleParamsServer from './Params/ModuleParamsServer';
 import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
+import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
 import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
 import ModuleVarServer from './Var/ModuleVarServer';
@@ -281,7 +283,7 @@ export default abstract class ModuleServiceBase {
             ModuleSASSSkinConfigurator.getInstance(),
             ModuleVar.getInstance(),
             ModuleTableFieldTypes.getInstance(),
-            ModuleBGThread.getInstance()
+            ModuleBGThread.getInstance(),
         ];
     }
 
@@ -318,7 +320,8 @@ export default abstract class ModuleServiceBase {
             ModuleMaintenance.getInstance(),
             ModuleTableFieldTypes.getInstance(),
             ModuleBGThread.getInstance(),
-            ModuleParams.getInstance()
+            ModuleParams.getInstance(),
+            ModuleSendInBlue.getInstance(),
         ];
     }
 
@@ -351,7 +354,8 @@ export default abstract class ModuleServiceBase {
             ModuleTranslationsImportServer.getInstance(),
             ModuleMaintenanceServer.getInstance(),
             ModuleBGThreadServer.getInstance(),
-            ModuleParamsServer.getInstance()
+            ModuleParamsServer.getInstance(),
+            ModuleSendInBlueServer.getInstance(),
         ];
     }
 }

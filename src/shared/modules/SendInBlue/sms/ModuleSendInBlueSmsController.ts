@@ -1,5 +1,6 @@
-import { ClientResponse } from 'http';
-import * as SibAPI from 'sib-api-v3-typescript';
+import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
+import ModuleSendInBlueController from '../ModuleSendInBlueController';
+import SendInBlueSmsVO from '../vos/SendInBlueSmsVO';
 
 export default class ModuleSendInBlueSmsController {
 
@@ -12,25 +13,18 @@ export default class ModuleSendInBlueSmsController {
 
     private static instance: ModuleSendInBlueSmsController = null;
 
-    public async send(sender: string, recipient: string, content: string, type: SibAPI.SendTransacSms.TypeEnum, tag: string, webUrl: string): Promise<boolean> {
-        // TODO
-        let sms: SibAPI.SendTransacSms = new SibAPI.SendTransacSms();
-        sms.sender = sender;
-        sms.recipient = recipient;
-        sms.content = content;
-        sms.type = type;
-        sms.tag = tag;
-        sms.webUrl = webUrl;
+    private static PATH_SMS: string = 'transactionalSMS/sms';
 
-        let res: {
-            response: ClientResponse;
-            body?: any;
-        } = await new SibAPI.TransactionalSMSApi().sendTransacSms(sms);
-
-        if (res && res.response && res.response.statusCode == 200 && res.body) {
-            return true;
-        }
-
-        return false;
+    public async send(recipient: string, content: string, type: string = SendInBlueSmsVO.TYPE_TRANSACTIONAL): Promise<SendInBlueSmsVO> {
+        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueSmsVO>(
+            ModuleRequest.METHOD_POST,
+            ModuleSendInBlueSmsController.PATH_SMS,
+            {
+                sender: ModuleSendInBlueController.getInstance().getSenderName(),
+                recipient: recipient,
+                content: content,
+                type: type,
+            }
+        );
     }
 }
