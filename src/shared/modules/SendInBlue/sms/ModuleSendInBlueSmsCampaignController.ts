@@ -37,6 +37,14 @@ export default class ModuleSendInBlueSmsCampaignController {
             return null;
         }
 
+        let recipientsData: any = {
+            listIds: recipients.lists
+        };
+
+        if (recipients.exclusionLists && recipients.exclusionLists.length > 0) {
+            recipientsData.exclusionListIds = recipients.exclusionLists;
+        }
+
         let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
             ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN,
@@ -44,7 +52,7 @@ export default class ModuleSendInBlueSmsCampaignController {
                 name: campaignName,
                 sender: ModuleSendInBlueController.getInstance().getSenderNameSMS(),
                 content: content,
-                recipients: { exclusionListIds: recipients.exclusionLists, listIds: recipients.lists },
+                recipients: recipientsData,
             }
         );
 
@@ -60,10 +68,18 @@ export default class ModuleSendInBlueSmsCampaignController {
             return null;
         }
 
+        let postParams: any = {};
+
         let urlSend: string = ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN + '/' + campaignId + '/';
 
         if (testSms) {
             urlSend += ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN_SEND_TEST;
+
+            if (!phoneTest) {
+                return null;
+            }
+
+            postParams.phoneNumber = phoneTest;
         } else {
             urlSend += ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN_SEND_NOW;
         }
@@ -71,7 +87,7 @@ export default class ModuleSendInBlueSmsCampaignController {
         let res: { code: string, message: string } = await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ code: string, message: string }>(
             ModuleRequest.METHOD_POST,
             urlSend,
-            { phoneNumber: phoneTest }
+            postParams,
         );
 
         if (!res || res.code) {

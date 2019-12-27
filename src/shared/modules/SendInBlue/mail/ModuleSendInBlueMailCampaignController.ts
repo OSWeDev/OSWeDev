@@ -37,6 +37,14 @@ export default class ModuleSendInBlueMailCampaignController {
             return null;
         }
 
+        let recipientsData: any = {
+            listIds: recipients.lists
+        };
+
+        if (recipients.exclusionLists && recipients.exclusionLists.length > 0) {
+            recipientsData.exclusionListIds = recipients.exclusionLists;
+        }
+
         let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
             ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN,
@@ -46,7 +54,7 @@ export default class ModuleSendInBlueMailCampaignController {
                 htmlContent: htmlContent,
                 subject: subject,
                 replyTo: ModuleSendInBlueController.getInstance().getReplyToEmail(),
-                recipients: { exclusionListIds: recipients.exclusionLists, listIds: recipients.lists },
+                recipients: recipientsData,
                 inlineImageActivation: inlineImageActivation,
             }
         );
@@ -63,10 +71,18 @@ export default class ModuleSendInBlueMailCampaignController {
             return null;
         }
 
+        let postParams: any = {};
+
         let urlSend: string = ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN + '/' + campaignId + '/';
 
         if (testMail) {
             urlSend += ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN_SEND_TEST;
+
+            if (!emailsToForTest || !emailsToForTest.length) {
+                return null;
+            }
+
+            postParams.emailTo = emailsToForTest;
         } else {
             urlSend += ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN_SEND_NOW;
         }
@@ -74,7 +90,7 @@ export default class ModuleSendInBlueMailCampaignController {
         let res: { code: string, message: string } = await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ code: string, message: string }>(
             ModuleRequest.METHOD_POST,
             urlSend,
-            { emailTo: emailsToForTest }
+            postParams
         );
 
         if (!res || res.code) {

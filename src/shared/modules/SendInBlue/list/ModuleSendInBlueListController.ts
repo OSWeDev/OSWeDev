@@ -118,18 +118,32 @@ export default class ModuleSendInBlueListController {
             return null;
         }
 
+        let postParams: any = {
+            email: email,
+            listIds: listIds,
+            updateEnabled: updateEnabled,
+        };
+
+        if (lastname) {
+            if (!postParams.attributes) {
+                postParams.attributes = {};
+            }
+
+            postParams.attributes.NOM = lastname;
+        }
+
+        if (firstname) {
+            if (!postParams.attributes) {
+                postParams.attributes = {};
+            }
+
+            postParams.attributes.PRENOM = firstname;
+        }
+
         let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
             ModuleSendInBlueListController.PATH_CONTACT,
-            {
-                email: email,
-                listIds: listIds,
-                updateEnabled: updateEnabled,
-                attributes: {
-                    NOM: lastname,
-                    PRENOM: firstname,
-                }
-            }
+            postParams
         );
 
         if (!res || !res.id) {
