@@ -15,16 +15,22 @@ export default class ModuleSendInBlueSmsController {
 
     private static PATH_SMS: string = 'transactionalSMS/sms';
 
-    public async send(recipient: string, content: string, type: string = SendInBlueSmsVO.TYPE_TRANSACTIONAL): Promise<SendInBlueSmsVO> {
+    public async send(recipient: string, content: string, tag: string = null, type: string = SendInBlueSmsVO.TYPE_TRANSACTIONAL): Promise<SendInBlueSmsVO> {
+        let postParams: any = {
+            sender: ModuleSendInBlueController.getInstance().getSenderNameSMS(),
+            recipient: recipient,
+            content: content,
+            type: type,
+        };
+
+        if (tag) {
+            postParams.tag = tag;
+        }
+
         return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueSmsVO>(
             ModuleRequest.METHOD_POST,
             ModuleSendInBlueSmsController.PATH_SMS,
-            {
-                sender: ModuleSendInBlueController.getInstance().getSenderNameSMS(),
-                recipient: recipient,
-                content: content,
-                type: type,
-            }
+            postParams
         );
     }
 }
