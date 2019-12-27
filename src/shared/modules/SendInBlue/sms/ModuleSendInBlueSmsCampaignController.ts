@@ -42,7 +42,7 @@ export default class ModuleSendInBlueSmsCampaignController {
             ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN,
             {
                 name: campaignName,
-                sender: ModuleSendInBlueController.getInstance().getSenderName(),
+                sender: ModuleSendInBlueController.getInstance().getSenderNameSMS(),
                 content: content,
                 recipients: { exclusionListIds: recipients.exclusionLists, listIds: recipients.lists },
             }

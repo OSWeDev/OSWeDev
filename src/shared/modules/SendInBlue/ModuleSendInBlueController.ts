@@ -70,6 +70,10 @@ export default class ModuleSendInBlueController {
         return this.getSender() ? this.getSender().name : null;
     }
 
+    public getSenderNameSMS(): string {
+        return this.param ? this.param.sender_sms_name : null;
+    }
+
     public getDefaultFolderList(): string {
         return this.param ? this.param.default_folder_list : null;
     }

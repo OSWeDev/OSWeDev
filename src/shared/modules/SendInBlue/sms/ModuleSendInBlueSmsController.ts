@@ -20,7 +20,7 @@ export default class ModuleSendInBlueSmsController {
             ModuleRequest.METHOD_POST,
             ModuleSendInBlueSmsController.PATH_SMS,
             {
-                sender: ModuleSendInBlueController.getInstance().getSenderName(),
+                sender: ModuleSendInBlueController.getInstance().getSenderNameSMS(),
                 recipient: recipient,
                 content: content,
                 type: type,
