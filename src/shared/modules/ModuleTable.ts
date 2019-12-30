@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash';
 import * as moment from 'moment';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
@@ -354,7 +354,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         let res = {};
 
         if (!this.fields_) {
-            return clonedeep(e);
+            return cloneDeep(e);
         }
 
         res['_type'] = e._type;
@@ -409,7 +409,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         let res: T = this.getNewVO();
 
         if ((!this.fields_) || (!res)) {
-            return clonedeep(e);
+            return cloneDeep(e);
         }
 
         res['_type'] = e._type;
@@ -475,7 +475,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             return null;
         }
 
-        let res = clonedeep(e);
+        let res = cloneDeep(e);
 
         if (!this.fields_) {
             return res;

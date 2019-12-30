@@ -9,8 +9,6 @@ import moment = require('moment');
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDAG from '../../../../../../../shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../../../../../shared/modules/Var/graph/var/VarDAGNode';
-// import 'tipsy/src/javascripts/jquery.tipsy.js';
-// import 'tipsy/src/stylesheets/tipsy.css';
 import IVarDataParamVOBase from '../../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 
 @Component({
@@ -212,11 +210,6 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
                     // self.hover_desc = descriptions[v];
                 });
             });
-
-
-        // svgGroup.selectAll("g.node")
-        //     .attr("title", function (v) { return styleTooltip(v); })
-        //     .each(function (v) { $(this)['tipsy']({ gravity: "w", opacity: 1, html: true }); });
 
         // Center the graph
         let initialScale = 0.2;

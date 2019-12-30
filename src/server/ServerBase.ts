@@ -25,9 +25,6 @@ import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
-import LangVO from '../shared/modules/Translation/vos/LangVO';
-import TranslatableTextVO from '../shared/modules/Translation/vos/TranslatableTextVO';
-import TranslationVO from '../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
 import ConfigurationService from './env/ConfigurationService';
@@ -83,6 +80,7 @@ export default abstract class ServerBase {
         await this.createMandatoryFolders();
 
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
+        EnvHandler.getInstance().NODE_VERBOSE = !!ConfigurationService.getInstance().getNodeConfiguration().NODE_VERBOSE;
         EnvHandler.getInstance().IS_DEV = !!ConfigurationService.getInstance().getNodeConfiguration().ISDEV;
         EnvHandler.getInstance().MSGPCK = !!ConfigurationService.getInstance().getNodeConfiguration().MSGPCK;
         EnvHandler.getInstance().COMPRESS = !!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS;
@@ -405,8 +403,7 @@ export default abstract class ServerBase {
                     ModuleMaintenanceServer.getInstance().inform_user_on_request(req.session.user.id);
                 }
 
-                // On log en PROD
-                if (!EnvHandler.getInstance().IS_DEV) {
+                if (!!EnvHandler.getInstance().NODE_VERBOSE) {
                     ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER: ' + req.session.user.name + ' | BODY: ' + JSON.stringify(req.body));
                 }
             } else {
@@ -479,7 +476,6 @@ export default abstract class ServerBase {
             res.sendFile(path.resolve('./iisnode/' + file_name));
         });
 
-        this.app.set('view engine', 'jade');
         this.app.set('views', 'src/client/views');
 
         // Send CSRF token for session
@@ -489,88 +485,6 @@ export default abstract class ServerBase {
 
         this.app.get('/login', (req, res) => {
             res.sendFile(path.resolve('./src/login/public/generated/login.html'));
-        });
-
-        this.app.get('/recover', (req, res) => {
-            res.render('recover.jade');
-        });
-
-        this.app.get('/reset', (req, res) => {
-            res.render('reset.jade');
-        });
-
-
-        this.app.post('/recover', ServerBase.getInstance().csrfProtection, async (req, res) => {
-            const session = req.session;
-
-            // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
-            httpContext.set('IS_CLIENT', false);
-
-            const email = req.body.email;
-            let code_lang = (req['locale'] && (typeof req['locale'] == "string")) ? req['locale'].substr(0, 2) : ServerBase.getInstance().envParam.DEFAULT_LOCALE;
-            let translation: TranslationVO;
-
-            if (email && (email != "")) {
-
-                await ModuleAccessPolicy.getInstance().beginRecover(email);
-                let langs: LangVO[] = await ModuleTranslation.getInstance().getLangs();
-                let langObj: LangVO = langs[0];
-
-                for (let i in langs) {
-                    let lang = langs[i];
-
-                    if (lang.code_lang == code_lang) {
-                        langObj = lang;
-                    }
-                }
-
-                let translatable: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText('login.recover.answer');
-                translation = await ModuleTranslation.getInstance().getTranslation(langObj.id, translatable.id);
-            }
-            res.render('recover.jade', {
-                message: translation ? translation.translated : ""
-            });
-        });
-
-        this.app.post('/reset', ServerBase.getInstance().csrfProtection, async (req, res) => {
-            const session = req.session;
-
-            // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
-            httpContext.set('IS_CLIENT', false);
-
-            const email = req.body.email;
-            const challenge = req.body.challenge;
-            const new_pwd1 = req.body.new_pwd1;
-
-            let code_lang = (req['locale'] && (typeof req['locale'] == "string")) ? req['locale'].substr(0, 2) : ServerBase.getInstance().envParam.DEFAULT_LOCALE;
-
-            let langs: LangVO[] = await ModuleTranslation.getInstance().getLangs();
-            let langObj: LangVO = langs[0];
-
-            for (let i in langs) {
-                let lang = langs[i];
-
-                if (lang.code_lang == code_lang) {
-                    langObj = lang;
-                }
-            }
-
-            let translatable_ok: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText('login.reset.answer_ok');
-            let translatable_ko: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText('login.reset.answer_ko');
-            let translation_ok: TranslationVO = await ModuleTranslation.getInstance().getTranslation(langObj.id, translatable_ok.id);
-            let translation_ko: TranslationVO = await ModuleTranslation.getInstance().getTranslation(langObj.id, translatable_ko.id);
-
-            let translation: TranslationVO = translation_ko;
-
-            if (email && (email != "") && challenge && (challenge != "") && new_pwd1 && (new_pwd1 != "")) {
-
-                if (await ModuleAccessPolicy.getInstance().resetPwd(email, challenge, new_pwd1)) {
-                    translation = translation_ok;
-                }
-            }
-            res.render('reset.jade', {
-                message: translation ? translation.translated : ""
-            });
         });
 
         this.app.get('/logout', (req, res) => {
@@ -663,9 +577,9 @@ export default abstract class ServerBase {
         // this.initializePushApis(this.app);
         this.registerApis(this.app);
 
-        //if (ConfigurationService.getInstance().getNodeConfiguration().ISDEV) {
-        require('longjohn');
-        //}
+        if (!!ConfigurationService.getInstance().getNodeConfiguration().ACTIVATE_LONG_JOHN) {
+            require('longjohn');
+        }
 
         process.on('uncaughtException', function (err) {
             ConsoleHandler.getInstance().error("Node nearly failed: " + err.stack);
@@ -697,9 +611,6 @@ export default abstract class ServerBase {
                     }
 
                     ModulePushDataServer.getInstance().registerSocket(session.user ? session.user.id : null, session.id, socket);
-                    socket.on('my other event', function (data) {
-                        ConsoleHandler.getInstance().log(data);
-                    });
                 }.bind(ServerBase.getInstance()));
 
                 io.on('error', function (err) {

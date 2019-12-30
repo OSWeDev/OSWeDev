@@ -3,7 +3,7 @@
 import axios from 'axios';
 import * as $ from 'jquery';
 // endif
-import * as debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import { decode, encode } from "messagepack";
 import * as moment from 'moment';
 import { Duration } from 'moment';

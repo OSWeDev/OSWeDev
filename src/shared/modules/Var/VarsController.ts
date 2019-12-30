@@ -1,4 +1,4 @@
-import * as debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import ObjectHandler from '../../tools/ObjectHandler';
 import RangeHandler from '../../tools/RangeHandler';

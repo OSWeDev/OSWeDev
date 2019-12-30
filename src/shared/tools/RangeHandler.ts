@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash';
 import { Moment } from 'moment';
 import { isArray } from 'util';
 import IRange from '../modules/DataRender/interfaces/IRange';
@@ -691,34 +691,34 @@ export default class RangeHandler {
 
         if (this.isStartABeforeStartB(range_to_cut, range_cutter, segment_type)) {
             // SC > STC
-            coupe.min = clonedeep(range_cutter.min);
+            coupe.min = cloneDeep(range_cutter.min);
             coupe.min_inclusiv = range_cutter.min_inclusiv;
 
-            avant.min = clonedeep(range_to_cut.min);
+            avant.min = cloneDeep(range_to_cut.min);
             avant.min_inclusiv = range_to_cut.min_inclusiv;
 
-            avant.max = clonedeep(range_cutter.min);
+            avant.max = cloneDeep(range_cutter.min);
             avant.max_inclusiv = !range_cutter.min_inclusiv;
         } else {
             // SC <= STC
-            coupe.min = clonedeep(range_to_cut.min);
+            coupe.min = cloneDeep(range_to_cut.min);
             coupe.min_inclusiv = range_to_cut.min_inclusiv;
             avant = null;
         }
 
         if (this.isStartASameEndB(range_cutter, range_to_cut, segment_type)) {
             // SC = ETC
-            coupe.min = clonedeep(range_cutter.min);
+            coupe.min = cloneDeep(range_cutter.min);
             coupe.min_inclusiv = range_cutter.min_inclusiv;
 
-            coupe.max = clonedeep(range_cutter.min);
+            coupe.max = cloneDeep(range_cutter.min);
             coupe.max_inclusiv = range_cutter.min_inclusiv;
 
             if (!!avant) {
-                avant.min = clonedeep(range_to_cut.min);
+                avant.min = cloneDeep(range_to_cut.min);
                 avant.min_inclusiv = range_to_cut.min_inclusiv;
 
-                avant.max = clonedeep(range_cutter.min);
+                avant.max = cloneDeep(range_cutter.min);
                 avant.max_inclusiv = !range_cutter.min_inclusiv;
             }
 
@@ -727,38 +727,38 @@ export default class RangeHandler {
 
         if (this.isStartASameEndB(range_to_cut, range_cutter, segment_type)) {
             // STC = EC
-            coupe.min = clonedeep(range_to_cut.min);
+            coupe.min = cloneDeep(range_to_cut.min);
             coupe.min_inclusiv = range_to_cut.min_inclusiv;
 
-            coupe.max = clonedeep(range_to_cut.min);
+            coupe.max = cloneDeep(range_to_cut.min);
             coupe.max_inclusiv = range_to_cut.min_inclusiv;
 
             avant = null;
 
             if (!!apres) {
-                apres.min = clonedeep(range_cutter.max);
+                apres.min = cloneDeep(range_cutter.max);
                 apres.min_inclusiv = !range_cutter.max_inclusiv;
 
-                apres.max = clonedeep(range_to_cut.max);
+                apres.max = cloneDeep(range_to_cut.max);
                 apres.max_inclusiv = range_to_cut.max_inclusiv;
             }
         }
 
         if (this.isEndABeforeEndB(range_cutter, range_to_cut, segment_type)) {
             // EC < ETC
-            coupe.max = clonedeep(range_cutter.max);
+            coupe.max = cloneDeep(range_cutter.max);
             coupe.max_inclusiv = range_cutter.max_inclusiv;
 
             if (!!apres) {
-                apres.min = clonedeep(range_cutter.max);
+                apres.min = cloneDeep(range_cutter.max);
                 apres.min_inclusiv = !range_cutter.max_inclusiv;
 
-                apres.max = clonedeep(range_to_cut.max);
+                apres.max = cloneDeep(range_to_cut.max);
                 apres.max_inclusiv = range_to_cut.max_inclusiv;
             }
         } else {
             // SC <= STC
-            coupe.max = clonedeep(range_to_cut.max);
+            coupe.max = cloneDeep(range_to_cut.max);
             coupe.max_inclusiv = range_to_cut.max_inclusiv;
             apres = null;
         }
@@ -835,7 +835,7 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: RangesCutResult<U> = new RangesCutResult(null, clonedeep(ranges_to_cut));
+        let res: RangesCutResult<U> = new RangesCutResult(null, cloneDeep(ranges_to_cut));
 
         for (let i in ranges_cutter) {
             let range_cutter = ranges_cutter[i];

@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash';
 import 'mocha';
 import { expect } from 'chai';
 import VarsController from '../../../src/shared/modules/Var/VarsController';
@@ -206,7 +206,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -226,7 +226,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorEmpty.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index3].removeMarker(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker, test_result);
@@ -245,7 +245,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -265,7 +265,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorEmpty.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index3].removeMarker(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker, test_result);
@@ -284,7 +284,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -304,7 +304,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorEmpty.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index3].removeMarker(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker, test_result);
@@ -323,7 +323,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -343,7 +343,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorEmpty.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index3].removeMarker(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker, test_result);
@@ -362,7 +362,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -382,7 +382,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorEmpty.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].removeMarker(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker, test_result);
@@ -401,7 +401,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -421,7 +421,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorEmpty.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].removeMarker(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker, test_result);
@@ -440,7 +440,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -460,7 +460,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorEmpty.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].removeMarker(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker, test_result);
@@ -479,7 +479,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -499,7 +499,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorEmpty.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].removeMarker(FakeVarDAGVisitorEmpty.MARKER_to_visit_node_marker, test_result);
@@ -522,7 +522,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -542,7 +542,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -564,7 +564,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -584,7 +584,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -606,7 +606,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -626,7 +626,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -648,7 +648,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -668,7 +668,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -690,7 +690,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -710,7 +710,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -732,7 +732,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -752,7 +752,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -774,7 +774,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -794,7 +794,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -816,7 +816,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -836,7 +836,7 @@ describe('DAGController', () => {
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -860,7 +860,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker, index1);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -879,7 +879,7 @@ describe('DAGController', () => {
     //         (node: VarDAGNode) => false,
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -893,7 +893,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker, index1);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -912,7 +912,7 @@ describe('DAGController', () => {
     //         (node: VarDAGNode) => false,
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -926,7 +926,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker, index1);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -945,7 +945,7 @@ describe('DAGController', () => {
     //         (node: VarDAGNode) => false,
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
@@ -965,7 +965,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker, index1);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -984,7 +984,7 @@ describe('DAGController', () => {
     //         (node: VarDAGNode) => false,
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index3].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -1004,7 +1004,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker, index1);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -1023,7 +1023,7 @@ describe('DAGController', () => {
     //         (node: VarDAGNode) => false,
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
@@ -1037,7 +1037,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker, index1);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -1056,7 +1056,7 @@ describe('DAGController', () => {
     //         (node: VarDAGNode) => false,
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
@@ -1076,7 +1076,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker, index1);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -1095,7 +1095,7 @@ describe('DAGController', () => {
     //         (node: VarDAGNode) => false,
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);
@@ -1109,7 +1109,7 @@ describe('DAGController', () => {
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
     //     let dag = getTestDag_simple_linear(FakeVarDAGVisitorSimpleMarker.MARKER_to_visit_node_marker, index1);
-    //     let initial_dag = clonedeep(dag);
+    //     let initial_dag = cloneDeep(dag);
 
     //     await DAGController.getInstance().visit_dag(
     //         dag,
@@ -1128,7 +1128,7 @@ describe('DAGController', () => {
     //         (node: VarDAGNode) => false,
     //         async (vardag: VarDAG, node_names: string[]) => { });
 
-    //     let test_result: VarDAG = clonedeep(initial_dag);
+    //     let test_result: VarDAG = cloneDeep(initial_dag);
 
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visit_node_marker, test_result);
     //     test_result.nodes[index1].addMarker(FakeVarDAGVisitorSimpleMarker.MARKER_visited_node_marker, test_result);

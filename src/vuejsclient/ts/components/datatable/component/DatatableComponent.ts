@@ -1,5 +1,5 @@
 import * as $ from 'jquery';
-import * as debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import * as moment from 'moment';
 import { Moment } from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
@@ -99,7 +99,7 @@ export default class DatatableComponent extends VueComponentBase {
 
     private watcherLoaded: boolean = false;
 
-    private debounced_update_datatable_data = debounce(this.update_datatable_data, 500);
+    private debounced_update_datatable_data: () => Promise<void> = debounce(this.update_datatable_data, 500) as any as () => Promise<void>;
 
     get isModuleParamTable() {
         return VOsTypesManager.getInstance().moduleTables_by_voType[this.datatable.API_TYPE_ID] ?

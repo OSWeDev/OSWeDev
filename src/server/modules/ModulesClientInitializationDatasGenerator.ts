@@ -59,6 +59,7 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "export default async function Initialize" + target + "ModulesDatas() {\n";
 
         // Initialiser directement l'env param
+        fileContent += "    EnvHandler.getInstance().NODE_VERBOSE = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().NODE_VERBOSE) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.getInstance().IS_DEV = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().ISDEV) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.getInstance().MSGPCK = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().MSGPCK) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.getInstance().COMPRESS = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS) ? 'true' : 'false') + ';\n';

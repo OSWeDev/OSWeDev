@@ -1,4 +1,4 @@
-import * as isEqual from 'lodash/isEqual';
+import { isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import DataFilterOptionsHandler from '../../../../shared/modules/DataRender/DataFilterOptionsHandler';

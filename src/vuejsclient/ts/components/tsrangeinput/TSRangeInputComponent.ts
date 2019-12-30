@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash';
 import { Moment } from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
@@ -87,7 +87,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         this.tsrange_end = max.toDate();
 
         if (this.tsrange_start) {
-            this.tsrange_date = this.tsrange_start ? clonedeep(this.tsrange_start) : null;
+            this.tsrange_date = this.tsrange_start ? cloneDeep(this.tsrange_start) : null;
             this.tsrange_start_time = min ? min.format(this.format_time) : null;
             this.tsrange_end_time = max ? max.format(this.format_time) : null;
         }
