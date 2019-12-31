@@ -1360,12 +1360,14 @@ export default class VarsController {
         let self = this;
         let nodes_to_request: VarDAGNode[] = [];
 
+        let server_side: boolean = (!!ModulesManager.getInstance().isServerSide);
         for (let i in nodes) {
             let node = nodes[i];
 
             let var_controller = this.getVarControllerById(node.param.var_id);
-            if (((!var_controller.can_load_precompiled_or_imported_datas_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
-                ((!var_controller.can_load_precompiled_or_imported_datas_server_side) && (!!ModulesManager.getInstance().isServerSide))) {
+
+            if (((!var_controller.can_load_precompiled_or_imported_datas_client_side) && (!server_side)) ||
+                ((!var_controller.can_load_precompiled_or_imported_datas_server_side) && (!!server_side))) {
                 node.loaded_datas_matroids = [];
                 continue;
             }
