@@ -1542,7 +1542,11 @@ export default class RangeHandler {
                     return null;
                 }
 
-                return range_min_num.index + offset as any as T;
+                if (!!offset) {
+                    NumSegmentHandler.getInstance().incNumSegment(range_min_num, segment_type, offset);
+                }
+
+                return range_min_num.index as any as T;
 
             case HourRange.RANGE_TYPE:
                 let range_min_h: ISegment<moment.Duration> = this.get_segment(range.range_type, range.min as any as moment.Duration, segment_type);
@@ -1630,7 +1634,7 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    NumSegmentHandler.getInstance().incNum(range_max_num.index, segment_type, offset);
+                    NumSegmentHandler.getInstance().incNumSegment(range_max_num, segment_type, offset);
                 }
 
                 return range_max_num.index as any as T;
@@ -1653,7 +1657,7 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    HourSegmentHandler.getInstance().incElt(range_max_seg.index, segment_type, offset);
+                    HourSegmentHandler.getInstance().incHourSegment(range_max_seg, segment_type, offset);
                 }
 
                 return range_max_seg.index as any as T;
@@ -1677,7 +1681,7 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    TimeSegmentHandler.getInstance().incMoment(range_max_ts.index, segment_type, offset);
+                    TimeSegmentHandler.getInstance().incTimeSegment(range_max_ts, segment_type, offset);
                 }
 
                 return range_max_ts.index as any as T;

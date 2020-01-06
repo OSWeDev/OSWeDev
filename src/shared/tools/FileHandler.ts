@@ -40,7 +40,7 @@ export default class FileHandler {
                 continue;
             }
 
-            if ((!old_size) || (stats.size != old_size)) {
+            if ((old_size == null) || (stats.size != old_size)) {
                 old_mtimeMs = stats.mtimeMs;
                 old_size = stats.size;
                 has_changes = true;

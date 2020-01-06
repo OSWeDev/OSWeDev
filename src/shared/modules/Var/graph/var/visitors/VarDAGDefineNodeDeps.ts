@@ -3,6 +3,7 @@ import IVarDataParamVOBase from '../../../interfaces/IVarDataParamVOBase';
 import VarsController from '../../../VarsController';
 import VarDAG from '../VarDAG';
 import VarDAGNode from '../VarDAGNode';
+import ModulesManager from '../../../../ModulesManager';
 
 /**
  * Visiteur qui doit charger les deps de voisinage et down pour les ajouter / relier dans l'arbre.
@@ -18,13 +19,15 @@ export default class VarDAGDefineNodeDeps {
      */
     public static defineNodeDeps(node: VarDAGNode, varDag: VarDAG, new_nodes: { [index: string]: VarDAGNode }): void {
 
+        let controller = VarsController.getInstance().getVarControllerById(node.param.var_id);
+
         if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
             return;
         }
 
         // On demande les deps de datasources
         if (!node.hasMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED)) {
-            let deps_ds: Array<IDataSourceController<any, any>> = VarsController.getInstance().getVarControllerById(node.param.var_id).getDataSourcesDependencies();
+            let deps_ds: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
             for (let i in deps_ds) {
                 let dep_ds = deps_ds[i];
 
@@ -36,7 +39,7 @@ export default class VarDAGDefineNodeDeps {
         // On demande les datasources predeps : Si on en a, il faut indiquer qu'on attend une info avant de pouvoir load les deps
         if (!node.hasMarker(VarDAG.VARDAG_MARKER_PREDEPS_DATASOURCE_LOADED)) {
 
-            let ds_predeps: Array<IDataSourceController<any, any>> = VarsController.getInstance().getVarControllerById(node.param.var_id).getDataSourcesPredepsDependencies();
+            let ds_predeps: Array<IDataSourceController<any, any>> = controller.getDataSourcesPredepsDependencies();
             if ((!!ds_predeps) && (!!ds_predeps.length)) {
                 node.addMarker(VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING, varDag);
                 return;
@@ -44,8 +47,14 @@ export default class VarDAGDefineNodeDeps {
         }
 
         // On demande les deps de vars
-        let deps: IVarDataParamVOBase[] = VarsController.getInstance().getVarControllerById(node.param.var_id).getSegmentedParamDependencies(node, varDag);
-        VarDAGDefineNodeDeps.add_node_deps(node, varDag, deps, new_nodes);
+
+        // Si on peut pas calculer, on peut pas avoir des deps
+        let ne_peut_pas_calculer = ((!controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) || ((!controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide));
+        if (!ne_peut_pas_calculer) {
+
+            let deps: IVarDataParamVOBase[] = controller.getSegmentedParamDependencies(node, varDag);
+            VarDAGDefineNodeDeps.add_node_deps(node, varDag, deps, new_nodes);
+        }
 
         node.removeMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, varDag, true);
         node.addMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, varDag);

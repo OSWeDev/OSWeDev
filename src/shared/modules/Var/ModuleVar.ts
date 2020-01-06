@@ -8,6 +8,11 @@ import ISimpleNumberVarData from './interfaces/ISimpleNumberVarData';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VarsController from './VarsController';
 import moment = require('moment');
+import ModuleAPI from '../API/ModuleAPI';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import APIDAOApiTypeAndMatroidsParamsVO from '../DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
+import IDistantVOBase from '../IDistantVOBase';
+import IMatroid from '../Matroid/interfaces/IMatroid';
 
 export default class ModuleVar extends Module {
 
@@ -19,6 +24,8 @@ export default class ModuleVar extends Module {
     public static POLICY_BO_VARCONF_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_VARCONF_ACCESS';
     public static POLICY_BO_IMPORTED_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_IMPORTED_ACCESS';
     public static POLICY_DESC_MODE_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.DESC_MODE_ACCESS';
+
+    public static APINAME_getSimpleVarDataValueSumFilterByMatroids: string = 'getSimpleVarDataValueSumFilterByMatroids';
 
     // public static APINAME_INVALIDATE_MATROID: string = 'invalidate_matroid';
     // public static APINAME_register_matroid_for_precalc: string = 'register_matroid_for_precalc';
@@ -47,6 +54,12 @@ export default class ModuleVar extends Module {
 
     public registerApis() {
 
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
+            ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids,
+            (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
+            APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
+        ));
+
         // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
         //     ModuleVar.APINAME_INVALIDATE_MATROID,
         //     (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
@@ -56,6 +69,14 @@ export default class ModuleVar extends Module {
         //     ModuleVar.APINAME_register_matroid_for_precalc,
         //     (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
         // ));
+    }
+
+    public async getSimpleVarDataValueSumFilterByMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
+        if ((!matroids) || (!matroids.length)) {
+            return null;
+        }
+
+        return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, API_TYPE_ID, matroids, fields_ids_mapper);
     }
 
     // public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {

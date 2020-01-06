@@ -1,12 +1,24 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import APIDAOApiTypeAndMatroidsParamsVO from '../../../shared/modules/DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
+import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
+import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
+import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import VarsController from '../../../shared/modules/Var/VarsController';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -103,6 +115,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
     }
 
     /**
@@ -227,4 +240,81 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     //     await ModuleDAO.getInstance().insertOrUpdateVO(empty_shell);
     // }
+
+
+    private async getSimpleVarDataValueSumFilterByMatroids<T extends ISimpleNumberVarData>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<number> {
+
+        let matroids: IMatroid[] = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.matroids) : null;
+        let api_type_id: string = param ? param.API_TYPE_ID : null;
+        let fields_ids_mapper: { [matroid_field_id: string]: string } = param ? param.fields_ids_mapper : null;
+
+        if ((!matroids) || (!matroids.length)) {
+            return null;
+        }
+
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+        if (!datatable) {
+            return null;
+        }
+
+        // On vérifie qu'on peut faire un select
+        if (!await ModuleDAOServer.getInstance().checkAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let res: number = 0;
+        for (let matroid_i in matroids) {
+            let matroid: IVarMatroidDataParamVO = matroids[matroid_i] as IVarMatroidDataParamVO;
+
+            if (!matroid) {
+                ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
+                return null;
+            }
+
+            res += await this.getSimpleVarDataValueSumFilterByMatroid<T>(api_type_id, matroid, fields_ids_mapper);
+        }
+
+        return res;
+    }
+
+    private async getSimpleVarDataValueSumFilterByMatroid<T extends ISimpleNumberVarData>(api_type_id: string, matroid: IVarMatroidDataParamVO, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
+
+        if (!matroid) {
+            return null;
+        }
+
+        if (!api_type_id) {
+            return null;
+        }
+
+        if (!fields_ids_mapper) {
+            return null;
+        }
+
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+        if (!datatable) {
+            return null;
+        }
+
+        let exact_search_fields = {};
+        if (!!matroid.var_id) {
+
+            exact_search_fields = VarsController.getInstance().getVarControllerById(matroid.var_id).datas_fields_type_combinatory;
+        }
+
+        let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', exact_search_fields);
+
+        if (!filter_by_matroid_clause) {
+            return null;
+        }
+
+        let res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + datatable.full_name + " t WHERE " + filter_by_matroid_clause + ";");
+        if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
+            return null;
+        }
+
+        return res[0]['res'];
+    }
 }
