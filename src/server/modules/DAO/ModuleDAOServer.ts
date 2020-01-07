@@ -432,7 +432,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 continue;
             }
 
-            if (field_is_cardinal_supp_1[matroid_field.field_id]) {
+            if (field_is_cardinal_supp_1[field.field_id]) {
                 where_clause += this.get_ranges_query_cardinal_supp_1(field, matroid_field, field_ranges, table_name);
             } else {
                 where_clause += this.get_ranges_query_cardinal_1(field, matroid_field, field_ranges[0], table_name);
@@ -1837,20 +1837,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
         //  dans ce cas on peut faire a >= min && a < max ce qui est bcp plus opti
         // Ou cas global on prend en vrac
 
-        let is_champs_type_valeur: boolean = this.is_range_type_valeur(field);
+        let is_champs_type_valeur: boolean = this.is_field_type_valeur(field);
 
         if (is_champs_type_valeur) {
 
-            if (RangeHandler.getInstance().getCardinal(range) == 1) {
-                res += table_name + '.' + field.field_id + ' = ' + this.get_range_segment_value_to_bdd(range, field, matroid_field, RangeHandler.getInstance().getSegmentedMin(range)) + ' ';
-            } else {
-                let segmented_min = RangeHandler.getInstance().getSegmentedMin(range);
-                let segmented_max = RangeHandler.getInstance().getSegmentedMax(range, range.segment_type, 1);
-
-                res += table_name + '.' + field.field_id + ' >= ' + this.get_range_segment_value_to_bdd(range, field, matroid_field, segmented_min) + ' and ' +
-                    table_name + '.' + field.field_id + ' < ' + this.get_range_segment_value_to_bdd(range, field, matroid_field, segmented_max) + ' ';
-            }
-            return res;
+            return this.get_range_check_simple_field_type_valeur(field, matroid_field, range, table_name);
         }
 
         let ranges_query: string = this.get_range_translated_to_bdd_queryable_range(range, field, matroid_field);
@@ -1904,7 +1895,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
-    private is_range_type_valeur(field: ModuleTableField<any>): boolean {
+    private is_field_type_valeur(field: ModuleTableField<any>): boolean {
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
@@ -1996,9 +1987,45 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return res;
     }
 
+    private get_range_check_simple_field_type_valeur(field: ModuleTableField<any>, matroid_field: ModuleTableField<any>, range: IRange<any>, table_name: string): string {
+        if (RangeHandler.getInstance().getCardinal(range) == 1) {
+            return table_name + '.' + field.field_id + ' = ' + this.get_range_segment_value_to_bdd(range, field, matroid_field, RangeHandler.getInstance().getSegmentedMin(range)) + ' ';
+        } else {
+            let segmented_min = RangeHandler.getInstance().getSegmentedMin(range);
+            let segmented_max = RangeHandler.getInstance().getSegmentedMax(range, range.segment_type, 1);
+
+            return table_name + '.' + field.field_id + ' >= ' + this.get_range_segment_value_to_bdd(range, field, matroid_field, segmented_min) + ' and ' +
+                table_name + '.' + field.field_id + ' < ' + this.get_range_segment_value_to_bdd(range, field, matroid_field, segmented_max) + ' ';
+        }
+    }
+
     private get_ranges_query_cardinal_supp_1(field: ModuleTableField<any>, matroid_field: ModuleTableField<any>, field_ranges: Array<IRange<any>>, table_name: string): string {
 
         let res: string = '';
+
+        // On est sur un array de ranges, mais si on cible un champs simple de type valeur (ni array ni range) on peut faire très simplement :
+        //  ((a >= range1_min) && (a < range1_max_exclusif)) || ((a >= range2_min) && (a < range2_max_exclusif)) || ...
+
+        let is_champs_type_valeur: boolean = this.is_field_type_valeur(field);
+
+        if (is_champs_type_valeur) {
+
+            res = '(';
+            let first: boolean = true;
+            for (let i in field_ranges) {
+                let range = field_ranges[i];
+
+                if (!first) {
+                    res += ' OR ';
+                }
+                first = false;
+
+                res += '(' + this.get_range_check_simple_field_type_valeur(field, matroid_field, range, table_name) + ')';
+            }
+            res += ')';
+
+            return res;
+        }
 
         /**
          * Dans le cas d'un champs de type range[]
