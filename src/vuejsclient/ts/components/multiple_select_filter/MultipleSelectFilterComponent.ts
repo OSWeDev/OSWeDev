@@ -279,4 +279,17 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     private select_none() {
         this.tmp_filter_active_options = [];
     }
+
+    private async select_all() {
+        let res: DataFilterOption[] = [];
+
+        for (let i in this.selectables_by_ids) {
+            let vo: IDistantVOBase = this.selectables_by_ids[i];
+
+            let label = this.get_label(vo);
+            res.push(new DataFilterOption(DataFilterOption.STATE_SELECTED, label, vo.id));
+        }
+
+        this.tmp_filter_active_options = res;
+    }
 }

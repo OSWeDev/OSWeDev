@@ -33,6 +33,8 @@
         :deselectGroupLabel='label("multiselect.deselectGroupLabel")'
     )
         span(slot="noOptions") -
+    .text_cliquable(@click='select_all') {{ label('select_all') }}
+    .inter_text -
     .text_cliquable(@click='select_none') {{ label('select_none') }}
 
     //@search-change="updateMultiSelectFilterOptions"
