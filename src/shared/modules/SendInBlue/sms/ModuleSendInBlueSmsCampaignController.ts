@@ -1,9 +1,12 @@
 import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
 import InsertOrDeleteQueryResult from '../../DAO/vos/InsertOrDeleteQueryResult';
+import ModuleSendInBlueListController from '../list/ModuleSendInBlueListController';
 import ModuleSendInBlueController from '../ModuleSendInBlueController';
-import SendInBlueCampaignRecipientsVO from '../vos/SendInBlueCampaignRecipientsVO';
+import SendInBlueContactVO from '../vos/SendInBlueContactVO';
+import SendInBlueListDetailVO from '../vos/SendInBlueListDetailVO';
 import SendInBlueSmsCampaignDetailVO from '../vos/SendInBlueSmsCampaignDetailVO';
 import SendInBlueSmsCampaignsVO from '../vos/SendInBlueSmsCampaignsVO';
+import SendInBlueSmsFormatVO from '../vos/SendInBlueSmsFormatVO';
 
 export default class ModuleSendInBlueSmsCampaignController {
 
@@ -32,25 +35,37 @@ export default class ModuleSendInBlueSmsCampaignController {
         return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueSmsCampaignsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN);
     }
 
-    public async create(campaignName: string, content: string, recipients: SendInBlueCampaignRecipientsVO): Promise<SendInBlueSmsCampaignDetailVO> {
-        if (!campaignName || !content || !recipients || !recipients.lists || !recipients.lists.length) {
+    public async createAndSend(campaignName: string, content: string, contacts: SendInBlueContactVO[], testSms: boolean = false, phoneTest: SendInBlueSmsFormatVO = null): Promise<boolean> {
+        let campaign: SendInBlueSmsCampaignDetailVO = await this.create(campaignName, content, contacts);
+
+        if (!campaign) {
+            return false;
+        }
+
+        return this.send(campaign.id, testSms, phoneTest);
+    }
+
+    public async create(campaignName: string, content: string, contacts: SendInBlueContactVO[]): Promise<SendInBlueSmsCampaignDetailVO> {
+        if (!campaignName || !content || !contacts || !contacts.length) {
+            return null;
+        }
+
+        let list: SendInBlueListDetailVO = await ModuleSendInBlueListController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
+
+        if (!list) {
             return null;
         }
 
         let recipientsData: any = {
-            listIds: recipients.lists
+            listIds: [list.id]
         };
-
-        if (recipients.exclusionLists && recipients.exclusionLists.length > 0) {
-            recipientsData.exclusionListIds = recipients.exclusionLists;
-        }
 
         let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
             ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN,
             {
                 name: campaignName,
-                sender: ModuleSendInBlueController.getInstance().getSenderNameSMS(),
+                sender: await ModuleSendInBlueController.getInstance().getSenderNameSMS(),
                 content: content,
                 recipients: recipientsData,
             }
@@ -63,7 +78,7 @@ export default class ModuleSendInBlueSmsCampaignController {
         return this.getCampaign(parseInt(res.id));
     }
 
-    public async send(campaignId: number, testSms: boolean = false, phoneTest: string = null): Promise<boolean> {
+    public async send(campaignId: number, testSms: boolean = false, phoneTest: SendInBlueSmsFormatVO = null): Promise<boolean> {
         if (!campaignId) {
             return null;
         }
@@ -75,11 +90,11 @@ export default class ModuleSendInBlueSmsCampaignController {
         if (testSms) {
             urlSend += ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN_SEND_TEST;
 
-            if (!phoneTest) {
+            if (!phoneTest || !SendInBlueSmsFormatVO.formate(phoneTest.tel, phoneTest.code_pays)) {
                 return null;
             }
 
-            postParams.phoneNumber = phoneTest;
+            postParams.phoneNumber = SendInBlueSmsFormatVO.formate(phoneTest.tel, phoneTest.code_pays);
         } else {
             urlSend += ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN_SEND_NOW;
         }
