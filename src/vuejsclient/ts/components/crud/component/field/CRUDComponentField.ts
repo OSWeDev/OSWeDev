@@ -94,7 +94,8 @@ export default class CRUDComponentField extends VueComponentBase {
 
         let input_value = input.value;
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+            ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean) &&
+            this.field.is_required) {
             input_value = input.checked;
         }
 

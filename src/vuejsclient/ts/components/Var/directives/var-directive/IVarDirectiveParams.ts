@@ -6,4 +6,6 @@ export default interface IVarDirectiveParams {
     reload_on_register?: boolean;
     on_every_update?: (varData: IVarDataVOBase, el?, binding?, vnode?) => void;
     on_update_once?: (varData: IVarDataVOBase, el?, binding?, vnode?) => void;
+    already_register?: boolean;
+    ignore_unvalidated_datas?: boolean;
 }
