@@ -179,40 +179,48 @@ export default class ModuleSendInBlueListController {
         return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueContactsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_LIST + '/' + listId + '/contacts');
     }
 
-    public async createAndAddExistingContactsToList(name: string, contacts: SendInBlueContactVO[]): Promise<SendInBlueListDetailVO> {
+    public async createAndAddExistingContactsToList(name: string, contacts: SendInBlueContactVO[], force_create_or_update: boolean = false): Promise<SendInBlueListDetailVO> {
         let list: SendInBlueListDetailVO = await this.createList(name);
 
         if (!list) {
             return null;
         }
 
-        await this.addExistingContactsToList(list.id, contacts);
+        await this.addExistingContactsToList(list.id, contacts, force_create_or_update);
 
         return list;
     }
 
-    public async addExistingContactsToList(listId: number, contacts: SendInBlueContactVO[]): Promise<boolean> {
+    public async addExistingContactsToList(listId: number, contacts: SendInBlueContactVO[], force_create_or_update: boolean = false): Promise<boolean> {
         if (!contacts || !contacts.length || !listId) {
             return null;
         }
 
-        let promises: Array<Promise<any>> = [];
+        if (force_create_or_update) {
+            let promises: Array<Promise<any>> = [];
 
-        for (let i in contacts) {
-            // On en profite pour ajouter ou mettre a jour
-            promises.push((async () => await this.createContact(contacts[i]))());
+            for (let i in contacts) {
+                // On en profite pour ajouter ou mettre a jour
+                promises.push((async () => await this.createContact(contacts[i]))());
+            }
+
+            await Promise.all(promises);
         }
 
-        await Promise.all(promises);
+        let emails: string[] = contacts.map((c) => c.email);
+        let n: number = 0;
+        let batch: string[];
 
-        let res: { contacts: { success: string, failure: string, total: number } } = await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ contacts: { success: string, failure: string, total: number } }>(
-            ModuleRequest.METHOD_POST,
-            ModuleSendInBlueListController.PATH_LIST + '/' + listId + '/contacts/add',
-            { emails: contacts.map((c) => c.email) }
-        );
+        while ((n * 100) < emails.length) {
 
-        if (!res || !res.contacts || res.contacts.failure) {
-            return false;
+            batch = emails.slice(n * 100, n * 100 + 100);
+            n += 1;
+
+            await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ contacts: { success: string, failure: string, total: number } }>(
+                ModuleRequest.METHOD_POST,
+                ModuleSendInBlueListController.PATH_LIST + '/' + listId + '/contacts/add',
+                { emails: batch }
+            );
         }
 
         return true;
