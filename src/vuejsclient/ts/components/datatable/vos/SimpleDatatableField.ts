@@ -179,6 +179,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_int_array:
                 case ModuleTableField.FIELD_TYPE_string_array:
                 case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+                case ModuleTableField.FIELD_TYPE_geopoint:
                     return field_value;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
