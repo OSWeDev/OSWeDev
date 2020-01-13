@@ -18,9 +18,9 @@ export default class ModuleSendInBlueMailController {
 
     public async send(to: SendInBlueMailVO, subject: string, textContent: string, htmlContent: string, tags: string[] = null, templateId: number = null, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
         let postParams: any = {
-            sender: ModuleSendInBlueController.getInstance().getSender(),
+            sender: await ModuleSendInBlueController.getInstance().getSender(),
             to: [to],
-            replyTo: ModuleSendInBlueController.getInstance().getReplyTo(),
+            replyTo: await ModuleSendInBlueController.getInstance().getReplyTo(),
             subject: subject,
             htmlContent: htmlContent,
             textContent: textContent,
@@ -61,10 +61,10 @@ export default class ModuleSendInBlueMailController {
 
     public async sendWithTemplate(to: SendInBlueMailVO, templateId: number, tags: string[] = null, params: { [param_name: string]: string } = {}, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
         let postParams: any = {
-            sender: ModuleSendInBlueController.getInstance().getSender(),
+            sender: await ModuleSendInBlueController.getInstance().getSender(),
             to: [to],
             templateId: templateId,
-            replyTo: ModuleSendInBlueController.getInstance().getReplyTo(),
+            replyTo: await ModuleSendInBlueController.getInstance().getReplyTo(),
         };
 
         if (bcc && bcc.length > 0) {

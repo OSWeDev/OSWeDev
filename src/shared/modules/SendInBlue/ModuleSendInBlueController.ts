@@ -26,6 +26,8 @@ export default class ModuleSendInBlueController {
     }
 
     public async sendRequestFromApp<T>(method: string, path: string, posts: {} = {}): Promise<T> {
+        await this.loadParam();
+
         if (!this.param) {
             return null;
         }
@@ -35,12 +37,14 @@ export default class ModuleSendInBlueController {
             this.param.host,
             ModuleSendInBlueController.VERSION_API + path,
             posts,
-            this.getHeadersRequest(),
+            await this.getHeadersRequest(),
             true
         );
     }
 
-    public getReplyTo(): SendInBlueMailVO {
+    public async getReplyTo(): Promise<SendInBlueMailVO> {
+        await this.loadParam();
+
         if (!this.param) {
             return null;
         }
@@ -51,11 +55,14 @@ export default class ModuleSendInBlueController {
         );
     }
 
-    public getReplyToEmail(): string {
-        return this.getReplyTo() ? this.getReplyTo().email : null;
+    public async getReplyToEmail(): Promise<string> {
+        let reply_to: SendInBlueMailVO = await this.getReplyTo();
+        return reply_to ? reply_to.email : null;
     }
 
-    public getSender(): SendInBlueMailVO {
+    public async getSender(): Promise<SendInBlueMailVO> {
+        await this.loadParam();
+
         if (!this.param) {
             return null;
         }
@@ -66,19 +73,30 @@ export default class ModuleSendInBlueController {
         );
     }
 
-    public getSenderName(): string {
-        return this.getSender() ? this.getSender().name : null;
+    public async getSenderName(): Promise<string> {
+        let sender: SendInBlueMailVO = await this.getSender();
+        return sender ? sender.name : null;
     }
 
-    public getSenderNameSMS(): string {
+    public async getSenderNameSMS(): Promise<string> {
+        await this.loadParam();
+
         return this.param ? this.param.sender_sms_name : null;
     }
 
-    public getDefaultFolderList(): string {
+    public async getDefaultFolderList(): Promise<string> {
+        await this.loadParam();
+
         return this.param ? this.param.default_folder_list : null;
     }
 
-    private getHeadersRequest(): any {
+    private async getHeadersRequest(): Promise<any> {
+        await this.loadParam();
+
+        if (!this.param) {
+            return null;
+        }
+
         return {
             'Accept': 'application/json',
             'Content-Type': 'application/json',

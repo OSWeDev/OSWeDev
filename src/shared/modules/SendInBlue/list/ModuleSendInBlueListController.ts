@@ -4,6 +4,7 @@ import InsertOrDeleteQueryResult from '../../DAO/vos/InsertOrDeleteQueryResult';
 import ModuleSendInBlueController from '../ModuleSendInBlueController';
 import SendInBlueContactDetailVO from '../vos/SendInBlueContactDetailVO';
 import SendInBlueContactsVO from '../vos/SendInBlueContactsVO';
+import SendInBlueContactVO from '../vos/SendInBlueContactVO';
 import SendInBlueFolderDetailVO from '../vos/SendInBlueFolderDetailVO';
 import SendInBlueFoldersVO from '../vos/SendInBlueFolderVO';
 import SendInBlueListDetailVO from '../vos/SendInBlueListDetailVO';
@@ -43,7 +44,12 @@ export default class ModuleSendInBlueListController {
         }
 
         if (!folderId) {
-            let folder: SendInBlueFolderDetailVO = await this.getorCreateDefaultFolder();
+            let folder: SendInBlueFolderDetailVO = await this.getOrCreateDefaultFolder();
+
+            if (!folder) {
+                return null;
+            }
+
             folderId = folder.id;
         }
 
@@ -60,16 +66,17 @@ export default class ModuleSendInBlueListController {
         return this.getList(parseInt(res.id));
     }
 
-    public async getorCreateDefaultFolder(): Promise<SendInBlueFolderDetailVO> {
+    public async getOrCreateDefaultFolder(): Promise<SendInBlueFolderDetailVO> {
         let folder: SendInBlueFolderDetailVO = null;
         let folders: SendInBlueFoldersVO = await this.getFolders();
+        let default_folder_list: string = await ModuleSendInBlueController.getInstance().getDefaultFolderList();
 
         if (folders && folders.folders) {
-            folder = folders.folders.find((f) => f.name == ModuleSendInBlueController.getInstance().getDefaultFolderList());
+            folder = folders.folders.find((f) => f.name == default_folder_list);
         }
 
         if (!folder) {
-            folder = await this.createFolder(ModuleSendInBlueController.getInstance().getDefaultFolderList());
+            folder = await this.createFolder(default_folder_list);
         }
 
         return folder;
@@ -113,31 +120,42 @@ export default class ModuleSendInBlueListController {
         return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueContactDetailVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_CONTACT + '/' + email);
     }
 
-    public async createContact(email: string, lastname: string = null, firstname: string = null, listIds: number[] = null, updateEnabled: boolean = true): Promise<SendInBlueContactDetailVO> {
-        if (!email) {
+    public async createContact(contact: SendInBlueContactVO, listIds: number[] = null, updateEnabled: boolean = true): Promise<SendInBlueContactDetailVO> {
+        if (!contact || !contact.email) {
             return null;
         }
 
         let postParams: any = {
-            email: email,
-            listIds: listIds,
+            email: contact.email,
             updateEnabled: updateEnabled,
         };
 
-        if (lastname) {
-            if (!postParams.attributes) {
-                postParams.attributes = {};
-            }
-
-            postParams.attributes.NOM = lastname;
+        if (listIds) {
+            postParams.listIds = listIds;
         }
 
-        if (firstname) {
+        if (contact.lastname) {
             if (!postParams.attributes) {
                 postParams.attributes = {};
             }
 
-            postParams.attributes.PRENOM = firstname;
+            postParams.attributes.NOM = contact.lastname;
+        }
+
+        if (contact.firstname) {
+            if (!postParams.attributes) {
+                postParams.attributes = {};
+            }
+
+            postParams.attributes.PRENOM = contact.firstname;
+        }
+
+        if (contact.sms) {
+            if (!postParams.attributes) {
+                postParams.attributes = {};
+            }
+
+            postParams.attributes.SMS = contact.sms;
         }
 
         let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
@@ -150,7 +168,7 @@ export default class ModuleSendInBlueListController {
             return null;
         }
 
-        return this.getContact(email);
+        return this.getContact(contact.email);
     }
 
     public async getContactsFromList(listId: number): Promise<SendInBlueContactsVO> {
@@ -161,15 +179,36 @@ export default class ModuleSendInBlueListController {
         return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueContactsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_LIST + '/' + listId + '/contacts');
     }
 
-    public async addExistingContactsToList(listId: number, emails: string[]): Promise<boolean> {
-        if (!emails || !emails.length || !listId) {
+    public async createAndAddExistingContactsToList(name: string, contacts: SendInBlueContactVO[]): Promise<SendInBlueListDetailVO> {
+        let list: SendInBlueListDetailVO = await this.createList(name);
+
+        if (!list) {
             return null;
         }
+
+        await this.addExistingContactsToList(list.id, contacts);
+
+        return list;
+    }
+
+    public async addExistingContactsToList(listId: number, contacts: SendInBlueContactVO[]): Promise<boolean> {
+        if (!contacts || !contacts.length || !listId) {
+            return null;
+        }
+
+        let promises: Array<Promise<any>> = [];
+
+        for (let i in contacts) {
+            // On en profite pour ajouter ou mettre a jour
+            promises.push((async () => await this.createContact(contacts[i]))());
+        }
+
+        await Promise.all(promises);
 
         let res: { contacts: { success: string, failure: string, total: number } } = await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ contacts: { success: string, failure: string, total: number } }>(
             ModuleRequest.METHOD_POST,
             ModuleSendInBlueListController.PATH_LIST + '/' + listId + '/contacts/add',
-            { emails: emails }
+            { emails: contacts.map((c) => c.email) }
         );
 
         if (!res || !res.contacts || res.contacts.failure) {

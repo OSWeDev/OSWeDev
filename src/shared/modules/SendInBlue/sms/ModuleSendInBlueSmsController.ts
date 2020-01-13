@@ -1,5 +1,6 @@
 import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
 import ModuleSendInBlueController from '../ModuleSendInBlueController';
+import SendInBlueSmsFormatVO from '../vos/SendInBlueSmsFormatVO';
 import SendInBlueSmsVO from '../vos/SendInBlueSmsVO';
 
 export default class ModuleSendInBlueSmsController {
@@ -15,10 +16,14 @@ export default class ModuleSendInBlueSmsController {
 
     private static PATH_SMS: string = 'transactionalSMS/sms';
 
-    public async send(recipient: string, content: string, tag: string = null, type: string = SendInBlueSmsVO.TYPE_TRANSACTIONAL): Promise<SendInBlueSmsVO> {
+    public async send(recipient: SendInBlueSmsFormatVO, content: string, tag: string = null, type: string = SendInBlueSmsVO.TYPE_TRANSACTIONAL): Promise<SendInBlueSmsVO> {
+        if (!recipient || !SendInBlueSmsFormatVO.formate(recipient.tel, recipient.code_pays)) {
+            return null;
+        }
+
         let postParams: any = {
-            sender: ModuleSendInBlueController.getInstance().getSenderNameSMS(),
-            recipient: recipient,
+            sender: await ModuleSendInBlueController.getInstance().getSenderNameSMS(),
+            recipient: SendInBlueSmsFormatVO.formate(recipient.tel, recipient.code_pays),
             content: content,
             type: type,
         };
