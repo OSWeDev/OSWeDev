@@ -4,6 +4,7 @@ import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
 import GeoPointHandler from '../tools/GeoPointHandler';
 import RangeHandler from '../tools/RangeHandler';
+import GeoPointVO from '../tools/vos/GeoPointVO';
 import HourRange from './DataRender/vos/HourRange';
 import HourSegment from './DataRender/vos/HourSegment';
 import NumRange from './DataRender/vos/NumRange';
@@ -513,7 +514,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:
-                    res[field.field_id] = GeoPointHandler.getInstance().format(res[field.field_id]);
+                    if (res[field.field_id]) {
+                        res[field.field_id] = GeoPointHandler.getInstance().format(res[field.field_id]);
+                    }
                     break;
 
                 default:
@@ -602,6 +605,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_hour:
                     e[field.field_id] = moment.duration(parseInt(field_value));
+                    break;
+
+                case ModuleTableField.FIELD_TYPE_geopoint:
+                    if (e[field.field_id]) {
+                        e[field.field_id] = GeoPointVO.clone(field_value);
+                    }
                     break;
             }
         }

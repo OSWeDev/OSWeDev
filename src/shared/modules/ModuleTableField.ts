@@ -1,12 +1,12 @@
 import { isArray, isBoolean, isNull, isNumber } from 'util';
+import Alert from '../../vuejsclient/ts/components/alert/Alert';
+import DatatableField from '../../vuejsclient/ts/components/datatable/vos/DatatableField';
 import ConsoleHandler from '../tools/ConsoleHandler';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
-import DatatableField from '../../vuejsclient/ts/components/datatable/vos/DatatableField';
-import Alert from '../../vuejsclient/ts/components/alert/Alert';
 
 export default class ModuleTableField<T> {
 
@@ -529,7 +529,6 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_hourrange:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
-            case ModuleTableField.FIELD_TYPE_geopoint:
                 return null;
 
             default:

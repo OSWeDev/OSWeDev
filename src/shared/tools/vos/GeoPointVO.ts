@@ -10,6 +10,17 @@ export default class GeoPointVO {
         return geopoint;
     }
 
+    public static clone(geopoint: GeoPointVO): GeoPointVO {
+        if (geopoint && geopoint.x && geopoint.y) {
+            return GeoPointVO.createNew(
+                geopoint.x,
+                geopoint.y
+            );
+        }
+
+        return null;
+    }
+
     public x: number;
     public y: number;
 }
