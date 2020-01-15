@@ -32,6 +32,8 @@ export default class ModuleAccessPolicy extends Module {
 
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".FO_ACCESS";
 
+    public static POLICY_IMPERSONATE: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".IMPERSONATE";
+
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_BO_MODULES_MANAGMENT_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_MODULES_MANAGMENT_ACCESS";
     public static POLICY_BO_RIGHTS_MANAGMENT_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_RIGHTS_MANAGMENT_ACCESS";
@@ -42,6 +44,7 @@ export default class ModuleAccessPolicy extends Module {
     public static ROLE_LOGGED: string = AccessPolicyTools.ROLE_UID_PREFIX + 'logged';
     public static ROLE_ANONYMOUS: string = AccessPolicyTools.ROLE_UID_PREFIX + 'anonymous';
 
+    public static APINAME_impersonateLogin = "impersonateLogin";
     public static APINAME_CHECK_ACCESS = "ACCESS_CHECK_ACCESS";
     public static APINAME_IS_ADMIN = "IS_ADMIN";
     public static APINAME_IS_ROLE = "IS_ROLE";
@@ -149,10 +152,20 @@ export default class ModuleAccessPolicy extends Module {
             [UserVO.API_TYPE_ID],
             LoginParamVO.translateCheckAccessParams
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, UserVO>(
+            ModuleAccessPolicy.APINAME_impersonateLogin,
+            [UserVO.API_TYPE_ID],
+            LoginParamVO.translateCheckAccessParams
+        ));
     }
 
     public async getLoggedUser(): Promise<UserVO> {
         return await ModuleAPI.getInstance().handleAPI<void, UserVO>(ModuleAccessPolicy.APINAME_GET_LOGGED_USER);
+    }
+
+    public async impersonateLogin(email: string): Promise<UserVO> {
+        return await ModuleAPI.getInstance().handleAPI<LoginParamVO, UserVO>(ModuleAccessPolicy.APINAME_impersonateLogin, email, null);
     }
 
     public async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<UserVO> {

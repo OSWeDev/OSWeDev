@@ -82,6 +82,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Accès au front'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
+        let POLICY_IMPERSONATE: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_IMPERSONATE.group_id = group.id;
+        POLICY_IMPERSONATE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_IMPERSONATE.translatable_name = ModuleAccessPolicy.POLICY_IMPERSONATE;
+        POLICY_IMPERSONATE = await this.registerPolicy(POLICY_IMPERSONATE, new DefaultTranslation({
+            fr: 'Impersonate'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
@@ -436,6 +444,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Votre mot de passe expire dans 3 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
         }, 'mails.pwd.reminder2.html'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'LogAs'
+        }, 'fields.labels.ref.user.__component__impersonate.___LABEL___'));
+
     }
 
     public registerServerApiHandlers() {
@@ -450,6 +463,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER, this.getLoggedUser.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
     }
 
     /**
@@ -1179,6 +1193,41 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error("login:" + param.email + ":" + error);
         }
         // res.redirect('/login');
+
+        return null;
+    }
+
+    private async impersonateLogin(param: LoginParamVO): Promise<UserVO> {
+
+        try {
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            let session = httpContext ? httpContext.get('SESSION') : null;
+
+            if ((!session) || (!session.user)) {
+                return null;
+            }
+
+            if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+                return null;
+            }
+
+            if ((!param) || (!param.email)) {
+                return null;
+            }
+
+            let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [param.email]);
+
+            if (!user) {
+                return null;
+            }
+
+            session.impersonated_from = Object.assign({}, session);
+            session.user = user;
+
+            return user;
+        } catch (error) {
+            ConsoleHandler.getInstance().error("impersonate login:" + param.email + ":" + error);
+        }
 
         return null;
     }

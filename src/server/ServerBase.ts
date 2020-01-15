@@ -37,6 +37,7 @@ import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServ
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
+import ThreadHandler from '../shared/tools/ThreadHandler';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -487,7 +488,21 @@ export default abstract class ServerBase {
             res.sendFile(path.resolve('./src/login/public/generated/login.html'));
         });
 
-        this.app.get('/logout', (req, res) => {
+        this.app.get('/logout', async (req, res) => {
+
+            /**
+             * Gestion du impersonate => on restaure la session précédente
+             */
+            if (req.session && !!req.session.impersonated_from) {
+                req.session = Object.assign(req.session, req.session.impersonated_from);
+                delete req.session.impersonated_from;
+
+                await ThreadHandler.getInstance().sleep(500);
+
+                res.redirect('/');
+                return;
+            }
+
             req.session.destroy((err) => {
                 if (err) {
                     ConsoleHandler.getInstance().log(err);
