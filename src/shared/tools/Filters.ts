@@ -238,12 +238,24 @@ export let percentFilter = new FilterObj(
 );
 
 export let toFixedFilter = new FilterObj(
-    function (value, fractionalDigits) {
+    function (
+        value,
+        fractionalDigits,
+        arrondi
+    ) {
         if (!value) {
             return value;
         }
 
-        return ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
+        if (arrondi) {
+            value = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(value, arrondi);
+        }
+
+        if (fractionalDigits) {
+            value = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
+        }
+
+        return value;
     },
     function (value) {
         value = value.replace(",", "");
