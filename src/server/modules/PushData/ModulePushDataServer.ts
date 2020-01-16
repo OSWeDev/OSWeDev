@@ -176,6 +176,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         notification.notification_type = NotificationVO.TYPE_NOTIF_DAO;
         notification.read = false;
         notification.user_id = user_id;
+        notification.auto_read_if_connected = true;
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
@@ -193,11 +194,12 @@ export default class ModulePushDataServer extends ModuleServerBase {
         notification.notification_type = NotificationVO.TYPE_NOTIF_DAO;
         notification.read = false;
         notification.user_id = user_id;
+        notification.auto_read_if_connected = true;
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
 
-    public async broadcastLoggedSimple(msg_type: number, code_text: string) {
+    public async broadcastLoggedSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false) {
         let promises = [];
 
         let ids: number[] = [];
@@ -211,26 +213,26 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             promises.push((async () => {
-                await this.notifySimple(userId, msg_type, code_text);
+                await this.notifySimple(userId, msg_type, code_text, auto_read_if_connected);
             })());
         }
         await Promise.all(promises);
     }
 
-    public async broadcastAllSimple(msg_type: number, code_text: string) {
+    public async broadcastAllSimple(msg_type: number, code_text: string, auto_read_if_connected: boolean = false) {
         let promises = [];
         let users = await ModuleDAO.getInstance().getVos<UserVO>(UserVO.API_TYPE_ID);
         for (let i in users) {
             let user = users[i];
 
             promises.push((async () => {
-                await this.notifySimple(user.id, msg_type, code_text);
+                await this.notifySimple(user.id, msg_type, code_text, auto_read_if_connected);
             })());
         }
         await Promise.all(promises);
     }
 
-    public async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string) {
+    public async broadcastRoleSimple(role_name: string, msg_type: number, code_text: string, auto_read_if_connected: boolean = false) {
         let promises = [];
 
         try {
@@ -261,7 +263,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 let user = users[i];
 
                 promises.push((async () => {
-                    await this.notifySimple(user.id, msg_type, code_text);
+                    await this.notifySimple(user.id, msg_type, code_text, auto_read_if_connected);
                 })());
             }
         } catch (error) {
@@ -270,20 +272,20 @@ export default class ModulePushDataServer extends ModuleServerBase {
         await Promise.all(promises);
     }
 
-    public async notifySimpleSUCCESS(user_id: number, code_text: string) {
-        await this.notifySimple(user_id, NotificationVO.SIMPLE_SUCCESS, code_text);
+    public async notifySimpleSUCCESS(user_id: number, code_text: string, auto_read_if_connected: boolean = false) {
+        await this.notifySimple(user_id, NotificationVO.SIMPLE_SUCCESS, code_text, auto_read_if_connected);
     }
-    public async notifySimpleINFO(user_id: number, code_text: string) {
-        await this.notifySimple(user_id, NotificationVO.SIMPLE_INFO, code_text);
+    public async notifySimpleINFO(user_id: number, code_text: string, auto_read_if_connected: boolean = false) {
+        await this.notifySimple(user_id, NotificationVO.SIMPLE_INFO, code_text, auto_read_if_connected);
     }
-    public async notifySimpleWARN(user_id: number, code_text: string) {
-        await this.notifySimple(user_id, NotificationVO.SIMPLE_WARN, code_text);
+    public async notifySimpleWARN(user_id: number, code_text: string, auto_read_if_connected: boolean = false) {
+        await this.notifySimple(user_id, NotificationVO.SIMPLE_WARN, code_text, auto_read_if_connected);
     }
-    public async notifySimpleERROR(user_id: number, code_text: string) {
-        await this.notifySimple(user_id, NotificationVO.SIMPLE_ERROR, code_text);
+    public async notifySimpleERROR(user_id: number, code_text: string, auto_read_if_connected: boolean = false) {
+        await this.notifySimple(user_id, NotificationVO.SIMPLE_ERROR, code_text, auto_read_if_connected);
     }
 
-    private async notifySimple(user_id: number, msg_type: number, code_text: string) {
+    private async notifySimple(user_id: number, msg_type: number, code_text: string, auto_read_if_connected: boolean) {
 
         if ((!user_id) || (msg_type == null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;
@@ -296,6 +298,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         notification.notification_type = NotificationVO.TYPE_NOTIF_SIMPLE;
         notification.read = false;
         notification.user_id = user_id;
+        notification.auto_read_if_connected = auto_read_if_connected;
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
@@ -330,9 +333,9 @@ export default class ModulePushDataServer extends ModuleServerBase {
                     let socketWrapper: SocketWrapper = socketWrappers[i];
                     socketWrapper.socket.emit(NotificationVO.TYPE_NAMES[notification.notification_type], notification);
                 }
-                // if sent then consider it read
-                notification.read = true;
-                notification.read_date = moment();
+                // // if sent then consider it read
+                // notification.read = true;
+                // notification.read_date = moment();
             }
 
             // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
