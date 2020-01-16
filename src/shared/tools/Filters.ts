@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import { isNumber } from 'util';
 import ModuleFormatDatesNombres from '../modules/FormatDatesNombres/ModuleFormatDatesNombres';
 
 // FILTERS MIXIN
@@ -251,7 +252,7 @@ export let toFixedFilter = new FilterObj(
             value = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(value, arrondi);
         }
 
-        if (fractionalDigits) {
+        if (isNumber(fractionalDigits) && fractionalDigits >= 0) {
             value = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
         }
 
