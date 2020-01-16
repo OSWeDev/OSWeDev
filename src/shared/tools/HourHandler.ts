@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import HourSegment from '../modules/DataRender/vos/HourSegment';
+import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import ConsoleHandler from './ConsoleHandler';
 
 export default class HourHandler {
@@ -88,6 +89,30 @@ export default class HourHandler {
             return null;
         }
         return moment.duration(hour);
+    }
+
+    public diffDuration(start: moment.Duration, end: moment.Duration, time_segment: number): number {
+        if (!start || !end) {
+            return null;
+        }
+
+        let start_m: moment.Moment = moment().startOf('day').add(start);
+        let end_m: moment.Moment = moment().startOf('day').add(end);
+
+        let diff: number = end_m.diff(start_m, 'seconds');
+
+        if (!diff) {
+            return diff;
+        }
+
+        switch (time_segment) {
+            case TimeSegment.TYPE_SECOND:
+                return diff;
+            case TimeSegment.TYPE_MINUTE:
+                return diff / 60;
+            case TimeSegment.TYPE_HOUR:
+                return diff / 60 / 60;
+        }
     }
 
     private force2DigitMin(e: number): string {
