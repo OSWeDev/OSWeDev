@@ -18,6 +18,7 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -328,22 +329,31 @@ export default class ModulePushDataServer extends ModuleServerBase {
             // Broadcast to user's sessions or save in DB if no session available
             let socketWrappers: SocketWrapper[] = this.getUserSockets(notification.user_id);
             notification.read = false;
+
             if (socketWrappers && socketWrappers.length) {
+
+                // if sent then consider it read
+                if (notification.auto_read_if_connected) {
+                    notification.read = true;
+                    notification.read_date = moment();
+                }
+            }
+
+            // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
+            if (notification.notification_type == NotificationVO.TYPE_NOTIF_SIMPLE) {
+                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(notification);
+                if (res && res.id) {
+                    notification.id = parseInt(res.id.toString());
+                }
+            }
+
+            if (socketWrappers && socketWrappers.length) {
+
                 for (let i in socketWrappers) {
                     let socketWrapper: SocketWrapper = socketWrappers[i];
                     socketWrapper.socket.emit(NotificationVO.TYPE_NAMES[notification.notification_type], notification);
                 }
-                // // if sent then consider it read
-                // notification.read = true;
-                // notification.read_date = moment();
             }
-
-            // On ne stocke en base que les notifications de type simple, pour les retrouver dans le compte utilisateur
-            if (notification.notification_type != NotificationVO.TYPE_NOTIF_SIMPLE) {
-                return;
-            }
-
-            await ModuleDAO.getInstance().insertOrUpdateVO(notification);
         } catch (error) {
 
             ConsoleHandler.getInstance().error('notify:' + notification.user_id + ':' + error);
