@@ -25,7 +25,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
     }
 
-    private async exportDataToXLSX(params: ExportDataToXLSXParamVO): Promise<any> {
+    public async exportDataToXLSX(params: ExportDataToXLSXParamVO): Promise<any> {
 
         if ((!params) || (!params.filename) || (!params.datas) || (!params.column_labels) || (!params.ordered_column_list)) {
             return null;
