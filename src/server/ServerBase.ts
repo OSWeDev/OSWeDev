@@ -496,20 +496,23 @@ export default abstract class ServerBase {
             if (req.session && !!req.session.impersonated_from) {
                 req.session = Object.assign(req.session, req.session.impersonated_from);
                 delete req.session.impersonated_from;
+                req.session.save((err) => {
+                    if (err) {
+                        ConsoleHandler.getInstance().log(err);
+                    } else {
+                        res.redirect('/');
+                    }
+                });
+            } else {
 
-                await ThreadHandler.getInstance().sleep(500);
-
-                res.redirect('/');
-                return;
+                req.session.destroy((err) => {
+                    if (err) {
+                        ConsoleHandler.getInstance().log(err);
+                    } else {
+                        res.redirect('/');
+                    }
+                });
             }
-
-            req.session.destroy((err) => {
-                if (err) {
-                    ConsoleHandler.getInstance().log(err);
-                } else {
-                    res.redirect('/');
-                }
-            });
         });
 
         this.app.use('/js', express.static('client/js'));

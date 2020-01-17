@@ -1,6 +1,6 @@
 .form-group(:class="{[field_type]:true, inline_input_mode:inline_input_mode}")
 
-    template(v-if='inline_input_mode && inline_input_show_clear')
+    template(v-if='inline_input_mode && inline_input_show_clear && (!is_disabled)')
         template(v-if='!inline_input_is_editing')
             i.inline_input_show_clear.fa.fa-trash.btn-danger(@click='inline_clear_value' :class="{busy: inline_input_is_busy}")
         template(v-else)
@@ -145,7 +145,7 @@
     template(v-else-if="field_type == 'point'")
         // FIXME TODO ASAP
         
-    template(v-if='inline_input_mode')
+    template(v-if='inline_input_mode && (!is_disabled)')
         template(v-if='inline_input_is_editing')
             i.inline_input_is_editing.fa.fa-check.btn-success(@click='validate_inline_input' :class="{busy: inline_input_is_busy}")
         template(v-else)
