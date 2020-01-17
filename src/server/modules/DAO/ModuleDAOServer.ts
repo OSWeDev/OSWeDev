@@ -13,6 +13,7 @@ import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APIDAOApiTypeAndMatroidsParamsVO from '../../../shared/modules/DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
+import APIDAODATATABLEVOParamVO from '../../../shared/modules/DAO/vos/APIDAODATATABLEVOParamVO';
 import APIDAOIdsRangesParamsVO from '../../../shared/modules/DAO/vos/APIDAOIdsRangesParamsVO';
 import APIDAONamedParamVO from '../../../shared/modules/DAO/vos/APIDAONamedParamVO';
 import APIDAOParamsVO from '../../../shared/modules/DAO/vos/APIDAOParamsVO';
@@ -272,6 +273,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS, this.deleteVOs.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, this.insertOrUpdateVOs.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, this.insertOrUpdateVO.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_DATATABLE_VO, this.INSERT_OR_UPDATE_DATATABLE_VO.bind(this));
+
 
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VO_BY_ID, this.getVoById.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
@@ -506,6 +509,58 @@ export default class ModuleDAOServer extends ModuleServerBase {
             resolve(result);
         });
     }
+
+    // FIXME todo : remonter côté shared les déclarations de DATATABLE iso déclaration Moduletable
+    private async INSERT_OR_UPDATE_DATATABLE_VO(param: APIDAODATATABLEVOParamVO): Promise<InsertOrDeleteQueryResult> {
+        return null;
+        // if ((!param) || (!param.datatable_vo) || (!param.datatable)){
+        //     return null;
+        // }
+
+        // let datatable_vo = param.datatable_vo;
+        // let datatable = param.datatable;
+
+        // // On vérifie qu'on peut faire un insert ou update
+        // if ((!datatable_vo) || (!datatable_vo._type) || (!datatable_vosTypesManager.getInstance().moduleTables_by_voType[vo._type])) {
+        //     return null;
+        // }
+        // if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[datatable_vo._type], ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE)) {
+        //     return null;
+        // }
+
+        // return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
+
+        //     let isUpdate: boolean = datatable_vo.id ? true : false;
+
+        //     let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+
+        //     if (!moduleTable) {
+        //         return null;
+        //     }
+
+        //     let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+
+        //     if (!sql) {
+        //         resolve(null);
+        //     }
+
+        //     let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, moduleTable.get_bdd_version(vo)).catch((reason) => {
+        //         resolve(null);
+        //     });
+
+        //     if (result && vo) {
+        //         if (isUpdate) {
+        //             await this.post_update_trigger_hook.trigger(vo._type, vo);
+        //         } else {
+        //             vo.id = parseInt(result.id.toString());
+        //             await this.post_create_trigger_hook.trigger(vo._type, vo);
+        //         }
+        //     }
+
+        //     resolve(result);
+        // });
+    }
+
 
     private async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {
 

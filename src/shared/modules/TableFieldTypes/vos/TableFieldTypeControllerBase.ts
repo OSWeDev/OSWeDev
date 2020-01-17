@@ -1,10 +1,9 @@
-import Datatable from '../../../../vuejsclient/ts/components/datatable/vos/Datatable';
-import DatatableField from '../../../../vuejsclient/ts/components/datatable/vos/DatatableField';
+import Datatable from '../../DAO/vos/datatable/Datatable';
+import SimpleDatatableField from '../../DAO/vos/datatable/SimpleDatatableField';
 import IDistantVOBase from '../../IDistantVOBase';
 import ModuleTableField from '../../ModuleTableField';
-import ITableFieldTypeReadComponent from '../interfaces/ITableFieldTypeReadComponent';
 import ITableFieldTypeCreateUpdateComponent from '../interfaces/ITableFieldTypeCreateUpdateComponent';
-import SimpleDatatableField from '../../../../vuejsclient/ts/components/datatable/vos/SimpleDatatableField';
+import ITableFieldTypeReadComponent from '../interfaces/ITableFieldTypeReadComponent';
 
 export default abstract class TableFieldTypeControllerBase {
 

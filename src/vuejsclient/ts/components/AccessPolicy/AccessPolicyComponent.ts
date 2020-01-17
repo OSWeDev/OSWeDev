@@ -1,18 +1,17 @@
+import Vue from 'vue';
 import Component from 'vue-class-component';
-import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueScrollingTable from 'vue-scrolling-table/dist/vue-scrolling-table';
-import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
-import { ModuleDAOGetter, ModuleDAOAction } from '../dao/store/DaoStore';
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
-import UserRoleVO from '../../../../shared/modules/AccessPolicy/vos/UserRoleVO';
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import VueComponentBase from '../../../ts/components/VueComponentBase';
+import { ModuleDAOAction, ModuleDAOGetter } from '../DAO/store/DaoStore';
 import './AccessPolicyComponent.scss';
-import Vue from 'vue';
 import PolicyGroupSegmentation from './PolicyGroupSegmentation';
 
 @Component({

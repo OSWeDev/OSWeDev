@@ -1,8 +1,5 @@
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import VueComponentBase from '../../VueComponentBase';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import Vue from 'vue';
-import CRUDComponentManager from '../../crud/CRUDComponentManager';
+import ModuleTable from '../../../../../shared/modules/ModuleTable';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface
@@ -18,10 +15,13 @@ export default abstract class DatatableField<T, U> {
     public static INPUT_FIELD_TYPE: string = "INPUT";
     public static FILE_FIELD_TYPE: string = "FILE";
 
+    // Pour éviter les liens d'import on stocke au chargement de l'appli ici et on type pas... à améliorer certainement plus tard
+    public static VueAppBase = null;
+
     /**
      * Il faudrait employer des slots ou des composants vue directement
      */
-    public uiFieldComponent: VueComponentBase;
+    public uiFieldComponent: any;
 
     public moduleTable: ModuleTable<any>;
 

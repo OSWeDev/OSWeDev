@@ -1,20 +1,20 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import HourRange from '../../../../../shared/modules/DataRender/vos/HourRange';
-import NumRange from '../../../../../shared/modules/DataRender/vos/NumRange';
-import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
-import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
-import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
-import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import DateHandler from '../../../../../shared/tools/DateHandler';
-import HourHandler from '../../../../../shared/tools/HourHandler';
-import LocaleManager from '../../../../../shared/tools/LocaleManager';
-import VueComponentBase from '../../VueComponentBase';
-import DatatableField from './DatatableField';
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import DateHandler from '../../../../tools/DateHandler';
+import { amountFilter, hourFilter, percentFilter } from '../../../../tools/Filters';
+import HourHandler from '../../../../tools/HourHandler';
+import LocaleManager from '../../../../tools/LocaleManager';
+import HourRange from '../../../DataRender/vos/HourRange';
+import NumRange from '../../../DataRender/vos/NumRange';
+import TimeSegment from '../../../DataRender/vos/TimeSegment';
+import TSRange from '../../../DataRender/vos/TSRange';
+import ModuleFormatDatesNombres from '../../../FormatDatesNombres/ModuleFormatDatesNombres';
+import IDistantVOBase from '../../../IDistantVOBase';
+import ModuleTable from '../../../ModuleTable';
+import ModuleTableField from '../../../ModuleTableField';
+import TableFieldTypesManager from '../../../TableFieldTypes/TableFieldTypesManager';
+import DefaultTranslation from '../../../Translation/vos/DefaultTranslation';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
@@ -26,17 +26,17 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         try {
             switch (moduleTableField.field_type) {
                 case ModuleTableField.FIELD_TYPE_prct:
-                    return VueComponentBase.const_filters.percent.read(field_value, 2);
+                    return percentFilter.read(field_value, 2);
 
                 case ModuleTableField.FIELD_TYPE_amount:
-                    return VueComponentBase.const_filters.amount.read(field_value);
+                    return amountFilter.read(field_value);
 
                 case ModuleTableField.FIELD_TYPE_translatable_text:
                     return LocaleManager.getInstance().label(field_value);
 
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    return VueComponentBase.const_filters.hour.read(field_value);
+                    return hourFilter.read(field_value);
 
                 case ModuleTableField.FIELD_TYPE_enum:
                     return LocaleManager.getInstance().i18n.t(moduleTableField.enum_values[field_value]);
@@ -262,14 +262,14 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return false;
 
                 case ModuleTableField.FIELD_TYPE_prct:
-                    return parseFloat(VueComponentBase.const_filters.percent.write(value));
+                    return parseFloat(percentFilter.write(value));
 
                 case ModuleTableField.FIELD_TYPE_amount:
-                    return parseFloat(VueComponentBase.const_filters.amount.write(value));
+                    return parseFloat(amountFilter.write(value));
 
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    return parseFloat(VueComponentBase.const_filters.hour.write(value));
+                    return parseFloat(hourFilter.write(value));
 
                 case ModuleTableField.FIELD_TYPE_float:
                     return parseFloat(value);

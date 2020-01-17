@@ -1,22 +1,21 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ComputedDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComputedDatatableField';
+import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
+import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import TimeHandler from '../../../../shared/tools/TimeHandler';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import DateHandler from '../../../../shared/tools/DateHandler';
-import moment = require('moment');
 import CRUD from '../crud/vos/CRUD';
-import ComputedDatatableField from '../datatable/vos/ComputedDatatableField';
-import ManyToOneReferenceDatatableField from '../datatable/vos/ManyToOneReferenceDatatableField';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
-import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
-import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
-import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import TimeHandler from '../../../../shared/tools/TimeHandler';
-import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
+import moment = require('moment');
 
 export default class ProgramPlanAdminVueModule extends VueModuleBase {
 

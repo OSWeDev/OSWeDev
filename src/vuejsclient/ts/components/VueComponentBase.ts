@@ -1,26 +1,25 @@
 import * as moment from "moment";
-import { unitOfTime, Moment } from "moment";
-import ModuleAccessPolicy from "../../../shared/modules/AccessPolicy/ModuleAccessPolicy";
+import { unitOfTime } from "moment";
+import * as screenfull from "screenfull";
+import { Vue } from "vue-property-decorator";
 import ModuleAjaxCache from "../../../shared/modules/AjaxCache/ModuleAjaxCache";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFormatDatesNombres from "../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres";
 import Module from "../../../shared/modules/Module";
 import ModulesManager from "../../../shared/modules/ModulesManager";
 import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
-import LocaleManager from "../../../shared/tools/LocaleManager";
-import * as screenfull from "screenfull";
-import { Vue } from "vue-property-decorator";
+import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
+import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarsController from '../../../shared/modules/Var/VarsController';
+import CRUDHandler from '../../../shared/tools/CRUDHandler';
+import DateHandler from '../../../shared/tools/DateHandler';
 import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourAndMinutesFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedFilter, truncateFilter } from '../../../shared/tools/Filters';
+import LocaleManager from "../../../shared/tools/LocaleManager";
 import VueAppController from "../../VueAppController";
 import AppVuexStoreManager from "../store/AppVuexStoreManager";
 import IDeclareVueComponent from "./IDeclareVueComponent";
-import DateHandler from '../../../shared/tools/DateHandler';
-import CRUDHandler from '../../../shared/tools/CRUDHandler';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
-import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
-import VarsController from '../../../shared/modules/Var/VarsController';
-import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 
 // MONTHS MIXIN
 let months = [

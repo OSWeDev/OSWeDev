@@ -1,10 +1,10 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import VueComponentBase from '../../VueComponentBase';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../DAO/store/DaoStore';
+import VueComponentBase from '../../VueComponentBase';
 
 @Component({
     template: require('./ImageViewComponent.pug'),

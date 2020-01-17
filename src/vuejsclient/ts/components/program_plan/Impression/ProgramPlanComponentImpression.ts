@@ -1,21 +1,19 @@
-import './ProgramPlanComponentImpression.scss';
-import * as $ from 'jquery';
 import * as moment from 'moment';
-import select2 from '../../../directives/select2/select2';
-import { Component, Prop } from 'vue-property-decorator';
-import VueComponentBase from '../../VueComponentBase';
-import IPlanFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
-import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
-import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
-import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
-import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
-import { ModuleDAOGetter } from '../../dao/store/DaoStore';
+import { Component } from 'vue-property-decorator';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';
+import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
+import IPlanFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanManager from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
-import IPlanRDVCR from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanPartner from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanPartner';
-import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
+import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import IPlanRDVCR from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
+import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
+import select2 from '../../../directives/select2/select2';
+import { ModuleDAOGetter } from '../../DAO/store/DaoStore';
+import VueComponentBase from '../../VueComponentBase';
+import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
+import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';
+import './ProgramPlanComponentImpression.scss';
 
 @Component({
     template: require('./ProgramPlanComponentImpression.pug'),

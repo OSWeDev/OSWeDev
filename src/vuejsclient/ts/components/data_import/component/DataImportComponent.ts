@@ -11,7 +11,7 @@ import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegmen
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../../../ts/components/dao/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../../../ts/components/DAO/store/DaoStore';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import VueAppController from '../../../../VueAppController';
 import FileComponent from '../../file/FileComponent';
@@ -19,7 +19,6 @@ import DataImportComponentBase from '../base/DataImportComponentBase';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
 import { ModuleDataImportAction, ModuleDataImportGetter } from '../store/DataImportStore';
 import './DataImportComponent.scss';
-import { watch } from 'fs';
 
 @Component({
     template: require('./DataImportComponent.pug'),

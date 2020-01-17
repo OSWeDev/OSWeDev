@@ -1,20 +1,19 @@
+import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
+import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ModuleTranslation from '../../../../../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
+import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import CRUDComponentManager from '../../../../ts/components/crud/CRUDComponentManager';
 import CRUD from '../../../../ts/components/crud/vos/CRUD';
-import Datatable from '../../../../ts/components/datatable/vos/Datatable';
-import ManyToOneReferenceDatatableField from '../../../../ts/components/datatable/vos/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../../../../ts/components/datatable/vos/SimpleDatatableField';
 import MenuBranch from '../../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';
-import VueAppController from '../../../../VueAppController';
-import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 
 export default class TranslationAdminVueModule extends VueModuleBase {
 

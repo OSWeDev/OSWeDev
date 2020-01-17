@@ -1,5 +1,10 @@
 import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
+import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -7,12 +12,7 @@ import ModuleTableField from '../../../../../../shared/modules/ModuleTableField'
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
-import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
-import Datatable from '../../../datatable/vos/Datatable';
-import DatatableField from '../../../datatable/vos/DatatableField';
-import ManyToOneReferenceDatatableField from '../../../datatable/vos/ManyToOneReferenceDatatableField';
-import ReferenceDatatableField from '../../../datatable/vos/ReferenceDatatableField';
-import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
+import { ModuleDAOGetter } from '../../../DAO/store/DaoStore';
 import FileComponent from '../../../file/FileComponent';
 import ImageComponent from '../../../image/ImageComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';

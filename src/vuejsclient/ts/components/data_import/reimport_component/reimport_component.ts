@@ -3,10 +3,10 @@ import { Prop } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
+import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../DAO/store/DaoStore';
 import Vuecomponentbase from '../../VueComponentBase';
 import './reimport_component.scss';
-import { ModuleDAOGetter, ModuleDAOAction } from '../../dao/store/DaoStore';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 
 @Component({
     template: require('./reimport_component.pug')

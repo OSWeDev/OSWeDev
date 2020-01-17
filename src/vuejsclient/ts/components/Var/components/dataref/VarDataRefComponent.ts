@@ -1,5 +1,7 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
@@ -8,12 +10,10 @@ import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces
 import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
-import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
 import moment = require('moment');
-import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 
 @Component({
     template: require('./VarDataRefComponent.pug')

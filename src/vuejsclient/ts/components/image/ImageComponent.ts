@@ -1,8 +1,8 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
+import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
+import { ModuleDAOAction } from '../../../ts/components/DAO/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueAppController from '../../../VueAppController';
 

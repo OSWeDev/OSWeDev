@@ -10,7 +10,7 @@ import TranslationVO from '../../../../../shared/modules/Translation/vos/Transla
 import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import VueComponentBase from "../../../../ts/components/VueComponentBase";
 import VueAppController from '../../../../VueAppController';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../DAO/store/DaoStore';
 import { ModuleOnPageTranslationGetter } from '../store/OnPageTranslationStore';
 import EditablePageTranslationItem from '../vos/EditablePageTranslationItem';
 import OnPageTranslationItem from '../vos/OnPageTranslationItem';

@@ -1,5 +1,5 @@
-import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -8,19 +8,18 @@ import IPlanFacilitator from '../../../../../../shared/modules/ProgramPlan/inter
 import IPlanManager from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanManager';
 import IPlanPartner from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanPartner';
 import IPlanRDV from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
+import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanRDVPrep from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVPrep';
 import IPlanTarget from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
-import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
+import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import VueAppController from '../../../../../VueAppController';
+import { ModuleDAOGetter } from '../../../DAO/store/DaoStore';
 import VueFieldComponent from '../../../field/field';
 import VueComponentBase from '../../../VueComponentBase';
 import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import "./ProgramPlanComponentModalPrep.scss";
-import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
-import VueAppController from '../../../../../VueAppController';
-import ModuleAjaxCache from '../../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 @Component({
     template: require('./ProgramPlanComponentModalPrep.pug'),

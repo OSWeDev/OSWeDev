@@ -1,11 +1,11 @@
-import VueComponentBase from '../../VueComponentBase';
 import Component from 'vue-class-component';
-import { ModuleDAOGetter, ModuleDAOAction } from '../../dao/store/DaoStore';
+import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import IPlanProgram from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanProgram';
 import IPlanProgramCategory from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanProgramCategory';
 import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import IPlanProgram from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanProgram';
-import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../DAO/store/DaoStore';
+import VueComponentBase from '../../VueComponentBase';
 import ProgramPlanClientVueModule from '../ProgramPlanClientVueModule';
 import './ProgramsOverviewComponent.scss';
 

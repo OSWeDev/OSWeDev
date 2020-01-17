@@ -3,7 +3,7 @@ import { Prop } from 'vue-property-decorator';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import ModuleMaintenance from '../../../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../../../shared/modules/Maintenance/vos/MaintenanceVO';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../../../../ts/components/dao/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../../../../ts/components/DAO/store/DaoStore';
 import VueComponentBase from '../../../../../ts/components/VueComponentBase';
 import './endmaintenance_component.scss';
 
