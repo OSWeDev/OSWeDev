@@ -12,7 +12,7 @@ import ModuleTableField from '../../../../../../shared/modules/ModuleTableField'
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
-import { ModuleDAOGetter } from '../../../DAO/store/DaoStore';
+import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import FileComponent from '../../../file/FileComponent';
 import ImageComponent from '../../../image/ImageComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';

@@ -9,7 +9,7 @@ import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/D
 import DataImportLogVO from '../../../../../shared/modules/DataImport/vos/DataImportLogVO';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../../../ts/components/DAO/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import VueAppController from '../../../../VueAppController';
 import FileComponent from '../../file/FileComponent';

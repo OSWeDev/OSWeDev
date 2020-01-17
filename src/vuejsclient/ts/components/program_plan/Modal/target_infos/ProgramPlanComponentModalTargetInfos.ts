@@ -13,7 +13,7 @@ import IPlanTarget from '../../../../../../shared/modules/ProgramPlan/interfaces
 import IPlanTargetContact from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetContact';
 import IPlanTargetGroupContact from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetGroupContact';
 import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import { ModuleDAOGetter } from '../../../DAO/store/DaoStore';
+import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import VueFieldComponent from '../../../field/field';
 import VueComponentBase from '../../../VueComponentBase';
 import ProgramPlanComponentHTMLInfos from '../../HTMLInfos/ProgramPlanComponentHTMLInfos';

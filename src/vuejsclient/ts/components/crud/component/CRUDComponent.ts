@@ -19,7 +19,7 @@ import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../DAO/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DatatableComponent from '../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';

@@ -13,7 +13,7 @@ import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/Ins
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../DAO/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import ImageViewComponent from '../../image/View/ImageViewComponent';
 import CMSComponentManager from '../CMSComponentManager';
 import ICMSComponentTemplateVue from '../interfaces/ICMSComponentTemplateVue';

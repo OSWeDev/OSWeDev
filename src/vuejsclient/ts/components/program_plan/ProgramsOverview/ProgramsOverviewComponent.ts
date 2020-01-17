@@ -4,7 +4,7 @@ import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import IPlanProgram from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanProgram';
 import IPlanProgramCategory from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanProgramCategory';
 import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../DAO/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import VueComponentBase from '../../VueComponentBase';
 import ProgramPlanClientVueModule from '../ProgramPlanClientVueModule';
 import './ProgramsOverviewComponent.scss';

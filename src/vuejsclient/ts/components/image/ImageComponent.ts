@@ -2,7 +2,7 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
-import { ModuleDAOAction } from '../../../ts/components/DAO/store/DaoStore';
+import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import VueAppController from '../../../VueAppController';
 

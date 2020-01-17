@@ -13,7 +13,7 @@ import IPlanRDVPrep from '../../../../../../shared/modules/ProgramPlan/interface
 import IPlanTarget from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueAppController from '../../../../../VueAppController';
-import { ModuleDAOGetter } from '../../../DAO/store/DaoStore';
+import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import VueFieldComponent from '../../../field/field';
 import VueComponentBase from '../../../VueComponentBase';
 import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';

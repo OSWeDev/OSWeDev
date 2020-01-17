@@ -10,7 +10,7 @@ import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
-import { ModuleDAOAction, ModuleDAOGetter } from '../DAO/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
 import './AccessPolicyComponent.scss';
 import PolicyGroupSegmentation from './PolicyGroupSegmentation';
 

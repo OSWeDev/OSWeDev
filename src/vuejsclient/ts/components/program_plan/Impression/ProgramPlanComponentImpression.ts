@@ -9,7 +9,7 @@ import IPlanRDV from '../../../../../shared/modules/ProgramPlan/interfaces/IPlan
 import IPlanRDVCR from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import select2 from '../../../directives/select2/select2';
-import { ModuleDAOGetter } from '../../DAO/store/DaoStore';
+import { ModuleDAOGetter } from '../../dao/store/DaoStore';
 import VueComponentBase from '../../VueComponentBase';
 import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
 import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';

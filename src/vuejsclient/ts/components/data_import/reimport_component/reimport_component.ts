@@ -4,7 +4,7 @@ import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../DAO/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import Vuecomponentbase from '../../VueComponentBase';
 import './reimport_component.scss';
 

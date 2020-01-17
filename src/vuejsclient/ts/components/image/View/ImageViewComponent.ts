@@ -3,7 +3,7 @@ import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../../shared/modules/Image/vos/ImageVO';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../DAO/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import VueComponentBase from '../../VueComponentBase';
 
 @Component({

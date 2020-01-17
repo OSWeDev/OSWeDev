@@ -34,7 +34,7 @@ import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 import VueAppController from '../../../VueAppController';
 import AppVuexStoreManager from '../../store/AppVuexStoreManager';
-import { ModuleDAOAction, ModuleDAOGetter } from '../DAO/store/DaoStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../dao/store/DaoStore';
 import VueComponentBase from '../VueComponentBase';
 import ProgramPlanComponentImpression from './Impression/ProgramPlanComponentImpression';
 import ProgramPlanComponentModal from './Modal/ProgramPlanComponentModal';
