@@ -25,6 +25,7 @@
         track-by="id"
         
         :id="'multifilter_' + api_type_id"
+        :disabled="disabled",
         
         :selectLabel='label("multiselect.selectLabel")'
         :selectGroupLabel='label("multiselect.selectGroupLabel")'
@@ -33,9 +34,11 @@
         :deselectGroupLabel='label("multiselect.deselectGroupLabel")'
     )
         span(slot="noOptions") -
-    .text_cliquable(@click='select_all') {{ label('select_all') }}
-    .inter_text -
-    .text_cliquable(@click='select_none') {{ label('select_none') }}
+
+    template(v-if="!disabled")
+        .text_cliquable(@click='select_all') {{ label('select_all') }}
+        .inter_text -
+        .text_cliquable(@click='select_none') {{ label('select_none') }}
 
     //@search-change="updateMultiSelectFilterOptions"
                 

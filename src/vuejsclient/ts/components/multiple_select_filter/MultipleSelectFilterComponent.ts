@@ -73,6 +73,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     })
     private depends_on_call_condition_on_empty_active_options: { [api_type_id: string]: boolean };
 
+    @Prop({
+        default: false
+    })
+    private disabled: boolean;
+
     private tmp_filter_active_options: DataFilterOption[] = [];
 
     private filter_state_selected: number = DataFilterOption.STATE_SELECTED;
