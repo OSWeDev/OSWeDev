@@ -1,5 +1,7 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
@@ -8,7 +10,6 @@ import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces
 import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
-import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
@@ -207,14 +208,14 @@ export default class VarDataRefComponent extends VueComponentBase {
             res += (this.add_infos_additional_params[pos][0]) ? field.field_id : '';
 
             // comment affiche t'on le tsrange (min, max, ou complet)
-            if (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) {
+            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (controller.segment_type == TimeSegment.TYPE_DAY)) {
                 let tstzrange: TSRange = matroid[field.field_id][0] as TSRange;
                 switch (this.add_infos_additional_params[pos][1]) {
                     case 'min':
-                        res += tstzrange.min.format('DD/MM/Y');
+                        res += (tstzrange.min_inclusiv) ? tstzrange.min.format('DD/MM/Y') : tstzrange.min.clone().add(1, 'day').format('DD/MM/Y');
                         break;
                     case 'max':
-                        res += tstzrange.max.format('DD/MM/Y');
+                        res += (tstzrange.max_inclusiv) ? tstzrange.max.format('DD/MM/Y') : tstzrange.max.clone().add(-1, 'day').format('DD/MM/Y');
                         break;
                     default:
                         res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);

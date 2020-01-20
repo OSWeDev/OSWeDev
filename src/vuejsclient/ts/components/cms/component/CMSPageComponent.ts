@@ -1,26 +1,24 @@
+import { VueConstructor } from 'vue';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import * as draggable from 'vuedraggable';
+import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import IInstantiatedPageComponent from '../../../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
 import ModuleCMS from '../../../../../shared/modules/CMS/ModuleCMS';
 import PageVO from '../../../../../shared/modules/CMS/vos/PageVO';
+import TemplateComponentVO from '../../../../../shared/modules/CMS/vos/TemplateComponentVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
+import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
-import CMSComponentManager from '../CMSComponentManager';
-import './CMSPageComponent.scss';
-import ICMSComponentTemplateVue from '../interfaces/ICMSComponentTemplateVue';
-import { VueConstructor } from 'vue';
-import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import TemplateComponentVO from '../../../../../shared/modules/CMS/vos/TemplateComponentVO';
-import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import ImageViewComponent from '../../image/View/ImageViewComponent';
+import CMSComponentManager from '../CMSComponentManager';
+import ICMSComponentTemplateVue from '../interfaces/ICMSComponentTemplateVue';
+import './CMSPageComponent.scss';
 import CMSDroppableTemplateComponent from './droppable_template/CMSDroppableTemplateComponent';
-import * as draggable from 'vuedraggable';
-import { userInfo } from 'os';
-import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import ModuleAPI from '../../../../../shared/modules/API/ModuleAPI';
-import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 
 @Component({
     template: require('./CMSPageComponent.pug'),

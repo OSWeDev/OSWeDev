@@ -1,15 +1,13 @@
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import DatatableField from './DatatableField';
-import ReferenceDatatableField from './ReferenceDatatableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 
 export default class ManyToOneReferenceDatatableField<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
     public filterOptionsForUpdateOrCreateOnManyToOne: (vo: IDistantVOBase, options: { [id: number]: Target }) => { [id: number]: Target } = null;
-
-    public srcField: ModuleTableField<any> = null;
 
     public constructor(
         datatable_field_uid: string,
@@ -24,9 +22,13 @@ export default class ManyToOneReferenceDatatableField<Target extends IDistantVOB
         return this;
     }
 
+
+    get srcField(): ModuleTableField<any> {
+        return this.moduleTable.getFieldFromId(this.module_table_field_id);
+    }
+
     public setModuleTable(moduleTable: ModuleTable<any>): ManyToOneReferenceDatatableField<Target> {
         this.moduleTable = moduleTable;
-        this.srcField = this.moduleTable.getFieldFromId(this.module_table_field_id);
 
         if (!this.translatable_title) {
             this.translatable_title = this.srcField.field_label.code_text;

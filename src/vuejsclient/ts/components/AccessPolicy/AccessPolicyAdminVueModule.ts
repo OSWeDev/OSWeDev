@@ -4,14 +4,14 @@ import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPo
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
+import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
 import CRUD from '../crud/vos/CRUD';
-import Datatable from '../datatable/vos/Datatable';
-import ManyToOneReferenceDatatableField from '../datatable/vos/ManyToOneReferenceDatatableField';
-import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
 import MenuBranch from '../menu/vos/MenuBranch';
 import MenuElementBase from '../menu/vos/MenuElementBase';
 import MenuLeaf from '../menu/vos/MenuLeaf';

@@ -11,6 +11,7 @@ import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
 import VOsTypesManager from '../VOsTypesManager';
 import APIDAOApiTypeAndMatroidsParamsVO from './vos/APIDAOApiTypeAndMatroidsParamsVO';
+import APIDAODATATABLEVOParamVO from './vos/APIDAODATATABLEVOParamVO';
 import APIDAOIdsRangesParamsVO from './vos/APIDAOIdsRangesParamsVO';
 import APIDAONamedParamVO from './vos/APIDAONamedParamVO';
 import APIDAOParamsVO from './vos/APIDAOParamsVO';
@@ -31,6 +32,7 @@ export default class ModuleDAO extends Module {
     public static APINAME_DELETE_VOS = "DAO_DELETE_VOS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
     public static APINAME_INSERT_OR_UPDATE_VO = "DAO_INSERT_OR_UPDATE_VO";
+    public static APINAME_INSERT_OR_UPDATE_DATATABLE_VO = "INSERT_OR_UPDATE_DATATABLE_VO";
     public static APINAME_SELECT_ALL = "SELECT_ALL";
     public static APINAME_SELECT_ONE = "SELECT_ONE";
     public static APINAME_GET_VO_BY_ID = "GET_VO_BY_ID";
@@ -113,6 +115,11 @@ export default class ModuleDAO extends Module {
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
             (param: IDistantVOBase) => [param._type]
         ));
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAODATATABLEVOParamVO, InsertOrDeleteQueryResult>(
+            ModuleDAO.APINAME_INSERT_OR_UPDATE_DATATABLE_VO,
+            (param: APIDAODATATABLEVOParamVO) => param.datatable_vo ? [param.datatable_vo._type] : null
+        ));
+
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamsVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_GET_VOS_BY_IDS,
@@ -249,6 +256,11 @@ export default class ModuleDAO extends Module {
     public async insertOrUpdateVO(vo: IDistantVOBase): Promise<InsertOrDeleteQueryResult> {
         return await ModuleAPI.getInstance().handleAPI<IDistantVOBase, InsertOrDeleteQueryResult>(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, vo);
     }
+
+    public async INSERT_OR_UPDATE_DATATABLE_VO(param: APIDAODATATABLEVOParamVO): Promise<InsertOrDeleteQueryResult> {
+        return await ModuleAPI.getInstance().handleAPI<APIDAODATATABLEVOParamVO, InsertOrDeleteQueryResult>(ModuleDAO.APINAME_INSERT_OR_UPDATE_DATATABLE_VO, param);
+    }
+
 
     public async getNamedVoByName<T extends INamedVO>(API_TYPE_ID: string, vo_name: string): Promise<T> {
         return await ModuleAPI.getInstance().handleAPI<APIDAONamedParamVO, T>(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, API_TYPE_ID, vo_name);

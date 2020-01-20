@@ -1,8 +1,6 @@
 import * as $ from 'jquery';
-import * as moment from 'moment';
-import { Component, Prop, Watch } from 'vue-property-decorator';
+import { Component, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import IPlanContact from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
 import IPlanEnseigne from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
@@ -13,15 +11,15 @@ import IPlanRDV from '../../../../../../shared/modules/ProgramPlan/interfaces/IP
 import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanTarget from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import IPlanTargetContact from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetContact';
+import IPlanTargetGroupContact from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetGroupContact';
 import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import VueFieldComponent from '../../../field/field';
 import VueComponentBase from '../../../VueComponentBase';
+import ProgramPlanComponentHTMLInfos from '../../HTMLInfos/ProgramPlanComponentHTMLInfos';
 import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import "./ProgramPlanComponentModalTargetInfos.scss";
-import ProgramPlanComponentHTMLInfos from '../../HTMLInfos/ProgramPlanComponentHTMLInfos';
-import IPlanTargetGroupContact from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTargetGroupContact';
 
 @Component({
     template: require('./ProgramPlanComponentModalTargetInfos.pug'),

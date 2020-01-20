@@ -33,6 +33,7 @@ import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
+import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
@@ -43,6 +44,7 @@ import IVueModule from '../vuejsclient/ts/modules/IVueModule';
 import VueModuleBase from '../vuejsclient/ts/modules/VueModuleBase';
 import AjaxCacheComponent from './ts/components/AjaxCache/component/AjaxCacheComponent';
 import AjaxCacheComponentPlaceholder from './ts/components/AjaxCache/component/AjaxCacheComponentPlaceholder';
+import AlertComponent from './ts/components/alert/AlertComponent';
 import CRUDComponentField from './ts/components/crud/component/field/CRUDComponentField';
 import DefaultHomeComponent from './ts/components/DefaultHome/component/DefaultHomeComponent';
 import Error404Component from './ts/components/Error404/component/Error404Component';
@@ -62,7 +64,6 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
-import AlertComponent from './ts/components/alert/AlertComponent';
 
 require('moment-json-parser').overrideDefault();
 
@@ -88,6 +89,8 @@ export default abstract class VueAppBase {
 
         // Chargement des données des modules.
         await this.initializeModulesDatas();
+
+        DatatableField.VueAppBase = this;
 
         let self = this;
         let promises = [];

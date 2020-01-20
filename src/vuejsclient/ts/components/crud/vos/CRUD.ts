@@ -1,16 +1,16 @@
+import ComputedDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ComputedDatatableField';
+import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
+import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
+import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import IVersionedVO from '../../../../../shared/modules/Versioned/interfaces/IVersionedVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
-import ComputedDatatableField from '../../datatable/vos/ComputedDatatableField';
-import Datatable from '../../datatable/vos/Datatable';
-import DatatableField from '../../datatable/vos/DatatableField';
-import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
-import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
-import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
-import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
-import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 import RefRangesReferenceDatatableField from '../../datatable/vos/RefRangesReferenceDatatableField';
 
 

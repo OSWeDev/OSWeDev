@@ -1,4 +1,4 @@
-import DatatableField from '../datatable/vos/DatatableField';
+import DatatableField from '../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 
 export default class EditablePageEditInfo {

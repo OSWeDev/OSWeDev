@@ -1,7 +1,7 @@
-import ModuleServiceBase from "./ModuleServiceBase";
 import Module from "../../shared/modules/Module";
-import ModuleFileServer from './File/ModuleFileServer';
 import ConfigurationService from '../env/ConfigurationService';
+import ModuleFileServer from './File/ModuleFileServer';
+import ModuleServiceBase from "./ModuleServiceBase";
 
 export default class ModulesClientInitializationDatasGenerator {
 
@@ -65,8 +65,12 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.getInstance().COMPRESS = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS) ? 'true' : 'false') + ';\n';
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
-        fileContent += this.generateModulesCode(this.generateModuleAsyncInitialisation, target);
 
+        fileContent += "    await ModuleAjaxCache.getInstance().getCSRFToken();";
+
+        fileContent += '    let promises = [];';
+        fileContent += this.generateModulesCode(this.generateModuleAsyncInitialisation, target);
+        fileContent += '    await Promise.all(promises);';
         fileContent += "}";
 
         return fileContent;
@@ -137,11 +141,14 @@ export default class ModulesClientInitializationDatasGenerator {
     }
 
     private generateModuleAsyncInitialisation(module: Module, target: string) {
+
         let res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_" + target.toLowerCase() + "_initialization();\n";
 
         if ((target == 'Client') || (target == 'Admin') || (target == 'Test')) {
             res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_client_admin_initialization();\n" + res;
         }
+
+        res = "promises.push((async () => {" + res + "})());";
         return res;
     }
 }

@@ -2,6 +2,11 @@ import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
+import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
@@ -20,11 +25,6 @@ import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import Alert from '../../../alert/Alert';
 import { ModuleAlertAction } from '../../../alert/AlertStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
-import Datatable from '../../../datatable/vos/Datatable';
-import DatatableField from '../../../datatable/vos/DatatableField';
-import ManyToOneReferenceDatatableField from '../../../datatable/vos/ManyToOneReferenceDatatableField';
-import ReferenceDatatableField from '../../../datatable/vos/ReferenceDatatableField';
-import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
 import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
@@ -280,7 +280,8 @@ export default class CRUDComponentField extends VueComponentBase {
         }
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+            ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean) &&
+            this.field.is_required) {
             input_value = input.checked;
         }
 

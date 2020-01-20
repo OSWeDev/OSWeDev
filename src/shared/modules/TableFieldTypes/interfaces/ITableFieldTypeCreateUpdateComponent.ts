@@ -1,5 +1,5 @@
+import SimpleDatatableField from '../../DAO/vos/datatable/SimpleDatatableField';
 import IDistantVOBase from '../../IDistantVOBase';
-import SimpleDatatableField from '../../../../vuejsclient/ts/components/datatable/vos/SimpleDatatableField';
 
 /**
  * Nécessite d'envoyer l'évènement @input lors du changement de contenu pour validation du champ

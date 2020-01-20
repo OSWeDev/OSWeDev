@@ -28,13 +28,12 @@ import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
 import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
+import ModuleVar from './ModuleVar';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import moment = require('moment');
-import ModuleVarServer from '../../../server/modules/Var/ModuleVarServer';
-import ModuleVar from './ModuleVar';
 
 export default class VarsController {
 

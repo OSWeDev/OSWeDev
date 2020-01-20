@@ -1,32 +1,29 @@
+import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import AbonnementVO from '../../../../shared/modules/Commerce/Abonnement/vos/AbonnementVO';
+import PackAbonnementVO from '../../../../shared/modules/Commerce/Abonnement/vos/PackAbonnementVO';
+import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
+import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
+import CommandeVO from '../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
+import LigneCommandeVO from '../../../../shared/modules/Commerce/Commande/vos/LigneCommandeVO';
+import ModuleCommerce from '../../../../shared/modules/Commerce/ModuleCommerce';
+import ModePaiementVO from '../../../../shared/modules/Commerce/Paiement/vos/ModePaiementVO';
+import PaiementVO from '../../../../shared/modules/Commerce/Paiement/vos/PaiementVO';
+import CategorieProduitVO from '../../../../shared/modules/Commerce/Produit/vos/CategorieProduitVO';
+import FacturationProduitVO from '../../../../shared/modules/Commerce/Produit/vos/FacturationProduitVO';
+import FacturationVO from '../../../../shared/modules/Commerce/Produit/vos/FacturationVO';
+import ProduitVO from '../../../../shared/modules/Commerce/Produit/vos/ProduitVO';
+import TypeProduitVO from '../../../../shared/modules/Commerce/Produit/vos/TypeProduitVO';
+import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
+import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import ModuleCommerce from '../../../../shared/modules/Commerce/ModuleCommerce';
-import AbonnementVO from '../../../../shared/modules/Commerce/Abonnement/vos/AbonnementVO';
-import PackAbonnementVO from '../../../../shared/modules/Commerce/Abonnement/vos/PackAbonnementVO';
-import ClientVO from '../../../../shared/modules/Commerce/Client/vos/ClientVO';
-import CommandeVO from '../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
-import PaiementVO from '../../../../shared/modules/Commerce/Paiement/vos/PaiementVO';
-import ProduitVO from '../../../../shared/modules/Commerce/Produit/vos/ProduitVO';
-import InformationsVO from '../../../../shared/modules/Commerce/Client/vos/InformationsVO';
-import LigneCommandeVO from '../../../../shared/modules/Commerce/Commande/vos/LigneCommandeVO';
-import ModePaiementVO from '../../../../shared/modules/Commerce/Paiement/vos/ModePaiementVO';
-import CategorieProduitVO from '../../../../shared/modules/Commerce/Produit/vos/CategorieProduitVO';
-import TypeProduitVO from '../../../../shared/modules/Commerce/Produit/vos/TypeProduitVO';
 import CRUD from '../crud/vos/CRUD';
-import { CONNREFUSED } from 'dns';
-import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
-import Datatable from '../datatable/vos/Datatable';
-import ManyToOneReferenceDatatableField from '../datatable/vos/ManyToOneReferenceDatatableField';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
-import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
-import ComputedDatatableField from '../datatable/vos/ComputedDatatableField';
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import FacturationVO from '../../../../shared/modules/Commerce/Produit/vos/FacturationVO';
-import FacturationProduitVO from '../../../../shared/modules/Commerce/Produit/vos/FacturationProduitVO';
 
 export default class CommerceAdminVueModule extends VueModuleBase {
 
@@ -255,12 +252,12 @@ export default class CommerceAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "client_id",
             VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID], [
-                new ManyToOneReferenceDatatableField<any>(
-                    "user_id",
-                    VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [
-                        new SimpleDatatableField("name")
-                    ])
-            ]));
+            new ManyToOneReferenceDatatableField<any>(
+                "user_id",
+                VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [
+                new SimpleDatatableField("name")
+            ])
+        ]));
 
         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
@@ -274,18 +271,18 @@ export default class CommerceAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "commande_id",
             VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID], [
-                new SimpleDatatableField("identifiant")
-            ]));
+            new SimpleDatatableField("identifiant")
+        ]));
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "produit_id",
             VOsTypesManager.getInstance().moduleTables_by_voType[ProduitVO.API_TYPE_ID], [
-                new SimpleDatatableField("titre")
-            ]));
+            new SimpleDatatableField("titre")
+        ]));
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "informations_id",
             VOsTypesManager.getInstance().moduleTables_by_voType[InformationsVO.API_TYPE_ID], [
-                new SimpleDatatableField("email")
-            ]));
+            new SimpleDatatableField("email")
+        ]));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("prix_unitaire"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("quantite"));
 
@@ -301,13 +298,13 @@ export default class CommerceAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "abonnement_id",
             VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID], [
-                new SimpleDatatableField("echeance")
-            ]));
+            new SimpleDatatableField("echeance")
+        ]));
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "mode_paiement_id",
             VOsTypesManager.getInstance().moduleTables_by_voType[ModePaiementVO.API_TYPE_ID], [
-                new SimpleDatatableField("mode")
-            ]));
+            new SimpleDatatableField("mode")
+        ]));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("statut"));
 
         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[PaiementVO.API_TYPE_ID]);
@@ -322,13 +319,13 @@ export default class CommerceAdminVueModule extends VueModuleBase {
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "facturation_id",
             VOsTypesManager.getInstance().moduleTables_by_voType[FacturationVO.API_TYPE_ID], [
-                new SimpleDatatableField("titre")
-            ]));
+            new SimpleDatatableField("titre")
+        ]));
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "produit_id",
             VOsTypesManager.getInstance().moduleTables_by_voType[ProduitVO.API_TYPE_ID], [
-                new SimpleDatatableField("titre")
-            ]));
+            new SimpleDatatableField("titre")
+        ]));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("par_defaut"));
 
         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[FacturationProduitVO.API_TYPE_ID]);

@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import { isNumber } from 'util';
 import ModuleFormatDatesNombres from '../modules/FormatDatesNombres/ModuleFormatDatesNombres';
 
 // FILTERS MIXIN
@@ -238,12 +239,20 @@ export let percentFilter = new FilterObj(
 );
 
 export let toFixedFilter = new FilterObj(
-    function (value, fractionalDigits, explicit_sign: boolean = false) {
+    function (value, fractionalDigits, arrondi, explicit_sign: boolean = false) {
         if (!value) {
             return value;
         }
 
-        let res = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
+        let res = value;
+        if (arrondi) {
+            res = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(res, arrondi);
+        }
+
+        if (isNumber(fractionalDigits) && fractionalDigits >= 0) {
+            res = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(res, fractionalDigits);
+        }
+
         if (explicit_sign) {
             if (value > 0) {
                 res = '+' + res;

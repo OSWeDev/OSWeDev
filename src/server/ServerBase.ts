@@ -37,7 +37,6 @@ import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServ
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import ThreadHandler from '../shared/tools/ThreadHandler';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {

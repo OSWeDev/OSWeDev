@@ -1,11 +1,11 @@
 import { Component, Prop } from 'vue-property-decorator';
-import VueComponentBase from '../../../VueComponentBase';
-import DatatableField from '../../vos/DatatableField';
-import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
-import SimpleDatatableField from '../../vos/SimpleDatatableField';
+import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
-import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
+import VueComponentBase from '../../../VueComponentBase';
+import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
