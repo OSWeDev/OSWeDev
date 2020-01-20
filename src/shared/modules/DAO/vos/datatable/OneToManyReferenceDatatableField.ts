@@ -38,7 +38,7 @@ export default class OneToManyReferenceDatatableField<Target extends IDistantVOB
             return res;
         }
 
-        let vos = DatatableField.VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (let oneToManyTargetId in vos[this.targetModuleTable.vo_type]) {
             let targetVo = vos[this.targetModuleTable.vo_type][oneToManyTargetId];

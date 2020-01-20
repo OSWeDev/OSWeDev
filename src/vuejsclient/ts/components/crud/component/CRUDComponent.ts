@@ -471,10 +471,14 @@ export default class CRUDComponent extends VueComponentBase {
         this.snotify.info(this.label('crud.create.starting'));
         this.creating_vo = true;
 
-        if ((!this.newVO) || (this.newVO.id) || (this.newVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
+        if ((!this.newVO) || (this.newVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
             this.snotify.error(this.label('crud.create.errors.newvo_failure'));
             this.creating_vo = false;
             return;
+        }
+
+        if (!!this.newVO.id) {
+            this.newVO.id = null;
         }
 
         try {

@@ -35,7 +35,7 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
         let dest_ids: number[] = [];
         let interTargetRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.targetModuleTable.vo_type);
         let interSrcRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.moduleTable.vo_type);
-        let vos = DatatableField.VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (let interi in vos[this.interModuleTable.vo_type]) {
             let intervo = vos[this.interModuleTable.vo_type][interi];
@@ -62,7 +62,7 @@ export default class ManyToManyReferenceDatatableField<Target extends IDistantVO
 
         let interTargetRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.targetModuleTable.vo_type);
         let interSrcRefField = this.interModuleTable.getRefFieldFromTargetVoType(this.moduleTable.vo_type);
-        let vos = DatatableField.VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (let interi in vos[this.interModuleTable.vo_type]) {
             let intervo = vos[this.interModuleTable.vo_type][interi];
