@@ -1,7 +1,7 @@
+import ModuleServiceBase from "./ModuleServiceBase";
 import Module from "../../shared/modules/Module";
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleFileServer from './File/ModuleFileServer';
-import ModuleServiceBase from "./ModuleServiceBase";
 
 export default class ModulesClientInitializationDatasGenerator {
 
