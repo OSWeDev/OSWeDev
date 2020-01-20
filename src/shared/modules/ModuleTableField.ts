@@ -1,7 +1,7 @@
 import { isArray, isBoolean, isNull, isNumber } from 'util';
 import Alert from '../../vuejsclient/ts/components/alert/Alert';
-import DatatableField from '../../vuejsclient/ts/components/datatable/vos/DatatableField';
 import ConsoleHandler from '../tools/ConsoleHandler';
+import DatatableField from './DAO/vos/datatable/DatatableField';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';

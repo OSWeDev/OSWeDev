@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPo
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -18,7 +19,6 @@ import MenuLeaf from '../menu/vos/MenuLeaf';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import MenuPointer from '../menu/vos/MenuPointer';
 import AccessPolicyComponent from './AccessPolicyComponent';
-import ComponentDatatableField from '../datatable/vos/ComponentDatatableField';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {

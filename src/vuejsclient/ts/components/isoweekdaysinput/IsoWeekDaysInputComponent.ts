@@ -5,9 +5,9 @@ import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
-import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../VueComponentBase';
 import './IsoWeekDaysInputComponent.scss';
+import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 
 @Component({
     template: require('./IsoWeekDaysInputComponent.pug'),

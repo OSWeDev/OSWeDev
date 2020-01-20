@@ -8,10 +8,10 @@ import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
-import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../VueComponentBase';
 import './TSRangeInputComponent.scss';
 import moment = require('moment');
+import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 
 @Component({
     template: require('./TSRangeInputComponent.pug'),

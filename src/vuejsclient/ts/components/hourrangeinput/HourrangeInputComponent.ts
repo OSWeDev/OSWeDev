@@ -5,9 +5,9 @@ import HourRange from '../../../../shared/modules/DataRender/vos/HourRange';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import HourHandler from '../../../../shared/tools/HourHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
-import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../VueComponentBase';
 import './HourrangeInputComponent.scss';
+import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 
 @Component({
     template: require('./HourrangeInputComponent.pug'),
