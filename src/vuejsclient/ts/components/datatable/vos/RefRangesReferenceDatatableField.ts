@@ -3,9 +3,9 @@ import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
 import VueAppBase from '../../../../VueAppBase';
-import DatatableField from './DatatableField';
-import ReferenceDatatableField from './ReferenceDatatableField';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 
 export default class RefRangesReferenceDatatableField<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
