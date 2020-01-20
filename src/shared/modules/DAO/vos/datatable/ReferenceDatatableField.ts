@@ -27,7 +27,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             return '';
         }
 
-        let vos = DatatableField.VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let data: Target = vos[this.targetModuleTable.vo_type][id];
         res = this.dataToHumanReadable(data);
         return res ? res : '';
