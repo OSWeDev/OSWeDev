@@ -335,8 +335,8 @@ export default class VueComponentBase extends Vue
         return CRUDHandler.getCRUDLink(API_TYPE_ID);
     }
 
-    protected getCRUDCreateLink(API_TYPE_ID: string): string {
-        return CRUDHandler.getCreateLink(API_TYPE_ID);
+    protected getCRUDCreateLink(API_TYPE_ID: string, embed: boolean): string {
+        return CRUDHandler.getCreateLink(API_TYPE_ID, embed);
     }
 
     protected getCRUDUpdateLink(API_TYPE_ID: string, vo_id: number): string {

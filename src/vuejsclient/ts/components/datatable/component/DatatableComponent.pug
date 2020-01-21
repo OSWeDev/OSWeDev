@@ -7,25 +7,33 @@ v-client-table(
 
     div.hidden-print(slot="filter____multiselect_column__")
         input.d-print-none.form-control(type="checkbox" v-model="allselected_chck" @click.prevent="selectAll()")
-    
+
     div(slot="__multiselect_column__" slot-scope="props")
         input.d-print-none.form-control(type="checkbox" v-model="selected_datas[props.row.id]")
 
     div(slot="__actions_column__" slot-scope="props")
         .btn-group.d-print-none
-            router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(api_type_id, props.row.id)")
-                i.fa.fa-pencil
-            router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
-                i.fa.fa-trash
+            template(v-if="embed")
+                button.btn.btn-sm.btn-primary.m-1(@click="selectVoForAction(props.row.id, 'update')")
+                    i.fa.fa-pencil
+            template(v-else)
+                router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(api_type_id, props.row.id)")
+                    i.fa.fa-pencil
+            template(v-if="embed")
+                button.btn.btn-sm.btn-danger.m-1(@click="selectVoForAction(props.row.id, 'delete')")
+                    i.fa.fa-trash
+            template(v-else)
+                router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
+                    i.fa.fa-trash
 
-    template(v-for="field in date_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable')
+    template(v-for="field in date_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && !embed')
         input.form-control.d-print-none(v-if="custom_filters_values[field.datatable_field_uid]" type="date" v-model="custom_filters_values[field.datatable_field_uid].start" :max="custom_filters_values[field.datatable_field_uid].end" @change="onChangeFilterValue()")
         input.form-control.d-print-none(v-if="custom_filters_values[field.datatable_field_uid]" type="date" v-model="custom_filters_values[field.datatable_field_uid].end" :min="custom_filters_values[field.datatable_field_uid].start" @change="onChangeFilterValue()")
 
-    template(v-for="field in text_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable')
+    template(v-for="field in text_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && !embed')
         input.form-control.d-print-none(type="text" v-model="custom_filters_values[field.datatable_field_uid]")
 
-    template(v-for="field in multiselect_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable')
+    template(v-for="field in multiselect_filtered_fields" :slot="'filter__' + field.datatable_field_uid", v-if='!isModuleParamTable && !embed')
         //- v-select.v-select-multiple.d-print-none(v-if="custom_filters_options[field.datatable_field_uid]" v-model="custom_filters_values[field.datatable_field_uid]", multiple, :options="custom_filters_options[field.datatable_field_uid]")
         template(v-if="custom_filters_options[field.datatable_field_uid]")
             multiselect.d-print-none(

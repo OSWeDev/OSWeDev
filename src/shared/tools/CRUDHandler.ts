@@ -4,8 +4,8 @@ export default class CRUDHandler {
     public static getCRUDLink(API_TYPE_ID: string): string {
         return CRUDHandler.CRUD_ROUTE_BASE + API_TYPE_ID;
     }
-    public static getCreateLink(API_TYPE_ID: string): string {
-        return CRUDHandler.getCRUDLink(API_TYPE_ID) + "/create";
+    public static getCreateLink(API_TYPE_ID: string, embed: boolean): string {
+        return (embed) ? "#create_" + API_TYPE_ID : CRUDHandler.getCRUDLink(API_TYPE_ID) + "/create";
     }
     public static getUpdateLink(API_TYPE_ID: string, vo_id: number): string {
         return CRUDHandler.getCRUDLink(API_TYPE_ID) + "/update/" + vo_id;

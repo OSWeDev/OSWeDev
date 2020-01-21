@@ -62,6 +62,11 @@ export default class DatatableComponent extends VueComponentBase {
     private datatable: Datatable<IDistantVOBase>;
 
     @Prop({
+        default: false
+    })
+    private embed: boolean;
+
+    @Prop({
         default: true
     })
     private load_datas: boolean;
@@ -264,6 +269,15 @@ export default class DatatableComponent extends VueComponentBase {
         }
 
         return this.exportable_datatable_data;
+    }
+
+    private selectVoForAction(vo_id: number, action: string) {
+        let vo: IDistantVOBase = null;
+        if (this.datatable && this.datatable.API_TYPE_ID && this.getStoredDatas && this.getStoredDatas[this.datatable.API_TYPE_ID] && this.getStoredDatas[this.datatable.API_TYPE_ID][vo_id]) {
+            vo = this.getStoredDatas[this.datatable.API_TYPE_ID][vo_id];
+        }
+        this.setSelectedVOs([vo]);
+        this.$emit('show-crud-modal', { vo_type: vo._type, action: action });
     }
 
     get exportable_datatable_columns(): string[] {

@@ -59,6 +59,8 @@ export default class CRUDComponent extends VueComponentBase {
     private crud: CRUD<IDistantVOBase>;
 
     @Prop({ default: false })
+    private embed: boolean;
+    @Prop({ default: false })
     private modal_show_update: boolean;
     @Prop({ default: false })
     private modal_show_create: boolean;
@@ -67,6 +69,8 @@ export default class CRUDComponent extends VueComponentBase {
 
     @Prop()
     private modal_vo_id: number;
+    @Prop({ default: null })
+    private vo_init: IDistantVOBase;
 
     @Prop({ default: null })
     private read_query: any;
@@ -93,49 +97,80 @@ export default class CRUDComponent extends VueComponentBase {
         await this.handle_modal_show_hide();
     }
 
+    // @Watch("this.modal_show_create")
+    // private on_change_modal_show_create() {
+
+
+    // }
+
     @Watch("$route")
+    @Watch("modal_show_create")
+    @Watch("modal_show_update")
+    @Watch("modal_show_delete")
     private async handle_modal_show_hide() {
-        $("#updateData,#createData,#deleteData").on("hidden.bs.modal", () => {
-            this.$router.push(this.callback_route);
+        if (!this.embed) {
 
-        });
 
-        if (this.read_query) {
-            this.$router.replace({ query: this.read_query });
+            if (this.read_query) {
+                this.$router.replace({ query: this.read_query });
+            }
+        }
+
+        let embed_append: string = '';
+        if (this.embed) {
+            embed_append = '_' + this.crud.readDatatable.API_TYPE_ID;
         }
 
         if (!this.modal_show_create) {
-            $('#createData').modal('hide');
+            $('#createData' + embed_append).modal('hide');
         }
         if (!this.modal_show_update) {
-            $('#updateData').modal('hide');
+            $('#updateData' + embed_append).modal('hide');
         }
         if (!this.modal_show_delete) {
-            $('#deleteData').modal('hide');
+            $('#deleteData' + embed_append).modal('hide');
         }
 
         let vo: IDistantVOBase = null;
 
-        if (this.crud && this.crud.updateDatatable && this.crud.updateDatatable.API_TYPE_ID && this.getStoredDatas && this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID] && this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id]) {
-            vo = this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id];
-        }
+        if (!this.embed) {
+            if (this.crud && this.crud.updateDatatable && this.crud.updateDatatable.API_TYPE_ID && this.getStoredDatas && this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID] && this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id]) {
+                vo = this.getStoredDatas[this.crud.updateDatatable.API_TYPE_ID][this.modal_vo_id];
+            }
 
-        if (CRUDComponentManager.getInstance().callback_handle_modal_show_hide) {
-            await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo);
+            $("#updateData,#createData,#deleteData").on("hidden.bs.modal", () => {
+                this.$router.push(this.callback_route);
+            });
+
+            if (CRUDComponentManager.getInstance().callback_handle_modal_show_hide) {
+                await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo);
+            }
+        } else {
+            vo = this.getSelectedVOs[0];
+            $('#createData' + embed_append).on("hidden.bs.modal", () => {
+                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'create')
+            });
+            $('#updateData' + embed_append).on("hidden.bs.modal", () => {
+                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'update')
+            });
+            $('#deleteData' + embed_append).on("hidden.bs.modal", () => {
+                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'delete')
+            });
+
         }
 
         if (this.modal_show_create) {
-            $('#createData').modal('show');
+            $('#createData' + embed_append).modal('show');
             return;
         }
         if (this.modal_show_update) {
             this.setSelectedVOs([vo]);
-            $('#updateData').modal('show');
+            $('#updateData' + embed_append).modal('show');
             return;
         }
         if (this.modal_show_delete) {
             this.setSelectedVOs([vo]);
-            $('#deleteData').modal('show');
+            $('#deleteData' + embed_append).modal('show');
             return;
         }
     }
@@ -255,6 +290,14 @@ export default class CRUDComponent extends VueComponentBase {
     @Watch("crud")
     private async updatedCRUD() {
         await this.reload_datas();
+    }
+
+    private showCrudModal(infos: { vo_type: string, action: string }) {
+        this.$emit('show-crud-modal', infos);
+    }
+
+    private hideCrudModal(vo_type: string, action: string) {
+        this.$emit('hide-crud-modal', { vo_type, action });
     }
 
     private prepareNewVO() {
@@ -478,7 +521,6 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         try {
-
             // On passe la traduction depuis IHM sur les champs
             let apiokVo = this.IHMToData(this.newVO, this.crud.createDatatable, false);
 
@@ -511,13 +553,22 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.snotify.success(this.label('crud.create.success'));
-        this.$router.push(this.callback_route);
+        if (!this.embed) {
+            this.$router.push(this.callback_route);
+        }
         this.creating_vo = false;
 
         await this.callCallbackFunctionCreate();
 
-        if (CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud.api_type_id].reset_newvo_after_each_creation) {
-            this.prepareNewVO();
+        if (this.embed) {
+            if (this.crud.reset_newvo_after_each_creation) {
+                this.prepareNewVO();
+            }
+
+        } else {
+            if (CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud.api_type_id].reset_newvo_after_each_creation) {
+                this.prepareNewVO();
+            }
         }
     }
 
@@ -715,7 +766,9 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.snotify.success(this.label('crud.update.success'));
-        this.$router.push(this.callback_route);
+        if (!this.embed) {
+            this.$router.push(this.callback_route);
+        }
         this.updating_vo = false;
 
         await this.callCallbackFunctionUpdate();
@@ -754,7 +807,9 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.snotify.success(this.label('crud.delete.success'));
-        this.$router.push(this.callback_route);
+        if (!this.embed) {
+            this.$router.push(this.callback_route);
+        }
         this.deleting_vo = false;
     }
 
