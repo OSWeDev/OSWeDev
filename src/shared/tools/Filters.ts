@@ -242,7 +242,7 @@ export let toFixedFilter = new FilterObj(
     function (
         value,
         fractionalDigits,
-        arrondi
+        arrondi = false
     ) {
         if (!value) {
             return value;
