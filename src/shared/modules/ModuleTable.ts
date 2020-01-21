@@ -16,6 +16,8 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
+import ConsoleHandler from '../tools/ConsoleHandler';
+import NumSegment from './DataRender/vos/NumSegment';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -66,6 +68,18 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public table_name: string;
     public full_name: string;
     public uid: string;
+
+    /**
+     * Infos liées à la segmentation d'une table
+     *  Techniquement on a un segment_type déclaré sur le field directement, mais on imagine un cas de segmentation
+     *      de table de log à la journée, le log est segmenté à la seconde par contre, donc les segmentations sont différentiés
+     *  En revanche en théorie le range_type se déduit du type du field sur lequel on segmente, donc on le set automatiquement et
+     *      on garde lisible juste pour trace et éviter de refaire le switch en permanence.
+     */
+    public is_segmented: boolean = false;
+    public table_segmented_field: ModuleTableField<any> = null;
+    public table_segmented_field_range_type: number = null;
+    public table_segmented_field_segment_type: number = null;
 
     public hook_datatable_install: (db) => {} = null;
 
@@ -150,6 +164,204 @@ export default class ModuleTable<T extends IDistantVOBase> {
         if (this.vo_type) {
             VOsTypesManager.getInstance().registerModuleTable(this);
         }
+    }
+
+    /**
+     * On ne peut segmenter que sur un field de type range ou ranges pour le moment
+     *  techniquement rien n'empeche d'étendre ça à tous les autres types de données
+     */
+    public segment_on_field(field_id: string, segment_type: number): ModuleTable<any> {
+
+        let field = this.getFieldFromId(field_id);
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_file_field:
+            case ModuleTableField.FIELD_TYPE_file_ref:
+            case ModuleTableField.FIELD_TYPE_image_field:
+            case ModuleTableField.FIELD_TYPE_image_ref:
+            case ModuleTableField.FIELD_TYPE_html:
+            case ModuleTableField.FIELD_TYPE_html_array:
+            case ModuleTableField.FIELD_TYPE_boolean:
+            case ModuleTableField.FIELD_TYPE_password:
+            case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_geopoint:
+            case ModuleTableField.FIELD_TYPE_string_array:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
+            case ModuleTableField.FIELD_TYPE_date:
+            case ModuleTableField.FIELD_TYPE_hours_and_minutes:
+            case ModuleTableField.FIELD_TYPE_tstz:
+            case ModuleTableField.FIELD_TYPE_hour:
+            case ModuleTableField.FIELD_TYPE_timestamp:
+            case ModuleTableField.FIELD_TYPE_day:
+            case ModuleTableField.FIELD_TYPE_timewithouttimezone:
+            case ModuleTableField.FIELD_TYPE_month:
+            case ModuleTableField.FIELD_TYPE_translatable_text:
+            default:
+                return null;
+
+            case ModuleTableField.FIELD_TYPE_hourrange:
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+                this.table_segmented_field_range_type = HourRange.RANGE_TYPE;
+                break;
+
+            case ModuleTableField.FIELD_TYPE_daterange:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                this.table_segmented_field_range_type = TSRange.RANGE_TYPE;
+                break;
+
+            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableField.FIELD_TYPE_int:
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_amount:
+            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+            case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
+                this.table_segmented_field_range_type = NumRange.RANGE_TYPE;
+
+        }
+
+        this.is_segmented = true;
+        this.table_segmented_field = field;
+        this.table_segmented_field_segment_type = segment_type;
+
+        this.database = this.name;
+        this.full_name = this.database + '.' + this.name;
+        this.uid = this.database + '_' + this.name;
+
+        return this;
+    }
+
+    public get_segmented_full_name(segmented_value: number | moment.Duration | moment.Moment): string {
+
+        if (!this.is_segmented) {
+            return null;
+        }
+
+        let name = this.get_segmented_name(segmented_value);
+
+        if (!name) {
+            return null;
+        }
+
+        return this.database + '.' + name;
+    }
+
+    public get_segmented_name(segmented_value: number | moment.Duration | moment.Moment): string {
+
+        if (!this.is_segmented) {
+            return null;
+        }
+
+        switch (this.table_segmented_field_range_type) {
+            case NumRange.RANGE_TYPE:
+                return this.name + '_' + (segmented_value as number).toString();
+            case TSRange.RANGE_TYPE:
+                return this.name + '_' + (segmented_value as moment.Duration).asMilliseconds().toString();
+            case HourRange.RANGE_TYPE:
+                return this.name + '_' + DateHandler.getInstance().getUnixForBDD(segmented_value as moment.Moment).toString();
+            default:
+                return null;
+        }
+    }
+
+    public get_segmented_full_name_from_vo(vo: IDistantVOBase): string {
+
+        if (!this.is_segmented) {
+            return null;
+        }
+
+        let name = this.get_segmented_name_from_vo(vo);
+
+        if (!name) {
+            return null;
+        }
+
+        return this.database + '.' + name;
+    }
+
+    public get_segmented_name_from_vo(vo: IDistantVOBase): string {
+
+        if (!this.is_segmented) {
+            return null;
+        }
+
+        if (!vo) {
+            return null;
+        }
+
+        let segmented_field_value = this.get_segmented_field_value_from_vo(vo);
+
+        if (!segmented_field_value) {
+            return null;
+        }
+
+        return this.get_segmented_name(segmented_field_value);
+    }
+
+    public get_segmented_field_value_from_vo(vo: IDistantVOBase): any {
+
+        if (!this.is_segmented) {
+            return null;
+        }
+
+        if (!vo) {
+            return null;
+        }
+
+        let field_value = vo[this.table_segmented_field.field_id];
+
+        if (!field_value) {
+            return null;
+        }
+
+        // On doit avoir un cardinal 1 dans tous les cas, mais on check pas sinon c'est trop lourd
+
+        switch (this.table_segmented_field.field_type) {
+            case ModuleTableField.FIELD_TYPE_hourrange:
+                return RangeHandler.getInstance().getSegmentedMin(field_value as HourRange, this.table_segmented_field_segment_type);
+
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+                return RangeHandler.getInstance().getSegmentedMin_from_ranges(field_value as HourRange[], this.table_segmented_field_segment_type);
+
+            case ModuleTableField.FIELD_TYPE_prct:
+            case ModuleTableField.FIELD_TYPE_int_array:
+            case ModuleTableField.FIELD_TYPE_daterange:
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                // TODO
+                ConsoleHandler.getInstance().error('Not Implemented');
+                break;
+
+            case ModuleTableField.FIELD_TYPE_foreign_key:
+            case ModuleTableField.FIELD_TYPE_enum:
+            case ModuleTableField.FIELD_TYPE_int:
+                if (this.table_segmented_field_segment_type == NumSegment.TYPE_INT) {
+                    return field_value;
+                } else {
+                    ConsoleHandler.getInstance().error('Not Implemented');
+                }
+                break;
+
+            case ModuleTableField.FIELD_TYPE_float:
+            case ModuleTableField.FIELD_TYPE_amount:
+                if (this.table_segmented_field_segment_type == NumSegment.TYPE_INT) {
+                    return Math.floor(field_value);
+                } else {
+                    ConsoleHandler.getInstance().error('Not Implemented');
+                }
+                break;
+
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_isoweekdays:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+                return RangeHandler.getInstance().getSegmentedMin_from_ranges(field_value as NumRange[], this.table_segmented_field_segment_type);
+        }
+
+        return null;
     }
 
     public get_fields(): Array<ModuleTableField<any>> {
@@ -290,8 +502,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
         table_name: string,
         table_name_suffix: string = "",
         table_name_prefix: string = "") {
+
         if ((!database_name) || (!table_name)) {
             return;
+        }
+
+        // Si la base est segmentée, interdiction de modifier les liaisons
+        if (this.is_segmented) {
+            return null;
         }
 
         this.set_bdd_suffix_prefix_table_name(table_name, table_name_suffix, table_name_prefix);

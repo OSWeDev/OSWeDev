@@ -441,9 +441,8 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 return "time without time zone";
 
-            // Est-ce qu'on mettrait pas float 8 simplement...
             case ModuleTableField.FIELD_TYPE_prct:
-                return "ref.pct";
+                return "float8";
 
             case 'real':
                 return "real";

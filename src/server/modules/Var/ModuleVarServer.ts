@@ -4,6 +4,7 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APIDAOApiTypeAndMatroidsParamsVO from '../../../shared/modules/DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -11,6 +12,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import VarsController from '../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -18,7 +20,6 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import VarsController from '../../../shared/modules/Var/VarsController';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -292,9 +293,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             return null;
         }
 
-        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+        let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
 
-        if (!datatable) {
+        if (!moduleTable) {
             return null;
         }
 
@@ -304,13 +305,58 @@ export default class ModuleVarServer extends ModuleServerBase {
             exact_search_fields = VarsController.getInstance().getVarControllerById(matroid.var_id).datas_fields_type_combinatory;
         }
 
-        let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', exact_search_fields);
+        let res = null;
 
-        if (!filter_by_matroid_clause) {
-            return null;
+        if (moduleTable.is_segmented) {
+
+            // TODO FIXME : on part du principe que si on a segmenté sur une var, on doit avoir des cardinaux atomiques sur la segmentation
+            // donc pas de union ou autre, ya qu'une table cible suffit de la trouver
+
+            // On cherche dans le matroid le field qui est la segmentation. Si on a pas, on refuse de chercher en masse
+            let segmented_matroid_filed_id = moduleTable.table_segmented_field.field_id;
+            for (let matroid_field_id in fields_ids_mapper) {
+                let field_id = fields_ids_mapper[matroid_field_id];
+
+                if (field_id == moduleTable.table_segmented_field.field_id) {
+                    segmented_matroid_filed_id = matroid_field_id;
+                    break;
+                }
+            }
+
+            if (!segmented_matroid_filed_id) {
+                throw new Error('Not Implemented');
+            }
+
+            let segmentations: Array<IRange<any>> = matroid[segmented_matroid_filed_id];
+
+            // Si c'est un matroid on devrait avoir un cas simple de ranges directement mais on pourrait adapter à tous les types de field matroid
+            // let matroid_moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[matroid._type];
+            // let matroid_field = matroid_moduleTable.getFieldFromId(segmented_matroid_filed_id);
+
+            // switch (matroid_field.field_type) {
+            // }
+
+            // On part du principe qu'il y a un seul segment cible =>
+            let segmented_value = segmentations[0].min;
+
+            let full_name = moduleTable.database + '.' + moduleTable.get_segmented_name(segmented_value);
+            let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', full_name, exact_search_fields);
+
+            if (!filter_by_matroid_clause) {
+                return null;
+            }
+
+            res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + full_name + " t WHERE " + filter_by_matroid_clause + ";");
+        } else {
+            let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', moduleTable.full_name, exact_search_fields);
+
+            if (!filter_by_matroid_clause) {
+                return null;
+            }
+
+            res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause + ";");
         }
 
-        let res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + datatable.full_name + " t WHERE " + filter_by_matroid_clause + ";");
         if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
             return null;
         }
