@@ -1,13 +1,13 @@
 import { Duration } from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import HourRange from '../../../../shared/modules/DataRender/vos/HourRange';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import HourHandler from '../../../../shared/tools/HourHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../VueComponentBase';
 import './HourrangeInputComponent.scss';
-import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 
 @Component({
     template: require('./HourrangeInputComponent.pug'),
@@ -71,7 +71,7 @@ export default class HourrangeInputComponent extends VueComponentBase {
             hourend.add(24, 'hours');
         }
 
-        if (this.auto_max_one_day && hourend && hourstart && (hourend.asMilliseconds() > hourstart.asMilliseconds()) && (hourend.asMilliseconds() > (60 * 24 * 60 * 1000))) {
+        if (this.auto_max_one_day && hourend && hourstart && (hourend.asMilliseconds() > hourstart.asMilliseconds()) && ((hourend.asMilliseconds() - hourstart.asMilliseconds()) > (60 * 24 * 60 * 1000))) {
             hourend.add(-24, 'hours');
         }
 
