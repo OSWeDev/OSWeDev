@@ -268,6 +268,7 @@ export default class CRUD<T extends IDistantVOBase> {
     }
 
     public forced_readonly: boolean = false;
+    public forced_updateonly: boolean = false;
     public reset_newvo_after_each_creation: boolean = false;
     public api_type_id: string;
 

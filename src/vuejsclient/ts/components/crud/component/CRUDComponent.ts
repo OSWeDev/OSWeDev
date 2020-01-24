@@ -75,6 +75,15 @@ export default class CRUDComponent extends VueComponentBase {
     @Prop({ default: null })
     private read_query: any;
 
+    @Prop({ default: null })
+    private perpage: number;
+
+    @Prop({ default: null })
+    private embed_filter: { [field_id: string]: any };
+
+    @Prop({ default: true })
+    private show_insert_or_update_target: boolean;
+
     @Prop({ default: false })
     private bootstrap_3_modal_fallback: boolean;
 
@@ -86,7 +95,6 @@ export default class CRUDComponent extends VueComponentBase {
     private creating_vo: boolean = false;
     private updating_vo: boolean = false;
     private deleting_vo: boolean = false;
-
     private is_only_readable: boolean = false;
 
     public async mounted() {
@@ -97,20 +105,21 @@ export default class CRUDComponent extends VueComponentBase {
         await this.handle_modal_show_hide();
     }
 
-    // @Watch("this.modal_show_create")
-    // private on_change_modal_show_create() {
-
-
+    @Watch("vo_init")
+    private on_change_vo_init() {
+        this.prepareNewVO();
+    }
+    // @Watch("embed_filter")
+    // private on_change_filter() {
+    //     console.log('CRUDComponent');
+    //     console.dir(this.embed_filter);
     // }
-
     @Watch("$route")
     @Watch("modal_show_create")
     @Watch("modal_show_update")
     @Watch("modal_show_delete")
     private async handle_modal_show_hide() {
         if (!this.embed) {
-
-
             if (this.read_query) {
                 this.$router.replace({ query: this.read_query });
             }
@@ -310,6 +319,10 @@ export default class CRUDComponent extends VueComponentBase {
         // Si on a un VO à init, on le fait
         if (CRUDComponentManager.getInstance().getIDistantVOInit(false)) {
             obj = CRUDComponentManager.getInstance().getIDistantVOInit();
+        }
+        // en mode "embed" on n'est pas passé par le CRUDComponentManager donc on init le VO autrement
+        if ((this.embed) && (!!this.vo_init)) {
+            obj = this.vo_init;
         }
 
         for (let i in this.crud.createDatatable.fields) {

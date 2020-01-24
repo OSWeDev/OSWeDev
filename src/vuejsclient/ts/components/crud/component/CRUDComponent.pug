@@ -32,13 +32,15 @@ include ../../../../views/mixins/loading.pug
             datatable.crud_datatable(
                 :key="'datatable_' + crud.readDatatable.API_TYPE_ID"
                 :datatable="crud.readDatatable",
-                :update_button="!crud.forced_readonly",
-                :delete_button="!crud.forced_readonly",
+                :update_button="!crud.forced_readonly || crud.forced_updateonly",
+                :delete_button="!crud.forced_readonly && !crud.forced_updateonly",
                 :multiselectable="false",
                 :api_types_involved="api_types_involved",
                 :load_datas="false",
                 @show-crud-modal="showCrudModal",
-                :embed="embed")
+                :embed="embed",
+                :embed_filter="embed_filter",
+                :perpage="perpage")
 
         <!-- Create Modal HTML -->
         .modal.fade.in(:id="(embed) ? 'createData_'+crud.readDatatable.API_TYPE_ID : 'createData' ", v-if='!isModuleParamTable', tabindex='-1', role='dialog')
@@ -63,7 +65,8 @@ include ../../../../views/mixins/loading.pug
                                         :datatable="createDatatable",
                                         :auto_update_field_value="true",
                                         @uploadedFile="uploadedFile",
-                                        @onChangeVO="onChangeVO"
+                                        @onChangeVO="onChangeVO",
+                                        :show_insert_or_update_target='show_insert_or_update_target'
                                     )
 
                             template(v-else)

@@ -61,33 +61,28 @@ export default class DatatableComponent extends VueComponentBase {
     @Prop()
     private datatable: Datatable<IDistantVOBase>;
 
-    @Prop({
-        default: false
-    })
+    @Prop({ default: false })
     private embed: boolean;
+    @Prop({ default: null })
+    private perpage: number;
 
-    @Prop({
-        default: true
-    })
+    @Prop({ default: true })
     private load_datas: boolean;
 
     @Prop()
     private api_types_involved: string[];
 
-    @Prop({
-        default: false
-    })
+    @Prop({ default: false })
     private update_button: boolean;
 
-    @Prop({
-        default: false
-    })
+    @Prop({ default: false })
     private delete_button: boolean;
 
-    @Prop({
-        default: false
-    })
+    @Prop({ default: false })
     private multiselectable: boolean;
+
+    @Prop({ default: null })
+    private embed_filter: { [field_id: string]: any };
 
     private allselected_chck: boolean = false;
     private selected_datas: { [id: number]: IDistantVOBase } = {};
@@ -112,7 +107,6 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     public async mounted() {
-
         this.loadDatatable();
 
         // Activate tooltip
@@ -225,6 +219,25 @@ export default class DatatableComponent extends VueComponentBase {
                         this.custom_filters_values[field.datatable_field_uid] = this.$route.query[j];
                     }
                 }
+            }
+
+            // at the moment the "embed" CRUD doesn't handle all types of fields filtering
+            if (!!this.embed_filter && !!this.embed_filter[field.datatable_field_uid]) {
+
+                if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+                    if (!this.custom_filters_values[field.datatable_field_uid]) {
+                        this.custom_filters_values[field.datatable_field_uid] = [];
+                    }
+                    this.preload_custom_filters.push(field.datatable_field_uid);
+                    this.custom_filters_values[field.datatable_field_uid] = this.embed_filter[field.datatable_field_uid].value;
+                    continue;
+                }
+
+                if (!this.custom_filters_values[field.datatable_field_uid]) {
+                    this.custom_filters_values[field.datatable_field_uid] = [];
+                }
+                this.preload_custom_filters.push(field.datatable_field_uid);
+                this.custom_filters_values[field.datatable_field_uid].push(this.embed_filter[field.datatable_field_uid]);
             }
         }
     }
@@ -447,7 +460,7 @@ export default class DatatableComponent extends VueComponentBase {
 
         let res: CustomFilterItem[] = [];
 
-        console.info('setMultiSelectFilterOptions: ' + datatable_field.datatable_field_uid);
+        // console.info('setMultiSelectFilterOptions: ' + datatable_field.datatable_field_uid);
 
         let field_values: any[] = [];
         let ids_marker: any[] = [];
@@ -535,6 +548,13 @@ export default class DatatableComponent extends VueComponentBase {
     private onRouteChange() {
         AppVuexStoreManager.getInstance().appVuexStore.commit('PRINT_ENABLE');
         AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.get_export_params_for_xlsx);
+    }
+
+    @Watch('embed_filter', { deep: true })
+    private onFilterChange() {
+        if (!!this.embed_filter) {
+            this.update_datatable_data();
+        }
     }
 
     @Watch('custom_filters_values', { deep: true })
@@ -1260,7 +1280,7 @@ export default class DatatableComponent extends VueComponentBase {
             columnsClasses: this.columnsClasses,
             filterByColumn: true,
             filterable: [],
-            perPage: 15,
+            perPage: (!!this.perpage) ? this.perpage : 15,
             perPageValues: [],
             // initFilters: this.preloadFilter,
             customFilters: this.customFilters,

@@ -27,7 +27,7 @@ export default class AlertComponent extends VueComponentBase {
     private path: string;
 
     get alerts(): Alert[] {
-        if (!this.path) {
+        if ((!this.path) || (!this.get_alerts)) {
             return null;
         }
 
