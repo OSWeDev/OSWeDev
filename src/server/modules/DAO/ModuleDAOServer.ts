@@ -1172,7 +1172,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where id = ' + apiDAOParamVO.id + ' ';
             }
 
-            vo = await ModuleServiceBase.getInstance().db.oneOrNone(request + ';') as T;
+            /**
+             * Attention en cas de segmentation on peut très bien ne pas avoir de table du tout ! Donc la requête plante complètement et ça veut juste dire 0 résultats
+             */
+            vo = null;
+            try {
+                vo = await ModuleServiceBase.getInstance().db.oneOrNone(request + ';') as T;
+            } catch (error) {
+            }
 
         } else {
             vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t WHERE id=" + apiDAOParamVO.id + ";") as T;
@@ -1360,7 +1367,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
                 request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t WHERE id in (' + apiDAOParamsVO.ids + ') ';
             }
-            vos = await ModuleServiceBase.getInstance().db.query(request + ';') as T[];
+
+            /**
+             * Attention en cas de segmentation on peut très bien ne pas avoir de table du tout ! Donc la requête plante complètement et ça veut juste dire 0 résultats
+             */
+            vos = null;
+            try {
+                vos = await ModuleServiceBase.getInstance().db.query(request + ';') as T[];
+            } catch (error) {
+            }
 
         } else {
             vos = await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE id in (" + apiDAOParamsVO.ids + ");") as T[];
@@ -1474,7 +1489,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            vos = vos.concat(await this.filterVosByMatroid<T>(api_type_id, matroid, fields_ids_mapper));
+            let tmp = await this.filterVosByMatroid<T>(api_type_id, matroid, fields_ids_mapper);
+
+            if ((!!tmp) && (tmp.length)) {
+                vos = vos.concat(tmp);
+            }
         }
 
         // On filtre suivant les droits d'accès
@@ -1560,7 +1579,16 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 request += 'select * from ' + db_full_name + ' t where ' + filter_by_matroid_clause + ' ';
             }
 
-            return moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]);
+            /**
+             * Attention en cas de segmentation on peut très bien ne pas avoir de table du tout ! Donc la requête plante complètement et ça veut juste dire 0 résultats
+             */
+            let vos = null;
+            try {
+                vos = await ModuleServiceBase.getInstance().db.query(request + ';') as T[];
+            } catch (error) {
+            }
+
+            return moduleTable.forceNumerics(vos);
         } else {
             let filter_by_matroid_clause: string = this.getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', moduleTable.full_name);
 
@@ -1760,7 +1788,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + where_clause + ' ';
                 }
 
-                let tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]);
+                /**
+                 * Attention en cas de segmentation on peut très bien ne pas avoir de table du tout ! Donc la requête plante complètement et ça veut juste dire 0 résultats
+                 */
+                let tmp_vos = null;
+                try {
+                    tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]);
+                } catch (error) {
+                }
 
                 for (let k in tmp_vos) {
                     let tmp_vo = tmp_vos[k];
@@ -1951,7 +1986,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + where_clause + ' ';
                 }
 
-                let tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]);
+                /**
+                 * Attention en cas de segmentation on peut très bien ne pas avoir de table du tout ! Donc la requête plante complètement et ça veut juste dire 0 résultats
+                 */
+                let tmp_vos = null;
+                try {
+                    tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]);
+                } catch (error) {
+                }
 
                 for (let k in tmp_vos) {
                     let tmp_vo = tmp_vos[k];
