@@ -587,6 +587,43 @@ export default class RangeHandler {
         return res;
     }
 
+    public humanize<T>(range: IRange<T>): string {
+
+        if ((!range) || (!this.isValid(range))) {
+            return null;
+        }
+
+        let res: string = "";
+
+        res += (range.min_inclusiv ? '[' : '(');
+        switch (range.range_type) {
+            case NumRange.RANGE_TYPE:
+                res += range.min;
+                break;
+            case HourRange.RANGE_TYPE:
+                res += (range.min as any as moment.Duration).hours() + ':' + (range.min as any as moment.Duration).minutes();
+                break;
+            case TSRange.RANGE_TYPE:
+                res += (range.min as any as Moment).format('DD/MM/Y');
+                break;
+        }
+        res += ',';
+        switch (range.range_type) {
+            case NumRange.RANGE_TYPE:
+                res += range.max;
+                break;
+            case HourRange.RANGE_TYPE:
+                res += (range.max as any as moment.Duration).hours() + ':' + (range.max as any as moment.Duration).minutes();
+                break;
+            case TSRange.RANGE_TYPE:
+                res += (range.max as any as Moment).format('DD/MM/Y');
+                break;
+        }
+        res += (range.max_inclusiv ? ']' : ')');
+
+        return res;
+    }
+
     public getIndexRanges<T>(ranges: Array<IRange<T>>): string {
 
         if ((!ranges) || (!ranges.length)) {
@@ -599,6 +636,30 @@ export default class RangeHandler {
             let range = ranges[i];
 
             let range_index = this.getIndex(range);
+
+            if (!range_index) {
+                return null;
+            }
+
+            res += (res == '[' ? '' : ',');
+            res += range_index;
+        }
+
+        return res;
+    }
+
+    public humanizeRanges<T>(ranges: Array<IRange<T>>): string {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let res: string = "[";
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            let range_index = this.humanize(range);
 
             if (!range_index) {
                 return null;
