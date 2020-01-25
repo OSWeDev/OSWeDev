@@ -506,12 +506,14 @@ export default class MatroidController {
             return null;
         }
 
+        let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[from._type];
+
         // On copie uniquement le matroid et le var_id si présent pour compatibilité avec les vars
-        let res: T = {
+        let res: T = Object.assign({
             _type: from._type,
             id: undefined,
             var_id: from['var_id']
-        } as any;
+        } as any, moduleTable.matroid_cloner(from));
 
         let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(from._type);
 

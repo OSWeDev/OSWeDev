@@ -1,5 +1,6 @@
 import { cloneDeep } from 'lodash';
 import * as moment from 'moment';
+import ConsoleHandler from '../tools/ConsoleHandler';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
 import GeoPointHandler from '../tools/GeoPointHandler';
@@ -8,6 +9,7 @@ import GeoPointVO from '../tools/vos/GeoPointVO';
 import HourRange from './DataRender/vos/HourRange';
 import HourSegment from './DataRender/vos/HourSegment';
 import NumRange from './DataRender/vos/NumRange';
+import NumSegment from './DataRender/vos/NumSegment';
 import TimeSegment from './DataRender/vos/TimeSegment';
 import TSRange from './DataRender/vos/TSRange';
 import IDistantVOBase from './IDistantVOBase';
@@ -16,8 +18,6 @@ import ModuleTableField from './ModuleTableField';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
 import VOsTypesManager from './VOsTypesManager';
-import ConsoleHandler from '../tools/ConsoleHandler';
-import NumSegment from './DataRender/vos/NumSegment';
 
 export default class ModuleTable<T extends IDistantVOBase> {
 
@@ -108,6 +108,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public any_to_many_default_behaviour_show: boolean = true;
 
     public voConstructor: () => T = null;
+
+    public matroid_cloner: (src: T) => T = ((src: T) => { }) as any;
 
     private vo_interfaces: { [interface_name: string]: boolean } = {};
 
@@ -234,6 +236,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
         return this;
     }
+
 
     public get_segmented_full_name(segmented_value: number | moment.Duration | moment.Moment): string {
 
@@ -389,6 +392,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public addAlias(api_type_id_alias: string): ModuleTable<any> {
         VOsTypesManager.getInstance().addAlias(api_type_id_alias, this.vo_type);
+        return this;
+    }
+
+    public set_matroid_cloner(matroid_cloner: (src: T) => T): ModuleTable<any> {
+        this.matroid_cloner = matroid_cloner;
         return this;
     }
 
