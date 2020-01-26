@@ -164,7 +164,7 @@ export default class ModuleTableDBService {
 
                 if (!migration_todo) {
 
-                    // Si on est pas en migration, on doit quand même vérifier au cas où la présence de la séquence 
+                    // Si on est pas en migration, on doit quand même vérifier au cas où la présence de la séquence
 
                     await this.db.query(
                         'CREATE SEQUENCE IF NOT EXISTS ' + moduleTable.database + '.' + common_id_seq_name +
