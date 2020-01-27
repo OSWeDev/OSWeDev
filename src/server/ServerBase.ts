@@ -6,7 +6,6 @@ import * as createLocaleMiddleware from 'express-locale';
 import * as expressSession from 'express-session';
 import * as sharedsession from 'express-socket.io-session';
 import * as fs from 'fs';
-import * as jwt from 'jsonwebtoken';
 import * as path from 'path';
 import * as pg from 'pg';
 import * as pg_promise from 'pg-promise';
@@ -29,10 +28,10 @@ import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModuleCronServer from './modules/Cron/ModuleCronServer';
+import ModuleFileServer from './modules/File/ModuleFileServer';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import ModuleFileServer from './modules/File/ModuleFileServer';
 
 export default abstract class ServerBase {
 
@@ -564,6 +563,11 @@ export default abstract class ServerBase {
 
 
         console.log('listening on port', ServerBase.getInstance().port);
+
+        process.on('uncaughtException', function (err) {
+            console.error("Node nearly failed: " + err.stack);
+        });
+
         ServerBase.getInstance().db.one('SELECT 1')
             .then(async () => {
                 console.log('connection to db successful');
@@ -573,6 +577,9 @@ export default abstract class ServerBase {
                 io.use(sharedsession(ServerBase.getInstance().session));
 
                 server.listen(ServerBase.getInstance().port);
+
+                // On passe le timeout à 3 minutes
+                server.setTimeout(180000);
                 // ServerBase.getInstance().app.listen(ServerBase.getInstance().port);
 
                 // SocketIO
@@ -580,6 +587,7 @@ export default abstract class ServerBase {
                 //turn off debug
                 // io.set('log level', 1);
                 // define interactions with client
+
                 io.on('connection', function (socket: socketIO.Socket) {
                     let session: Express.Session = socket.handshake['session'];
 
@@ -593,6 +601,10 @@ export default abstract class ServerBase {
                         console.log(data);
                     });
                 }.bind(ServerBase.getInstance()));
+
+                io.on('error', function (err) {
+                    console.error("IO nearly failed: " + err.stack);
+                });
 
                 // ServerBase.getInstance().testNotifs();
 

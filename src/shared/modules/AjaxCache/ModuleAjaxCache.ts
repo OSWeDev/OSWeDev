@@ -1,19 +1,19 @@
-import * as debounce from 'lodash/debounce';
-import Module from '../Module';
-import * as moment from 'moment';
 // if false
 // FIXME RIEN A FAIRE ICI
 import * as $ from 'jquery';
-// endif
-import RequestsCacheVO from './vos/RequestsCacheVO';
-import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
-import CacheInvalidationRegexpRuleVO from './vos/CacheInvalidationRegexpRuleVO';
-import CacheInvalidationRulesVO from './vos/CacheInvalidationRulesVO';
+import * as debounce from 'lodash/debounce';
+import * as moment from 'moment';
 import { Duration } from 'moment';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import RequestsWrapperResult from './vos/RequestsWrapperResult';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import Module from '../Module';
+import CacheInvalidationRegexpRuleVO from './vos/CacheInvalidationRegexpRuleVO';
+import CacheInvalidationRulesVO from './vos/CacheInvalidationRulesVO';
+import RequestResponseCacheVO from './vos/RequestResponseCacheVO';
+// endif
+import RequestsCacheVO from './vos/RequestsCacheVO';
+import RequestsWrapperResult from './vos/RequestsWrapperResult';
 
 export default class ModuleAjaxCache extends Module {
 
@@ -438,7 +438,7 @@ export default class ModuleAjaxCache extends Module {
             // TODO fixme en cas d'erreur les post renvoient des GET ... pas valide...
             if ($.ajaxSetup) {
                 $.ajaxSetup({
-                    timeout: 30000
+                    timeout: 180000
                 }); // in milliseconds
             }
 
