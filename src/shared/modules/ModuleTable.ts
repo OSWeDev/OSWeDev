@@ -612,7 +612,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    let field_as_moment: moment.Moment = moment(e[field.field_id]);
+                    let field_as_moment: moment.Moment = moment(e[field.field_id]).utc();
                     res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     break;
 
@@ -680,7 +680,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000) : null;
+                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : null;
                     break;
 
                 default:
@@ -715,7 +715,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstz:
 
-                    let field_as_moment: moment.Moment = moment(res[field.field_id]);
+                    let field_as_moment: moment.Moment = moment(res[field.field_id]).utc();
                     res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     break;
 
@@ -818,7 +818,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    e[field.field_id] = moment(parseInt(field_value) * 1000);
+                    e[field.field_id] = moment(parseInt(field_value) * 1000).utc();
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:

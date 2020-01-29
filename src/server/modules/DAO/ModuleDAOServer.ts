@@ -24,6 +24,7 @@ import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFi
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
+import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
@@ -49,10 +50,8 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import DAOTriggerHook from './triggers/DAOTriggerHook';
-import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTableDBService from '../ModuleTableDBService';
-import ModuleDBService from '../ModuleDBService';
+import DAOTriggerHook from './triggers/DAOTriggerHook';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -811,6 +810,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
 
             if (!moduleTable) {
+                resolve(null);
                 return null;
             }
 
@@ -825,11 +825,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let result: InsertOrDeleteQueryResult = await ModuleServiceBase.getInstance().db.oneOrNone(sql, moduleTable.get_bdd_version(vo)).catch((reason) => {
                 ConsoleHandler.getInstance().error('insertOrUpdateVO :' + reason);
-                resolve(null);
                 failed = true;
             });
 
             if (failed) {
+                resolve(null);
                 return null;
             }
 
