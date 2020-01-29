@@ -739,27 +739,38 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return new Promise<InsertOrDeleteQueryResult[]>(async (resolve, reject) => {
 
             let isUpdates: boolean[] = [];
+
+            let sqls = [];
+            let bdd_versions = [];
+            for (let i in vos) {
+                let vo: IDistantVOBase = vos[i];
+
+                let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+
+                if (!moduleTable) {
+                    return null;
+                }
+
+                isUpdates[i] = vo.id ? true : false;
+                let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+
+                if (!sql) {
+                    continue;
+                }
+
+                sqls.push(sql);
+                bdd_versions.push(moduleTable.get_bdd_version(vo));
+            }
+
             let results: InsertOrDeleteQueryResult[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
                 let queries: any[] = [];
 
-                for (let i in vos) {
-                    let vo: IDistantVOBase = vos[i];
+                for (let i in sqls) {
+                    let sql: string = sqls[i];
+                    let vo = bdd_versions[i];
 
-                    let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
-
-                    if (!moduleTable) {
-                        return null;
-                    }
-
-                    isUpdates[i] = vo.id ? true : false;
-                    let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
-
-                    if (!sql) {
-                        continue;
-                    }
-
-                    queries.push(t.oneOrNone(sql, moduleTable.get_bdd_version(vo)));
+                    queries.push(t.oneOrNone(sql, vo));
                 }
 
                 return t.batch(queries);

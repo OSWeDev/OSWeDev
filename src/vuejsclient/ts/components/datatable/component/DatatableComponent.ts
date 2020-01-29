@@ -28,7 +28,7 @@ import VueComponentBase from '../../VueComponentBase';
 import './DatatableComponent.scss';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
-import RefRangesReferenceDatatableField from '../vos/RefRangesReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import CustomFilterItem from './CustomFilterItem';
 import { isBoolean } from 'util';
 

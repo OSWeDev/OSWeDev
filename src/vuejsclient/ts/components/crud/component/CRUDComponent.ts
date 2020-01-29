@@ -22,7 +22,7 @@ import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DatatableComponent from '../../datatable/component/DatatableComponent';
-import RefRangesReferenceDatatableField from '../../datatable/vos/RefRangesReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import CRUD from '../vos/CRUD';

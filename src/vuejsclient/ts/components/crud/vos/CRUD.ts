@@ -11,7 +11,7 @@ import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import IVersionedVO from '../../../../../shared/modules/Versioned/interfaces/IVersionedVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
-import RefRangesReferenceDatatableField from '../../datatable/vos/RefRangesReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 
 
 export default class CRUD<T extends IDistantVOBase> {
