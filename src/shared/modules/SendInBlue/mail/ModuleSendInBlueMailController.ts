@@ -42,7 +42,7 @@ export default class ModuleSendInBlueMailController {
             postParams.templateId = templateId;
         }
 
-        if (tags) {
+        if (tags && tags.length > 0) {
             postParams.tags = tags;
         }
 
@@ -59,7 +59,7 @@ export default class ModuleSendInBlueMailController {
         return true;
     }
 
-    public async sendWithTemplate(to: SendInBlueMailVO, templateId: number, tags: string[] = null, params: { [param_name: string]: string } = {}, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
+    public async sendWithTemplate(to: SendInBlueMailVO, templateId: number, tags: string[] = null, params: { [param_name: string]: any } = {}, bcc: SendInBlueMailVO[] = null, cc: SendInBlueMailVO[] = null, attachments: SendInBlueAttachmentVO[] = null): Promise<boolean> {
         let postParams: any = {
             sender: await ModuleSendInBlueController.getInstance().getSender(),
             to: [to],
@@ -79,7 +79,7 @@ export default class ModuleSendInBlueMailController {
             postParams.attachments = attachments;
         }
 
-        if (tags) {
+        if (tags && tags.length > 0) {
             postParams.tags = tags;
         }
 
