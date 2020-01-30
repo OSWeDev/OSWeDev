@@ -37,7 +37,6 @@ import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServ
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import ThreadHandler from '../shared/tools/ThreadHandler';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -81,10 +80,10 @@ export default abstract class ServerBase {
         await this.createMandatoryFolders();
 
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
-        EnvHandler.getInstance().NODE_VERBOSE = !!ConfigurationService.getInstance().getNodeConfiguration().NODE_VERBOSE;
-        EnvHandler.getInstance().IS_DEV = !!ConfigurationService.getInstance().getNodeConfiguration().ISDEV;
-        EnvHandler.getInstance().MSGPCK = !!ConfigurationService.getInstance().getNodeConfiguration().MSGPCK;
-        EnvHandler.getInstance().COMPRESS = !!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS;
+        EnvHandler.getInstance().NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
+        EnvHandler.getInstance().IS_DEV = !!this.envParam.ISDEV;
+        EnvHandler.getInstance().MSGPCK = !!this.envParam.MSGPCK;
+        EnvHandler.getInstance().COMPRESS = !!this.envParam.COMPRESS;
         this.version = this.getVersion();
 
         this.connectionString = this.envParam.CONNECTION_STRING;
@@ -95,6 +94,8 @@ export default abstract class ServerBase {
 
         let pgp: pg_promise.IMain = pg_promise({});
         this.db = pgp(this.connectionString);
+
+        this.db.$pool.options.max = this.envParam.MAX_POOL;
 
         let GM = this.modulesService;
         await GM.register_all_modules(this.db);
