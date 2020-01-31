@@ -189,7 +189,9 @@ export default class CRUDComponentField extends VueComponentBase {
 
     get is_segmented_day_tsrange_array() {
         let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
-        return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
+        if (!!field) {
+            return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
+        }
     }
 
 
@@ -212,7 +214,7 @@ export default class CRUDComponentField extends VueComponentBase {
             return;
         }
 
-        this.field_value = this.vo[this.field.datatable_field_uid];
+        this.field_value = (this.vo && this.field) ? this.vo[this.field.datatable_field_uid] : null;
 
         // JNE : Ajout d'un filtrage auto suivant conf si on est pas sur le CRUD. A voir si on change pas le CRUD plus tard
         if (!this.datatable) {
