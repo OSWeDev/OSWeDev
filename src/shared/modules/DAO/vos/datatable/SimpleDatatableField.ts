@@ -197,6 +197,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                             return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).utc().format('Y-MM-DD');
                     }
 
+                case ModuleTableField.FIELD_TYPE_textarea:
                 default:
 
                     for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
@@ -344,6 +345,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                             return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(), moduleTableField, false) : null;
                     }
 
+                case ModuleTableField.FIELD_TYPE_textarea:
                 default:
 
                     for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {

@@ -336,18 +336,38 @@ export default class ModuleVarServer extends ModuleServerBase {
             // switch (matroid_field.field_type) {
             // }
 
-            // On part du principe qu'il y a un seul segment cible =>
-            let segmented_value = segmentations[0].min;
+            for (let segmentation_i in segmentations) {
+                let segmentation = segmentations[segmentation_i];
+                let segmented_value = segmentation.min;
 
-            let full_name = moduleTable.database + '.' + moduleTable.get_segmented_name(segmented_value);
-            let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', full_name, exact_search_fields);
+                let full_name = moduleTable.database + '.' + moduleTable.get_segmented_name(segmented_value);
+                let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', full_name, exact_search_fields);
 
-            if (!filter_by_matroid_clause) {
-                return null;
+                if (!filter_by_matroid_clause) {
+                    return null;
+                }
+
+                let local_res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + full_name + " t WHERE " + filter_by_matroid_clause + ";");
+
+                if ((!local_res) || (!local_res[0]) || (local_res[0]['res'] == null) || (typeof local_res[0]['res'] == 'undefined')) {
+                    local_res = null;
+                } else {
+                    local_res = local_res[0]['res'];
+                }
+
+                if (res == null) {
+                    res = local_res;
+                } else {
+                    if (!!local_res) {
+                        res += local_res;
+                    }
+                }
             }
 
-            res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + full_name + " t WHERE " + filter_by_matroid_clause + ";");
+            return res;
+
         } else {
+
             let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', moduleTable.full_name, exact_search_fields);
 
             if (!filter_by_matroid_clause) {
@@ -355,12 +375,12 @@ export default class ModuleVarServer extends ModuleServerBase {
             }
 
             res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause + ";");
-        }
 
-        if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
-            return null;
-        }
+            if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
+                return null;
+            }
 
-        return res[0]['res'];
+            return res[0]['res'];
+        }
     }
 }

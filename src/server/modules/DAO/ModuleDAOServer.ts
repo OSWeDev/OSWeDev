@@ -52,6 +52,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -154,12 +155,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 isAccessConfVoType = true;
             }
 
+            let does_inherit_rights_from_vo_type: boolean = (!!moduleTable.inherit_rights_from_vo_type) ? true : false;
+
             let group = moduleTable.isModuleParamTable ? group_modules_conf : group_datas;
 
             // On déclare les 4 policies et leurs dépendances
             let vo_list: AccessPolicyVO = new AccessPolicyVO();
             vo_list.group_id = group.id;
-            vo_list.default_behaviour = isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            vo_list.default_behaviour = does_inherit_rights_from_vo_type ? (isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
             vo_list.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, vo_type);
             vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_list,
@@ -170,11 +173,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
             global_access_dependency.src_pol_id = vo_list.id;
             global_access_dependency.depends_on_pol_id = global_access.id;
             global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+            if (does_inherit_rights_from_vo_type) {
+                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_list.id;
+                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, moduleTable.inherit_rights_from_vo_type)).id;
+                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
+            }
 
 
             let vo_read: AccessPolicyVO = new AccessPolicyVO();
             vo_read.group_id = group.id;
-            vo_read.default_behaviour = isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            vo_read.default_behaviour = does_inherit_rights_from_vo_type ? (isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
             vo_read.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, vo_type);
             vo_read = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_read,
@@ -190,10 +200,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
             global_access_dependency.src_pol_id = vo_read.id;
             global_access_dependency.depends_on_pol_id = global_access.id;
             global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+            if (does_inherit_rights_from_vo_type) {
+                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_read.id;
+                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, moduleTable.inherit_rights_from_vo_type)).id;
+                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
+            }
 
             let vo_insert_or_update: AccessPolicyVO = new AccessPolicyVO();
             vo_insert_or_update.group_id = group.id;
-            vo_insert_or_update.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            vo_insert_or_update.default_behaviour = does_inherit_rights_from_vo_type ? (AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
             vo_insert_or_update.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type);
             vo_insert_or_update = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_insert_or_update,
@@ -209,10 +226,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
             global_access_dependency.src_pol_id = vo_insert_or_update.id;
             global_access_dependency.depends_on_pol_id = global_access.id;
             global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+            if (does_inherit_rights_from_vo_type) {
+                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_insert_or_update.id;
+                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, moduleTable.inherit_rights_from_vo_type)).id;
+                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
+            }
 
             let vo_delete: AccessPolicyVO = new AccessPolicyVO();
             vo_delete.group_id = group.id;
-            vo_delete.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+            vo_delete.default_behaviour = does_inherit_rights_from_vo_type ? (AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
             vo_delete.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, vo_type);
             vo_delete = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_delete,
@@ -228,6 +252,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
             global_access_dependency.src_pol_id = vo_delete.id;
             global_access_dependency.depends_on_pol_id = global_access.id;
             global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
+            if (does_inherit_rights_from_vo_type) {
+                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
+                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_delete.id;
+                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, moduleTable.inherit_rights_from_vo_type)).id;
+                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
+            }
         }
     }
 
@@ -629,6 +660,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_textarea:
                 if (intersector_range.range_type == TSRange.RANGE_TYPE) {
                     return field.field_id + "::timestamp with time zone <@ '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(intersector_range.min) + "," + DateHandler.getInstance().formatDayForIndex(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::tstzrange";
                 }
@@ -2046,6 +2078,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_textarea:
                 if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
                     res += table_name + '.' + field.field_id + "::timestamp with time zone <@ " + ranges_query;
                     break;
@@ -2096,6 +2129,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_amount:
             case ModuleTableField.FIELD_TYPE_enum:
             case ModuleTableField.FIELD_TYPE_file_ref:
@@ -2138,6 +2172,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_textarea:
                 if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
                     res += 'ARRAY[' + table_name + '.' + field.field_id + "::timestamp with time zone" + "] = " + ranges_query;
                     break;
@@ -2261,6 +2296,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_textarea:
                 if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
                     res += table_name + '.' + field.field_id + "::timestamp with time zone <@ " + ranges_query;
                     break;
@@ -2360,6 +2396,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_textarea:
                 if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
                     return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::tsrange';
                 }
@@ -2419,6 +2456,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         switch (field.field_type) {
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
+            case ModuleTableField.FIELD_TYPE_textarea:
                 if (matroid_field.field_type == ModuleTableField.FIELD_TYPE_tsrange) {
                     return DateHandler.getInstance().formatDayForIndex(segmented_value);
                 }

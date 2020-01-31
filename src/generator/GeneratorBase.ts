@@ -24,6 +24,8 @@ import Patch20191008SupprimerTacheReimport from './patchs/premodules/Patch201910
 import Patch20191010CheckBasicSchemas from './patchs/premodules/Patch20191010CheckBasicSchemas';
 import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112CheckExtensions';
 import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
+import Patch20200131InitUserLogPolicies from './patchs/postmodules/Patch20200131InitUserLogPolicies';
+import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 
 export default abstract class GeneratorBase {
 
@@ -46,6 +48,7 @@ export default abstract class GeneratorBase {
         ModulesManager.getInstance().isServerSide = true;
 
         this.pre_modules_workers = [
+            Patch20200131DeleteVersioningVOAccessPolicies.getInstance(),
             Patch20191010CheckBasicSchemas.getInstance(),
             Patch20191112CheckExtensions.getInstance(),
             ActivateDataImport.getInstance(),
@@ -65,6 +68,7 @@ export default abstract class GeneratorBase {
             Patch20191018CHECKEnvParamsForMDPRecovery.getInstance(),
             Patch20191106ForceAccessDefaultToVisionFCPP.getInstance(),
             Patch20191126CreateDefaultRobotUserAccount.getInstance(),
+            Patch20200131InitUserLogPolicies.getInstance()
         ];
     }
 

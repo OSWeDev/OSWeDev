@@ -88,6 +88,7 @@ export default class VersionedVOController implements IVOController {
 
             let importTable: ModuleTable<any> = new ModuleTable<any>(moduleTable.module, vo_type, moduleTable.getNewVO, fields, null, vo_type);
             importTable.set_bdd_ref(database, moduleTable.name);
+            importTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);
 
             for (let i in moduleTable.get_fields()) {
                 let vofield = moduleTable.get_fields()[i];

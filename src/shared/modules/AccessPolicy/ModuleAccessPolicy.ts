@@ -23,6 +23,9 @@ import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
+import UserLogVO from './vos/UserLogVO';
+import TimeSegment from '../DataRender/vos/TimeSegment';
+import NumSegment from '../DataRender/vos/NumSegment';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -238,6 +241,7 @@ export default class ModuleAccessPolicy extends Module {
         this.initializeModuleAccessPolicy();
         this.initializeModulePolicyDependency();
         this.initializeRolesPolicies();
+        this.initializeUserLogVO();
     }
 
     private initializeUser() {
@@ -350,6 +354,28 @@ export default class ModuleAccessPolicy extends Module {
         this.datatables.push(datatable);
     }
 
+
+
+    private initializeUserLogVO() {
+
+        let field_user_id = new ModuleTableField('user_id', ModuleTableField.FIELD_TYPE_foreign_key, 'User', true);
+
+        let datatable_fields = [
+            field_user_id,
+            new ModuleTableField('log_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, UserLogVO.LOG_TYPE_LOGIN).setEnumValues(UserLogVO.LOG_TYPE_LABELS),
+            new ModuleTableField('log_time', ModuleTableField.FIELD_TYPE_tstz, 'Date', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('impersonated', ModuleTableField.FIELD_TYPE_boolean, 'Via fonction LogAs', true, true, false),
+            new ModuleTableField('referer', ModuleTableField.FIELD_TYPE_string, 'URL référente', false),
+            new ModuleTableField('comment', ModuleTableField.FIELD_TYPE_textarea, 'Commentaire', false),
+            new ModuleTableField('data', ModuleTableField.FIELD_TYPE_string, 'JSON', false),
+        ];
+
+        let datatable: ModuleTable<any> = new ModuleTable(this, UserLogVO.API_TYPE_ID, () => new UserLogVO(), datatable_fields, null, new DefaultTranslation({ fr: "Logs des utilisateurs" })).segment_on_field(field_user_id.field_id, NumSegment.TYPE_INT);
+
+        field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+
+        this.datatables.push(datatable);
+    }
 
     private initializeRolesPolicies() {
         let field_accpol_id = new ModuleTableField('accpol_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Droit', true, true, 0);

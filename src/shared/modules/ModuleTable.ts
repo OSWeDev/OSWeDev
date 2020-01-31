@@ -103,6 +103,8 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public importable: boolean = false;
     public isModuleParamTable: boolean = false;
 
+    public inherit_rights_from_vo_type: string = null;
+
     public isMatroidTable: boolean = false;
 
     public any_to_many_default_behaviour_show: boolean = true;
@@ -186,6 +188,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_boolean:
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_geopoint:
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
@@ -402,6 +405,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public defineAsMatroid(): ModuleTable<any> {
         this.isMatroidTable = true;
+        return this;
+    }
+
+    public set_inherit_rights_from_vo_type(inherit_rights_from_vo_type: string): ModuleTable<any> {
+        this.inherit_rights_from_vo_type = inherit_rights_from_vo_type;
         return this;
     }
 

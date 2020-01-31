@@ -38,6 +38,8 @@ import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 import ThreadHandler from '../shared/tools/ThreadHandler';
+import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
+import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -392,6 +394,7 @@ export default abstract class ServerBase {
         this.app.use(async (req, res, next) => {
 
             httpContext.set('IS_CLIENT', true);
+            httpContext.set('REFERER', req.headers.referer);
 
             if (req && req.session && req.session.user && req.session.user.id) {
                 let uid: number = parseInt(req.session.user.id.toString());
@@ -481,6 +484,31 @@ export default abstract class ServerBase {
 
         // Send CSRF token for session
         this.app.get('/api/getcsrftoken', ServerBase.getInstance().csrfProtection, function (req, res) {
+
+            if (req && req.session && req.session.user && req.session.user.id) {
+                let uid: number = parseInt(req.session.user.id.toString());
+
+                // On stocke le log de connexion en base
+                let user_log: UserLogVO = new UserLogVO();
+                user_log.user_id = uid;
+                user_log.log_time = moment();
+                user_log.impersonated = false;
+                user_log.referer = req.headers.referer;
+                user_log.log_type = UserLogVO.LOG_TYPE_CSRF_REQUEST;
+
+                /**
+                 * Gestion du impersonate
+                 */
+                if (req.session && !!req.session.impersonated_from) {
+
+                    let imp_uid: number = parseInt(req.session.impersonated_from.user.id.toString());
+                    user_log.impersonated = true;
+                    user_log.comment = 'Impersonated from user_id [' + imp_uid + ']';
+                }
+
+                ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+            }
+
             return res.json({ csrfToken: req.csrfToken() });
         });
 
@@ -490,12 +518,31 @@ export default abstract class ServerBase {
 
         this.app.get('/logout', async (req, res) => {
 
+            let user_log = null;
+
+            if (req && req.session && req.session.user && req.session.user.id) {
+                let uid: number = parseInt(req.session.user.id.toString());
+
+                // On stocke le log de connexion en base
+                user_log = new UserLogVO();
+                user_log.user_id = uid;
+                user_log.impersonated = false;
+                user_log.log_time = moment();
+                user_log.referer = req.headers.referer;
+                user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+            }
+
             /**
              * Gestion du impersonate => on restaure la session précédente
              */
             if (req.session && !!req.session.impersonated_from) {
                 req.session = Object.assign(req.session, req.session.impersonated_from);
                 delete req.session.impersonated_from;
+
+                let uid: number = parseInt(req.session.user.id.toString());
+                user_log.impersonated = true;
+                user_log.comment = 'Impersonated from user_id [' + uid + ']';
+
                 req.session.save((err) => {
                     if (err) {
                         ConsoleHandler.getInstance().log(err);
@@ -512,6 +559,12 @@ export default abstract class ServerBase {
                         res.redirect('/');
                     }
                 });
+            }
+
+            if (!!user_log) {
+
+                // On await pas ici on se fiche du résultat
+                ModuleDAO.getInstance().insertOrUpdateVO(user_log);
             }
         });
 

@@ -40,7 +40,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
     /**
      * Permet d'indiquer au système de calcul optimisé des imports entre autre les champs qui sont déclarés par combinaison
-     *  (et dons sur lesquels on fait une recherche exacte et pas par inclusion comme pour les champs atomiques)
+     *  (et donc sur lesquels on fait une recherche exacte et pas par inclusion comme pour les champs atomiques)
      * On stocke le segment_type. Cela signifie que le champs est obligatoirement normalisé, et qu'on a un découpage suivant le segment_type
      *  en ordre croissant en base. Très important par ce que [a,b] c'est différent de [b,a] pour la base. Même si ça couvre les mêmes ensembles
      */

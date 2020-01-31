@@ -85,6 +85,28 @@ export default class CRUDComponent extends VueComponentBase {
 
     private is_only_readable: boolean = false;
 
+    // get updateDatatable_select_options_enabled_by_datatable_field_uid(): { [datatable_field_uid: string]: number[] } {
+    //     let res: { [datatable_field_uid: string]: number[] } = {};
+
+    //     for (let i in this.crud.updateDatatable.fields) {
+    //         let field = this.crud.updateDatatable.fields[i];
+    //         res[field.datatable_field_uid] = field.select_options_enabled;
+    //     }
+
+    //     return res;
+    // }
+
+    // get createDatatable_select_options_enabled_by_datatable_field_uid(): { [datatable_field_uid: string]: number[] } {
+    //     let res: { [datatable_field_uid: string]: number[] } = {};
+
+    //     for (let i in this.crud.createDatatable.fields) {
+    //         let field = this.crud.createDatatable.fields[i];
+    //         res[field.datatable_field_uid] = field.select_options_enabled;
+    //     }
+
+    //     return res;
+    // }
+
     public async mounted() {
         if (this.read_query) {
             this.$router.replace({ query: this.read_query });
@@ -884,11 +906,11 @@ export default class CRUDComponent extends VueComponentBase {
         return this.crud.readDatatable.API_TYPE_ID;
     }
 
-    get createDatatable(): Datatable<IDistantVOBase> {
+    get has_createDatatable(): boolean {
         if (this.crud && this.crud.createDatatable && this.crud.createDatatable.fields) {
-            return this.crud.createDatatable;
+            return true;
         }
 
-        return null;
+        return false;
     }
 }

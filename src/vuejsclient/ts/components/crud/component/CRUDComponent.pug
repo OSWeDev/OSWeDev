@@ -38,13 +38,12 @@ include ../../../../views/mixins/loading.pug
                         .modal-body
                             .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
                             template(v-if="newVO")
-                                template(v-if="createDatatable", v-for="field in createDatatable.fields")
+                                template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
                                     crud_field(
                                         v-show="!field.hidden",
                                         :field="field",
                                         :vo="newVO",
-                                        :field_select_options_enabled="field.select_options_enabled",
-                                        :datatable="createDatatable",
+                                        :datatable="crud.createDatatable",
                                         :auto_update_field_value="true",
                                         @uploadedFile="uploadedFile",
                                         @onChangeVO="onChangeVO"
@@ -72,7 +71,6 @@ include ../../../../views/mixins/loading.pug
                                         v-show="!field.hidden",
                                         :field="field",
                                         :vo="editableVO",
-                                        :field_select_options_enabled="field.select_options_enabled",
                                         :datatable="crud.updateDatatable",
                                         :auto_update_field_value="true",
                                         @uploadedFile="uploadedFile",

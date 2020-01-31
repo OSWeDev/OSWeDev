@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -32,6 +33,7 @@ import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
+import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -1186,6 +1188,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.user = user;
 
+            // On stocke le log de connexion en base
+            let user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = moment();
+            user_log.impersonated = false;
+            user_log.referer = httpContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            // On await pas ici on se fiche du résultat
+            ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
             // this.redirectUserPostLogin(param.redirect_to, res);
 
             return user;
@@ -1223,6 +1236,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.impersonated_from = Object.assign({}, session);
             session.user = user;
+
+            // On stocke le log de connexion en base
+            let user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = moment();
+            user_log.impersonated = true;
+            user_log.referer = httpContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+            user_log.comment = 'Impersonated from user_id [' + session.impersonated_from.user.id + ']';
+
+            // On await pas ici on se fiche du résultat
+            ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
             return user;
         } catch (error) {
