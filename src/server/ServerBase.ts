@@ -20,8 +20,10 @@ import * as socketIO from 'socket.io';
 import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
+import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
@@ -37,9 +39,6 @@ import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServ
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import ThreadHandler from '../shared/tools/ThreadHandler';
-import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
-import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -83,10 +82,10 @@ export default abstract class ServerBase {
         await this.createMandatoryFolders();
 
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
-        EnvHandler.getInstance().NODE_VERBOSE = !!ConfigurationService.getInstance().getNodeConfiguration().NODE_VERBOSE;
-        EnvHandler.getInstance().IS_DEV = !!ConfigurationService.getInstance().getNodeConfiguration().ISDEV;
-        EnvHandler.getInstance().MSGPCK = !!ConfigurationService.getInstance().getNodeConfiguration().MSGPCK;
-        EnvHandler.getInstance().COMPRESS = !!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS;
+        EnvHandler.getInstance().NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
+        EnvHandler.getInstance().IS_DEV = !!this.envParam.ISDEV;
+        EnvHandler.getInstance().MSGPCK = !!this.envParam.MSGPCK;
+        EnvHandler.getInstance().COMPRESS = !!this.envParam.COMPRESS;
         this.version = this.getVersion();
 
         this.connectionString = this.envParam.CONNECTION_STRING;
@@ -97,6 +96,8 @@ export default abstract class ServerBase {
 
         let pgp: pg_promise.IMain = pg_promise({});
         this.db = pgp(this.connectionString);
+
+        this.db.$pool.options.max = this.envParam.MAX_POOL;
 
         let GM = this.modulesService;
         await GM.register_all_modules(this.db);

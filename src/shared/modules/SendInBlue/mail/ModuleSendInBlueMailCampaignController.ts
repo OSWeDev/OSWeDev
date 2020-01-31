@@ -80,7 +80,7 @@ export default class ModuleSendInBlueMailCampaignController {
         return this.getCampaign(parseInt(res.id));
     }
 
-    public async createWithTemplateAndSend(campaignName: string, subject: string, contacts: SendInBlueContactVO[], templateId: number, params: { [param_name: string]: string } = {}, inlineImageActivation: boolean = false, testMail: boolean = false, contactsForTest: SendInBlueContactVO[] = null): Promise<boolean> {
+    public async createWithTemplateAndSend(campaignName: string, subject: string, contacts: SendInBlueContactVO[], templateId: number, params: { [param_name: string]: any } = {}, inlineImageActivation: boolean = false, testMail: boolean = false, contactsForTest: SendInBlueContactVO[] = null): Promise<boolean> {
         let campaign: SendInBlueMailCampaignDetailVO = await this.createWithTemplate(campaignName, subject, contacts, templateId, params, inlineImageActivation);
 
         if (!campaign) {
@@ -90,7 +90,7 @@ export default class ModuleSendInBlueMailCampaignController {
         return this.send(campaign.id, testMail, contactsForTest);
     }
 
-    public async createWithTemplate(campaignName: string, subject: string, contacts: SendInBlueContactVO[], templateId: number, params: { [param_name: string]: string } = {}, inlineImageActivation: boolean = false): Promise<SendInBlueMailCampaignDetailVO> {
+    public async createWithTemplate(campaignName: string, subject: string, contacts: SendInBlueContactVO[], templateId: number, params: { [param_name: string]: any } = {}, inlineImageActivation: boolean = false): Promise<SendInBlueMailCampaignDetailVO> {
         if (!campaignName || !contacts || !contacts.length || !templateId || !subject) {
             return null;
         }
