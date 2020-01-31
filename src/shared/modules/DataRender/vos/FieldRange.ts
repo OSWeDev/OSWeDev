@@ -1,4 +1,4 @@
-// import * as clonedeep from 'lodash/cloneDeep';
+// import { cloneDeep } from 'lodash';
 // import IRange from '../interfaces/IRange';
 
 // export default class FieldRange<T> implements IRange<T>  {

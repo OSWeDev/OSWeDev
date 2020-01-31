@@ -60,7 +60,7 @@ export default class ObjectHandler {
         return res;
     }
 
-    public getIdsList(vos: IDistantVOBase[]): number[] {
+    public getIdsList(vos: IDistantVOBase[] | { [id: number]: IDistantVOBase }): number[] {
         let res: number[] = [];
 
         for (let i in vos) {

@@ -1,4 +1,4 @@
-import * as debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import ObjectHandler from '../../tools/ObjectHandler';
 import RangeHandler from '../../tools/RangeHandler';
@@ -28,6 +28,7 @@ import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
 import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
+import ModuleVar from './ModuleVar';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
@@ -1360,12 +1361,14 @@ export default class VarsController {
         let self = this;
         let nodes_to_request: VarDAGNode[] = [];
 
+        let server_side: boolean = (!!ModulesManager.getInstance().isServerSide);
         for (let i in nodes) {
             let node = nodes[i];
 
             let var_controller = this.getVarControllerById(node.param.var_id);
-            if (((!var_controller.can_load_precompiled_or_imported_datas_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
-                ((!var_controller.can_load_precompiled_or_imported_datas_server_side) && (!!ModulesManager.getInstance().isServerSide))) {
+
+            if (((!var_controller.can_load_precompiled_or_imported_datas_client_side) && (!server_side)) ||
+                ((!var_controller.can_load_precompiled_or_imported_datas_server_side) && (!!server_side))) {
                 node.loaded_datas_matroids = [];
                 continue;
             }
@@ -1379,14 +1382,50 @@ export default class VarsController {
 
             promises.push((async () => {
 
-                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(node.param.var_id).var_data_vo_type];
-                let matroids_inscrits: ISimpleNumberVarMatroidData[] = await ModuleDAO.getInstance().filterVosByMatroids<ISimpleNumberVarMatroidData, IVarDataParamVOBase>(moduletable.vo_type, [node.param], {});
+                let var_controller = self.getVarControllerById(node.param.var_id);
+
+                /**
+                 * On sépare le cas très spécifique d'une Var qui:
+                 *  - a des imports uniquement atomiques
+                 *  - est côté client, et non calculable côté client || côté serveur et non calculable côté serveur
+                 * Dans ce cas on peut juste faire la somme des valeurs des imports en base, et partir.
+                 */
+                let ne_peut_pas_calculer = ((!var_controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) || ((!var_controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide));
+
+                if (var_controller.can_use_optimized_imports_calculation && ne_peut_pas_calculer) {
+
+                    let value: number = await ModuleVar.getInstance().getSimpleVarDataValueSumFilterByMatroids<ISimpleNumberVarMatroidData, IVarDataParamVOBase>(this.getVarConfById(node.param.var_id).var_data_vo_type, [node.param], {});
+                    node.loaded_datas_matroids = [];
+                    node.computed_datas_matroids = [];
+                    node.loaded_datas_matroids_sum_value = value;
+
+                    let var_value: ISimpleNumberVarMatroidData = MatroidController.getInstance().cloneFrom(node.param as ISimpleNumberVarMatroidData);
+                    var_value.value = value;
+                    var_value.value_type = VarsController.VALUE_TYPE_IMPORT;
+                    node.value = var_value;
+
+                    VarsController.getInstance().setVarData(var_value, true);
+                    this.post_computeNode(node);
+
+                    if (!node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED)) {
+                        node.removeMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, this.varDAG, true);
+                        node.addMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, this.varDAG);
+                    }
+
+                    node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
+                    node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
+                    node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE, this.varDAG);
+                    node.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.varDAG, true);
+
+                    return;
+                }
+
+                let matroids_inscrits: ISimpleNumberVarMatroidData[] = await ModuleDAO.getInstance().filterVosByMatroids<ISimpleNumberVarMatroidData, IVarDataParamVOBase>(this.getVarConfById(node.param.var_id).var_data_vo_type, [node.param], {});
 
                 if (!matroids_inscrits) {
                     return;
                 }
 
-                let var_controller = self.getVarControllerById(node.param.var_id);
                 // Si on est sur une var qui utilise que des imports ou precompiled atomiques, on peut passer rapidement ici, inutile de chercher à découper , vérifier les intersections il n'y en aura pas
                 if (var_controller.has_only_atomique_imports_or_precompiled_datas) {
                     node.loaded_datas_matroids = Array.from(matroids_inscrits);
@@ -1875,6 +1914,12 @@ export default class VarsController {
             let controller: VarControllerBase<any, any> = this.getVarControllerById(node.param.var_id);
             let datasource_deps: Array<IDataSourceController<any, any>> = controller.getDataSourcesDependencies();
 
+            // Si on peut pas calculer ça sert à rien
+            let ne_peut_pas_calculer = ((!controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) || ((!controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide));
+            if (ne_peut_pas_calculer) {
+                continue;
+            }
+
             source_deps_by_node_names[node_name] = [];
             for (let j in datasource_deps) {
                 let datasource_dep: IDataSourceController<any, any> = datasource_deps[j];
@@ -1941,32 +1986,37 @@ export default class VarsController {
             // On doit pouvoir compute à ce stade
             VarsController.getInstance().getVarControllerById(actual_node.param.var_id).computeValue(actual_node, this.varDAG);
 
-            if (this.registered_var_callbacks[actual_node.name] && this.registered_var_callbacks[actual_node.name].length) {
-
-                let remaining_callbacks: VarUpdateCallback[] = [];
-
-                for (let i in this.registered_var_callbacks[actual_node.name]) {
-                    let callback = this.registered_var_callbacks[actual_node.name][i];
-
-                    if (!!callback.callback) {
-                        callback.callback(this.getVarData(actual_node.param, true));
-                    }
-
-                    if (callback.type == VarUpdateCallback.TYPE_EVERY) {
-                        remaining_callbacks.push(callback);
-                    }
-                }
-                this.registered_var_callbacks[actual_node.name] = remaining_callbacks;
-            }
-
-            actual_node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
-            actual_node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
+            this.post_computeNode(actual_node);
 
             if (nodes_path.length > 0) {
                 actual_node = nodes_path.shift();
                 continue_compilation = true;
             }
         }
+    }
+
+    private post_computeNode(node: VarDAGNode) {
+
+        if (this.registered_var_callbacks[node.name] && this.registered_var_callbacks[node.name].length) {
+
+            let remaining_callbacks: VarUpdateCallback[] = [];
+
+            for (let i in this.registered_var_callbacks[node.name]) {
+                let callback = this.registered_var_callbacks[node.name][i];
+
+                if (!!callback.callback) {
+                    callback.callback(this.getVarData(node.param, true));
+                }
+
+                if (callback.type == VarUpdateCallback.TYPE_EVERY) {
+                    remaining_callbacks.push(callback);
+                }
+            }
+            this.registered_var_callbacks[node.name] = remaining_callbacks;
+        }
+
+        node.removeMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, this.varDAG, true);
+        node.addMarker(VarDAG.VARDAG_MARKER_COMPUTED, this.varDAG);
     }
 
     private clean_var_dag() {

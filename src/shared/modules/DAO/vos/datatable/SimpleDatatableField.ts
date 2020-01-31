@@ -11,11 +11,11 @@ import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
-import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import DateHandler from '../../../../tools/DateHandler';
+import DateHandler from '../../../../../shared/tools/DateHandler';
+import HourHandler from '../../../../../shared/tools/HourHandler';
+import LocaleManager from '../../../../../shared/tools/LocaleManager';
 import { amountFilter, hourFilter, percentFilter } from '../../../../tools/Filters';
-import HourHandler from '../../../../tools/HourHandler';
-import LocaleManager from '../../../../tools/LocaleManager';
+import DatatableField from './DatatableField';
 
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
@@ -185,18 +185,19 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {
                         case TimeSegment.TYPE_MONTH:
-                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('month').format('Y-MM-DD');
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('month').utc().format('Y-MM-DD');
                         case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('day').format('Y-MM-DD');
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('day').utc().format('Y-MM-DD');
                         case TimeSegment.TYPE_WEEK:
-                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('isoWeek').format('Y-MM-DD');
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('isoWeek').utc().format('Y-MM-DD');
                         case TimeSegment.TYPE_YEAR:
                             return field_value.year();
                         case TimeSegment.TYPE_DAY:
                         default:
-                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).format('Y-MM-DD');
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).utc().format('Y-MM-DD');
                     }
 
+                case ModuleTableField.FIELD_TYPE_textarea:
                 default:
 
                     for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {
@@ -332,18 +333,19 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {
                         case TimeSegment.TYPE_MONTH:
-                            return value ? moment(value).startOf('month').utc(true) : null;
+                            return value ? moment(value).startOf('month').utc() : null;
                         case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(true), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(), moduleTableField, false) : null;
                         case TimeSegment.TYPE_WEEK:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('isoWeek').utc(true), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('isoWeek').utc(), moduleTableField, false) : null;
                         case TimeSegment.TYPE_YEAR:
-                            return moment().year(parseInt(value)).startOf('year').utc(true);
+                            return moment().year(parseInt(value)).startOf('year').utc();
                         case TimeSegment.TYPE_DAY:
                         default:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(true), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(), moduleTableField, false) : null;
                     }
 
+                case ModuleTableField.FIELD_TYPE_textarea:
                 default:
 
                     for (let j in TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers) {

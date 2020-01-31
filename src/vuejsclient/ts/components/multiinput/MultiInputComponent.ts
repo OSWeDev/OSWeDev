@@ -2,7 +2,6 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import { ModuleDAOAction } from '../dao/store/DaoStore';
 import VueComponentBase from '../VueComponentBase';
 import './MultiInputComponent.scss';
 

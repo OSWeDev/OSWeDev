@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash';
 import { Moment } from 'moment';
 import { isArray } from 'util';
 import IRange from '../modules/DataRender/interfaces/IRange';
@@ -587,6 +587,43 @@ export default class RangeHandler {
         return res;
     }
 
+    public humanize<T>(range: IRange<T>): string {
+
+        if ((!range) || (!this.isValid(range))) {
+            return null;
+        }
+
+        let res: string = "";
+
+        res += (range.min_inclusiv ? '[' : '(');
+        switch (range.range_type) {
+            case NumRange.RANGE_TYPE:
+                res += range.min;
+                break;
+            case HourRange.RANGE_TYPE:
+                res += (range.min as any as moment.Duration).hours() + ':' + (range.min as any as moment.Duration).minutes();
+                break;
+            case TSRange.RANGE_TYPE:
+                res += (range.min as any as Moment).format('DD/MM/Y');
+                break;
+        }
+        res += ',';
+        switch (range.range_type) {
+            case NumRange.RANGE_TYPE:
+                res += range.max;
+                break;
+            case HourRange.RANGE_TYPE:
+                res += (range.max as any as moment.Duration).hours() + ':' + (range.max as any as moment.Duration).minutes();
+                break;
+            case TSRange.RANGE_TYPE:
+                res += (range.max as any as Moment).format('DD/MM/Y');
+                break;
+        }
+        res += (range.max_inclusiv ? ']' : ')');
+
+        return res;
+    }
+
     public getIndexRanges<T>(ranges: Array<IRange<T>>): string {
 
         if ((!ranges) || (!ranges.length)) {
@@ -599,6 +636,30 @@ export default class RangeHandler {
             let range = ranges[i];
 
             let range_index = this.getIndex(range);
+
+            if (!range_index) {
+                return null;
+            }
+
+            res += (res == '[' ? '' : ',');
+            res += range_index;
+        }
+
+        return res;
+    }
+
+    public humanizeRanges<T>(ranges: Array<IRange<T>>): string {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let res: string = "[";
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            let range_index = this.humanize(range);
 
             if (!range_index) {
                 return null;
@@ -691,34 +752,34 @@ export default class RangeHandler {
 
         if (this.isStartABeforeStartB(range_to_cut, range_cutter, segment_type)) {
             // SC > STC
-            coupe.min = clonedeep(range_cutter.min);
+            coupe.min = cloneDeep(range_cutter.min);
             coupe.min_inclusiv = range_cutter.min_inclusiv;
 
-            avant.min = clonedeep(range_to_cut.min);
+            avant.min = cloneDeep(range_to_cut.min);
             avant.min_inclusiv = range_to_cut.min_inclusiv;
 
-            avant.max = clonedeep(range_cutter.min);
+            avant.max = cloneDeep(range_cutter.min);
             avant.max_inclusiv = !range_cutter.min_inclusiv;
         } else {
             // SC <= STC
-            coupe.min = clonedeep(range_to_cut.min);
+            coupe.min = cloneDeep(range_to_cut.min);
             coupe.min_inclusiv = range_to_cut.min_inclusiv;
             avant = null;
         }
 
         if (this.isStartASameEndB(range_cutter, range_to_cut, segment_type)) {
             // SC = ETC
-            coupe.min = clonedeep(range_cutter.min);
+            coupe.min = cloneDeep(range_cutter.min);
             coupe.min_inclusiv = range_cutter.min_inclusiv;
 
-            coupe.max = clonedeep(range_cutter.min);
+            coupe.max = cloneDeep(range_cutter.min);
             coupe.max_inclusiv = range_cutter.min_inclusiv;
 
             if (!!avant) {
-                avant.min = clonedeep(range_to_cut.min);
+                avant.min = cloneDeep(range_to_cut.min);
                 avant.min_inclusiv = range_to_cut.min_inclusiv;
 
-                avant.max = clonedeep(range_cutter.min);
+                avant.max = cloneDeep(range_cutter.min);
                 avant.max_inclusiv = !range_cutter.min_inclusiv;
             }
 
@@ -727,38 +788,38 @@ export default class RangeHandler {
 
         if (this.isStartASameEndB(range_to_cut, range_cutter, segment_type)) {
             // STC = EC
-            coupe.min = clonedeep(range_to_cut.min);
+            coupe.min = cloneDeep(range_to_cut.min);
             coupe.min_inclusiv = range_to_cut.min_inclusiv;
 
-            coupe.max = clonedeep(range_to_cut.min);
+            coupe.max = cloneDeep(range_to_cut.min);
             coupe.max_inclusiv = range_to_cut.min_inclusiv;
 
             avant = null;
 
             if (!!apres) {
-                apres.min = clonedeep(range_cutter.max);
+                apres.min = cloneDeep(range_cutter.max);
                 apres.min_inclusiv = !range_cutter.max_inclusiv;
 
-                apres.max = clonedeep(range_to_cut.max);
+                apres.max = cloneDeep(range_to_cut.max);
                 apres.max_inclusiv = range_to_cut.max_inclusiv;
             }
         }
 
         if (this.isEndABeforeEndB(range_cutter, range_to_cut, segment_type)) {
             // EC < ETC
-            coupe.max = clonedeep(range_cutter.max);
+            coupe.max = cloneDeep(range_cutter.max);
             coupe.max_inclusiv = range_cutter.max_inclusiv;
 
             if (!!apres) {
-                apres.min = clonedeep(range_cutter.max);
+                apres.min = cloneDeep(range_cutter.max);
                 apres.min_inclusiv = !range_cutter.max_inclusiv;
 
-                apres.max = clonedeep(range_to_cut.max);
+                apres.max = cloneDeep(range_to_cut.max);
                 apres.max_inclusiv = range_to_cut.max_inclusiv;
             }
         } else {
             // SC <= STC
-            coupe.max = clonedeep(range_to_cut.max);
+            coupe.max = cloneDeep(range_to_cut.max);
             coupe.max_inclusiv = range_to_cut.max_inclusiv;
             apres = null;
         }
@@ -835,7 +896,7 @@ export default class RangeHandler {
             return null;
         }
 
-        let res: RangesCutResult<U> = new RangesCutResult(null, clonedeep(ranges_to_cut));
+        let res: RangesCutResult<U> = new RangesCutResult(null, cloneDeep(ranges_to_cut));
 
         for (let i in ranges_cutter) {
             let range_cutter = ranges_cutter[i];
@@ -1542,7 +1603,11 @@ export default class RangeHandler {
                     return null;
                 }
 
-                return range_min_num.index + offset as any as T;
+                if (!!offset) {
+                    NumSegmentHandler.getInstance().incNumSegment(range_min_num, segment_type, offset);
+                }
+
+                return range_min_num.index as any as T;
 
             case HourRange.RANGE_TYPE:
                 let range_min_h: ISegment<moment.Duration> = this.get_segment(range.range_type, range.min as any as moment.Duration, segment_type);
@@ -1630,7 +1695,7 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    NumSegmentHandler.getInstance().incNum(range_max_num.index, segment_type, offset);
+                    NumSegmentHandler.getInstance().incNumSegment(range_max_num, segment_type, offset);
                 }
 
                 return range_max_num.index as any as T;
@@ -1653,7 +1718,7 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    HourSegmentHandler.getInstance().incElt(range_max_seg.index, segment_type, offset);
+                    HourSegmentHandler.getInstance().incHourSegment(range_max_seg, segment_type, offset);
                 }
 
                 return range_max_seg.index as any as T;
@@ -1677,7 +1742,7 @@ export default class RangeHandler {
                 }
 
                 if (!!offset) {
-                    TimeSegmentHandler.getInstance().incMoment(range_max_ts.index, segment_type, offset);
+                    TimeSegmentHandler.getInstance().incTimeSegment(range_max_ts, segment_type, offset);
                 }
 
                 return range_max_ts.index as any as T;

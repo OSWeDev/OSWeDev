@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash';
 import RangeHandler from '../../tools/RangeHandler';
 import IRange from '../DataRender/interfaces/IRange';
 import ModuleTable from '../ModuleTable';
@@ -453,7 +453,7 @@ export default class MatroidController {
                 // Le but est de créer le matroid lié à la coupe sur cette dimension
                 let this_base_remaining_matroid = this.cloneFrom(chopped_matroid);
 
-                this_base_remaining_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.remaining_items.ranges);
+                this_base_remaining_matroid[matroid_to_cut_base.field_id] = cloneDeep(cut_result.remaining_items.ranges);
 
                 // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
                 for (let k in this_base_remaining_matroid[matroid_to_cut_base.field_id]) {
@@ -467,7 +467,7 @@ export default class MatroidController {
 
             if (!!cut_result.chopped_items) {
 
-                chopped_matroid[matroid_to_cut_base.field_id] = clonedeep(cut_result.chopped_items.ranges);
+                chopped_matroid[matroid_to_cut_base.field_id] = cloneDeep(cut_result.chopped_items.ranges);
 
                 // On enlève le field_id qui ne sert pas et modifie le matroid source ce qui n'est pas le but
                 for (let k in chopped_matroid[matroid_to_cut_base.field_id]) {
@@ -506,19 +506,21 @@ export default class MatroidController {
             return null;
         }
 
+        let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[from._type];
+
         // On copie uniquement le matroid et le var_id si présent pour compatibilité avec les vars
-        let res: T = {
+        let res: T = Object.assign({
             _type: from._type,
             id: undefined,
             var_id: from['var_id']
-        } as any;
+        } as any, moduleTable.matroid_cloner(from));
 
         let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(from._type);
 
         for (let i in matroid_fields) {
             let matroid_field = matroid_fields[i];
 
-            res[matroid_field.field_id] = clonedeep(from[matroid_field.field_id]);
+            res[matroid_field.field_id] = cloneDeep(from[matroid_field.field_id]);
         }
 
         return res;

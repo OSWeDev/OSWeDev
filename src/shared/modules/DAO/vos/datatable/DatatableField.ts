@@ -1,7 +1,8 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import Vue from 'vue';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import Alert from '../../../../../vuejsclient/ts/components/alert/Alert';
+import VueComponentBase from '../../../../../vuejsclient/ts/components/VueComponentBase';
+import CRUDComponentField from '../../../../../vuejsclient/ts/components/crud/component/field/CRUDComponentField';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface
@@ -20,6 +21,8 @@ export default abstract class DatatableField<T, U> {
 
     // Pour éviter les liens d'import on stocke au chargement de l'appli ici et on type pas... à améliorer certainement plus tard
     public static VueAppBase = null;
+
+    public vue_component: CRUDComponentField = null;
 
     /**
      * Il faudrait employer des slots ou des composants vue directement
@@ -239,6 +242,13 @@ export default abstract class DatatableField<T, U> {
 
     public setSelectOptionsEnabled(options: number[]): DatatableField<T, U> {
         this.select_options_enabled = options;
+
+        if (!!this.vue_component) {
+            // on informe
+            this.vue_component.$data.select_options_enabled = options;
+            this.vue_component.on_reload_field_value();
+        }
+
         return this;
     }
 }

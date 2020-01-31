@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';
@@ -31,6 +31,20 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
      * Déclarer une var comme calculable côté client
      */
     public is_computable_client_side: boolean = true;
+
+    /**
+     * On declare passer par le système de calcul optimisé des imports plutôt que par le système standard.
+     *  ça optimise énormément les calculs mais ça nécessite des paramètrages et c'est pas toujours compatible
+     */
+    public can_use_optimized_imports_calculation: boolean = false;
+
+    /**
+     * Permet d'indiquer au système de calcul optimisé des imports entre autre les champs qui sont déclarés par combinaison
+     *  (et donc sur lesquels on fait une recherche exacte et pas par inclusion comme pour les champs atomiques)
+     * On stocke le segment_type. Cela signifie que le champs est obligatoirement normalisé, et qu'on a un découpage suivant le segment_type
+     *  en ordre croissant en base. Très important par ce que [a,b] c'est différent de [b,a] pour la base. Même si ça couvre les mêmes ensembles
+     */
+    public datas_fields_type_combinatory: { [matroid_field_id: string]: number } = {};
 
     /**
      * Déclarer qu'une var n'utilise que des imports et/ou precompiled qui sont dissociés - cardinal 1 (atomiques)
@@ -105,7 +119,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
         if (!res) {
             ConsoleHandler.getInstance().error('updateData should return res anyway');
-            res = clonedeep(varDAGNode.param);
+            res = cloneDeep(varDAGNode.param) as TData;
             res.value_type = VarsController.VALUE_TYPE_COMPUTED;
         }
 

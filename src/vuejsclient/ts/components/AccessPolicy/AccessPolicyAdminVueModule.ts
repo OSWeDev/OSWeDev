@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPo
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -18,6 +19,7 @@ import MenuLeaf from '../menu/vos/MenuLeaf';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import MenuPointer from '../menu/vos/MenuPointer';
 import AccessPolicyComponent from './AccessPolicyComponent';
+import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
@@ -123,6 +125,15 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("name"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
+
+        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+            crud.readDatatable.pushField(new ComponentDatatableField(
+                'impersonate',
+                ImpersonateComponent,
+                'id'
+            ));
+        }
+
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password"));
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "lang_id",

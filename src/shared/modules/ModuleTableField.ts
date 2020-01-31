@@ -1,7 +1,7 @@
 import { isArray, isBoolean, isNull, isNumber } from 'util';
 import Alert from '../../vuejsclient/ts/components/alert/Alert';
-import DatatableField from '../../vuejsclient/ts/components/datatable/vos/DatatableField';
 import ConsoleHandler from '../tools/ConsoleHandler';
+import DatatableField from './DAO/vos/datatable/DatatableField';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';
@@ -29,6 +29,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_boolean: string = 'boolean';
     public static FIELD_TYPE_password: string = 'password';
     public static FIELD_TYPE_string: string = 'text';
+    public static FIELD_TYPE_textarea: string = 'textarea';
     public static FIELD_TYPE_enum: string = 'enum';
     public static FIELD_TYPE_int: string = 'number';
     public static FIELD_TYPE_geopoint: string = 'point';
@@ -354,6 +355,7 @@ export default class ModuleTableField<T> {
                 return db_type == "real";
 
             case ModuleTableField.FIELD_TYPE_html:
+            case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_password:
@@ -441,15 +443,15 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_timewithouttimezone:
                 return "time without time zone";
 
-            // Est-ce qu'on mettrait pas float 8 simplement...
             case ModuleTableField.FIELD_TYPE_prct:
-                return "ref.pct";
+                return "float8";
 
             case 'real':
                 return "real";
 
             case ModuleTableField.FIELD_TYPE_html:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_password:
             case ModuleTableField.FIELD_TYPE_file_field:
@@ -521,6 +523,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_prct:
             case ModuleTableField.FIELD_TYPE_string:
+            case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_string_array:
             case ModuleTableField.FIELD_TYPE_timestamp:

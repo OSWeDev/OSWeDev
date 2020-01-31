@@ -1,4 +1,4 @@
-import * as clonedeep from 'lodash/cloneDeep';
+import { cloneDeep } from 'lodash';
 import { Moment } from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
@@ -8,10 +8,10 @@ import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
-import SimpleDatatableField from '../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../VueComponentBase';
 import './TSRangeInputComponent.scss';
 import moment = require('moment');
+import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 
 @Component({
     template: require('./TSRangeInputComponent.pug'),
@@ -87,7 +87,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
         this.tsrange_end = max.toDate();
 
         if (this.tsrange_start) {
-            this.tsrange_date = this.tsrange_start ? clonedeep(this.tsrange_start) : null;
+            this.tsrange_date = this.tsrange_start ? cloneDeep(this.tsrange_start) : null;
             this.tsrange_start_time = min ? min.format(this.format_time) : null;
             this.tsrange_end_time = max ? max.format(this.format_time) : null;
         }

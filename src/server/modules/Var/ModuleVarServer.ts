@@ -1,11 +1,24 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import APIDAOApiTypeAndMatroidsParamsVO from '../../../shared/modules/DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
+import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
+import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
+import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import VarsController from '../../../shared/modules/Var/VarsController';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -103,6 +116,7 @@ export default class ModuleVarServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
     }
 
     /**
@@ -227,4 +241,146 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     //     await ModuleDAO.getInstance().insertOrUpdateVO(empty_shell);
     // }
+
+
+    private async getSimpleVarDataValueSumFilterByMatroids<T extends ISimpleNumberVarData>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<number> {
+
+        let matroids: IMatroid[] = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.matroids) : null;
+        let api_type_id: string = param ? param.API_TYPE_ID : null;
+        let fields_ids_mapper: { [matroid_field_id: string]: string } = param ? param.fields_ids_mapper : null;
+
+        if ((!matroids) || (!matroids.length)) {
+            return null;
+        }
+
+        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+        if (!datatable) {
+            return null;
+        }
+
+        // On vérifie qu'on peut faire un select
+        if (!await ModuleDAOServer.getInstance().checkAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let res: number = 0;
+        for (let matroid_i in matroids) {
+            let matroid: IVarMatroidDataParamVO = matroids[matroid_i] as IVarMatroidDataParamVO;
+
+            if (!matroid) {
+                ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
+                return null;
+            }
+
+            res += await this.getSimpleVarDataValueSumFilterByMatroid<T>(api_type_id, matroid, fields_ids_mapper);
+        }
+
+        return res;
+    }
+
+    private async getSimpleVarDataValueSumFilterByMatroid<T extends ISimpleNumberVarData>(api_type_id: string, matroid: IVarMatroidDataParamVO, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
+
+        if (!matroid) {
+            return null;
+        }
+
+        if (!api_type_id) {
+            return null;
+        }
+
+        if (!fields_ids_mapper) {
+            return null;
+        }
+
+        let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+        if (!moduleTable) {
+            return null;
+        }
+
+        let exact_search_fields = {};
+        if (!!matroid.var_id) {
+
+            exact_search_fields = VarsController.getInstance().getVarControllerById(matroid.var_id).datas_fields_type_combinatory;
+        }
+
+        let res = null;
+
+        if (moduleTable.is_segmented) {
+
+            // TODO FIXME : on part du principe que si on a segmenté sur une var, on doit avoir des cardinaux atomiques sur la segmentation
+            // donc pas de union ou autre, ya qu'une table cible suffit de la trouver
+
+            // On cherche dans le matroid le field qui est la segmentation. Si on a pas, on refuse de chercher en masse
+            let segmented_matroid_filed_id = moduleTable.table_segmented_field.field_id;
+            for (let matroid_field_id in fields_ids_mapper) {
+                let field_id = fields_ids_mapper[matroid_field_id];
+
+                if (field_id == moduleTable.table_segmented_field.field_id) {
+                    segmented_matroid_filed_id = matroid_field_id;
+                    break;
+                }
+            }
+
+            if (!segmented_matroid_filed_id) {
+                throw new Error('Not Implemented');
+            }
+
+            let segmentations: Array<IRange<any>> = matroid[segmented_matroid_filed_id];
+
+            // Si c'est un matroid on devrait avoir un cas simple de ranges directement mais on pourrait adapter à tous les types de field matroid
+            // let matroid_moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[matroid._type];
+            // let matroid_field = matroid_moduleTable.getFieldFromId(segmented_matroid_filed_id);
+
+            // switch (matroid_field.field_type) {
+            // }
+
+            for (let segmentation_i in segmentations) {
+                let segmentation = segmentations[segmentation_i];
+                let segmented_value = segmentation.min;
+
+                let full_name = moduleTable.database + '.' + moduleTable.get_segmented_name(segmented_value);
+                let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', full_name, exact_search_fields);
+
+                if (!filter_by_matroid_clause) {
+                    return null;
+                }
+
+                let local_res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + full_name + " t WHERE " + filter_by_matroid_clause + ";");
+
+                if ((!local_res) || (!local_res[0]) || (local_res[0]['res'] == null) || (typeof local_res[0]['res'] == 'undefined')) {
+                    local_res = null;
+                } else {
+                    local_res = local_res[0]['res'];
+                }
+
+                if (res == null) {
+                    res = local_res;
+                } else {
+                    if (!!local_res) {
+                        res += local_res;
+                    }
+                }
+            }
+
+            return res;
+
+        } else {
+
+            let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', moduleTable.full_name, exact_search_fields);
+
+            if (!filter_by_matroid_clause) {
+                return null;
+            }
+
+            res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause + ";");
+
+            if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
+                return null;
+            }
+
+            return res[0]['res'];
+        }
+    }
 }

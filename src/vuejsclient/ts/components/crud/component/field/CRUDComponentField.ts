@@ -1,10 +1,16 @@
 import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -14,7 +20,11 @@ import TableFieldTypeControllerBase from '../../../../../../shared/modules/Table
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
-import { ModuleDAOGetter, ModuleDAOAction } from '../../../dao/store/DaoStore';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import Alert from '../../../alert/Alert';
+import { ModuleAlertAction, ModuleAlertGetter } from '../../../alert/AlertStore';
+import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
@@ -24,16 +34,7 @@ import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
-import { ModuleAlertAction } from '../../../alert/AlertStore';
-import Alert from '../../../alert/Alert';
-import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import RangeHandler from '../../../../../../shared/tools/RangeHandler';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
-import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
-import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import RefRangesReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 let debounce = require('lodash/debounce');
 
 
@@ -56,6 +57,9 @@ export default class CRUDComponentField extends VueComponentBase {
     @ModuleDAOAction
     private storeDatasByIds: (params: { API_TYPE_ID: string, vos_by_ids: { [id: number]: IDistantVOBase } }) => void;
 
+    @ModuleAlertGetter
+    private get_alerts: { [path: string]: Alert[] };
+
     @ModuleAlertAction
     private replace_alerts: (params: { alert_path: string, alerts: Alert[] }) => void;
 
@@ -71,8 +75,8 @@ export default class CRUDComponentField extends VueComponentBase {
     @Prop()
     private default_field_data: any;
 
-    @Prop({ default: null })
-    private field_select_options_enabled: number[];
+    // @Prop({ default: null })
+    // private field_select_options_enabled: number[];
 
     @Prop({ default: false })
     private auto_update_field_value: boolean;
@@ -110,9 +114,22 @@ export default class CRUDComponentField extends VueComponentBase {
 
     private can_insert_or_update_target: boolean = false;
 
+    private select_options_enabled: number[] = [];
+
     private debounced_reload_field_value = debounce(this.reload_field_value, 50);
 
-    public async mounted() { }
+    public async mounted() {
+
+        this.select_options_enabled = this.field.select_options_enabled; // (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
+
+        /**
+         * On propose un lien au datatable pour certains comportement
+         *  On aura accès en l'état qu'au dernier lien fait
+         *  si le lien est rompu on le sait pas
+         *  a voir à l'usage ce qu'on en fait
+         */
+        this.field.vue_component = this;
+    }
 
     get hourrange_input_component() {
         return HourrangeInputComponent;
@@ -177,12 +194,12 @@ export default class CRUDComponentField extends VueComponentBase {
 
 
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
+    // @Watch('field_select_options_enabled')
     @Watch('field', { immediate: true })
     @Watch('vo')
     @Watch('datatable')
     @Watch('default_field_data')
-    @Watch('field_select_options_enabled')
-    private on_reload_field_value() {
+    public on_reload_field_value() {
         this.debounced_reload_field_value();
     }
 
@@ -386,6 +403,20 @@ export default class CRUDComponentField extends VueComponentBase {
                     field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
                 }
             }
+
+            if (field_datatable.type == DatatableField.REF_RANGES_FIELD_TYPE) {
+
+                let refrangesField: RefRangesReferenceDatatableField<any> = (field_datatable as RefRangesReferenceDatatableField<any>);
+                let options = this.getStoredDatas[refrangesField.targetModuleTable.vo_type];
+
+                if (!!refrangesField.filterOptionsForUpdateOrCreateOnRefRanges) {
+                    options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(vo, options);
+                }
+
+                if (options) {
+                    field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
+                }
+            }
         }
     }
 
@@ -441,6 +472,9 @@ export default class CRUDComponentField extends VueComponentBase {
             let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
 
             // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+            /**
+             * TODO refondre cette logique de filtrage des options ça parait absolument suboptimal
+             */
             let options = this.getStoredDatas[manyToOne.targetModuleTable.vo_type];
             if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
                 options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOne.targetModuleTable.vo_type));
@@ -451,6 +485,12 @@ export default class CRUDComponentField extends VueComponentBase {
                 let manyToOneField: ManyToOneReferenceDatatableField<any> = (this.field as ManyToOneReferenceDatatableField<any>);
                 if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                     options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
+                }
+            }
+            if (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE) {
+                let refRangesReferenceDatatableField: RefRangesReferenceDatatableField<any> = (this.field as RefRangesReferenceDatatableField<any>);
+                if (!!refRangesReferenceDatatableField.filterOptionsForUpdateOrCreateOnRefRanges) {
+                    options = refRangesReferenceDatatableField.filterOptionsForUpdateOrCreateOnRefRanges(this.vo, options);
                 }
             }
 
@@ -569,6 +609,29 @@ export default class CRUDComponentField extends VueComponentBase {
             }
             ranges = RangeHandler.getInstance().getRangesUnion(ranges);
             this.field_value = ranges;
+
+            let refrangesField: RefRangesReferenceDatatableField<any> = (this.field as RefRangesReferenceDatatableField<any>);
+
+            // à voir si c'est un souci mais pour avoir une version toujours propre et complète des options....
+            let options = this.getStoredDatas[refrangesField.targetModuleTable.vo_type];
+            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(options)) {
+                options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(refrangesField.targetModuleTable.vo_type));
+                this.storeDatasByIds({ API_TYPE_ID: refrangesField.targetModuleTable.vo_type, vos_by_ids: options });
+            }
+
+            if (!!refrangesField.filterOptionsForUpdateOrCreateOnRefRanges) {
+                options = refrangesField.filterOptionsForUpdateOrCreateOnRefRanges(this.vo, options);
+            }
+
+            let newOptions: number[] = [];
+            for (let j in options) {
+                let option = options[j];
+
+                if (!this.select_options_enabled || this.select_options_enabled.indexOf(option.id) >= 0) {
+                    newOptions.push(option.id);
+                }
+            }
+            this.select_options = newOptions;
         }
 
         if (this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
@@ -581,7 +644,6 @@ export default class CRUDComponentField extends VueComponentBase {
                 options = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos(manyToOneField.targetModuleTable.vo_type));
                 this.storeDatasByIds({ API_TYPE_ID: manyToOneField.targetModuleTable.vo_type, vos_by_ids: options });
             }
-
 
             if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
                 options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(this.vo, options);
@@ -686,10 +748,6 @@ export default class CRUDComponentField extends VueComponentBase {
                 break;
         }
         await this.onChangeField();
-    }
-
-    get select_options_enabled(): number[] {
-        return (this.field_select_options_enabled && this.field_select_options_enabled.length > 0) ? this.field_select_options_enabled : this.field.select_options_enabled;
     }
 
     private async inline_clear_value() {

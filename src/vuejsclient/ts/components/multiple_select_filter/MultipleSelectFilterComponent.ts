@@ -1,4 +1,4 @@
-import * as isEqual from 'lodash/isEqual';
+import { isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import DataFilterOptionsHandler from '../../../../shared/modules/DataRender/DataFilterOptionsHandler';
@@ -72,6 +72,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         default: () => new Object()
     })
     private depends_on_call_condition_on_empty_active_options: { [api_type_id: string]: boolean };
+
+    @Prop({
+        default: false
+    })
+    private disabled: boolean;
 
     private tmp_filter_active_options: DataFilterOption[] = [];
 
@@ -278,5 +283,18 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     private select_none() {
         this.tmp_filter_active_options = [];
+    }
+
+    private async select_all() {
+        let res: DataFilterOption[] = [];
+
+        for (let i in this.selectables_by_ids) {
+            let vo: IDistantVOBase = this.selectables_by_ids[i];
+
+            let label = this.get_label(vo);
+            res.push(new DataFilterOption(DataFilterOption.STATE_SELECTED, label, vo.id));
+        }
+
+        this.tmp_filter_active_options = res;
     }
 }

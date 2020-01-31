@@ -32,22 +32,29 @@ export default class PushDataVueModule extends VueModuleBase {
 
         // test suppression base api url this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
         this.socket = io.connect('');
-        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], function (notification: NotificationVO) {
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {
             if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {
 
+                let content = LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
                 switch (notification.simple_notif_type) {
                     case NotificationVO.SIMPLE_SUCCESS:
-                        VueAppBase.instance_.vueInstance.snotify.success(LocaleManager.getInstance().i18n.t(notification.simple_notif_label));
+                        VueAppBase.instance_.vueInstance.snotify.success(content);
                         break;
                     case NotificationVO.SIMPLE_WARN:
-                        VueAppBase.instance_.vueInstance.snotify.warning(LocaleManager.getInstance().i18n.t(notification.simple_notif_label));
+                        VueAppBase.instance_.vueInstance.snotify.warning(content);
                         break;
                     case NotificationVO.SIMPLE_ERROR:
-                        VueAppBase.instance_.vueInstance.snotify.error(LocaleManager.getInstance().i18n.t(notification.simple_notif_label));
+                        VueAppBase.instance_.vueInstance.snotify.error(content);
                         break;
                     case NotificationVO.SIMPLE_INFO:
                     default:
-                        VueAppBase.instance_.vueInstance.snotify.info(LocaleManager.getInstance().i18n.t(notification.simple_notif_label));
+                        VueAppBase.instance_.vueInstance.snotify.info(content);
+                }
+
+                if (!notification.read) {
+                    // ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([NotificationVO.API_TYPE_ID]);
+                    // let vo: IDistantVOBase = await ModuleDAO.getInstance().getVoById(NotificationVO.API_TYPE_ID, notification.id);
+                    VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notification', notification);
                 }
             }
         });

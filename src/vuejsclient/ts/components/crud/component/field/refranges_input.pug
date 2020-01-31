@@ -34,6 +34,7 @@
         :deselectLabel='label("multiselect.deselectLabel")'
         :deselectGroupLabel='label("multiselect.deselectGroupLabel")'
     )
-    .text_cliquable(@click='select_all') {{ label('select_all') }}
-    .inter_text -
-    .text_cliquable(@click='select_none') {{ label('select_none') }}
+    template(v-if="!is_readonly")
+        .text_cliquable(@click='select_all') {{ label('select_all') }}
+        .inter_text -
+        .text_cliquable(@click='select_none') {{ label('select_none') }}

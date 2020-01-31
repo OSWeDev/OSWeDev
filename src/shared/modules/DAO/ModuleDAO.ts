@@ -20,6 +20,7 @@ import APIDAORefFieldParamsVO from './vos/APIDAORefFieldParamsVO';
 import APIDAORefFieldsAndFieldsStringParamsVO from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
 import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
+import IRange from '../DataRender/interfaces/IRange';
 
 export default class ModuleDAO extends Module {
 
@@ -51,6 +52,9 @@ export default class ModuleDAO extends Module {
     public static APINAME_GET_VOS_BY_EXACT_MATROIDS = "GET_VOS_BY_EXACT_MATROIDS";
     public static APINAME_FILTER_VOS_BY_MATROIDS = "FILTER_VOS_BY_MATROIDS";
     public static APINAME_FILTER_VOS_BY_MATROIDS_INTERSECTIONS = "FILTER_VOS_BY_MATROIDS_INTERSECTIONS";
+
+    // Optimisation pour les vars initialement
+    public static APINAME_getColSumFilterByMatroid = "getColSumFilterByMatroid";
 
     public static DAO_ACCESS_TYPE_LIST_LABELS: string = "LIST_LABELS";
     // inherit DAO_ACCESS_TYPE_LIST_LABELS
@@ -161,6 +165,12 @@ export default class ModuleDAO extends Module {
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
+            ModuleDAO.APINAME_getColSumFilterByMatroid,
+            (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
+            APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
+        ));
+
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS_INTERSECTIONS,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
@@ -209,13 +219,10 @@ export default class ModuleDAO extends Module {
             APIDAONamedParamVO.translateFromREQ
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
             ModuleDAO.APINAME_GET_VO_BY_ID,
             (param: APIDAOParamVO) => [param.API_TYPE_ID],
-            APIDAOParamVO.translateCheckAccessParams,
-            APIDAOParamVO.URL,
-            APIDAOParamVO.translateToURL,
-            APIDAOParamVO.translateFromREQ
+            APIDAOParamVO.translateCheckAccessParams
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_GET_VOS,
@@ -257,8 +264,8 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<APIDAONamedParamVO, T>(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, API_TYPE_ID, vo_name);
     }
 
-    public async getVoById<T extends IDistantVOBase>(API_TYPE_ID: string, id: number): Promise<T> {
-        return await ModuleAPI.getInstance().handleAPI<string, T>(ModuleDAO.APINAME_GET_VO_BY_ID, API_TYPE_ID, id);
+    public async getVoById<T extends IDistantVOBase>(API_TYPE_ID: string, id: number, segmentation_ranges: Array<IRange<any>> = null): Promise<T> {
+        return await ModuleAPI.getInstance().handleAPI<APIDAOParamVO, T>(ModuleDAO.APINAME_GET_VO_BY_ID, API_TYPE_ID, id, segmentation_ranges);
     }
 
     public async getVosByIds<T extends IDistantVOBase>(API_TYPE_ID: string, ids: number[]): Promise<T[]> {
@@ -314,6 +321,14 @@ export default class ModuleDAO extends Module {
         }
 
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, T[]>(ModuleDAO.APINAME_GET_VOS_BY_EXACT_MATROIDS, API_TYPE_ID, matroids, fields_ids_mapper);
+    }
+
+    public async getColSumFilterByMatroid<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
+        if ((!matroids) || (!matroids.length)) {
+            return null;
+        }
+
+        return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleDAO.APINAME_getColSumFilterByMatroid, API_TYPE_ID, matroids, fields_ids_mapper);
     }
 
     public async filterVosByMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {

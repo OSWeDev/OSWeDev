@@ -1,11 +1,17 @@
 .field {
+    
+    textarea{
+        min-width: 45em;
+        min-height: 10em;
+    }
+
     .datatable_field_alert {
         float:right;
     }
 
     .text_cliquable {
         display:inline-block;
-        color:blue;
+        color:#555 !important;
         text-decoration: underline;
         cursor: pointer;
         font-size: 0.8em;

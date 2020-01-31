@@ -12,6 +12,9 @@ export default class EnvParam {
     public BASE_URL: string;
     public BLOCK_MAIL_DELIVERY: boolean;
     public BDD_OWNER: string;
+    public NODE_VERBOSE: boolean;
+    public ACTIVATE_LONG_JOHN: boolean;
+    public MAX_POOL: number = 10;
     // public PUBLIC_VAPID_KEY: string;
     // public PRIVATE_VAPID_KEY: string;
 }

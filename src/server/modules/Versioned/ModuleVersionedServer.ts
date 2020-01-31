@@ -7,7 +7,6 @@ import IVersionedVO from '../../../shared/modules/Versioned/interfaces/IVersione
 import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';
 import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
@@ -56,7 +55,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         vo.trashed = false;
 
         // TODO : ATTENTION par défaut c'est du without timezone en base, hors sur le serveur on a un timezone par défaut et sur les fullcalendar on est en without timezone par défaut ....
-        let ts = DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true));
+        let ts = moment().utc(true);
         let user: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
         let robot_user: UserVO = null;
 
@@ -85,7 +84,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
     private async handleTriggerVOPreUpdate(vo: IVersionedVO) {
 
-        let cloned = Object.assign({}, vo);
+        let cloned: IVersionedVO = await ModuleDAO.getInstance().getVoById<IVersionedVO>(vo._type, vo.id);
 
         cloned.id = null;
         cloned._type = VersionedVOController.getInstance().getVersionedVoType(cloned._type);
@@ -102,7 +101,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
             vo.version_edit_author_id = robot_user ? robot_user.id : null;
         }
 
-        vo.version_edit_timestamp = DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true));
+        vo.version_edit_timestamp = moment().utc(true);
 
         vo.version_num++;
 
@@ -115,7 +114,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         vo.trashed = true;
         await ModuleDAO.getInstance().insertOrUpdateVO(vo);
 
-        let cloned = Object.assign({}, vo);
+        let cloned: IVersionedVO = await ModuleDAO.getInstance().getVoById<IVersionedVO>(vo._type, vo.id);
 
         cloned._type = VersionedVOController.getInstance().getTrashedVoType(vo._type);
         cloned.id = null;

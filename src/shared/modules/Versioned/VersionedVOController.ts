@@ -48,8 +48,7 @@ export default class VersionedVOController implements IVOController {
 
         moduleTable.push_field((new ModuleTableField('trashed', ModuleTableField.FIELD_TYPE_boolean, 'Supprimé', false)).setModuleTable(moduleTable));
 
-        let parent_id = new ModuleTableField('parent_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Parent', false);
-        parent_id.addManyToOneRelation(moduleTable);
+        let parent_id = new ModuleTableField('parent_id', ModuleTableField.FIELD_TYPE_int, 'Parent', false);
         parent_id.setModuleTable(moduleTable);
         moduleTable.push_field(parent_id);
 
@@ -89,6 +88,7 @@ export default class VersionedVOController implements IVOController {
 
             let importTable: ModuleTable<any> = new ModuleTable<any>(moduleTable.module, vo_type, moduleTable.getNewVO, fields, null, vo_type);
             importTable.set_bdd_ref(database, moduleTable.name);
+            importTable.set_inherit_rights_from_vo_type(moduleTable.vo_type);
 
             for (let i in moduleTable.get_fields()) {
                 let vofield = moduleTable.get_fields()[i];

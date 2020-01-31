@@ -44,11 +44,11 @@ export default class CMSFrontVueModule extends VueModuleBase {
         /**
          * On preset les composants de base
          */
-        CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlComponentVO.API_TYPE_ID, HtmlComponentTemplate);
-        CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlHtmlComponentVO.API_TYPE_ID, HtmlHtmlComponentTemplate);
-        CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlHtmlHtmlComponentVO.API_TYPE_ID, HtmlHtmlHtmlComponentTemplate);
-        CMSComponentManager.getInstance().registerCMSTemplateComponent(ImgHtmlComponentVO.API_TYPE_ID, ImgHtmlComponentTemplate);
-        CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlImgComponentVO.API_TYPE_ID, HtmlImgComponentTemplate);
+        CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlComponentVO.API_TYPE_ID, HtmlComponentTemplate as any);
+        CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlHtmlComponentVO.API_TYPE_ID, HtmlHtmlComponentTemplate as any);
+        CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlHtmlHtmlComponentVO.API_TYPE_ID, HtmlHtmlHtmlComponentTemplate as any);
+        CMSComponentManager.getInstance().registerCMSTemplateComponent(ImgHtmlComponentVO.API_TYPE_ID, ImgHtmlComponentTemplate as any);
+        CMSComponentManager.getInstance().registerCMSTemplateComponent(HtmlImgComponentVO.API_TYPE_ID, HtmlImgComponentTemplate as any);
 
         let pages_by_ids: { [id: number]: PageVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<PageVO>(PageVO.API_TYPE_ID));
         let pages_aliases: PageAliasVO[] = await ModuleDAO.getInstance().getVos<PageAliasVO>(PageAliasVO.API_TYPE_ID);

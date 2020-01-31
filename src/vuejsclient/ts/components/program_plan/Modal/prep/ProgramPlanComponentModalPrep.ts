@@ -20,10 +20,10 @@ import VueComponentBase from '../../../VueComponentBase';
 import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
-import "./ProgramPlanComponentModalPrep.scss";
 import ICustomPrepCreateComponent from './interfaces/ICustomPrepCreateComponent';
 import ICustomPrepReadComponent from './interfaces/ICustomPrepReadComponent';
 import ICustomPrepUpdateComponent from './interfaces/ICustomPrepUpdateComponent';
+import "./ProgramPlanComponentModalPrep.scss";
 
 @Component({
     template: require('./ProgramPlanComponentModalPrep.pug'),

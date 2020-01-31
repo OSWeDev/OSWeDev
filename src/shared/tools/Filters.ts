@@ -239,26 +239,27 @@ export let percentFilter = new FilterObj(
 );
 
 export let toFixedFilter = new FilterObj(
-    function (value, fractionalDigits, explicit_sign: boolean = false, arrondi: boolean = false) {
+    function (value, fractionalDigits, arrondi, explicit_sign: boolean = false) {
         if (!value) {
             return value;
         }
 
+        let res = value;
         if (arrondi) {
-            value = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(value, arrondi);
+            res = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(res, arrondi);
         }
 
         if (isNumber(fractionalDigits) && fractionalDigits >= 0) {
-            value = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
+            res = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(res, fractionalDigits);
         }
 
         if (explicit_sign) {
             if (value > 0) {
-                value = '+' + value;
+                res = '+' + res;
             }
         }
 
-        return value;
+        return res;
     },
     function (value) {
         value = value.replace(",", "");

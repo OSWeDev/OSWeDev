@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -32,6 +33,7 @@ import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
+import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -80,6 +82,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         fo_access.translatable_name = ModuleAccessPolicy.POLICY_FO_ACCESS;
         fo_access = await this.registerPolicy(fo_access, new DefaultTranslation({
             fr: 'Accès au front'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_IMPERSONATE: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_IMPERSONATE.group_id = group.id;
+        POLICY_IMPERSONATE.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_IMPERSONATE.translatable_name = ModuleAccessPolicy.POLICY_IMPERSONATE;
+        POLICY_IMPERSONATE = await this.registerPolicy(POLICY_IMPERSONATE, new DefaultTranslation({
+            fr: 'Impersonate'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -436,6 +446,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Votre mot de passe expire dans 3 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
         }, 'mails.pwd.reminder2.html'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'LogAs'
+        }, 'fields.labels.ref.user.__component__impersonate.___LABEL___'));
+
     }
 
     public registerServerApiHandlers() {
@@ -450,6 +465,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER, this.getLoggedUser.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
     }
 
     /**
@@ -1172,6 +1188,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.user = user;
 
+            // On stocke le log de connexion en base
+            let user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = moment();
+            user_log.impersonated = false;
+            user_log.referer = httpContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+
+            // On await pas ici on se fiche du résultat
+            ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
             // this.redirectUserPostLogin(param.redirect_to, res);
 
             return user;
@@ -1179,6 +1206,53 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error("login:" + param.email + ":" + error);
         }
         // res.redirect('/login');
+
+        return null;
+    }
+
+    private async impersonateLogin(param: LoginParamVO): Promise<UserVO> {
+
+        try {
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            let session = httpContext ? httpContext.get('SESSION') : null;
+
+            if ((!session) || (!session.user)) {
+                return null;
+            }
+
+            if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
+                return null;
+            }
+
+            if ((!param) || (!param.email)) {
+                return null;
+            }
+
+            let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [param.email]);
+
+            if (!user) {
+                return null;
+            }
+
+            session.impersonated_from = Object.assign({}, session);
+            session.user = user;
+
+            // On stocke le log de connexion en base
+            let user_log = new UserLogVO();
+            user_log.user_id = user.id;
+            user_log.log_time = moment();
+            user_log.impersonated = true;
+            user_log.referer = httpContext.get('REFERER');
+            user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
+            user_log.comment = 'Impersonated from user_id [' + session.impersonated_from.user.id + ']';
+
+            // On await pas ici on se fiche du résultat
+            ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+
+            return user;
+        } catch (error) {
+            ConsoleHandler.getInstance().error("impersonate login:" + param.email + ":" + error);
+        }
 
         return null;
     }
