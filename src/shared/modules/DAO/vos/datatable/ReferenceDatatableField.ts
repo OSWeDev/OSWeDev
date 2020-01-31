@@ -1,7 +1,6 @@
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import VueAppBase from '../../../../VueAppBase';
-import DatatableField from './DatatableField';
 
 export default abstract class ReferenceDatatableField<Target extends IDistantVOBase> extends DatatableField<number, number> {
 
@@ -28,7 +27,7 @@ export default abstract class ReferenceDatatableField<Target extends IDistantVOB
             return '';
         }
 
-        let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let data: Target = vos[this.targetModuleTable.vo_type][id];
         res = this.dataToHumanReadable(data);
         return res ? res : '';

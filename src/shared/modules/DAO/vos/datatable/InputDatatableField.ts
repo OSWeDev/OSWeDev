@@ -1,7 +1,7 @@
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import DatatableField from './DatatableField';
 
 export default class InputDatatableField<T, U> extends DatatableField<T, U> {
 

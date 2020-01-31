@@ -1,6 +1,6 @@
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
-import DatatableField from './DatatableField';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 
 export default class Datatable<T extends IDistantVOBase> {

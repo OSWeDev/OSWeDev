@@ -33,6 +33,7 @@ import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
+import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
@@ -88,6 +89,8 @@ export default abstract class VueAppBase {
 
         // Chargement des données des modules.
         await this.initializeModulesDatas();
+
+        DatatableField.VueAppBase = this;
 
         let self = this;
         let promises = [];

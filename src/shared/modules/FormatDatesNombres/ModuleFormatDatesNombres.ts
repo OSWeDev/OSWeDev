@@ -259,6 +259,29 @@ export default class ModuleFormatDatesNombres extends Module {
     //     return NaN;
     // }
 
+    /**
+     *
+     * @param numberToFormat
+     * @param arrondi
+     */
+    public formatNumber_arrondi(numberToFormat, arrondi): string {
+        if (arrondi === true) {
+            arrondi = 0.5;
+        }
+
+        let numberRound = Math.round(numberToFormat / arrondi) * arrondi;
+
+        let entier = Math.floor(numberRound);
+        let decimale = numberRound - entier;
+
+        let res: string = "";
+        res += this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier);
+        if (decimale > 0) {
+            res += this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + decimale.toString().replace("0.", "");
+        }
+        return res;
+    }
+
     public initialize() {
         this.fields = [
             new ModuleTableField(ModuleFormatDatesNombres.PARAM_NAME_date_format_month_date, ModuleTableField.FIELD_TYPE_string, 'Format Date (ex: 31/01)', true, true, 'DD/MM'),

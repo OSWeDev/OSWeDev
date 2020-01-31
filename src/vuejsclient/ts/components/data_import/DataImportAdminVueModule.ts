@@ -1,4 +1,5 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportColumnVO from '../../../../shared/modules/DataImport/vos/DataImportColumnVO';
 import DataImportFormatVO from '../../../../shared/modules/DataImport/vos/DataImportFormatVO';
@@ -11,7 +12,6 @@ import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import ComponentDatatableField from '../datatable/vos/ComponentDatatableField';
 import ReimportComponent from './reimport_component/reimport_component';
 import './scss/data_import.scss';
 

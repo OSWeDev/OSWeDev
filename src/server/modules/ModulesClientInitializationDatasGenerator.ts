@@ -64,8 +64,10 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.getInstance().COMPRESS = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS) ? 'true' : 'false') + ';\n';
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
-        fileContent += this.generateModulesCode(this.generateModuleAsyncInitialisation, target);
 
+        fileContent += "    await ModuleAjaxCache.getInstance().getCSRFToken();";
+
+        fileContent += this.generateModulesCode(this.generateModuleAsyncInitialisation, target);
         fileContent += "}";
 
         return fileContent;
@@ -136,11 +138,14 @@ export default class ModulesClientInitializationDatasGenerator {
     }
 
     private generateModuleAsyncInitialisation(module: Module, target: string) {
+
         let res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_" + target.toLowerCase() + "_initialization();\n";
 
         if ((target == 'Client') || (target == 'Admin') || (target == 'Test')) {
             res = "    await Module" + module.reflexiveClassName + ".getInstance().hook_module_async_client_admin_initialization();\n" + res;
         }
+
+        res = "promises.push((async () => {" + res + "})());";
         return res;
     }
 }

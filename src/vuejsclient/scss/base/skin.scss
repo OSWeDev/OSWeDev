@@ -218,6 +218,10 @@ i.fa.fa-spin:before {
   }
 }
 
+.v-select .selected-tag {
+  width: max-content;
+}
+
 @media(max-width: 1030px) {
 
   .main-header .navbar-custom-menu {

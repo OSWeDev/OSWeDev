@@ -1,11 +1,10 @@
 import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
-import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
-import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
+import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import FileVO from '../../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
@@ -15,16 +14,7 @@ import TableFieldTypeControllerBase from '../../../../../../shared/modules/Table
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../../shared/tools/DateHandler';
-import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
-import RangeHandler from '../../../../../../shared/tools/RangeHandler';
-import Alert from '../../../alert/Alert';
-import { ModuleAlertAction } from '../../../alert/AlertStore';
-import { ModuleDAOAction, ModuleDAOGetter } from '../../../dao/store/DaoStore';
-import Datatable from '../../../datatable/vos/Datatable';
-import DatatableField from '../../../datatable/vos/DatatableField';
-import ManyToOneReferenceDatatableField from '../../../datatable/vos/ManyToOneReferenceDatatableField';
-import ReferenceDatatableField from '../../../datatable/vos/ReferenceDatatableField';
-import SimpleDatatableField from '../../../datatable/vos/SimpleDatatableField';
+import { ModuleDAOGetter, ModuleDAOAction } from '../../../dao/store/DaoStore';
 import FileComponent from '../../../file/FileComponent';
 import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputComponent';
 import ImageComponent from '../../../image/ImageComponent';
@@ -34,6 +24,16 @@ import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
+import { ModuleAlertAction } from '../../../alert/AlertStore';
+import Alert from '../../../alert/Alert';
+import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
+import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import RangeHandler from '../../../../../../shared/tools/RangeHandler';
+import ObjectHandler from '../../../../../../shared/tools/ObjectHandler';
+import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../../../../shared/modules/DataRender/vos/NumSegment';
+import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 let debounce = require('lodash/debounce');
 
 
@@ -280,7 +280,8 @@ export default class CRUDComponentField extends VueComponentBase {
         }
 
         if ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) &&
-            ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean)) {
+            ((this.field as SimpleDatatableField<any, any>).moduleTableField.field_type == ModuleTableField.FIELD_TYPE_boolean) &&
+            this.field.is_required) {
             input_value = input.checked;
         }
 

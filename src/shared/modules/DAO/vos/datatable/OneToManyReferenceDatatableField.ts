@@ -1,10 +1,9 @@
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import DatatableField from './DatatableField';
-import ReferenceDatatableField from './ReferenceDatatableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
-import VueAppBase from '../../../../VueAppBase';
 
 export default class OneToManyReferenceDatatableField<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -39,7 +38,7 @@ export default class OneToManyReferenceDatatableField<Target extends IDistantVOB
             return res;
         }
 
-        let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
 
         for (let oneToManyTargetId in vos[this.targetModuleTable.vo_type]) {
             let targetVo = vos[this.targetModuleTable.vo_type][oneToManyTargetId];

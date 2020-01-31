@@ -2,6 +2,13 @@ import * as $ from 'jquery';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
+import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
+import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
+import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
@@ -15,19 +22,12 @@ import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DatatableComponent from '../../datatable/component/DatatableComponent';
-import Datatable from '../../datatable/vos/Datatable';
-import DatatableField from '../../datatable/vos/DatatableField';
-import ManyToManyReferenceDatatableField from '../../datatable/vos/ManyToManyReferenceDatatableField';
-import ManyToOneReferenceDatatableField from '../../datatable/vos/ManyToOneReferenceDatatableField';
-import OneToManyReferenceDatatableField from '../../datatable/vos/OneToManyReferenceDatatableField';
-import ReferenceDatatableField from '../../datatable/vos/ReferenceDatatableField';
-import RefRangesReferenceDatatableField from '../../datatable/vos/RefRangesReferenceDatatableField';
-import SimpleDatatableField from '../../datatable/vos/SimpleDatatableField';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import CRUD from '../vos/CRUD';
 import "./CRUDComponent.scss";
 import CRUDComponentField from './field/CRUDComponentField';
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -527,10 +527,14 @@ export default class CRUDComponent extends VueComponentBase {
         this.snotify.info(this.label('crud.create.starting'));
         this.creating_vo = true;
 
-        if ((!this.newVO) || (this.newVO.id) || (this.newVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
+        if ((!this.newVO) || (this.newVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
             this.snotify.error(this.label('crud.create.errors.newvo_failure'));
             this.creating_vo = false;
             return;
+        }
+
+        if (!!this.newVO.id) {
+            this.newVO.id = null;
         }
 
         try {
@@ -545,6 +549,7 @@ export default class CRUDComponent extends VueComponentBase {
             }
 
             let id = res.id ? parseInt(res.id.toString()) : null;
+            this.newVO.id = id;
 
             let createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, id);
             if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== this.crud.readDatatable.API_TYPE_ID)) {

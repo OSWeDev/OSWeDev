@@ -1,4 +1,5 @@
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ComponentDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import ModuleMaintenance from '../../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import CRUDComponentManager from '../../../../ts/components/crud/CRUDComponentManager';
@@ -7,7 +8,6 @@ import MenuElementBase from '../../../../ts/components/menu/vos/MenuElementBase'
 import MenuLeaf from '../../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';
-import ComponentDatatableField from '../../../../ts/components/datatable/vos/ComponentDatatableField';
 import EndMaintenaceComponent from './endmaintenance_component/endmaintenance_component';
 
 export default class MaintenanceAdminVueModule extends VueModuleBase {
