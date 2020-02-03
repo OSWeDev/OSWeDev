@@ -1,17 +1,17 @@
-import ComputedDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ComputedDatatableField';
-import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
-import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
-import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
-import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
-import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
-import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
-import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import IVersionedVO from '../../../../../shared/modules/Versioned/interfaces/IVersionedVO';
-import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
-import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
+import IDistantVOBase from '../../IDistantVOBase';
+import ModuleTable from '../../ModuleTable';
+import ModuleTableField from '../../ModuleTableField';
+import IVersionedVO from '../../Versioned/interfaces/IVersionedVO';
+import VOsTypesManager from '../../VOsTypesManager';
+import ComputedDatatableField from './datatable/ComputedDatatableField';
+import Datatable from './datatable/Datatable';
+import DatatableField from './datatable/DatatableField';
+import ManyToManyReferenceDatatableField from './datatable/ManyToManyReferenceDatatableField';
+import ManyToOneReferenceDatatableField from './datatable/ManyToOneReferenceDatatableField';
+import OneToManyReferenceDatatableField from './datatable/OneToManyReferenceDatatableField';
+import ReferenceDatatableField from './datatable/ReferenceDatatableField';
+import RefRangesReferenceDatatableField from './datatable/RefRangesReferenceDatatableField';
+import SimpleDatatableField from './datatable/SimpleDatatableField';
 
 
 export default class CRUD<T extends IDistantVOBase> {

@@ -23,7 +23,7 @@ import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import CRUD from '../crud/vos/CRUD';
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 
 export default class CommerceAdminVueModule extends VueModuleBase {
 

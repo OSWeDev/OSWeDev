@@ -12,7 +12,6 @@ import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
-import CRUD from '../crud/vos/CRUD';
 import MenuBranch from '../menu/vos/MenuBranch';
 import MenuElementBase from '../menu/vos/MenuElementBase';
 import MenuLeaf from '../menu/vos/MenuLeaf';
@@ -20,6 +19,7 @@ import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import MenuPointer from '../menu/vos/MenuPointer';
 import AccessPolicyComponent from './AccessPolicyComponent';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 

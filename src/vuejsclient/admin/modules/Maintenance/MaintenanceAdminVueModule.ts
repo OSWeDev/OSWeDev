@@ -3,13 +3,13 @@ import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatabl
 import ModuleMaintenance from '../../../../shared/modules/Maintenance/ModuleMaintenance';
 import MaintenanceVO from '../../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
-import CRUD from '../../../ts/components/crud/vos/CRUD';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import TerminateMaintenanceComponent from './component/TerminateMaintenanceComponent';
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 
 export default class MaintenanceAdminVueModule extends VueModuleBase {
 

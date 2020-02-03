@@ -7,7 +7,7 @@ import MenuBranch from '../../components/menu/vos/MenuBranch';
 import MenuElementBase from '../../components/menu/vos/MenuElementBase';
 import MenuPointer from '../../components/menu/vos/MenuPointer';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
-import CRUD from './vos/CRUD';
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 
 export default class CRUDComponentManager {
 

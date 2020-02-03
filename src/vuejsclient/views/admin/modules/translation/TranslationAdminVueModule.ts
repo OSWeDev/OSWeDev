@@ -8,12 +8,12 @@ import TranslatableTextVO from '../../../../../shared/modules/Translation/vos/Tr
 import TranslationVO from '../../../../../shared/modules/Translation/vos/TranslationVO';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import CRUDComponentManager from '../../../../ts/components/crud/CRUDComponentManager';
-import CRUD from '../../../../ts/components/crud/vos/CRUD';
 import MenuBranch from '../../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';
+import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 
 export default class TranslationAdminVueModule extends VueModuleBase {
 
