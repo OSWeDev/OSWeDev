@@ -1,3 +1,9 @@
+# Si problème de JS heap memory lors du générator
+
+    Le message d'erreur : FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory
+
+    Solution : Lancer avec $env.NODE_OPTIONS="--max-old-space-size=4096"
+
 # Si problème de compilation indiquant absence de Python
     npm install --global --production windows-build-tools
 
