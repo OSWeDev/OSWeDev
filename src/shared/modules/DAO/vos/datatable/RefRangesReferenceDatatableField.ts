@@ -1,11 +1,10 @@
+import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
+import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
+import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
-import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
-import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
-import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
-import VueAppBase from '../../../../../vuejsclient/VueAppBase';
 
 export default class RefRangesReferenceDatatableField<Target extends IDistantVOBase> extends ReferenceDatatableField<Target> {
 
@@ -49,7 +48,7 @@ export default class RefRangesReferenceDatatableField<Target extends IDistantVOB
     public dataToHumanReadableField(e: IDistantVOBase): any {
         let res = "";
 
-        let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let destvos = vos[this.targetModuleTable.vo_type];
         if (!destvos) {
             return res;
@@ -64,7 +63,7 @@ export default class RefRangesReferenceDatatableField<Target extends IDistantVOB
     public dataToReadIHM(e: number, vo: IDistantVOBase): any {
         let dest_ids: number[] = [];
 
-        let vos = VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let destvos = vos[this.targetModuleTable.vo_type];
         if (!destvos) {
             return dest_ids;
