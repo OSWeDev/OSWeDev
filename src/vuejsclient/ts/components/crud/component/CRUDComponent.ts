@@ -78,6 +78,9 @@ export default class CRUDComponent extends VueComponentBase {
     @Prop({ default: null })
     private perpage: number;
 
+    @Prop({ default: false })
+    private sort_id_descending: boolean;
+
     @Prop({ default: null })
     private embed_filter: { [field_id: string]: any };
 

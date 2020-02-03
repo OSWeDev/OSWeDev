@@ -40,7 +40,8 @@ include ../../../../views/mixins/loading.pug
                 @show-crud-modal="showCrudModal",
                 :embed="embed",
                 :embed_filter="embed_filter",
-                :perpage="perpage")
+                :perpage="perpage",
+                :sort_id_descending = "sort_id_descending")
 
         <!-- Create Modal HTML -->
         .modal.fade.in(:id="(embed) ? 'createData_'+crud.readDatatable.API_TYPE_ID : 'createData' ", v-if='!isModuleParamTable', tabindex='-1', role='dialog')

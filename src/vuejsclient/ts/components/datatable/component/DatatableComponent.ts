@@ -81,6 +81,9 @@ export default class DatatableComponent extends VueComponentBase {
     @Prop({ default: false })
     private multiselectable: boolean;
 
+    @Prop({ default: false })
+    private sort_id_descending: boolean;
+
     @Prop({ default: null })
     private embed_filter: { [field_id: string]: any };
 
@@ -107,6 +110,7 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     public async mounted() {
+        console.log(this.sort_id_descending);
         this.loadDatatable();
 
         // Activate tooltip
@@ -1302,7 +1306,11 @@ export default class DatatableComponent extends VueComponentBase {
             // pagination: { chunk: 10, dropdown: false },
             headings: this.datatable_columns_labels,
             skin: 'table-striped table-hover',
-            customSorting: this.customSorting
+            customSorting: this.customSorting,
+            orderBy: {
+                // column: 'id',
+                ascending: (this.sort_id_descending) ? false : true
+            }
         };
     }
 
