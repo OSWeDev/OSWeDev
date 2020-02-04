@@ -1567,7 +1567,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let request = null;
             let segmentations_tables_by_segmented_value: { [segmented_value: number]: string } = {};
 
-            // On cherche dans le matroid le field qui est la segmentation. Si on a pas, on refuse de chercher en masse
+            // On cherche dans le matroid le field qui est la segmentation. Si on a pas, on info qu'on peut éviter de faire une recherche en masse peut-être
             let segmented_matroid_filed_id = moduleTable.table_segmented_field.field_id;
             for (let matroid_field_id in fields_ids_mapper) {
                 let field_id = fields_ids_mapper[matroid_field_id];
@@ -1578,28 +1578,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             }
 
-            if (!segmented_matroid_filed_id) {
-                throw new Error('Not Implemented');
-            }
+            let segmentations: Array<IRange<any>> = [];
+            if ((!segmented_matroid_filed_id) || (!matroid[segmented_matroid_filed_id]) || (!matroid[segmented_matroid_filed_id].length)) {
+                ConsoleHandler.getInstance().log('filterVosByMatroid sur table segmentée - ' + moduleTable.full_name + ' - sans info de segment sur le matroid');
+                segmentations_tables_by_segmented_value = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(moduleTable);
+            } else {
+                segmentations = matroid[segmented_matroid_filed_id];
 
-            let segmentations: Array<IRange<any>> = matroid[segmented_matroid_filed_id];
+                // Si c'est un matroid on devrait avoir un cas simple de ranges directement mais on pourrait adapter à tous les types de field matroid
+                // let matroid_moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[matroid._type];
+                // let matroid_field = matroid_moduleTable.getFieldFromId(segmented_matroid_filed_id);
 
-            // Si c'est un matroid on devrait avoir un cas simple de ranges directement mais on pourrait adapter à tous les types de field matroid
-            // let matroid_moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[matroid._type];
-            // let matroid_field = matroid_moduleTable.getFieldFromId(segmented_matroid_filed_id);
-
-            // switch (matroid_field.field_type) {
-            // }
-
-            if (segmentations && segmentations.length) {
+                // switch (matroid_field.field_type) {
+                // }
 
                 await RangeHandler.getInstance().foreach_ranges(segmentations, (segmented_value) => {
 
                     let table_name = moduleTable.get_segmented_name(segmented_value);
                     segmentations_tables_by_segmented_value[segmented_value] = table_name;
                 });
-            } else {
-                throw new Error('Not Implemented');
             }
 
             for (let i in segmentations_tables_by_segmented_value) {
@@ -2101,7 +2098,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_month:
                 res += table_name + '.' + field.field_id + "::date <@ " + ranges_query;
                 break;
-            case ModuleTableField.FIELD_TYPE_daterange: // TODO FIXME
             case ModuleTableField.FIELD_TYPE_timestamp: // TODO FIXME
             case ModuleTableField.FIELD_TYPE_timewithouttimezone: // TODO FIXME
                 res += table_name + '.' + field.field_id + " <@ " + ranges_query;
@@ -2109,13 +2105,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_geopoint:
                 // TODO
                 break;
+            case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_daterange: // TODO FIXME
+            case ModuleTableField.FIELD_TYPE_hourrange:
+                res += table_name + '.' + field.field_id + " <@ " + ranges_query;
+                break;
+
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
-            case ModuleTableField.FIELD_TYPE_tsrange: // vraiment ?
-            case ModuleTableField.FIELD_TYPE_hourrange: // vraiment ?
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             default:
                 res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + ")";
