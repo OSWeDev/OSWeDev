@@ -2113,6 +2113,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             case ModuleTableField.FIELD_TYPE_int_array:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
+                res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + "::numeric[])";
+                break;
+
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
