@@ -2118,7 +2118,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             default:
-                res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + ")";
+                res += ranges_query + " @> ALL (" + table_name + '.' + field.field_id + "::numrange[])";
                 break;
         }
 
