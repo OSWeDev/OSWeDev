@@ -84,6 +84,9 @@ export default class CRUDComponent extends VueComponentBase {
     @Prop({ default: null })
     private embed_filter: { [field_id: string]: any };
 
+    @Prop({ default: null })
+    private classname: string;
+
     @Prop({ default: true })
     private show_insert_or_update_target: boolean;
 

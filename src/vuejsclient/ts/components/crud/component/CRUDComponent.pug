@@ -2,7 +2,7 @@ include ../../../../views/mixins/loading.pug
 
 .crud-wrapper
     +loading()
-        .crud-table-wrapper
+        .crud-table-wrapper(:class="classname")
             .table-title
                 h5(v-if='!embed') {{ CRUDTitle }}
                 .btn-group.d-print-none
