@@ -326,12 +326,12 @@ export default class CRUDComponent extends VueComponentBase {
         await this.reload_datas();
     }
 
-    private showCrudModal(infos: { vo_type: string, action: string }) {
-        this.$emit('show-crud-modal', infos);
+    private showCrudModal(vo_type: string, action: string) {
+        this.$emit('show-crud-modal', vo_type, action);
     }
 
     private hideCrudModal(vo_type: string, action: string) {
-        this.$emit('hide-crud-modal', { vo_type, action });
+        this.$emit('hide-crud-modal', vo_type, action);
     }
 
     private prepareNewVO() {
@@ -551,6 +551,7 @@ export default class CRUDComponent extends VueComponentBase {
     private async createVO() {
         this.snotify.info(this.label('crud.create.starting'));
         this.creating_vo = true;
+        let createdVO = null;
 
         if ((!this.newVO) || (this.newVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
             this.snotify.error(this.label('crud.create.errors.newvo_failure'));
@@ -576,7 +577,7 @@ export default class CRUDComponent extends VueComponentBase {
             let id = res.id ? parseInt(res.id.toString()) : null;
             this.newVO.id = id;
 
-            let createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, id);
+            createdVO = await ModuleDAO.getInstance().getVoById<any>(this.crud.readDatatable.API_TYPE_ID, id);
             if ((!createdVO) || (createdVO.id !== id) || (createdVO._type !== this.crud.readDatatable.API_TYPE_ID)) {
                 this.snotify.error(this.label('crud.create.errors.create_failure'));
                 this.creating_vo = false;
@@ -596,19 +597,18 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.snotify.success(this.label('crud.create.success'));
-        if (!this.embed) {
-            this.$router.push(this.callback_route);
-        }
+
         this.creating_vo = false;
 
-        await this.callCallbackFunctionCreate();
-
         if (this.embed) {
+            this.$emit(this.newVO._type + '_create', createdVO.id);
             if (this.crud.reset_newvo_after_each_creation) {
                 this.prepareNewVO();
             }
-
+            this.hideCrudModal(this.newVO._type, 'create');
         } else {
+            this.$router.push(this.callback_route);
+            await this.callCallbackFunctionCreate();
             if (CRUDComponentManager.getInstance().cruds_by_api_type_id[this.crud.api_type_id].reset_newvo_after_each_creation) {
                 this.prepareNewVO();
             }
@@ -814,7 +814,13 @@ export default class CRUDComponent extends VueComponentBase {
         }
         this.updating_vo = false;
 
-        await this.callCallbackFunctionUpdate();
+        if (this.embed) {
+            this.$emit(this.newVO._type + '_update', this.selectedVO.id);
+            this.hideCrudModal(this.newVO._type, 'update');
+        } else {
+            await this.callCallbackFunctionUpdate();
+        }
+
     }
 
     private async deleteVO() {
@@ -850,7 +856,10 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         this.snotify.success(this.label('crud.delete.success'));
-        if (!this.embed) {
+        if (this.embed) {
+            this.$emit(this.newVO._type + '_delete', this.selectedVO.id);
+            this.hideCrudModal(this.newVO._type, 'delete');
+        } else {
             this.$router.push(this.callback_route);
         }
         this.deleting_vo = false;

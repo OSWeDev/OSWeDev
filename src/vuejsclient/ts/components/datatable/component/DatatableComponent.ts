@@ -110,7 +110,6 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     public async mounted() {
-        console.log(this.sort_id_descending);
         this.loadDatatable();
 
         // Activate tooltip
@@ -227,6 +226,37 @@ export default class DatatableComponent extends VueComponentBase {
 
             // at the moment the "embed" CRUD doesn't handle all types of fields filtering
             if (!!this.embed_filter && !!this.embed_filter[field.datatable_field_uid]) {
+                if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+                    let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
+
+                    switch (simpleField.moduleTableField.field_type) {
+                        case ModuleTableField.FIELD_TYPE_date:
+                        case ModuleTableField.FIELD_TYPE_daterange:
+                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        case ModuleTableField.FIELD_TYPE_day:
+                        case ModuleTableField.FIELD_TYPE_timestamp:
+                        case ModuleTableField.FIELD_TYPE_month:
+                            if (!!this.embed_filter[field.datatable_field_uid].start) {
+
+                                this.preload_custom_filters.push(field.datatable_field_uid);
+
+                                if (!this.custom_filters_values[field.datatable_field_uid]) {
+                                    this.custom_filters_values[field.datatable_field_uid] = {};
+                                }
+                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].start));
+                            }
+                            if (!!this.embed_filter[field.datatable_field_uid].end) {
+
+                                this.preload_custom_filters.push(field.datatable_field_uid);
+
+                                if (!this.custom_filters_values[field.datatable_field_uid]) {
+                                    this.custom_filters_values[field.datatable_field_uid] = {};
+                                }
+                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].end));
+                            }
+                            continue;
+                    }
+                }
 
                 if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
                     if (!this.custom_filters_values[field.datatable_field_uid]) {
@@ -294,7 +324,7 @@ export default class DatatableComponent extends VueComponentBase {
             vo = this.getStoredDatas[this.datatable.API_TYPE_ID][vo_id];
         }
         this.setSelectedVOs([vo]);
-        this.$emit('show-crud-modal', { vo_type: vo._type, action: action });
+        this.$emit('show-crud-modal', vo._type, action);
     }
 
     get exportable_datatable_columns(): string[] {
@@ -1308,7 +1338,7 @@ export default class DatatableComponent extends VueComponentBase {
             skin: 'table-striped table-hover',
             customSorting: this.customSorting,
             orderBy: {
-                // column: 'id',
+                column: 'id',
                 ascending: (this.sort_id_descending) ? false : true
             }
         };

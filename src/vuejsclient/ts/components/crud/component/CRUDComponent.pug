@@ -47,7 +47,7 @@ include ../../../../views/mixins/loading.pug
         .modal.fade.in(:id="(embed) ? 'createData_'+crud.readDatatable.API_TYPE_ID : 'createData' ", v-if='!isModuleParamTable', tabindex='-1', role='dialog')
             .modal-dialog.modal-lg(role='document')
                 .modal-content
-                    form(v-on:submit.prevent="createVO")
+                    form(v-on:submit.prevent="createVO", @keyup.enter="createVO")
                         .modal-header
                             h4.modal-title {{ label('crud.create.modal.title') }}
                             template(v-if="embed")
