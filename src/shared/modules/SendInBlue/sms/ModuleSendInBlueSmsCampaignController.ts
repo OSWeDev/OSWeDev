@@ -1,3 +1,4 @@
+import { Moment } from 'moment';
 import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
 import InsertOrDeleteQueryResult from '../../DAO/vos/InsertOrDeleteQueryResult';
 import ModuleSendInBlueListController from '../list/ModuleSendInBlueListController';
@@ -35,8 +36,8 @@ export default class ModuleSendInBlueSmsCampaignController {
         return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueSmsCampaignsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN);
     }
 
-    public async createAndSend(campaignName: string, content: string, contacts: SendInBlueContactVO[], testSms: boolean = false, phoneTest: SendInBlueSmsFormatVO = null): Promise<boolean> {
-        let campaign: SendInBlueSmsCampaignDetailVO = await this.create(campaignName, content, contacts);
+    public async createAndSend(campaignName: string, content: string, contacts: SendInBlueContactVO[], scheduledAt: Moment, testSms: boolean = false, phoneTest: SendInBlueSmsFormatVO = null): Promise<boolean> {
+        let campaign: SendInBlueSmsCampaignDetailVO = await this.create(campaignName, content, contacts, scheduledAt);
 
         if (!campaign) {
             return false;
@@ -45,14 +46,14 @@ export default class ModuleSendInBlueSmsCampaignController {
         return this.send(campaign.id, testSms, phoneTest);
     }
 
-    public async create(campaignName: string, content: string, contacts: SendInBlueContactVO[]): Promise<SendInBlueSmsCampaignDetailVO> {
+    public async create(campaignName: string, content: string, contacts: SendInBlueContactVO[], scheduledAt: Moment): Promise<SendInBlueSmsCampaignDetailVO> {
         if (!campaignName || !content || !contacts || !contacts.length) {
             return null;
         }
 
         let list: SendInBlueListDetailVO = await ModuleSendInBlueListController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
 
-        if (!list) {
+        if (!list || !content || !scheduledAt) {
             return null;
         }
 
@@ -68,6 +69,7 @@ export default class ModuleSendInBlueSmsCampaignController {
                 sender: await ModuleSendInBlueController.getInstance().getSenderNameSMS(),
                 content: content,
                 recipients: recipientsData,
+                scheduledAt: scheduledAt,
             }
         );
 

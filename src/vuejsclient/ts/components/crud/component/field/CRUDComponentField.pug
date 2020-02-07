@@ -15,3 +15,6 @@ include ../../../../../views/mixins/loading.pug
 
             template(v-else-if="(field.type == 'OneToMany') || (field.type == 'ManyToMany')")
                 include ./onetomany_input.pug
+            
+            template(v-if="description")
+                .description.italic.mb-2 {{ description }}
