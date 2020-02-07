@@ -34,6 +34,7 @@ import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
+import ModulePushDataServer from '../PushData/ModulePushDataServer';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -451,6 +452,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'LogAs'
         }, 'fields.labels.ref.user.__component__impersonate.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }
 
     public registerServerApiHandlers() {
@@ -794,13 +796,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private handleTriggerUserVOCreate(vo: UserVO): boolean {
+    private async handleTriggerUserVOCreate(vo: UserVO): Promise<boolean> {
 
 
         if ((!vo) || (!vo.password)) {
             return true;
         }
-
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [vo.email]);
+        if (!!user) {
+            this.sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
+            return false;
+        }
         ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
 
         return true;
@@ -1278,5 +1284,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
         }
         return res;
+    }
+
+    private async sendErrorMsg(msg_translatable_code: string) {
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        let uid: number = httpContext ? httpContext.get('UID') : null;
+
+        ModulePushDataServer.getInstance().notifySimpleERROR(uid, msg_translatable_code);
     }
 }
