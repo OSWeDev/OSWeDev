@@ -63,6 +63,8 @@ export default class DatatableComponent extends VueComponentBase {
 
     @Prop({ default: false })
     private embed: boolean;
+    @Prop({ default: true })
+    private display_filters: boolean;
     @Prop({ default: null })
     private perpage: number;
 

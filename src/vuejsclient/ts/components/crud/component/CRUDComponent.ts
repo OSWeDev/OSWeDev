@@ -81,6 +81,9 @@ export default class CRUDComponent extends VueComponentBase {
     @Prop({ default: false })
     private sort_id_descending: boolean;
 
+    @Prop({ default: true })
+    private display_filters: boolean;
+
     @Prop({ default: null })
     private embed_filter: { [field_id: string]: any };
 
