@@ -6,6 +6,7 @@ import { getStoreAccessors } from "vuex-typescript";
 import NotificationVO from '../../../../../shared/modules/PushData/vos/NotificationVO';
 import IStoreModule from '../../../store/IStoreModule';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import { debounce } from 'lodash';
 
 export type NotificationContext = ActionContext<INotificationState, any>;
 
@@ -13,6 +14,7 @@ export interface INotificationState {
     notifications_by_ids: { [id: number]: NotificationVO };
     is_updating: boolean;
     notif_viewer_opened: boolean;
+    mark_as_read: NotificationVO[];
 }
 
 
@@ -34,6 +36,7 @@ export default class NotificationStore implements IStoreModule<INotificationStat
     public mutations: MutationTree<INotificationState>;
     public actions: ActionTree<INotificationState, NotificationContext>;
     public namespaced: boolean = true;
+    private debounced_read_notifs = debounce(this.read_notifs, 200);
 
     protected constructor() {
         this.module_name = "NotificationStore";
@@ -42,7 +45,8 @@ export default class NotificationStore implements IStoreModule<INotificationStat
         this.state = {
             notifications_by_ids: {},
             is_updating: false,
-            notif_viewer_opened: false
+            notif_viewer_opened: false,
+            mark_as_read: []
         };
 
 
@@ -74,10 +78,12 @@ export default class NotificationStore implements IStoreModule<INotificationStat
             set_notifications_by_ids(state: INotificationState, notifications_by_ids: { [id: number]: NotificationVO }) { state.notifications_by_ids = notifications_by_ids; },
             // delete_notification(state: INotificationState, notification: NotificationVO) { Vue.delete(state.notifications_by_ids as any, notification.id); },
             add_notification(state: INotificationState, notification: NotificationVO) { Vue.set(state.notifications_by_ids as any, notification.id, notification); },
-            async read_notification(state: INotificationState, notification: NotificationVO) {
+            read_notification(state: INotificationState, notification: NotificationVO) {
                 state.notifications_by_ids[notification.id].read = true;
                 state.notifications_by_ids[notification.id].read_date = moment();
-                await ModuleDAO.getInstance().insertOrUpdateVO(state.notifications_by_ids[notification.id]);
+
+                state.mark_as_read.push(state.notifications_by_ids[notification.id]);
+                NotificationStore.getInstance().debounced_read_notifs();
             },
             set_is_updating(state: INotificationState, is_updating: boolean) { state.is_updating = is_updating; },
             set_notif_viewer_opened(state: INotificationState, notif_viewer_opened: boolean) { state.notif_viewer_opened = notif_viewer_opened; },
@@ -93,6 +99,14 @@ export default class NotificationStore implements IStoreModule<INotificationStat
             set_is_updating(context: NotificationContext, is_updating: boolean) { commit_set_is_updating(context, is_updating); },
             set_notif_viewer_opened(context: NotificationContext, notif_viewer_opened: boolean) { commit_set_notif_viewer_opened(context, notif_viewer_opened); },
         };
+    }
+
+    private async read_notifs() {
+        if ((!this.state.mark_as_read) || (!this.state.mark_as_read.length)) {
+            return;
+        }
+        await ModuleDAO.getInstance().insertOrUpdateVOs(this.state.mark_as_read);
+        this.state.mark_as_read = [];
     }
 }
 

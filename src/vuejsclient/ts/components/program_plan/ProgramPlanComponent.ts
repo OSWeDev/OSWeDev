@@ -1048,10 +1048,10 @@ export default class ProgramPlanComponent extends VueComponentBase {
                 labelText: this.label('programplan.fc.target.name'),
                 field: 'target_name',
                 group: true,
-                width: '65%'
+                width: ProgramPlanControllerBase.getInstance().resourceColumns_target_name_width
             });
             //facilitator_column.group = true;
-            facilitator_column.width = '35%';
+            facilitator_column.width = ProgramPlanControllerBase.getInstance().resourceColumns_facilitator_name_width;
         }
 
         resourceColumns.push(facilitator_column);
@@ -1122,7 +1122,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
             },
             navLinks: false,
             eventOverlap: false,
-            resourceAreaWidth: '400px',
+            resourceAreaWidth: ProgramPlanControllerBase.getInstance().resourceAreaWidth,
             resourceLabelText: this.label('programplan.fc.resourcelabeltext.name'),
             slotLabelFormat,
             resourceColumns,
