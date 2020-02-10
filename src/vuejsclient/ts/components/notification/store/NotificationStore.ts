@@ -77,7 +77,7 @@ export default class NotificationStore implements IStoreModule<INotificationStat
             async read_notification(state: INotificationState, notification: NotificationVO) {
                 state.notifications_by_ids[notification.id].read = true;
                 state.notifications_by_ids[notification.id].read_date = moment();
-                await ModuleDAO.getInstance().insertOrUpdateVO(notification);
+                await ModuleDAO.getInstance().insertOrUpdateVO(state.notifications_by_ids[notification.id]);
             },
             set_is_updating(state: INotificationState, is_updating: boolean) { state.is_updating = is_updating; },
             set_notif_viewer_opened(state: INotificationState, notif_viewer_opened: boolean) { state.notif_viewer_opened = notif_viewer_opened; },
