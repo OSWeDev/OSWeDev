@@ -547,9 +547,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // UNION ALL plutôt que x requetes non ? => attention dans ce cas la query doit surtout pas avoir un ;
                 //  Grosse blague TODO FIXME : quid d'un limit ???? il se lance à chaque requête... résultat on a bcp plus de res que la limit
-                let segment_res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
-                for (let i in segment_res) {
-                    segmented_res.push(segment_res[i]);
+
+                try {
+
+                    let segment_res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
+                    for (let i in segment_res) {
+                        segmented_res.push(segment_res[i]);
+                    }
+                } catch (error) {
                 }
             }, moduleTable.table_segmented_field_segment_type);
 

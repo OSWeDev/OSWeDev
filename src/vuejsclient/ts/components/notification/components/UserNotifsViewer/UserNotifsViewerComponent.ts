@@ -33,7 +33,13 @@ export default class UserNotifsViewerComponent extends VueComponentBase {
 
         this.set_notif_viewer_opened(false);
         for (let i in this.get_notifications_by_ids) {
+
             let notif = this.get_notifications_by_ids[i];
+
+            if (notif.read) {
+                continue;
+            }
+
             this.read_notification(notif);
         }
     }

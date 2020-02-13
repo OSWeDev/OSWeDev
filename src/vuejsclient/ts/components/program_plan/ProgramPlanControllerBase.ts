@@ -26,6 +26,10 @@ export default abstract class ProgramPlanControllerBase {
 
     public reset_rdvs_debouncer: number = 500;
 
+    public resourceAreaWidth: string = '400px';
+    public resourceColumns_target_name_width: string = '65%';
+    public resourceColumns_facilitator_name_width: string = '35%';
+
     public customOverviewProgramPlanComponent = null;
 
     protected constructor(
