@@ -1,8 +1,8 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { Component } from "vue-property-decorator";
-import './AccessPolicyResetComponent.scss';
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
+import './AccessPolicyResetComponent.scss';
 
 @Component({
     template: require('./AccessPolicyResetComponent.pug')
