@@ -1,11 +1,9 @@
-import ModuleServerBase from '../ModuleServerBase';
 import * as XLSX from 'xlsx';
 import { WorkBook } from 'xlsx';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import PostAPIDefinition from '../../../shared/modules/API/vos/PostAPIDefinition';
-import ExportDataToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
-import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
+import ExportDataToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
+import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -26,7 +24,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
     }
 
-    private async exportDataToXLSX(params: ExportDataToXLSXParamVO): Promise<any> {
+    public async exportDataToXLSX(params: ExportDataToXLSXParamVO): Promise<any> {
 
         if ((!params) || (!params.filename) || (!params.datas) || (!params.column_labels) || (!params.ordered_column_list)) {
             return null;
@@ -55,7 +53,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         for (let r in params.datas) {
             let row_data = params.datas[r];
-            let ws_row = [];
+            ws_row = [];
 
             for (let i in params.ordered_column_list) {
                 let data_field_name: string = params.ordered_column_list[i];
