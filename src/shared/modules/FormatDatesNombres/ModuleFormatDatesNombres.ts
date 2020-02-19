@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { isNumber } from 'util';
+import { ARRONDI_TYPE_CEIL, ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_ROUND } from '../../tools/Filters';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
 
@@ -259,12 +260,23 @@ export default class ModuleFormatDatesNombres extends Module {
      * @param numberToFormat
      * @param arrondi
      */
-    public formatNumber_arrondi(numberToFormat, arrondi): string {
+    public formatNumber_arrondi(numberToFormat, arrondi, arrondi_type: number): string {
         if (arrondi === true) {
             arrondi = 0.5;
         }
+        let numberRound = 0;
 
-        let numberRound = Math.round(numberToFormat / arrondi) * arrondi;
+        switch (arrondi_type) {
+            case ARRONDI_TYPE_CEIL:
+                numberRound = Math.ceil(numberToFormat / arrondi) * arrondi;
+                break;
+            case ARRONDI_TYPE_FLOOR:
+                numberRound = Math.floor(numberToFormat / arrondi) * arrondi;
+                break;
+            case ARRONDI_TYPE_ROUND:
+                numberRound = Math.round(numberToFormat / arrondi) * arrondi;
+                break;
+        }
 
         let entier = Math.floor(numberRound);
         let decimale = numberRound - entier;
