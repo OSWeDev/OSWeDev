@@ -194,7 +194,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 if (!this.custom_filters_values[field.datatable_field_uid]) {
                                     this.custom_filters_values[field.datatable_field_uid] = {};
                                 }
-                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]));
+                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true));
                             }
                             if (j == 'FILTER__' + field.datatable_field_uid + '__END') {
 
@@ -203,7 +203,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 if (!this.custom_filters_values[field.datatable_field_uid]) {
                                     this.custom_filters_values[field.datatable_field_uid] = {};
                                 }
-                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]));
+                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.$route.query[j]).utc(true));
                             }
                             continue;
                     }
@@ -1102,8 +1102,8 @@ export default class DatatableComponent extends VueComponentBase {
                                             dateEnd = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(parts[1].trim());
                                         }
 
-                                        let queryStart = moment(query.start);
-                                        let queryEnd = moment(query.end);
+                                        let queryStart = moment(query.start).utc(true);
+                                        let queryEnd = moment(query.end).utc(true);
                                         if (((!query.start) || (!dateEnd) || (!dateEnd.isBefore(queryStart))) && ((!query.end) || (!dateStart) || (!dateStart.isAfter(queryEnd)))) {
                                             return true;
                                         }
@@ -1124,8 +1124,8 @@ export default class DatatableComponent extends VueComponentBase {
                                     }
                                     let date_tstz: Moment = self.getStoredDatas[self.datatable.API_TYPE_ID][row['id']][field.datatable_field_uid];
 
-                                    let queryStart_tstz = moment(query.start);
-                                    let queryEnd_tstz = moment(query.end);
+                                    let queryStart_tstz = moment(query.start).utc(true);
+                                    let queryEnd_tstz = moment(query.end).utc(true);
 
                                     if (((queryStart_tstz && queryStart_tstz.isValid()) || (queryEnd_tstz && queryEnd_tstz.isValid())) && ((!date_tstz) || (!date_tstz.isValid()))) {
                                         return false;
@@ -1147,8 +1147,8 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     let date: Moment = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(row[field.datatable_field_uid]);
 
-                                    let queryStart_ = moment(query.start);
-                                    let queryEnd_ = moment(query.end);
+                                    let queryStart_ = moment(query.start).utc(true);
+                                    let queryEnd_ = moment(query.end).utc(true);
 
                                     if (((queryStart_ && queryStart_.isValid()) || (queryEnd_ && queryEnd_.isValid())) && ((!date) || (!date.isValid()))) {
                                         return false;
@@ -1167,13 +1167,13 @@ export default class DatatableComponent extends VueComponentBase {
                                         return true;
                                     }
 
-                                    date = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(moment(row[field.datatable_field_uid], 'MMM YYYY'));
-                                    queryStart_ = moment(query.start);
+                                    date = ModuleFormatDatesNombres.getInstance().getMomentFromFormatted_FullyearMonthDay(moment(row[field.datatable_field_uid], 'MMM YYYY').utc(true));
+                                    queryStart_ = moment(query.start).utc(true);
                                     if (query.start && date.isBefore(queryStart_)) {
                                         return false;
                                     }
 
-                                    queryEnd_ = moment(query.end);
+                                    queryEnd_ = moment(query.end).utc(true);
                                     if (query.end && date.isAfter(queryEnd_)) {
                                         return false;
                                     }

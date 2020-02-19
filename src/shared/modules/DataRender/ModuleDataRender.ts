@@ -254,7 +254,7 @@ export default class ModuleDataRender extends Module {
                 continue;
             }
 
-            if (!TimeSegmentHandler.getInstance().isEltInSegment(moment(row.data_dateindex), timeSegment)) {
+            if (!TimeSegmentHandler.getInstance().isEltInSegment(moment(row.data_dateindex).utc(true), timeSegment)) {
                 continue;
             }
 
@@ -348,7 +348,7 @@ export default class ModuleDataRender extends Module {
 
         let value: number = 0;
 
-        let current_cumulSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(cumulSegment.dateIndex), type_segmentation);
+        let current_cumulSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(cumulSegment.dateIndex).utc(true), type_segmentation);
         let end_cumul_dateindex: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(cumulSegment);
         while (end_cumul_dateindex.isSameOrAfter(TimeSegmentHandler.getInstance().getEndTimeSegment(current_cumulSegment))) {
 

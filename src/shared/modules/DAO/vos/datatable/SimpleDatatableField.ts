@@ -45,13 +45,13 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
 
-                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(field_value).utc(true), moduleTableField, true));
 
                 case ModuleTableField.FIELD_TYPE_month:
-                    return moment(field_value).format('MMM YYYY');
+                    return moment(field_value).utc(true).format('MMM YYYY');
 
                 case ModuleTableField.FIELD_TYPE_timestamp:
-                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value)) + ' ' + moment(field_value).format('HH:mm:ss');
+                    return ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(field_value).utc(true)) + ' ' + moment(field_value).utc(true).format('HH:mm:ss');
 
                 case ModuleTableField.FIELD_TYPE_daterange:
 
@@ -78,11 +78,11 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                         res += (res != "") ? ", " : "";
                         if (parts[0] && parts[0].trim() && (parts[0].trim() != "")) {
-                            res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(parts[0].trim()));
+                            res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(parts[0].trim()).utc(true));
                         }
                         res += '-';
                         if (parts[1] && parts[1].trim() && (parts[1].trim() != "")) {
-                            res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(parts[1].trim()), moduleTableField, true));
+                            res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(this.getMomentDateFieldInclusif(moment(parts[1].trim()).utc(true), moduleTableField, true));
                         }
                     }
 
@@ -185,16 +185,16 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {
                         case TimeSegment.TYPE_MONTH:
-                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('month').utc().format('Y-MM-DD');
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('month').utc(true).format('Y-MM-DD');
                         case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('day').utc().format('Y-MM-DD');
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('day').utc(true).format('Y-MM-DD');
                         case TimeSegment.TYPE_WEEK:
-                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('isoWeek').utc().format('Y-MM-DD');
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).startOf('isoWeek').utc(true).format('Y-MM-DD');
                         case TimeSegment.TYPE_YEAR:
                             return field_value.year();
                         case TimeSegment.TYPE_DAY:
                         default:
-                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).utc().format('Y-MM-DD');
+                            return this.getMomentDateFieldInclusif(field_value, moduleTableField, true).utc(true).format('Y-MM-DD');
                     }
 
                 case ModuleTableField.FIELD_TYPE_textarea:
@@ -235,9 +235,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
-                    return DateHandler.getInstance().formatDayForVO(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                    return DateHandler.getInstance().formatDayForVO(this.getMomentDateFieldInclusif(moment(field_value).utc(true), moduleTableField, true));
                 case ModuleTableField.FIELD_TYPE_month:
-                    return DateHandler.getInstance().formatMonthFromVO(this.getMomentDateFieldInclusif(moment(field_value), moduleTableField, true));
+                    return DateHandler.getInstance().formatMonthFromVO(this.getMomentDateFieldInclusif(moment(field_value).utc(true), moduleTableField, true));
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                 case ModuleTableField.FIELD_TYPE_hourrange:
@@ -317,9 +317,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_day:
-                    return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value), moduleTableField, false)) : null;
+                    return value ? DateHandler.getInstance().formatDayForSQL(this.getMomentDateFieldInclusif(moment(value).utc(true), moduleTableField, false)) : null;
                 case ModuleTableField.FIELD_TYPE_month:
-                    return value ? DateHandler.getInstance().formatDayForSQL(moment(value).startOf('month')) : null;
+                    return value ? DateHandler.getInstance().formatDayForSQL(moment(value).utc(true).startOf('month')) : null;
 
                 case ModuleTableField.FIELD_TYPE_int_array:
                     return '{' + value.join() + '}';
@@ -333,16 +333,16 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_tstz:
                     switch (moduleTableField.segmentation_type) {
                         case TimeSegment.TYPE_MONTH:
-                            return value ? moment(value).startOf('month').utc() : null;
+                            return value ? moment(value).startOf('month').utc(true) : null;
                         case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(true), moduleTableField, false) : null;
                         case TimeSegment.TYPE_WEEK:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('isoWeek').utc(), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('isoWeek').utc(true), moduleTableField, false) : null;
                         case TimeSegment.TYPE_YEAR:
-                            return moment().year(parseInt(value)).startOf('year').utc();
+                            return moment().year(parseInt(value)).startOf('year').utc(true);
                         case TimeSegment.TYPE_DAY:
                         default:
-                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(), moduleTableField, false) : null;
+                            return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(true), moduleTableField, false) : null;
                     }
 
                 case ModuleTableField.FIELD_TYPE_textarea:
@@ -386,7 +386,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     private static getMomentDateFieldInclusif(momentSrc: Moment, moduleTableField: ModuleTableField<any>, is_data_to_ihm: boolean): Moment {
-        let date = moment(momentSrc);
+        let date = moment(momentSrc).utc(true);
         if (moduleTableField.is_inclusive_data != moduleTableField.is_inclusive_ihm) {
             if (moduleTableField.is_inclusive_data) {
 

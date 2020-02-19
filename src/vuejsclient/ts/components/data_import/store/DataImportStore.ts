@@ -51,7 +51,7 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
             api_type_id_tester: (api_type_id: string) => true,
             segment_type: TimeSegment.TYPE_MONTH,
             segment_offset: 9,
-            lower_segment: TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(), TimeSegment.TYPE_MONTH),
+            lower_segment: TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), TimeSegment.TYPE_MONTH),
             segment_number: 12
         };
 
@@ -67,13 +67,13 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
 
                 let lower_time_segment = state.lower_segment ? state.lower_segment : null;
                 if (!lower_time_segment) {
-                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(), state.segment_type);
+                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), state.segment_type);
 
                     lower_time_segment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(lower_time_segment, state.segment_type, medium_segment_i);
                 }
 
                 if (lower_time_segment.type != state.segment_type) {
-                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(lower_time_segment.dateIndex), state.segment_type);
+                    lower_time_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(lower_time_segment.dateIndex).utc(true), state.segment_type);
                 }
 
                 let segment = lower_time_segment;
@@ -129,7 +129,7 @@ export default class DataImportStore implements IStoreModule<IDataImportState, D
                 state.api_type_id_tester = (api_type_id: string) => true;
                 state.segment_type = TimeSegment.TYPE_MONTH;
                 state.segment_offset = 9;
-                state.lower_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(), TimeSegment.TYPE_MONTH);
+                state.lower_segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), TimeSegment.TYPE_MONTH);
                 state.segment_number = 12;
             },
 

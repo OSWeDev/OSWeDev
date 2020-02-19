@@ -96,8 +96,8 @@ export default class HourHandler {
             return null;
         }
 
-        let start_m: moment.Moment = moment().startOf('day').add(start);
-        let end_m: moment.Moment = moment().startOf('day').add(end);
+        let start_m: moment.Moment = moment().utc(true).startOf('day').add(start);
+        let end_m: moment.Moment = moment().utc(true).startOf('day').add(end);
 
         let diff: number = end_m.diff(start_m, 'seconds');
 

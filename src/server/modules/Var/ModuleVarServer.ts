@@ -347,7 +347,11 @@ export default class ModuleVarServer extends ModuleServerBase {
                     return null;
                 }
 
-                let local_res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + full_name + " t WHERE " + filter_by_matroid_clause + ";");
+                let local_res = null;
+                try {
+                    local_res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + full_name + " t WHERE " + filter_by_matroid_clause + ";");
+                } catch (error) {
+                }
 
                 if ((!local_res) || (!local_res[0]) || (local_res[0]['res'] == null) || (typeof local_res[0]['res'] == 'undefined')) {
                     local_res = null;
@@ -374,7 +378,10 @@ export default class ModuleVarServer extends ModuleServerBase {
                 return null;
             }
 
-            res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause + ";");
+            try {
+                res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause + ";");
+            } catch (error) {
+            }
 
             if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
                 return null;

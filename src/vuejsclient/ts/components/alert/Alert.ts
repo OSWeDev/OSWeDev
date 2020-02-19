@@ -15,7 +15,7 @@ export default class Alert {
         public translatable_code: string,
         public type: number = Alert.TYPE_INFO,
         public translation_params: any = null,
-        public creation_date: Moment = moment()
+        public creation_date: Moment = moment().utc(true)
     ) { }
 
     public pin(): Alert {

@@ -33,7 +33,7 @@ export default class PasswordReset {
             return false;
         }
 
-        if (moment(user.recovery_expiration).isBefore(moment())) {
+        if (moment(user.recovery_expiration).utc(true).isBefore(moment().utc(true))) {
             return false;
         }
 

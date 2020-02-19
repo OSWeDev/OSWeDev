@@ -218,11 +218,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private user = VueAppController.getInstance().data_user;
     private fcEvents: EventObjectInput[] = [];
 
-    private calendar_date: string = DateHandler.getInstance().formatDayForIndex(moment());
+    private calendar_date: string = DateHandler.getInstance().formatDayForIndex(moment().utc(true));
     private viewname: string = 'timelineWeek';
 
     private fcSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-        moment(this.calendar_date),
+        moment(this.calendar_date).utc(true),
         (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
 
     private custom_filter_component = ProgramPlanControllerBase.getInstance().customFilterComponent;
@@ -865,12 +865,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
     @Watch('viewname')
     private onchange_calendar_date() {
 
-        if (!moment(this.calendar_date).isValid()) {
+        if (!moment(this.calendar_date).utc(true).isValid()) {
             return;
         }
 
         let segment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(
-            moment(this.calendar_date),
+            moment(this.calendar_date).utc(true),
             (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
 
         if (!TimeSegmentHandler.getInstance().segmentsAreEquivalent(segment, this.fcSegment)) {
@@ -912,8 +912,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         let new_facilitator_id: number = null;
         let new_target_id: number = null;
-        let new_start_time: moment.Moment = moment(event.start);
-        let new_end_time: moment.Moment = moment(event.end);
+        let new_start_time: moment.Moment = moment(event.start).utc(true);
+        let new_end_time: moment.Moment = moment(event.end).utc(true);
 
         if (!!ModuleProgramPlanBase.getInstance().target_facilitator_type_id) {
             let new_target_facilitator_id: number = parseInt(event.resourceId);
@@ -981,12 +981,12 @@ export default class ProgramPlanComponent extends VueComponentBase {
                             continue;
                         }
 
-                        let min_moment = moment(tmp_start);
-                        let max_moment = moment(new_start_time);
+                        let min_moment = moment(tmp_start).utc(true);
+                        let max_moment = moment(new_start_time).utc(true);
                         if (tmp_start.isAfter(new_start_time)) {
 
-                            min_moment = moment(new_start_time);
-                            max_moment = moment(tmp_start);
+                            min_moment = moment(new_start_time).utc(true);
+                            max_moment = moment(tmp_start).utc(true);
                         }
 
                         if (all_rdv.start_time.isBetween(min_moment, max_moment)) {
@@ -1081,9 +1081,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         return {
             locale: 'fr',
-            timeZone: 'locale',
+            timeZone: 'UTC',
             dayNamesShort: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
-            now: moment().format('Y-MM-DD'),
+            now: moment().utc(true).format('Y-MM-DD'),
             defaultDate: this.calendar_date,
             schedulerLicenseKey: '0801712196-fcs-1461229306',
             editable: this.can_edit_any,
@@ -1187,8 +1187,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         try {
             rdv = ProgramPlanControllerBase.getInstance().getRDVNewInstance();
-            rdv.start_time = moment(event.start);
-            rdv.end_time = moment(event.end);
+            rdv.start_time = moment(event.start).utc(true);
+            rdv.end_time = moment(event.end).utc(true);
 
             if (!!ModuleProgramPlanBase.getInstance().program_type_id) {
                 rdv.program_id = this.program_id;
@@ -1634,13 +1634,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private get_printable_table_weeks() {
         let res = [];
 
-        let date_debut = moment(this.filter_date_debut).day() == 1 ? moment(this.filter_date_debut) : moment(this.filter_date_debut).day(1);
-        let date_fin = moment(this.filter_date_fin).day() == 0 ? moment(this.filter_date_fin) : moment(this.filter_date_fin).day(7);
+        let date_debut = moment(this.filter_date_debut).utc(true).day() == 1 ? moment(this.filter_date_debut).utc(true) : moment(this.filter_date_debut).utc(true).day(1);
+        let date_fin = moment(this.filter_date_fin).utc(true).day() == 0 ? moment(this.filter_date_fin).utc(true) : moment(this.filter_date_fin).utc(true).day(7);
 
-        let d = moment(date_debut);
+        let d = moment(date_debut).utc(true);
 
-        let week_begin = moment(d);
-        let week_end = moment(d).add(6, 'days');
+        let week_begin = moment(d).utc(true);
+        let week_end = moment(d).utc(true).add(6, 'days');
 
         let week: any = {};
         week.days = this.get_printable_table_days(week_begin, week_end);
@@ -1649,11 +1649,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
         res.push(week);
         d.add(7, 'days');
 
-        while (d <= moment(date_fin)) {
+        while (d <= moment(date_fin).utc(true)) {
 
 
-            week_begin = moment(d);
-            week_end = moment(d).add(6, 'days');
+            week_begin = moment(d).utc(true);
+            week_end = moment(d).utc(true).add(6, 'days');
 
             week = {};
             week.days = this.get_printable_table_days(week_begin, week_end);
@@ -1669,9 +1669,9 @@ export default class ProgramPlanComponent extends VueComponentBase {
     private get_printable_table_days(date_debut, date_fin) {
         let res = [];
 
-        let d = moment(date_debut);
+        let d = moment(date_debut).utc(true);
 
-        while (d <= moment(date_fin)) {
+        while (d <= moment(date_fin).utc(true)) {
 
             res.push(d.format('DD/MM'));
             d.add(1, 'days');
@@ -1692,11 +1692,11 @@ export default class ProgramPlanComponent extends VueComponentBase {
             let date_fin = moment(this.printform_filter_date_fin).day() == 0 ? moment(this.printform_filter_date_fin) : moment(this.printform_filter_date_fin).day(7);
             */
 
-            let d = moment(date_debut);
+            let d = moment(date_debut).utc(true);
 
             let nb_offsets = 0;
 
-            while (d <= moment(date_fin)) {
+            while (d <= moment(date_fin).utc(true)) {
 
                 // am / pm ou am / am, pm / pm
                 for (let day_slice = 0; day_slice < this.nb_day_slices; day_slice++) {
@@ -1720,20 +1720,20 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                 if (rdv.facilitator_id == facilitator.id) {
 
-                    if (((rdv.start_time < moment(this.filter_date_fin).add(1, 'days')) &&
-                        (rdv.start_time >= moment(this.filter_date_debut))) ||
-                        ((rdv.end_time <= moment(this.filter_date_fin).add(1, 'days')) &&
-                            (rdv.end_time > moment(this.filter_date_debut)))) {
+                    if (((rdv.start_time < moment(this.filter_date_fin).utc(true).add(1, 'days')) &&
+                        (rdv.start_time >= moment(this.filter_date_debut).utc(true))) ||
+                        ((rdv.end_time <= moment(this.filter_date_fin).utc(true).add(1, 'days')) &&
+                            (rdv.end_time > moment(this.filter_date_debut).utc(true)))) {
 
                         // Calculer l'index
-                        let offset_start = rdv.start_time.diff(moment(date_debut), 'hours');
+                        let offset_start = rdv.start_time.diff(moment(date_debut).utc(true), 'hours');
                         let offset_start_halfdays = Math.round(offset_start / (24 / this.nb_day_slices));
 
                         if (offset_start_halfdays < 0) {
                             offset_start_halfdays = 0;
                         }
 
-                        let offset_end = rdv.end_time.diff(moment(date_debut), 'hours');
+                        let offset_end = rdv.end_time.diff(moment(date_debut).utc(true), 'hours');
                         let offset_end_halfdays = Math.round(offset_end / (24 / this.nb_day_slices));
 
                         if (offset_end_halfdays >= nb_offsets) {

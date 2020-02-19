@@ -33,7 +33,7 @@ export default class PeriodHandler {
             return null;
         }
 
-        return (split[1] == '[') ? moment(split[2]) : moment(split[2]).add(1, base);
+        return (split[1] == '[') ? moment(split[2]).utc(true) : moment(split[2]).utc(true).add(1, base);
     }
 
     public split(period: string, return_null_values: boolean = false): string[] {
@@ -68,7 +68,7 @@ export default class PeriodHandler {
             return null;
         }
 
-        return (split[4] == ']') ? moment(split[3]) : moment(split[3]).add(-1, base);
+        return (split[4] == ']') ? moment(split[3]).utc(true) : moment(split[3]).utc(true).add(-1, base);
     }
 
     public hasUpper(period: string, base: unitOfTime.Base = 'days'): boolean {

@@ -64,7 +64,7 @@ export default class FileLogger {
             await this.initialize();
         }
 
-        this.writeStream.write(moment().format('YYYY-MM-DD HH:mm:ss SSS ') + log_level + ' ' + text + "\n");
+        this.writeStream.write(moment().utc(true).format('YYYY-MM-DD HH:mm:ss SSS ') + log_level + ' ' + text + "\n");
     }
 
 
@@ -89,7 +89,7 @@ export default class FileLogger {
             try {
                 let matches: RegExpExecArray = regexp.exec(res);
 
-                res = matches[0] + moment().format(matches[1]) + matches[2];
+                res = matches[0] + moment().utc(true).format(matches[1]) + matches[2];
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);
             }

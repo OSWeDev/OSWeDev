@@ -1063,21 +1063,21 @@ export default class RangeHandler {
             case TSRange.RANGE_TYPE:
                 switch (shift_segment_type) {
                     case TimeSegment.TYPE_MONTH:
-                        return this.createNew(range.range_type, moment(range.min).add(shift_value, 'month'), moment(range.max).add(shift_value, 'month'), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
+                        return this.createNew(range.range_type, moment(range.min).utc(true).add(shift_value, 'month'), moment(range.max).utc(true).add(shift_value, 'month'), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
                     case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
                     case TimeSegment.TYPE_YEAR:
-                        return this.createNew(range.range_type, moment(range.min).add(shift_value, 'year'), moment(range.max).add(shift_value, 'year'), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
+                        return this.createNew(range.range_type, moment(range.min).utc(true).add(shift_value, 'year'), moment(range.max).utc(true).add(shift_value, 'year'), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
                     case TimeSegment.TYPE_WEEK:
-                        return this.createNew(range.range_type, moment(range.min).add(shift_value, 'week'), moment(range.max).add(shift_value, 'week'), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
+                        return this.createNew(range.range_type, moment(range.min).utc(true).add(shift_value, 'week'), moment(range.max).utc(true).add(shift_value, 'week'), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
                     case TimeSegment.TYPE_DAY:
                     default:
-                        return this.createNew(range.range_type, moment(range.min).add(shift_value, 'day'), moment(range.max).add(shift_value, 'day'), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
+                        return this.createNew(range.range_type, moment(range.min).utc(true).add(shift_value, 'day'), moment(range.max).utc(true).add(shift_value, 'day'), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
                     case TimeSegment.TYPE_HOUR:
                     case TimeSegment.TYPE_MINUTE:
                     case TimeSegment.TYPE_SECOND:
                     case TimeSegment.TYPE_MS:
                         let type = TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(shift_segment_type);
-                        return this.createNew(range.range_type, moment(range.min).add(shift_value, type), moment(range.max).add(shift_value, type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
+                        return this.createNew(range.range_type, moment(range.min).utc(true).add(shift_value, type), moment(range.max).utc(true).add(shift_value, type), range.min_inclusiv, range.max_inclusiv, range.segment_type) as any as IRange<T>;
                 }
         }
     }
@@ -1380,8 +1380,8 @@ export default class RangeHandler {
                     let upperTSRange = parseInt(matches[4]) * 1000;
                     return this.createNew(
                         range_type,
-                        moment(lowerTSRange).utc(),
-                        moment(upperTSRange).utc(),
+                        moment(lowerTSRange).utc(true),
+                        moment(upperTSRange).utc(true),
                         matches[1] == '[',
                         matches[6] == ']',
                         segment_type) as any as U;
@@ -1440,8 +1440,8 @@ export default class RangeHandler {
                     let upperTSRange = parseInt(matches[5]) * 1000;
                     return this.createNew(
                         range_type,
-                        moment(lowerTSRange).utc(),
-                        moment(upperTSRange).utc(),
+                        moment(lowerTSRange).utc(true),
+                        moment(upperTSRange).utc(true),
                         matches[2] == '[',
                         matches[7] == ']',
                         segment_type) as any as U;
@@ -1548,7 +1548,7 @@ export default class RangeHandler {
                     return moment.duration(res) as any as T;
 
                 case TSRange.RANGE_TYPE:
-                    let resn = moment(res);
+                    let resn = moment(res).utc(true);
 
                     if (!resn.isValid()) {
                         return null;
@@ -2037,7 +2037,7 @@ export default class RangeHandler {
                 return HourRange.createNew((start as any as moment.Duration).clone(), (end as any as moment.Duration), start_inclusiv, end_inclusiv, segment_type) as any as U;
 
             case TSRange.RANGE_TYPE:
-                return TSRange.createNew(moment(start), moment(end), start_inclusiv, end_inclusiv, segment_type) as any as U;
+                return TSRange.createNew(moment(start).utc(true), moment(end).utc(true), start_inclusiv, end_inclusiv, segment_type) as any as U;
         }
     }
 
@@ -2154,7 +2154,7 @@ export default class RangeHandler {
                 if (!elt) {
                     return elt;
                 }
-                return moment(elt) as any as T;
+                return moment(elt).utc(true) as any as T;
         }
     }
 

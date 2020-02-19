@@ -47,7 +47,7 @@ export default class CumulativVarController {
             return null;
         }
 
-        let date_reset: Moment = moment(date);
+        let date_reset: Moment = moment(date).utc(true);
         date_reset.month(yearly_reset_month);
         date_reset.date(yearly_reset_day_in_month);
 

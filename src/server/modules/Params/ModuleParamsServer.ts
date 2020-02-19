@@ -68,7 +68,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
             param.name = set_param.param_name;
         }
         param.value = set_param.param_value;
-        param.last_up_date = moment();
+        param.last_up_date = moment().utc(true);
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }
 
@@ -82,7 +82,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
         param = new ParamVO();
         param.name = set_param.param_name;
         param.value = set_param.param_value;
-        param.last_up_date = moment();
+        param.last_up_date = moment().utc(true);
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }
 

@@ -140,7 +140,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }
 
         let timeout_info: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_INFORM_EVERY_MINUTES);
-        if ((!!this.informed_users_tstzs[user_id]) && (moment(this.informed_users_tstzs[user_id]).add(timeout_info, 'minute').isAfter(moment().utc(true)))) {
+        if ((!!this.informed_users_tstzs[user_id]) && (moment(this.informed_users_tstzs[user_id]).utc(true).add(timeout_info, 'minute').isAfter(moment().utc(true)))) {
             return;
         }
 
@@ -148,11 +148,11 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let timeout_minutes_msg2: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
         let timeout_minutes_msg3: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
 
-        if (moment(this.planned_maintenance.start_ts).add(-timeout_minutes_msg3, 'minute').isSameOrBefore(moment().utc(true))) {
+        if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg3, 'minute').isSameOrBefore(moment().utc(true))) {
             await ModulePushDataServer.getInstance().notifySimpleERROR(user_id, ModuleMaintenance.MSG3_code_text);
-        } else if (moment(this.planned_maintenance.start_ts).add(-timeout_minutes_msg2, 'minute').isSameOrBefore(moment().utc(true))) {
+        } else if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg2, 'minute').isSameOrBefore(moment().utc(true))) {
             await ModulePushDataServer.getInstance().notifySimpleWARN(user_id, ModuleMaintenance.MSG2_code_text);
-        } else if (moment(this.planned_maintenance.start_ts).add(-timeout_minutes_msg1, 'minute').isSameOrBefore(moment().utc(true))) {
+        } else if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg1, 'minute').isSameOrBefore(moment().utc(true))) {
             await ModulePushDataServer.getInstance().notifySimpleINFO(user_id, ModuleMaintenance.MSG1_code_text);
         }
 

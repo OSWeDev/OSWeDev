@@ -30,7 +30,7 @@ export default class ModuleFormatDatesNombres extends Module {
     // On peut avoir des Dates ou des strings en entrée des fonctions, on crée un traducteur assez flexible qui renvoie une date
     public getMomentFromDate(dateToConvert) {
 
-        return moment(dateToConvert);
+        return moment(dateToConvert).utc(true);
     }
 
     public formatMoment_to_YYYYMMDD_HHmmss(date: moment.Moment): string {
@@ -41,7 +41,7 @@ export default class ModuleFormatDatesNombres extends Module {
     public formatYYYYMMDD_HHmmss_to_Moment(date: string): moment.Moment {
 
         try {
-            let res: moment.Moment = moment(date, this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss");
+            let res: moment.Moment = moment(date, this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss").utc(true);
 
             if (res.isValid()) {
                 return res;
@@ -114,7 +114,7 @@ export default class ModuleFormatDatesNombres extends Module {
 
     public getMomentFromFormatted_FullyearMonthDay(dateToFormat) {
 
-        return moment(dateToFormat, this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date));
+        return moment(dateToFormat, this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date)).utc(true);
     }
 
     public formatNumber_sign(numberToFormat) {

@@ -217,7 +217,7 @@ export default class ModuleAccessPolicy extends Module {
     public prepareForInsertOrUpdateAfterPwdChange(user: UserVO, new_pwd1: string): void {
 
         user.password = new_pwd1;
-        user.password_change_date = DateHandler.getInstance().formatDayForIndex(moment());
+        user.password_change_date = DateHandler.getInstance().formatDayForIndex(moment().utc(true));
         user.invalidated = false;
         user.recovery_expiration = null;
         user.recovery_challenge = null;

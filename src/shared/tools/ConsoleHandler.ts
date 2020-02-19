@@ -33,6 +33,6 @@ export default class ConsoleHandler {
     }
 
     private get_timestamp(): string {
-        return moment().format('YYYY-MM-DD HH:mm:ss.SSS');
+        return moment().utc(true).format('YYYY-MM-DD HH:mm:ss.SSS');
     }
 }

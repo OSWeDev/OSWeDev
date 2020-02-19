@@ -14,7 +14,7 @@ export default class RequestResponseCacheVO {
 
     public state: number = RequestResponseCacheVO.STATE_INIT;
     public datas = null;
-    public creationDate: Moment = moment();
+    public creationDate: Moment = moment().utc(true);
     public datasDate: Moment = null;
     public url: string;
     public contentType: string = null;

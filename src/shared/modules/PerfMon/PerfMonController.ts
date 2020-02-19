@@ -60,7 +60,7 @@ export default class PerfMonController {
         let perfMonData: PerfMonData = new PerfMonData();
         perfMonData.function_uid = function_uid;
         perfMonData.UID = UID;
-        perfMonData.start_time = moment();
+        perfMonData.start_time = moment().utc(true);
 
         this.perfMonDataByUID[UID] = perfMonData;
 
@@ -80,7 +80,7 @@ export default class PerfMonController {
         }
 
         let perfMonData: PerfMonData = this.perfMonDataByUID[perfMon_UID];
-        perfMonData.end_time = moment();
+        perfMonData.end_time = moment().utc(true);
         perfMonData.duration = moment.duration(perfMonData.end_time.diff(perfMonData.start_time));
 
         if (!this.perfMonFuncStatByFunctionUID[perfMonData.function_uid]) {

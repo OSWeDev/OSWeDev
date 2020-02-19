@@ -304,7 +304,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
     private async handleNotificationCreation(notif: NotificationVO): Promise<boolean> {
-        notif.creation_date = moment();
+        notif.creation_date = moment().utc(true);
         return true;
     }
 
@@ -313,7 +313,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
         let enbase: NotificationVO = await ModuleDAO.getInstance().getVoById<NotificationVO>(NotificationVO.API_TYPE_ID, notif.id);
 
         if ((!enbase.read) && notif.read) {
-            notif.read_date = moment();
+            notif.read_date = moment().utc(true);
         }
         return true;
     }
@@ -335,7 +335,7 @@ export default class ModulePushDataServer extends ModuleServerBase {
                 // if sent then consider it read
                 if (notification.auto_read_if_connected) {
                     notification.read = true;
-                    notification.read_date = moment();
+                    notification.read_date = moment().utc(true);
                 }
             }
 

@@ -21,7 +21,7 @@ export default class DayParamVO {
         if (!(req && req.params)) {
             return null;
         }
-        return new DayParamVO(moment(req.params.day));
+        return new DayParamVO(moment(req.params.day).utc(true));
     }
 
     public constructor(

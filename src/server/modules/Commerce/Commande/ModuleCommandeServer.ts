@@ -61,7 +61,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
         let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicy.getInstance().connected_user);
         let panier: CommandeVO = new CommandeVO();
         panier.client_id = (client) ? client.id : null;
-        panier.date = moment().toLocaleString();
+        panier.date = moment().utc(true).toLocaleString();
         panier.statut = CommandeVO.STATUT_PANIER;
 
         let result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(panier);

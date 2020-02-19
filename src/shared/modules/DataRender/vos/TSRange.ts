@@ -113,9 +113,9 @@ export default class TSRange implements IRange<moment.Moment> {
     public static cloneFrom(from: TSRange): TSRange {
         let res: TSRange = new TSRange();
 
-        res.max = moment(from.max);
+        res.max = moment(from.max).utc(true);
         res.max_inclusiv = from.max_inclusiv;
-        res.min = moment(from.min);
+        res.min = moment(from.min).utc(true);
         res.min_inclusiv = from.min_inclusiv;
         res.segment_type = from.segment_type;
 

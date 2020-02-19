@@ -492,7 +492,7 @@ export default abstract class ServerBase {
                 // On stocke le log de connexion en base
                 let user_log: UserLogVO = new UserLogVO();
                 user_log.user_id = uid;
-                user_log.log_time = moment();
+                user_log.log_time = moment().utc(true);
                 user_log.impersonated = false;
                 user_log.referer = req.headers.referer;
                 user_log.log_type = UserLogVO.LOG_TYPE_CSRF_REQUEST;
@@ -528,7 +528,7 @@ export default abstract class ServerBase {
                 user_log = new UserLogVO();
                 user_log.user_id = uid;
                 user_log.impersonated = false;
-                user_log.log_time = moment();
+                user_log.log_time = moment().utc(true);
                 user_log.referer = req.headers.referer;
                 user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
             }

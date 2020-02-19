@@ -90,7 +90,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
             return null;
         }
 
-        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(latest_data.data_dateindex), rendererModule.data_timesegment_type);
+        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(latest_data.data_dateindex).utc(true), rendererModule.data_timesegment_type);
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {
@@ -167,8 +167,8 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
         // On ordonne tout de suite les segments, qui doivent dans tous les cas être en ordre chronologique
         render_time_segments.sort((a: TimeSegment, b: TimeSegment): number => {
-            let ma: Moment = moment(a.dateIndex);
-            let mb: Moment = moment(b.dateIndex);
+            let ma: Moment = moment(a.dateIndex).utc(true);
+            let mb: Moment = moment(b.dateIndex).utc(true);
 
             if (ma.isBefore(mb)) {
                 return -1;
@@ -181,7 +181,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
         // On prépare tout de suite le Log
         let log: DataRenderingLogVO = new DataRenderingLogVO();
-        log.date = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        log.date = DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true));
         log.state = DataRenderingLogVO.RENDERING_STATE_STARTED;
         log.data_time_segment_json = render_time_segments_json;
         let renderer: DataRendererVO = (await ModuleDataRender.getInstance().getDataRenderer(renderer_name));
@@ -224,7 +224,7 @@ export default class ModuleDataRenderServer extends ModuleServerBase {
 
         // à la fin on indique le bon fonctionnement
         log.state = DataRenderingLogVO.RENDERING_STATE_OK;
-        log.message = "Fin rendering : " + moment().format("Y-MM-DD HH:mm");
+        log.message = "Fin rendering : " + moment().utc(true).format("Y-MM-DD HH:mm");
         ModuleDAO.getInstance().insertOrUpdateVOs([log]);
     }
     private handleApiError_importFile(log: DataRenderingLogVO, msg: string, res: Response) {

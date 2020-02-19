@@ -389,7 +389,7 @@ export default class ModuleAjaxCache extends Module {
             let invalidationRule: CacheInvalidationRegexpRuleVO = this.invalidationRules.regexpRules[i];
 
             if (invalidationRule.regexp.test(cache.url)) {
-                if (cache.datasDate && moment(cache.datasDate).add(invalidationRule.max_duration).isBefore(moment())) {
+                if (cache.datasDate && moment(cache.datasDate).utc(true).add(invalidationRule.max_duration).isBefore(moment().utc(true))) {
 
                     return false;
                 }
@@ -398,7 +398,7 @@ export default class ModuleAjaxCache extends Module {
         }
 
         if (defaultTimeout) {
-            if (cache.datasDate && moment(cache.datasDate).add(this.defaultInvalidationTimeout).isBefore(moment())) {
+            if (cache.datasDate && moment(cache.datasDate).utc(true).add(this.defaultInvalidationTimeout).isBefore(moment().utc(true))) {
                 return false;
             }
         }
@@ -451,7 +451,7 @@ export default class ModuleAjaxCache extends Module {
             if ((503 == err.status) || (502 == err.status) || ('timeout' == err.statusText)) {
                 (window as any).alert('Loading failure - Please reload your page');
             }
-            request.datasDate = moment();
+            request.datasDate = moment().utc(true);
             request.state = RequestResponseCacheVO.STATE_REJECTED;
 
             while (request.reject_callbacks && request.reject_callbacks.length) {
@@ -667,7 +667,7 @@ export default class ModuleAjaxCache extends Module {
 
         if (request.type != RequestResponseCacheVO.API_TYPE_POST) {
             request.datas = datas;
-            request.datasDate = moment();
+            request.datasDate = moment().utc(true);
             request.state = RequestResponseCacheVO.STATE_RESOLVED;
         }
 

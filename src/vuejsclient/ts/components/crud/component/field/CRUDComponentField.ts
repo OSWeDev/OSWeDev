@@ -280,7 +280,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
         let dateCut: string[] = date.split(separator);
 
-        return DateHandler.getInstance().formatDayForIndex(moment().year(parseInt(dateCut[2])).month(parseInt(dateCut[1]) - 1).date(parseInt(dateCut[0])));
+        return DateHandler.getInstance().formatDayForIndex(moment().utc(true).year(parseInt(dateCut[2])).month(parseInt(dateCut[1]) - 1).date(parseInt(dateCut[0])));
     }
 
     private validateInput(input: any) {
@@ -435,7 +435,7 @@ export default class CRUDComponentField extends VueComponentBase {
         let res = "";
         if (start) {
             try {
-                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(start));
+                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(start).utc(true));
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);
             }
@@ -445,7 +445,7 @@ export default class CRUDComponentField extends VueComponentBase {
 
         if (end) {
             try {
-                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(end));
+                res += ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(moment(end).utc(true));
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);
             }

@@ -108,7 +108,7 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
     }
 
     private getPreviousDateIndexKeepSameSegment(date_index: string): string {
-        let date: Moment = moment(date_index);
+        let date: Moment = moment(date_index).utc(true);
 
         switch (this.cumulType) {
             case VarsCumulsController.CUMUL_WEEK_NAME:

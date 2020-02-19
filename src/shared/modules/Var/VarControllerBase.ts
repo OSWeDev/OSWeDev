@@ -182,7 +182,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
     protected getTimeSegment(param: TDataParam): TimeSegment {
         let date_index: string = ((param as any) as IDateIndexedVarDataParam).date_index;
 
-        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index), this.segment_type);
+        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index).utc(true), this.segment_type);
     }
 
     protected abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG, matroid_to_compute?: IMatroid): TData;

@@ -50,7 +50,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
 
         RangeHandler.getInstance().foreach_ranges_sync(this.value, (e: Moment) => {
             // Ya certainement mieux....
-            this.selectedDates.push(moment(e.format('Y-MM-DD HH:mm')).toDate());
+            this.selectedDates.push(moment(e.format('Y-MM-DD HH:mm').utc(true)).toDate());
         }, this.field.moduleTableField.segmentation_type);
     }
 
@@ -61,7 +61,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
         for (let i in this.selectedDates) {
             let selectedDate = this.selectedDates[i];
 
-            this.new_value.push(RangeHandler.getInstance().create_single_elt_TSRange(moment(selectedDate), this.field.moduleTableField.segmentation_type));
+            this.new_value.push(RangeHandler.getInstance().create_single_elt_TSRange(moment(selectedDate).utc(true), this.field.moduleTableField.segmentation_type));
         }
         this.new_value = RangeHandler.getInstance().getRangesUnion(this.new_value);
         this.$emit('input', this.new_value);

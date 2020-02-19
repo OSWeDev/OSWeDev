@@ -20,7 +20,7 @@ export default class UpdateRDVStatesCronWorkersHandler {
 
         // TODO FIXME : Pas de planification en fait, on veut le lancer à la demande c'est tout
         let planCronWorker: CronWorkerPlanification = new CronWorkerPlanification();
-        planCronWorker.date_heure_planifiee = DateHandler.getInstance().formatDateTimeForBDD(moment());
+        planCronWorker.date_heure_planifiee = DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true));
         planCronWorker.intervale_recurrence = 1;
         planCronWorker.planification_uid = "CleanOldNotifsCronWorker";
         planCronWorker.type_recurrence = CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE;

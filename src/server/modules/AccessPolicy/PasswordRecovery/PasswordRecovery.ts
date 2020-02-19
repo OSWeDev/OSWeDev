@@ -45,7 +45,7 @@ export default class PasswordRecovery {
         let challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
         console.debug("challenge:" + user.email + ':' + challenge + ':');
-        user.recovery_expiration = moment().add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours').valueOf();
+        user.recovery_expiration = moment().utc(true).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours').valueOf();
         await ModuleDAO.getInstance().insertOrUpdateVO(user);
 
         // Send mail

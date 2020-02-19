@@ -1191,7 +1191,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
-            user_log.log_time = moment();
+            user_log.log_time = moment().utc(true);
             user_log.impersonated = false;
             user_log.referer = httpContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
@@ -1240,7 +1240,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
-            user_log.log_time = moment();
+            user_log.log_time = moment().utc(true);
             user_log.impersonated = true;
             user_log.referer = httpContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;

@@ -620,7 +620,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    let field_as_moment: moment.Moment = moment(e[field.field_id]).utc();
+                    let field_as_moment: moment.Moment = moment(e[field.field_id]).utc(true);
                     res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     break;
 
@@ -688,7 +688,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : null;
+                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc(true) : null;
                     break;
 
                 default:
@@ -723,7 +723,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstz:
 
-                    let field_as_moment: moment.Moment = moment(res[field.field_id]).utc();
+                    let field_as_moment: moment.Moment = moment(res[field.field_id]).utc(true);
                     res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     break;
 
@@ -785,7 +785,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_timestamp:
                     // A priori c'est without time zone du coup....
                     // e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:SS.sss') + 'Z' : e[field.field_id];
-                    e[field.field_id] = moment(field_value).format('Y-MM-DDTHH:mm:SS.sss');
+                    e[field.field_id] = moment(field_value).utc(true).format('Y-MM-DDTHH:mm:SS.sss');
                     break;
 
                 case ModuleTableField.FIELD_TYPE_float:
@@ -822,11 +822,11 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_day:
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_month:
-                    e[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value));
+                    e[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true));
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    e[field.field_id] = moment(parseInt(field_value) * 1000).utc();
+                    e[field.field_id] = moment(parseInt(field_value) * 1000).utc(true);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:

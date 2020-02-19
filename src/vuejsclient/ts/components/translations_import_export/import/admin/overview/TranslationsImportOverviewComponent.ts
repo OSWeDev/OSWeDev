@@ -33,7 +33,7 @@ export default class TranslationsImportOverviewComponent extends VueComponentBas
 
         await this.set_exportable_data();
         let datas: ExportDataToXLSXParamVO = new ExportDataToXLSXParamVO(
-            "export_translations_" + DateHandler.getInstance().formatDayForIndex(moment()) + ".xlsx",
+            "export_translations_" + DateHandler.getInstance().formatDayForIndex(moment().utc(true)) + ".xlsx",
             this.exportable_data,
             this.exportable_columns,
             this.columns_labels

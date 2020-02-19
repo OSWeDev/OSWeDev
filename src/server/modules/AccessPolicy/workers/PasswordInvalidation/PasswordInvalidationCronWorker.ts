@@ -49,16 +49,16 @@ export default class PasswordInvalidationCronWorker implements ICronWorker {
                 continue;
             }
 
-            let date_modif_pass: Moment = moment(user.password_change_date);
+            let date_modif_pass: Moment = moment(user.password_change_date).utc(true);
             // combien de jours avant date de changement de mdp ?
-            let nb_days: number = moment(date_modif_pass).diff(moment()) / 1000 / 60 / 60 / 24;
+            let nb_days: number = moment(date_modif_pass).utc(true).diff(moment().utc(true)) / 1000 / 60 / 60 / 24;
 
-            let expiration: Moment = moment(date_modif_pass).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS), 'days');
+            let expiration: Moment = moment(date_modif_pass).utc(true).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS), 'days');
             // let nb_days_to_invalidation: number = ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS) - nb_days;
 
             // Le cas de l'invalidation
             // cas où la date de changement de mdp est passée de plus de PARAM_NAME_PWD_INVALIDATION_DAYS jours
-            if (moment().isSameOrAfter(expiration)) {
+            if (moment().utc(true).isSameOrAfter(expiration)) {
 
                 user.invalidated = true;
                 user.password = '';

@@ -262,8 +262,8 @@ export default class TimeSegmentHandler {
         }
 
         let res: TimeSegment[] = [];
-        let date: Moment = moment(start);
-        let stop_at: Moment = moment(end);
+        let date: Moment = moment(start).utc(true);
+        let stop_at: Moment = moment(end).utc(true);
 
         switch (time_segment_type) {
             case TimeSegment.TYPE_YEAR:
@@ -305,24 +305,24 @@ export default class TimeSegmentHandler {
             switch (time_segment_type) {
                 case TimeSegment.TYPE_YEAR:
                 case TimeSegment.TYPE_ROLLING_YEAR_MONTH_START:
-                    date = moment(date).add(1, 'year');
+                    date = moment(date).utc(true).add(1, 'year');
                     break;
                 case TimeSegment.TYPE_MONTH:
-                    date = moment(date).add(1, 'month');
+                    date = moment(date).utc(true).add(1, 'month');
                     break;
                 case TimeSegment.TYPE_WEEK:
-                    date = moment(date).add(1, 'week');
+                    date = moment(date).utc(true).add(1, 'week');
                     break;
                 case TimeSegment.TYPE_DAY:
                 default:
-                    date = moment(date).add(1, 'day');
+                    date = moment(date).utc(true).add(1, 'day');
                     break;
                 case TimeSegment.TYPE_HOUR:
                 case TimeSegment.TYPE_MINUTE:
                 case TimeSegment.TYPE_SECOND:
                 case TimeSegment.TYPE_MS:
                     let type = this.getCorrespondingMomentUnitOfTime(time_segment_type);
-                    date = moment(date).add(1, type);
+                    date = moment(date).utc(true).add(1, type);
                     break;
             }
         }
@@ -337,7 +337,7 @@ export default class TimeSegmentHandler {
      * @returns Corresponding CumulTimeSegment
      */
     public getParentTimeSegment(timeSegment: TimeSegment): TimeSegment {
-        let date_segment: Moment = moment(timeSegment.index);
+        let date_segment: Moment = moment(timeSegment.index).utc(true);
         let type: number = null;
         let date: Moment = null;
 
@@ -552,7 +552,7 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let res: Moment = moment(timeSegment.dateIndex);
+        let res: Moment = moment(timeSegment.dateIndex).utc(true);
 
         switch (timeSegment.type) {
             case TimeSegment.TYPE_YEAR:
@@ -631,7 +631,7 @@ export default class TimeSegmentHandler {
         }
 
         // La dateIndex d'un segment mois est le premier jour du mois.
-        let res: Moment = moment(monthSegment.dateIndex);
+        let res: Moment = moment(monthSegment.dateIndex).utc(true);
         res.date(date);
         return res;
     }
@@ -648,7 +648,7 @@ export default class TimeSegmentHandler {
             return null;
         }
 
-        let res: TimeSegment = TimeSegment.createNew(moment(timeSegment.index), timeSegment.type);
+        let res: TimeSegment = TimeSegment.createNew(moment(timeSegment.index).utc(true), timeSegment.type);
         type = ((type == null) || (typeof type === "undefined")) ? timeSegment.type : type;
 
         switch (type) {
@@ -722,7 +722,7 @@ export default class TimeSegmentHandler {
             type = TimeSegment.TYPE_DAY;
         }
 
-        let res: TimeSegment = TimeSegment.createNew(moment(date), type);
+        let res: TimeSegment = TimeSegment.createNew(moment(date).utc(true), type);
 
         switch (type) {
             case TimeSegment.TYPE_YEAR:
@@ -816,7 +816,7 @@ export default class TimeSegmentHandler {
             type = Math.min(ts1.type, ts2.type);
         }
 
-        let start: Moment = moment(ts1.index);
+        let start: Moment = moment(ts1.index).utc(true);
         let end: Moment;
 
         switch (type) {

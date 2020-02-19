@@ -515,7 +515,7 @@ export default class VarsController {
         }
 
         let date_indexed: IDateIndexedVarDataParam = param as any as IDateIndexedVarDataParam;
-        date_indexed.date_index = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_indexed.date_index), this.getVarControllerById(param.var_id).segment_type).dateIndex;
+        date_indexed.date_index = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_indexed.date_index).utc(true), this.getVarControllerById(param.var_id).segment_type).dateIndex;
         this.checked_var_indexes[this._getIndex(date_indexed)] = true;
     }
 
@@ -579,7 +579,7 @@ export default class VarsController {
         }
 
         let date_index: string = (param as any as IDateIndexedVarDataParam).date_index;
-        return TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index), this.getVarControllerById(param.var_id).segment_type));
+        return TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index).utc(true), this.getVarControllerById(param.var_id).segment_type));
     }
 
 
@@ -811,7 +811,7 @@ export default class VarsController {
         return RangeHandler.getInstance().createNew(
             TSRange.RANGE_TYPE,
             moment('1900-01-01').startOf('day').utc(true),
-            moment(target),
+            moment(target).utc(true),
             min_inclusiv,
             max_inclusiv,
             segment_type

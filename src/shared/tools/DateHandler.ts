@@ -43,7 +43,7 @@ export default class DateHandler {
         if (!date) {
             return "";
         }
-        return moment.duration(date.diff(moment())).humanize();
+        return moment.duration(date.diff(moment().utc(true))).humanize();
     }
 
     public formatDayForIndex(date: Moment): string {
@@ -75,7 +75,7 @@ export default class DateHandler {
         if ((day == null) || (typeof day == 'undefined')) {
             return null;
         }
-        return moment(day);
+        return moment(day).utc(true);
     }
 
     public formatDayForSQL(date: Moment): string {
@@ -89,6 +89,6 @@ export default class DateHandler {
         if ((day == null) || (typeof day == 'undefined')) {
             return null;
         }
-        return moment(day);
+        return moment(day).utc(true);
     }
 }

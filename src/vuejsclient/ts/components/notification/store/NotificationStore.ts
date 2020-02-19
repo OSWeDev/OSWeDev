@@ -80,7 +80,7 @@ export default class NotificationStore implements IStoreModule<INotificationStat
             add_notification(state: INotificationState, notification: NotificationVO) { Vue.set(state.notifications_by_ids as any, notification.id, notification); },
             read_notification(state: INotificationState, notification: NotificationVO) {
                 state.notifications_by_ids[notification.id].read = true;
-                state.notifications_by_ids[notification.id].read_date = moment();
+                state.notifications_by_ids[notification.id].read_date = moment().utc(true);
 
                 state.mark_as_read.push(state.notifications_by_ids[notification.id]);
                 NotificationStore.getInstance().debounced_read_notifs();

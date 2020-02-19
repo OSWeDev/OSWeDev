@@ -619,7 +619,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         //     await ModulePushDataServer.getInstance().notifyDAOGetVos(importHistoric.user_id, api_type_ids[i]);
         // }
 
-        await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + moment().format("Y-MM-DD HH:mm"), "import.success.posttreated", DataImportLogVO.LOG_LEVEL_SUCCESS);
+        await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + moment().utc(true).format("Y-MM-DD HH:mm"), "import.success.posttreated", DataImportLogVO.LOG_LEVEL_SUCCESS);
     }
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {
@@ -710,7 +710,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         }
 
         if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT) {
-            importHistoric.last_up_date = moment();
+            importHistoric.last_up_date = moment().utc(true);
         }
 
         if (!importHistoric.end_date) {
@@ -718,14 +718,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_FAILED_IMPORTATION) ||
                 (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_FAILED_POSTTREATMENT) ||
                 (importHistoric.state == ModuleDataImport.IMPORTATION_STATE_IMPORTATION_NOT_ALLOWED)) {
-                importHistoric.end_date = moment();
+                importHistoric.end_date = moment().utc(true);
             }
         }
         return true;
     }
 
     private async handleImportHistoricDateCreation(importHistoric: DataImportHistoricVO): Promise<boolean> {
-        importHistoric.start_date = moment();
+        importHistoric.start_date = moment().utc(true);
         return true;
     }
 

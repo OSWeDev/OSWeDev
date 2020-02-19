@@ -31,15 +31,15 @@ export default class CleanOldNotifsCronWorker implements ICronWorker {
             let notif: NotificationVO = notifs[i];
 
             if (notif.read && notif.read_date) {
-                let read_date: moment.Moment = moment(notif.read_date);
-                if (read_date.isValid() && read_date.add(10, 'days').isBefore(moment())) {
+                let read_date: moment.Moment = moment(notif.read_date).utc(true);
+                if (read_date.isValid() && read_date.add(10, 'days').isBefore(moment().utc(true))) {
                     await ModuleDAO.getInstance().deleteVOs([notif]);
                     continue;
                 }
             }
 
-            let creation_date: moment.Moment = moment(notif.creation_date);
-            if (creation_date.isValid() && creation_date.add(60, 'days').isBefore(moment())) {
+            let creation_date: moment.Moment = moment(notif.creation_date).utc(true);
+            if (creation_date.isValid() && creation_date.add(60, 'days').isBefore(moment().utc(true))) {
                 await ModuleDAO.getInstance().deleteVOs([notif]);
                 continue;
             }

@@ -139,7 +139,7 @@ export default class ModuleCronServer extends ModuleServerBase {
             for (let i in plannedWorkers) {
                 let plannedWorker: CronWorkerPlanification = plannedWorkers[i];
 
-                if (plannedWorker.date_heure_planifiee && moment(plannedWorker.date_heure_planifiee).isBefore(moment())) {
+                if (plannedWorker.date_heure_planifiee && moment(plannedWorker.date_heure_planifiee).utc(true).isBefore(moment().utc(true))) {
                     await this.executeWorker(plannedWorker.worker_uid);
                     await this.nextRecurrence(plannedWorker);
                 }
@@ -158,7 +158,7 @@ export default class ModuleCronServer extends ModuleServerBase {
             return;
         }
 
-        let date_heure_planifiee: moment.Moment = moment(plannedWorker.date_heure_planifiee);
+        let date_heure_planifiee: moment.Moment = moment(plannedWorker.date_heure_planifiee).utc(true);
 
         switch (plannedWorker.type_recurrence) {
             case CronWorkerPlanification.TYPE_RECURRENCE_ANNEES:

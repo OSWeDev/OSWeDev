@@ -371,7 +371,7 @@ export default class VueComponentBase extends Vue
         if (!dateToFormat) {
             return "";
         }
-        return moment(dateToFormat).format("YYYY");
+        return moment(dateToFormat).utc(true).format("YYYY");
     }
 
     protected formatDate_FullyearMonth(dateToFormat) {
@@ -493,15 +493,13 @@ export default class VueComponentBase extends Vue
 
     // MOMENT MIXIN
     protected getNbWeekInMonth(month) {
-        let month_tmp = moment(month);
-        let res = moment(
-            moment(month_tmp)
-                .endOf("month")
-                .startOf("isoweek" as unitOfTime.StartOf)
-        );
+        let month_tmp = moment(month).utc(true);
+        let res = moment(month_tmp).utc(true)
+            .endOf("month")
+            .startOf("isoweek" as unitOfTime.StartOf);
         return (
             res.diff(
-                moment(month_tmp)
+                moment(month_tmp).utc(true)
                     .startOf("month")
                     .startOf("isoweek" as unitOfTime.StartOf),
                 "weeks"
@@ -514,7 +512,7 @@ export default class VueComponentBase extends Vue
         }
 
         let weeks = [];
-        let week = moment(month)
+        let week = moment(month).utc(true)
             .startOf("month")
             .startOf("isoweek" as unitOfTime.StartOf);
         let format_date = "YYYY-MM-DD";
@@ -540,7 +538,7 @@ export default class VueComponentBase extends Vue
         return months[month_number];
     }
     protected getMonthInTexte(month) {
-        return this.getMonthName(moment(month).get("month"));
+        return this.getMonthName(moment(month).utc(true).get("month"));
     }
     protected getJourInText(jour_iso) {
         return days[jour_iso];
@@ -849,7 +847,7 @@ export default class VueComponentBase extends Vue
     }
 
     protected humanizeDurationTo(date: Date): string {
-        return DateHandler.getInstance().humanizeDurationTo(moment(date));
+        return DateHandler.getInstance().humanizeDurationTo(moment(date).utc(true));
     }
 
     protected routeExists(url: string): boolean {

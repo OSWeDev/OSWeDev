@@ -227,67 +227,67 @@ export default class ImportTypeXLSXHandler {
         }
 
         if (/^[0-9][0-9][/][0-9][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'DD/MM/YYYY');
+            return moment(column_data_string, 'DD/MM/YYYY').utc(true);
         }
         if (/^[0-9][/][0-9][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'D/MM/YYYY');
+            return moment(column_data_string, 'D/MM/YYYY').utc(true);
         }
         if (/^[0-9][0-9][/][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'DD/M/YYYY');
+            return moment(column_data_string, 'DD/M/YYYY').utc(true);
         }
         if (/^[0-9][/][0-9][/][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'D/M/YYYY');
+            return moment(column_data_string, 'D/M/YYYY').utc(true);
         }
 
         if (/^[0-9][0-9][/][0-9][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'DD/MM/YY');
+            return moment(column_data_string, 'DD/MM/YY').utc(true);
         }
         if (/^[0-9][/][0-9][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'D/MM/YY');
+            return moment(column_data_string, 'D/MM/YY').utc(true);
         }
         if (/^[0-9][0-9][/][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'DD/M/YY');
+            return moment(column_data_string, 'DD/M/YY').utc(true);
         }
         if (/^[0-9][/][0-9][/][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'D/M/YY');
+            return moment(column_data_string, 'D/M/YY').utc(true);
         }
 
 
         if (/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYY-MM-DD');
+            return moment(column_data_string, 'YYYY-MM-DD').utc(true);
         }
         if (/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYY-MM-D');
+            return moment(column_data_string, 'YYYY-MM-D').utc(true);
         }
         if (/^[0-9][0-9][0-9][0-9]-[0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYY-M-DD');
+            return moment(column_data_string, 'YYYY-M-DD').utc(true);
         }
         if (/^[0-9][0-9][0-9][0-9]-[0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYY-M-D');
+            return moment(column_data_string, 'YYYY-M-D').utc(true);
         }
 
         if (/^[0-9][0-9]-[0-9][0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YY-MM-DD');
+            return moment(column_data_string, 'YY-MM-DD').utc(true);
         }
         if (/^[0-9][0-9]-[0-9][0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YY-MM-D');
+            return moment(column_data_string, 'YY-MM-D').utc(true);
         }
         if (/^[0-9][0-9]-[0-9]-[0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YY-M-DD');
+            return moment(column_data_string, 'YY-M-DD').utc(true);
         }
         if (/^[0-9][0-9]-[0-9]-[0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YY-M-D');
+            return moment(column_data_string, 'YY-M-D').utc(true);
         }
 
         if (/^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYYYMMDD');
+            return moment(column_data_string, 'YYYYMMDD').utc(true);
         }
         if (/^[0-9][0-9][0-9][0-9][0-9][0-9]( +.*[0-9]+:[0-9]+(:[0-9]+)?.*)?$/.test(column_data_string)) {
-            return moment(column_data_string, 'YYMMDD');
+            return moment(column_data_string, 'YYMMDD').utc(true);
         }
 
-        if (moment(column_data_string).isValid()) {
-            return moment(column_data_string);
+        if (moment(column_data_string).utc(true).isValid()) {
+            return moment(column_data_string).utc(true);
         }
 
         return null;
@@ -359,7 +359,7 @@ export default class ImportTypeXLSXHandler {
                 not_validated_msg: null,
                 not_imported_msg: null,
                 not_posttreated_msg: null,
-                creation_date: DateHandler.getInstance().formatDateTimeForBDD(moment()),
+                creation_date: DateHandler.getInstance().formatDateTimeForBDD(moment().utc(true)),
                 historic_id: historic.id,
                 imported_line_number: row_index
             } as any;

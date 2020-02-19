@@ -33,11 +33,11 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
 
         this.dataRenderer = await ModuleDataRender.getInstance().getDataRenderer(this.renderer_name);
 
-        let segment_correspondant: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(), this.time_segment_type);
+        let segment_correspondant: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment().utc(true), this.time_segment_type);
         this.segment_start_date =
-            moment(TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment_correspondant).dateIndex).toDate();
-        this.segment_start_date = moment().startOf('month').add(-1, 'month').toDate();
-        this.segment_end_date = moment(segment_correspondant.dateIndex).toDate();
+            moment(TimeSegmentHandler.getInstance().getPreviousTimeSegment(segment_correspondant).dateIndex).utc(true).toDate();
+        this.segment_start_date = moment().utc(true).startOf('month').add(-1, 'month').toDate();
+        this.segment_end_date = moment(segment_correspondant.dateIndex).utc(true).toDate();
 
         this.isLoading = false;
     }
@@ -46,7 +46,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
         try {
 
             var formData = new FormData();
-            formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment(this.segment_start_date), moment(this.segment_end_date), this.time_segment_type)));
+            formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment(this.segment_start_date).utc(true), moment(this.segment_end_date).utc(true), this.time_segment_type)));
 
             await $.ajax({
                 url: '/modules/ModuleDataRender/renderData/' + this.renderer_name,
