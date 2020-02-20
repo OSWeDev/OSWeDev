@@ -50,7 +50,7 @@ export default class TSRangesInputComponent extends VueComponentBase {
 
         RangeHandler.getInstance().foreach_ranges_sync(this.value, (e: Moment) => {
             // Ya certainement mieux....
-            this.selectedDates.push(moment(e.format('Y-MM-DD HH:mm').utc(true)).toDate());
+            this.selectedDates.push(moment(e.format('Y-MM-DD HH:mm')).utc(true).toDate());
         }, this.field.moduleTableField.segmentation_type);
     }
 

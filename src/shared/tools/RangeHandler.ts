@@ -1380,8 +1380,8 @@ export default class RangeHandler {
                     let upperTSRange = parseInt(matches[4]) * 1000;
                     return this.createNew(
                         range_type,
-                        moment(lowerTSRange).utc(true),
-                        moment(upperTSRange).utc(true),
+                        moment(lowerTSRange).utc(),
+                        moment(upperTSRange).utc(),
                         matches[1] == '[',
                         matches[6] == ']',
                         segment_type) as any as U;
@@ -1440,8 +1440,8 @@ export default class RangeHandler {
                     let upperTSRange = parseInt(matches[5]) * 1000;
                     return this.createNew(
                         range_type,
-                        moment(lowerTSRange).utc(true),
-                        moment(upperTSRange).utc(true),
+                        moment(lowerTSRange).utc(),
+                        moment(upperTSRange).utc(),
                         matches[2] == '[',
                         matches[7] == ']',
                         segment_type) as any as U;
@@ -1937,7 +1937,7 @@ export default class RangeHandler {
             case HourRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    callback_sync(min);
+                    callback_sync(moment.duration(min) as any as T);
                     HourSegmentHandler.getInstance().incElt(min as any as moment.Duration, segment_type, 1);
                 }
                 return;
@@ -1945,7 +1945,7 @@ export default class RangeHandler {
             case TSRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    callback_sync(min);
+                    callback_sync(moment(min).utc(true) as any as T);
                     TimeSegmentHandler.getInstance().incMoment(min as any as Moment, segment_type, 1);
                 }
                 return;
@@ -2010,7 +2010,7 @@ export default class RangeHandler {
             case HourRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    await callback(min);
+                    await callback(moment.duration(min) as any as T);
                     HourSegmentHandler.getInstance().incElt(min as any as moment.Duration, segment_type, 1);
                 }
                 return;
@@ -2018,7 +2018,7 @@ export default class RangeHandler {
             case TSRange.RANGE_TYPE:
                 while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
 
-                    await callback(min);
+                    await callback(moment(min).utc(true) as any as T);
                     TimeSegmentHandler.getInstance().incMoment(min as any as Moment, segment_type, 1);
                 }
                 return;

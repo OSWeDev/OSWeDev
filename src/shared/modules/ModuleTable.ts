@@ -826,7 +826,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    e[field.field_id] = moment(parseInt(field_value) * 1000).utc(true);
+                    e[field.field_id] = moment(parseInt(field_value) * 1000).utc();
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:
