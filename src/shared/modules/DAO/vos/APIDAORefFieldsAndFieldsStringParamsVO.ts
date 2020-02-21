@@ -27,9 +27,9 @@ export default class APIDAORefFieldsAndFieldsStringParamsVO {
             return null;
         }
 
-        if ((req.params.field_name1 == null) || (req.params.field_name1 == 'null') || (req.params.field_name1 == '')) {
-            return null;
-        }
+        // if ((req.params.field_name1 == null) || (req.params.field_name1 == 'null') || (req.params.field_name1 == '')) {
+        //     return null;
+        // }
 
         let field_name1: string = ((req.params.field_name1 != null) && (req.params.field_name1 != 'null') && (req.params.field_name1 != '') && (req.params.field_name1 != '_')) ? req.params.field_name1 : null;
         let ids1 = null;

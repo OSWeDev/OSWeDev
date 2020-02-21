@@ -719,8 +719,21 @@ export default class RangeHandler {
     }
 
     public async foreach_ranges<T>(ranges: Array<IRange<T>>, callback: (value: T) => Promise<void> | void, segment_type?: number, min_inclusiv: T = null, max_inclusiv: T = null) {
+
         for (let i in ranges) {
             await this.foreach(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv);
+        }
+    }
+
+    public async foreach_ranges_batch_await<T>(ranges: Array<IRange<T>>, callback: (value: T) => Promise<void> | void, segment_type?: number, min_inclusiv: T = null, max_inclusiv: T = null) {
+
+        let promises = [];
+        for (let i in ranges) {
+            promises.push(this.foreach_batch_await(ranges[i], callback, segment_type, min_inclusiv, max_inclusiv));
+        }
+
+        if (promises.length) {
+            await Promise.all(promises);
         }
     }
 
@@ -2023,6 +2036,81 @@ export default class RangeHandler {
                 }
                 return;
         }
+    }
+
+    public async foreach_batch_await<T>(range: IRange<T>, callback: (value: T) => Promise<void> | void, segment_type: number = null, min_inclusiv: T = null, max_inclusiv: T = null) {
+        if (!range) {
+            return;
+        }
+
+        if (segment_type == null) {
+            switch (range.range_type) {
+
+                case NumRange.RANGE_TYPE:
+                    segment_type = NumSegment.TYPE_INT;
+                    break;
+
+                case HourRange.RANGE_TYPE:
+                    segment_type = HourSegment.TYPE_MINUTE;
+                    break;
+
+                case TSRange.RANGE_TYPE:
+                    segment_type = TimeSegment.TYPE_DAY;
+                    break;
+            }
+        }
+
+        let min: T = this.getSegmentedMin(range, segment_type);
+        let max: T = this.getSegmentedMax(range, segment_type);
+
+        if ((!this.is_valid_elt(range.range_type, range.min)) || (!this.is_valid_elt(range.range_type, range.max))) {
+            return;
+        }
+
+        if (this.is_valid_elt(range.range_type, min_inclusiv)) {
+
+            min_inclusiv = this.get_segment(range.range_type, min_inclusiv, segment_type).index;
+            if (this.is_elt_sup_elt(range.range_type, min_inclusiv, min)) {
+                min = min_inclusiv;
+            }
+        }
+        if (this.is_valid_elt(range.range_type, max_inclusiv)) {
+
+            max_inclusiv = this.get_segment(range.range_type, max_inclusiv, segment_type).index;
+            if (this.is_elt_inf_elt(range.range_type, max_inclusiv, max)) {
+                max = max_inclusiv;
+            }
+        }
+        if (this.is_elt_sup_elt(range.range_type, min, max)) {
+            return;
+        }
+
+        let promises = [];
+        switch (range.range_type) {
+
+            case NumRange.RANGE_TYPE:
+                for (let i = min; i <= max; (i as any as number)++) {
+                    promises.push(callback(i));
+                }
+                break;
+
+            case HourRange.RANGE_TYPE:
+                while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
+
+                    promises.push(callback(moment.duration(min) as any as T));
+                    HourSegmentHandler.getInstance().incElt(min as any as moment.Duration, segment_type, 1);
+                }
+                break;
+
+            case TSRange.RANGE_TYPE:
+                while (min && this.is_elt_equals_or_inf_elt(range.range_type, min, max)) {
+
+                    promises.push(callback(moment(min).utc(true) as any as T));
+                    TimeSegmentHandler.getInstance().incMoment(min as any as Moment, segment_type, 1);
+                }
+                break;
+        }
+        await Promise.all(promises);
     }
 
 

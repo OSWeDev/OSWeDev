@@ -1331,9 +1331,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        if ((!apiDAOParamsVO.field_name1) && (!apiDAOParamsVO.field_name2) && (!apiDAOParamsVO.field_name3)) {
-            return null;
-        }
+        // if ((!apiDAOParamsVO.field_name1) && (!apiDAOParamsVO.field_name2) && (!apiDAOParamsVO.field_name3)) {
+        //     return null;
+        // }
 
         if (!moduleTable) {
             return null;
