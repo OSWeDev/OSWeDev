@@ -2,6 +2,7 @@ import * as $ from 'jquery';
 import { debounce } from 'lodash';
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import { isBoolean } from 'util';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Event } from 'vue-tables-2';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
@@ -9,6 +10,7 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
 import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -25,12 +27,10 @@ import { ModuleCRUDAction } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DaoStoreTypeWatcherDefinition from '../../dao/vos/DaoStoreTypeWatcherDefinition';
 import VueComponentBase from '../../VueComponentBase';
+import CustomFilterItem from './CustomFilterItem';
 import './DatatableComponent.scss';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
-import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
-import CustomFilterItem from './CustomFilterItem';
-import { isBoolean } from 'util';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -257,7 +257,8 @@ export default class DatatableComponent extends VueComponentBase {
             "Export-" + this.datatable.API_TYPE_ID + ".xlsx",
             this.exportable_datatable_data,
             this.exportable_datatable_columns,
-            this.datatable_columns_labels
+            this.datatable_columns_labels,
+            this.datatable.API_TYPE_ID,
         );
     }
 
