@@ -1,9 +1,14 @@
+import * as moment from 'moment';
 import * as XLSX from 'xlsx';
 import { WorkBook } from 'xlsx';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
 import ExportDataToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
+import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
@@ -114,6 +119,18 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         let filepath: string = "temp/" + params.filename;
         XLSX.writeFile(workbook, filepath);
+
+        let user_log: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
+
+        // On log l'export
+        if (user_log) {
+            await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
+                params.api_type_id,
+                moment().utc(true),
+                user_log.id,
+            ));
+        }
+
         return filepath;
     }
 }

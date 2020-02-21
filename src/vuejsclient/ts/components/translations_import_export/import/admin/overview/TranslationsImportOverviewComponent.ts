@@ -36,7 +36,8 @@ export default class TranslationsImportOverviewComponent extends VueComponentBas
             "export_translations_" + DateHandler.getInstance().formatDayForIndex(moment()) + ".xlsx",
             this.exportable_data,
             this.exportable_columns,
-            this.columns_labels
+            this.columns_labels,
+            ImportTranslation.API_TYPE_ID,
         );
         await ModuleDataExport.getInstance().exportDataToXLSX(datas);
     }
