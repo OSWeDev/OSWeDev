@@ -307,6 +307,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFiles, this.getDataImportFiles.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportFile, this.getDataImportFile.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_getDataImportColumnsFromFormatId, this.getDataImportColumnsFromFormatId.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataImport.APINAME_reimportdih, this.reimportdih.bind(this));
     }
 
     public async getDataImportHistorics(param: NumberParamVO): Promise<DataImportHistoricVO[]> {
@@ -721,11 +722,27 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 importHistoric.end_date = moment().utc(true);
             }
         }
+
+        // Dans le cas d'un réimport, on met à jour le state de l'import qu'on réimporte
+        if (!!importHistoric.reimport_of_dih_id) {
+            let reimport_of_dih: DataImportHistoricVO = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importHistoric.reimport_of_dih_id);
+            reimport_of_dih.status_of_last_reimport = importHistoric.state;
+            await ModuleDAO.getInstance().insertOrUpdateVO(reimport_of_dih);
+        }
+
         return true;
     }
 
     private async handleImportHistoricDateCreation(importHistoric: DataImportHistoricVO): Promise<boolean> {
         importHistoric.start_date = moment().utc(true);
+
+        // Dans le cas d'un réimport, on met à jour le state de l'import qu'on réimporte
+        if (!!importHistoric.reimport_of_dih_id) {
+            let reimport_of_dih: DataImportHistoricVO = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importHistoric.reimport_of_dih_id);
+            reimport_of_dih.status_of_last_reimport = importHistoric.state;
+            await ModuleDAO.getInstance().insertOrUpdateVO(reimport_of_dih);
+        }
+
         return true;
     }
 
@@ -753,5 +770,11 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         }
 
         return res;
+    }
+
+    private async reimportdih(dih: DataImportHistoricVO): Promise<void> {
+        dih.status_before_reimport = dih.state;
+        dih.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
+        await ModuleDAO.getInstance().insertOrUpdateVO(dih);
     }
 }

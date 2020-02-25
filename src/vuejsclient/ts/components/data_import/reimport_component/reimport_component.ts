@@ -45,9 +45,13 @@ export default class ReimportComponent extends Vuecomponentbase {
             return;
         }
 
-        this.bdd_vo.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
-        await ModuleDAO.getInstance().insertOrUpdateVO(this.bdd_vo);
-        this.updateData(this.bdd_vo);
+        let historic = this.bdd_vo;
+        while (!!historic.reimport_of_dih_id) {
+            historic = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, historic.reimport_of_dih_id);
+        }
+
+        await ModuleDataImport.getInstance().reimportdih(historic);
+        this.updateData(historic);
     }
 
     get can_reimport(): boolean {

@@ -53,4 +53,9 @@ export default class DataImportHistoricVO implements IDistantVOBase {
     public nb_row_unvalidated: number;
 
     public autovalidate: boolean;
+
+    public status_before_reimport: number;
+    public status_of_last_reimport: number;
+
+    public reimport_of_dih_id: number;
 }

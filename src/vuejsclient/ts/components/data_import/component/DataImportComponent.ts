@@ -1260,8 +1260,12 @@ export default class DataImportComponent extends DataImportComponentBase {
 
         for (let i in this.import_historics[segment.dateIndex]) {
             let historic: DataImportHistoricVO = this.import_historics[segment.dateIndex][i];
-            historic.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
-            await ModuleDAO.getInstance().insertOrUpdateVO(historic);
+
+            while (!!historic.reimport_of_dih_id) {
+                historic = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, historic.reimport_of_dih_id);
+            }
+
+            await ModuleDataImport.getInstance().reimportdih(historic);
         }
 
         this.snotify.info(this.label('imports.reimport.planified'));

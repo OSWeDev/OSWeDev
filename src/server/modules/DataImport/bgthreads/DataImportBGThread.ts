@@ -118,7 +118,7 @@ export default class DataImportBGThread implements IBGThread {
 
             case ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT:
 
-                importHistoric.state = ModuleDataImport.IMPORTATION_STATE_POSTTREATED;
+                importHistoric.state = (((importHistoric.status_before_reimport != null) && (typeof importHistoric.status_before_reimport != 'undefined')) ? importHistoric.status_before_reimport : ModuleDataImport.IMPORTATION_STATE_POSTTREATED);
                 await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
 
                 let new_importHistoric = new DataImportHistoricVO();
@@ -131,6 +131,7 @@ export default class DataImportBGThread implements IBGThread {
                 new_importHistoric.params = importHistoric.params;
                 new_importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
                 new_importHistoric.user_id = importHistoric.user_id;
+                new_importHistoric.reimport_of_dih_id = importHistoric.id;
 
                 let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(new_importHistoric);
 
