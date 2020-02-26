@@ -1,4 +1,5 @@
 import IDistantVOBase from '../../IDistantVOBase';
+import { Moment } from 'moment';
 
 export default interface IImportedData extends IDistantVOBase {
 
@@ -13,7 +14,7 @@ export default interface IImportedData extends IDistantVOBase {
     not_imported_msg: string;
     not_posttreated_msg: string;
 
-    creation_date: string;
+    creation_date: Moment;
 
     historic_id: number;
 }
