@@ -233,6 +233,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
             fr: 'ATTENTION'
         }, 'import.logs.lvl.WARN'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Le changement de statut est interdit'
+        }, 'handleImportHistoricDateUpdate.change_state.error'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Par index'
         }, 'import.sheet_position.index.name'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -704,6 +707,11 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
                 // Cas particulier du changement de statuts sur un import en validation manuelle qui doit continuer de fonctionner....
                 if (!((bdd_import.state == ModuleDataImport.IMPORTATION_STATE_FORMATTED) && (!importHistoric.autovalidate))) {
+
+                    let uid: number = httpContext ? httpContext.get('UID') : null;
+                    if (!!uid) {
+                        ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'handleImportHistoricDateUpdate.change_state.error');
+                    }
 
                     return false;
                 }

@@ -155,7 +155,7 @@ export default class ModuleTableDBService {
             let database_name = moduleTable.database;
 
             let common_id_seq_name = this.get_segmented_table_common_limited_seq_label(moduleTable);
-            let nb_datas_migrated = 0;
+            let max_id = 0;
 
             // Création / update des structures
             await RangeHandler.getInstance().foreach_ranges(segments, async (segmented_value) => {
@@ -204,9 +204,9 @@ export default class ModuleTableDBService {
 
                     await this.db.query('INSERT INTO ' + database_name + '.' + table_name + ' (' + column_names + ') SELECT ' + column_names + ' FROM ref.' + database_name + ' WHERE ' + field_where_clause + ';');
 
-                    let migrated_datas: [] = await this.db.query('SELECT * FROM ' + database_name + '.' + table_name + ';');
+                    let migrated_datas: any[] = await this.db.query('SELECT max(id) m FROM ' + database_name + '.' + table_name + ';');
 
-                    nb_datas_migrated += (migrated_datas && migrated_datas.length) ? migrated_datas.length : 0;
+                    max_id = Math.max(max_id, ((!!migrated_datas) && migrated_datas.length) ? migrated_datas[0]['m'] : 0);
                 }, moduleTable.table_segmented_field_segment_type);
 
                 // Si on est en création => on crée aussi la séquence, initiée au prochain id
@@ -215,7 +215,7 @@ export default class ModuleTableDBService {
                     '  INCREMENT 1' +
                     '  MINVALUE 1' +
                     '  MAXVALUE 9223372036854775807' +
-                    '  START ' + (nb_datas_migrated + 1) +
+                    '  START ' + (max_id + 1) +
                     '  CACHE 1;');
 
                 // Si on est en création => on change la séquence des tables créées
