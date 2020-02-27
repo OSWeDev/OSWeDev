@@ -119,8 +119,13 @@ export default abstract class GeneratorBase {
                 await db.one('select * from generator.workers where uid = $1;', [worker.uid]);
                 continue;
             } catch (error) {
+                if ((!error) || ((error['message'] != "No data returned from the query.") && (error['code'] != '42P01'))) {
+
+                    console.warn('Patch :' + worker.uid + ': Erreur... [' + error + '], on tente de lancer le patch.');
+                } else {
+                    console.debug('Patch :' + worker.uid + ': aucune trace de lancement en base, lancement du patch...');
+                }
                 // Pas d'info en base, le patch a pas été lancé, on le lance
-                console.warn('Patch :' + worker.uid + ': aucune trace de lancement en base, lancement du patch... [' + error + ']');
             }
 
             // Sinon on le lance et on stocke l'info en base

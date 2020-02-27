@@ -268,6 +268,37 @@ export default class ModuleTableDBService {
         await this.checkMissingInTS(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
         await this.checkMissingInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
         await this.checkColumnsStrutInDB(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
+        await this.checkConstraintsOnForeignKey(moduleTable, fields_by_field_id, table_cols_by_name, database_name, table_name);
+    }
+
+    private async checkConstraintsOnForeignKey(
+        moduleTable: ModuleTable<any>,
+        fields_by_field_id: { [field_id: string]: ModuleTableField<any> },
+        table_cols_by_name: { [col_name: string]: TableColumnDescriptor },
+        database_name: string,
+        table_name: string) {
+
+        let full_name = database_name + '.' + table_name;
+
+        for (let i in fields_by_field_id) {
+            let field = fields_by_field_id[i];
+
+            let constraint = field.getPGSqlFieldConstraint();
+
+            if (!constraint) {
+                continue;
+            }
+
+            try {
+                // Si la contrainte est récente elle devrait avoir la bonne nomenclature, sinon inutile d'en créer une autre
+                let pgSQL: string = 'ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + field.field_id + '_fkey;';
+                await this.db.none(pgSQL);
+
+                pgSQL = 'ALTER TABLE ' + full_name + ' ADD ' + constraint + ';';
+                await this.db.none(pgSQL);
+            } catch (error) {
+            }
+        }
     }
 
     /**

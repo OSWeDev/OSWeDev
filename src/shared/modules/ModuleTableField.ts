@@ -72,6 +72,8 @@ export default class ModuleTableField<T> {
     public field_label: DefaultTranslation;
     public manyToOne_target_moduletable: ModuleTable<any> = null;
 
+    public cascade_on_delete: boolean = true;
+
     public min_values: number = 0;
     public max_values: number = 999;
 
@@ -194,6 +196,12 @@ export default class ModuleTableField<T> {
         return this;
     }
 
+    public donotCascadeOnDelete(): ModuleTableField<T> {
+        this.cascade_on_delete = false;
+
+        return this;
+    }
+
     public setInclusiveIHM(): ModuleTableField<T> {
         this.is_inclusive_ihm = true;
 
@@ -266,9 +274,16 @@ export default class ModuleTableField<T> {
             return null;
         }
 
-        return 'CONSTRAINT ' + this.field_id + '_fkey FOREIGN KEY (' + this.field_id + ') ' +
-            'REFERENCES ' + this.target_database + '.' + this.target_table + ' (' + this.target_field + ') MATCH SIMPLE ' +
-            'ON UPDATE NO ACTION ON DELETE CASCADE';
+        // Si obligatoire on doit cascade
+        if (this.cascade_on_delete || this.field_required) {
+            return 'CONSTRAINT ' + this.field_id + '_fkey FOREIGN KEY (' + this.field_id + ') ' +
+                'REFERENCES ' + this.target_database + '.' + this.target_table + ' (' + this.target_field + ') MATCH SIMPLE ' +
+                'ON UPDATE NO ACTION ON DELETE CASCADE';
+        } else {
+            return 'CONSTRAINT ' + this.field_id + '_fkey FOREIGN KEY (' + this.field_id + ') ' +
+                'REFERENCES ' + this.target_database + '.' + this.target_table + ' (' + this.target_field + ') MATCH SIMPLE ' +
+                'ON UPDATE NO ACTION ON DELETE SET DEFAULT';
+        }
     }
 
     public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTable<U>) {
