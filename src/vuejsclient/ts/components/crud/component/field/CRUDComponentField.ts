@@ -201,6 +201,7 @@ export default class CRUDComponentField extends VueComponentBase {
     @Watch('vo')
     @Watch('datatable')
     @Watch('default_field_data')
+    @Watch('targetModuleTableCompteur')
     public on_reload_field_value() {
         this.debounced_reload_field_value();
     }
@@ -847,5 +848,14 @@ export default class CRUDComponentField extends VueComponentBase {
 
     get is_readonly(): boolean {
         return this.field.is_readonly || this.is_disabled;
+    }
+
+    get targetModuleTableCompteur(): number {
+        let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
+        if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
+            return ObjectHandler.getInstance().arrayFromMap(this.getStoredDatas[manyToOne.targetModuleTable.vo_type]).length;
+        }
+
+        return null;
     }
 }

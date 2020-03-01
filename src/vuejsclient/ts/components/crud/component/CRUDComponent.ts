@@ -607,7 +607,7 @@ export default class CRUDComponent extends VueComponentBase {
         this.creating_vo = false;
 
         if (this.embed) {
-            this.$emit(this.newVO._type + '_create', createdVO.id);
+            this.$emit(this.newVO._type + '_create', createdVO);
             if (this.crud.reset_newvo_after_each_creation) {
                 this.prepareNewVO();
             }
@@ -764,6 +764,7 @@ export default class CRUDComponent extends VueComponentBase {
     private async updateVO() {
         this.snotify.info(this.label('crud.update.starting'));
         this.updating_vo = true;
+        let updatedVO = null;
 
         if ((!this.selectedVO) || (!this.editableVO) || (this.editableVO.id !== this.selectedVO.id) || (this.editableVO._type !== this.selectedVO._type)) {
             this.snotify.error(this.label('crud.update.errors.selection_failure'));
@@ -795,7 +796,7 @@ export default class CRUDComponent extends VueComponentBase {
                 return;
             }
 
-            let updatedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
+            updatedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
             if ((!updatedVO) || (updatedVO.id !== this.selectedVO.id) || (updatedVO._type !== this.selectedVO._type)) {
                 this.snotify.error(this.label('crud.update.errors.update_failure'));
                 this.updating_vo = false;
@@ -821,7 +822,7 @@ export default class CRUDComponent extends VueComponentBase {
         this.updating_vo = false;
 
         if (this.embed) {
-            this.$emit(this.newVO._type + '_update', this.selectedVO.id);
+            this.$emit(this.newVO._type + '_update', updatedVO);
             this.hideCrudModal(this.newVO._type, 'update');
         } else {
             await this.callCallbackFunctionUpdate();
@@ -832,6 +833,7 @@ export default class CRUDComponent extends VueComponentBase {
     private async deleteVO() {
         this.snotify.info(this.label('crud.delete.starting'));
         this.deleting_vo = true;
+        let deletedVO = null;
 
         if (!this.selectedVO) {
             this.snotify.error(this.label('crud.delete.errors.selection_failure'));
@@ -843,7 +845,7 @@ export default class CRUDComponent extends VueComponentBase {
 
             await ModuleDAO.getInstance().deleteVOs([this.selectedVO]);
 
-            let deletedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
+            deletedVO = await ModuleDAO.getInstance().getVoById<any>(this.selectedVO._type, this.selectedVO.id);
             if (deletedVO && deletedVO.id) {
                 this.snotify.error(this.label('crud.delete.errors.delete_failure'));
                 this.deleting_vo = false;
@@ -863,7 +865,7 @@ export default class CRUDComponent extends VueComponentBase {
 
         this.snotify.success(this.label('crud.delete.success'));
         if (this.embed) {
-            this.$emit(this.newVO._type + '_delete', this.selectedVO.id);
+            this.$emit(this.newVO._type + '_delete', deletedVO);
             this.hideCrudModal(this.newVO._type, 'delete');
         } else {
             this.$router.push(this.callback_route);
