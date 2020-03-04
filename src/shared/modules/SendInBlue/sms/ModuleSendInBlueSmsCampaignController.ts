@@ -68,6 +68,10 @@ export default class ModuleSendInBlueSmsCampaignController {
 
         let scheduledAt_clone: Moment = moment(scheduledAt.format('Y-MM-DD')).hour(scheduledAt.hour()).minute(scheduledAt.minute()).second(0);
 
+        if (scheduledAt_clone.isBefore(moment(), 'minute')) {
+            scheduledAt_clone = moment().add(3, 'minutes');
+        }
+
         let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
             ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN,
