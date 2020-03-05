@@ -964,11 +964,37 @@ export default class RangeHandler {
             return false;
         }
 
-        if ((a.min != b.min) || (a.min_inclusiv != b.min_inclusiv)) {
+        let a_min: any = null;
+        let b_min: any = null;
+        let a_max: any = null;
+        let b_max: any = null;
+
+        switch (a.range_type) {
+            case TSRange.RANGE_TYPE:
+                a_min = moment(a.min).unix();
+                b_min = moment(b.min).unix();
+                a_max = moment(a.max).unix();
+                b_max = moment(b.max).unix();
+                break;
+            case HourRange.RANGE_TYPE:
+                a_min = moment.duration(a.min).asMilliseconds();
+                b_min = moment.duration(b.min).asMilliseconds();
+                a_max = moment.duration(a.max).asMilliseconds();
+                b_max = moment.duration(b.max).asMilliseconds();
+                break;
+            default:
+                a_min = a.min;
+                b_min = b.min;
+                a_max = a.max;
+                b_max = b.max;
+                break;
+        }
+
+        if ((a_min != b_min) || (a.min_inclusiv != b.min_inclusiv)) {
             return false;
         }
 
-        if ((a.max != b.max) || (a.max_inclusiv != b.max_inclusiv)) {
+        if ((a_max != b_max) || (a.max_inclusiv != b.max_inclusiv)) {
             return false;
         }
 
