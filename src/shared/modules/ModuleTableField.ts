@@ -123,6 +123,7 @@ export default class ModuleTableField<T> {
         public field_default: T = null) {
         this.field_value = this.field_default;
         this.field_loaded = false;
+        this.cascade_on_delete = field_required;
 
         if (!field_label) {
             field_label = new DefaultTranslation({ [DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION]: this.field_id });
@@ -198,6 +199,12 @@ export default class ModuleTableField<T> {
 
     public donotCascadeOnDelete(): ModuleTableField<T> {
         this.cascade_on_delete = false;
+
+        return this;
+    }
+
+    public forceCascadeOnDelete(): ModuleTableField<T> {
+        this.cascade_on_delete = true;
 
         return this;
     }

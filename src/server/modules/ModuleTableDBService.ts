@@ -7,6 +7,7 @@ import RangeHandler from '../../shared/tools/RangeHandler';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
 import TableColumnDescriptor from './TableColumnDescriptor';
 import TableDescriptor from './TableDescriptor';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 
 export default class ModuleTableDBService {
 
@@ -283,19 +284,55 @@ export default class ModuleTableDBService {
         for (let i in fields_by_field_id) {
             let field = fields_by_field_id[i];
 
-            let constraint = field.getPGSqlFieldConstraint();
-
-            if (!constraint) {
+            if (!field.has_relation) {
                 continue;
             }
 
-            try {
-                // Si la contrainte est récente elle devrait avoir la bonne nomenclature, sinon inutile d'en créer une autre
-                let pgSQL: string = 'ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + field.field_id + '_fkey;';
-                await this.db.none(pgSQL);
+            let constraint = field.getPGSqlFieldConstraint();
 
-                pgSQL = 'ALTER TABLE ' + full_name + ' ADD ' + constraint + ';';
-                await this.db.none(pgSQL);
+            let actual_constraint_name_res = null;
+            try {
+                actual_constraint_name_res = await this.db.query(
+                    'select tco.constraint_name ' +
+                    '  from information_schema.table_constraints tco ' +
+                    '  join information_schema.key_column_usage kcu ' +
+                    '    on kcu.constraint_name = tco.constraint_name ' +
+                    '    and kcu.constraint_schema = tco.constraint_schema ' +
+                    '    and kcu.constraint_name = tco.constraint_name ' +
+                    '  where tco.constraint_type = \'FOREIGN KEY\' and kcu.column_name = \'' + field.field_id + '\' and kcu.table_name = \'' + table_name + '\' and kcu.table_schema = \'' + database_name + '\';');
+            } catch (error) {
+            }
+            let actual_constraint_names: Array<{ constraint_name: string }> = (actual_constraint_name_res && actual_constraint_name_res.length > 0) ? actual_constraint_name_res : null;
+
+            if (!constraint) {
+
+                if (!!actual_constraint_names) {
+                    for (let actual_constraint_names_i in actual_constraint_names) {
+                        let actual_constraint_name = actual_constraint_names[actual_constraint_names_i];
+
+                        try {
+                            await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + '_fkey;');
+                            ConsoleHandler.getInstance().warn('SUPRRESION d\'une contrainte incohérente en base VS code :' + full_name + ':' + actual_constraint_name + ':');
+                        } catch (error) {
+                        }
+                    }
+                }
+                continue;
+            }
+
+            if (!!actual_constraint_names) {
+                for (let actual_constraint_names_i in actual_constraint_names) {
+                    let actual_constraint_name = actual_constraint_names[actual_constraint_names_i];
+
+                    try {
+                        await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + '_fkey;');
+                    } catch (error) {
+                    }
+                }
+            }
+
+            try {
+                await this.db.none('ALTER TABLE ' + full_name + ' ADD ' + constraint + ';');
             } catch (error) {
             }
         }

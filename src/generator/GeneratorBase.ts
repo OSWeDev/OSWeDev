@@ -26,6 +26,7 @@ import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112Check
 import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
 import Patch20200131InitUserLogPolicies from './patchs/postmodules/Patch20200131InitUserLogPolicies';
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
+import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
 
 export default abstract class GeneratorBase {
 
@@ -48,6 +49,7 @@ export default abstract class GeneratorBase {
         ModulesManager.getInstance().isServerSide = true;
 
         this.pre_modules_workers = [
+            Patch20200305CascadeChecker.getInstance(),
             Patch20200131DeleteVersioningVOAccessPolicies.getInstance(),
             Patch20191010CheckBasicSchemas.getInstance(),
             Patch20191112CheckExtensions.getInstance(),
@@ -84,7 +86,10 @@ export default abstract class GeneratorBase {
 
         console.log("pre modules initialization workers...");
         if (!!this.pre_modules_workers) {
-            await this.execute_workers(this.pre_modules_workers, db);
+            if (!await this.execute_workers(this.pre_modules_workers, db)) {
+                process.exit(0);
+                return;
+            }
         }
         console.log("pre modules initialization workers done.");
 
@@ -102,7 +107,10 @@ export default abstract class GeneratorBase {
 
         console.log("post modules initialization workers...");
         if (!!this.post_modules_workers) {
-            await this.execute_workers(this.post_modules_workers, db);
+            if (!await this.execute_workers(this.post_modules_workers, db)) {
+                process.exit(0);
+                return;
+            }
         }
         console.log("post modules initialization workers done.");
 
@@ -110,7 +118,7 @@ export default abstract class GeneratorBase {
         process.exit(0);
     }
 
-    private async execute_workers(workers: IGeneratorWorker[], db: IDatabase<any>) {
+    private async execute_workers(workers: IGeneratorWorker[], db: IDatabase<any>): Promise<boolean> {
         for (let i in workers) {
             let worker = workers[i];
 
@@ -139,8 +147,10 @@ export default abstract class GeneratorBase {
                 await db.none('insert into generator.workers (uid) values ($1);', [worker.uid]);
             } catch (error) {
                 console.error('Patch :' + worker.uid + ': Impossible d\'exécuter le patch : ' + error + '. Arret du générateur.');
-                return null;
+                return false;
             }
         }
+
+        return true;
     }
 }

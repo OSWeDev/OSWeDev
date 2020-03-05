@@ -264,6 +264,7 @@ export default class ModuleDataImport extends Module {
             field_post_exec_module_id
         ];
         this.datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, () => new DataImportFormatVO(), datatable_fields, label_field, "Fichiers d'import");
+        field_file_id.donotCascadeOnDelete();
         field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
         field_post_exec_module_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
         this.datatables.push(this.datatable_desc);
@@ -363,6 +364,7 @@ export default class ModuleDataImport extends Module {
         ];
         this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, () => new DataImportHistoricVO(), datatable_fields, label_field, "Historiques d'importation").hideAnyToManyByDefault();
         field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
+        field_user_id.donotCascadeOnDelete();
         field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         reimport_of_dih_id.addManyToOneRelation(this.datatable_historic);
         field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);

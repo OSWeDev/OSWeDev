@@ -26,6 +26,7 @@ import UserVO from './vos/UserVO';
 import UserLogVO from './vos/UserLogVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import NumSegment from '../DataRender/vos/NumSegment';
+import ModuleVO from '../ModuleVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -278,6 +279,7 @@ export default class ModuleAccessPolicy extends Module {
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, RoleVO.API_TYPE_ID, () => new RoleVO(), datatable_fields, label_field, new DefaultTranslation({ fr: "Rôles" }));
+        parent_role_id.donotCascadeOnDelete();
         parent_role_id.addManyToOneRelation(datatable);
         this.datatables.push(datatable);
     }
@@ -330,6 +332,7 @@ export default class ModuleAccessPolicy extends Module {
         let datatable: ModuleTable<any> = new ModuleTable(this, AccessPolicyVO.API_TYPE_ID, () => new AccessPolicyVO(), datatable_fields, label_field, new DefaultTranslation({ fr: "Droit" }));
 
         field_accpolgroup_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AccessPolicyGroupVO.API_TYPE_ID]);
+        field_module_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
 
         this.datatables.push(datatable);
     }
