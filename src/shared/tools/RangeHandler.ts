@@ -415,6 +415,34 @@ export default class RangeHandler {
         return false;
     }
 
+    public get_ranges_any_range_intersects_any_range<T>(ranges_a: Array<IRange<T>>, ranges_b: Array<IRange<T>>, segment_type: number = null): Array<IRange<T>> {
+        let ranges: Array<IRange<T>> = [];
+
+        if ((!ranges_b) || (!ranges_a) || (!ranges_b.length) || (!ranges_a.length)) {
+            return null;
+        }
+
+        for (let i in ranges_a) {
+            let range_a = ranges_a[i];
+
+            if (this.range_intersects_any_range(range_a, ranges_b, segment_type)) {
+                let to_push: boolean = true;
+
+                for (let j in ranges) {
+                    if (this.is_same(range_a, ranges[j])) {
+                        to_push = false;
+                    }
+                }
+
+                if (to_push) {
+                    ranges.push(range_a);
+                }
+            }
+        }
+
+        return ranges.length > 0 ? ranges : null;
+    }
+
     /**
      * @param range_a
      * @param ranges
