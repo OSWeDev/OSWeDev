@@ -672,11 +672,13 @@ export default class CRUDComponentField extends VueComponentBase {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
         this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
-        this.$emit('onChangeVO', this.vo);
 
         if (this.field.onChange) {
             this.field.onChange(this.vo);
+            this.datatable.refresh();
         }
+
+        this.$emit('onChangeVO', this.vo);
     }
 
     private inputValue(value: any) {

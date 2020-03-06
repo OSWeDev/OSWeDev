@@ -61,6 +61,7 @@ include ../../../../views/mixins/loading.pug
                                 template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
                                     crud_field(
                                         v-show="!field.hidden",
+                                        :key="newVO._type + '_createDatatable_' + field.datatable_field_uid + '_' + crud_createDatatable_key",
                                         :field="field",
                                         :vo="newVO",
                                         :datatable="crud.createDatatable",
@@ -96,6 +97,7 @@ include ../../../../views/mixins/loading.pug
                                 template(v-for="field in crud.updateDatatable.fields")
                                     crud_field(
                                         v-show="!field.hidden",
+                                        :key="newVO._type + '_updateDatatable_' + field.datatable_field_uid + '_' + crud_updateDatatable_key",
                                         :field="field",
                                         :vo="editableVO",
                                         :datatable="crud.updateDatatable",

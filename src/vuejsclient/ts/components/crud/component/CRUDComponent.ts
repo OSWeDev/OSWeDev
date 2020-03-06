@@ -106,6 +106,9 @@ export default class CRUDComponent extends VueComponentBase {
     private deleting_vo: boolean = false;
     private is_only_readable: boolean = false;
 
+    private crud_createDatatable_key: number = 0;
+    private crud_updateDatatable_key: number = 0;
+
     // get updateDatatable_select_options_enabled_by_datatable_field_uid(): { [datatable_field_uid: string]: number[] } {
     //     let res: { [datatable_field_uid: string]: number[] } = {};
 
@@ -919,6 +922,8 @@ export default class CRUDComponent extends VueComponentBase {
 
 
     private onChangeVO(vo: IDistantVOBase) {
+        this.crud_createDatatable_key = this.crud.createDatatable.key;
+        this.crud_updateDatatable_key = this.crud.updateDatatable.key;
 
         if (this.crud && this.crud.isReadOnlyData) {
             this.is_only_readable = this.crud.isReadOnlyData(vo);
