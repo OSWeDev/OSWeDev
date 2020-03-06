@@ -1,3 +1,4 @@
+import moment = require('moment');
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
@@ -20,6 +21,12 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
+import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import ISimpleNumberVarMatroidData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarMatroidData';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import { Moment } from 'moment';
+import ThreadHandler from '../../../shared/tools/ThreadHandler';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -37,6 +44,9 @@ export default class ModuleVarServer extends ModuleServerBase {
     }
 
     public async configure() {
+
+        ModuleBGThreadServer.getInstance().registerBGThread(VarsdatasComputerBGThread.getInstance());
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Valeur' }, 'var.desc_mode.var_data.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Description' }, 'var.desc_mode.var_description.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
@@ -117,6 +127,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValue, this.getSimpleVarDataCachedValueFromParam.bind(this));
+
     }
 
     /**
@@ -242,6 +254,62 @@ export default class ModuleVarServer extends ModuleServerBase {
     //     await ModuleDAO.getInstance().insertOrUpdateVO(empty_shell);
     // }
 
+    private async getSimpleVarDataCachedValueFromParam<T extends ISimpleNumberVarMatroidData>(param: IVarMatroidDataParamVO): Promise<number> {
+
+        if (!param) {
+            return null;
+        }
+
+        let varsdata: ISimpleNumberVarData[] = await ModuleDAO.getInstance().getVosByExactMatroids<ISimpleNumberVarData, IVarMatroidDataParamVO>(param._type, [param], {});
+
+        let vardata: ISimpleNumberVarData = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
+
+        if (!vardata) {
+
+            // On a rien en base, on le crée et on attend le résultat
+            vardata = Object.assign(VOsTypesManager.getInstance().moduleTables_by_voType[param._type].voConstructor(), param);
+            vardata.value_ts = null;
+            vardata.value = null;
+            vardata.value_type = null;
+
+            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(vardata);
+            if ((!res) || (!res.id)) {
+                return null;
+            }
+
+            vardata.id = parseInt(res.id.toString());
+        } else {
+
+            if (!!vardata.value_ts) {
+                return vardata.value;
+            }
+        }
+
+        // Si on a un vardata mais pas de value_ts, on attend qu'il se remplisse, au max 90 secondes
+        let started: Moment = moment().utc(true);
+        let interval: number = 500;
+        let timeout: number = 90000;
+        let delta: number = 0;
+
+        do {
+
+            await ThreadHandler.getInstance().sleep(interval);
+            vardata = await ModuleDAO.getInstance().getVoById(param._type, vardata.id);
+
+            if (!vardata) {
+                return null;
+            }
+
+            if (!!vardata.value_ts) {
+                return vardata.value;
+            }
+
+            delta = Math.abs(moment().utc(true).diff(started, 'ms'));
+        } while (delta < timeout);
+
+        ConsoleHandler.getInstance().warn('TIMEOUT on var data request:' + JSON.stringify(param) + ':');
+        return null;
+    }
 
     private async getSimpleVarDataValueSumFilterByMatroids<T extends ISimpleNumberVarData>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<number> {
 

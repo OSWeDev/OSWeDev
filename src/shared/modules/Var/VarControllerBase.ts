@@ -14,6 +14,8 @@ import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
 import moment = require('moment');
+import VarCacheConfVO from './vos/VarCacheConfVO';
+import ModuleVar from './ModuleVar';
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 
@@ -61,6 +63,8 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
      */
     public can_load_precompiled_or_imported_datas_client_side: boolean = true;
 
+    public var_cache_conf: VarCacheConfVO = null;
+
     protected constructor(
         public varConf: VarConfVOBase,
         public varDataParamController: VarDataParamControllerBase<TData, TDataParam>) {
@@ -68,6 +72,13 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
     public async initialize() {
         this.varConf = await VarsController.getInstance().registerVar(this.varConf, this);
+
+        let var_cache_conf = this.getVarCacheConf();
+        this.var_cache_conf = var_cache_conf ? await ModuleVar.getInstance().configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
+    }
+
+    public getVarCacheConf(): VarCacheConfVO {
+        return null;
     }
 
     /**

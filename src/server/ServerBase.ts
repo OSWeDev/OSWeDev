@@ -39,6 +39,7 @@ import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServ
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
+import VarsdatasComputerBGThread from './modules/Var/bgthreads/VarsdatasComputerBGThread';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -692,6 +693,8 @@ export default abstract class ServerBase {
                 // ServerBase.getInstance().testNotifs();
 
                 await ServerBase.getInstance().hook_on_ready();
+
+                VarsdatasComputerBGThread.getInstance().server_ready = true;
                 ConsoleHandler.getInstance().log('Server ready to go !');
             })
             .catch((err) => {

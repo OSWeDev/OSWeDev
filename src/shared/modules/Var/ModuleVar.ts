@@ -13,6 +13,13 @@ import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import APIDAOApiTypeAndMatroidsParamsVO from '../DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
 import IDistantVOBase from '../IDistantVOBase';
 import IMatroid from '../Matroid/interfaces/IMatroid';
+import VarCacheConfVO from './vos/VarCacheConfVO';
+import VarConfVOBase from './vos/VarConfVOBase';
+import ModuleDAO from '../DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
+import ModulesManager from '../ModulesManager';
+import ConsoleHandler from '../../tools/ConsoleHandler';
+import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
 
 export default class ModuleVar extends Module {
 
@@ -26,9 +33,11 @@ export default class ModuleVar extends Module {
     public static POLICY_DESC_MODE_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.DESC_MODE_ACCESS';
 
     public static APINAME_getSimpleVarDataValueSumFilterByMatroids: string = 'getSimpleVarDataValueSumFilterByMatroids';
+    public static APINAME_getSimpleVarDataCachedValueFromParam: string = 'getSimpleVarDataCachedValueFromParam';
 
-    // public static APINAME_INVALIDATE_MATROID: string = 'invalidate_matroid';
-    // public static APINAME_register_matroid_for_precalc: string = 'register_matroid_for_precalc';
+
+    public static varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
+    public static varcacheconf_by_api_type_ids: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
 
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
@@ -52,12 +61,57 @@ export default class ModuleVar extends Module {
         this.initializeSimpleVarConf();
     }
 
+    public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
+        let server_side: boolean = (!!ModulesManager.getInstance().isServerSide);
+        // Si on est côté client, on a pas besoin de la conf du cache
+
+        if (!server_side) {
+            return var_cache_conf;
+        }
+
+        let existing_bdd_conf: VarCacheConfVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<VarCacheConfVO>(VarCacheConfVO.API_TYPE_ID, 'var_id', [var_cache_conf.var_id]);
+
+        if ((!!existing_bdd_conf) && existing_bdd_conf.length) {
+
+            if (existing_bdd_conf.length == 1) {
+                ModuleVar.varcacheconf_by_var_ids[var_conf.id] = existing_bdd_conf[0];
+                if (!ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
+                    ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
+                }
+                ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = existing_bdd_conf[0];
+                return existing_bdd_conf[0];
+            }
+            return null;
+        }
+
+        let insert_or_update_result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
+
+        if ((!insert_or_update_result) || (!insert_or_update_result.id)) {
+            ConsoleHandler.getInstance().error('Impossible de configurer le cache de la var :' + var_conf.id + ':');
+            return null;
+        }
+
+        var_cache_conf.id = parseInt(insert_or_update_result.id.toString());
+
+        ModuleVar.varcacheconf_by_var_ids[var_conf.id] = var_cache_conf;
+        if (!ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
+            ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
+        }
+        ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = var_cache_conf;
+        return var_cache_conf;
+    }
+
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
             ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<IVarMatroidDataParamVO, number>(
+            ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam,
+            (param: IVarMatroidDataParamVO) => (param ? [param._type] : null)
         ));
 
         // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
@@ -77,6 +131,14 @@ export default class ModuleVar extends Module {
         }
 
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, API_TYPE_ID, matroids, fields_ids_mapper);
+    }
+
+    public async getSimpleVarDataCachedValueFromParam<T extends IVarMatroidDataParamVO>(param: T): Promise<number> {
+        if (!param) {
+            return null;
+        }
+
+        return await ModuleAPI.getInstance().handleAPI<IVarMatroidDataParamVO, number>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
     }
 
     // public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {
