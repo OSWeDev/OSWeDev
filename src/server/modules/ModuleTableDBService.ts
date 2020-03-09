@@ -293,7 +293,7 @@ export default class ModuleTableDBService {
             let actual_constraint_name_res = null;
             try {
                 actual_constraint_name_res = await this.db.query(
-                    'select tco.constraint_name ' +
+                    'select DISTINCT tco.constraint_name ' +
                     '  from information_schema.table_constraints tco ' +
                     '  join information_schema.key_column_usage kcu ' +
                     '    on kcu.constraint_name = tco.constraint_name ' +
@@ -308,10 +308,14 @@ export default class ModuleTableDBService {
 
                 if (!!actual_constraint_names) {
                     for (let actual_constraint_names_i in actual_constraint_names) {
-                        let actual_constraint_name = actual_constraint_names[actual_constraint_names_i];
+                        let actual_constraint_name = actual_constraint_names[actual_constraint_names_i] ? actual_constraint_names[actual_constraint_names_i]['constraint_name'] : null;
+
+                        if (!actual_constraint_name) {
+                            continue;
+                        }
 
                         try {
-                            await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + '_fkey;');
+                            await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + ';');
                             ConsoleHandler.getInstance().warn('SUPRRESION d\'une contrainte incohérente en base VS code :' + full_name + ':' + actual_constraint_name + ':');
                         } catch (error) {
                         }
@@ -322,10 +326,14 @@ export default class ModuleTableDBService {
 
             if (!!actual_constraint_names) {
                 for (let actual_constraint_names_i in actual_constraint_names) {
-                    let actual_constraint_name = actual_constraint_names[actual_constraint_names_i];
+                    let actual_constraint_name = actual_constraint_names[actual_constraint_names_i] ? actual_constraint_names[actual_constraint_names_i]['constraint_name'] : null;
+
+                    if (!actual_constraint_name) {
+                        continue;
+                    }
 
                     try {
-                        await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + '_fkey;');
+                        await this.db.none('ALTER TABLE ' + full_name + ' DROP CONSTRAINT ' + actual_constraint_name + ';');
                     } catch (error) {
                     }
                 }

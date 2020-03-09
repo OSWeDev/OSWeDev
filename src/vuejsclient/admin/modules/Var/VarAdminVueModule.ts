@@ -8,6 +8,7 @@ import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
+import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 
 export default class VarAdminVueModule extends VueModuleBase {
 
@@ -41,6 +42,14 @@ export default class VarAdminVueModule extends VueModuleBase {
                 null,
                 new MenuPointer(
                     new MenuLeaf("SimpleVarConfVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-calculator"),
+                    menuBranch),
+                this.routes);
+
+            CRUDComponentManager.getInstance().registerCRUD(
+                VarCacheConfVO.API_TYPE_ID,
+                null,
+                new MenuPointer(
+                    new MenuLeaf("VarCacheConfVO", MenuElementBase.PRIORITY_ULTRAHIGH + 1, "fa-calculator"),
                     menuBranch),
                 this.routes);
         }

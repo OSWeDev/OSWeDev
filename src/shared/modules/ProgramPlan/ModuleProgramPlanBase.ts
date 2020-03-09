@@ -357,7 +357,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         let contact_type_id = null;
 
         if (!!this.contact_type_type_id) {
-            contact_type_id = new ModuleTableField('contact_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type de contact', true);
+            contact_type_id = new ModuleTableField('contact_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Type de contact', false);
             additional_fields.unshift(contact_type_id);
         }
 

@@ -56,52 +56,60 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
         let res: RequestsWrapperResult = new RequestsWrapperResult();
         res.requests_results = {};
 
+        let promises = [];
+
         for (let i in requests) {
             let wrapped_request: LightWeightSendableRequestVO = requests[i];
 
-            let apiDefinition: APIDefinition<any, any> = null;
+            promises.push((async () => {
 
-            for (let j in ModuleAPI.getInstance().registered_apis) {
-                let registered_api = ModuleAPI.getInstance().registered_apis[j];
-                if (ModuleAPI.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, ModuleAPI.getInstance().getAPI_URL(registered_api))) {
-                    apiDefinition = registered_api;
-                    break;
+                let apiDefinition: APIDefinition<any, any> = null;
+
+                for (let j in ModuleAPI.getInstance().registered_apis) {
+                    let registered_api = ModuleAPI.getInstance().registered_apis[j];
+                    if (ModuleAPI.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, ModuleAPI.getInstance().getAPI_URL(registered_api))) {
+                        apiDefinition = registered_api;
+                        break;
+                    }
                 }
-            }
 
-            if (!apiDefinition) {
-                ConsoleHandler.getInstance().error('API introuvable:' + wrapped_request.url + ':');
-                break;
-            }
+                if (!apiDefinition) {
+                    ConsoleHandler.getInstance().error('API introuvable:' + wrapped_request.url + ':');
+                    return;
+                }
 
-            let param = null;
+                let param = null;
 
-            switch (wrapped_request.type) {
-                case RequestResponseCacheVO.API_TYPE_GET:
-                    if (!!apiDefinition.PARAM_TRANSLATE_FROM_REQ) {
-                        // Il faut un objet request.params à ce niveau avec chaque param séparé si c'est possible.
-                        //
-                        param = await apiDefinition.PARAM_TRANSLATE_FROM_REQ(ModuleAPI.getInstance().getFakeRequestParamsFromUrl(
-                            wrapped_request.url,
-                            ModuleAPI.getInstance().getAPI_URL(apiDefinition)));
-                    }
-                    break;
+                switch (wrapped_request.type) {
+                    case RequestResponseCacheVO.API_TYPE_GET:
+                        if (!!apiDefinition.PARAM_TRANSLATE_FROM_REQ) {
+                            // Il faut un objet request.params à ce niveau avec chaque param séparé si c'est possible.
+                            //
+                            param = await apiDefinition.PARAM_TRANSLATE_FROM_REQ(ModuleAPI.getInstance().getFakeRequestParamsFromUrl(
+                                wrapped_request.url,
+                                ModuleAPI.getInstance().getAPI_URL(apiDefinition)));
+                        }
+                        break;
 
-                case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
-                    try {
-                        param = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
-                    } catch (error) {
-                        ConsoleHandler.getInstance().error('Erreur récupération params poste_for_get wrapped:' + error + ':');
-                    }
-            }
+                    case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
+                        try {
+                            param = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
+                        } catch (error) {
+                            ConsoleHandler.getInstance().error('Erreur récupération params poste_for_get wrapped:' + error + ':');
+                        }
+                }
 
-            res.requests_results[wrapped_request.index] = await apiDefinition.SERVER_HANDLER(param);
+                res.requests_results[wrapped_request.index] = await apiDefinition.SERVER_HANDLER(param);
 
-            if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
-                (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
-                res.requests_results[wrapped_request.index] = ModuleAPI.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
-            }
+                if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
+                    (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
+                    res.requests_results[wrapped_request.index] = ModuleAPI.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
+                }
+            })());
+
         }
+
+        await Promise.all(promises);
 
         return res;
     }

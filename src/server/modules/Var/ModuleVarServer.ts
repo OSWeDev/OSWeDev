@@ -27,6 +27,7 @@ import ISimpleNumberVarMatroidData from '../../../shared/modules/Var/interfaces/
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import { Moment } from 'moment';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -94,6 +95,15 @@ export default class ModuleVarServer extends ModuleServerBase {
         }, 'var.desc_mode.loaded_datas_matroids_sum_value.___LABEL___'));
 
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Indicateurs - Objectif'
+        }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_objectif_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Indicateurs - Réalisé'
+        }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_realise_id'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Var conf cache'
+        }, 'menu.menuelements.VarCacheConfVO.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Nombre de deps'
@@ -127,7 +137,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_INVALIDATE_MATROID, this.invalidate_matroid.bind(this));
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValue, this.getSimpleVarDataCachedValueFromParam.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
 
     }
 
@@ -254,26 +264,30 @@ export default class ModuleVarServer extends ModuleServerBase {
     //     await ModuleDAO.getInstance().insertOrUpdateVO(empty_shell);
     // }
 
-    private async getSimpleVarDataCachedValueFromParam<T extends ISimpleNumberVarMatroidData>(param: IVarMatroidDataParamVO): Promise<number> {
+    private async getSimpleVarDataCachedValueFromParam(param: APISimpleVOParamVO): Promise<number> {
 
-        if (!param) {
+        if ((!param) || (!param.vo)) {
             return null;
         }
 
-        let varsdata: ISimpleNumberVarData[] = await ModuleDAO.getInstance().getVosByExactMatroids<ISimpleNumberVarData, IVarMatroidDataParamVO>(param._type, [param], {});
+        VarsdatasComputerBGThread.getInstance().disable();
+
+        let vo: IVarMatroidDataParamVO = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.vo) : null;
+        let varsdata: ISimpleNumberVarData[] = await ModuleDAO.getInstance().getVosByExactMatroids<ISimpleNumberVarData, IVarMatroidDataParamVO>(vo._type, [vo as any], {});
 
         let vardata: ISimpleNumberVarData = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
 
         if (!vardata) {
 
             // On a rien en base, on le crée et on attend le résultat
-            vardata = Object.assign(VOsTypesManager.getInstance().moduleTables_by_voType[param._type].voConstructor(), param);
+            vardata = Object.assign(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].voConstructor(), vo);
             vardata.value_ts = null;
             vardata.value = null;
-            vardata.value_type = null;
+            vardata.value_type = VarsController.VALUE_TYPE_IMPORT;
 
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(vardata);
             if ((!res) || (!res.id)) {
+                VarsdatasComputerBGThread.getInstance().enable();
                 return null;
             }
 
@@ -281,6 +295,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         } else {
 
             if (!!vardata.value_ts) {
+                VarsdatasComputerBGThread.getInstance().enable();
                 return vardata.value;
             }
         }
@@ -291,10 +306,11 @@ export default class ModuleVarServer extends ModuleServerBase {
         let timeout: number = 90000;
         let delta: number = 0;
 
+        VarsdatasComputerBGThread.getInstance().enable();
         do {
 
             await ThreadHandler.getInstance().sleep(interval);
-            vardata = await ModuleDAO.getInstance().getVoById(param._type, vardata.id);
+            vardata = await ModuleDAO.getInstance().getVoById(vo._type, vardata.id);
 
             if (!vardata) {
                 return null;
@@ -307,7 +323,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             delta = Math.abs(moment().utc(true).diff(started, 'ms'));
         } while (delta < timeout);
 
-        ConsoleHandler.getInstance().warn('TIMEOUT on var data request:' + JSON.stringify(param) + ':');
+        ConsoleHandler.getInstance().warn('TIMEOUT on var data request:' + JSON.stringify(vo) + ':');
         return null;
     }
 

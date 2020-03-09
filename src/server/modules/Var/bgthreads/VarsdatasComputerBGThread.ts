@@ -149,6 +149,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 if ((!vars_datas) || (!vars_datas.length)) {
                     return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
                 }
+                vars_datas_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(vars_datas);
             }
 
             if (nb_computed > 0) {
@@ -180,7 +181,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 let vars_datas_tmp: ISimpleNumberVarData[] = [];
                 if (!!varcacheconf.cache_timeout_ms) {
                     let timeout: moment.Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
-                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<ISimpleNumberVarData>(api_type_id, ' where value_ts is null and var_id = ' + varcacheconf.var_id + ' or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ' limit ' + this.request_limit + ';');
+                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<ISimpleNumberVarData>(api_type_id, ' where var_id = ' + varcacheconf.var_id + ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') limit ' + this.request_limit + ';');
                 } else {
                     vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<ISimpleNumberVarData>(api_type_id, ' where value_ts is null and var_id = ' + varcacheconf.var_id + ' limit ' + this.request_limit + ';');
                 }

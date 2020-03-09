@@ -20,6 +20,7 @@ import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
 import ModulesManager from '../ModulesManager';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
+import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
 
 export default class ModuleVar extends Module {
 
@@ -59,6 +60,7 @@ export default class ModuleVar extends Module {
         this.datatables = [];
 
         this.initializeSimpleVarConf();
+        this.initializeVarCacheConfVO();
     }
 
     public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
@@ -109,9 +111,10 @@ export default class ModuleVar extends Module {
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<IVarMatroidDataParamVO, number>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, number>(
             ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam,
-            (param: IVarMatroidDataParamVO) => (param ? [param._type] : null)
+            (param: APISimpleVOParamVO) => ((param && param.vo) ? [param.vo._type] : null),
+            APISimpleVOParamVO.translateCheckAccessParams
         ));
 
         // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
@@ -138,7 +141,7 @@ export default class ModuleVar extends Module {
             return null;
         }
 
-        return await ModuleAPI.getInstance().handleAPI<IVarMatroidDataParamVO, number>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, number>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
     }
 
     // public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {
@@ -217,4 +220,19 @@ export default class ModuleVar extends Module {
         let datatable = new ModuleTable(this, SimpleVarConfVO.API_TYPE_ID, () => new SimpleVarConfVO(), datatable_fields, labelField);
         this.datatables.push(datatable);
     }
+
+    private initializeVarCacheConfVO() {
+
+        let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf', true);
+        let datatable_fields = [
+            var_id,
+
+            new ModuleTableField('consider_null_as_0_and_auto_clean_0_in_cache', ModuleTableField.FIELD_TYPE_boolean, 'Nettoyer si 0', true, true, true),
+            new ModuleTableField('cache_timeout_ms', ModuleTableField.FIELD_TYPE_int, 'Timeout invalidation', false, true, 1000 * 12 * 60 * 60),
+        ];
+
+        let datatable = new ModuleTable(this, VarCacheConfVO.API_TYPE_ID, () => new VarCacheConfVO(), datatable_fields, null);
+        this.datatables.push(datatable);
+    }
+
 }
