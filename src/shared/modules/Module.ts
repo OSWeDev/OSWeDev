@@ -1,8 +1,8 @@
-import ModuleTableField from './ModuleTableField';
-import ModuleTable from './ModuleTable';
-import ModulesManager from './ModulesManager';
 import IModuleBase from './IModuleBase';
 import ModuleParamChange from './ModuleParamChange';
+import ModulesManager from './ModulesManager';
+import ModuleTable from './ModuleTable';
+import ModuleTableField from './ModuleTableField';
 
 export default abstract class Module implements IModuleBase {
 
@@ -17,6 +17,7 @@ export default abstract class Module implements IModuleBase {
     public specificImportPath: string;
 
     public activate_on_installation: boolean = false;
+
 
     constructor(
         name: string,
