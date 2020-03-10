@@ -6,6 +6,7 @@ import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import IRange from '../DataRender/interfaces/IRange';
 import NumRange from '../DataRender/vos/NumRange';
 import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
@@ -20,7 +21,6 @@ import APIDAORefFieldParamsVO from './vos/APIDAORefFieldParamsVO';
 import APIDAORefFieldsAndFieldsStringParamsVO from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
 import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
-import IRange from '../DataRender/interfaces/IRange';
 
 export default class ModuleDAO extends Module {
 
@@ -36,6 +36,7 @@ export default class ModuleDAO extends Module {
     public static APINAME_INSERT_OR_UPDATE_DATATABLE_VO = "INSERT_OR_UPDATE_DATATABLE_VO";
     public static APINAME_SELECT_ALL = "SELECT_ALL";
     public static APINAME_SELECT_ONE = "SELECT_ONE";
+
     public static APINAME_GET_VO_BY_ID = "GET_VO_BY_ID";
     public static APINAME_GET_VOS_BY_IDS = "GET_VOS_BY_IDS";
     public static APINAME_GET_VOS_BY_IDS_RANGES = "GET_VOS_BY_IDS_RANGES";

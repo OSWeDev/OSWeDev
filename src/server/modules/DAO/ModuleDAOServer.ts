@@ -46,13 +46,13 @@ import DateHandler from '../../../shared/tools/DateHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -310,7 +310,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, this.insertOrUpdateVOs.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, this.insertOrUpdateVO.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_DATATABLE_VO, this.INSERT_OR_UPDATE_DATATABLE_VO.bind(this));
-
 
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VO_BY_ID, this.getVoById.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_VOS, this.getVos.bind(this));
@@ -1265,12 +1264,78 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        if (moduleTable.is_segmented) {
-            // TODO FIXME segmented moduletable
-            throw new Error('Not Implemented');
+        let has_null: boolean = false;
+        for (let i in apiDAOParamsVO.ids) {
+            if (apiDAOParamsVO.ids[i] == null) {
+                has_null = true;
+                break;
+            }
         }
 
-        let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + moduleTable.getFieldFromId(apiDAOParamsVO.field_name).field_id + " in (" + apiDAOParamsVO.ids + ");") as T[]);
+        let request = " t WHERE " + moduleTable.getFieldFromId(apiDAOParamsVO.field_name).field_id;
+        if (has_null && (apiDAOParamsVO.ids.length == 1)) {
+            request += ' is null;';
+        } else if (has_null) {
+            let temp = apiDAOParamsVO.ids.filter((v) => v != null);
+            request += " is null or in (" + temp.join(',') + ");";
+        } else {
+            request += " in (" + apiDAOParamsVO.ids.join(',') + ");";
+        }
+
+        let vos: T[] = [];
+        if (moduleTable.is_segmented) {
+
+            /**
+             * 2 options: 
+             *  On questionne le champs segmenté
+             *  On questionne un autre champs
+             */
+
+            let isrefchampssegment: boolean = moduleTable.table_segmented_field.field_id == moduleTable.getFieldFromId(apiDAOParamsVO.field_name).field_id;
+
+            if (isrefchampssegment) {
+                // si on cherche sur le champs segmenté, ça revient à faire un select all sur ces tables segmentées
+                for (let i in apiDAOParamsVO.ids) {
+                    let id = apiDAOParamsVO.ids[i];
+
+                    if (!id) {
+                        continue;
+                    }
+
+                    let tmp_vos = [];
+
+                    try {
+                        tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.get_segmented_full_name(id) + request) as T[]);
+                    } catch (error) {
+                    }
+                    if ((!!tmp_vos) && (tmp_vos.length)) {
+                        vos = vos.concat(tmp_vos);
+                    }
+                }
+            } else {
+                // si on cherche sur un autre champs, ça revient à faire la requete sur chaque segment
+                let segments: { [segmented_value: number]: string; } = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(moduleTable);
+                for (let i in segments) {
+                    let segment = segments[i];
+
+                    if (!segment) {
+                        continue;
+                    }
+
+                    let tmp_vos = [];
+
+                    try {
+                        tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.get_segmented_full_name(parseInt(segment.toString())) + request) as T[]);
+                    } catch (error) {
+                    }
+                    if ((!!tmp_vos) && (tmp_vos.length)) {
+                        vos = vos.concat(tmp_vos);
+                    }
+                }
+            }
+        } else {
+            vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + request) as T[]);
+        }
 
         // On filtre suivant les droits d'accès
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);

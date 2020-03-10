@@ -1,0 +1,28 @@
+.vocus
+    .row
+        .col-md-6
+            v-select(v-model="tmp_vo_type" :options="vo_types" :placeholder="label('vocus.vo_type')")
+        .col-md-6
+            input(type="number" v-model="tmp_vo_id" :placeholder="label('vocus.id')")
+    .row
+        .col-md-12
+            table.table.table-condensed.table-striped.vocus_datatable
+                thead
+                    tr
+                        th.vocus_type {{ label('vocus.vo_type') }}
+                        th.vocus_id {{ label('vocus.id') }}
+                        th.vocus_label {{ label('vocus.label') }}
+                        th.vocus_crud {{ label('vocus.crud') }}
+                        th.vocus_vocus {{ label('vocus.vocus') }}
+                        
+                tbody
+                    tr(v-for='refvo in refvos')
+                        td.vocus_type {{ refvo._type }}
+                        td.vocus_id {{ refvo.id }}
+                        td.vocus_label {{ getlabel(refvo) }}
+                        td.vocus_crud
+                            a.btn.btn-primary.btn-block(:href='get_crud_link(refvo)', target="_blank")
+                                i.fa.fa-pencil
+                        td.vocus_vocus
+                            a.btn.btn-primary.btn-block(:href='get_vocus_link(refvo)', target="_blank")
+                                i.fa.fa-search

@@ -34,6 +34,7 @@ import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslatio
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
 import ModuleVar from '../../shared/modules/Var/ModuleVar';
 import ModuleVersioned from '../../shared/modules/Versioned/ModuleVersioned';
+import ModuleVocus from '../../shared/modules/Vocus/ModuleVocus';
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleAccessPolicyServer from './AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAjaxCacheServer from './AjaxCache/ModuleAjaxCacheServer';
@@ -66,6 +67,7 @@ import ModuleTranslationsImportServer from './Translation/import/ModuleTranslati
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
+import ModuleVocusServer from './Vocus/ModuleVocusServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -283,7 +285,7 @@ export default abstract class ModuleServiceBase {
             ModuleSASSSkinConfigurator.getInstance(),
             ModuleVar.getInstance(),
             ModuleTableFieldTypes.getInstance(),
-            ModuleBGThread.getInstance(),
+            ModuleBGThread.getInstance()
         ];
     }
 
@@ -322,6 +324,7 @@ export default abstract class ModuleServiceBase {
             ModuleBGThread.getInstance(),
             ModuleParams.getInstance(),
             ModuleSendInBlue.getInstance(),
+            ModuleVocus.getInstance(),
         ];
     }
 
@@ -356,6 +359,7 @@ export default abstract class ModuleServiceBase {
             ModuleBGThreadServer.getInstance(),
             ModuleParamsServer.getInstance(),
             ModuleSendInBlueServer.getInstance(),
+            ModuleVocusServer.getInstance(),
         ];
     }
 }
