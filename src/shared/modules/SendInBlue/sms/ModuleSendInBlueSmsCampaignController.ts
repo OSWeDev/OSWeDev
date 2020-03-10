@@ -1,3 +1,4 @@
+import { Moment } from 'moment';
 import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
 import InsertOrDeleteQueryResult from '../../DAO/vos/InsertOrDeleteQueryResult';
 import ModuleSendInBlueListController from '../list/ModuleSendInBlueListController';
@@ -7,6 +8,7 @@ import SendInBlueListDetailVO from '../vos/SendInBlueListDetailVO';
 import SendInBlueSmsCampaignDetailVO from '../vos/SendInBlueSmsCampaignDetailVO';
 import SendInBlueSmsCampaignsVO from '../vos/SendInBlueSmsCampaignsVO';
 import SendInBlueSmsFormatVO from '../vos/SendInBlueSmsFormatVO';
+import moment = require('moment');
 
 export default class ModuleSendInBlueSmsCampaignController {
 
@@ -35,30 +37,40 @@ export default class ModuleSendInBlueSmsCampaignController {
         return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueSmsCampaignsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueSmsCampaignController.PATH_CAMPAIGN);
     }
 
-    public async createAndSend(campaignName: string, content: string, contacts: SendInBlueContactVO[], testSms: boolean = false, phoneTest: SendInBlueSmsFormatVO = null): Promise<boolean> {
-        let campaign: SendInBlueSmsCampaignDetailVO = await this.create(campaignName, content, contacts);
+    public async createAndSend(campaignName: string, content: string, contacts: SendInBlueContactVO[], scheduledAt: Moment, testSms: boolean = false, phoneTest: SendInBlueSmsFormatVO = null): Promise<boolean> {
+        let campaign: SendInBlueSmsCampaignDetailVO = await this.create(campaignName, content, contacts, scheduledAt);
 
         if (!campaign) {
             return false;
         }
 
-        return this.send(campaign.id, testSms, phoneTest);
+        if (scheduledAt && scheduledAt.isBefore(moment().utc(), 'minute')) {
+            return this.send(campaign.id, testSms, phoneTest);
+        }
+
+        return true;
     }
 
-    public async create(campaignName: string, content: string, contacts: SendInBlueContactVO[]): Promise<SendInBlueSmsCampaignDetailVO> {
+    public async create(campaignName: string, content: string, contacts: SendInBlueContactVO[], scheduledAt: Moment): Promise<SendInBlueSmsCampaignDetailVO> {
         if (!campaignName || !content || !contacts || !contacts.length) {
             return null;
         }
 
         let list: SendInBlueListDetailVO = await ModuleSendInBlueListController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
 
-        if (!list) {
+        if (!list || !content || !scheduledAt) {
             return null;
         }
 
         let recipientsData: any = {
             listIds: [list.id]
         };
+
+        let scheduledAt_clone: Moment = moment(scheduledAt.format('Y-MM-DD')).hour(scheduledAt.hour()).minute(scheduledAt.minute()).second(0);
+
+        if (scheduledAt_clone.isBefore(moment(), 'minute')) {
+            scheduledAt_clone = moment().add(3, 'minutes');
+        }
 
         let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
@@ -68,6 +80,7 @@ export default class ModuleSendInBlueSmsCampaignController {
                 sender: await ModuleSendInBlueController.getInstance().getSenderNameSMS(),
                 content: content,
                 recipients: recipientsData,
+                scheduledAt: scheduledAt_clone.toISOString(),
             }
         );
 

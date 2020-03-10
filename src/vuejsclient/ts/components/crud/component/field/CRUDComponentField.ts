@@ -6,6 +6,7 @@ import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datata
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
@@ -32,9 +33,9 @@ import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInpu
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
+import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
-import RefRangesReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 let debounce = require('lodash/debounce');
 
 
@@ -47,7 +48,8 @@ let debounce = require('lodash/debounce');
         HourrangeInputComponent: HourrangeInputComponent,
         TSRangesInputComponent: TSRangesInputComponent,
         IsoWeekDaysInputComponent: IsoWeekDaysInputComponent,
-        TSRangeInputComponent: TSRangeInputComponent
+        TSRangeInputComponent: TSRangeInputComponent,
+        TSTZInputComponent: TSTZInputComponent,
     }
 })
 export default class CRUDComponentField extends VueComponentBase {
@@ -101,6 +103,12 @@ export default class CRUDComponentField extends VueComponentBase {
 
     @Prop({ default: false })
     private is_disabled: boolean;
+
+    @Prop()
+    private description: string;
+
+    @Prop({ default: null })
+    private maxlength: number;
 
 
     private select_options: number[] = [];
@@ -201,7 +209,7 @@ export default class CRUDComponentField extends VueComponentBase {
     @Watch('vo')
     @Watch('datatable')
     @Watch('default_field_data')
-    @Watch('targetModuleTableCompteur')
+    @Watch('targetModuleTable_count')
     public on_reload_field_value() {
         this.debounced_reload_field_value();
     }
@@ -703,14 +711,6 @@ export default class CRUDComponentField extends VueComponentBase {
         return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
     }
 
-    get segmentation_type(): number {
-        if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableField<any, any>).moduleTableField.segmentation_type;
-        }
-
-        return null;
-    }
-
     get field_type(): string {
         if (this.field.type == 'Simple') {
             return (this.field as SimpleDatatableField<any, any>).moduleTableField.field_type;
@@ -852,12 +852,16 @@ export default class CRUDComponentField extends VueComponentBase {
         return this.field.is_readonly || this.is_disabled;
     }
 
-    get targetModuleTableCompteur(): number {
+    get targetModuleTable_count(): number {
         let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
         if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
             return ObjectHandler.getInstance().arrayFromMap(this.getStoredDatas[manyToOne.targetModuleTable.vo_type]).length;
         }
 
         return null;
+    }
+
+    get field_value_length(): number {
+        return this.field_value ? this.field_value.length : 0;
     }
 }

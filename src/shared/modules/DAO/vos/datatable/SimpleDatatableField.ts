@@ -244,6 +244,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
+                case ModuleTableField.FIELD_TYPE_tstz:
                     return field_value;
 
                 default:
@@ -341,8 +342,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                         case TimeSegment.TYPE_YEAR:
                             return moment().year(parseInt(value)).startOf('year').utc();
                         case TimeSegment.TYPE_DAY:
-                        default:
                             return value ? this.getMomentDateFieldInclusif(moment(value).startOf('day').utc(), moduleTableField, false) : null;
+                        default:
+                            return value ? this.getMomentDateFieldInclusif(moment(value).utc(), moduleTableField, false) : null;
                     }
 
                 case ModuleTableField.FIELD_TYPE_textarea:

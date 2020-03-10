@@ -448,6 +448,10 @@ export default class MatroidController {
             let cut_result: MatroidBaseCutResult<MatroidBase<any>> = MatroidBaseController.getInstance().cut_matroid_base(matroidbase_cutter, matroid_to_cut_base);
 
             // ça marche que si il y a un remaining sur cette dimension, sinon on veut pas stocker des bases null...
+            if (!cut_result) {
+                continue;
+            }
+
             if (!!cut_result.remaining_items) {
 
                 // Le but est de créer le matroid lié à la coupe sur cette dimension

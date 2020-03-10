@@ -78,6 +78,9 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     })
     private disabled: boolean;
 
+    @Prop({ default: false })
+    private update_selectable_options_in_store: boolean;
+
     private tmp_filter_active_options: DataFilterOption[] = [];
 
     private filter_state_selected: number = DataFilterOption.STATE_SELECTED;
@@ -216,6 +219,20 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
         return res;
     }
 
+    @Watch('selectables_by_ids', { immediate: true })
+    private onchange_selectables_by_ids() {
+
+        if (!this.update_selectable_options_in_store) {
+            return;
+        }
+
+        if ((!this.store_module_is_namespaced) || (!this.store_module_uid)) {
+            this.$store.commit(this.internal_store_filter_commit_selectables_by_ids_uid, this.selectables_by_ids);
+        } else {
+            this.$store.commit(this.store_module_uid + '/' + this.internal_store_filter_commit_selectables_by_ids_uid, this.selectables_by_ids);
+        }
+    }
+
     get all_by_ids(): { [id: number]: IDistantVOBase } {
         try {
 
@@ -263,6 +280,10 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
 
     get internal_store_filter_commit_uid(): string {
         return 'set_filter_' + this.api_type_id + '_active_options';
+    }
+
+    get internal_store_filter_commit_selectables_by_ids_uid(): string {
+        return 'set_filter_' + this.api_type_id + '_selectable_options_by_ids';
     }
 
     get internal_store_all_by_ids_state_uid(): string {
