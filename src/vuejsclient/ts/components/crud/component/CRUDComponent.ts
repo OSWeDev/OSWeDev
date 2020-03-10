@@ -28,6 +28,8 @@ import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
 import CRUDComponentField from './field/CRUDComponentField';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
+import { ModuleAlertAction } from '../../alert/AlertStore';
+import Alert from '../../alert/Alert';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -54,6 +56,11 @@ export default class CRUDComponent extends VueComponentBase {
 
     @ModuleCRUDGetter
     public getSelectedVOs: IDistantVOBase[];
+
+    @ModuleAlertAction
+    private clear_alerts: () => void;
+    @ModuleAlertAction
+    private register_alerts: (alerts: Alert[]) => void;
 
     @Prop()
     private crud: CRUD<IDistantVOBase>;
@@ -153,6 +160,8 @@ export default class CRUDComponent extends VueComponentBase {
     @Watch("modal_show_update")
     @Watch("modal_show_delete")
     private async handle_modal_show_hide() {
+        this.clear_alerts();
+
         if (!this.embed) {
             if (this.read_query) {
                 this.$router.replace({ query: this.read_query });
@@ -573,6 +582,13 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         try {
+
+            if (!this.checkForm(this.newVO, this.crud.createDatatable)) {
+                this.snotify.error(this.label('crud.check_form.field_required'));
+                this.creating_vo = false;
+                return;
+            }
+
             // On passe la traduction depuis IHM sur les champs
             let apiokVo = this.IHMToData(this.newVO, this.crud.createDatatable, false);
 
@@ -763,6 +779,35 @@ export default class CRUDComponent extends VueComponentBase {
         }
     }
 
+    private checkForm(vo: IDistantVOBase, datatable: Datatable<IDistantVOBase>): boolean {
+        this.clear_alerts();
+
+        let alerts: Alert[] = [];
+
+
+        // On check que tous les champs obligatoire soient bien remplis
+        for (let i in datatable.fields) {
+            let field: DatatableField<any, any> = datatable.fields[i];
+
+            // Si c'est required et que j'ai pas de valeur, j'affiche une erreur
+            if (!field.is_required) {
+                continue;
+            }
+
+            if (vo[field.datatable_field_uid] && vo[field.datatable_field_uid].toString().length > 0) {
+                continue;
+            }
+
+            alerts.push(new Alert(field.alert_path, 'crud.field_required', Alert.TYPE_ERROR));
+        }
+
+        if (alerts.length > 0) {
+            this.register_alerts(alerts);
+            return false;
+        }
+
+        return true;
+    }
 
     private async updateVO() {
         this.snotify.info(this.label('crud.update.starting'));
@@ -776,6 +821,12 @@ export default class CRUDComponent extends VueComponentBase {
         }
 
         try {
+
+            if (!this.checkForm(this.editableVO, this.crud.updateDatatable)) {
+                this.snotify.error(this.label('crud.check_form.field_required'));
+                this.updating_vo = false;
+                return;
+            }
 
             // On passe la traduction depuis IHM sur les champs
             let apiokVo = this.IHMToData(this.editableVO, this.crud.updateDatatable, true);
@@ -791,7 +842,7 @@ export default class CRUDComponent extends VueComponentBase {
             }
 
             let res = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
-            let id = res.id ? parseInt(res.id.toString()) : null;
+            let id = (res && res.id) ? parseInt(res.id.toString()) : null;
 
             if ((!res) || (!id) || (id != this.selectedVO.id)) {
                 this.snotify.error(this.label('crud.update.errors.update_failure'));
