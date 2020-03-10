@@ -794,7 +794,7 @@ export default class CRUDComponent extends VueComponentBase {
                 continue;
             }
 
-            if (vo[field.datatable_field_uid] && vo[field.datatable_field_uid].toString().length > 0) {
+            if ((vo[field.datatable_field_uid] !== null && vo[field.datatable_field_uid] !== undefined) && vo[field.datatable_field_uid].toString().length > 0) {
                 continue;
             }
 
