@@ -104,7 +104,7 @@ export default class CRUDComponentField extends VueComponentBase {
     @Prop({ default: false })
     private is_disabled: boolean;
 
-    @Prop()
+    @Prop({ default: null })
     private description: string;
 
     @Prop({ default: null })
