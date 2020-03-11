@@ -14,13 +14,21 @@
                 i.fa.fa-asterisk.mandatory
 
     template(v-if="field_type == 'password'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        template(v-if="maxlength")
+            .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'text'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        template(v-if="maxlength")
+            .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'textarea'")
-        textarea(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        textarea(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        template(v-if="maxlength")
+            .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'translatable_text'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        template(v-if="maxlength")
+            .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'boolean'")
         template(v-if="field.is_required")
             input(type="checkbox" v-model="field_value" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
@@ -37,15 +45,23 @@
     template(v-else-if="field_type == 'number'")
         input(:class="{'form-control': !inline_input_mode}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'amount'")
-        input(:class="{'form-control': !inline_input_mode}" v-on:keyup.enter="inline_input_submit" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        input(:class="{'form-control': !inline_input_mode}" v-on:keyup.enter="inline_input_submit" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        template(v-if="maxlength")
+            .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'float'")
         input(:class="{'form-control': !inline_input_mode}" type="number" step="0.01" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'pct'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        template(v-if="maxlength")
+            .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'HourAndMinuteWithoutLimit'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        template(v-if="maxlength")
+            .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'HourAndMinute'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid" :maxlength="maxlength")
+        template(v-if="maxlength")
+            .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="(field_type == 'date') || (field_type == 'day')")
         input(:class="{'form-control': !inline_input_mode}" type="date" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'month'")
@@ -83,12 +99,9 @@
         // FIXME TODO ASAP
 
     template(v-else-if="field_type == 'tstz'")
-        template(v-if="segmentation_type == 0")
-            input(:class="{'form-control': !inline_input_mode}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
-        template(v-else-if="segmentation_type == 1")
-            input(:class="{'form-control': !inline_input_mode}" type="month" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
-        template(v-else-if="segmentation_type >= 2")
-            input(:class="{'form-control': !inline_input_mode}" type="date" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
+        TSTZInputComponent(
+            v-model="field_value" :vo="vo" :field="field" :required="field.is_required"
+            :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input_with_infos="validateSimpleInput" :id="field.datatable_field_uid")
 
     template(v-else-if="field_type == 'tsrange'")
         TSRangeInputComponent(
@@ -105,7 +118,9 @@
     template(v-else-if="field_type == 'timewithouttimezone'")
         input(:class="{'form-control': !inline_input_mode}" type="time" v-model="field_value" :id="field.datatable_field_uid", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)")
     template(v-else-if="field_type == 'unix_timestamp'")
-        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :id="field.datatable_field_uid", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)")
+        input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :id="field.datatable_field_uid", :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :maxlength="maxlength")
+        template(v-if="maxlength")
+            .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
     template(v-else-if="field_type == 'enum'")
         multiselect(
             v-model="field_value"
