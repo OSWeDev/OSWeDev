@@ -11,6 +11,7 @@
         "test-jenkins": "mocha -R xunit > test-reports.xml",
         "test-simple": "mocha",
         "clean": "rimraf dist",
+        "tscv": "tsc -v",
         "copyfiles": "copyfiles --up 1 src/**/*.pug src/**/*.scss src/vuejsclient/sw_push.js dist/",
         "build": "npm run-script clean && tsc --project ./",
         "tsc-watch": "tsc-watch --project ./ --onSuccess \"npm run-script copyfiles\"",

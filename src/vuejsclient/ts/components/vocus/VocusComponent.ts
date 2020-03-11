@@ -23,7 +23,7 @@ export default class VocusComponent extends VueComponentBase {
     private tmp_vo_type: string = null;
 
     private refvos: IDistantVOBase[] = [];
-    private debounced_load_vocus = debounce(this.load_vocus, 500);
+    private debounced_load_vocus = debounce(this.load_vocus, 2000);
 
     get vo_types(): string[] {
         return Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType);
@@ -48,7 +48,7 @@ export default class VocusComponent extends VueComponentBase {
             return null;
         }
 
-        return this.getCRUDUpdateLink(vo._type, vo.id);
+        return '/admin#' + this.getCRUDUpdateLink(vo._type, vo.id);
     }
 
     private get_vocus_link(vo: IDistantVOBase) {
@@ -56,7 +56,7 @@ export default class VocusComponent extends VueComponentBase {
             return null;
         }
 
-        return this.get_vocus_link_(vo._type, vo.id);
+        return '/admin#' + this.get_vocus_link_(vo._type, vo.id);
     }
 
     private get_vocus_link_(_type: string, id: number) {
@@ -84,7 +84,11 @@ export default class VocusComponent extends VueComponentBase {
             return;
         }
 
-        this.$router.push(this.get_vocus_link_(this.tmp_vo_type, this.tmp_vo_id));
+        let route = this.get_vocus_link_(this.tmp_vo_type, this.tmp_vo_id);
+
+        if (!!route) {
+            this.$router.push(route);
+        }
     }
 
     @Watch('vo_type', { immediate: true })
@@ -104,7 +108,11 @@ export default class VocusComponent extends VueComponentBase {
             return;
         }
 
-        this.$router.push(this.get_vocus_link_(this.tmp_vo_type, this.tmp_vo_id));
+        let route = this.get_vocus_link_(this.tmp_vo_type, this.tmp_vo_id);
+
+        if (!!route) {
+            this.$router.push(route);
+        }
     }
 
     @Watch('$route', { immediate: true })
@@ -114,6 +122,11 @@ export default class VocusComponent extends VueComponentBase {
     }
 
     private async load_vocus() {
+
+        if ((!this.tmp_vo_type) || (!this.tmp_vo_id)) {
+            this.refvos = [];
+            return;
+        }
 
         this.refvos = await ModuleVocus.getInstance().getVosRefsById(this.tmp_vo_type, this.tmp_vo_id);
     }

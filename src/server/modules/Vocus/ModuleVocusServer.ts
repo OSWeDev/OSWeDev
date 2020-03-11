@@ -16,6 +16,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
 
 export default class ModuleVocusServer extends ModuleServerBase {
 
@@ -107,6 +108,13 @@ export default class ModuleVocusServer extends ModuleServerBase {
             if (table.vo_type == moduleTable.vo_type) {
                 continue;
             }
+
+            // // On ignore les liens entre tables de versioning
+            // if ((VersionedVOController.getInstance().getVersionedVoType(moduleTable.vo_type) == table.vo_type) ||
+            //     (VersionedVOController.getInstance().getTrashedVersionedVoType(moduleTable.vo_type) == table.vo_type) ||
+            //     (VersionedVOController.getInstance().getTrashedVoType(moduleTable.vo_type) == table.vo_type)) {
+            //     continue;
+            // }
 
             let fields = table.get_fields();
             for (let j in fields) {
