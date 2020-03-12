@@ -17,6 +17,7 @@ import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourAndMinutesFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedFilter, truncateFilter } from '../../../shared/tools/Filters';
 import LocaleManager from "../../../shared/tools/LocaleManager";
+import VocusHandler from '../../../shared/tools/VocusHandler';
 import VueAppController from "../../VueAppController";
 import AppVuexStoreManager from "../store/AppVuexStoreManager";
 import IDeclareVueComponent from "./IDeclareVueComponent";
@@ -329,6 +330,9 @@ export default class VueComponentBase extends Vue
         return this.$snotify;
     }
 
+    protected getVocusLink(API_TYPE_ID: string, vo_id: number): string {
+        return VocusHandler.getVocusLink(API_TYPE_ID, vo_id);
+    }
 
     protected getCRUDLink(API_TYPE_ID: string): string {
         return CRUDHandler.getCRUDLink(API_TYPE_ID);

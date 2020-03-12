@@ -27,6 +27,7 @@ import UserLogVO from './vos/UserLogVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import NumSegment from '../DataRender/vos/NumSegment';
 import ModuleVO from '../ModuleVO';
+import ResetPwdUIDParamVO from './vos/apis/ResetPwdUIDParamVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -60,6 +61,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
     public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
     public static APINAME_GET_LOGGED_USER = "GET_LOGGED_USER";
+    public static APINAME_RESET_PWDUID = "RESET_PWDUID";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -145,6 +147,12 @@ export default class ModuleAccessPolicy extends Module {
             ResetPwdParamVO.translateCheckAccessParams
         ));
 
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
+            ModuleAccessPolicy.APINAME_RESET_PWDUID,
+            [UserVO.API_TYPE_ID],
+            ResetPwdUIDParamVO.translateCheckAccessParams
+        ));
+
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ToggleAccessParamVO, boolean>(
             ModuleAccessPolicy.APINAME_TOGGLE_ACCESS,
             [RolePolicyVO.API_TYPE_ID],
@@ -197,6 +205,10 @@ export default class ModuleAccessPolicy extends Module {
 
     public async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
         return await ModuleAPI.getInstance().handleAPI<string, boolean>(ModuleAccessPolicy.APINAME_RESET_PWD, email, challenge, new_pwd1);
+    }
+
+    public async resetPwdUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
+        return await ModuleAPI.getInstance().handleAPI<string, boolean>(ModuleAccessPolicy.APINAME_RESET_PWDUID, uid, challenge, new_pwd1);
     }
 
     public async addRoleToUser(user_id: number, role_id: number): Promise<boolean> {

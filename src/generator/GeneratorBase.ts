@@ -14,6 +14,8 @@ import Patch20191018CHECKEnvParamsForMDPRecovery from './patchs/postmodules/Patc
 import Patch20191106ForceAccessDefaultToVisionFCPP from './patchs/postmodules/Patch20191106ForceAccessDefaultToVisionFCPP';
 import Patch20191112AddPwdCryptTrigger from './patchs/postmodules/Patch20191112AddPwdCryptTrigger';
 import Patch20191126CreateDefaultRobotUserAccount from './patchs/postmodules/Patch20191126CreateDefaultRobotUserAccount';
+import Patch20200131InitUserLogPolicies from './patchs/postmodules/Patch20200131InitUserLogPolicies';
+import Patch20200312ChangeResetPWDMailContent from './patchs/postmodules/Patch20200312ChangeResetPWDMailContent';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -24,7 +26,6 @@ import Patch20191008SupprimerTacheReimport from './patchs/premodules/Patch201910
 import Patch20191010CheckBasicSchemas from './patchs/premodules/Patch20191010CheckBasicSchemas';
 import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112CheckExtensions';
 import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
-import Patch20200131InitUserLogPolicies from './patchs/postmodules/Patch20200131InitUserLogPolicies';
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
 
@@ -70,7 +71,8 @@ export default abstract class GeneratorBase {
             Patch20191018CHECKEnvParamsForMDPRecovery.getInstance(),
             Patch20191106ForceAccessDefaultToVisionFCPP.getInstance(),
             Patch20191126CreateDefaultRobotUserAccount.getInstance(),
-            Patch20200131InitUserLogPolicies.getInstance()
+            Patch20200131InitUserLogPolicies.getInstance(),
+            Patch20200312ChangeResetPWDMailContent.getInstance()
         ];
     }
 

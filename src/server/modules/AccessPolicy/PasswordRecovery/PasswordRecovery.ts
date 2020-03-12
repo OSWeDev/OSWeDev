@@ -56,6 +56,7 @@ export default class PasswordRecovery {
             subject: translated_mail_subject.translated,
             html: await ModuleMailerServer.getInstance().prepareHTML(recovery_mail_html_template, user.lang_id, {
                 EMAIL: user.email,
+                UID: user.id.toString(),
                 CODE_CHALLENGE: challenge
             })
         });

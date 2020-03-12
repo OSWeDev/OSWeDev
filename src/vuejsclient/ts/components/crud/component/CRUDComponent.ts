@@ -28,6 +28,8 @@ import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
 import CRUDComponentField from './field/CRUDComponentField';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
+import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -94,6 +96,8 @@ export default class CRUDComponent extends VueComponentBase {
     private newVO: IDistantVOBase = null;
 
     private api_types_involved: string[] = [];
+
+    private can_access_vocus: boolean = false;
 
     private creating_vo: boolean = false;
     private updating_vo: boolean = false;
@@ -182,13 +186,13 @@ export default class CRUDComponent extends VueComponentBase {
         } else {
             vo = this.getSelectedVOs[0];
             $('#createData' + embed_append).on("hidden.bs.modal", () => {
-                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'create')
+                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'create');
             });
             $('#updateData' + embed_append).on("hidden.bs.modal", () => {
-                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'update')
+                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'update');
             });
             $('#deleteData' + embed_append).on("hidden.bs.modal", () => {
-                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'delete')
+                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'delete');
             });
 
         }
@@ -220,6 +224,8 @@ export default class CRUDComponent extends VueComponentBase {
             this.snotify.error(this.label('crud.errors.loading'));
             return;
         }
+
+        this.can_access_vocus = await ModuleAccessPolicy.getInstance().checkAccess(ModuleVocus.POLICY_BO_ACCESS);
 
         await Promise.all(this.loadDatasFromDatatable(this.crud.readDatatable));
         this.nextLoadingStep();

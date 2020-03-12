@@ -29,6 +29,26 @@ export default class PasswordReset {
             return false;
         }
 
+        return await this.resetPwdUser(user, challenge, new_pwd1);
+    }
+
+    public async resetPwdUID(uid: number, challenge: string, new_pwd1: string): Promise<boolean> {
+
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+
+        if (!user) {
+            return false;
+        }
+
+        return await this.resetPwdUser(user, challenge, new_pwd1);
+    }
+
+    public async resetPwdUser(user: UserVO, challenge: string, new_pwd1: string): Promise<boolean> {
+
+        if (!user) {
+            return false;
+        }
+
         if (user.recovery_challenge != challenge) {
             return false;
         }

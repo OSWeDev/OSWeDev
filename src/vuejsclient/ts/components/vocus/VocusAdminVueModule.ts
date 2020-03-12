@@ -7,16 +7,16 @@ import MenuLeaf from '../menu/vos/MenuLeaf';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import MenuPointer from '../menu/vos/MenuPointer';
 import VocusComponent from './VocusComponent';
-
+import VocusHandler from '../../../../shared/tools/VocusHandler';
 
 
 export default class VocusAdminVueModule extends VueModuleBase {
 
-    public static ROUTE_PATH: string = "/vocus";
+    public static ROUTE_PATH: string = VocusHandler.Vocus_ROUTE_BASE;
     public static DEFAULT_MENU_BRANCH: MenuBranch = new MenuBranch(
         "VocusAdminVueModule",
         MenuElementBase.PRIORITY_ULTRALOW,
-        "fa-zoom",
+        "fa-search",
         []
     );
 
@@ -67,7 +67,7 @@ export default class VocusAdminVueModule extends VueModuleBase {
         });
 
         let menuPointer = new MenuPointer(
-            new MenuLeaf(main_route_name, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-zoom"),
+            new MenuLeaf(main_route_name, MenuElementBase.PRIORITY_ULTRAHIGH, "fa-search"),
             VocusAdminVueModule.DEFAULT_MENU_BRANCH
         );
         menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);

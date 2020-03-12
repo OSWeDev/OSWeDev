@@ -37,6 +37,15 @@ export default class AccessPolicyLoginVueModule extends VueModuleBase {
                 path: '/reset',
                 name: 'reset',
                 component: AccessPolicyResetComponent
+            },
+            {
+                path: '/reset/:user_id/:challenge',
+                name: 'reset simplified',
+                component: AccessPolicyResetComponent,
+                props: (route) => ({
+                    prop_user_id: parseInt(route.params.user_id),
+                    prop_challenge: route.params.challenge
+                })
             }
         ];
     }

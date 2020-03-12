@@ -4,7 +4,7 @@
             v-select(v-model="tmp_vo_type" :options="vo_types" :placeholder="label('vocus.vo_type')")
         .col-md-6
             input(type="number" v-model="tmp_vo_id" :placeholder="label('vocus.id')")
-    .row
+    .row(v-if='vo && !is_loading')
         .col-md-12
             table.table.table-condensed.table-striped.vocus_datatable
                 thead
@@ -13,16 +13,30 @@
                         th.vocus_id {{ label('vocus.id') }}
                         th.vocus_label {{ label('vocus.label') }}
                         th.vocus_crud {{ label('vocus.crud') }}
-                        th.vocus_vocus {{ label('vocus.vocus') }}
                         
                 tbody
-                    tr(v-for='refvo in refvos')
-                        td.vocus_type {{ refvo._type }}
-                        td.vocus_id {{ refvo.id }}
-                        td.vocus_label {{ getlabel(refvo) }}
+                    tr.srcvo
+                        td.vocus_type {{ vo._type }}
+                        td.vocus_id {{ vo.id }}
+                        td.vocus_label {{ vo_label }}
                         td.vocus_crud
-                            a.btn.btn-primary.btn-block(:href='get_crud_link(refvo)', target="_blank")
-                                i.fa.fa-pencil
-                        td.vocus_vocus
-                            a.btn.btn-primary.btn-block(:href='get_vocus_link(refvo)', target="_blank")
-                                i.fa.fa-search
+                            .btn-group.d-print-none
+                                router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(vo._type, vo.id)")
+                                    i.fa.fa-pencil
+                                router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(vo._type, vo.id)")
+                                    i.fa.fa-search
+                                router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(vo._type, vo.id)")
+                                    i.fa.fa-trash
+
+                    tr.refvo(v-for='refvo in refvos' :class='{"is_cascade": refvo.is_cascade}')
+                        td.vocus_type {{ refvo.linked_type }}
+                        td.vocus_id {{ refvo.linked_id }}
+                        td.vocus_label {{ refvo.linked_label }}
+                        td.vocus_crud
+                            .btn-group.d-print-none
+                                router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(refvo.linked_type, refvo.linked_id)")
+                                    i.fa.fa-pencil
+                                router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(refvo.linked_type, refvo.linked_id)")
+                                    i.fa.fa-search
+                                router-link.btn.btn-sm.btn-danger.m-1(:to="getCRUDDeleteLink(refvo.linked_type, refvo.linked_id)")
+                                    i.fa.fa-trash

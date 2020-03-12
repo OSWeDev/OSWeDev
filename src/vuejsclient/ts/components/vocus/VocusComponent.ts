@@ -7,6 +7,8 @@ import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../VueComponentBase';
 import VocusAdminVueModule from './VocusAdminVueModule';
 import './VocusComponent.scss';
+import VocusInfoVO from '../../../../shared/modules/Vocus/vos/VocusInfoVO';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./VocusComponent.pug'),
@@ -22,49 +24,26 @@ export default class VocusComponent extends VueComponentBase {
     private tmp_vo_id: number = null;
     private tmp_vo_type: string = null;
 
-    private refvos: IDistantVOBase[] = [];
+    private vo: IDistantVOBase = null;
+    private refvos: VocusInfoVO[] = [];
+    private is_loading: boolean = true;
     private debounced_load_vocus = debounce(this.load_vocus, 2000);
 
     get vo_types(): string[] {
         return Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType);
     }
 
-
-    private getlabel(vo: IDistantVOBase) {
-        if (!vo) {
+    get vo_label() {
+        if (!this.vo) {
             return null;
         }
 
-        let table = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+        let table = VOsTypesManager.getInstance().moduleTables_by_voType[this.vo._type];
         if (table && table.default_label_field) {
-            return vo[table.default_label_field.field_id];
+            return this.vo[table.default_label_field.field_id];
         } else if (table && table.table_label_function) {
-            return table.table_label_function(vo);
+            return table.table_label_function(this.vo);
         }
-    }
-
-    private get_crud_link(vo: IDistantVOBase) {
-        if (!vo) {
-            return null;
-        }
-
-        return '/admin#' + this.getCRUDUpdateLink(vo._type, vo.id);
-    }
-
-    private get_vocus_link(vo: IDistantVOBase) {
-        if (!vo) {
-            return null;
-        }
-
-        return '/admin#' + this.get_vocus_link_(vo._type, vo.id);
-    }
-
-    private get_vocus_link_(_type: string, id: number) {
-        if ((!_type) || (!id)) {
-            return null;
-        }
-
-        return VocusAdminVueModule.ROUTE_PATH + '/' + _type + '/' + id;
     }
 
     @Watch('vo_id', { immediate: true })
@@ -84,7 +63,7 @@ export default class VocusComponent extends VueComponentBase {
             return;
         }
 
-        let route = this.get_vocus_link_(this.tmp_vo_type, this.tmp_vo_id);
+        let route = this.getVocusLink(this.tmp_vo_type, this.tmp_vo_id);
 
         if (!!route) {
             this.$router.push(route);
@@ -108,7 +87,7 @@ export default class VocusComponent extends VueComponentBase {
             return;
         }
 
-        let route = this.get_vocus_link_(this.tmp_vo_type, this.tmp_vo_id);
+        let route = this.getVocusLink(this.tmp_vo_type, this.tmp_vo_id);
 
         if (!!route) {
             this.$router.push(route);
@@ -123,11 +102,18 @@ export default class VocusComponent extends VueComponentBase {
 
     private async load_vocus() {
 
+        this.is_loading = true;
+
         if ((!this.tmp_vo_type) || (!this.tmp_vo_id)) {
             this.refvos = [];
+            this.is_loading = false;
+            this.vo = null;
             return;
         }
 
+        this.vo = await ModuleDAO.getInstance().getVoById(this.tmp_vo_type, this.tmp_vo_id);
         this.refvos = await ModuleVocus.getInstance().getVosRefsById(this.tmp_vo_type, this.tmp_vo_id);
+
+        this.is_loading = false;
     }
 }

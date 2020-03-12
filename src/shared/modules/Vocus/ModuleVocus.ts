@@ -2,9 +2,9 @@ import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import APIDAOParamVO from '../DAO/vos/APIDAOParamVO';
-import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
 import VOsTypesManager from '../VOsTypesManager';
+import VocusInfoVO from './vos/VocusInfoVO';
 
 export default class ModuleVocus extends Module {
 
@@ -32,7 +32,7 @@ export default class ModuleVocus extends Module {
 
     public registerApis() {
         // cas particulier d'une interface qui dépend de tous les types potentiellement
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamVO, IDistantVOBase[]>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamVO, VocusInfoVO[]>(
             ModuleVocus.APINAME_getVosRefsById,
             Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType),
             APIDAOParamVO.translateCheckAccessParams
@@ -45,7 +45,7 @@ export default class ModuleVocus extends Module {
      * @param API_TYPE_ID
      * @param id
      */
-    public async getVosRefsById(API_TYPE_ID: string, id: number): Promise<IDistantVOBase[]> {
-        return await ModuleAPI.getInstance().handleAPI<APIDAOParamVO, IDistantVOBase[]>(ModuleVocus.APINAME_getVosRefsById, API_TYPE_ID, id, null);
+    public async getVosRefsById(API_TYPE_ID: string, id: number): Promise<VocusInfoVO[]> {
+        return await ModuleAPI.getInstance().handleAPI<APIDAOParamVO, VocusInfoVO[]>(ModuleVocus.APINAME_getVosRefsById, API_TYPE_ID, id, null);
     }
 }

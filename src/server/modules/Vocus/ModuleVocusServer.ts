@@ -8,15 +8,15 @@ import APIDAOParamVO from '../../../shared/modules/DAO/vos/APIDAOParamVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleVocus from '../../../shared/modules/Vocus/ModuleVocus';
+import VocusInfoVO from '../../../shared/modules/Vocus/vos/VocusInfoVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
-import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
 
 export default class ModuleVocusServer extends ModuleServerBase {
 
@@ -89,9 +89,9 @@ export default class ModuleVocusServer extends ModuleServerBase {
      * Objectif: Renvoyer tous les IDistantVoBase qui sont liées à ce vo (par type + id) par une liaison 1/n, n/1 ou n/n
      * TODO : (dans le cas du n/n on pourrait renvoyer directement la cible finale, pas le vo de la table n/n)
      */
-    private async getVosRefsById(apiDAOParamVO: APIDAOParamVO): Promise<IDistantVOBase[]> {
+    private async getVosRefsById(apiDAOParamVO: APIDAOParamVO): Promise<VocusInfoVO[]> {
 
-        let res_map: { [type: string]: { [id: number]: IDistantVOBase } } = {};
+        let res_map: { [type: string]: { [id: number]: VocusInfoVO } } = {};
 
         // On va aller chercher tous les module table fields qui sont des refs de cette table
         let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[apiDAOParamVO.API_TYPE_ID];
@@ -143,13 +143,27 @@ export default class ModuleVocusServer extends ModuleServerBase {
                 if (!res_map[refvo._type]) {
                     res_map[refvo._type] = {};
                 }
-                res_map[refvo._type][refvo.id] = refvo;
+
+                let tmp: VocusInfoVO = res_map[refvo._type][refvo.id] ? res_map[refvo._type][refvo.id] : new VocusInfoVO();
+                tmp.is_cascade = tmp.is_cascade || refField.cascade_on_delete;
+                tmp.linked_id = refvo.id;
+                tmp.linked_type = refvo._type;
+
+                let table = refField.module_table;
+                if (table && table.default_label_field) {
+                    tmp.linked_label = refvo[table.default_label_field.field_id];
+                } else if (table && table.table_label_function) {
+                    tmp.linked_label = table.table_label_function(refvo);
+                }
+
+                res_map[refvo._type][refvo.id] = tmp;
             }
         }
 
-        let res: IDistantVOBase[] = [];
+        let res: VocusInfoVO[] = [];
         for (let i in res_map) {
             for (let j in res_map[i]) {
+
                 res.push(res_map[i][j]);
             }
         }

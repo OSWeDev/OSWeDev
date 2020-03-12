@@ -5,13 +5,16 @@
             h1.text-center(v-if='!logo_url') {{ label('login.reset.title') }}
             h2.text-center {{ label('login.reset.sub_title') }}
             p.server-answer(v-if='message') {{ message }}
+            .center(v-if='message && status')
+                a.btn.btn-primary.btn-block.btn-flat(href='/login') {{ label('login.reset.reco') }}
             div(v-if="!status")
-                p.login-box-msg {{ label('login.reset.desc') }}
+                p.login-box-msg(v-if='!is_simplified') {{ label('login.reset.desc') }}
+                p.login-box-msg(v-if='!!is_simplified') {{ label('login.reset.desc_simplified') }}
                 form(v-on:submit.prevent="")
-                    .form-group.has-feedback
+                    .form-group.has-feedback(v-if='!is_simplified')
                         input.form-control(type='email', v-model='email', :placeholder='label("login.email_placeholder")')
                         i.fa.fa-id-card.pull-right.fa-fw(aria-hidden="true")
-                    .form-group.has-feedback
+                    .form-group.has-feedback(v-if='!is_simplified')
                         input.form-control(type='text', v-model='challenge', :placeholder='label("login.code_placeholder")')
                         i.fa.fa-paste.pull-right.fa-fw(aria-hidden="true")
                     .form-group.has-feedback

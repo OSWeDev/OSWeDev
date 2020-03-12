@@ -19,6 +19,10 @@ v-client-table(
             template(v-else)
                 router-link.btn.btn-sm.btn-primary.m-1(:to="getCRUDUpdateLink(api_type_id, props.row.id)")
                     i.fa.fa-pencil
+            template(v-if="vocus_button")
+                template(v-if="!embed")
+                    router-link.btn.btn-sm.btn-secondary.m-1(:to="getVocusLink(api_type_id, props.row.id)", v-if='!isModuleParamTable')
+                        i.fa.fa-search
             template(v-if="delete_button")
                 template(v-if="embed")
                     button.btn.btn-sm.btn-danger.m-1(@click="selectVoForAction(props.row.id, 'delete')")

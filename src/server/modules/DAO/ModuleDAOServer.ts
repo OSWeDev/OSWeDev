@@ -659,6 +659,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return vo;
     }
 
+    /**
+     * Cas très spécifique du recover de MDP => attention cette fonction ne doit jamais être utiliser en dehors sinon on offre le listage des users à tous (c'est pas le but...)
+     */
+    public async selectOneUserForRecoveryUID(uid: number): Promise<UserVO> {
+        let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
+
+        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1", [uid]) as UserVO;
+        datatable.forceNumeric(vo);
+        return vo;
+    }
+
     public getClauseWhereRangeIntersectsField(field: ModuleTableField<any>, intersector_range: IRange<any>): string {
         switch (field.field_type) {
 
@@ -1286,7 +1297,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (moduleTable.is_segmented) {
 
             /**
-             * 2 options: 
+             * 2 options:
              *  On questionne le champs segmenté
              *  On questionne un autre champs
              */

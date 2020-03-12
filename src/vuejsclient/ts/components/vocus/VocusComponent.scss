@@ -1,0 +1,19 @@
+.vocus {
+    
+    tr.srcvo {
+        border-bottom: solid 3px #555;
+        border-left: solid 3px #555;
+    }
+
+    tr.refvo {
+        border-left: solid 3px green;
+    }
+
+    tr.refvo.is_cascade {
+        border-left: solid 3px red;
+    }
+
+    .vocus_datatable{
+        margin-top: 1em;
+    }
+}

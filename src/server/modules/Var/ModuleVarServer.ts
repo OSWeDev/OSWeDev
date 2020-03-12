@@ -28,6 +28,9 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import { Moment } from 'moment';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -52,6 +55,15 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Description' }, 'var.desc_mode.var_description.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Paramètres' }, 'var.desc_mode.var_params.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
+
+        let postCTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postUTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let preDTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+
+        // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
+        postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onCUVarCacheConf.bind(this));
+        postUTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onCUVarCacheConf.bind(this));
+        preDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onPreDVarCacheConf.bind(this));
 
         // Tentative de trigger pour mettre à jour en ato l'imported existant avec la nouvelle valeur si pârams isos mais ça marche que pour simplevar et c'est pas le but
         // let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
@@ -474,4 +486,30 @@ export default class ModuleVarServer extends ModuleServerBase {
             return res[0]['res'];
         }
     }
+
+    private async onCUVarCacheConf(vcc: VarCacheConfVO) {
+        if (!vcc) {
+            return;
+        }
+
+        ModuleVar.varcacheconf_by_var_ids[vcc.var_id] = vcc;
+        if (!ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) {
+            ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type] = {};
+        }
+        ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id] = vcc;
+    }
+
+    private async onPreDVarCacheConf(vcc: VarCacheConfVO) {
+        if (!vcc) {
+            return;
+        }
+
+        delete ModuleVar.varcacheconf_by_var_ids[vcc.var_id];
+
+        if ((!!ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) &&
+            (!!ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id])) {
+            delete ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id];
+        }
+    }
+
 }

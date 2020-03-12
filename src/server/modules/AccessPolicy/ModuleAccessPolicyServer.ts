@@ -34,6 +34,7 @@ import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
+import ResetPwdUIDParamVO from '../../../shared/modules/AccessPolicy/vos/apis/ResetPwdUIDParamVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -381,6 +382,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Merci de renseigner votre adresse email, le code reçu par mail sur cette même adresse, ainsi que votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.desc.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Merci de renseigner votre nouveau mot de passe. Celui-ci doit contenir au moins 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
+        }, 'login.reset.desc_simplified.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Login'
         }, 'login.email_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -392,6 +396,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Valider'
         }, 'login.reset.submit.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Me connecter'
+        }, 'login.reset.reco.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Modification...'
         }, 'reset.start.___LABEL___'));
@@ -407,6 +414,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'La saisie est invalide. Vérifiez l\'adresse mail, le code envoyé sur cette même adresse et le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
         }, 'login.reset.answer_ko.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'La saisie est invalide. Vérifiez le mot passe. Celui-ci doit contenir au minimum 8 caractères, dont 1 chiffre, 1 minuscule et 1 majuscule.'
+        }, 'login.reset.answer_ko_simplified.___LABEL___'));
 
 
 
@@ -417,7 +427,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Récupération du mot de passe'
         }, 'mails.pwd.recovery.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Entrez le code %%VAR%%CODE_CHALLENGE%% et votre nouveau mot de passe sur la page de modification du mot de passe accessible en cliquant sur le lien ci-dessous.'
+            fr: 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'
         }, 'mails.pwd.recovery.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Votre mot de passe a expiré'
@@ -461,6 +471,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER, this.addRoleToUser.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, this.beginRecover.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWDUID, this.resetPwdUID.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX, this.getAccessMatrix.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
@@ -774,6 +785,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return await PasswordReset.getInstance().resetPwd(params.email, params.challenge, params.new_pwd1);
+    }
+
+    private async resetPwdUID(params: ResetPwdUIDParamVO): Promise<boolean> {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
+            return false;
+        }
+
+        return await PasswordReset.getInstance().resetPwdUID(params.uid, params.challenge, params.new_pwd1);
     }
 
     private async handleTriggerUserVOUpdate(vo: UserVO): Promise<boolean> {

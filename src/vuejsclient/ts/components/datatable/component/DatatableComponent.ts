@@ -31,6 +31,7 @@ import FileDatatableFieldComponent from './fields/file/file_datatable_field';
 import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import CustomFilterItem from './CustomFilterItem';
 import { isBoolean } from 'util';
+import VocusAdminVueModule from '../../vocus/VocusAdminVueModule';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -74,6 +75,9 @@ export default class DatatableComponent extends VueComponentBase {
 
     @Prop({ default: false })
     private update_button: boolean;
+
+    @Prop({ default: false })
+    private vocus_button: boolean;
 
     @Prop({ default: false })
     private delete_button: boolean;
@@ -774,7 +778,7 @@ export default class DatatableComponent extends VueComponentBase {
             }
 
             // TODO en fait on peut vérifier suivant les droits en édition sur ce vo...
-            if (this.update_button || this.delete_button) {
+            if (this.vocus_button || this.update_button || this.delete_button) {
                 resData[DatatableComponent.ACTIONS_COLUMN_ID] = true;
             }
 
@@ -992,7 +996,7 @@ export default class DatatableComponent extends VueComponentBase {
             res[DatatableComponent.MULTISELECT_COLUMN_ID] = null;
         }
 
-        if (this.update_button || this.delete_button) {
+        if (this.vocus_button || this.update_button || this.delete_button) {
             res[DatatableComponent.ACTIONS_COLUMN_ID] = this.t(DatatableComponent.ACTIONS_COLUMN_TRANSLATABLE_CODE);
         }
 
@@ -1006,7 +1010,7 @@ export default class DatatableComponent extends VueComponentBase {
         if (this.multiselectable && !this.isModuleParamTable) {
             res.push(DatatableComponent.MULTISELECT_COLUMN_ID);
         }
-        if (this.update_button || this.delete_button) {
+        if (this.vocus_button || this.update_button || this.delete_button) {
             res.push(DatatableComponent.ACTIONS_COLUMN_ID);
         }
 
