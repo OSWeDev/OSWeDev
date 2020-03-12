@@ -173,6 +173,8 @@ export default class CRUDComponent extends VueComponentBase {
             embed_append = '_' + this.crud.readDatatable.API_TYPE_ID;
         }
 
+        let modal_type: string = null;
+
         if (!this.modal_show_create) {
             $('#createData' + embed_append).modal('hide');
         }
@@ -194,8 +196,18 @@ export default class CRUDComponent extends VueComponentBase {
                 this.$router.push(this.callback_route);
             });
 
+            if (this.modal_show_create) {
+                modal_type = 'create';
+            }
+            if (this.modal_show_update) {
+                modal_type = 'update';
+            }
+            if (this.modal_show_delete) {
+                modal_type = 'delete';
+            }
+
             if (CRUDComponentManager.getInstance().callback_handle_modal_show_hide) {
-                await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo);
+                await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo, modal_type);
             }
         } else {
             vo = this.getSelectedVOs[0];
@@ -213,16 +225,19 @@ export default class CRUDComponent extends VueComponentBase {
 
         if (this.modal_show_create) {
             $('#createData' + embed_append).modal('show');
+            modal_type = 'create';
             return;
         }
         if (this.modal_show_update) {
             this.setSelectedVOs([vo]);
             $('#updateData' + embed_append).modal('show');
+            modal_type = 'update';
             return;
         }
         if (this.modal_show_delete) {
             this.setSelectedVOs([vo]);
             $('#deleteData' + embed_append).modal('show');
+            modal_type = 'delete';
             return;
         }
     }
@@ -638,6 +653,9 @@ export default class CRUDComponent extends VueComponentBase {
                 this.prepareNewVO();
             }
         }
+
+        this.crud.createDatatable.refresh();
+        this.crud_createDatatable_key = this.crud.createDatatable.key;
     }
 
 
