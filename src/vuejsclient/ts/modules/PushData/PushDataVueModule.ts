@@ -7,6 +7,7 @@ import VueModuleBase from '../VueModuleBase';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -80,6 +81,18 @@ export default class PushDataVueModule extends VueModuleBase {
             }
         });
 
+
+        this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VARDATA], async function (notification: NotificationVO) {
+            if (VueAppBase.instance_ && LocaleManager.getInstance().i18n && notification.vo) {
+
+                let vo: IDistantVOBase = null;
+                if (!!notification.vo) {
+                    vo = VOsTypesManager.getInstance().moduleTables_by_voType[notification.vo._type].from_api_version(notification.vo);
+                    ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([vo._type]);
+                    VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarData', vo);
+                }
+            }
+        });
         // TODO: Handle other notif types
     }
 }

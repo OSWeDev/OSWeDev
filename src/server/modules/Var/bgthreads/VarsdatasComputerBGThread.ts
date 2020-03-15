@@ -10,6 +10,8 @@ import DateHandler from '../../../../shared/tools/DateHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import ModulePushDataServer from '../../PushData/ModulePushDataServer';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 
 export default class VarsdatasComputerBGThread implements IBGThread {
 
@@ -23,6 +25,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private static instance: VarsdatasComputerBGThread = null;
 
     public server_ready: boolean = false;
+
+    public uid_waiting_for_indexes: { [index: string]: { [uid: number]: boolean } } = {};
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
@@ -104,7 +108,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
                 for (let i in computed_datas) {
                     let computed_data = computed_datas[i];
-                    let var_data: ISimpleNumberVarData = vars_datas_by_ids[index_to_id[VarsController.getInstance().getIndex(computed_data)]];
+                    let var_index: string = VarsController.getInstance().getIndex(computed_data);
+                    let var_data: ISimpleNumberVarData = vars_datas_by_ids[index_to_id[var_index]];
 
                     if (!var_data) {
                         ConsoleHandler.getInstance().error('VarsdatasComputerBGThread:Impossible de retrouver la data source...');
@@ -120,6 +125,14 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
                     var_data.value_ts = moment().utc(true);
                     var_data.value_type = VarsController.VALUE_TYPE_COMPUTED;
+
+                    if (this.uid_waiting_for_indexes[var_index]) {
+                        for (let uid in this.uid_waiting_for_indexes[var_index]) {
+
+                            ModulePushDataServer.getInstance().notifyVarData(parseInt(uid.toString()), var_data);
+                        }
+                        delete this.uid_waiting_for_indexes[var_index];
+                    }
                 }
 
                 await ModuleDAO.getInstance().insertOrUpdateVOs(computed_datas_to_update);

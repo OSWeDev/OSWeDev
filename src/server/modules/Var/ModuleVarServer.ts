@@ -31,6 +31,7 @@ import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParam
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
+import ServerBase from '../../ServerBase';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -283,59 +284,90 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         VarsdatasComputerBGThread.getInstance().disable();
+        let disabled: boolean = true;
 
-        let vo: IVarMatroidDataParamVO = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.vo) : null;
-        let varsdata: ISimpleNumberVarData[] = await ModuleDAO.getInstance().getVosByExactMatroids<ISimpleNumberVarData, IVarMatroidDataParamVO>(vo._type, [vo as any], {});
+        try {
+            let vo: IVarMatroidDataParamVO = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.vo) : null;
+            let varsdata: ISimpleNumberVarData[] = await ModuleDAO.getInstance().getVosByExactMatroids<ISimpleNumberVarData, IVarMatroidDataParamVO>(vo._type, [vo as any], {});
 
-        let vardata: ISimpleNumberVarData = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
-
-        if (!vardata) {
-
-            // On a rien en base, on le crée et on attend le résultat
-            vardata = Object.assign(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].voConstructor(), vo);
-            vardata.value_ts = null;
-            vardata.value = null;
-            vardata.value_type = VarsController.VALUE_TYPE_IMPORT;
-
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(vardata);
-            if ((!res) || (!res.id)) {
-                VarsdatasComputerBGThread.getInstance().enable();
-                return null;
-            }
-
-            vardata.id = parseInt(res.id.toString());
-        } else {
-
-            if (!!vardata.value_ts) {
-                VarsdatasComputerBGThread.getInstance().enable();
-                return vardata.value;
-            }
-        }
-
-        // Si on a un vardata mais pas de value_ts, on attend qu'il se remplisse, au max 90 secondes
-        let started: Moment = moment().utc(true);
-        let interval: number = 500;
-        let timeout: number = 90000;
-        let delta: number = 0;
-
-        VarsdatasComputerBGThread.getInstance().enable();
-        do {
-
-            await ThreadHandler.getInstance().sleep(interval);
-            vardata = await ModuleDAO.getInstance().getVoById(vo._type, vardata.id);
+            let vardata: ISimpleNumberVarData = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
 
             if (!vardata) {
-                return null;
+
+                // On a rien en base, on le crée et on attend le résultat
+                vardata = Object.assign(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].voConstructor(), vo);
+                vardata.value_ts = null;
+                vardata.value = null;
+                vardata.value_type = VarsController.VALUE_TYPE_IMPORT;
+
+                let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(vardata);
+                if ((!res) || (!res.id)) {
+                    disabled = false;
+                    VarsdatasComputerBGThread.getInstance().enable();
+                    return null;
+                }
+
+                vardata.id = parseInt(res.id.toString());
+            } else {
+
+                if (!!vardata.value_ts) {
+                    disabled = false;
+                    VarsdatasComputerBGThread.getInstance().enable();
+                    return vardata.value;
+                }
             }
 
-            if (!!vardata.value_ts) {
-                return vardata.value;
+            // Si on a un vardata mais pas de value_ts, 
+            //  On stocke l'info pour le batch BG de recompilation qu'on veut renvoyer le res de ces vars datas à l'utilisateur et /ou aux 
+            //  utilisateurs qui sont à l'origine de la demande. Et c'est le bgthread qui gère de notifier du coup
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            if (!!httpContext) {
+
+                let uid: number = httpContext ? httpContext.get('UID') : null;
+                if (!!uid) {
+                    let var_index: string = VarsController.getInstance().getIndex(vardata);
+                    if (!VarsdatasComputerBGThread.getInstance().uid_waiting_for_indexes[var_index]) {
+                        VarsdatasComputerBGThread.getInstance().uid_waiting_for_indexes[var_index] = {};
+                    }
+                    VarsdatasComputerBGThread.getInstance().uid_waiting_for_indexes[var_index][uid] = true;
+                }
             }
 
-            delta = Math.abs(moment().utc(true).diff(started, 'ms'));
-        } while (delta < timeout);
+            // // Si on a un vardata mais pas de value_ts, on attend qu'il se remplisse, au max 20 secondes
+            // //  pour pas dépasser les timeouts de 30 secondes sur les requetes
+            // let started: Moment = moment().utc(true);
+            // let interval: number = 500;
+            // let timeout: number = 20000;
+            // let delta: number = 0;
 
-        ConsoleHandler.getInstance().warn('TIMEOUT on var data request:' + JSON.stringify(vo) + ':');
+            // disabled = false;
+            // VarsdatasComputerBGThread.getInstance().enable();
+            // do {
+
+            //     await ThreadHandler.getInstance().sleep(interval);
+            //     vardata = await ModuleDAO.getInstance().getVoById(vo._type, vardata.id);
+
+            //     if (!vardata) {
+            //         return null;
+            //     }
+
+            //     if (!!vardata.value_ts) {
+            //         return vardata.value;
+            //     }
+
+            //     delta = Math.abs(moment().utc(true).diff(started, 'ms'));
+            // } while (delta < timeout);
+
+        } catch (error) {
+            ConsoleHandler.getInstance().error("getSimpleVarDataCachedValueFromParam:" + error);
+        }
+
+        if (disabled) {
+            disabled = false;
+            VarsdatasComputerBGThread.getInstance().enable();
+        }
+
+        // ConsoleHandler.getInstance().warn('TIMEOUT on var data request:' + JSON.stringify(vo) + ':');
         return null;
     }
 

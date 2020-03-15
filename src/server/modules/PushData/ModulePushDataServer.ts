@@ -19,6 +19,9 @@ import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
+import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -162,6 +165,23 @@ export default class ModulePushDataServer extends ModuleServerBase {
     }
 
 
+    public async notifyVarData(user_id: number, vo: IVarDataVOBase) {
+
+        if ((!user_id) || (!vo)) {
+            return;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.api_type_id = vo._type;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_VARDATA;
+        notification.read = false;
+        notification.user_id = user_id;
+        notification.auto_read_if_connected = true;
+        notification.vo = vo;
+        await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
+    }
 
     public async notifyDAOGetVoById(user_id: number, api_type_id: string, vo_id: number) {
 
@@ -348,6 +368,10 @@ export default class ModulePushDataServer extends ModuleServerBase {
             }
 
             if (socketWrappers && socketWrappers.length) {
+
+                if (!!notification.vo) {
+                    notification.vo = VOsTypesManager.getInstance().moduleTables_by_voType[notification.vo._type].get_api_version(notification.vo);
+                }
 
                 for (let i in socketWrappers) {
                     let socketWrapper: SocketWrapper = socketWrappers[i];
