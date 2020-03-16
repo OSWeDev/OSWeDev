@@ -2082,6 +2082,10 @@ export default class RangeHandler {
 
 
     public createNew<T, U extends IRange<T>>(range_type: number, start: T, end: T, start_inclusiv: boolean, end_inclusiv: boolean, segment_type: number): U {
+        if (!start || !end) {
+            return null;
+        }
+
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:
