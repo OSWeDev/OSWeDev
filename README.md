@@ -2,7 +2,7 @@
 
     Le message d'erreur : FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory
 
-    Solution : Lancer avec $env.NODE_OPTIONS="--max-old-space-size=4096"
+    Solution : Lancer avec $env:NODE_OPTIONS="--max-old-space-size=4096"
 
 # Si problème de compilation indiquant absence de Python
     npm install --global --production windows-build-tools
@@ -13,7 +13,7 @@
         npm -g install madge
     Et graphviz
         https://graphviz.gitlab.io/_pages/Download/Download_windows.html
-    Et lancer madge sur l'un des fichiers de base 
+    Et lancer madge sur l'un des fichiers de base
         Dans le rep src/admin par exemple :  madge --image graph.svg .\AdminApp.ts
 
 # BREAKING CHANGE 23-10-2019
@@ -45,7 +45,7 @@
 
 
     Datatable :
-    
+
     - data_set_hook
 
 
@@ -81,7 +81,7 @@
 
  * BREAKING change sur le program plan : ajout de target_validation dans le RDV pour définit le state plus facilement via triggers
 
- * 
+ *
     ALTER TABLE ref.module_access_policy_accpolgrp ADD COLUMN weight bigint NOT NULL DEFAULT 0;
     ALTER TABLE ref.module_access_policy_accpol ADD COLUMN weight bigint NOT NULL DEFAULT 0;
     ALTER TABLE ref.module_access_policy_role ADD COLUMN weight bigint NOT NULL DEFAULT 0;
@@ -99,7 +99,7 @@
 ## SQL
     CREATE SCHEMA imports;
 
-## Clear duplicates translations if any 
+## Clear duplicates translations if any
     delete from  ref.module_translation_translation  where id in (select t.id from ref.module_translation_translation t, ref.module_translation_translation t2 where t.id < t2.id and t.lang_id = t2.lang_id and t.text_id = t2.text_id)
 
 ## DataImportFileVO => DataImportFormatVO
@@ -122,7 +122,7 @@
     Ajout de la colonne import_type
     Ajout de la colonne segment_type
     Ajout des colonnes nb_row_validated et nb_row_unvalidated
-    
+
     Changement des codes de status des DataImportHistoricVO :
     INFO : IMPORTATION_STATE_UPLOADED => 0 (trigger à la création/modification du champ pour gérer le lancement du formattage)
 
@@ -139,7 +139,7 @@
     Ajout de la colonne mandatory
 
 ## DataImportLogVO
-    Ajout de la colonne code_text    
+    Ajout de la colonne code_text
     Le champ message n'est plus not null
     Renommage de la colonne data_import_file_id en data_import_format_id
     Ajout de la colonne api_type_id
@@ -147,9 +147,9 @@
     Le champ log_level est devenu un enum, donc un nombre en base :
         TODO : LOG_LEVEL_DEBUG => 0
         TODO : LOG_LEVEL_INFO => 1
-        
+
         INFO : LOG_LEVEL_SUCCESS => 2
-        
+
         TODO : LOG_LEVEL_WARN => 3
         TODO : LOG_LEVEL_ERROR => 4
         TODO : LOG_LEVEL_FATAL => 5
@@ -163,24 +163,24 @@ OpenSource WeDev
 
 ## Outil de développement préféré
 Visual Studio Code
-### Configuration conseillée 
+### Configuration conseillée
     * A Lancer depuis un powershell admin :
       npm install --global windows-build-tools
     * DEPRECATED : Semble ne pas convenir de lancer toutes les taches en meme temps, il faut creuser. Et pour le moment lancer les taches individuellement, et avec une visibilité (donc on commente une ligne) : Installer le plugin    yukidoi.blade-runner
-    * Souvent utile pour initialiser une nouvelle base depuis une base existante et en changer le propriétaire : 
+    * Souvent utile pour initialiser une nouvelle base depuis une base existante et en changer le propriétaire :
         ---- Pour les tables ------------------------------------------------------------------------------------
         DO $$DECLARE r record;
         BEGIN
-            FOR r IN SELECT schemaname, tablename 
+            FOR r IN SELECT schemaname, tablename
                 FROM pg_tables WHERE NOT schemaname IN ('pg_catalog', 'information_schema')
             LOOP
                 EXECUTE 'ALTER TABLE ' || quote_ident(r.schemaname) || '.' || quote_ident(r.tablename) || ' OWNER TO my_new_user;';
             END LOOP;
-        END;$$ 
+        END;$$
         ---- Pour les sequences -------------------------------------------------------------------------------
         DO $$DECLARE r record;
         BEGIN
-            FOR r IN SELECT sequence_schema, sequence_name 
+            FOR r IN SELECT sequence_schema, sequence_name
                 FROM information_schema.sequences WHERE NOT sequence_schema IN ('pg_catalog', 'information_schema')
             LOOP
                 EXECUTE 'ALTER SEQUENCE '|| quote_ident(r.sequence_schema) || '.' || quote_ident(r.sequence_name) ||' OWNER TO my_new_user;';
@@ -189,7 +189,7 @@ Visual Studio Code
         --- Pour les vues ----------------------------------------------------------------------------------
         DO $$DECLARE r record;
         BEGIN
-            FOR r IN SELECT table_schema, table_name 
+            FOR r IN SELECT table_schema, table_name
                 FROM information_schema.views WHERE NOT table_schema IN ('pg_catalog', 'information_schema')
             LOOP
                 EXECUTE 'ALTER VIEW '|| quote_ident(r.table_schema) || '.' || quote_ident(r.table_name) ||' OWNER TO my_new_user;';
@@ -232,7 +232,7 @@ Visual Studio Code
         ALTER SCHEMA weekly
         OWNER TO my_new_user;
 
-    * Configurer les tâches (/.vscode/.tasks.json) pour une compilation en watch du typescript de chaque sous-partie. 
+    * Configurer les tâches (/.vscode/.tasks.json) pour une compilation en watch du typescript de chaque sous-partie.
 Exemple de fichier tasks.json :
 {
     "version": "2.0.0",

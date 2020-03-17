@@ -238,33 +238,67 @@ export let percentFilter = new FilterObj(
     }
 );
 
-export let toFixedFilter = new FilterObj(
-    function (value, fractionalDigits, arrondi, explicit_sign: boolean = false) {
-        if (!value) {
-            return value;
-        }
+export let ARRONDI_TYPE_CEIL: number = 0;
+export let ARRONDI_TYPE_FLOOR: number = 1;
+export let ARRONDI_TYPE_ROUND: number = 2;
 
-        let res = value;
-        if (arrondi) {
-            res = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(res, arrondi);
-        }
-
-        if (isNumber(fractionalDigits) && fractionalDigits >= 0) {
-            res = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(res, fractionalDigits);
-        }
-
-        if (explicit_sign) {
-            if (value > 0) {
-                res = '+' + res;
-            }
-        }
-
-        return res;
-    },
-    function (value) {
-        value = value.replace(",", "");
-        return value && value.length ? parseFloat(value) : 0;
+let readToFixed = function (
+    value,
+    fractionalDigits,
+    arrondi = false,
+    arrondi_type: number = ARRONDI_TYPE_ROUND
+) {
+    if (!value) {
+        return value;
     }
+
+    if (arrondi) {
+        value = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(value, arrondi, arrondi_type);
+    }
+
+    if (isNumber(fractionalDigits) && fractionalDigits >= 0) {
+        value = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
+    }
+
+    return value;
+};
+
+let writeToFixed = function (value) {
+    value = value.replace(",", "");
+    return value && value.length ? parseFloat(value) : 0;
+};
+
+export let toFixedFilter = new FilterObj(
+    function (
+        value,
+        fractionalDigits,
+        arrondi = false
+    ) {
+        return readToFixed(value, fractionalDigits, arrondi, ARRONDI_TYPE_ROUND);
+    },
+    writeToFixed
+);
+
+export let toFixedCeilFilter = new FilterObj(
+    function (
+        value,
+        fractionalDigits,
+        arrondi = false
+    ) {
+        return readToFixed(value, fractionalDigits, arrondi, ARRONDI_TYPE_CEIL);
+    },
+    writeToFixed
+);
+
+export let toFixedFloorFilter = new FilterObj(
+    function (
+        value,
+        fractionalDigits,
+        arrondi = false
+    ) {
+        return readToFixed(value, fractionalDigits, arrondi, ARRONDI_TYPE_FLOOR);
+    },
+    writeToFixed
 );
 
 export let hideZeroFilter = new FilterObj(

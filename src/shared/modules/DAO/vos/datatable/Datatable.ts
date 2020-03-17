@@ -10,6 +10,8 @@ export default class Datatable<T extends IDistantVOBase> {
      */
     public conditional_show: (dataVO: IDistantVOBase) => boolean;
 
+    public key: number = 0;
+
     protected sortedFields: Array<DatatableField<any, any>> = [];
 
     constructor(public API_TYPE_ID: string) { }
@@ -87,6 +89,10 @@ export default class Datatable<T extends IDistantVOBase> {
         this.sortedFields.sort((a: DatatableField<any, any>, b: DatatableField<any, any>) => {
             return datatable_field_uids.indexOf(a.datatable_field_uid) - datatable_field_uids.indexOf(b.datatable_field_uid);
         });
+    }
+
+    public refresh(): void {
+        this.key++;
     }
 
     get fields(): Array<DatatableField<any, any>> {

@@ -2,7 +2,7 @@ include ../../../../views/mixins/loading.pug
 
 .crud-wrapper
     +loading()
-        .crud-table-wrapper
+        .crud-table-wrapper(:class="classname")
             .table-title
                 h5(v-if='!embed') {{ CRUDTitle }}
                 .btn-group.d-print-none
@@ -42,7 +42,8 @@ include ../../../../views/mixins/loading.pug
                 :embed="embed",
                 :embed_filter="embed_filter",
                 :perpage="perpage",
-                :sort_id_descending = "sort_id_descending")
+                :sort_id_descending = "sort_id_descending",
+                :display_filters = "display_filters")
 
         <!-- Create Modal HTML -->
         .modal.fade.in(:id="(embed) ? 'createData_'+crud.readDatatable.API_TYPE_ID : 'createData' ", v-if='!isModuleParamTable', tabindex='-1', role='dialog')
@@ -50,9 +51,9 @@ include ../../../../views/mixins/loading.pug
                 .modal-content
                     form(v-on:submit.prevent="createVO")
                         .modal-header
-                            h4.modal-title {{ label('crud.create.modal.title') }}
+                            h4.modal-title.d-ib {{ label('crud.create.modal.title') }}
                             template(v-if="embed")
-                                button.btn.close(data-dismiss="modal") &times;
+                                a.btn.close(data-dismiss="modal") &times;
                             template(v-else)
                                 router-link.btn.close(:to="callback_route") &times;
                         .modal-body
@@ -61,6 +62,7 @@ include ../../../../views/mixins/loading.pug
                                 template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
                                     crud_field(
                                         v-show="!field.hidden",
+                                        :key="newVO._type + '_createDatatable_' + field.datatable_field_uid + '_' + crud_createDatatable_key",
                                         :field="field",
                                         :vo="newVO",
                                         :datatable="crud.createDatatable",
@@ -74,7 +76,7 @@ include ../../../../views/mixins/loading.pug
                                 p {{ label('crud.create.modal.content.newvo_failure') }}
                         .modal-footer
                             template(v-if="embed")
-                                button.btn.btn-default(v-if="!creating_vo", data-dismiss="modal") {{ label('crud.create.modal.cancel') }}
+                                a.btn.btn-default(v-if="!creating_vo", data-dismiss="modal") {{ label('crud.create.modal.cancel') }}
                             template(v-else)
                                 router-link.btn.btn-default(:to="callback_route" v-if="!creating_vo") {{ label('crud.create.modal.cancel') }}
                             template(v-if="newVO && !creating_vo && !is_only_readable")
@@ -85,9 +87,9 @@ include ../../../../views/mixins/loading.pug
                 .modal-content
                     form(v-on:submit.prevent="updateVO")
                         .modal-header
-                            h4.modal-title {{ label('crud.update.modal.title') }}
+                            h4.modal-title.d-ib {{ label('crud.update.modal.title') }}
                             template(v-if="embed")
-                                button.btn.close(data-dismiss="modal") &times;
+                                a.btn.close(data-dismiss="modal") &times;
                             template(v-else)
                                 router-link.btn.close(:to="callback_route") &times;
                         .modal-body
@@ -96,19 +98,21 @@ include ../../../../views/mixins/loading.pug
                                 template(v-for="field in crud.updateDatatable.fields")
                                     crud_field(
                                         v-show="!field.hidden",
+                                        :key="newVO._type + '_updateDatatable_' + field.datatable_field_uid + '_' + crud_updateDatatable_key",
                                         :field="field",
                                         :vo="editableVO",
                                         :datatable="crud.updateDatatable",
                                         :auto_update_field_value="true",
                                         @uploadedFile="uploadedFile",
-                                        @onChangeVO="onChangeVO"
+                                        @onChangeVO="onChangeVO",
+                                        :show_insert_or_update_target='show_insert_or_update_target'
                                     )
 
                             template(v-else)
                                 p {{ label('crud.update.modal.content.selection_failure') }}
                         .modal-footer
                             template(v-if="embed")
-                                button.btn.btn-default(v-if="!updating_vo", data-dismiss="modal") {{ label('crud.update.modal.cancel') }}
+                                a.btn.btn-default(v-if="!updating_vo", data-dismiss="modal") {{ label('crud.update.modal.cancel') }}
                             template(v-else)
                                 router-link.btn.btn-default(:to="callback_route" v-if="!updating_vo") {{ label('crud.update.modal.cancel') }}
                             template(v-if="selectedVO && editableVO && !updating_vo && !is_only_readable")
@@ -119,9 +123,9 @@ include ../../../../views/mixins/loading.pug
                 .modal-content
                     form(v-on:submit.prevent="deleteVO")
                         .modal-header
-                            h4.modal-title {{ label('crud.delete.modal.title') }}
+                            h4.modal-title.d-ib {{ label('crud.delete.modal.title') }}
                             template(v-if="embed")
-                                button.btn.close(data-dismiss="modal") &times;
+                                a.btn.close(data-dismiss="modal") &times;
                             template(v-else)
                                 router-link.btn.close(:to="callback_route") &times;
                         .modal-body
@@ -134,7 +138,7 @@ include ../../../../views/mixins/loading.pug
                                 p {{ label('crud.delete.modal.content.selection_failure') }}
                         .modal-footer
                             template(v-if="embed")
-                                button.btn.btn-default(v-if="!deleting_vo", data-dismiss="modal") {{ label('crud.delete.modal.cancel') }}
+                                a.btn.btn-default(v-if="!deleting_vo", data-dismiss="modal") {{ label('crud.delete.modal.cancel') }}
                             template(v-else)
                                 router-link.btn.btn-default(:to="callback_route" v-if="!deleting_vo") {{ label('crud.delete.modal.cancel') }}
                             template(v-if="selectedVO && !deleting_vo && !is_only_readable")

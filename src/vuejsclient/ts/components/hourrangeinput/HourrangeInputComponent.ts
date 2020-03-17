@@ -86,7 +86,12 @@ export default class HourrangeInputComponent extends VueComponentBase {
             hourend.add(-24, 'hours');
         }
 
-        this.new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.segmentation_type_value);
+        if (hourstart && hourend) {
+            this.new_value = RangeHandler.getInstance().createNew(HourRange.RANGE_TYPE, hourstart, hourend, true, false, this.segmentation_type_value);
+        } else {
+            this.new_value = null;
+        }
+
         this.$emit('input', this.new_value);
         this.$emit('input_with_infos', this.new_value, this.field, this.vo);
     }

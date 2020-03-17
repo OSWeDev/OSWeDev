@@ -6,6 +6,7 @@ import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datata
 import DatatableField from '../../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToOneReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import ReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NumRange from '../../../../../../shared/modules/DataRender/vos/NumRange';
@@ -32,9 +33,9 @@ import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInpu
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
+import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
-import RefRangesReferenceDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 let debounce = require('lodash/debounce');
 
 
@@ -47,7 +48,8 @@ let debounce = require('lodash/debounce');
         HourrangeInputComponent: HourrangeInputComponent,
         TSRangesInputComponent: TSRangesInputComponent,
         IsoWeekDaysInputComponent: IsoWeekDaysInputComponent,
-        TSRangeInputComponent: TSRangeInputComponent
+        TSRangeInputComponent: TSRangeInputComponent,
+        TSTZInputComponent: TSTZInputComponent,
     }
 })
 export default class CRUDComponentField extends VueComponentBase {
@@ -101,6 +103,12 @@ export default class CRUDComponentField extends VueComponentBase {
 
     @Prop({ default: false })
     private is_disabled: boolean;
+
+    @Prop({ default: null })
+    private description: string;
+
+    @Prop({ default: null })
+    private maxlength: number;
 
 
     private select_options: number[] = [];
@@ -174,7 +182,7 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = this.field_value;
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
     }
 
     get alert_path(): string {
@@ -201,6 +209,7 @@ export default class CRUDComponentField extends VueComponentBase {
     @Watch('vo')
     @Watch('datatable')
     @Watch('default_field_data')
+    @Watch('targetModuleTable_count')
     public on_reload_field_value() {
         this.debounced_reload_field_value();
     }
@@ -360,9 +369,9 @@ export default class CRUDComponentField extends VueComponentBase {
         }
 
         if (!this.datatable) {
-            this.$emit('changeValue', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this.datatable);
+            this.$emit('changeValue', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this.datatable, this.$el);
         } else {
-            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
         }
     }
 
@@ -374,7 +383,7 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = values;
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
         this.$emit('validateMultiInput', values, this.field, this.vo);
     }
 
@@ -670,12 +679,14 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
-        this.$emit('onChangeVO', this.vo);
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
 
         if (this.field.onChange) {
             this.field.onChange(this.vo);
+            this.datatable.refresh();
         }
+
+        this.$emit('onChangeVO', this.vo);
     }
 
     private inputValue(value: any) {
@@ -689,7 +700,7 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
     }
 
     get is_custom_field_type(): boolean {
@@ -698,14 +709,6 @@ export default class CRUDComponentField extends VueComponentBase {
 
     get custom_field_types(): { [name: string]: TableFieldTypeControllerBase } {
         return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
-    }
-
-    get segmentation_type(): number {
-        if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableField<any, any>).moduleTableField.segmentation_type;
-        }
-
-        return null;
     }
 
     get field_type(): string {
@@ -808,7 +811,7 @@ export default class CRUDComponentField extends VueComponentBase {
                 await this.snotify.success(this.label('field.auto_update_field_value.succes'));
             }
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
 
         this.inline_input_is_editing = false;
 
@@ -847,5 +850,18 @@ export default class CRUDComponentField extends VueComponentBase {
 
     get is_readonly(): boolean {
         return this.field.is_readonly || this.is_disabled;
+    }
+
+    get targetModuleTable_count(): number {
+        let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
+        if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
+            return ObjectHandler.getInstance().arrayFromMap(this.getStoredDatas[manyToOne.targetModuleTable.vo_type]).length;
+        }
+
+        return null;
+    }
+
+    get field_value_length(): number {
+        return this.field_value ? this.field_value.length : 0;
     }
 }

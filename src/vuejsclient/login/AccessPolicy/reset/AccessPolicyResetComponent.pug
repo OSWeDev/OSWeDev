@@ -12,14 +12,16 @@
                 p.login-box-msg(v-if='!!is_simplified') {{ label('login.reset.desc_simplified') }}
                 form(v-on:submit.prevent="")
                     .form-group.has-feedback(v-if='!is_simplified')
-                        input.form-control(type='email', v-model='email', :placeholder='label("login.email_placeholder")')
+                        input.form-control(type='email', v-model='email', name="email", :placeholder='label("login.email_placeholder")', autocomplete="off")
                         i.fa.fa-id-card.pull-right.fa-fw(aria-hidden="true")
                     .form-group.has-feedback(v-if='!is_simplified')
-                        input.form-control(type='text', v-model='challenge', :placeholder='label("login.code_placeholder")')
+                        input.form-control(type='text', v-model='challenge', name="challenge", :placeholder='label("login.code_placeholder")', autocomplete="off")
                         i.fa.fa-paste.pull-right.fa-fw(aria-hidden="true")
                     .form-group.has-feedback
-                        input.form-control(type='password', v-model='new_pwd1' :placeholder='label("login.password_placeholder")')
+                        input.form-control(type='password', v-model='new_pwd1', name="new_pwd1", :placeholder='label("login.password_placeholder")', autocomplete="off")
                         i.fa.fa-lock.pull-right.fa-fw(aria-hidden="true")
 
                     .center
                         button.btn.btn-primary.btn-block.btn-flat(@click="reset") {{ label('login.reset.submit') }}
+            template(v-else)
+                router-link(:to="{ name: 'login' }") {{ label('login.reset.lien_connect') }}

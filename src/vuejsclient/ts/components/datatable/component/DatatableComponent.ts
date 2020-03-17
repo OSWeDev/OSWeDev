@@ -2,6 +2,7 @@ import * as $ from 'jquery';
 import { debounce } from 'lodash';
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import { isBoolean } from 'util';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Event } from 'vue-tables-2';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
@@ -9,6 +10,7 @@ import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/Data
 import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
 import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import ExportDataToXLSXParamVO from '../../../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
@@ -25,13 +27,10 @@ import { ModuleCRUDAction } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DaoStoreTypeWatcherDefinition from '../../dao/vos/DaoStoreTypeWatcherDefinition';
 import VueComponentBase from '../../VueComponentBase';
+import CustomFilterItem from './CustomFilterItem';
 import './DatatableComponent.scss';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
-import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
-import CustomFilterItem from './CustomFilterItem';
-import { isBoolean } from 'util';
-import VocusAdminVueModule from '../../vocus/VocusAdminVueModule';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -64,6 +63,8 @@ export default class DatatableComponent extends VueComponentBase {
 
     @Prop({ default: false })
     private embed: boolean;
+    @Prop({ default: true })
+    private display_filters: boolean;
     @Prop({ default: null })
     private perpage: number;
 
@@ -114,7 +115,6 @@ export default class DatatableComponent extends VueComponentBase {
     }
 
     public async mounted() {
-        console.log(this.sort_id_descending);
         this.loadDatatable();
 
         // Activate tooltip
@@ -231,6 +231,37 @@ export default class DatatableComponent extends VueComponentBase {
 
             // at the moment the "embed" CRUD doesn't handle all types of fields filtering
             if (!!this.embed_filter && !!this.embed_filter[field.datatable_field_uid]) {
+                if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
+                    let simpleField: SimpleDatatableField<any, any> = (field as SimpleDatatableField<any, any>);
+
+                    switch (simpleField.moduleTableField.field_type) {
+                        case ModuleTableField.FIELD_TYPE_date:
+                        case ModuleTableField.FIELD_TYPE_daterange:
+                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        case ModuleTableField.FIELD_TYPE_day:
+                        case ModuleTableField.FIELD_TYPE_timestamp:
+                        case ModuleTableField.FIELD_TYPE_month:
+                            if (!!this.embed_filter[field.datatable_field_uid].start) {
+
+                                this.preload_custom_filters.push(field.datatable_field_uid);
+
+                                if (!this.custom_filters_values[field.datatable_field_uid]) {
+                                    this.custom_filters_values[field.datatable_field_uid] = {};
+                                }
+                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].start));
+                            }
+                            if (!!this.embed_filter[field.datatable_field_uid].end) {
+
+                                this.preload_custom_filters.push(field.datatable_field_uid);
+
+                                if (!this.custom_filters_values[field.datatable_field_uid]) {
+                                    this.custom_filters_values[field.datatable_field_uid] = {};
+                                }
+                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].end));
+                            }
+                            continue;
+                    }
+                }
 
                 if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
                     if (!this.custom_filters_values[field.datatable_field_uid]) {
@@ -261,7 +292,8 @@ export default class DatatableComponent extends VueComponentBase {
             "Export-" + this.datatable.API_TYPE_ID + ".xlsx",
             this.exportable_datatable_data,
             this.exportable_datatable_columns,
-            this.datatable_columns_labels
+            this.datatable_columns_labels,
+            this.datatable.API_TYPE_ID,
         );
     }
 
@@ -298,7 +330,7 @@ export default class DatatableComponent extends VueComponentBase {
             vo = this.getStoredDatas[this.datatable.API_TYPE_ID][vo_id];
         }
         this.setSelectedVOs([vo]);
-        this.$emit('show-crud-modal', { vo_type: vo._type, action: action });
+        this.$emit('show-crud-modal', vo._type, action);
     }
 
     get exportable_datatable_columns(): string[] {
@@ -1312,7 +1344,7 @@ export default class DatatableComponent extends VueComponentBase {
             skin: 'table-striped table-hover',
             customSorting: this.customSorting,
             orderBy: {
-                // column: 'id',
+                column: 'id',
                 ascending: (this.sort_id_descending) ? false : true
             }
         };
