@@ -784,5 +784,6 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         dih.status_before_reimport = dih.state;
         dih.state = ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT;
         await ModuleDAO.getInstance().insertOrUpdateVO(dih);
+
     }
 }
