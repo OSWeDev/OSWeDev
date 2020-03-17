@@ -44,15 +44,12 @@ describe('NumSegmentHandler', () => {
         expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
             NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT),
             NumSegment.TYPE_INT)).to.deep.equal({
-                index: -1,
+                index: 0,
                 type: NumSegment.TYPE_INT
             });
         expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
             NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT),
-            NumSegment.TYPE_INT)).to.deep.equal({
-                index: -1,
-                type: NumSegment.TYPE_INT
-            });
+            NumSegment.TYPE_INT)).to.deep.equal(null);
 
 
         expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
@@ -64,7 +61,7 @@ describe('NumSegmentHandler', () => {
         expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
             NumRange.createNew(-2, 2, false, true, NumSegment.TYPE_INT),
             NumSegment.TYPE_INT)).to.deep.equal({
-                index: -2,
+                index: -1,
                 type: NumSegment.TYPE_INT
             });
         expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
@@ -76,7 +73,7 @@ describe('NumSegmentHandler', () => {
         expect(NumSegmentHandler.getInstance().get_segment_from_range_start(
             NumRange.createNew(-2, 2, false, false, NumSegment.TYPE_INT),
             NumSegment.TYPE_INT)).to.deep.equal({
-                index: -2,
+                index: -1,
                 type: NumSegment.TYPE_INT
             });
     });
@@ -112,7 +109,7 @@ describe('NumSegmentHandler', () => {
         expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
             NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT),
             NumSegment.TYPE_INT)).to.deep.equal({
-                index: 0,
+                index: -1,
                 type: NumSegment.TYPE_INT
             });
         expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
@@ -123,10 +120,7 @@ describe('NumSegmentHandler', () => {
             });
         expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
             NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT),
-            NumSegment.TYPE_INT)).to.deep.equal({
-                index: 0,
-                type: NumSegment.TYPE_INT
-            });
+            NumSegment.TYPE_INT)).to.deep.equal(null);
 
 
         expect(NumSegmentHandler.getInstance().get_segment_from_range_end(
@@ -184,7 +178,7 @@ describe('NumSegmentHandler', () => {
             });
 
         expect(NumSegmentHandler.getInstance().getCorrespondingNumSegment(1, NumSegment.TYPE_INT)).to.deep.equal({
-            index: 3,
+            index: 1,
             type: NumSegment.TYPE_INT
         });
 

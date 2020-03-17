@@ -11,34 +11,34 @@ describe('TimeSegmentHandler', () => {
     it('test getAllDataTimeSegments', () => {
         expect(TimeSegmentHandler.getInstance().getAllDataTimeSegments(null, null, null)).to.equal(null);
 
-        let res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01'), moment('2018-01-02'), TimeSegment.TYPE_DAY);
+        let res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01').utc(true), moment('2018-01-02').utc(true), TimeSegment.TYPE_DAY);
         expect(res[0].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-01-01', TimeSegment.TYPE_DAY).dateIndex);
         expect(res[1].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-01-02', TimeSegment.TYPE_DAY).dateIndex);
         expect(res[2]).to.be.equal(undefined);
 
-        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01'), moment('2018-01-02'), TimeSegment.TYPE_DAY, true);
+        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01').utc(true), moment('2018-01-02').utc(true), TimeSegment.TYPE_DAY, true);
         expect(res[0].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-01-01', TimeSegment.TYPE_DAY).dateIndex);
         expect(res[1]).to.be.equal(undefined);
 
-        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01'), moment('2018-02-02'), TimeSegment.TYPE_MONTH);
+        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01').utc(true), moment('2018-02-02').utc(true), TimeSegment.TYPE_MONTH);
         expect(res[0].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-01-01', TimeSegment.TYPE_MONTH).dateIndex);
         expect(res[1].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-02-01', TimeSegment.TYPE_MONTH).dateIndex);
         expect(res[2]).to.be.equal(undefined);
 
-        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01'), moment('2018-02-01'), TimeSegment.TYPE_MONTH);
+        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01').utc(true), moment('2018-02-01').utc(true), TimeSegment.TYPE_MONTH);
         expect(res[0].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-01-01', TimeSegment.TYPE_MONTH).dateIndex);
         expect(res[1].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-02-01', TimeSegment.TYPE_MONTH).dateIndex);
         expect(res[2]).to.be.equal(undefined);
 
-        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01'), moment('2018-02-01'), TimeSegment.TYPE_MONTH, true);
+        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01').utc(true), moment('2018-02-01').utc(true), TimeSegment.TYPE_MONTH, true);
         expect(res[0].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-01-01', TimeSegment.TYPE_MONTH).dateIndex);
         expect(res[1]).to.be.equal(undefined);
 
-        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01'), moment('2018-01-02'), TimeSegment.TYPE_MONTH);
+        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01').utc(true), moment('2018-01-02').utc(true), TimeSegment.TYPE_MONTH);
         expect(res[0].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-01-01', TimeSegment.TYPE_MONTH).dateIndex);
         expect(res[1]).to.be.equal(undefined);
 
-        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01'), moment('2018-01-02'), TimeSegment.TYPE_MONTH, true);
+        res = TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment('2018-01-01').utc(true), moment('2018-01-02').utc(true), TimeSegment.TYPE_MONTH, true);
         expect(res[0].dateIndex).to.deep.equal(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment('2018-01-01', TimeSegment.TYPE_MONTH).dateIndex);
         expect(res[1]).to.be.equal(undefined);
     });
