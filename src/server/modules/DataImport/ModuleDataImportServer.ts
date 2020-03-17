@@ -694,29 +694,29 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         // Pour éviter tout risque de désordre dans la gestion des imports, on ignore le cas du réimport.
         // Donc si on est en train de modifier pour faire un réimport, on modifie pas la date.
-        // On devrait aussi refuser toute modification de statut manuelle, et pas réalisée directement par le serveur.
+        // // En fait ça casse les cou..les : On devrait aussi refuser toute modification de statut manuelle, et pas réalisée directement par le serveur.
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let session = httpContext ? httpContext.get('SESSION') : null;
-        let bdd_import: DataImportHistoricVO = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
+        // let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        // let session = httpContext ? httpContext.get('SESSION') : null;
+        // let bdd_import: DataImportHistoricVO = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
 
-        if (session && !!session.user) {
-            // Cas d'une modif par un utilisateur, on doit refuser le changement de statuts si c'est pas pour un réimport.
+        // if (session && !!session.user) {
+        //     // Cas d'une modif par un utilisateur, on doit refuser le changement de statuts si c'est pas pour un réimport.
 
-            if ((importHistoric.state != bdd_import.state) && (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)) {
+        //     if ((importHistoric.state != bdd_import.state) && (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)) {
 
-                // Cas particulier du changement de statuts sur un import en validation manuelle qui doit continuer de fonctionner....
-                if (!((bdd_import.state == ModuleDataImport.IMPORTATION_STATE_FORMATTED) && (!importHistoric.autovalidate))) {
+        //         // Cas particulier du changement de statuts sur un import en validation manuelle qui doit continuer de fonctionner....
+        //         if (!((bdd_import.state == ModuleDataImport.IMPORTATION_STATE_FORMATTED) && (!importHistoric.autovalidate))) {
 
-                    let uid: number = httpContext ? httpContext.get('UID') : null;
-                    if (!!uid) {
-                        ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'handleImportHistoricDateUpdate.change_state.error');
-                    }
+        //             let uid: number = httpContext ? httpContext.get('UID') : null;
+        //             if (!!uid) {
+        //                 ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'handleImportHistoricDateUpdate.change_state.error');
+        //             }
 
-                    return false;
-                }
-            }
-        }
+        //             return false;
+        //         }
+        //     }
+        // }
 
         if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT) {
             importHistoric.last_up_date = moment().utc(true);
