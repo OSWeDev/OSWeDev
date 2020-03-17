@@ -53,7 +53,7 @@ export default class NumSegmentHandler {
     }
 
     public isEltInSegment(elt: number, segment: NumSegment): boolean {
-        if ((!elt) || (!segment)) {
+        if ((elt == null) || (typeof elt == 'undefined') || (!segment)) {
             return false;
         }
 

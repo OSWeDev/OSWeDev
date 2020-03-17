@@ -233,6 +233,10 @@ export default class RangeHandler {
             return false;
         }
 
+        if (this.range_intersects_range(range_a, range_b)) {
+            return true;
+        }
+
         return this.is_elt_equals_elt(range_a.range_type, this.inc_elt(range_a.range_type, this.getSegmentedMax(range_a, segment_type), range_a.segment_type, 1), this.getSegmentedMin(range_b, segment_type)) ||
             this.is_elt_equals_elt(range_a.range_type, this.inc_elt(range_b.range_type, this.getSegmentedMax(range_b, segment_type), range_b.segment_type, 1), this.getSegmentedMin(range_a, segment_type));
     }
@@ -1827,8 +1831,14 @@ export default class RangeHandler {
             return null;
         }
 
+        let first_range = ranges.find((range: IRange<T>) => !!range);
+
+        if (!first_range) {
+            return null;
+        }
+
         if (segment_type == null) {
-            switch (ranges[0].range_type) {
+            switch (first_range.range_type) {
 
                 case NumRange.RANGE_TYPE:
                     segment_type = NumSegment.TYPE_INT;
@@ -1862,7 +1872,7 @@ export default class RangeHandler {
         }
 
         if (!!offset) {
-            res = this.inc_elt(ranges[0].range_type, res, segment_type, offset);
+            res = this.inc_elt(first_range.range_type, res, segment_type, offset);
         }
 
         return res;
@@ -1880,8 +1890,14 @@ export default class RangeHandler {
             return null;
         }
 
+        let first_range = ranges.find((range: IRange<T>) => !!range);
+
+        if (!first_range) {
+            return null;
+        }
+
         if (segment_type == null) {
-            switch (ranges[0].range_type) {
+            switch (first_range.range_type) {
 
                 case NumRange.RANGE_TYPE:
                     segment_type = NumSegment.TYPE_INT;
@@ -1901,6 +1917,11 @@ export default class RangeHandler {
 
         for (let i in ranges) {
             let range = ranges[i];
+
+            if (!range) {
+                continue;
+            }
+
             let range_max = this.getSegmentedMax(range, segment_type);
 
             if ((range_max == null) || (typeof range_max == 'undefined')) {
@@ -1915,7 +1936,7 @@ export default class RangeHandler {
         }
 
         if (!!offset) {
-            res = this.inc_elt(ranges[0].range_type, res, segment_type, offset);
+            res = this.inc_elt(first_range.range_type, res, segment_type, offset);
         }
 
         return res;

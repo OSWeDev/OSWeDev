@@ -48,7 +48,13 @@ export default class NumRange implements IRange<number> {
             return null;
         }
 
-        end_range = NumSegmentHandler.getInstance().incNum(end_range, segment_type, 1);
+        if (start_range > end_range) {
+            return null;
+        }
+
+        let tmp_end = NumSegmentHandler.getInstance().incNum(end_range, segment_type, 1);
+
+        end_range = tmp_end;
 
         res.max = end_range;
         res.max_inclusiv = false;

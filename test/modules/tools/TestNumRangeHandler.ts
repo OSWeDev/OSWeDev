@@ -93,8 +93,8 @@ describe('NumRangeHandler', () => {
             [NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT), NumRange.createNew(3, 4, false, true, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(2, 3, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 4, true, true, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(2, 3, false, false, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 2, true, true, NumSegment.TYPE_INT), NumRange.createNew(3, 4, true, true, NumSegment.TYPE_INT)]
+            null,
+            [NumRange.createNew(0, 5, true, false, NumSegment.TYPE_INT)]
         ));
 
 
@@ -141,44 +141,44 @@ describe('NumRangeHandler', () => {
             [NumRange.createNew(0, 3, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 4, true, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(3, 4, false, false, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, true, true, NumSegment.TYPE_INT)]
+            null,
+            [NumRange.createNew(0, 4, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 4, true, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(3, 4, false, false, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, true, true, NumSegment.TYPE_INT)]
+            null,
+            [NumRange.createNew(0, 4, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 4, false, true, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(3, 4, true, true, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, false, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(3, 5, true, false, NumSegment.TYPE_INT)],
+            [NumRange.createNew(1, 3, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 4, false, true, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(3, 4, true, true, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, false, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(3, 5, true, false, NumSegment.TYPE_INT)],
+            [NumRange.createNew(1, 3, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 4, false, true, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(3, 4, false, true, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, false, true, NumSegment.TYPE_INT)]
+            [NumRange.createNew(4, 5, true, false, NumSegment.TYPE_INT)],
+            [NumRange.createNew(1, 4, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 4, false, true, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(3, 4, false, true, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, false, true, NumSegment.TYPE_INT)]
+            [NumRange.createNew(4, 5, true, false, NumSegment.TYPE_INT)],
+            [NumRange.createNew(1, 4, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 4, false, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
             [NumRange.createNew(3, 4, true, false, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, false, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(1, 3, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 4, false, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
             [NumRange.createNew(3, 4, true, false, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, false, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(1, 3, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 4, false, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(3, 4, false, false, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, false, true, NumSegment.TYPE_INT)]
+            null,
+            [NumRange.createNew(1, 4, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(3, 5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 4, false, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(3, 4, false, false, NumSegment.TYPE_INT)],
-            [NumRange.createNew(0, 3, false, true, NumSegment.TYPE_INT)]
+            null,
+            [NumRange.createNew(1, 4, true, false, NumSegment.TYPE_INT)]
         ));
 
 
@@ -223,16 +223,16 @@ describe('NumRangeHandler', () => {
         ));
 
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)],
-            [NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)],
+            null
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
             null,
             [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)]
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)],
-            [NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)],
+            null
         ));
         expect(RangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
             null,
@@ -256,22 +256,10 @@ describe('NumRangeHandler', () => {
             [NumRange.createNew(1, 2, false, true, NumSegment.TYPE_INT)]
         ));
 
-        expect(RangeHandler.getInstance().cut_range(NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            null,
-            [NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT)]
-        ));
-        expect(RangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            null,
-            [NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT)]
-        ));
-        expect(RangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            null,
-            [NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT)]
-        ));
-        expect(RangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal(new RangesCutResult(
-            null,
-            [NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT)]
-        ));
+        expect(RangeHandler.getInstance().cut_range(NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal(null);
+        expect(RangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal(null);
+        expect(RangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal(null);
+        expect(RangeHandler.getInstance().cut_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, false, NumSegment.TYPE_INT))).to.deep.equal(null);
     });
 
     it('test cuts_ranges', () => {
@@ -325,7 +313,7 @@ describe('NumRangeHandler', () => {
         ));
 
         expect(RangeHandler.getInstance().cuts_ranges([NumRange.createNew(-1, 5, true, true, NumSegment.TYPE_INT)], [NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 4, true, true, NumSegment.TYPE_INT)])).to.deep.equal(new RangesCutResult(
-            [NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 4, true, true, NumSegment.TYPE_INT)],
+            [NumRange.createNew(0, 5, true, false, NumSegment.TYPE_INT)],
             null
         ));
 
@@ -832,16 +820,14 @@ describe('NumRangeHandler', () => {
         await RangeHandler.getInstance().foreach(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), (num: number) => {
             res.push(num);
         });
-        expect(res).to.deep.equal([
-            0]);
+        expect(res).to.deep.equal([]);
 
         res = [];
 
         await RangeHandler.getInstance().foreach(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), (num: number) => {
             res.push(num);
         });
-        expect(res).to.deep.equal([
-            0, 1]);
+        expect(res).to.deep.equal([1]);
 
         res = [];
 
@@ -874,7 +860,7 @@ describe('NumRangeHandler', () => {
             res.push(num);
         });
         expect(res).to.deep.equal([
-            -1, 0]);
+            -1]);
 
         res = [];
 
@@ -882,15 +868,14 @@ describe('NumRangeHandler', () => {
             res.push(num);
         });
         expect(res).to.deep.equal([
-            -1, 0]);
+            0]);
 
         res = [];
 
         await RangeHandler.getInstance().foreach(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), (num: number) => {
             res.push(num);
         });
-        expect(res).to.deep.equal([
-            -1, 0]);
+        expect(res).to.deep.equal([]);
     });
 
     it('test foreach_ranges', async () => {
@@ -934,7 +919,7 @@ describe('NumRangeHandler', () => {
                 res.push(num);
             });
         expect(res).to.deep.equal([
-            0, 0]);
+            0]);
 
         res = [];
 
@@ -945,7 +930,7 @@ describe('NumRangeHandler', () => {
                 res.push(num);
             });
         expect(res).to.deep.equal([
-            0, 0, 0, 1]);
+            0, 1]);
 
 
         res = [];
@@ -958,7 +943,7 @@ describe('NumRangeHandler', () => {
                 res.push(num);
             });
         expect(res).to.deep.equal([
-            0, 0, 0, 1, 0, 1]);
+            0, 1, 0, 1]);
 
 
         res = [];
@@ -974,7 +959,7 @@ describe('NumRangeHandler', () => {
                 res.push(num);
             });
         expect(res).to.deep.equal([
-            0, 0, 0, 1, 0, 1, -1, 0, 1, -1, 0, -1, 0]);
+            0, 1, 0, 1, -1, 0, 1, -1]);
     });
 
     it('test getFormattedMaxForAPI', () => {
@@ -983,7 +968,7 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getFormattedMaxForAPI(NumRange.createNew(0, -1, true, false, NumSegment.TYPE_INT))).to.equal(null);
         expect(RangeHandler.getInstance().getFormattedMaxForAPI(NumRange.createNew(-2, 0, true, false, NumSegment.TYPE_INT))).to.equal('0');
         expect(RangeHandler.getInstance().getFormattedMaxForAPI(NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT))).to.equal('0.5');
+        expect(RangeHandler.getInstance().getFormattedMaxForAPI(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT))).to.equal(null);
     });
 
     it('test getFormattedMinForAPI', () => {
@@ -992,7 +977,7 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getFormattedMinForAPI(NumRange.createNew(0, -1, true, false, NumSegment.TYPE_INT))).to.equal(null);
         expect(RangeHandler.getInstance().getFormattedMinForAPI(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal('0');
         expect(RangeHandler.getInstance().getFormattedMinForAPI(NumRange.createNew(0, 0, true, false, NumSegment.TYPE_INT))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT))).to.equal('-0.5');
+        expect(RangeHandler.getInstance().getFormattedMinForAPI(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT))).to.equal('-1');
     });
 
     it('test getMinSurroundingRange', () => {
@@ -1007,16 +992,16 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT)])).to.deep.equal({
@@ -1038,32 +1023,32 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1073,23 +1058,23 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
+            max: 0,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
@@ -1104,32 +1089,25 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange);
-        expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
-            range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
+            min: 1,
+            min_inclusiv: true,
+            max: 2,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
+        expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1145,23 +1123,23 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
+            max: 0,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
@@ -1176,32 +1154,25 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange);
-        expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
-            range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
+            min: 1,
+            min_inclusiv: true,
+            max: 2,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
+        expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1209,31 +1180,24 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
+            min: 0,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
+            min: 1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange);
-        expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal({
-            range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: true,
-            max: 1,
+            max: 2,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
+        expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
+            min: 0,
             min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
@@ -1242,32 +1206,25 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange);
-        expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
-            range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
+            min: 1,
+            min_inclusiv: true,
+            max: 2,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
+        expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1281,16 +1238,16 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal({
@@ -1313,23 +1270,23 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1337,7 +1294,7 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
-            min_inclusiv: false,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1347,16 +1304,16 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal({
@@ -1379,23 +1336,23 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1403,7 +1360,7 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getMinSurroundingRange([NumRange.createNew(-0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal({
             range_type: NumRange.RANGE_TYPE,
             min: -1,
-            min_inclusiv: false,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1422,8 +1379,8 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: 1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
 
@@ -1431,16 +1388,16 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT)])).to.deep.equal([{
@@ -1462,32 +1419,32 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1497,16 +1454,16 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: 0,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 1,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange, {
             range_type: NumRange.RANGE_TYPE,
@@ -1517,13 +1474,6 @@ describe('NumRangeHandler', () => {
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)])).to.deep.equal([{
-            range_type: NumRange.RANGE_TYPE,
-            min: 0,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: false,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange, {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
@@ -1542,46 +1492,25 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: 0,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange, {
-            range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 0,
+            min: 1,
+            min_inclusiv: true,
+            max: 2,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
-        expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal([{
-            range_type: NumRange.RANGE_TYPE,
-            min: 0,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: false,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange, {
-            range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 0,
-            max_inclusiv: false,
-            segment_type: NumSegment.TYPE_INT
-        } as NumRange]);
+        expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1594,55 +1523,55 @@ describe('NumRangeHandler', () => {
 
 
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)]
+            [NumRange.createNew(-1, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)]
+            [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)]
+            [NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, true, NumSegment.TYPE_INT)]
+            [NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT)]
         );
 
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)]
+            [NumRange.createNew(0, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)]
+            [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)]
+            null
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, true, NumSegment.TYPE_INT)]
+            [NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT)]
         );
 
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(0, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)]
+            null
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, true, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT)]
         );
 
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(0, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)]
+            null
         );
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal(
-            [NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, -0.5, false, false, NumSegment.TYPE_INT)]
+            [NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT)]
         );
 
 
@@ -1653,16 +1582,16 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, true, true, NumSegment.TYPE_INT)])).to.deep.equal([{
@@ -1685,23 +1614,23 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
             min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1709,7 +1638,7 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, true, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
             min: -1,
-            min_inclusiv: false,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1719,16 +1648,16 @@ describe('NumRangeHandler', () => {
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
             min: -1,
             min_inclusiv: true,
-            max: 1,
-            max_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, true, false, NumSegment.TYPE_INT)])).to.deep.equal([{
@@ -1751,23 +1680,23 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
             min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
-            max: 1,
-            max_inclusiv: true,
+            min: 0,
+            min_inclusiv: true,
+            max: 2,
+            max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
         } as NumRange]);
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
-            min: -1,
-            min_inclusiv: false,
+            min: 0,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1775,7 +1704,7 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getRangesUnion([NumRange.createNew(-0.5, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0.5, false, false, NumSegment.TYPE_INT)])).to.deep.equal([{
             range_type: NumRange.RANGE_TYPE,
             min: -1,
-            min_inclusiv: false,
+            min_inclusiv: true,
             max: 1,
             max_inclusiv: false,
             segment_type: NumSegment.TYPE_INT
@@ -1799,11 +1728,11 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT))).to.equal(0);
 
         expect(RangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT))).to.equal(0);
-        expect(RangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT))).to.equal(0);
+        expect(RangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT))).to.equal(-1);
         expect(RangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT))).to.equal(0);
-        expect(RangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT))).to.equal(0);
+        expect(RangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT))).to.equal(null);
 
-        expect(RangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(-1);
+        expect(RangeHandler.getInstance().getSegmentedMax(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(null);
     });
 
     it('test getSegmentedMax_from_ranges', () => {
@@ -1831,7 +1760,7 @@ describe('NumRangeHandler', () => {
         ])).to.equal(0);
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)
-        ])).to.equal(-1);
+        ])).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)
         ])).to.equal(-1);
@@ -1851,16 +1780,16 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT)
-        ])).to.equal(0);
+        ])).to.equal(-1);
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT)
-        ])).to.equal(0);
+        ])).to.equal(-1);
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT)
-        ])).to.equal(0);
+        ])).to.equal(-1);
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT)
-        ])).to.equal(0);
+        ])).to.equal(null);
 
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT)
@@ -1880,13 +1809,13 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT))).to.equal(-1);
         expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT))).to.equal(-1);
-        expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT))).to.equal(-1);
-        expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT))).to.equal(-1);
+        expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT))).to.equal(0);
+        expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT))).to.equal(0);
 
         expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT))).to.equal(-1);
         expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT))).to.equal(-1);
-        expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT))).to.equal(-1);
-        expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT))).to.equal(-1);
+        expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT))).to.equal(0);
+        expect(RangeHandler.getInstance().getSegmentedMin(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT))).to.equal(null);
     });
 
     it('test getSegmentedMin_from_ranges', () => {
@@ -1908,13 +1837,13 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)
-        ])).to.equal(-1);
+        ])).to.equal(0);
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT)
-        ])).to.equal(-1);
+        ])).to.equal(0);
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)
-        ])).to.equal(-1);
+        ])).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT)
         ])).to.equal(-1);
@@ -1943,7 +1872,7 @@ describe('NumRangeHandler', () => {
         ])).to.equal(-1);
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT)
-        ])).to.equal(-1);
+        ])).to.equal(null);
 
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT)
@@ -1984,8 +1913,8 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeEndB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
@@ -2050,12 +1979,12 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
@@ -2068,9 +1997,9 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
 
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
@@ -2118,12 +2047,12 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
@@ -2143,9 +2072,9 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
 
 
@@ -2190,12 +2119,12 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
@@ -2204,18 +2133,18 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
 
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
 
 
@@ -2259,32 +2188,32 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 0, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
 
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
 
 
@@ -2324,8 +2253,8 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, true, NumSegment.TYPE_INT))).to.equal(false);
 
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().isStartABeforeStartB(NumRange.createNew(-1, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(-1, 0, false, false, NumSegment.TYPE_INT))).to.equal(false);
     });
@@ -2587,18 +2516,18 @@ describe('NumRangeHandler', () => {
 
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(true);
 
-        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
@@ -2610,8 +2539,8 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
-        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
@@ -2692,7 +2621,7 @@ describe('NumRangeHandler', () => {
             NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT),
             NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT),
             NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT),
-        ])).to.equal(true);
+        ])).to.equal(false);
 
 
 
@@ -2715,7 +2644,7 @@ describe('NumRangeHandler', () => {
             NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT),
             NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT),
             NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT),
-        ])).to.equal(true);
+        ])).to.equal(false);
 
         expect(RangeHandler.getInstance().range_intersects_any_range(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), [
             NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT),
@@ -2731,14 +2660,14 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0, false, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT), NumRange.createNew(0, 0, true, true, NumSegment.TYPE_INT))).to.equal(true);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(1, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(-0.5, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(1, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
@@ -2766,28 +2695,28 @@ describe('NumRangeHandler', () => {
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(true);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 1, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 2, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, true, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, true, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, true, NumSegment.TYPE_INT))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, true, false, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, true, NumSegment.TYPE_INT))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(NumRange.createNew(0, 0.5, false, false, NumSegment.TYPE_INT), NumRange.createNew(0.5, 1, false, false, NumSegment.TYPE_INT))).to.equal(false);
     });
