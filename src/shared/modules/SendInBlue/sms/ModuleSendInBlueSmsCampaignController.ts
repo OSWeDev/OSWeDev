@@ -44,7 +44,7 @@ export default class ModuleSendInBlueSmsCampaignController {
             return false;
         }
 
-        if (scheduledAt && scheduledAt.isBefore(moment().utc(), 'minute')) {
+        if (scheduledAt && scheduledAt.isBefore(moment().utc(true), 'minute')) {
             return this.send(campaign.id, testSms, phoneTest);
         }
 
@@ -66,10 +66,10 @@ export default class ModuleSendInBlueSmsCampaignController {
             listIds: [list.id]
         };
 
-        let scheduledAt_clone: Moment = moment(scheduledAt.format('Y-MM-DD')).hour(scheduledAt.hour()).minute(scheduledAt.minute()).second(0);
+        let scheduledAt_clone: Moment = moment(scheduledAt.format('Y-MM-DD')).utc(true).hour(scheduledAt.hour()).minute(scheduledAt.minute()).second(0);
 
-        if (scheduledAt_clone.isBefore(moment(), 'minute')) {
-            scheduledAt_clone = moment().add(3, 'minutes');
+        if (scheduledAt_clone.isBefore(moment().utc(true), 'minute')) {
+            scheduledAt_clone = moment().utc(true).add(3, 'minutes');
         }
 
         let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(

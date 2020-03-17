@@ -248,7 +248,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 if (!this.custom_filters_values[field.datatable_field_uid]) {
                                     this.custom_filters_values[field.datatable_field_uid] = {};
                                 }
-                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].start));
+                                this.custom_filters_values[field.datatable_field_uid].start = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].start).utc(true));
                             }
                             if (!!this.embed_filter[field.datatable_field_uid].end) {
 
@@ -257,7 +257,7 @@ export default class DatatableComponent extends VueComponentBase {
                                 if (!this.custom_filters_values[field.datatable_field_uid]) {
                                     this.custom_filters_values[field.datatable_field_uid] = {};
                                 }
-                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].end));
+                                this.custom_filters_values[field.datatable_field_uid].end = DateHandler.getInstance().formatDayForIndex(moment(this.embed_filter[field.datatable_field_uid].end).utc(true));
                             }
                             continue;
                     }

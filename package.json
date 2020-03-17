@@ -8,8 +8,8 @@
     },
     "scripts": {
         "test": "nyc mocha",
-        "test-jenkins": "mocha -R xunit > test-reports.xml",
-        "test-simple": "mocha --require source-map-support/register dist/test/modules/AccessPolicy/TestAccessPolicy.js",
+        "test-jenkins": "mocha --require source-map-support/register -R xunit dist/test/**/*.js > test-reports.xml",
+        "test-simple": "mocha --require source-map-support/register dist/test/**/*.js",
         "test-simple-watch": "mocha --watch",
         "tscv": "tsc -v",
         "tsc-watch-tests": "tsc -w -p ./test",

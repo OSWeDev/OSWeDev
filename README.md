@@ -1,3 +1,8 @@
+# Tests unitaires 
+    Mocha explorer dans VS Code avec dans le settings.json les 2 lignes : 
+    "mochaExplorer.files": "dist/test/**/*.js",
+    "mochaExplorer.require": "source-map-support/register",
+
 # Si problème de JS heap memory lors du générator
 
     Le message d'erreur : FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory
