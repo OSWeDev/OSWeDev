@@ -1619,7 +1619,7 @@ export default class RangeHandler {
                     return moment.duration(res) as any as T;
 
                 case TSRange.RANGE_TYPE:
-                    let resn = moment(res).utc(true);
+                    let resn = moment(res).utc();
 
                     if (!resn.isValid()) {
                         return null;
@@ -2069,6 +2069,10 @@ export default class RangeHandler {
             return;
         }
 
+        if ((!this.is_valid_elt(range.range_type, min)) || (!this.is_valid_elt(range.range_type, max))) {
+            return;
+        }
+
         if (this.is_valid_elt(range.range_type, min_inclusiv)) {
 
             min_inclusiv = this.get_segment(range.range_type, min_inclusiv, segment_type).index;
@@ -2260,6 +2264,15 @@ export default class RangeHandler {
     }
 
     private is_elt_sup_elt<T>(range_type: number, a: T, b: T): boolean {
+
+        if ((a == null) || (typeof a == 'undefined')) {
+            return false;
+        }
+
+        if ((b == null) || (typeof b == 'undefined')) {
+            return false;
+        }
+
         switch (range_type) {
 
             case NumRange.RANGE_TYPE:

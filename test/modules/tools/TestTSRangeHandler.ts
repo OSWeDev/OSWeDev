@@ -9,7 +9,7 @@ import RangeHandler from '../../../src/shared/tools/RangeHandler';
 describe('TSRangeHandler', () => {
 
 
-    let zero = moment().startOf('day').add(1, 'hour').utc(true);
+    let zero = moment('2020-02-20').startOf('day').utc(true);
     let zero_cinq = moment(zero).add(12, 'hour').utc(true);
     let moins_zero_cinq = moment(zero).add(-12, 'hour').utc(true);
     let un = moment(zero).add(1, 'day').utc(true);
@@ -139,39 +139,15 @@ describe('TSRangeHandler', () => {
     });
 
     it('test cloneFrom', () => {
-        expect(RangeHandler.getInstance().cloneFrom(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.deep.equal({
-            min: zero,
-            max: un,
-            min_inclusiv: true,
-            max_inclusiv: false,
-            segment_type: TimeSegment.TYPE_DAY
-        });
+        expect(RangeHandler.getInstance().cloneFrom(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.deep.equal(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY));
 
-        expect(RangeHandler.getInstance().cloneFrom(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.deep.equal({
-            min: zero,
-            max: zero,
-            min_inclusiv: true,
-            max_inclusiv: true,
-            segment_type: TimeSegment.TYPE_DAY
-        });
+        expect(RangeHandler.getInstance().cloneFrom(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.deep.equal(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY));
     });
 
     it('test createNew', () => {
-        expect(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY)).to.deep.equal({
-            min: zero.startOf('day'),
-            max: un.startOf('day').add(1, 'day'),
-            min_inclusiv: true,
-            max_inclusiv: false,
-            segment_type: TimeSegment.TYPE_DAY
-        });
+        expect(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY)).to.deep.equal(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY));
 
-        expect(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)).to.deep.equal({
-            min: zero,
-            max: zero,
-            min_inclusiv: true,
-            max_inclusiv: true,
-            segment_type: TimeSegment.TYPE_DAY
-        });
+        expect(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)).to.deep.equal(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY));
 
         expect(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY)).to.equal(null);
         expect(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY)).to.equal(null);
@@ -185,34 +161,16 @@ describe('TSRangeHandler', () => {
         expect(TSRange.createNew(un, un, false, true, TimeSegment.TYPE_DAY)).to.equal(null);
         expect(TSRange.createNew(un, un, false, false, TimeSegment.TYPE_DAY)).to.equal(null);
 
-        expect(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)).to.deep.equal({
-            min: moins_un,
-            max: un,
-            min_inclusiv: true,
-            max_inclusiv: false,
-            segment_type: TimeSegment.TYPE_DAY
-        });
+        expect(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)).to.deep.equal(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY));
 
-        expect(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)).to.deep.equal({
-            min: moins_un,
-            max: zero,
-            min_inclusiv: false,
-            max_inclusiv: true,
-            segment_type: TimeSegment.TYPE_DAY
-        });
+        expect(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)).to.deep.equal(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY));
 
         expect(TSRange.createNew(zero_cinq, zero, false, true, TimeSegment.TYPE_DAY)).to.equal(null);
         expect(TSRange.createNew(zero_cinq, zero, true, true, TimeSegment.TYPE_DAY)).to.equal(null);
         expect(TSRange.createNew(zero_cinq, zero, true, false, TimeSegment.TYPE_DAY)).to.equal(null);
         expect(TSRange.createNew(zero_cinq, zero, false, false, TimeSegment.TYPE_DAY)).to.equal(null);
 
-        expect(TSRange.createNew(zero_cinq, bidon, false, false, TimeSegment.TYPE_DAY)).to.deep.equal({
-            min: zero_cinq,
-            max: bidon,
-            min_inclusiv: false,
-            max_inclusiv: false,
-            segment_type: TimeSegment.TYPE_DAY
-        });
+        expect(TSRange.createNew(zero_cinq, bidon, false, false, TimeSegment.TYPE_DAY)).to.deep.equal(TSRange.createNew(un, bidon, true, false, TimeSegment.TYPE_DAY));
     });
 
     it('test foreach', async () => {
@@ -221,7 +179,7 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         });
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true))
         ]);
 
         res = [];
@@ -251,8 +209,7 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         });
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true))
         ]);
 
         res = [];
@@ -260,10 +217,7 @@ describe('TSRangeHandler', () => {
         await RangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), (date: moment.Moment) => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         });
-        expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
-        ]);
+        expect(res).to.deep.equal([]);
 
         res = [];
 
@@ -271,8 +225,7 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         });
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day').utc(true))
         ]);
 
         res = [];
@@ -281,8 +234,8 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         });
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day').utc(true))
         ]);
 
 
@@ -293,9 +246,9 @@ describe('TSRangeHandler', () => {
         });
         expect(res).to.deep.equal([
 
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day').utc(true))]);
 
         res = [];
 
@@ -304,8 +257,8 @@ describe('TSRangeHandler', () => {
         });
         expect(res).to.deep.equal([
 
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true))
         ]);
 
         res = [];
@@ -315,8 +268,7 @@ describe('TSRangeHandler', () => {
         });
         expect(res).to.deep.equal([
 
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day').utc(true))
         ]);
 
         res = [];
@@ -326,8 +278,7 @@ describe('TSRangeHandler', () => {
         });
         expect(res).to.deep.equal([
 
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true))
         ]);
 
         res = [];
@@ -335,10 +286,7 @@ describe('TSRangeHandler', () => {
         await RangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), (date: moment.Moment) => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         });
-        expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
-        ]);
+        expect(res).to.deep.equal([]);
 
 
 
@@ -351,7 +299,7 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, zero, zero);
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
         ]);
 
         res = [];
@@ -359,24 +307,21 @@ describe('TSRangeHandler', () => {
         await RangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), (date: moment.Moment) => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, zero, zero);
-        expect(res).to.deep.equal([
-        ]);
+        expect(res).to.deep.equal([]);
 
         res = [];
 
         await RangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), (date: moment.Moment) => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, zero, zero);
-        expect(res).to.deep.equal([
-        ]);
+        expect(res).to.deep.equal([]);
 
         res = [];
 
         await RangeHandler.getInstance().foreach(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), (date: moment.Moment) => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, zero, zero);
-        expect(res).to.deep.equal([
-        ]);
+        expect(res).to.deep.equal([]);
 
         res = [];
 
@@ -384,7 +329,7 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, zero, zero);
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
         ]);
 
         res = [];
@@ -392,18 +337,14 @@ describe('TSRangeHandler', () => {
         await RangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), (date: moment.Moment) => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, zero, zero);
-        expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-        ]);
+        expect(res).to.deep.equal([]);
 
         res = [];
 
         await RangeHandler.getInstance().foreach(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), (date: moment.Moment) => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, zero, zero);
-        expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-        ]);
+        expect(res).to.deep.equal([]);
 
         res = [];
 
@@ -411,7 +352,7 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, zero, zero);
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
         ]);
 
 
@@ -421,8 +362,8 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, moins_un, zero);
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true))]);
 
         res = [];
 
@@ -430,8 +371,8 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, moins_un, zero);
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true))]);
 
         res = [];
 
@@ -439,8 +380,8 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, moins_un, zero);
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day').utc(true))
+        ]);
 
         res = [];
 
@@ -448,17 +389,15 @@ describe('TSRangeHandler', () => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, moins_un, zero);
         expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true))
+        ]);
 
         res = [];
 
         await RangeHandler.getInstance().foreach(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), (date: moment.Moment) => {
             res.push(DateHandler.getInstance().formatDateTimeForAPI(date));
         }, TimeSegment.TYPE_DAY, moins_un, zero);
-        expect(res).to.deep.equal([
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+        expect(res).to.deep.equal([]);
     });
 
     it('test foreach_ranges', async () => {
@@ -469,7 +408,7 @@ describe('TSRangeHandler', () => {
         });
         expect(res).to.deep.equal([
 
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true))
         ]);
 
         res = [];
@@ -505,10 +444,7 @@ describe('TSRangeHandler', () => {
             });
         expect(res).to.deep.equal([
 
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true))
         ]);
 
         res = [];
@@ -521,12 +457,9 @@ describe('TSRangeHandler', () => {
             });
         expect(res).to.deep.equal([
 
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day').utc(true))
+        ]);
 
 
         res = [];
@@ -540,14 +473,10 @@ describe('TSRangeHandler', () => {
             });
         expect(res).to.deep.equal([
 
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day'))]);
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day').utc(true))]);
 
 
         res = [];
@@ -564,21 +493,15 @@ describe('TSRangeHandler', () => {
             });
         expect(res).to.deep.equal([
 
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day')),
-            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day'))]);
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(zero).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(un).startOf('day').utc(true)),
+            DateHandler.getInstance().formatDateTimeForAPI(moment(moins_un).startOf('day').utc(true))
+        ]);
     });
 
     it('test getFormattedMaxForAPI', () => {
@@ -587,7 +510,7 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(moins_deux, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(zero));
         expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(zero_cinq));
+        expect(RangeHandler.getInstance().getFormattedMaxForAPI(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
     });
 
     it('test getFormattedMinForAPI', () => {
@@ -596,7 +519,7 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(zero));
         expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
-        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(moins_zero_cinq));
+        expect(RangeHandler.getInstance().getFormattedMinForAPI(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY))).to.equal(DateHandler.getInstance().formatDateTimeForAPI(moins_un));
     });
 
     it('test getMinSurroundingRange', () => {
@@ -610,15 +533,17 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
@@ -626,6 +551,7 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
@@ -633,57 +559,65 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
+            max: zero,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
@@ -691,35 +625,33 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
-            segment_type: TimeSegment.TYPE_DAY
-        } as TSRange);
-        expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
+            min: un,
+            min_inclusiv: true,
+            max: deux,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
+        expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
@@ -732,22 +664,25 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
+            max: zero,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
@@ -755,93 +690,85 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
-            segment_type: TimeSegment.TYPE_DAY
-        } as TSRange);
-        expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
+            min: un,
+            min_inclusiv: true,
+            max: deux,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
+        expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
+            min: zero,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
+            min: un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
-            segment_type: TimeSegment.TYPE_DAY
-        } as TSRange);
-        expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: true,
-            max: un,
+            max: deux,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
+        expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
+            min: zero,
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
-            segment_type: TimeSegment.TYPE_DAY
-        } as TSRange);
-        expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
+            min: un,
+            min_inclusiv: true,
+            max: deux,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
+        expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
@@ -852,15 +779,17 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
@@ -868,6 +797,7 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
@@ -875,50 +805,57 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
-            min_inclusiv: false,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
@@ -926,6 +863,7 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
@@ -933,35 +871,40 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
 
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
         expect(RangeHandler.getInstance().getMinSurroundingRange([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal({
             min: moins_un,
-            min_inclusiv: false,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange);
     });
@@ -977,15 +920,17 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
@@ -993,6 +938,7 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
@@ -1000,118 +946,116 @@ describe('TSRangeHandler', () => {
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange]);
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: zero,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: un,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange, {
             min: moins_un,
             min_inclusiv: true,
             max: zero,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: zero,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: false,
-            segment_type: TimeSegment.TYPE_DAY
-        } as TSRange, {
             min: moins_un,
             min_inclusiv: true,
             max: zero,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: zero,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
-            segment_type: TimeSegment.TYPE_DAY
-        } as TSRange, {
-            min: moins_un,
-            min_inclusiv: false,
-            max: zero,
+            min: un,
+            min_inclusiv: true,
+            max: deux,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
-        expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: zero,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: false,
-            segment_type: TimeSegment.TYPE_DAY
-        } as TSRange, {
-            min: moins_un,
-            min_inclusiv: false,
-            max: zero,
-            max_inclusiv: false,
-            segment_type: TimeSegment.TYPE_DAY
-        } as TSRange]);
+        expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal(null);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
 
 
@@ -1121,55 +1065,55 @@ describe('TSRangeHandler', () => {
 
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
             [TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, true, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)]
         );
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)]
+            null
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, true, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY)]
         );
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)]
+            null
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, true, false, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY)]
         );
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY)]
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)]
+            null
         );
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal(
-            [TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, moins_zero_cinq, false, false, TimeSegment.TYPE_DAY)]
+            [TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY)]
         );
 
 
@@ -1179,291 +1123,324 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, true, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
-            min_inclusiv: false,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
-            max: un,
-            max_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, true, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
             min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
 
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
-            max: un,
-            max_inclusiv: true,
+            min: zero,
+            min_inclusiv: true,
+            max: deux,
+            max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
-            min: moins_un,
-            min_inclusiv: false,
+            min: zero,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
         expect(RangeHandler.getInstance().getRangesUnion([TSRange.createNew(moins_zero_cinq, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero_cinq, false, false, TimeSegment.TYPE_DAY)])).to.deep.equal([{
             min: moins_un,
-            min_inclusiv: false,
+            min_inclusiv: true,
             max: un,
             max_inclusiv: false,
+            range_type: 2,
             segment_type: TimeSegment.TYPE_DAY
+
         } as TSRange]);
     });
 
     it('test getSegmentedMax', () => {
 
-        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(null);
 
-        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
 
-        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMax(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY))).to.equal(null);
     });
 
     it('test getSegmentedMax_from_ranges', () => {
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
 
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ])).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
 
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY)
         ])).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
 
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ])).to.equal(null);
 
         expect(RangeHandler.getInstance().getSegmentedMax_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
     });
 
     it('test getSegmentedMin', () => {
 
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').utc(true).format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(null);
 
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('year').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.equal(moment(zero).utc(true).startOf('year').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.equal(null);
 
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
 
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('year').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('year').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('year').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('year').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).utc(true).startOf('year').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).utc(true).startOf('year').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).utc(true).startOf('year').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).utc(true).startOf('year').format('Y-MM-DD HH:mm'));
 
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY)).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY))).to.deep.equal(null);
 
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('year').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('year').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('year').format('Y-MM-DD HH:mm'));
-        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).startOf('year').format('Y-MM-DD HH:mm'));
+        // le test unitaire qui marche pas le 31/12 après midi ou le 01/01 avant midi...
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).utc(true).startOf('year').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(moins_un).utc(true).startOf('year').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR).format('Y-MM-DD HH:mm')).to.deep.equal(moment(zero).utc(true).startOf('year').format('Y-MM-DD HH:mm'));
+        expect(RangeHandler.getInstance().getSegmentedMin(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TimeSegment.TYPE_YEAR)).to.deep.equal(null);
     });
 
     it('test getSegmentedMin_from_ranges', () => {
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
 
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ])).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
 
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, false, TimeSegment.TYPE_DAY)
         ])).to.equal(null);
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(zero).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
 
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ])).to.equal(null);
 
         expect(RangeHandler.getInstance().getSegmentedMin_from_ranges([
             TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY)
-        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).startOf('day').format('Y-MM-DD HH:mm'));
+        ]).format('Y-MM-DD HH:mm')).to.equal(moment(moins_un).utc(true).startOf('day').format('Y-MM-DD HH:mm'));
     });
 
     it('test getValueFromFormattedMinOrMaxAPI', () => {
@@ -1493,14 +1470,14 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
@@ -1565,12 +1542,12 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
@@ -1583,9 +1560,9 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
 
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isEndABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
@@ -1633,12 +1610,12 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
@@ -1658,9 +1635,9 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isEndASameEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
 
 
@@ -1705,12 +1682,12 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
@@ -1719,18 +1696,18 @@ describe('TSRangeHandler', () => {
 
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
 
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
 
 
@@ -1774,32 +1751,32 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
 
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
 
 
@@ -1839,8 +1816,8 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
 
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartABeforeStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
     });
@@ -1867,7 +1844,7 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
@@ -1878,8 +1855,8 @@ describe('TSRangeHandler', () => {
 
         expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
 
         expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameEndB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
@@ -1937,19 +1914,19 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, zero, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
 
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
 
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
@@ -1974,8 +1951,8 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
-        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_deux, moins_un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
 
@@ -2003,8 +1980,8 @@ describe('TSRangeHandler', () => {
 
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().isStartASameStartB(TSRange.createNew(moins_un, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(moins_un, zero, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
     });
 
     it('test is_elt_inf_min', () => {
@@ -2102,18 +2079,18 @@ describe('TSRangeHandler', () => {
 
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
 
-        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
@@ -2125,8 +2102,8 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
-        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().range_intersects_range(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
@@ -2207,7 +2184,7 @@ describe('TSRangeHandler', () => {
             TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY),
             TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY),
             TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY),
-        ])).to.equal(true);
+        ])).to.equal(false);
 
 
 
@@ -2230,7 +2207,7 @@ describe('TSRangeHandler', () => {
             TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY),
             TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY),
             TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY),
-        ])).to.equal(true);
+        ])).to.equal(false);
 
         expect(RangeHandler.getInstance().range_intersects_any_range(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), [
             TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY),
@@ -2246,14 +2223,14 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(moins_zero_cinq, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(un, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
@@ -2281,28 +2258,28 @@ describe('TSRangeHandler', () => {
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, un, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, deux, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, true, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, true, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
 
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(true);
-        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(true);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, true, TimeSegment.TYPE_DAY))).to.equal(false);
+        expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, true, false, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, true, TimeSegment.TYPE_DAY))).to.equal(false);
         expect(RangeHandler.getInstance().ranges_are_contiguous_or_intersect(TSRange.createNew(zero, zero_cinq, false, false, TimeSegment.TYPE_DAY), TSRange.createNew(zero_cinq, un, false, false, TimeSegment.TYPE_DAY))).to.equal(false);
     });

@@ -35,6 +35,10 @@ export default class TSRange implements IRange<moment.Moment> {
             return null;
         }
 
+        if (end_range.isBefore(start_range)) {
+            return null;
+        }
+
         TimeSegmentHandler.getInstance().incMoment(end_range, segment_type, 1);
 
         res.max = end_range;
