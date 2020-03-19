@@ -2,12 +2,14 @@ import * as $ from 'jquery';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
 import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
@@ -19,17 +21,15 @@ import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../../../shared/tools/ObjectHandler';
+import Alert from '../../alert/Alert';
+import { ModuleAlertAction } from '../../alert/AlertStore';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import DatatableComponent from '../../datatable/component/DatatableComponent';
-import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
 import CRUDComponentField from './field/CRUDComponentField';
-import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
-import { ModuleAlertAction } from '../../alert/AlertStore';
-import Alert from '../../alert/Alert';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -173,6 +173,8 @@ export default class CRUDComponent extends VueComponentBase {
             embed_append = '_' + this.crud.readDatatable.API_TYPE_ID;
         }
 
+        let modal_type: string = null;
+
         if (!this.modal_show_create) {
             $('#createData' + embed_append).modal('hide');
         }
@@ -194,8 +196,18 @@ export default class CRUDComponent extends VueComponentBase {
                 this.$router.push(this.callback_route);
             });
 
+            if (this.modal_show_create) {
+                modal_type = 'create';
+            }
+            if (this.modal_show_update) {
+                modal_type = 'update';
+            }
+            if (this.modal_show_delete) {
+                modal_type = 'delete';
+            }
+
             if (CRUDComponentManager.getInstance().callback_handle_modal_show_hide) {
-                await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo);
+                await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo, modal_type);
             }
         } else {
             vo = this.getSelectedVOs[0];
@@ -213,16 +225,19 @@ export default class CRUDComponent extends VueComponentBase {
 
         if (this.modal_show_create) {
             $('#createData' + embed_append).modal('show');
+            modal_type = 'create';
             return;
         }
         if (this.modal_show_update) {
             this.setSelectedVOs([vo]);
             $('#updateData' + embed_append).modal('show');
+            modal_type = 'update';
             return;
         }
         if (this.modal_show_delete) {
             this.setSelectedVOs([vo]);
             $('#deleteData' + embed_append).modal('show');
+            modal_type = 'delete';
             return;
         }
     }
@@ -638,6 +653,9 @@ export default class CRUDComponent extends VueComponentBase {
                 this.prepareNewVO();
             }
         }
+
+        this.crud.createDatatable.refresh();
+        this.crud_createDatatable_key = this.crud.createDatatable.key;
     }
 
 
