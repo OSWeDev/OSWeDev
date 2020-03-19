@@ -90,8 +90,8 @@ export default abstract class ModuleServiceBase {
     private login_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
 
-
     protected constructor() {
+        ModuleServiceBase.instance = null;
         ModuleServiceBase.instance = this;
     }
 
