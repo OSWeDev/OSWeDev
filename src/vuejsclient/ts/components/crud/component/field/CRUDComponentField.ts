@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -114,7 +115,7 @@ export default class CRUDComponentField extends VueComponentBase {
     private select_options: number[] = [];
     private isLoadingOptions: boolean = false;
     private field_value: any = null;
-    private field_value_range: any = {};
+    private field_value_range: { [type_date: string]: string } = {};
     private field_value_refranges_selected_ids: number[] = [];
 
     private inline_input_is_editing: boolean = false;
@@ -235,8 +236,8 @@ export default class CRUDComponentField extends VueComponentBase {
             let date: string[] = this.field_value.toString().split('-');
 
             if (date && date.length > 0) {
-                this.field_value_range[this.field.datatable_field_uid + '_start'] = this.formatDateForField(date[0]);
-                this.field_value_range[this.field.datatable_field_uid + '_end'] = this.formatDateForField(date[1]);
+                Vue.set(this.field_value_range, this.field.datatable_field_uid + '_start', this.formatDateForField(date[0]));
+                Vue.set(this.field_value_range, this.field.datatable_field_uid + '_end', this.formatDateForField(date[1]));
             }
         }
 
