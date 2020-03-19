@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
-import * as dagreD3 from 'dagre-d3';
+// import * as graphlib from 'dagre-d3/lib/graphlib';
+// import * as render from 'dagre-d3/lib/render';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -272,72 +273,72 @@ export default class VarDescComponent extends VueComponentBase {
      */
     public createGraph() {
 
-        this.cleanUpGraph();
+        // this.cleanUpGraph();
 
-        // Create the input graph
-        let g = new dagreD3.graphlib.Graph()
-            .setGraph({})
-            .setDefaultEdgeLabel(function () { return {}; });
+        // // Create the input graph
+        // let g = new graphlib.Graph()
+        //     .setGraph({})
+        //     .setDefaultEdgeLabel(function () { return {}; });
 
-        // On s'intéresse au noeud sélectionné et aux incommings et outgoings de ce noeud et c'est tout
-        let node_name: string = this.getDescSelectedIndex;
-        let node: VarDAGNode = VarsController.getInstance().varDAG.nodes[node_name];
+        // // On s'intéresse au noeud sélectionné et aux incommings et outgoings de ce noeud et c'est tout
+        // let node_name: string = this.getDescSelectedIndex;
+        // let node: VarDAGNode = VarsController.getInstance().varDAG.nodes[node_name];
 
-        if (!node) {
-            return;
-        }
+        // if (!node) {
+        //     return;
+        // }
 
-        g.setNode(node_name, node.getD3NodeDefinition(true));
+        // g.setNode(node_name, node.getD3NodeDefinition(true));
 
-        for (let i in node.outgoing) {
-            let outgoing: VarDAGNode = node.outgoing[i] as VarDAGNode;
-            g.setNode(outgoing.name, outgoing.getD3NodeDefinition(true));
-            g.setEdge(node_name, outgoing.name);
-        }
+        // for (let i in node.outgoing) {
+        //     let outgoing: VarDAGNode = node.outgoing[i] as VarDAGNode;
+        //     g.setNode(outgoing.name, outgoing.getD3NodeDefinition(true));
+        //     g.setEdge(node_name, outgoing.name);
+        // }
 
-        for (let i in node.incoming) {
-            let incoming: VarDAGNode = node.incoming[i] as VarDAGNode;
-            g.setNode(incoming.name, incoming.getD3NodeDefinition(true));
-            g.setEdge(incoming.name, node_name);
-        }
+        // for (let i in node.incoming) {
+        //     let incoming: VarDAGNode = node.incoming[i] as VarDAGNode;
+        //     g.setNode(incoming.name, incoming.getD3NodeDefinition(true));
+        //     g.setEdge(incoming.name, node_name);
+        // }
 
-        g.nodes().forEach(function (v) {
-            let n = g.node(v);
-            // Round the corners of the nodes
-            n.rx = n.ry = 5;
-        });
+        // g.nodes().forEach(function (v) {
+        //     let n = g.node(v);
+        //     // Round the corners of the nodes
+        //     n.rx = n.ry = 5;
+        // });
 
-        // Set up an SVG group so that we can translate the final graph.
-        let svg = d3.select(this.$el).select("svg");
-        let svgGroup = svg.append("g");
+        // // Set up an SVG group so that we can translate the final graph.
+        // let svg = d3.select(this.$el).select("svg");
+        // let svgGroup = svg.append("g");
 
-        // Set up zoom support
-        var zoom = d3.zoom().on("zoom", function () {
-            svgGroup.attr("transform", d3.event.transform);
-        });
-        svg.call(zoom);
+        // // Set up zoom support
+        // var zoom = d3.zoom().on("zoom", function () {
+        //     svgGroup.attr("transform", d3.event.transform);
+        // });
+        // svg.call(zoom);
 
-        // Create the renderer
-        let render = new dagreD3.render();
+        // // Create the renderer
+        // let render_ = new render();
 
-        // Run the renderer. This is what draws the final graph.
-        render(svgGroup, g);
+        // // Run the renderer. This is what draws the final graph.
+        // render_(svgGroup, g);
 
-        let self = this;
-        svgGroup.selectAll("g.node")
-            .each(function (v) {
-                $(this).mousedown(() => {
-                    self.setDescSelectedIndex(v);
-                });
-            });
+        // let self = this;
+        // svgGroup.selectAll("g.node")
+        //     .each(function (v) {
+        //         $(this).mousedown(() => {
+        //             self.setDescSelectedIndex(v);
+        //         });
+        //     });
 
-        // // Center the graph
-        // let initialScale = 0.5;
-        // svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+        // // // Center the graph
+        // // let initialScale = 0.5;
+        // // svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
 
-        // let xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
-        // svgGroup.attr("transform", "translate(" + xCenterOffset + ", 20)");
-        // svg.attr("height", g.graph().height + 40);
+        // // let xCenterOffset = (svg.attr("width") - g.graph().width) / 2;
+        // // svgGroup.attr("transform", "translate(" + xCenterOffset + ", 20)");
+        // // svg.attr("height", g.graph().height + 40);
     }
 
     @Watch('var_param', { immediate: true })

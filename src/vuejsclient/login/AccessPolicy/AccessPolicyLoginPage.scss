@@ -22,7 +22,11 @@
 
             height: 2em;
             width: 100%;
-            background: url(#{$logo_url});
+            
+            @if $logo_url {
+                background: url(#{$logo_url});
+            }
+
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;
