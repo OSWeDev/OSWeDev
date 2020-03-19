@@ -286,13 +286,13 @@ export default abstract class ServerBase {
 
         this.app.use(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '/'), express.static(ModuleFile.FILES_ROOT.replace(/^[.][/]/, '')));
 
-        this.app.use('/public', express.static('src/client/public'));
-        this.app.use('/admin/public', express.static('src/admin/public'));
-        this.app.use('/login/public', express.static('src/login/public'));
+        this.app.use('/public', express.static('dist/src/client/public'));
+        this.app.use('/admin/public', express.static('dist/src/admin/public'));
+        this.app.use('/login/public', express.static('dist/src/login/public'));
 
         // Le service de push
         this.app.get('/sw_push.js', (req, res, next) => {
-            res.sendFile(path.resolve('./src/vuejsclient/public/sw_push.js'));
+            res.sendFile(path.resolve('./dist/src/vuejsclient/public/sw_push.js'));
         });
 
         // this.app.use(
@@ -384,7 +384,7 @@ export default abstract class ServerBase {
         //     }
         // });
 
-        this.app.use('/admin/js', express.static('src/admin/public/js'));
+        this.app.use('/admin/js', express.static('dist/src/admin/public/js'));
 
         this.app.use(express.json({ limit: '150mb' }));
         this.app.use(express.urlencoded({ extended: true, limit: '150mb' }));
@@ -444,7 +444,7 @@ export default abstract class ServerBase {
                 res.redirect('/login');
                 return;
             }
-            res.sendFile(path.resolve('./src/client/public/generated/index.html'));
+            res.sendFile(path.resolve('./dist/src/client/public/generated/index.html'));
         });
 
         this.app.get('/admin', async (req: Request, res) => {
@@ -459,7 +459,7 @@ export default abstract class ServerBase {
                 res.redirect('/');
                 return;
             }
-            res.sendFile(path.resolve('./src/admin/public/generated/admin.html'));
+            res.sendFile(path.resolve('./dist/src/admin/public/generated/admin.html'));
         });
 
         // Accès aux logs iisnode
@@ -482,7 +482,7 @@ export default abstract class ServerBase {
             res.sendFile(path.resolve('./iisnode/' + file_name));
         });
 
-        this.app.set('views', 'src/client/views');
+        // this.app.set('views', 'src/client/views');
 
         // Send CSRF token for session
         this.app.get('/api/getcsrftoken', ServerBase.getInstance().csrfProtection, function (req, res) {
@@ -515,7 +515,7 @@ export default abstract class ServerBase {
         });
 
         this.app.get('/login', (req, res) => {
-            res.sendFile(path.resolve('./src/login/public/generated/login.html'));
+            res.sendFile(path.resolve('./dist/src/login/public/generated/login.html'));
         });
 
         this.app.get('/logout', async (req, res) => {
