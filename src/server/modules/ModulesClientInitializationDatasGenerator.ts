@@ -34,11 +34,11 @@ export default class ModulesClientInitializationDatasGenerator {
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/client/ts/generated/');
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/admin/ts/generated/');
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/login/ts/generated/');
-                await ModuleFileServer.getInstance().makeSureThisFolderExists('./test/generated/');
+                await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/test/ts/generated/');
                 await ModuleFileServer.getInstance().writeFile('./src/client/ts/generated/InitializeClientModulesDatas.ts', fileContent_client);
                 await ModuleFileServer.getInstance().writeFile('./src/admin/ts/generated/InitializeAdminModulesDatas.ts', fileContent_admin);
                 await ModuleFileServer.getInstance().writeFile('./src/login/ts/generated/InitializeLoginModulesDatas.ts', fileContent_login);
-                await ModuleFileServer.getInstance().writeFile('./test/generated/InitializeTestModulesDatas.ts', fileContent_test);
+                await ModuleFileServer.getInstance().writeFile('./src/test/ts/generated/InitializeTestModulesDatas.ts', fileContent_test);
             } catch (error) {
                 console.error(error);
                 reject(error);
@@ -113,8 +113,6 @@ export default class ModulesClientInitializationDatasGenerator {
         if ((((target == 'Test') || (target == 'Client') || (target == 'Admin')) && ModuleServiceBase.getInstance().isBaseSharedModule(module)) ||
             ((target == 'Login') && ModuleServiceBase.getInstance().isBaseLoginModule(module))) {
             path = 'oswedev/dist/shared/modules/';
-        } else if (target == 'Test') {
-            path = '../../src/shared/modules/';
         }
 
         if (module.specificImportPath) {

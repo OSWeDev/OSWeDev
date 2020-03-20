@@ -48,7 +48,7 @@
     },
     "include": [
         "src/**/*.ts",
-        "test/**/*.ts"
+        "src/test/**/*.ts"
     ],
     "exclude": [
         "src/client/public/bower",
