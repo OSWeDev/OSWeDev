@@ -183,7 +183,7 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = this.field_value;
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
+        this.$emit('onChangeVO', this.vo);
     }
 
     get alert_path(): string {
@@ -369,11 +369,7 @@ export default class CRUDComponentField extends VueComponentBase {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
 
-        if (!this.datatable) {
-            this.$emit('changeValue', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this.datatable, this.$el);
-        } else {
-            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
-        }
+        this.$emit('onChangeVO', this.vo);
     }
 
     private validateMultiInput(values: any[]) {
@@ -384,7 +380,7 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = values;
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
+        this.$emit('onChangeVO', this.vo);
         this.$emit('validateMultiInput', values, this.field, this.vo);
     }
 
@@ -680,7 +676,6 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
 
         if (this.field.onChange) {
             this.field.onChange(this.vo);
@@ -701,7 +696,8 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
+
+        this.$emit('onChangeVO', this.vo);
     }
 
     get is_custom_field_type(): boolean {
@@ -812,7 +808,8 @@ export default class CRUDComponentField extends VueComponentBase {
                 await this.snotify.success(this.label('field.auto_update_field_value.succes'));
             }
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable, this.$el);
+
+        this.$emit('onChangeVO', this.vo);
 
         this.inline_input_is_editing = false;
 
