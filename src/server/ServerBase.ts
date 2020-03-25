@@ -21,6 +21,7 @@ import * as winston from 'winston';
 import * as winston_daily_rotate_file from 'winston-daily-rotate-file';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
+import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
@@ -77,6 +78,10 @@ export default abstract class ServerBase {
     }
 
     public abstract getHttpContext();
+
+    public async getUserData(uid: number) {
+        return null;
+    }
 
     public async initializeNodeServer() {
 
@@ -368,23 +373,6 @@ export default abstract class ServerBase {
         });
         this.app.use(this.session);
 
-
-        // Faille de sécu ? à voir si il manque quelque chose, normalement avec les droits par table directement on devrait être clean...
-        // this.app.use((req, res, next) => {
-        //     const session = req.session;
-        //     const publicPrefix = "/public/";
-        //     const isPublic = req.path.substring(0, publicPrefix.length) == publicPrefix;
-        //     if (req.method == "OPTIONS" || req.path == "/login" || req.path == "/recover" || req.path == "/cron" || req.path == "/reset" || req.path == "/logout" || isPublic || session.user) {
-        //         next();
-        //     } else {
-        //         if (req.path.indexOf("/api") == 0) {
-        //             return res.sendStatus(401);
-        //         } else {
-        //             res.redirect('/login?redirect_to=' + encodeURIComponent(req.originalUrl));
-        //         }
-        //     }
-        // });
-
         this.app.use('/admin/js', express.static('dist/admin/public/js'));
 
         this.app.use(express.json({ limit: '150mb' }));
@@ -399,25 +387,20 @@ export default abstract class ServerBase {
             httpContext.set('IS_CLIENT', true);
             httpContext.set('REFERER', req.headers.referer);
 
-            if (req && req.session && req.session.user && req.session.user.id) {
-                let uid: number = parseInt(req.session.user.id.toString());
-                httpContext.set('UID', uid);
+            if (req && req.session && req.session.uid) {
+                httpContext.set('UID', req.session.uid);
                 httpContext.set('SESSION', req.session);
-                httpContext.set('USER', req.session.user);
-                httpContext.set('USER_DATA', await ServerBase.getInstance().getUserData(uid));
 
                 if (ModuleMaintenanceServer.getInstance().has_planned_maintenance) {
-                    ModuleMaintenanceServer.getInstance().inform_user_on_request(req.session.user.id);
+                    ModuleMaintenanceServer.getInstance().inform_user_on_request(req.session.uid);
                 }
 
                 if (!!EnvHandler.getInstance().NODE_VERBOSE) {
-                    ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER: ' + req.session.user.name + ' | BODY: ' + JSON.stringify(req.body));
+                    ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER ID: ' + req.session.uid + ' | BODY: ' + JSON.stringify(req.body));
                 }
             } else {
                 httpContext.set('UID', null);
                 httpContext.set('SESSION', req ? req.session : null);
-                httpContext.set('USER', null);
-                httpContext.set('USER_DATA', null);
             }
 
             next();
@@ -437,7 +420,7 @@ export default abstract class ServerBase {
         this.app.get('/', async (req, res) => {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS)) {
-                if (!await ModuleAccessPolicy.getInstance().getLoggedUser()) {
+                if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
                     let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                     res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
                     return;
@@ -452,7 +435,7 @@ export default abstract class ServerBase {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS)) {
 
-                if (!await ModuleAccessPolicy.getInstance().getLoggedUser()) {
+                if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
                     let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                     res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
                     return;
@@ -472,7 +455,7 @@ export default abstract class ServerBase {
                 || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS))
                 || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS))) {
 
-                if (!await ModuleAccessPolicy.getInstance().getLoggedUser()) {
+                if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
                     let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                     res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
                     return;
@@ -488,8 +471,8 @@ export default abstract class ServerBase {
         // Send CSRF token for session
         this.app.get('/api/getcsrftoken', ServerBase.getInstance().csrfProtection, function (req, res) {
 
-            if (req && req.session && req.session.user && req.session.user.id) {
-                let uid: number = parseInt(req.session.user.id.toString());
+            if (req && req.session && req.session.uid) {
+                let uid: number = req.session.uid;
 
                 // On stocke le log de connexion en base
                 let user_log: UserLogVO = new UserLogVO();
@@ -523,8 +506,8 @@ export default abstract class ServerBase {
 
             let user_log = null;
 
-            if (req && req.session && req.session.user && req.session.user.id) {
-                let uid: number = parseInt(req.session.user.id.toString());
+            if (req && req.session && req.session.uid) {
+                let uid: number = req.session.uid;
 
                 // On stocke le log de connexion en base
                 user_log = new UserLogVO();
@@ -542,7 +525,7 @@ export default abstract class ServerBase {
                 req.session = Object.assign(req.session, req.session.impersonated_from);
                 delete req.session.impersonated_from;
 
-                let uid: number = parseInt(req.session.user.id.toString());
+                let uid: number = req.session.uid;
                 user_log.impersonated = true;
                 user_log.comment = 'Impersonated from user_id [' + uid + ']';
 
@@ -589,7 +572,7 @@ export default abstract class ServerBase {
             res.json(JSON.stringify(
                 {
                     data_version: ServerBase.getInstance().version,
-                    data_user: (!!session.user) ? session.user : null,
+                    data_user: (!!session.uid) ? await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid) : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     // data_base_api_url: "",
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
@@ -605,7 +588,7 @@ export default abstract class ServerBase {
                     data_version: ServerBase.getInstance().version,
                     data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
                     data_node_env: process.env.NODE_ENV,
-                    data_user: (!!session.user) ? session.user : null,
+                    data_user: (!!session.uid) ? await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid) : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
                 }
@@ -684,7 +667,7 @@ export default abstract class ServerBase {
                         return;
                     }
 
-                    ModulePushDataServer.getInstance().registerSocket(session.user ? session.user.id : null, session.id, socket);
+                    ModulePushDataServer.getInstance().registerSocket(session.uid ? session.uid : null, session.id, socket);
                 }.bind(ServerBase.getInstance()));
 
                 io.on('error', function (err) {
@@ -722,10 +705,6 @@ export default abstract class ServerBase {
     protected abstract initializeDataImports();
     protected abstract hook_configure_express();
     protected abstract getVersion();
-
-    protected async getUserData(uid: number) {
-        return null;
-    }
 
     protected registerApis(app) {
     }

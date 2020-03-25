@@ -7,4 +7,5 @@ export default class LangVO implements IDistantVOBase {
     public _type: string = LangVO.API_TYPE_ID;
 
     public code_lang: string;
+    public code_flag: string;
 }

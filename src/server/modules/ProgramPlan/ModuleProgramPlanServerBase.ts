@@ -380,8 +380,8 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let loggedUser: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
-        if (!loggedUser) {
+        let loggedUserId: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        if (!loggedUserId) {
             return null;
         }
 
@@ -389,7 +389,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         for (let i in vos) {
             let vo: IPlanManager = vos[i];
 
-            if ((!vo) || (vo.user_id != loggedUser.id)) {
+            if ((!vo) || (vo.user_id != loggedUserId)) {
                 is_own_users = false;
                 break;
             }
@@ -402,7 +402,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         // On check si on est un manager
         let user_managers: IPlanManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanManager>(
-            ModuleProgramPlanBase.getInstance().manager_type_id, 'user_id', [loggedUser.id]);
+            ModuleProgramPlanBase.getInstance().manager_type_id, 'user_id', [loggedUserId]);
         if ((!!user_managers) && (user_managers.length > 0)) {
 
             let res_: IPlanFacilitator[] = [];
@@ -425,7 +425,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         let user_facilitators: IPlanFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanFacilitator>(
-            ModuleProgramPlanBase.getInstance().facilitator_type_id, 'user_id', [loggedUser.id]);
+            ModuleProgramPlanBase.getInstance().facilitator_type_id, 'user_id', [loggedUserId]);
 
         if ((!user_facilitators) || (!user_facilitators.length)) {
             return null;
@@ -464,8 +464,8 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let loggedUser: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
-        if (!loggedUser) {
+        let loggedUserId: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        if (!loggedUserId) {
             return null;
         }
 
@@ -473,7 +473,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         for (let i in vos) {
             let vo: IPlanFacilitator = vos[i];
 
-            if ((!vo) || (vo.user_id != loggedUser.id)) {
+            if ((!vo) || (vo.user_id != loggedUserId)) {
                 is_own_users = false;
                 break;
             }
@@ -486,7 +486,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         // On check si on est un manager
         let user_managers: IPlanManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanManager>(
-            ModuleProgramPlanBase.getInstance().manager_type_id, 'user_id', [loggedUser.id]);
+            ModuleProgramPlanBase.getInstance().manager_type_id, 'user_id', [loggedUserId]);
         if ((!!user_managers) && (user_managers.length > 0)) {
 
             let res_: IPlanFacilitator[] = [];
@@ -509,7 +509,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         let user_facilitators: IPlanFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanFacilitator>(
-            ModuleProgramPlanBase.getInstance().facilitator_type_id, 'user_id', [loggedUser.id]);
+            ModuleProgramPlanBase.getInstance().facilitator_type_id, 'user_id', [loggedUserId]);
 
         if ((!user_facilitators) || (!user_facilitators.length)) {
             return null;

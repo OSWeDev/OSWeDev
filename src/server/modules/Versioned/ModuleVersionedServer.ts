@@ -56,7 +56,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         // TODO : ATTENTION par défaut c'est du without timezone en base, hors sur le serveur on a un timezone par défaut et sur les fullcalendar on est en without timezone par défaut ....
         let ts = moment().utc(true);
-        let user: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
+        let uid: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
         let robot_user: UserVO = null;
 
         if (!vo.version_author_id) {
@@ -64,7 +64,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
                 robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
             }
 
-            vo.version_author_id = user ? user.id : ((robot_user) ? robot_user.id : null);
+            vo.version_author_id = (!!uid) ? uid : ((robot_user) ? robot_user.id : null);
         }
 
         vo.version_timestamp = ts;
@@ -74,7 +74,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
                 robot_user = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
             }
 
-            vo.version_edit_author_id = user ? user.id : ((robot_user) ? robot_user.id : null);
+            vo.version_edit_author_id = (!!uid) ? uid : ((robot_user) ? robot_user.id : null);
         }
 
         vo.version_edit_timestamp = ts;
@@ -92,10 +92,10 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
 
-        let user: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
+        let uid: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
-        if (user) {
-            vo.version_edit_author_id = user.id;
+        if (!!uid) {
+            vo.version_edit_author_id = uid;
         } else {
             let robot_user: UserVO = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
             vo.version_edit_author_id = robot_user ? robot_user.id : null;

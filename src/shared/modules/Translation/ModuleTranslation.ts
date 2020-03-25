@@ -19,6 +19,8 @@ export default class ModuleTranslation extends Module {
     public static POLICY_BO_TRANSLATIONS_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_TRANSLATIONS_ACCESS';
     public static POLICY_BO_OTHERS_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.BO_OTHERS_ACCESS';
     public static POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.ON_PAGE_TRANSLATION_MODULE_ACCESS';
+    public static POLICY_LANG_SELECTOR_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.LANG_SELECTOR_ACCESS';
+    public static POLICY_LANG_SELECTOR_PER_LANG_ACCESS_PREFIX: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleTranslation.MODULE_NAME + '.LANG_SELECTOR_PER_LANG_ACCESS_PREFIX';
 
     public static APINAME_GET_TRANSLATABLE_TEXTS: string = "getTranslatableTexts";
     public static APINAME_GET_TRANSLATABLE_TEXT: string = "getTranslatableText";
@@ -46,6 +48,10 @@ export default class ModuleTranslation extends Module {
 
         super("translation", ModuleTranslation.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    public get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang_id: number) {
+        return ModuleTranslation.POLICY_LANG_SELECTOR_PER_LANG_ACCESS_PREFIX + '_' + lang_id;
     }
 
     public registerApis() {
@@ -138,7 +144,8 @@ export default class ModuleTranslation extends Module {
         // Création de la table lang
         let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true);
         let datatable_fields = [
-            label_field
+            label_field,
+            new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false)
         ];
         this.datatable_lang = new ModuleTable(this, LangVO.API_TYPE_ID, () => new LangVO(), datatable_fields, label_field, "Langues");
         this.datatables.push(this.datatable_lang);

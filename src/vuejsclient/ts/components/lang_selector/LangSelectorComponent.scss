@@ -1,0 +1,17 @@
+.lang_selector {
+    .lang_selector_list {
+
+        width: 6em;
+        min-width: 6em;
+
+        .lang_selector_option {
+            .label {
+
+            }
+
+            .flag {
+                float: right;
+            }
+        }
+    }
+}

@@ -4,6 +4,8 @@ import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
+import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
+import LangVO from '../shared/modules/Translation/vos/LangVO';
 
 export default abstract class VueAppController {
 
@@ -17,7 +19,8 @@ export default abstract class VueAppController {
     private static instance_: VueAppController;
 
     public data_ui_debug;
-    public data_user;
+    public data_user_lang: LangVO = null;
+    public data_user: UserVO;
     public data_user_roles: RoleVO[] = null;
     // public data_base_api_url;
     public data_default_locale;
@@ -67,6 +70,10 @@ export default abstract class VueAppController {
 
         promises.push((async () => {
             self.SERVER_HEADERS = JSON.parse(await ModuleAjaxCache.getInstance().get('/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
+        })());
+
+        promises.push((async () => {
+            self.data_user_lang = await ModuleAccessPolicy.getInstance().getMyLang();
         })());
 
         await Promise.all(promises);

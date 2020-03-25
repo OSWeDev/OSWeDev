@@ -120,7 +120,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let session = httpContext ? httpContext.get('SESSION') : null;
 
-        if (session && !session.user) {
+        if (session && !session.uid) {
             return;
         }
 
@@ -130,7 +130,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         await ModulePushDataServer.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
-        await ModulePushDataServer.getInstance().notifyDAOGetVoById(session.user.id, MaintenanceVO.API_TYPE_ID, maintenance.id);
+        await ModulePushDataServer.getInstance().notifyDAOGetVoById(session.uid, MaintenanceVO.API_TYPE_ID, maintenance.id);
     }
 
     public async inform_user_on_request(user_id: number): Promise<void> {
@@ -169,12 +169,12 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let session = httpContext ? httpContext.get('SESSION') : null;
 
-        if (session && session.user) {
+        if (session && session.uid) {
             return false;
         }
 
         maintenance.creation_date = moment().utc(true);
-        maintenance.author_id = session.user.id;
+        maintenance.author_id = session.uid;
 
         return true;
     }

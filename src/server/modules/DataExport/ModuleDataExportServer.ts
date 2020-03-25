@@ -120,14 +120,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let filepath: string = "temp/" + params.filename;
         XLSX.writeFile(workbook, filepath);
 
-        let user_log: UserVO = await ModuleAccessPolicyServer.getInstance().getLoggedUser();
+        let user_log_id: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
         // On log l'export
-        if (user_log) {
+        if (!!user_log_id) {
             await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
                 params.api_type_id,
                 moment().utc(true),
-                user_log.id,
+                user_log_id
             ));
         }
 

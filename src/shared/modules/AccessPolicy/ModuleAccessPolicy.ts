@@ -28,6 +28,7 @@ import TimeSegment from '../DataRender/vos/TimeSegment';
 import NumSegment from '../DataRender/vos/NumSegment';
 import ModuleVO from '../ModuleVO';
 import ResetPwdUIDParamVO from './vos/apis/ResetPwdUIDParamVO';
+import NumberParamVO from '../API/vos/apis/NumberParamVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -50,6 +51,7 @@ export default class ModuleAccessPolicy extends Module {
     public static ROLE_ANONYMOUS: string = AccessPolicyTools.ROLE_UID_PREFIX + 'anonymous';
 
     public static APINAME_impersonateLogin = "impersonateLogin";
+    public static APINAME_change_lang = "change_lang";
     public static APINAME_CHECK_ACCESS = "ACCESS_CHECK_ACCESS";
     public static APINAME_IS_ADMIN = "IS_ADMIN";
     public static APINAME_IS_ROLE = "IS_ROLE";
@@ -60,8 +62,9 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
     public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
-    public static APINAME_GET_LOGGED_USER = "GET_LOGGED_USER";
+    public static APINAME_GET_LOGGED_USER_ID = "GET_LOGGED_USER_ID";
     public static APINAME_RESET_PWDUID = "RESET_PWDUID";
+    public static APINAME_getMyLang = "getMyLang";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -124,9 +127,14 @@ export default class ModuleAccessPolicy extends Module {
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID]
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, UserVO>(
-            ModuleAccessPolicy.APINAME_GET_LOGGED_USER,
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, number>(
+            ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID,
             [UserVO.API_TYPE_ID]
+        ));
+
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, LangVO>(
+            ModuleAccessPolicy.APINAME_getMyLang,
+            [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<AddRoleToUserParamVO, void>(
@@ -159,29 +167,44 @@ export default class ModuleAccessPolicy extends Module {
             ToggleAccessParamVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, UserVO>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
             ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT,
             [UserVO.API_TYPE_ID],
             LoginParamVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, UserVO>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
             ModuleAccessPolicy.APINAME_impersonateLogin,
             [UserVO.API_TYPE_ID],
             LoginParamVO.translateCheckAccessParams
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, UserVO>(
+            ModuleAccessPolicy.APINAME_change_lang,
+            [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],
+            NumberParamVO.translateCheckAccessParams
+        ));
+
     }
 
-    public async getLoggedUser(): Promise<UserVO> {
-        return await ModuleAPI.getInstance().handleAPI<void, UserVO>(ModuleAccessPolicy.APINAME_GET_LOGGED_USER);
+    public async getMyLang(): Promise<LangVO> {
+        return await ModuleAPI.getInstance().handleAPI<void, LangVO>(ModuleAccessPolicy.APINAME_getMyLang);
     }
 
-    public async impersonateLogin(email: string): Promise<UserVO> {
-        return await ModuleAPI.getInstance().handleAPI<LoginParamVO, UserVO>(ModuleAccessPolicy.APINAME_impersonateLogin, email, null);
+    public async change_lang(lang_id: number): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, void>(ModuleAccessPolicy.APINAME_change_lang, lang_id);
     }
 
-    public async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<UserVO> {
-        return await ModuleAPI.getInstance().handleAPI<LoginParamVO, UserVO>(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, email, password, redirect_to);
+    public async getLoggedUserId(): Promise<number> {
+        return await ModuleAPI.getInstance().handleAPI<void, number>(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID);
+    }
+
+    public async impersonateLogin(email: string): Promise<number> {
+        return await ModuleAPI.getInstance().handleAPI<LoginParamVO, number>(ModuleAccessPolicy.APINAME_impersonateLogin, email, null);
+    }
+
+    public async loginAndRedirect(email: string, password: string, redirect_to: string): Promise<number> {
+        return await ModuleAPI.getInstance().handleAPI<LoginParamVO, number>(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, email, password, redirect_to);
     }
 
     public async getAccessMatrix(inherited_only: boolean): Promise<{ [policy_id: number]: { [role_id: number]: boolean } }> {

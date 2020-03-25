@@ -136,7 +136,9 @@ export default abstract class VueAppBase {
             accepted_language = accepted_language.split(";")[0].split(",")[0].split("-")[0];
         }
 
-        LocaleManager.getInstance().setDefaultLocale(accepted_language || navigator.language || this.appController.data_default_locale || 'fr');
+        let user_lang = VueAppController.getInstance().data_user_lang ? VueAppController.getInstance().data_user_lang.code_lang : null;
+
+        LocaleManager.getInstance().setDefaultLocale(user_lang || accepted_language || navigator.language || this.appController.data_default_locale || 'fr');
         let default_locale = LocaleManager.getInstance().getDefaultLocale();
         // let uiDebug = this.appController.data_ui_debug == "1" || window.location.search.indexOf('ui-debug=1') != -1;
         moment.locale(default_locale);

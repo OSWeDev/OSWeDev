@@ -1,0 +1,32 @@
+.lang_selector
+    template(v-if='!hide')
+        label.lang_selector_label(for="lang_selector_list") {{ label('lang_selector.label') }}
+        multiselect.lang_selector_list.pull-right(
+            :preselectFirst="false"
+            :multiple="false"
+            v-model="tmp_user_lang"
+            :options="langs"
+            :allow-empty="false",
+
+            :custom-label="langLabel"
+            :searchable="true"
+            :internal-search="true"
+            
+            selectLabel=''
+            selectGroupLabel=''
+            selectedLabel=''
+            deselectLabel=''
+            deselectGroupLabel=''
+
+            placeholder=''
+            
+            track-by="id"
+
+            name="lang_selector_list"
+        )
+            
+            .lang_selector_option(slot="option", slot-scope="props")
+                gb-flag.lang_selector_flag.pull-right(:code="props.option.code_flag ? props.option.code_flag : props.option.code_lang" size="mini")
+                .lang_selector_option_label {{ ((label('lang_selector.lang_prefix') && (label('lang_selector.lang_prefix') !='null')) ? label('lang_selector.lang_prefix'): '') + (props.option.code_flag ? props.option.code_flag : props.option.code_lang) + ((label('lang_selector.lang_suffix') && (label('lang_selector.lang_suffix') != 'null')) ? label('lang_selector.lang_suffix') : '') }}
+
+            .lang_selector_option(slot="noOptions") -

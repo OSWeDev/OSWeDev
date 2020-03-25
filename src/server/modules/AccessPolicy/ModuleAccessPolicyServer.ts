@@ -36,6 +36,8 @@ import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
+import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -465,6 +467,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'LogAs'
         }, 'fields.labels.ref.user.__component__impersonate.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mise à jour de la langue et rechargement...'
+        }, 'lang_selector.encours.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: ''
+        }, 'lang_selector.lang_prefix.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: ''
+        }, 'lang_selector.lang_suffix.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Langue'
+        }, 'lang_selector.label.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }
 
@@ -480,8 +498,39 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX, this.getAccessMatrix.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER, this.getLoggedUser.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, this.getLoggedUserId.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
+    }
+
+    public async getMyLang(): Promise<LangVO> {
+
+        let user_id: number = await this.getLoggedUserId();
+
+        if (!user_id) {
+            return null;
+        }
+
+        // On a besoin d'une version à jour
+        let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user_id);
+
+        return await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
+    }
+
+    public async change_lang(param: NumberParamVO): Promise<void> {
+        if ((!param) || (!param.num)) {
+            return;
+        }
+
+        let user_id: number = await this.getLoggedUserId();
+        if (!user_id) {
+            return;
+        }
+
+        await ModuleDAOServer.getInstance().query('update ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' set ' +
+            "lang_id=$1 where id=$2",
+            [param.num, user_id]);
     }
 
     /**
@@ -549,15 +598,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return dependency;
     }
 
-    public getLoggedUser(): Promise<UserVO> {
+    /**
+     * Warning : Renvoie le user de la session qui n'est pas la version à jour du user !! Il faut recharger depuis la BDD au besoin avec l'id
+     */
+    public getLoggedUserId(): Promise<number> {
 
         try {
 
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
             let session = httpContext ? httpContext.get('SESSION') : null;
 
-            if (session && session.user) {
-                return session.user;
+            if (session && session.uid) {
+                return session.uid;
             }
             return null;
         } catch (error) {
@@ -1191,19 +1243,17 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async loginAndRedirect(param: LoginParamVO): Promise<UserVO> {
+    private async loginAndRedirect(param: LoginParamVO): Promise<number> {
 
         try {
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
             let session = httpContext ? httpContext.get('SESSION') : null;
 
-            if (session && session.user) {
-                // this.redirectUserPostLogin(param.redirect_to, res);
-
-                return session.user;
+            if (session && session.uid) {
+                return session.uid;
             }
 
-            session.user = null;
+            session.uid = null;
 
             if ((!param) || (!param.email) || (!param.password)) {
                 return null;
@@ -1215,7 +1265,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
-            session.user = user;
+            session.uid = user.id;
 
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
@@ -1230,7 +1280,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             // this.redirectUserPostLogin(param.redirect_to, res);
 
-            return user;
+            return user.id;
         } catch (error) {
             ConsoleHandler.getInstance().error("login:" + param.email + ":" + error);
         }
@@ -1239,13 +1289,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return null;
     }
 
-    private async impersonateLogin(param: LoginParamVO): Promise<UserVO> {
+    private async impersonateLogin(param: LoginParamVO): Promise<number> {
 
         try {
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
             let session = httpContext ? httpContext.get('SESSION') : null;
 
-            if ((!session) || (!session.user)) {
+            if ((!session) || (!session.uid)) {
                 return null;
             }
 
@@ -1264,7 +1314,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             }
 
             session.impersonated_from = Object.assign({}, session);
-            session.user = user;
+            session.uid = user.id;
 
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
@@ -1278,7 +1328,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On await pas ici on se fiche du résultat
             ModuleDAO.getInstance().insertOrUpdateVO(user_log);
 
-            return user;
+            return user.id;
         } catch (error) {
             ConsoleHandler.getInstance().error("impersonate login:" + param.email + ":" + error);
         }

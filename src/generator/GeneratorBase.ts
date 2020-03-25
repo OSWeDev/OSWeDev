@@ -28,6 +28,7 @@ import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112Check
 import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
+import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
 
 export default abstract class GeneratorBase {
 
@@ -72,7 +73,8 @@ export default abstract class GeneratorBase {
             Patch20191106ForceAccessDefaultToVisionFCPP.getInstance(),
             Patch20191126CreateDefaultRobotUserAccount.getInstance(),
             Patch20200131InitUserLogPolicies.getInstance(),
-            Patch20200312ChangeResetPWDMailContent.getInstance()
+            Patch20200312ChangeResetPWDMailContent.getInstance(),
+            Patch20200325PresetExistingLangsChangeRights.getInstance()
         ];
     }
 

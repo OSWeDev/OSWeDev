@@ -700,7 +700,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // let session = httpContext ? httpContext.get('SESSION') : null;
         // let bdd_import: DataImportHistoricVO = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
 
-        // if (session && !!session.user) {
+        // if (session && !!session.uid) {
         //     // Cas d'une modif par un utilisateur, on doit refuser le changement de statuts si c'est pas pour un réimport.
 
         //     if ((importHistoric.state != bdd_import.state) && (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)) {

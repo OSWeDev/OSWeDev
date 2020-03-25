@@ -30,8 +30,8 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
             }
         }
 
-        let loggedVO: UserVO = await ModuleAccessPolicy.getInstance().getLoggedUser();
-        if (loggedVO) {
+        let logged_id: number = await ModuleAccessPolicy.getInstance().getLoggedUserId();
+        if (!!logged_id) {
             window.location = this.redirect_to as any;
         }
     }
@@ -40,9 +40,9 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private async login() {
         this.snotify.info(this.label('login.start'));
 
-        let loggedVO: UserVO = await ModuleAccessPolicy.getInstance().loginAndRedirect(this.email, this.password, this.redirect_to);
+        let logged_id: number = await ModuleAccessPolicy.getInstance().loginAndRedirect(this.email, this.password, this.redirect_to);
 
-        if (!loggedVO) {
+        if (!logged_id) {
             this.snotify.error(this.label('login.failed'));
             this.password = "";
         } else {

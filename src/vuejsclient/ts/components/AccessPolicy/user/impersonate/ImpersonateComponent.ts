@@ -24,9 +24,9 @@ export default class ImpersonateComponent extends VueComponentBase {
             return;
         }
 
-        let user = await ModuleAccessPolicy.getInstance().impersonateLogin(this.vo.email);
+        let user_id: number = await ModuleAccessPolicy.getInstance().impersonateLogin(this.vo.email);
 
-        if (user && user.id == this.vo.id) {
+        if (user_id == this.vo.id) {
             window.location = this.redirect_to as any;
         }
     }

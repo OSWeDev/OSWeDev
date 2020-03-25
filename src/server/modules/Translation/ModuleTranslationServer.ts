@@ -33,6 +33,8 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private static instance: ModuleTranslationServer = null;
 
+    public policy_group: AccessPolicyGroupVO = null;
+
     private constructor() {
         super(ModuleTranslation.getInstance().name);
     }
@@ -43,6 +45,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
         let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO.bind(this));
+
+        let postCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_oncreate_lang.bind(this));
+        preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_ondelete_lang.bind(this));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Traductions'
@@ -481,6 +488,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
             fr: 'Traductions'
         }));
+        this.policy_group = group;
 
         let bo_translations_access: AccessPolicyVO = new AccessPolicyVO();
         bo_translations_access.group_id = group.id;
@@ -525,6 +533,14 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         access_dependency.src_pol_id = on_page_translation_module_access.id;
         access_dependency.depends_on_pol_id = bo_translations_access.id;
         access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
+
+        let LANG_SELECTOR_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+        LANG_SELECTOR_ACCESS.group_id = group.id;
+        LANG_SELECTOR_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        LANG_SELECTOR_ACCESS.translatable_name = ModuleTranslation.POLICY_LANG_SELECTOR_ACCESS;
+        LANG_SELECTOR_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(LANG_SELECTOR_ACCESS, new DefaultTranslation({
+            fr: 'Outil - Choix de la langue'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
     }
 
     public registerServerApiHandlers() {
@@ -611,6 +627,24 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }
 
         return ALL_LOCALES;
+    }
+
+    private async trigger_oncreate_lang(lang: LangVO) {
+        let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = new AccessPolicyVO();
+        LANG_SELECTOR_PER_LANG_ACCESS.group_id = this.policy_group.id;
+        LANG_SELECTOR_PER_LANG_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        LANG_SELECTOR_PER_LANG_ACCESS.translatable_name = ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id);
+        LANG_SELECTOR_PER_LANG_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(LANG_SELECTOR_PER_LANG_ACCESS, new DefaultTranslation({
+            fr: 'Outil - Peut choisir la langue : ' + lang.code_lang
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+    }
+
+    private async trigger_ondelete_lang(lang: LangVO) {
+        let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = await AccessPolicyServerController.getInstance().get_registered_policy(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id));
+        if (!LANG_SELECTOR_PER_LANG_ACCESS) {
+            return null;
+        }
+        await ModuleDAO.getInstance().deleteVOs([LANG_SELECTOR_PER_LANG_ACCESS]);
     }
 
     private async getALL_LOCALES(): Promise<{ [code_lang: string]: any }> {
