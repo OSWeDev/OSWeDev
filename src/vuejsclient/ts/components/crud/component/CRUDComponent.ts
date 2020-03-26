@@ -951,51 +951,6 @@ export default class CRUDComponent extends VueComponentBase {
         this.deleting_vo = false;
     }
 
-    private changeValue(vo: IDistantVOBase, field: DatatableField<any, any>, value: any, datatable: Datatable<IDistantVOBase>) {
-        vo[field.datatable_field_uid] = value;
-
-        if (!!datatable) {
-
-            for (let i in datatable.fields) {
-                let field_datatable: DatatableField<any, any> = datatable.fields[i];
-                if (field_datatable.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) {
-
-                    let manyToOneField: ManyToOneReferenceDatatableField<any> = (field_datatable as ManyToOneReferenceDatatableField<any>);
-                    let options = this.getStoredDatas[manyToOneField.targetModuleTable.vo_type];
-
-                    if (!!manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne) {
-                        options = manyToOneField.filterOptionsForUpdateOrCreateOnManyToOne(vo, options);
-                    }
-
-                    if (options) {
-                        field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
-                    }
-                }
-
-                if (field_datatable.type == DatatableField.REF_RANGES_FIELD_TYPE) {
-
-                    let refField: RefRangesReferenceDatatableField<any> = (field_datatable as RefRangesReferenceDatatableField<any>);
-                    let options = this.getStoredDatas[refField.targetModuleTable.vo_type];
-
-                    if (!!refField.filterOptionsForUpdateOrCreateOnRefRanges) {
-                        options = refField.filterOptionsForUpdateOrCreateOnRefRanges(vo, options);
-                    }
-
-                    if (options) {
-                        field_datatable.setSelectOptionsEnabled(ObjectHandler.getInstance().arrayFromMap(options).map((elem) => elem.id));
-                    }
-                }
-            }
-        }
-
-        if (this.crud && this.crud.isReadOnlyData) {
-            this.is_only_readable = this.crud.isReadOnlyData(vo);
-        } else {
-            this.is_only_readable = false;
-        }
-    }
-
-
     private onChangeVO(vo: IDistantVOBase) {
         this.crud_createDatatable_key = this.crud.createDatatable.key;
         this.crud_updateDatatable_key = this.crud.updateDatatable.key;
