@@ -238,23 +238,27 @@ export default class ModuleTableField<T> {
         return this;
     }
 
-    public setTargetDatatable(module_table: ModuleTable<any>) {
+    public setTargetDatatable(module_table: ModuleTable<any>): ModuleTableField<T> {
         this.module_table = module_table;
 
         this.setLabelCodeText();
+
+        return this;
     }
 
-    public setLabelCodeText(module_name: string = null) {
+    public setLabelCodeText(module_name: string = null): ModuleTableField<T> {
         if (this.module_table) {
             this.field_label.code_text = "fields.labels." + this.module_table.full_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         } else {
             if (!module_name) {
-                return;
+                return this;
             }
             this.field_label.code_text = "fields.labels." + module_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         }
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(this.field_label);
+
+        return this;
     }
 
     public getPGSqlFieldDescription() {
@@ -293,12 +297,14 @@ export default class ModuleTableField<T> {
         }
     }
 
-    public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTable<U>) {
+    public addManyToOneRelation<U extends IDistantVOBase>(target_database: ModuleTable<U>): ModuleTableField<T> {
         this.manyToOne_target_moduletable = target_database;
         this.target_database = target_database.database;
         this.target_table = target_database.name;
         this.target_field = 'id';
         this.has_relation = true;
+
+        return this;
     }
 
     public isAcceptableCurrentDBType(db_type: string): boolean {
