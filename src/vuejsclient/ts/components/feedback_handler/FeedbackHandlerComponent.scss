@@ -1,0 +1,80 @@
+.feedback_handler {
+
+    .feedback_handler_switcher {
+        display: block;
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        font-size: 1.5em;
+        background: white;
+        border-radius: 20px;
+        padding: 6px 4px 6px 10px;
+        box-shadow: 1px 1px 3px;
+        z-index: 20000;
+        cursor: pointer;
+    }
+
+
+    .feedback_handler_modal {
+
+        position: fixed;
+        right: 10px;
+        width: 46em;
+        background: white;
+        bottom: 70px;
+        padding: 1em;
+        border-radius: 10px;
+        box-shadow: 1px 1px 6px -2px;
+        max-height: 50em;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        z-index: 99999;
+
+        .feedback_handler_modal_header {
+
+            padding-bottom: 1em;
+            border-bottom: solid 2px #DDD;
+            margin-bottom: 1em;
+        }
+
+        input[type~="text"]{
+            padding: 0.5em;
+            width: 42em;
+        }
+
+        input[type~="radio"]{
+            height: 1.5em;
+            width: 1.5em;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+
+        label i.fa.fa-asterisk.mandatory {
+            color: red;
+            font-size: 0.4rem;
+            vertical-align: top;
+            margin-left: 1px;
+        }
+
+        label.feedback_type {
+
+            vertical-align: text-top;
+            margin-left: 0.5em;
+            cursor: pointer;
+        }
+
+        .dz-preview.dz-file-preview.dz-processing {
+            display:none;
+        }
+
+        .spacer {
+            display: block;
+            height: 1em;
+        }
+            
+    }
+
+    .feedback_handler_modal.hidden {
+        display: none;
+    }
+}

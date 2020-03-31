@@ -1,5 +1,9 @@
 @import 'skin-variables';
 
+.tooltip.vue-tooltip-theme {
+    z-index: 9999999;
+}
+
 .v-select {
   background: #fff;
 }

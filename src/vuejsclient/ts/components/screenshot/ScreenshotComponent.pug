@@ -1,0 +1,16 @@
+.screenshot
+    .row
+        .col-md-12        
+            template(v-if='(!has_valid_file_linked) && (!is_taking)')
+                .screenshot_placeholder_not_taken(@click='take_screenshot')
+                    i.fa.fa-camera.fa-3x(aria-hidden="true")
+            template(v-if='(!has_valid_file_linked) && (!!is_taking)')
+                .screenshot_placeholder_taking
+                    i.fa.fa-camera.fa-3x(aria-hidden="true")
+            template(v-if='!!has_valid_file_linked')
+                .screenshot_placeholder_taken
+                    img(:src="'/' + filevo.path")
+                a.btn.btn-sm.btn-primary(v-if="(!!filevo) && filevo.id" :href="'/' + filevo.path" target='_blank')
+                    i.fa-download.fa.fa-lg.btn_icon(aria-hidden="true" v-if='has_valid_file_linked')
+                    i.fa-times.fa.fa-lg.btn_icon.text-danger(aria-hidden="true" v-else)
+                    | {{ label('file.download') }}

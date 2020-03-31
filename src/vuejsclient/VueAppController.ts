@@ -6,6 +6,7 @@ import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
+import { Route } from 'vue-router/types/router';
 
 export default abstract class VueAppController {
 
@@ -27,6 +28,10 @@ export default abstract class VueAppController {
     public ALL_LOCALES: any;
     public SERVER_HEADERS;
     public base_url: string;
+
+    public routes_log: Route[] = [];
+    // Limite en dur à changer peut-être un jour à voir ou à paramétrer
+    public routes_log_limit: number = 101;
 
     public is_mobile: boolean = false;
 

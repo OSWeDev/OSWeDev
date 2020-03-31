@@ -68,6 +68,8 @@ import ModuleTranslationServer from './Translation/ModuleTranslationServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ModuleFeedback from '../../shared/modules/Feedback/ModuleFeedback';
+import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -325,6 +327,7 @@ export default abstract class ModuleServiceBase {
             ModuleParams.getInstance(),
             ModuleSendInBlue.getInstance(),
             ModuleVocus.getInstance(),
+            ModuleFeedback.getInstance()
         ];
     }
 
@@ -360,6 +363,7 @@ export default abstract class ModuleServiceBase {
             ModuleParamsServer.getInstance(),
             ModuleSendInBlueServer.getInstance(),
             ModuleVocusServer.getInstance(),
+            ModuleFeedbackServer.getInstance()
         ];
     }
 }

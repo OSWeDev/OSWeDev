@@ -1,0 +1,29 @@
+.screenshot {
+
+    .screenshot_placeholder_taken, 
+    .screenshot_placeholder_not_taken {
+        color: #CCC;
+        border: solid 2px #DDD;
+        text-align: center;
+        padding: 20px;
+        padding-right: 14px;
+    }
+
+    .screenshot_placeholder_taking {
+        color: #CCC;
+        background: #DDD;
+        border: solid 2px #CCC;
+        text-align: center;
+        padding: 20px;
+        padding-right: 14px;
+    }
+
+    .screenshot_placeholder_not_taken {
+        cursor: pointer;
+    }
+
+    img {
+        max-width: -webkit-fill-available;
+        max-height: -webkit-fill-available;
+    }
+}

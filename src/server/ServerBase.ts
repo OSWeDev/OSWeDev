@@ -41,6 +41,8 @@ import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 import VarsdatasComputerBGThread from './modules/Var/bgthreads/VarsdatasComputerBGThread';
+import IServerUserSession from './IServerUserSession';
+import * as TrelloNodeAPI from 'trello-node-api';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -384,23 +386,37 @@ export default abstract class ServerBase {
         // Example authorization middleware
         this.app.use(async (req, res, next) => {
 
+            let session: IServerUserSession = null;
+            if (req && req.session) {
+                session = req.session;
+
+                if (!session.returning) {
+                    // session was just created
+                    session.returning = true;
+                    session.creation_date_unix = moment().utc(true).unix();
+                } else {
+                    // old session
+                }
+            }
+
             httpContext.set('IS_CLIENT', true);
             httpContext.set('REFERER', req.headers.referer);
 
-            if (req && req.session && req.session.uid) {
-                httpContext.set('UID', req.session.uid);
-                httpContext.set('SESSION', req.session);
+            if (session && session.uid) {
+
+                httpContext.set('UID', session.uid);
+                httpContext.set('SESSION', session);
 
                 if (ModuleMaintenanceServer.getInstance().has_planned_maintenance) {
-                    ModuleMaintenanceServer.getInstance().inform_user_on_request(req.session.uid);
+                    ModuleMaintenanceServer.getInstance().inform_user_on_request(session.uid);
                 }
 
                 if (!!EnvHandler.getInstance().NODE_VERBOSE) {
-                    ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER ID: ' + req.session.uid + ' | BODY: ' + JSON.stringify(req.body));
+                    ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER ID: ' + session.uid + ' | BODY: ' + JSON.stringify(req.body));
                 }
             } else {
                 httpContext.set('UID', null);
-                httpContext.set('SESSION', req ? req.session : null);
+                httpContext.set('SESSION', session);
             }
 
             next();
@@ -420,7 +436,7 @@ export default abstract class ServerBase {
         this.app.get('/', async (req, res) => {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS)) {
-                if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
+                if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
                     let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                     res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
                     return;
@@ -435,7 +451,7 @@ export default abstract class ServerBase {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS)) {
 
-                if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
+                if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
                     let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                     res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
                     return;
@@ -455,7 +471,7 @@ export default abstract class ServerBase {
                 || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS))
                 || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS))) {
 
-                if (!await ModuleAccessPolicy.getInstance().getLoggedUserId()) {
+                if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
                     let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                     res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
                     return;
@@ -471,8 +487,18 @@ export default abstract class ServerBase {
         // Send CSRF token for session
         this.app.get('/api/getcsrftoken', ServerBase.getInstance().csrfProtection, function (req, res) {
 
-            if (req && req.session && req.session.uid) {
-                let uid: number = req.session.uid;
+            /**
+             * On stocke dans la session l'info de la date de chargement de l'application
+             */
+            let session: IServerUserSession = null;
+            if (req && req.session) {
+                session = req.session;
+
+                session.last_load_date_unix = moment().utc(true).unix();
+            }
+
+            if (session && session.uid) {
+                let uid: number = session.uid;
 
                 // On stocke le log de connexion en base
                 let user_log: UserLogVO = new UserLogVO();
@@ -485,9 +511,9 @@ export default abstract class ServerBase {
                 /**
                  * Gestion du impersonate
                  */
-                if (req.session && !!req.session.impersonated_from) {
+                if (!!session.impersonated_from) {
 
-                    let imp_uid: number = parseInt(req.session.impersonated_from.user.id.toString());
+                    let imp_uid: number = session.impersonated_from.uid;
                     user_log.impersonated = true;
                     user_log.comment = 'Impersonated from user_id [' + imp_uid + ']';
                 }
@@ -660,7 +686,7 @@ export default abstract class ServerBase {
                 // io.set('log level', 1);
                 // define interactions with client
                 io.on('connection', function (socket: socketIO.Socket) {
-                    let session: Express.Session = socket.handshake['session'];
+                    let session: IServerUserSession = socket.handshake['session'];
 
                     if (!session) {
                         ConsoleHandler.getInstance().error('Impossible de charger la session dans SocketIO');

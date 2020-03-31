@@ -17,7 +17,7 @@ export default class ModuleFile extends Module {
 
     public static FILES_ROOT: string = './files/';
 
-    public static APINAME_TEST_FILE_EXISTENZ = "TEST_FILE_EXISTENZ";
+    public static APINAME_TEST_FILE_EXISTENZ = "test_file_existenz";
 
     public static getInstance(): ModuleFile {
         if (!ModuleFile.instance) {

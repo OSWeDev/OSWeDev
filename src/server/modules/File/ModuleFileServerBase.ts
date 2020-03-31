@@ -12,6 +12,7 @@ import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulePushDataServer from '../PushData/ModulePushDataServer';
+import AjaxCacheException from '../../../shared/modules/AjaxCache/exceptions/AjaxCacheException';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
@@ -155,6 +156,9 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
         try {
             import_file = req.files[Object.keys(req.files)[0]];
+            if (!import_file) {
+                throw new Error('uploadFile- No file found');
+            }
         } catch (error) {
             console.error(error);
             ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'file.upload.error');

@@ -1,0 +1,118 @@
+.feedback_handler.hide_from_screenshot
+    .feedback_handler_switcher
+        template(v-if='hidden')
+            i.fa.fa-comment.fa-fw(aria-hidden="true" @click='switch_hidden')
+        template(v-else)
+            i.fa.fa-commenting.fa-fw(aria-hidden="true" @click='switch_hidden')
+
+    .feedback_handler_modal(:class='{"hidden": !!hidden}')
+        .feedback_handler_modal_header {{ label('feedback_handler.header') }}
+        .feedback_handler_modal_content
+            form(v-on:submit.prevent="send_feedback")
+
+                .row
+                    .col-md-12
+                        label(for='feedback_user') {{ label('feedback_handler.user.label') }}
+                            i.fa.fa-asterisk.mandatory
+                .row
+                    .col-md-12
+                        input(type='text' name='feedback_user' v-model="tmp_user")
+
+                .spacer
+
+                .row
+                    .col-md-12
+                        label(for='feedback_email') {{ label('feedback_handler.email.label') }}
+                            i.fa.fa-asterisk.mandatory
+                .row
+                    .col-md-12
+                        input(type='text' name='feedback_email' v-model="tmp_email")
+
+                .spacer
+
+                .row
+                    .col-md-12
+                        label(for='feedback_phone') {{ label('feedback_handler.phone.label') }}
+                .row
+                    .col-md-12
+                        input(type='text' name='feedback_phone' v-model="tmp_phone")
+
+                .spacer
+
+                .row
+                    .col-md-12
+                        label {{ label('feedback_handler.type.label') }}
+                            i.fa.fa-asterisk.mandatory
+                .row
+                    .col-md-12
+                        input(type="radio" id="feedback_type_2" value='2' v-model="tmp_type")
+                        label.feedback_type(for="feedback_type_2" v-tooltip.top="label('feedback_handler.type.incident.tooltip')") {{ label('feedback_handler.type.incident') }}
+                .row
+                    .col-md-12
+                        input(type="radio" id="feedback_type_1" value='1' v-model="tmp_type")
+                        label.feedback_type(for="feedback_type_1" v-tooltip.top="label('feedback_handler.type.bug.tooltip')") {{ label('feedback_handler.type.bug') }}
+                .row
+                    .col-md-12
+                        input(type="radio" id="feedback_type_0" value='0' v-model="tmp_type")
+                        label.feedback_type(for="feedback_type_0" v-tooltip.top="label('feedback_handler.type.request.tooltip')") {{ label('feedback_handler.type.request') }}
+                .row
+                    .col-md-12
+                        input(type="radio" id="feedback_type_3" value='3' v-model="tmp_type")
+                        label.feedback_type(for="feedback_type_3" v-tooltip.top="label('feedback_handler.type.not_set.tooltip')") {{ label('feedback_handler.type.not_set') }}
+                
+                .spacer
+
+                .row
+                    .col-md-12
+                        label(for='feedback_title') {{ label('feedback_handler.title.label') }}
+                            i.fa.fa-asterisk.mandatory
+                .row
+                    .col-md-12
+                        input(type='text' name='feedback_title' v-model="tmp_title")
+
+                .spacer
+
+                .row
+                    .col-md-12
+                        label(for='feedback_message') {{ label('feedback_handler.message.label') }}
+                            i.fa.fa-asterisk.mandatory
+                .row
+                    .col-md-12
+                        textarea(name="feedback_message" cols="80" rows="10" v-model="tmp_message")
+
+                .spacer
+
+                .row
+                    .col-md-12
+                        label {{ label('feedback_handler.captures.label') }}
+                            i.fa.fa-asterisk.mandatory
+                .row
+                    .col-md-4
+                        ScreenshotComponent(id='tmp_capture_1_vo' :filevo="tmp_capture_1_vo" @uploaded="uploadedCapture1(...arguments)" ref='ScreenshotComponent1')
+                    .col-md-4
+                        template(v-if='!!tmp_capture_1_vo')
+                            ScreenshotComponent(id='tmp_capture_2_vo' :filevo="tmp_capture_2_vo" @uploaded="uploadedCapture2(...arguments)")
+                    .col-md-4
+                        template(v-if='!!tmp_capture_2_vo')
+                            ScreenshotComponent(id='tmp_capture_3_vo' :filevo="tmp_capture_3_vo" @uploaded="uploadedCapture3(...arguments)")
+
+                .spacer
+
+                .row
+                    .col-md-12
+                        label {{ label('feedback_handler.attachments.label') }}
+                .row
+                    .col-md-4
+                        FileComponent(id='tmp_attachment_1_vo' :filevo="tmp_attachment_1_vo" @uploaded="uploadedFile1(...arguments)")
+                    .col-md-4
+                        template(v-if='!!tmp_attachment_1_vo')
+                            FileComponent(id='tmp_attachment_2_vo' :filevo="tmp_attachment_2_vo" @uploaded="uploadedFile2(...arguments)")
+                    .col-md-4
+                        template(v-if='!!tmp_attachment_2_vo')
+                            FileComponent(id='tmp_attachment_3_vo' :filevo="tmp_attachment_3_vo" @uploaded="uploadedFile3(...arguments)")
+
+                .spacer
+
+                .btn.btn-default.btn-block.btn-flat(@click='reload') {{ label('feedback_handler.clear') }}
+                button.btn.btn-primary.btn-block.btn-flat(type="submit") {{ label('feedback_handler.submit') }}
+        

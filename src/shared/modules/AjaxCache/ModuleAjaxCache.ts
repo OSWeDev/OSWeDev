@@ -34,6 +34,7 @@ export default class ModuleAjaxCache extends Module {
     public static MSGPACK_REQUEST_TYPE: string = 'application/x-msgpack; charset=utf-8';
 
     public static APINAME_REQUESTS_WRAPPER: string = "REQUESTS_WRAPPER";
+    public static POST_UID: number = 1;
 
     public static getInstance(): ModuleAjaxCache {
         if (!ModuleAjaxCache.instance) {
@@ -45,6 +46,7 @@ export default class ModuleAjaxCache extends Module {
     private static instance: ModuleAjaxCache = null;
 
     public ajaxcache_debouncer: number = 200;
+    public api_logs: LightWeightSendableRequestVO[] = [];
 
     private cache: RequestsCacheVO = new RequestsCacheVO();
     private invalidationRules: CacheInvalidationRulesVO = new CacheInvalidationRulesVO();
@@ -54,6 +56,9 @@ export default class ModuleAjaxCache extends Module {
 
     private disableCache = false;
     private defaultInvalidationTimeout = 300000;
+
+    // Limite en dur, juste pour essayer de limiter un minimum l'impact mémoire
+    private api_logs_limit: number = 101;
 
     private processRequestsSemaphore: boolean = false;
     private processRequestsSemaphore_needs_reload: boolean = false;
@@ -67,9 +72,16 @@ export default class ModuleAjaxCache extends Module {
         this.forceActivationOnInstallation();
     }
 
-    public getUIDIndex(url: string, postdatas: any): string {
+    public getUIDIndex(url: string, postdatas: any, type: number): string {
         try {
-            return url + (postdatas ? '###___###' + JSON.stringify(postdatas) : '');
+            switch (type) {
+                case RequestResponseCacheVO.API_TYPE_GET:
+                    return url;
+                case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
+                    return url + (postdatas ? '###___###' + JSON.stringify(postdatas) : '');
+                case RequestResponseCacheVO.API_TYPE_POST:
+                    return url + (postdatas ? '##___##' + (ModuleAjaxCache.POST_UID++) : '');
+            }
         } catch (error) {
             ConsoleHandler.getInstance().error('Index impossible à créer:' + url + ':' + postdatas + ':' + error + ':');
         }
@@ -116,7 +128,7 @@ export default class ModuleAjaxCache extends Module {
         return new Promise((resolve, reject) => {
 
             // If in cache
-            let UIDindex = this.getUIDIndex(url, postdatas);
+            let UIDindex = this.getUIDIndex(url, postdatas, post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_GET);
             if (self.cache.requestResponseCaches[UIDindex]) {
 
                 let cache: RequestResponseCacheVO = self.cache.requestResponseCaches[UIDindex];
@@ -174,9 +186,24 @@ export default class ModuleAjaxCache extends Module {
      */
     public post(
         url: string, api_types_involved: string[], postdatas = null, dataType: string = 'json',
-        contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false): Promise<any> {
+        contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false,
+        is_wrapper: boolean = false): Promise<any> {
 
         let self = this;
+
+        if (!is_wrapper) {
+            let light_weight = new LightWeightSendableRequestVO(null);
+            light_weight.url = url;
+            light_weight.contentType = contentType;
+            light_weight.postdatas = (!EnvHandler.getInstance().MSGPCK) ? postdatas : Object.assign({}, postdatas);
+            light_weight.dataType = dataType;
+            light_weight.processData = processData;
+            light_weight.type = post_for_get ? LightWeightSendableRequestVO.API_TYPE_POST_FOR_GET : LightWeightSendableRequestVO.API_TYPE_POST;
+            if (this.api_logs.length >= this.api_logs_limit) {
+                this.api_logs.shift();
+            }
+            this.api_logs.push(light_weight);
+        }
 
         let res = new Promise((resolve, reject) => {
 
@@ -245,10 +272,10 @@ export default class ModuleAjaxCache extends Module {
                     options.dataType = dataType;
                 }
                 if (cache.processData != null) {
-                    options.cache.processData = cache.processData;
+                    options.processData = cache.processData;
                 }
                 if (cache.timeout != null) {
-                    options.cache.timeout = cache.timeout;
+                    options.timeout = cache.timeout;
                 }
                 if (!!VueAppController.getInstance().csrf_token) {
                     if (!options.headers) {
@@ -346,7 +373,7 @@ export default class ModuleAjaxCache extends Module {
         timeout: number,
         api_types_involved: string[], resolve: (datas) => void, reject: (datas) => void, type: number = RequestResponseCacheVO.API_TYPE_GET) {
 
-        let index = this.getUIDIndex(url, postdatas);
+        let index = this.getUIDIndex(url, postdatas, type);
         if (!this.cache.requestResponseCaches[index]) {
             this.cache.requestResponseCaches[index] = new RequestResponseCacheVO(url, api_types_involved, type);
             this.cache.requestResponseCaches[index].postdatas = postdatas;
@@ -546,8 +573,15 @@ export default class ModuleAjaxCache extends Module {
                     let request = requests[i];
 
                     request.index = i.toString();
-                    correspondance[i.toString()] = this.getUIDIndex(request.url, request.postdatas);
-                    sendable_objects.push(new LightWeightSendableRequestVO(request));
+                    correspondance[i.toString()] = this.getUIDIndex(request.url, request.postdatas, request.type);
+
+                    let light_weight = new LightWeightSendableRequestVO(request);
+                    sendable_objects.push(light_weight);
+
+                    if (this.api_logs.length >= this.api_logs_limit) {
+                        this.api_logs.shift();
+                    }
+                    this.api_logs.push(light_weight);
                 }
 
                 let everything_went_well: boolean = true;
@@ -558,7 +592,8 @@ export default class ModuleAjaxCache extends Module {
                         "/api_handler/requests_wrapper", [],
                         (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
                         null,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as RequestsWrapperResult;
+                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
+                        null, null, false, true) as RequestsWrapperResult;
 
                     if ((!results) || (!results.requests_results)) {
                         throw new Error('Pas de résultat pour la requête groupée.');
@@ -588,6 +623,13 @@ export default class ModuleAjaxCache extends Module {
 
         if (self.waitingForRequest && (self.waitingForRequest.length > 0)) {
             let request: RequestResponseCacheVO = self.waitingForRequest.shift();
+
+            let light_weight = new LightWeightSendableRequestVO(request);
+
+            if (this.api_logs.length >= this.api_logs_limit) {
+                this.api_logs.shift();
+            }
+            this.api_logs.push(light_weight);
 
             switch (request.type) {
                 case RequestResponseCacheVO.API_TYPE_GET:

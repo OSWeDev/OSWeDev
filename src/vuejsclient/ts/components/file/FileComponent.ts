@@ -123,7 +123,10 @@ export default class FileComponent extends VueComponentBase {
 
                 try {
                     let newvo = JSON.parse(res);
-                    self.storeData(newvo);
+
+                    if (!!self.storeData) {
+                        self.storeData(newvo);
+                    }
                     self.$emit('uploaded', newvo);
 
                     if (!!onSuccess) {

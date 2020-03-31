@@ -38,6 +38,7 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
+import IServerUserSession from '../../IServerUserSession';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -506,7 +507,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public async getMyLang(): Promise<LangVO> {
 
-        let user_id: number = await this.getLoggedUserId();
+        let user_id: number = this.getLoggedUserId();
 
         if (!user_id) {
             return null;
@@ -523,7 +524,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return;
         }
 
-        let user_id: number = await this.getLoggedUserId();
+        let user_id: number = this.getLoggedUserId();
         if (!user_id) {
             return;
         }
@@ -598,10 +599,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return dependency;
     }
 
-    /**
-     * Warning : Renvoie le user de la session qui n'est pas la version à jour du user !! Il faut recharger depuis la BDD au besoin avec l'id
-     */
-    public getLoggedUserId(): Promise<number> {
+    public getLoggedUserId(): number {
 
         try {
 
@@ -612,6 +610,74 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return session.uid;
             }
             return null;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            return null;
+        }
+    }
+
+    public isLogedAs(): boolean {
+
+        try {
+
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            let session = httpContext ? httpContext.get('SESSION') : null;
+
+            if (session && !!session.impersonated_from) {
+                return true;
+            }
+            return false;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            return false;
+        }
+    }
+
+    /**
+     * Renvoie le UID de l'admin qui utilise la fonction logAs
+     */
+    public getAdminLogedUserId(): number {
+
+        try {
+
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            let session = httpContext ? httpContext.get('SESSION') : null;
+
+            let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
+
+            if (impersonated_from_session && !!impersonated_from_session.uid) {
+                return impersonated_from_session.uid;
+            }
+            return null;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            return null;
+        }
+    }
+
+    /**
+     * Renvoie la session de l'admin qui utilise la fonction logAs
+     */
+    public getAdminLogedUserSession(): IServerUserSession {
+
+        try {
+
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            let session = httpContext ? httpContext.get('SESSION') : null;
+
+            return (session && session.impersonated_from) ? session.impersonated_from as IServerUserSession : null;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            return null;
+        }
+    }
+
+    public getUserSession(): IServerUserSession {
+
+        try {
+
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            return httpContext ? httpContext.get('SESSION') as IServerUserSession : null;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             return null;

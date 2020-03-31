@@ -56,7 +56,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         // TODO : ATTENTION par défaut c'est du without timezone en base, hors sur le serveur on a un timezone par défaut et sur les fullcalendar on est en without timezone par défaut ....
         let ts = moment().utc(true);
-        let uid: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let uid: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
         let robot_user: UserVO = null;
 
         if (!vo.version_author_id) {
@@ -92,7 +92,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
         await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
 
-        let uid: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let uid: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
         if (!!uid) {
             vo.version_edit_author_id = uid;

@@ -14,6 +14,7 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleParamsServer extends ModuleServerBase {
 
@@ -28,6 +29,13 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleParams.getInstance().name);
+    }
+
+    public async configure() {
+
+        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Paramètres' },
+            'menu.menuelements.param.___LABEL___'));
     }
 
     public registerServerApiHandlers() {

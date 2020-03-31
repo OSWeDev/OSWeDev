@@ -380,7 +380,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let loggedUserId: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
         if (!loggedUserId) {
             return null;
         }
@@ -464,7 +464,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return null;
         }
 
-        let loggedUserId: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let loggedUserId: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
         if (!loggedUserId) {
             return null;
         }

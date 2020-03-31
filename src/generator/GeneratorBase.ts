@@ -29,6 +29,7 @@ import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
 import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
+import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 
 export default abstract class GeneratorBase {
 
@@ -51,6 +52,7 @@ export default abstract class GeneratorBase {
         ModulesManager.getInstance().isServerSide = true;
 
         this.pre_modules_workers = [
+            Patch20200331DeleteOrphanTranslations.getInstance(),
             Patch20200305CascadeChecker.getInstance(),
             Patch20200131DeleteVersioningVOAccessPolicies.getInstance(),
             Patch20191010CheckBasicSchemas.getInstance(),
@@ -62,7 +64,7 @@ export default abstract class GeneratorBase {
             Patch20191008ChangeDIHDateType.getInstance(),
             Patch20191008ChangeDILDateType.getInstance(),
             Patch20191008SupprimerTacheReimport.getInstance(),
-            Patch20191202GeoPoint.getInstance(),
+            Patch20191202GeoPoint.getInstance()
         ];
 
         this.post_modules_workers = [

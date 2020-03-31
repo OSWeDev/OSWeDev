@@ -20,6 +20,10 @@ export default class LightWeightSendableRequestVO {
     public type: number;
 
     public constructor(request: RequestResponseCacheVO) {
+
+        if (!request) {
+            return;
+        }
         this.url = request.url;
         this.datas = Object.assign({}, request.datas);
         this.contentType = request.contentType;

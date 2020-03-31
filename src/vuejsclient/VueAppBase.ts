@@ -24,7 +24,7 @@ import 'vue-multiselect/dist/vue-multiselect.min.css';
 import VueQuillEditor from 'vue-quill-editor';
 import * as VueResource from 'vue-resource';
 import VueRouter, { RouterOptions } from 'vue-router';
-import { RouteConfig } from 'vue-router/types/router';
+import { RouteConfig, Route } from 'vue-router/types/router';
 import vSelect from 'vue-select';
 import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
@@ -64,6 +64,7 @@ import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
+import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
 
 require('moment-json-parser').overrideDefault();
 
@@ -137,6 +138,8 @@ export default abstract class VueAppBase {
         }
 
         let user_lang = VueAppController.getInstance().data_user_lang ? VueAppController.getInstance().data_user_lang.code_lang : null;
+
+        ConsoleLogLogger.getInstance().prepare_console_logger();
 
         LocaleManager.getInstance().setDefaultLocale(user_lang || accepted_language || navigator.language || this.appController.data_default_locale || 'fr');
         let default_locale = LocaleManager.getInstance().getDefaultLocale();
@@ -278,6 +281,11 @@ export default abstract class VueAppBase {
         }
 
         this.vueRouter.beforeEach((route, redirect, next) => {
+
+            if (VueAppController.getInstance().routes_log.length >= VueAppController.getInstance().routes_log_limit) {
+                VueAppController.getInstance().routes_log.shift();
+            }
+            VueAppController.getInstance().routes_log.push(route);
 
             let app: VueComponentBase = self.vueRouter.app as VueComponentBase;
 

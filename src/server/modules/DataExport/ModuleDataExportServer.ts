@@ -120,7 +120,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let filepath: string = "temp/" + params.filename;
         XLSX.writeFile(workbook, filepath);
 
-        let user_log_id: number = await ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let user_log_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
         // On log l'export
         if (!!user_log_id) {
