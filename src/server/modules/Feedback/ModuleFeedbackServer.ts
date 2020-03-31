@@ -309,7 +309,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
-            let url = envParam.BASE_URL + api_log.url
+            let url = envParam.BASE_URL + api_log.url;
             if (envParam.BASE_URL.endsWith('/') && api_log.url.startsWith('/')) {
                 url = envParam.BASE_URL + api_log.url.substr(1, api_log.url.length - 1);
             }
