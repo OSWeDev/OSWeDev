@@ -251,7 +251,7 @@ export default class ModuleTableField<T> {
             this.field_label.code_text = "fields.labels." + this.module_table.full_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         } else {
             if (!module_name) {
-                return;
+                return this;
             }
             this.field_label.code_text = "fields.labels." + module_name + "." + this.field_id + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
         }
