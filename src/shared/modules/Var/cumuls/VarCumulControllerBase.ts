@@ -1,18 +1,19 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
 import DateHandler from '../../../tools/DateHandler';
+import TimeSegment from '../../DataRender/vos/TimeSegment';
+import IDataSourceController from '../../DataSource/interfaces/IDataSourceController';
+import CumulativVarController from '../CumulativVarController';
+import VarDAG from '../graph/var/VarDAG';
+import VarDAGNode from '../graph/var/VarDAGNode';
 import IDateIndexedSimpleNumberVarData from '../interfaces/IDateIndexedSimpleNumberVarData';
 import IDateIndexedVarDataParam from '../interfaces/IDateIndexedVarDataParam';
 import ISimpleNumberVarData from '../interfaces/ISimpleNumberVarData';
+import IVarDataParamVOBase from '../interfaces/IVarDataParamVOBase';
 import VarControllerBase from '../VarControllerBase';
 import VarsController from '../VarsController';
 import VarConfVOBase from '../vos/VarConfVOBase';
 import VarsCumulsController from './VarsCumulsController';
-import IDataSourceController from '../../DataSource/interfaces/IDataSourceController';
-import VarDAG from '../graph/var/VarDAG';
-import IVarDataParamVOBase from '../interfaces/IVarDataParamVOBase';
-import VarDAGNode from '../graph/var/VarDAGNode';
-import TimeSegment from '../../DataRender/vos/TimeSegment';
 
 export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumberVarData & TDataParam, TDataParam extends IDateIndexedVarDataParam> extends VarControllerBase<TData, TDataParam> {
 
@@ -108,7 +109,7 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
     }
 
     private getPreviousDateIndexKeepSameSegment(date_index: string): string {
-        let date: Moment = moment(date_index);
+        let date: Moment = moment(date_index).utc(true);
 
         switch (this.cumulType) {
             case VarsCumulsController.CUMUL_WEEK_NAME:
@@ -122,8 +123,6 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
                 }
                 break;
             case VarsCumulsController.CUMUL_YEAR_NAME:
-            default:
-
                 switch (this.segment_type) {
                     case TimeSegment.TYPE_MONTH:
                         if (date.dayOfYear() > 1) {
@@ -137,6 +136,46 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
                             return DateHandler.getInstance().formatDayForIndex(date.add(-1, 'day'));
                         }
                 }
+                break;
+
+            case VarsCumulsController.CUMUL_RESET_NAME:
+                if (!this.varConfToCumulate.has_yearly_reset) {
+                    return;
+                }
+
+                let last_reset: Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
+                    moment(date).startOf('day').utc(true),
+                    false,
+                    this.varConfToCumulate.has_yearly_reset,
+                    this.varConfToCumulate.yearly_reset_day_in_month,
+                    this.varConfToCumulate.yearly_reset_month
+                );
+
+                let new_date: Moment = moment(date).utc(true);
+
+                switch (this.segment_type) {
+                    case TimeSegment.TYPE_MONTH:
+                        new_date.add(-1, 'month');
+
+                        if (new_date.isAfter(last_reset, 'day')) {
+                            return DateHandler.getInstance().formatDayForIndex(new_date);
+                        }
+                        break;
+
+                    case TimeSegment.TYPE_DAY:
+                    default:
+                        new_date.add(-1, 'day');
+
+                        if (date.isAfter(last_reset, 'day')) {
+                            return DateHandler.getInstance().formatDayForIndex(new_date);
+                        }
+                        break;
+                }
+
+                break;
+
+            default:
+                break;
         }
 
         return null;
