@@ -1,13 +1,10 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
-import { isNumber } from 'util';
-import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import ModuleAPI from '../API/ModuleAPI';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import DataRenderController from './DataRenderController';
 import IRenderedData from './interfaces/IRenderedData';
 import DataRendererVO from './vos/DataRendererVO';
 import DataRenderingLogVO from './vos/DataRenderingLogVO';
@@ -71,30 +68,18 @@ export default class ModuleDataRender extends Module {
     }
 
     /**
+     * TODO: DONOT use this, call the controller directly
      * Calcul le % de trend pour aller du départ à l'arrivée
      * @param value_a Valeur de départ
      * @param value_b Valeur d'arrivée
      * @returns number entre 0 et 1, ou 999 pour + infini
      */
     public getTrendP(value_a: number, value_b: number): number {
-
-        if ((!value_a) || ((value_a < 0) && (value_b > 0))
-            || ((value_a > 0) && (value_b < 0))) {
-            return value_b > 0 ? 999 : (value_b < 0 ? -999 : 0);
-        }
-
-        if (((value_b / value_a) - 1) > 99) {
-            return 999;
-        }
-
-        if (((value_b / value_a) - 1) < -99) {
-            return -999;
-        }
-
-        return (value_b / value_a) - 1;
+        return DataRenderController.getInstance().getTrendP(value_a, value_b);
     }
 
     /**
+     * TODO: DONOT use this, call the controller directly
      * Calcul le trend (en number) pour aller du départ à l'arrivée
      * @param value_a Valeur de départ
      * @param value_b Valeur d'arrivée
@@ -102,37 +87,17 @@ export default class ModuleDataRender extends Module {
      */
     public getTrend(value_a: number, value_b: number): number {
 
-        if (!isNumber(value_a)) {
-            return value_b;
-        }
-
-        if (!isNumber(value_b)) {
-            return -value_a;
-        }
-
-        return (value_b - value_a);
+        return DataRenderController.getInstance().getTrend(value_a, value_b);
     }
 
     /**
+     * TODO: DONOT use this, call the controller directly
      * Calcul le pourcentage entre 2 valeurs
      * @param value_a Numérateur
      * @param value_b Dénominateur
      */
     public getPrct(value_a: number, value_b: number): number {
-
-        if ((!isNumber(value_a)) || (!isNumber(value_b)) || (!value_b)) {
-            return null;
-        }
-
-        if ((value_a < 0) && (value_b > 0)) {
-            return null;
-        }
-
-        if ((value_a > 0) && (value_b < 0)) {
-            return null;
-        }
-
-        return value_a / value_b;
+        return DataRenderController.getInstance().getPrct(value_a, value_b);
     }
 
     public async getDataRenderers(): Promise<DataRendererVO[]> {
@@ -147,249 +112,115 @@ export default class ModuleDataRender extends Module {
         return await ModuleAPI.getInstance().handleAPI<void, DataRenderingLogVO[]>(ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS);
     }
 
+    /**
+     * TODO: DONOT use this, call the controller directly
+     * @param rows
+     * @param conditionFunc
+     */
     public getCount(rows: IRenderedData[], conditionFunc: (row: IRenderedData) => boolean): number {
-        let res = 0;
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
-
-            if (!row) {
-                continue;
-            }
-
-            if (conditionFunc && (!conditionFunc(row))) {
-                continue;
-            }
-
-            res++;
-        }
-        return res;
+        return DataRenderController.getInstance().getCount(rows, conditionFunc);
     }
 
+    /**
+     * TODO: DONOT use this, call the controller directly
+     * @param rows
+     * @param field_name
+     * @param conditionFunc
+     */
     public getColSomme(rows: IRenderedData[], field_name: string, conditionFunc: (row: IRenderedData) => boolean): number {
-        let res = 0;
-        let has_data: boolean = false;
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
-
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name])) || (row[field_name] == null)) {
-                continue;
-            }
-
-            if (conditionFunc && (!conditionFunc(row))) {
-                continue;
-            }
-
-            has_data = true;
-            res += row[field_name];
-        }
-
-        if (!has_data) {
-            return null;
-        }
-        return res;
+        return DataRenderController.getInstance().getColSomme(rows, field_name, conditionFunc);
     }
 
+    /**
+     * TODO: DONOT use this, call the controller directly
+     * @param rows
+     * @param field_name
+     * @param conditionFunc
+     */
     public getColMean(rows: IRenderedData[], field_name: string, conditionFunc: (row: IRenderedData) => boolean): number {
-        let res = 0;
-        let nb_datas: number = 0;
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
-
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name])) || (row[field_name] == null)) {
-                continue;
-            }
-
-            if (conditionFunc && (!conditionFunc(row))) {
-                continue;
-            }
-
-            nb_datas++;
-            res += row[field_name];
-        }
-
-        if (!nb_datas) {
-            return null;
-        }
-        return res / nb_datas;
+        return DataRenderController.getInstance().getColMean(rows, field_name, conditionFunc);
     }
 
+    /**
+     * TODO: DONOT use this, call the controller directly
+     * @param rows
+     * @param field_name
+     * @param field_ponderation_name
+     * @param conditionFunc
+     */
     public getColMeanPonderee(rows: IRenderedData[], field_name: string, field_ponderation_name: string, conditionFunc: (row: IRenderedData) => boolean): number {
-        let res = 0;
-        let nb_datas: number = 0;
-        let ponderation: number = 0;
-
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
-
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name]) || (row[field_name] == null))) {
-                continue;
-            }
-
-            if (conditionFunc && (!conditionFunc(row))) {
-                continue;
-            }
-
-            let poids = row[field_ponderation_name];
-            if ((typeof poids == 'undefined') || (!isNumber(poids))) {
-                poids = 1;
-            }
-
-            nb_datas++;
-            ponderation += poids;
-            res += (row[field_name] * poids);
-        }
-
-        if ((!nb_datas) || (!ponderation)) {
-            return null;
-        }
-        return res / ponderation;
+        return DataRenderController.getInstance().getColMeanPonderee(rows, field_name, field_ponderation_name, conditionFunc);
     }
 
+    /**
+     * TODO: DONOT use this, call the controller directly
+     * @param rows
+     * @param timeSegment
+     */
     public filterDataBySegment(rows: IRenderedData[], timeSegment: TimeSegment): IRenderedData[] {
-        let res: IRenderedData[] = [];
-        for (let i in rows) {
-            let row: IRenderedData = rows[i];
-
-            if ((!row) || (typeof row.data_dateindex == 'undefined')) {
-                continue;
-            }
-
-            if (!TimeSegmentHandler.getInstance().isEltInSegment(moment(row.data_dateindex).utc(true), timeSegment)) {
-                continue;
-            }
-
-            res.push(row);
-        }
-
-        return res;
+        return DataRenderController.getInstance().filterDataBySegment(rows, timeSegment);
     }
 
+    /**
+     * TODO: DONOT use this, call the controller directly
+     * @param timeSegment
+     * @param resource_id
+     * @param field_name
+     * @param field_name_cumul
+     * @param segment_id
+     * @param renderedDatasBySegmentAndResourceId
+     */
     public getCumul<T extends IRenderedData>(
         timeSegment: TimeSegment, resource_id: number, field_name: string, field_name_cumul: string, segment_id: number,
         renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
-        let timeSegment_prec: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
-
-        let previousCumul: number = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
-        let value: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
-
-        let hasPreviousValue: boolean = isNumber(previousCumul);
-        let hasValue: boolean = isNumber(value);
-        let isInSameSegmentType: boolean = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
-
-        if (hasValue && hasPreviousValue && isInSameSegmentType) {
-            return previousCumul + value;
-        }
-
-        if (hasPreviousValue && isInSameSegmentType) {
-            return previousCumul;
-        }
-
-        if (hasValue) {
-            if ((!hasPreviousValue) && isInSameSegmentType) {
-                // on essaie de retrouver un cumul précédent des fois qu'il y ai un trou dans les datas
-                while (isInSameSegmentType) {
-                    timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
-                    isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
-                    previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
-                    hasPreviousValue = isNumber(previousCumul);
-                    if (hasPreviousValue && isInSameSegmentType) {
-                        return previousCumul + value;
-                    }
-                }
-
-            }
-            return value;
-        }
-
-        if ((!hasPreviousValue) && isInSameSegmentType) {
-            // on essaie de retrouver un cumul précédent des fois qu'il y ai un trou dans les datas
-            while (isInSameSegmentType) {
-                timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
-                isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
-                previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
-                hasPreviousValue = isNumber(previousCumul);
-                if (hasPreviousValue && isInSameSegmentType) {
-                    return previousCumul;
-                }
-            }
-        }
-        return null;
+        return DataRenderController.getInstance().getCumul(timeSegment, resource_id, field_name, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
     }
 
+    /**
+     * TODO: DONOT use this, call the controller directly
+     * @param timeSegment
+     * @param resource_id
+     * @param field_name
+     * @param segment_id
+     * @param renderedDatasBySegmentAndResourceId
+     */
     public getCumul_m_mm1_mm2<T extends IRenderedData>(
         timeSegment: TimeSegment, resource_id: number, field_name: string, segment_id: number,
         renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
-        let timeSegment_mm1: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment);
-        let timeSegment_mm2: TimeSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_mm1);
-        let value_m: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
-        let value_mm1: number = this.getValueFromRendererData(timeSegment_mm1, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
-        let value_mm2: number = this.getValueFromRendererData(timeSegment_mm2, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
-
-        let hasValue_m: boolean = isNumber(value_m);
-        let hasValue_mm1: boolean = isNumber(value_mm1);
-        let hasValue_mm2: boolean = isNumber(value_mm2);
-
-        value_m = value_m ? value_m : 0;
-        value_mm1 = value_mm1 ? value_mm1 : 0;
-        value_mm2 = value_mm2 ? value_mm2 : 0;
-
-        if (hasValue_m || hasValue_mm1 || hasValue_mm2) {
-            return value_m + value_mm1 + value_mm2;
-        }
-
-        return null;
+        return DataRenderController.getInstance().getCumul_m_mm1_mm2(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
     }
 
+    /**
+     * TODO: DONOT use this, call the controller directly
+     * @param cumulSegment
+     * @param type_segmentation
+     * @param resource_id
+     * @param field_name
+     * @param segment_id
+     * @param renderedDatasBySegmentAndResourceId
+     */
     public getCumulSegment<T extends IRenderedData>(
         cumulSegment: TimeSegment, type_segmentation: number, resource_id: number, field_name: string, segment_id: number,
         renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
-        let value: number = 0;
-
-        let current_cumulSegment: TimeSegment = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(cumulSegment.dateIndex).utc(true), type_segmentation);
-        let end_cumul_dateindex: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(cumulSegment);
-        while (end_cumul_dateindex.isSameOrAfter(TimeSegmentHandler.getInstance().getEndTimeSegment(current_cumulSegment))) {
-
-            if ((!renderedDatasBySegmentAndResourceId) || (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex]) ||
-                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id]) ||
-                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id][segment_id]) ||
-                (!renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id][segment_id][field_name])) {
-                current_cumulSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
-                continue;
-            }
-            let segment_value: number = renderedDatasBySegmentAndResourceId[current_cumulSegment.dateIndex][resource_id][segment_id][field_name];
-            value += segment_value;
-
-            current_cumulSegment = TimeSegmentHandler.getInstance().getPreviousTimeSegment(current_cumulSegment, current_cumulSegment.type, -1);
-        }
-
-        return value;
+        return DataRenderController.getInstance().getCumulSegment(cumulSegment, type_segmentation, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
     }
 
+    /**
+     * TODO: DONOT use this, call the controller directly
+     * @param timeSegment
+     * @param resource_id
+     * @param field_name
+     * @param segment_id
+     * @param renderedDatasBySegmentAndResourceId
+     */
     public getValueFromRendererData<T extends IRenderedData>(
         timeSegment: TimeSegment, resource_id: number, field_name: string, segment_id: number,
         renderedDatasBySegmentAndResourceId: { [date_index: string]: { [resource_id: number]: { [segment_id: number]: T } } }): number {
 
-        if (!timeSegment) {
-            return null;
-        }
-
-        if (!renderedDatasBySegmentAndResourceId) {
-            return null;
-        }
-
-        segment_id = segment_id ? segment_id : 0;
-        if ((!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex]) ||
-            (!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id]) ||
-            (!renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id]) ||
-            (renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id][field_name] == null) ||
-            (typeof renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id ? segment_id : 0][field_name] == 'undefined')) {
-            return null;
-        }
-
-        return renderedDatasBySegmentAndResourceId[timeSegment.dateIndex][resource_id][segment_id ? segment_id : 0][field_name];
+        return DataRenderController.getInstance().getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
     }
 
     public initialize() {

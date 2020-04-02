@@ -1,6 +1,3 @@
-import * as http from 'http';
-import * as https from 'https';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
