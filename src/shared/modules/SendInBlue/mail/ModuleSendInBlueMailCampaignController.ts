@@ -1,4 +1,4 @@
-import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
+import ModuleRequest from '../../Request/ModuleRequest';
 import InsertOrDeleteQueryResult from '../../DAO/vos/InsertOrDeleteQueryResult';
 import ModuleSendInBlueListController from '../list/ModuleSendInBlueListController';
 import ModuleSendInBlueController from '../ModuleSendInBlueController';

@@ -1,8 +1,8 @@
-import ConfigurationService from '../../server/env/ConfigurationService';
-import EnvParam from '../../server/env/EnvParam';
-import TranslatableTextVO from '../modules/Translation/vos/TranslatableTextVO';
-import TranslationVO from '../modules/Translation/vos/TranslationVO';
-import ModuleTranslation from '../modules/Translation/ModuleTranslation';
+import ConfigurationService from '../../env/ConfigurationService';
+import EnvParam from '../../env/EnvParam';
+import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
+import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 
 export default class TemplateHandlerServer {
 

@@ -1,7 +1,7 @@
-import ModuleRequest from '../../server/modules/Request/ModuleRequest';
 import GeoPointFeatureVO from './vos/GeoPointFeatureVO';
 import GeoPointResponseVO from './vos/GeoPointResponseVO';
 import GeoPointVO from './vos/GeoPointVO';
+import ModuleRequest from '../modules/Request/ModuleRequest';
 
 export default class GeoPointHandler {
 

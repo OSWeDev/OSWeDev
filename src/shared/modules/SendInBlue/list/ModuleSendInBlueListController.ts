@@ -1,5 +1,5 @@
 // import * as SibAPI from 'sib-api-v3-typescript';
-import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
+import ModuleRequest from '../../Request/ModuleRequest';
 import InsertOrDeleteQueryResult from '../../DAO/vos/InsertOrDeleteQueryResult';
 import ModuleSendInBlueController from '../ModuleSendInBlueController';
 import SendInBlueContactDetailVO from '../vos/SendInBlueContactDetailVO';

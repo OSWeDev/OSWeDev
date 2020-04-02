@@ -1,7 +1,7 @@
-import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
 import ModuleSendInBlueController from '../ModuleSendInBlueController';
 import SendInBlueSmsFormatVO from '../vos/SendInBlueSmsFormatVO';
 import SendInBlueSmsVO from '../vos/SendInBlueSmsVO';
+import ModuleRequest from '../../Request/ModuleRequest';
 
 export default class ModuleSendInBlueSmsController {
 

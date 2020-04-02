@@ -1,4 +1,4 @@
-import ModuleRequest from '../../../../server/modules/Request/ModuleRequest';
+import ModuleRequest from '../../Request/ModuleRequest';
 import ModuleSendInBlueController from '../ModuleSendInBlueController';
 import SendInBlueAttachmentVO from '../vos/SendInBlueAttachmentVO';
 import SendInBlueMailVO from '../vos/SendInBlueMailVO';

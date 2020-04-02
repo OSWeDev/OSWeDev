@@ -1,4 +1,4 @@
-import ModuleRequest from '../../../server/modules/Request/ModuleRequest';
+import ModuleRequest from '../Request/ModuleRequest';
 import ModuleDAO from '../DAO/ModuleDAO';
 import SendInBlueMailVO from './vos/SendInBlueMailVO';
 import SendInBlueVO from './vos/SendInBlueVO';

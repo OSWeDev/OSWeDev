@@ -3,7 +3,7 @@ import { SendMailOptions } from 'nodemailer';
 import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import TemplateHandlerServer from '../../../shared/tools/TemplateHandlerServer';
+import TemplateHandlerServer from './TemplateHandlerServer';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleServerBase from '../ModuleServerBase';
 

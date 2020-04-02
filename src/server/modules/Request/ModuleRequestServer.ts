@@ -1,27 +1,46 @@
 import * as http from 'http';
 import * as https from 'https';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
+import SendRequestParamVO from '../../../shared/modules/Request/vos/SendRequestParamVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleServerBase from '../ModuleServerBase';
 
-export default class ModuleRequest extends ModuleServerBase {
+export default class ModuleRequestServer extends ModuleServerBase {
 
     public static METHOD_GET: string = "GET";
     public static METHOD_POST: string = "POST";
 
     public static getInstance() {
-        if (!ModuleRequest.instance) {
-            ModuleRequest.instance = new ModuleRequest();
+        if (!ModuleRequestServer.instance) {
+            ModuleRequestServer.instance = new ModuleRequestServer();
         }
-        return ModuleRequest.instance;
+        return ModuleRequestServer.instance;
     }
 
-    private static instance: ModuleRequest = null;
+    private static instance: ModuleRequestServer = null;
 
     constructor() {
-        super('request');
+        super(ModuleRequest.MODULE_NAME);
     }
 
-    public async sendRequestFromApp(method: string, host: string, path: string, posts: {} = null, headers: {} = null, sendHttps: boolean = false): Promise<any> {
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleRequest.APINAME_sendRequestFromApp, this.sendRequestFromApp.bind(this));
+    }
+
+    public async sendRequestFromApp(param: SendRequestParamVO): Promise<any> {
+
+        if (!param) {
+            return null;
+        }
+
+        let method: string = param.method;
+        let host: string = param.host;
+        let path: string = param.path;
+        let posts: {} = param.posts;
+        let headers: {} = param.headers;
+        let sendHttps: boolean = param.sendHttps;
+
         return new Promise((resolve, reject) => {
             const options = {
                 host: host,
