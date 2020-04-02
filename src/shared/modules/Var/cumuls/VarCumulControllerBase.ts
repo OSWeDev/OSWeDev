@@ -143,6 +143,12 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
                     return;
                 }
 
+                let new_date: Moment = moment(date).utc(true);
+
+                if ((new_date.month() == this.varConfToCumulate.yearly_reset_month) && (new_date.date() == this.varConfToCumulate.yearly_reset_day_in_month)) {
+                    return null;
+                }
+
                 let last_reset: Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
                     moment(date).startOf('day').utc(true),
                     false,
@@ -150,8 +156,6 @@ export default class VarCumulControllerBase<TData extends IDateIndexedSimpleNumb
                     this.varConfToCumulate.yearly_reset_day_in_month,
                     this.varConfToCumulate.yearly_reset_month
                 );
-
-                let new_date: Moment = moment(date).utc(true);
 
                 switch (this.segment_type) {
                     case TimeSegment.TYPE_MONTH:
