@@ -30,9 +30,6 @@ export default class CRUDComponentManager {
 
     public cruds_by_api_type_id: { [api_type_id: string]: CRUD<any> } = {};
     public callback_routes: string[] = [];
-    public callback_function_create: (vo: IDistantVOBase) => Promise<void> = null;
-    public callback_function_update: (vo: IDistantVOBase) => Promise<void> = null;
-    public callback_handle_modal_show_hide: (vo: IDistantVOBase, modal_type: string) => Promise<void> = null;
     public idistantvo_init: IDistantVOBase[] = [];
 
     public registerCRUDs<T extends IDistantVOBase>(

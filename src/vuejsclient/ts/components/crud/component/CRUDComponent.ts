@@ -203,19 +203,19 @@ export default class CRUDComponent extends VueComponentBase {
                 modal_type = 'delete';
             }
 
-            if (CRUDComponentManager.getInstance().callback_handle_modal_show_hide) {
-                await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo, modal_type);
+            if (this.crud && this.crud.callback_handle_modal_show_hide) {
+                await this.crud.callback_handle_modal_show_hide(vo, modal_type);
             }
         } else {
             vo = this.getSelectedVOs[0];
             $('#createData' + embed_append).on("hidden.bs.modal", () => {
-                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'create')
+                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'create');
             });
             $('#updateData' + embed_append).on("hidden.bs.modal", () => {
-                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'update')
+                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'update');
             });
             $('#deleteData' + embed_append).on("hidden.bs.modal", () => {
-                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'delete')
+                this.hideCrudModal(this.crud.readDatatable.API_TYPE_ID, 'delete');
             });
 
         }
@@ -991,14 +991,14 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     private async callCallbackFunctionCreate(): Promise<void> {
-        if (CRUDComponentManager.getInstance().callback_function_create) {
-            await CRUDComponentManager.getInstance().callback_function_create(this.newVO);
+        if (this.crud && this.crud.callback_function_create) {
+            await this.crud.callback_function_create(this.newVO);
         }
     }
 
     private async callCallbackFunctionUpdate(): Promise<void> {
-        if (CRUDComponentManager.getInstance().callback_function_update) {
-            await CRUDComponentManager.getInstance().callback_function_update(this.editableVO);
+        if (this.crud && this.crud.callback_function_update) {
+            await this.crud.callback_function_update(this.editableVO);
         }
     }
 

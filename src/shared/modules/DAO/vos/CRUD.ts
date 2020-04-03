@@ -279,6 +279,12 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public isReadOnlyData: (dataVO: IDistantVOBase) => boolean;
 
+    public callback_handle_modal_show_hide: (vo: IDistantVOBase, modal_type: string) => Promise<void>;
+
+    public callback_function_create: (vo: IDistantVOBase) => Promise<void>;
+
+    public callback_function_update: (vo: IDistantVOBase) => Promise<void>;
+
     /**
      * By default, just the readDatatable is enough for the crud configuration, but the update and create views can be separatly defined.
      * @param readDatatable Datatable and fieds used to populate the data table itself
@@ -327,6 +333,24 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public setIsReadOnlyData(isReadOnlyData: (dataVO: IDistantVOBase) => boolean): CRUD<T> {
         this.isReadOnlyData = isReadOnlyData;
+
+        return this;
+    }
+
+    public setCallbackHandleModalShowHide(callback_handle_modal_show_hide: (vo: IDistantVOBase, modal_type: string) => Promise<void>): CRUD<T> {
+        this.callback_handle_modal_show_hide = callback_handle_modal_show_hide;
+
+        return this;
+    }
+
+    public setCallbackFunctionCreate(callback_function_create: (vo: IDistantVOBase) => Promise<void>): CRUD<T> {
+        this.callback_function_create = callback_function_create;
+
+        return this;
+    }
+
+    public setCallbackFunctionUpdate(callback_function_update: (vo: IDistantVOBase) => Promise<void>): CRUD<T> {
+        this.callback_function_update = callback_function_update;
 
         return this;
     }
