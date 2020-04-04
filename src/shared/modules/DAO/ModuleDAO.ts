@@ -354,11 +354,30 @@ export default class ModuleDAO extends Module {
 
     public async getVosByRefFieldsIds<T extends IDistantVOBase>(
         API_TYPE_ID: string, field_name1: string, ids1: number[], field_name2: string = null, ids2: number[] = null, field_name3: string = null, ids3: number[] = null): Promise<T[]> {
+
+        if (field_name1 && ((!ids1) || (!ids1.length))) {
+            return null;
+        }
+        if (field_name2 && ((!ids2) || (!ids2.length))) {
+            return null;
+        }
+        if (field_name3 && ((!ids3) || (!ids3.length))) {
+            return null;
+        }
         return await ModuleAPI.getInstance().handleAPI<APIDAORefFieldsParamsVO, T[]>(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS, API_TYPE_ID, field_name1, ids1, field_name2, ids2, field_name3, ids3);
     }
 
     public async getVosByRefFieldsIdsAndFieldsString<T extends IDistantVOBase>(
         API_TYPE_ID: string, field_name1: string, ids1: number[], field_name2: string = null, values2: string[] = null, field_name3: string = null, values3: string[] = null): Promise<T[]> {
+        if (field_name1 && ((!ids1) || (!ids1.length))) {
+            return null;
+        }
+        if (field_name2 && ((!values2) || (!values2.length))) {
+            return null;
+        }
+        if (field_name3 && ((!values3) || (!values3.length))) {
+            return null;
+        }
         return await ModuleAPI.getInstance().handleAPI<APIDAORefFieldsAndFieldsStringParamsVO, T[]>(ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING, API_TYPE_ID, field_name1, ids1, field_name2, values2, field_name3, values3);
     }
 

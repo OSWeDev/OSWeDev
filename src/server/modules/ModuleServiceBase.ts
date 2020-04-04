@@ -72,6 +72,8 @@ import ModuleFeedback from '../../shared/modules/Feedback/ModuleFeedback';
 import ModuleFeedbackServer from './Feedback/ModuleFeedbackServer';
 import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleRequestServer from './Request/ModuleRequestServer';
+import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
+import ModuleDocumentServer from './Document/ModuleDocumentServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -330,7 +332,8 @@ export default abstract class ModuleServiceBase {
             ModuleSendInBlue.getInstance(),
             ModuleVocus.getInstance(),
             ModuleFeedback.getInstance(),
-            ModuleRequest.getInstance()
+            ModuleRequest.getInstance(),
+            ModuleDocument.getInstance(),
         ];
     }
 
@@ -367,7 +370,8 @@ export default abstract class ModuleServiceBase {
             ModuleSendInBlueServer.getInstance(),
             ModuleVocusServer.getInstance(),
             ModuleFeedbackServer.getInstance(),
-            ModuleRequestServer.getInstance()
+            ModuleRequestServer.getInstance(),
+            ModuleDocumentServer.getInstance(),
         ];
     }
 }

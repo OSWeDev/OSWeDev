@@ -1,0 +1,221 @@
+import FileVO from '../File/vos/FileVO';
+import Module from '../Module';
+import ModuleTable from '../ModuleTable';
+import ModuleTableField from '../ModuleTableField';
+import LangVO from '../Translation/vos/LangVO';
+import VersionedVOController from '../Versioned/VersionedVOController';
+import VOsTypesManager from '../VOsTypesManager';
+import DocumentDocumentTagVO from './vos/DocumentDocumentTagVO';
+import DocumentTagDocumentTagGroupVO from './vos/DocumentTagDocumentTagGroupVO';
+import DocumentTagGroupLangVO from './vos/DocumentTagGroupLangVO';
+import DocumentTagGroupVO from './vos/DocumentTagGroupVO';
+import DocumentTagLangVO from './vos/DocumentTagLangVO';
+import DocumentTagVO from './vos/DocumentTagVO';
+import DocumentVO from './vos/DocumentVO';
+import DocumentLangVO from './vos/DocumentLangVO';
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ModuleAPI from '../API/ModuleAPI';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import UserVO from '../AccessPolicy/vos/UserVO';
+
+export default class ModuleDocument extends Module {
+
+    public static MODULE_NAME: string = 'Document';
+
+    public static APINAME_get_ds_by_user_lang: string = "get_ds_by_user_lang";
+    public static APINAME_get_dts_by_user_lang: string = "get_dts_by_user_lang";
+    public static APINAME_get_dtgs_by_user_lang: string = "get_dtgs_by_user_lang";
+
+    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDocument.MODULE_NAME;
+    public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDocument.MODULE_NAME + '.BO_ACCESS';
+    public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleDocument.MODULE_NAME + '.FO_ACCESS';
+
+    public static getInstance(): ModuleDocument {
+        if (!ModuleDocument.instance) {
+            ModuleDocument.instance = new ModuleDocument();
+        }
+        return ModuleDocument.instance;
+    }
+
+    private static instance: ModuleDocument = null;
+
+    private constructor() {
+
+        super("document", ModuleDocument.MODULE_NAME);
+        this.forceActivationOnInstallation();
+    }
+
+    public registerApis() {
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DocumentVO[]>(
+            ModuleDocument.APINAME_get_ds_by_user_lang,
+            [DocumentVO.API_TYPE_ID, UserVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DocumentTagVO[]>(
+            ModuleDocument.APINAME_get_dts_by_user_lang,
+            [DocumentTagVO.API_TYPE_ID, UserVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DocumentTagGroupVO[]>(
+            ModuleDocument.APINAME_get_dtgs_by_user_lang,
+            [DocumentTagGroupVO.API_TYPE_ID, UserVO.API_TYPE_ID]
+        ));
+    }
+
+    public async get_ds_by_user_lang(): Promise<DocumentVO[]> {
+        return ModuleAPI.getInstance().handleAPI<void, DocumentVO[]>(ModuleDocument.APINAME_get_ds_by_user_lang);
+    }
+
+    public async get_dts_by_user_lang(): Promise<DocumentTagVO[]> {
+        return ModuleAPI.getInstance().handleAPI<void, DocumentTagVO[]>(ModuleDocument.APINAME_get_dts_by_user_lang);
+    }
+
+    public async get_dtgs_by_user_lang(): Promise<DocumentTagGroupVO[]> {
+        return ModuleAPI.getInstance().handleAPI<void, DocumentTagGroupVO[]>(ModuleDocument.APINAME_get_dtgs_by_user_lang);
+    }
+
+    public initialize() {
+        this.fields = [];
+        this.datatables = [];
+
+        this.initializeDocumentVO();
+        this.initializeDocumentTagVO();
+        this.initializeDocumentTagGroupVO();
+
+        this.initializeDocumentLangVO();
+        this.initializeDocumentTagLangVO();
+        this.initializeDocumentTagGroupLangVO();
+
+        this.initializeDocumentDocumentTagVO();
+        this.initializeDocumentTagDocumentTagGroupVO();
+    }
+
+    private initializeDocumentVO() {
+        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
+        let file_id = new ModuleTableField('file_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Fichier', false);
+
+        let fields = [
+            name,
+            file_id,
+            new ModuleTableField('document_url', ModuleTableField.FIELD_TYPE_string, 'URL', false),
+            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+            new ModuleTableField('type', ModuleTableField.FIELD_TYPE_enum, 'Type de document', true, true, DocumentVO.DOCUMENT_TYPE_OTHER).setEnumValues(DocumentVO.DOCUMENT_TYPE_LABELS),
+            new ModuleTableField('importance', ModuleTableField.FIELD_TYPE_enum, 'Importance du document', true, true, DocumentVO.DOCUMENT_IMPORTANCE_M).setEnumValues(DocumentVO.DOCUMENT_IMPORTANCE_LABELS),
+        ];
+
+        let table = new ModuleTable(this, DocumentVO.API_TYPE_ID, () => new DocumentVO(), fields, name, 'Documents');
+        this.datatables.push(table);
+
+        file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+
+        VersionedVOController.getInstance().registerModuleTable(table);
+    }
+
+    private initializeDocumentTagVO() {
+        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
+
+        let fields = [
+            name,
+            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+        ];
+
+        let table = new ModuleTable(this, DocumentTagVO.API_TYPE_ID, () => new DocumentTagVO(), fields, name, 'Documents - Tags');
+        this.datatables.push(table);
+    }
+
+    private initializeDocumentLangVO() {
+        let d_id = new ModuleTableField('d_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Document', true);
+        let lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Langue', true);
+
+        let fields = [
+            d_id,
+            lang_id
+        ];
+
+        let table = new ModuleTable(this, DocumentLangVO.API_TYPE_ID, () => new DocumentLangVO(), fields, null, 'Langues des Documents');
+        this.datatables.push(table);
+
+        d_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
+        lang_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
+    }
+
+    private initializeDocumentTagLangVO() {
+        let dt_id = new ModuleTableField('dt_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Tag', true);
+        let lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Langue', true);
+
+        let fields = [
+            dt_id,
+            lang_id
+        ];
+
+        let table = new ModuleTable(this, DocumentTagLangVO.API_TYPE_ID, () => new DocumentTagLangVO(), fields, null, 'Langues des Tags');
+        this.datatables.push(table);
+
+        dt_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DocumentTagVO.API_TYPE_ID]);
+        lang_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
+    }
+
+    private initializeDocumentTagGroupVO() {
+        let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Titre', true);
+
+        let fields = [
+            name,
+            new ModuleTableField('description', ModuleTableField.FIELD_TYPE_string, 'Description', false),
+            new ModuleTableField('weight', ModuleTableField.FIELD_TYPE_int, 'Poids', true, true, 0),
+        ];
+
+        let table = new ModuleTable(this, DocumentTagGroupVO.API_TYPE_ID, () => new DocumentTagGroupVO(), fields, name, 'Documents - TagGroups');
+        this.datatables.push(table);
+    }
+
+
+    private initializeDocumentTagGroupLangVO() {
+        let dtg_id = new ModuleTableField('dtg_id', ModuleTableField.FIELD_TYPE_foreign_key, 'TagGroup', true);
+        let lang_id = new ModuleTableField('lang_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Langue', true);
+
+        let fields = [
+            dtg_id,
+            lang_id
+        ];
+
+        let table = new ModuleTable(this, DocumentTagGroupLangVO.API_TYPE_ID, () => new DocumentTagGroupLangVO(), fields, null, 'Langues des TagGroups');
+        this.datatables.push(table);
+
+        dtg_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DocumentTagGroupVO.API_TYPE_ID]);
+        lang_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID]);
+    }
+
+
+    private initializeDocumentTagDocumentTagGroupVO() {
+        let dtg_id = new ModuleTableField('dtg_id', ModuleTableField.FIELD_TYPE_foreign_key, 'TagGroup', true);
+        let dt_id = new ModuleTableField('dt_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Tag', true);
+
+        let fields = [
+            dtg_id,
+            dt_id
+        ];
+
+        let table = new ModuleTable(this, DocumentTagDocumentTagGroupVO.API_TYPE_ID, () => new DocumentTagDocumentTagGroupVO(), fields, null, 'Groupes des Tags');
+        this.datatables.push(table);
+
+        dtg_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DocumentTagGroupVO.API_TYPE_ID]);
+        dt_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DocumentTagVO.API_TYPE_ID]);
+    }
+
+
+    private initializeDocumentDocumentTagVO() {
+        let d_id = new ModuleTableField('d_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Document', true);
+        let dt_id = new ModuleTableField('dt_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Tag', true);
+
+        let fields = [
+            d_id,
+            dt_id
+        ];
+
+        let table = new ModuleTable(this, DocumentDocumentTagVO.API_TYPE_ID, () => new DocumentDocumentTagVO(), fields, null, 'Tags des Documents');
+        this.datatables.push(table);
+
+        d_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
+        dt_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DocumentTagVO.API_TYPE_ID]);
+    }
+}
