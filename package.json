@@ -25,7 +25,7 @@
         ]
     },
     "nyc": {
-        "check-coverage": true,
+        "check-coverage": false,
         "per-file": true,
         "extension": [
             ".ts"
