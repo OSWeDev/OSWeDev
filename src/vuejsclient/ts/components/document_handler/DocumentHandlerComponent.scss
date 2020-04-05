@@ -26,26 +26,37 @@
             margin-bottom: 0.2em;
         }
 
-        .tags {
+        .tag-groups {
 
-            button.tag {
+            .tag-group {
 
-                margin-right: 0.3em;
                 color: #555;
-                background-color: #f0f0f0;
                 font-size: 0.7em;
+                margin-top: 0.5em;
+                margin-bottom: 0.1em;
             }
 
-            button.tag:hover {
-                color: $button_text_color;
-                background-color: $button_primary_bg_color;
-                opacity: 0.5;
-            }
+            .tags {
 
-            button.tag.is-checked {
+                button.tag {
 
-                color: $button_text_color;
-                background-color: $button_primary_bg_color;
+                    margin-right: 0.3em;
+                    color: #555;
+                    background-color: #f0f0f0;
+                    font-size: 0.7em;
+                }
+
+                button.tag:hover {
+                    color: $button_text_color;
+                    background-color: $button_primary_bg_color;
+                    opacity: 0.5;
+                }
+
+                button.tag.is-checked {
+
+                    color: $button_text_color;
+                    background-color: $button_primary_bg_color;
+                }
             }
         }
     }

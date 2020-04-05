@@ -8,10 +8,14 @@
                 .modal-header
                     h4.modal-title {{ label('document_handler.modal_title') }}
                     button.btn.close(@click='switch_hidden') &times;
-                    .tags
-                        button.tag.btn(@click='unfilter' :class="{'is-checked': !filter_tag_id}") {{ label('document_handler.tags.tous') }}
-                        template(v-for='dt in dt_by_ids')
-                            button.tag.btn(@click='filter_tag(dt)' v-tooltip.top='dt.description' :class="{'is-checked':dt.id == filter_tag_id}") {{ dt.name }}
+                    .tag-groups(v-if='hasMoreThanOneTag')
+                        template(v-for='dtg in dtgs_by_weight')
+                            template(v-if='hasMoreThanOneGroup')
+                                .tag-group(v-tooltip.top='dt.description') {{ dtg.name }}
+                            .tags
+                                button.tag.btn(@click='unfilter' :class="{'is-checked': !filter_tag_id}") {{ label('document_handler.tags.tous') }}
+                                template(v-for='dt in dts_by_weight')
+                                    button.tag.btn(@click='filter_tag(dt)' v-tooltip.top='dt.description' :class="{'is-checked':dt.id == filter_tag_id}") {{ dt.name }}
 
                 .modal-body
                     template(v-if='loaded')

@@ -11,6 +11,7 @@ import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../VueComponentBase';
 import './DocumentHandlerComponent.scss';
 import * as isotope from 'vueisotope';
+import WeightHandler from '../../../../shared/tools/WeightHandler';
 
 @Component({
     template: require('./DocumentHandlerComponent.pug'),
@@ -29,6 +30,9 @@ export default class DocumentHandlerComponent extends VueComponentBase {
     private dt_by_ids: { [id: number]: DocumentTagVO } = {};
     private dts_by_dtg_ids: { [dtg_id: number]: DocumentTagVO[] } = {};
     private dtg_by_ids: { [id: number]: DocumentTagGroupVO } = {};
+
+    private dtgs_by_weight: DocumentTagGroupVO[] = [];
+    private dts_by_weight: DocumentTagVO[] = [];
 
     private classnames: string[] = [
         'XS',
@@ -60,8 +64,10 @@ export default class DocumentHandlerComponent extends VueComponentBase {
             promises.push((async () => {
                 tmp_dt_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDocument.getInstance().get_dts_by_user_lang());
             })());
+            let tmp_dtgs_by_weight: DocumentTagGroupVO[] = [];
             promises.push((async () => {
-                tmp_dtg_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDocument.getInstance().get_dtgs_by_user_lang());
+                tmp_dtgs_by_weight = await ModuleDocument.getInstance().get_dtgs_by_user_lang();
+                tmp_dtg_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(tmp_dtgs_by_weight);
             })());
 
             await Promise.all(promises);
@@ -77,6 +83,7 @@ export default class DocumentHandlerComponent extends VueComponentBase {
                 'dt_id', ObjectHandler.getInstance().getIdsList(tmp_dt_by_ids),
                 'dtg_id', ObjectHandler.getInstance().getIdsList(tmp_dtg_by_ids));
             tmp_dts_by_dtg_ids = {};
+            let tmp_dts_by_weight: DocumentTagVO[] = [];
             for (let i in dt_dtgs) {
                 let dt_dtg = dt_dtgs[i];
 
@@ -85,6 +92,7 @@ export default class DocumentHandlerComponent extends VueComponentBase {
                 }
                 tmp_dts_by_dtg_ids[dt_dtg.dtg_id].push(tmp_dt_by_ids[dt_dtg.dt_id]);
                 valid_dt_by_ids[dt_dtg.dt_id] = tmp_dt_by_ids[dt_dtg.dt_id];
+                tmp_dts_by_weight.push(tmp_dt_by_ids[dt_dtg.dt_id]);
             }
 
             let d_dts: DocumentDocumentTagVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds<DocumentDocumentTagVO>(
@@ -104,7 +112,13 @@ export default class DocumentHandlerComponent extends VueComponentBase {
                 tmp_list.push(tmp_d_by_ids[d_dt.d_id]);
             }
 
+            WeightHandler.getInstance().sortByWeight(tmp_list);
+            WeightHandler.getInstance().sortByWeight(tmp_dtgs_by_weight);
+            WeightHandler.getInstance().sortByWeight(tmp_dts_by_weight);
             self.list = tmp_list;
+            self.dtgs_by_weight = tmp_dtgs_by_weight;
+            self.dts_by_weight = tmp_dts_by_weight;
+
             self.d_by_ids = valid_d_by_ids;
             self.dt_by_ids = valid_dt_by_ids;
             self.dtg_by_ids = valid_dtg_by_ids;
@@ -199,5 +213,13 @@ export default class DocumentHandlerComponent extends VueComponentBase {
     private unfilter() {
         this.filter_tag_id = null;
         this.$refs['isotope']['unfilter']();
+    }
+
+    get hasMoreThanOneGroup(): boolean {
+        return !ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(this.dtg_by_ids);
+    }
+
+    get hasMoreThanOneTag(): boolean {
+        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.dt_by_ids) && !ObjectHandler.getInstance().hasOneAndOnlyOneAttribute(this.dt_by_ids);
     }
 }
