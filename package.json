@@ -8,7 +8,7 @@
     },
     "scripts": {
         "test": "nyc mocha",
-        "test-jenkins": "mocha --require source-map-support/register -R xunit dist/test/**/*.js > test-reports.xml",
+        "test-jenkins": "nyc mocha --require source-map-support/register -R xunit dist/test/**/*.js > test-reports.xml",
         "test-simple": "mocha --require source-map-support/register dist/test/**/*.js",
         "test-simple-watch": "mocha --watch",
         "tscv": "tsc -v",
@@ -37,6 +37,7 @@
             "test/test.ts"
         ],
         "reporter": [
+            "cobertura",
             "html",
             "lcov",
             "text-summary"
@@ -136,6 +137,7 @@
         "@types/mocha": "7.0.2",
         "chai": "4.2.0",
         "copyfiles": "2.0.0",
+        "jenkins-mocha": "8.0.0",
         "mocha": "7.1.0",
         "nyc": "15.0.0",
         "tsc-watch": "1.0.27",
