@@ -31,10 +31,7 @@
             ".ts"
         ],
         "include": [
-            "src/**/*.ts",
-            "test/**/*.ts",
-            "test/testchai.ts",
-            "test/test.ts"
+            "src/**/*.ts"
         ],
         "reporter": [
             "cobertura",
