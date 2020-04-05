@@ -38,9 +38,7 @@
         ],
         "reporter": [
             "cobertura",
-            "html",
-            "lcov",
-            "text-summary"
+            "html"
         ],
         "cache": true,
         "all": true
