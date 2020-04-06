@@ -19,7 +19,7 @@ export default class DefaultTranslationsServerManager {
     private static instance: DefaultTranslationsServerManager = null;
     private constructor() { }
 
-    public async saveDefaultTranslations() {
+    public async saveDefaultTranslations(force: boolean = false) {
 
         // Il faut utiliser la var d'en NODE_INSTALL = true pour lancer ce process (très long potentiellement)
         if (!ConfigurationService.getInstance().nodeInstall) {

@@ -21,6 +21,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -37,6 +38,10 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleTranslation.getInstance().name);
+    }
+
+    public registerCrons(): void {
+        TranslationCronWorkersHandler.getInstance();
     }
 
     public async configure() {

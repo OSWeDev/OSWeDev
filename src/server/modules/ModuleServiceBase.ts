@@ -74,6 +74,7 @@ import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
+import ModuleTableDBService from './ModuleTableDBService';
 
 export default abstract class ModuleServiceBase {
 
@@ -152,7 +153,7 @@ export default abstract class ModuleServiceBase {
         return false;
     }
 
-    public async register_all_modules(db: IDatabase<any>) {
+    public async register_all_modules(db: IDatabase<any>, is_generator: boolean = false) {
         this.db = db;
 
         this.registered_base_modules = this.getBaseModules();
@@ -167,16 +168,62 @@ export default abstract class ModuleServiceBase {
         this.server_child_modules = this.getServerChildModules();
         this.server_modules = [].concat(this.server_base_modules, this.server_child_modules);
 
-        await this.create_modules_base_structure_in_db();
+        // On init le lien de db dans ces modules
+        ModuleDBService.getInstance(db);
+        ModuleTableDBService.getInstance(db);
 
-        // On lance l'installation des modules.
-        await this.install_modules();
+        // En version SERVER_START_BOOSTER on check pas le format de la BDD au démarrage, le générateur s'en charge déjà en amont
+        if ((!!is_generator) || (!ConfigurationService.getInstance().getNodeConfiguration().SERVER_START_BOOSTER)) {
+
+            await this.create_modules_base_structure_in_db();
+
+            // On lance l'installation des modules.
+            await this.install_modules();
+        } else {
+
+            for (let i in this.registered_modules) {
+                let registered_module = this.registered_modules[i];
+
+                await ModuleDBService.getInstance(db).load_or_create_module_is_actif(registered_module);
+            }
+        }
 
         // On lance la configuration des modules, et avant on configure les apis des modules server
         await this.configure_server_modules_apis();
 
-        // On appelle le hook de configuration
-        await this.configure_modules();
+        if ((!!is_generator) || (!ConfigurationService.getInstance().getNodeConfiguration().SERVER_START_BOOSTER)) {
+
+            // On appelle le hook de configuration
+            await this.configure_modules();
+
+        } else {
+
+            for (let i in this.registered_modules) {
+                let registered_module = this.registered_modules[i];
+
+                if (!registered_module.actif) {
+                    continue;
+                }
+
+                // Sinon on doit juste appeler les hooks qui vont bien et le chargement des params + rechargement automatique
+                if (!await registered_module.hook_module_configure()) {
+                    return false;
+                }
+
+                // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
+                if (registered_module.fields && (registered_module.fields.length > 0)) {
+
+                    await ModuleDBService.getInstance(db).loadParams(registered_module);
+
+                    setTimeout(function () {
+                        ModuleDBService.getInstance(db).reloadParamsThread(registered_module);
+                    }, ModuleDBService.reloadParamsTimeout);
+                }
+
+                // On appelle le hook de fin d'installation
+                await registered_module.hook_module_install();
+            }
+        }
     }
 
     public async configure_server_modules_apis() {

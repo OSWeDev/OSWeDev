@@ -15,4 +15,6 @@ export default class EnvParam {
     public NODE_VERBOSE: boolean;
     public ACTIVATE_LONG_JOHN: boolean;
     public MAX_POOL: number = 10;
+    public SERVER_START_BOOSTER: boolean;
+    public SERVER_ENCODING: string;
 }

@@ -5,6 +5,8 @@ import ModuleTableDBService from './ModuleTableDBService';
 
 export default class ModuleDBService {
 
+    public static reloadParamsTimeout: number = 30000;
+
     public static getInstance(db): ModuleDBService {
         if (!ModuleDBService.instance) {
             ModuleDBService.instance = new ModuleDBService(db);
@@ -12,7 +14,6 @@ export default class ModuleDBService {
         return ModuleDBService.instance;
     }
     private static instance: ModuleDBService = null;
-    private static reloadParamsTimeout: number = 30000;
 
     public hook_after_registered_all_modules: (modules: Module[]) => {};
 
@@ -22,6 +23,35 @@ export default class ModuleDBService {
     private constructor(private db) {
         ModuleDBService.instance = this;
         this.bdd_owner = ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER;
+    }
+
+    public async load_or_create_module_is_actif(module: Module) {
+
+        // Et le paramètre dans la table de gestion des modules pour activer ou désactiver ce module.
+        //  Par défaut tous les modules sont désactivés, il faut relancer node pour les activer.
+        let rows = await this.db.query('SELECT "actif" FROM admin.modules WHERE name = \'' + module.name + '\';');
+
+        if ((!rows) || (!rows[0]) || (rows[0].actif === undefined)) {
+            // La ligne n'existe pas, on l'ajoute
+            module.actif = module.activate_on_installation;
+            await this.db.query('INSERT INTO admin.modules (name, actif) VALUES (\'' + module.name + '\', \'' + module.actif + '\')');
+        } else {
+            module.actif = rows[0].actif;
+        }
+    }
+
+    public async reloadParamsThread(module: Module) {
+
+        let self = this;
+        let paramsChanged: Array<ModuleParamChange<any>> = await this.loadParams(module);
+
+        if (paramsChanged && paramsChanged.length) {
+            await module.hook_module_on_params_changed(paramsChanged);
+        }
+
+        setTimeout(function () {
+            self.reloadParamsThread(module);
+        }, ModuleDBService.reloadParamsTimeout);
     }
 
     // Dernière étape : Configure
@@ -40,6 +70,21 @@ export default class ModuleDBService {
 
         // Si il y a un problème pendant cette étape, on renvoie autre chose que true pour l'indiquer
         return true;
+    }
+
+    public async loadParams(module: Module) {
+
+
+        // console.log('Rechargement de la conf du module ' + module.name);
+
+        let rows = await this.db.query('select * from admin.module_' + module.name + ';');
+
+        if ((!rows) || (!rows[0])) {
+            console.error("Les paramètres du module ne sont pas disponibles");
+            return [];
+        }
+
+        return await this.readParams(module, rows[0]);
     }
 
     public async module_install(module: Module) {
@@ -102,23 +147,10 @@ export default class ModuleDBService {
         }
     }
 
-
     // ETAPE 3 de l'installation
     private async add_module_to_modules_table(module: Module) {
-        // console.log(module.name + " - install - ETAPE 3");
 
-
-        // Et le paramètre dans la table de gestion des modules pour activer ou désactiver ce module.
-        //  Par défaut tous les modules sont désactivés, il faut relancer node pour les activer.
-        let rows = await this.db.query('SELECT "actif" FROM admin.modules WHERE name = \'' + module.name + '\';');
-
-        if ((!rows) || (!rows[0]) || (rows[0].actif === undefined)) {
-            // La ligne n'existe pas, on l'ajoute
-            module.actif = module.activate_on_installation;
-            await this.db.query('INSERT INTO admin.modules (name, actif) VALUES (\'' + module.name + '\', \'' + module.actif + '\')');
-        } else {
-            module.actif = rows[0].actif;
-        }
+        await this.load_or_create_module_is_actif(module);
 
         // TODO : FIXME : MODIF : JNE : On ne crée les tables que si on est actif. await this.create_datas_tables(module);
         // il faut pouvoir activer les modules à la volée et changer des params sans avoir à recharger toute l'appli.
@@ -159,21 +191,6 @@ export default class ModuleDBService {
         await module.hook_module_install();
     }
 
-    private async loadParams(module: Module) {
-
-
-        // console.log('Rechargement de la conf du module ' + module.name);
-
-        let rows = await this.db.query('select * from admin.module_' + module.name + ';');
-
-        if ((!rows) || (!rows[0])) {
-            console.error("Les paramètres du module ne sont pas disponibles");
-            return [];
-        }
-
-        return await this.readParams(module, rows[0]);
-    }
-
     private readParams(module: Module, params): Array<ModuleParamChange<any>> {
         let paramsChanged: Array<ModuleParamChange<any>> = new Array<ModuleParamChange<any>>();
 
@@ -192,19 +209,5 @@ export default class ModuleDBService {
         }
 
         return paramsChanged;
-    }
-
-    private async reloadParamsThread(module: Module) {
-
-        let self = this;
-        let paramsChanged: Array<ModuleParamChange<any>> = await this.loadParams(module);
-
-        if (paramsChanged && paramsChanged.length) {
-            await module.hook_module_on_params_changed(paramsChanged);
-        }
-
-        setTimeout(function () {
-            self.reloadParamsThread(module);
-        }, ModuleDBService.reloadParamsTimeout);
     }
 }

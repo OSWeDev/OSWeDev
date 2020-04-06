@@ -730,7 +730,9 @@ export default abstract class ServerBase {
 
     protected abstract initializeDataImports();
     protected abstract hook_configure_express();
-    protected abstract getVersion();
+    protected getVersion() {
+        return require('../../package.json').version;
+    }
 
     protected registerApis(app) {
     }

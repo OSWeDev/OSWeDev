@@ -13,6 +13,7 @@ import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulePushDataServer from '../PushData/ModulePushDataServer';
 import AjaxCacheException from '../../../shared/modules/AjaxCache/exceptions/AjaxCacheException';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
@@ -128,6 +129,21 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
             });
         });
     }
+
+    public async readFile(filepath: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            fs.readFile(filepath, ConfigurationService.getInstance().getNodeConfiguration().SERVER_ENCODING, function (err, data: string) {
+                if (err) {
+                    console.error(err);
+                    resolve(null);
+                    return;
+                }
+                console.log("File read : " + filepath);
+                resolve(data);
+            });
+        });
+    }
+
 
     public async appendFile(filepath: string, fileContent: string) {
         return new Promise((resolve, reject) => {

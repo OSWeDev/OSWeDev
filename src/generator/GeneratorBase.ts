@@ -30,6 +30,7 @@ import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/P
 import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
 import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
+import VendorBuilder from './vendor_builder/VendorBuilder';
 
 export default abstract class GeneratorBase {
 
@@ -99,7 +100,7 @@ export default abstract class GeneratorBase {
         }
         console.log("pre modules initialization workers done.");
 
-        await this.modulesService.register_all_modules(db);
+        await this.modulesService.register_all_modules(db, true);
 
         console.log("ModulesClientInitializationDatasGenerator.getInstance().generate()");
         await ModulesClientInitializationDatasGenerator.getInstance().generate();
@@ -109,7 +110,7 @@ export default abstract class GeneratorBase {
         console.log("configure_server_modules...");
         await this.modulesService.configure_server_modules(null);
         console.log("saveDefaultTranslations...");
-        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
+        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
 
         console.log("post modules initialization workers...");
         if (!!this.post_modules_workers) {
@@ -119,6 +120,10 @@ export default abstract class GeneratorBase {
             }
         }
         console.log("post modules initialization workers done.");
+
+        console.log("Generate Vendor: ...");
+        await VendorBuilder.getInstance().generate_vendor();
+        console.log("Generate Vendor: OK!");
 
         console.log("Code Generation DONE. Exiting ...");
         process.exit(0);
