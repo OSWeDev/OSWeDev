@@ -14,7 +14,7 @@
         "tscv": "tsc -v",
         "tsc-watch-tests": "tsc -w -p ./test",
         "clean": "rimraf dist",
-        "copyfiles": "copyfiles --up 1 src/**/*.pug src/**/*.scss src/vuejsclient/sw_push.js dist/",
+        "copyfiles": "copyfiles --up 1 src/vuejsclient/*.ts src/**/*.vue src/**/*.pug src/**/*.scss src/vuejsclient/sw_push.js dist/",
         "build": "npm run-script clean && tsc --project ./",
         "tsc-watch": "tsc-watch --project ./ --onSuccess \"npm run-script copyfiles\"",
         "version": "echo $npm_package_version"

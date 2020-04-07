@@ -1,8 +1,7 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
 import Alert from '../../../../../vuejsclient/ts/components/alert/Alert';
-import VueComponentBase from '../../../../../vuejsclient/ts/components/VueComponentBase';
-import CRUDComponentField from '../../../../../vuejsclient/ts/components/crud/component/field/CRUDComponentField';
+import ICRUDComponentField from '../../interface/ICRUDComponentField';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface
@@ -22,7 +21,7 @@ export default abstract class DatatableField<T, U> {
     // Pour éviter les liens d'import on stocke au chargement de l'appli ici et on type pas... à améliorer certainement plus tard
     public static VueAppBase = null;
 
-    public vue_component: CRUDComponentField = null;
+    public vue_component: ICRUDComponentField = null;
 
     /**
      * Il faudrait employer des slots ou des composants vue directement

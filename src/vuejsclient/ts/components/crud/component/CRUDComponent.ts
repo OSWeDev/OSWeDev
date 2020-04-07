@@ -28,13 +28,12 @@ import DatatableComponent from '../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
-import CRUDComponentField from './field/CRUDComponentField';
 
 @Component({
     template: require('./CRUDComponent.pug'),
     components: {
         datatable: DatatableComponent,
-        crud_field: CRUDComponentField,
+        crud_field: () => import('./field/CRUDComponentField.vue'),
     },
 })
 export default class CRUDComponent extends VueComponentBase {

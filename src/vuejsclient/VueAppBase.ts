@@ -1,3 +1,11 @@
+import CRUDComponentField from './ts/components/crud/component/field/CRUDComponentField.vue';
+import VarDataRefComponent from './ts/components/Var/components/dataref/VarDataRefComponent';
+import VarDataSumComponent from './ts/components/Var/components/datasum/VarDataSumComponent';
+import VarDatasRefsComponent from './ts/components/Var/components/datasrefs/VarDatasRefsComponent';
+import VarDescComponent from './ts/components/Var/components/desc/VarDescComponent';
+import VarDataIfComponent from './ts/components/Var/components/varif/VarDataIfComponent';
+import VarDataBarChartComponent from './ts/components/Var/components/databarchart/VarDataBarChartComponent';
+import VarPieChartComponent from './ts/components/Var/components/piechart/VarPieChartComponent';
 import 'bootstrap';
 import "fullcalendar-scheduler";
 import "fullcalendar-scheduler/dist/scheduler.min.css";
@@ -14,57 +22,32 @@ import 'select2';
 import VCalendar from 'v-calendar';
 import VTooltip from 'v-tooltip';
 import Vue from 'vue';
-import VueDraggableResizable from 'vue-draggable-resizable';
 import FullCalendar from 'vue-full-calendar';
 import VueI18n from 'vue-i18n';
-import Intersect from 'vue-intersect';
 import ToggleButton from 'vue-js-toggle-button';
-import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
 import VueQuillEditor from 'vue-quill-editor';
 import * as VueResource from 'vue-resource';
 import VueRouter, { RouterOptions } from 'vue-router';
-import { RouteConfig, Route } from 'vue-router/types/router';
-import vSelect from 'vue-select';
+import { RouteConfig } from 'vue-router/types/router';
 import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
 import * as vueDropzone from "vue2-dropzone";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
-import Datepicker from 'vuejs-datepicker';
-import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
-import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import IVueModule from '../vuejsclient/ts/modules/IVueModule';
 import VueModuleBase from '../vuejsclient/ts/modules/VueModuleBase';
-import AjaxCacheComponent from './ts/components/AjaxCache/component/AjaxCacheComponent';
-import AjaxCacheComponentPlaceholder from './ts/components/AjaxCache/component/AjaxCacheComponentPlaceholder';
-import AlertComponent from './ts/components/alert/AlertComponent';
-import CRUDComponentField from './ts/components/crud/component/field/CRUDComponentField';
-import DefaultHomeComponent from './ts/components/DefaultHome/component/DefaultHomeComponent';
-import Error404Component from './ts/components/Error404/component/Error404Component';
-import MultipleSelectFilterComponent from './ts/components/multiple_select_filter/MultipleSelectFilterComponent';
-import UserNotifsMarkerComponent from './ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
-import OnPageTranslation from './ts/components/OnPageTranslation/component/OnPageTranslation';
-import OnPageTranslationPlaceholder from './ts/components/OnPageTranslation/component/OnPageTranslationPlaceholder';
-import VarDataBarChartComponent from './ts/components/Var/components/databarchart/VarDataBarChartComponent';
-import VarDataRefComponent from './ts/components/Var/components/dataref/VarDataRefComponent';
-import VarDatasRefsComponent from './ts/components/Var/components/datasrefs/VarDatasRefsComponent';
-import VarDataSumComponent from './ts/components/Var/components/datasum/VarDataSumComponent';
-import VarDescComponent from './ts/components/Var/components/desc/VarDescComponent';
-import VarPieChartComponent from './ts/components/Var/components/piechart/VarPieChartComponent';
-import VarDataIfComponent from './ts/components/Var/components/varif/VarDataIfComponent';
+import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
 import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VueComponentBase from './ts/components/VueComponentBase';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
-import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
 
 require('moment-json-parser').overrideDefault();
 
@@ -244,14 +227,14 @@ export default abstract class VueAppBase {
             routerOptions.routes.push({
                 path: '/',
                 name: 'Home',
-                component: DefaultHomeComponent
+                component: () => import('./ts/components/DefaultHome/component/DefaultHomeComponent')
             });
         }
 
         routerOptions.routes.push({
             path: '*',
             name: '404',
-            component: Error404Component
+            component: () => import('./ts/components/Error404/component/Error404Component')
         });
 
         this.vueRouter = new VueRouter(routerOptions);
@@ -336,11 +319,31 @@ export default abstract class VueAppBase {
             locale: default_locale
         });
 
-        Vue.component('vue-draggable-resizable', VueDraggableResizable);
+        // Vue.use(ToggleButton);
+        // Vue.component('vue-draggable-resizable', () => import('vue-draggable-resizable'));
+        // Vue.component('UserNotifsMarkerComponent', () => import('./ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent'));
+        // Vue.component('multiselect', () => import('vue-multiselect'));
+        // Vue.component('v-select', () => import('vue-select'));
+        // Vue.component('vue-dropzone', vueDropzone);
+        // Vue.component('var-data', () => import('./ts/components/Var/components/dataref/VarDataRefComponent'));
+        // Vue.component('vars-sum', () => import('./ts/components/Var/components/datasum/VarDataSumComponent'));
+        // Vue.component('vars-data', () => import('./ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
+        // Vue.component('var-desc', () => import('./ts/components/Var/components/desc/VarDescComponent'));
+        // Vue.component('var-if', () => import('./ts/components/Var/components/varif/VarDataIfComponent'));
+        // Vue.component('var-bar-chart', () => import('./ts/components/Var/components/databarchart/VarDataBarChartComponent'));
+        // Vue.component('var-pie-chart', () => import('./ts/components/Var/components/piechart/VarPieChartComponent'));
+        // Vue.component('Intersect', () => import('vue-intersect'));
+        // Vue.component('CRUDComponentField', () => import('./ts/components/crud/component/field/CRUDComponentField.vue'));
+        // Vue.component('MultipleSelectFilterComponent', () => import('./ts/components/multiple_select_filter/MultipleSelectFilterComponent'));
+        // Vue.component('Datepicker', () => import('vuejs-datepicker'));
+        // Vue.component('AlertComponent', () => import('./ts/components/alert/AlertComponent'));
+        // Vue.directive('var-directive', VarDirective.getInstance());
+
         Vue.use(ToggleButton);
-        Vue.component('UserNotifsMarkerComponent', UserNotifsMarkerComponent);
-        Vue.component('multiselect', Multiselect);
-        Vue.component('v-select', vSelect);
+        Vue.component('vue-draggable-resizable', () => import('vue-draggable-resizable'));
+        Vue.component('UserNotifsMarkerComponent', () => import('./ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent'));
+        Vue.component('multiselect', () => import('vue-multiselect'));
+        Vue.component('v-select', () => import('vue-select'));
         Vue.component('vue-dropzone', vueDropzone);
         Vue.component('var-data', VarDataRefComponent);
         Vue.component('vars-sum', VarDataSumComponent);
@@ -349,25 +352,12 @@ export default abstract class VueAppBase {
         Vue.component('var-if', VarDataIfComponent);
         Vue.component('var-bar-chart', VarDataBarChartComponent);
         Vue.component('var-pie-chart', VarPieChartComponent);
-        Vue.component('Intersect', Intersect);
+        Vue.component('Intersect', () => import('vue-intersect'));
         Vue.component('CRUDComponentField', CRUDComponentField);
-        Vue.component('MultipleSelectFilterComponent', MultipleSelectFilterComponent);
-        Vue.component('Datepicker', Datepicker);
-        Vue.component('AlertComponent', AlertComponent);
-
+        Vue.component('MultipleSelectFilterComponent', () => import('./ts/components/multiple_select_filter/MultipleSelectFilterComponent'));
+        Vue.component('Datepicker', () => import('vuejs-datepicker'));
+        Vue.component('AlertComponent', () => import('./ts/components/alert/AlertComponent'));
         Vue.directive('var-directive', VarDirective.getInstance());
-
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_ON_PAGE_TRANSLATION_MODULE_ACCESS)) {
-            Vue.component('on-page-translation', OnPageTranslation);
-        } else {
-            Vue.component('on-page-translation', OnPageTranslationPlaceholder);
-        }
-
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAjaxCache.POLICY_FO_ACCESS)) {
-            Vue.component('ajax-cache-command-panel', AjaxCacheComponent);
-        } else {
-            Vue.component('ajax-cache-command-panel', AjaxCacheComponentPlaceholder);
-        }
 
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
