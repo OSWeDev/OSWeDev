@@ -17,6 +17,10 @@ export default class VendorBuilder {
 
     public async generate_vendor() {
 
+        if (process.env.IGNORE_VENDOR_COMPILATION == 'true') {
+            return;
+        }
+
         let package_json = process.cwd() + '/package.json';
         let vendor_package_json = process.cwd() + '/vendor/package.json';
 

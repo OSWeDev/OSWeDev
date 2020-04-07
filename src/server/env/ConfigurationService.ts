@@ -30,6 +30,6 @@ export default class ConfigurationService {
     }
 
     public getNodeConfiguration(): EnvParam {
-        return this.STATIC_ENV_PARAMS[this.nodeEnv];
+        return Object.assign(new EnvParam(), this.STATIC_ENV_PARAMS[this.nodeEnv]);
     }
 }
