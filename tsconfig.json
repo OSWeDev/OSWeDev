@@ -47,8 +47,9 @@
         "declaration": true
     },
     "include": [
-        "src/server/*.ts",
-        "src/generator/*.ts",
+        "src/server/**/*.ts",
+        "src/generator/**/*.ts",
+        "src/shared/**/*.ts",
         "src/test/**/*.ts"
     ],
     "exclude": [

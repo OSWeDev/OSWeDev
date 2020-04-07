@@ -1,5 +1,4 @@
 import Module from '../Module';
-import CommerceVueModule from '../../../vuejsclient/ts/components/commerce/CommerceVueModule';
 
 export default class ModuleCommerce extends Module {
 

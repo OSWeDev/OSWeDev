@@ -5,8 +5,6 @@ import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVar
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
-import './VarDataIfComponent.scss';
-import moment = require('moment');
 
 @Component({
     template: require('./VarDataIfComponent.pug')

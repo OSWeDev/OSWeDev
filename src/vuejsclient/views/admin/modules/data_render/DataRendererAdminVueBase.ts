@@ -2,13 +2,13 @@ import * as $ from 'jquery';
 import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
+import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDataRender from '../../../../../shared/modules/DataRender/ModuleDataRender';
 import DataRendererVO from '../../../../../shared/modules/DataRender/vos/DataRendererVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
-import VueAppController from '../../../../VueAppController';
 
 
 @Component({
@@ -54,7 +54,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
                 data: formData,
                 contentType: false,
                 processData: false,
-                headers: { 'X-CSRF-Token': VueAppController.getInstance().csrf_token }
+                headers: { 'X-CSRF-Token': ModuleAjaxCache.getInstance().csrf_token }
             });
             this.snotify.success("Génération des données terminée !");
             return true;

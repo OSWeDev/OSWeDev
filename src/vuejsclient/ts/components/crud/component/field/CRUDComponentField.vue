@@ -49,7 +49,6 @@ import ConsoleHandler from "../../../../../../shared/tools/ConsoleHandler";
 import DateHandler from "../../../../../../shared/tools/DateHandler";
 import ObjectHandler from "../../../../../../shared/tools/ObjectHandler";
 import RangeHandler from "../../../../../../shared/tools/RangeHandler";
-import Alert from "../../../alert/Alert";
 import {
   ModuleAlertAction,
   ModuleAlertGetter
@@ -65,6 +64,7 @@ import TSRangesInputComponent from "../../../tsrangesinput/TSRangesInputComponen
 import TSTZInputComponent from "../../../tstzinput/TSTZInputComponent";
 import VueComponentBase from "../../../VueComponentBase";
 import ICRUDComponentField from "../../../../../../shared/modules/DAO/interface/ICRUDComponentField";
+import Alert from "../../../../../../shared/modules/Alert/vos/Alert";
 let debounce = require("lodash/debounce");
 
 @Component({
@@ -1118,7 +1118,7 @@ export default class CRUDComponentField extends VueComponentBase
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .field {
   textarea {
     min-width: 45em;

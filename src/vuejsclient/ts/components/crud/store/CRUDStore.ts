@@ -2,7 +2,7 @@ import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import IStoreModule from '../../../../../vuejsclient/ts/store/IStoreModule';
+import IStoreModule from '../../../store/IStoreModule';
 
 export type CRUDContext = ActionContext<ICRUDState, any>;
 

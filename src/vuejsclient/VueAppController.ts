@@ -1,12 +1,12 @@
+import { Route } from 'vue-router/types/router';
 import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import RoleVO from '../shared/modules/AccessPolicy/vos/RoleVO';
+import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
 import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInvalidationRulesVO';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
-import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
-import { Route } from 'vue-router/types/router';
 
 export default abstract class VueAppController {
 
@@ -34,8 +34,6 @@ export default abstract class VueAppController {
     public routes_log_limit: number = 101;
 
     public is_mobile: boolean = false;
-
-    public csrf_token: string = null;
 
     /**
      * Module un peu spécifique qui peut avoir un impact sur les perfs donc on gère son accès le plus vite possible

@@ -9,17 +9,12 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
-import './VarDataBarChartComponent.scss';
-import moment = require('moment');
 
 @Component({
     extends: Bar
-    // template: require('./VarDataBarChartComponent.pug'),
-    // components: {
-    //     Bar: Bar
-    // }
 })
 export default class VarDataBarChartComponent extends VueComponentBase {
+
     @ModuleVarGetter
     public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
     @ModuleVarAction

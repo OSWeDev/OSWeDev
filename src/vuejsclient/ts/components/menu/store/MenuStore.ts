@@ -1,7 +1,7 @@
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
-import IStoreModule from '../../../../../vuejsclient/ts/store/IStoreModule';
+import IStoreModule from '../../../store/IStoreModule';
 import MenuController from '../MenuController';
 import MenuBranch from '../vos/MenuBranch';
 import MenuElementBase from '../vos/MenuElementBase';

@@ -1,10 +1,10 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import VueComponentBase from '../VueComponentBase';
-import Alert from './Alert';
 import { ModuleAlertGetter } from './AlertStore';
 import AlertViewComponent from './AlertViewComponent';
 import './AlertComponent.scss';
+import Alert from '../../../../shared/modules/Alert/vos/Alert';
 
 @Component({
     template: require('./AlertComponent.pug'),

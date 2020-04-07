@@ -5,7 +5,7 @@ import { getStoreAccessors } from "vuex-typescript";
 import DataImportHistoricVO from '../../../../../shared/modules/DataImport/vos/DataImportHistoricVO';
 import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegment';
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
-import IStoreModule from '../../../../../vuejsclient/ts/store/IStoreModule';
+import IStoreModule from '../../../store/IStoreModule';
 
 export type DataImportContext = ActionContext<IDataImportState, any>;
 

@@ -1,10 +1,10 @@
+import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors, GetterHandler } from "vuex-typescript";
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
-import Vue, { WatchOptionsWithHandler } from 'vue';
-import IStoreModule from '../../../../../vuejsclient/ts/store/IStoreModule';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
+import IStoreModule from '../../../store/IStoreModule';
 import DaoStoreTypeWatcherDefinition from '../vos/DaoStoreTypeWatcherDefinition';
 
 export type DAOContext = ActionContext<IDAOState, any>;
@@ -13,7 +13,6 @@ export interface IDAOState {
     storedDatasArray: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } };
     typeWatchers: { [API_TYPE_ID: string]: DaoStoreTypeWatcherDefinition[] };
 }
-
 
 export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 

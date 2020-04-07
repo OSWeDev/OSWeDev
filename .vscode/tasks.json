@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "tsc watch",
+            "label": "project-watch",
             "type": "shell",
-            "command": "npm run-script tsc-watch",
+            "command": "npm run-script project-watch",
             "isBackground": true,
             "args": [],
             "group": {

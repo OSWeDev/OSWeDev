@@ -1,5 +1,4 @@
 import { isArray, isBoolean, isNull, isNumber } from 'util';
-import Alert from '../../vuejsclient/ts/components/alert/Alert';
 import ConsoleHandler from '../tools/ConsoleHandler';
 import DatatableField from './DAO/vos/datatable/DatatableField';
 import IDistantVOBase from './IDistantVOBase';
@@ -7,6 +6,7 @@ import ModuleTable from './ModuleTable';
 import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
+import Alert from './Alert/vos/Alert';
 
 export default class ModuleTableField<T> {
 

@@ -1,7 +1,7 @@
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../../../shared/modules/ModuleTable';
-import Alert from '../../../../../vuejsclient/ts/components/alert/Alert';
 import ICRUDComponentField from '../../interface/ICRUDComponentField';
+import Alert from '../../../Alert/vos/Alert';
 
 /**
  * On utilise le design pattern Fluent_interface : https://en.wikipedia.org/wiki/Fluent_interface

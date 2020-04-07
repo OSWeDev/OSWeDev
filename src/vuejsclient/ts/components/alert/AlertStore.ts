@@ -2,9 +2,8 @@ import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
-import Alert from './Alert';
-import moment = require('moment');
 import IStoreModule from '../../store/IStoreModule';
+import Alert from '../../../../shared/modules/Alert/vos/Alert';
 
 export type AlertContext = ActionContext<IAlertState, any>;
 

@@ -7,7 +7,6 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import HourHandler from '../../../../shared/tools/HourHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../VueComponentBase';
-import './HourrangeInputComponent.scss';
 
 @Component({
     template: require('./HourrangeInputComponent.pug'),

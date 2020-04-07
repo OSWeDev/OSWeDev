@@ -7,7 +7,6 @@ import { debounce } from 'lodash';
 import { decode, encode } from "messagepack";
 import * as moment from 'moment';
 import { Duration } from 'moment';
-import VueAppController from '../../../vuejsclient/VueAppController';
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import ModuleAPI from '../API/ModuleAPI';
@@ -47,6 +46,8 @@ export default class ModuleAjaxCache extends Module {
 
     public ajaxcache_debouncer: number = 200;
     public api_logs: LightWeightSendableRequestVO[] = [];
+
+    public csrf_token: string = null;
 
     private cache: RequestsCacheVO = new RequestsCacheVO();
     private invalidationRules: CacheInvalidationRulesVO = new CacheInvalidationRulesVO();
@@ -99,7 +100,7 @@ export default class ModuleAjaxCache extends Module {
         if (!res) {
             return;
         }
-        VueAppController.getInstance().csrf_token = res['csrfToken'];
+        this.csrf_token = res['csrfToken'];
     }
 
     /**
@@ -234,8 +235,8 @@ export default class ModuleAjaxCache extends Module {
                     'Content-Type': contentType,
                     'Accept': 'application/x-msgpack'
                 };
-                if (!!VueAppController.getInstance().csrf_token) {
-                    axios_headers['X-CSRF-Token'] = VueAppController.getInstance().csrf_token;
+                if (!!self.csrf_token) {
+                    axios_headers['X-CSRF-Token'] = self.csrf_token;
                 }
 
                 axios.post(
@@ -277,11 +278,11 @@ export default class ModuleAjaxCache extends Module {
                 if (cache.timeout != null) {
                     options.timeout = cache.timeout;
                 }
-                if (!!VueAppController.getInstance().csrf_token) {
+                if (!!self.csrf_token) {
                     if (!options.headers) {
                         options.headers = {};
                     }
-                    options.headers['X-CSRF-Token'] = VueAppController.getInstance().csrf_token;
+                    options.headers['X-CSRF-Token'] = self.csrf_token;
                 }
                 self.addCallback(cache, resolve, reject);
 

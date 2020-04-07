@@ -6,7 +6,18 @@
         "type": "git",
         "url": "https://github.com/OSWeDev/OSWeDev.git"
     },
+    "watch": {
+        "xcopy_vuejsclient": {
+            "patterns": [
+                "src/vuejsclient"
+            ],
+            "extensions": "*",
+            "legacyWatch": true,
+            "delay": 500
+        }
+    },
     "scripts": {
+        "watch": "npm-watch",
         "test": "nyc mocha",
         "test-jenkins": "nyc mocha --require source-map-support/register -R xunit src/test/**/*.ts > test-reports.xml",
         "test-simple": "mocha --require source-map-support/register dist/test/**/*.js",
@@ -14,9 +25,10 @@
         "tscv": "tsc -v",
         "tsc-watch-tests": "tsc -w -p ./test",
         "clean": "rimraf dist",
-        "copyfiles": "copyfiles --up 1 src/vuejsclient/*.ts src/**/*.vue src/**/*.pug src/**/*.scss src/vuejsclient/sw_push.js dist/",
+        "xcopy_vuejsclient": "xcopy \"src\\vuejsclient\" \"dist\\vuejsclient\\\" /D /E /C /Q /H /R /Y /K",
         "build": "npm run-script clean && tsc --project ./",
-        "tsc-watch": "tsc-watch --project ./ --onSuccess \"npm run-script copyfiles\"",
+        "tsc-watch": "tsc-watch --project ./",
+        "project-watch": "concurrently --prefix \"[{name}]\" --names \"TSC,WEBPACK\" -c \"bgBlue.bold,bgRed.bold\" \"npm run tsc-watch\" \"npm run watch\"",
         "version": "echo $npm_package_version"
     },
     "mocha": {
@@ -137,8 +149,10 @@
         "@types/mocha": "7.0.2",
         "chai": "4.2.0",
         "copyfiles": "2.0.0",
+        "concurrently": "5.1.0",
         "jenkins-mocha": "8.0.0",
         "mocha": "7.1.0",
+        "npm-watch": "0.6.0",
         "nyc": "15.0.0",
         "tsc-watch": "1.0.27",
         "typescript": "3.7.4",

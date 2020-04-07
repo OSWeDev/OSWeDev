@@ -7,7 +7,6 @@ import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../VueComponentBase';
-import './TSRangesInputComponent.scss';
 
 @Component({
     template: require('./TSRangesInputComponent.pug'),

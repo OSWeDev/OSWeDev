@@ -1,10 +1,10 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
-import VueAppController from '../../../VueAppController';
 
 @Component({
     template: require('./ImageComponent.pug'),
@@ -70,7 +70,7 @@ export default class ImageComponent extends VueComponentBase {
         let dropoptions = {
             url: '/ModuleImageServer/upload',
             headers: {
-                'X-CSRF-Token': VueAppController.getInstance().csrf_token,
+                'X-CSRF-Token': ModuleAjaxCache.getInstance().csrf_token,
             },
             createImageThumbnails: true,
             maxFiles: 1,

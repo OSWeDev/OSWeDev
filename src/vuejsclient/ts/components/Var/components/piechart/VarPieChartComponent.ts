@@ -9,8 +9,6 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
-import './VarPieChartComponent.scss';
-import moment = require('moment');
 
 @Component({
     extends: Pie

@@ -2,8 +2,8 @@ import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import VueComponentBase from '../VueComponentBase';
-import Alert from './Alert';
 import './AlertViewComponent.scss';
+import Alert from '../../../../shared/modules/Alert/vos/Alert';
 
 @Component({
     template: require('./AlertViewComponent.pug'),

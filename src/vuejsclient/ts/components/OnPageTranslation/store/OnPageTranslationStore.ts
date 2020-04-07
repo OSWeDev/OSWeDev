@@ -1,9 +1,9 @@
+import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
-import IStoreModule from '../../../../../vuejsclient/ts/store/IStoreModule';
+import IStoreModule from '../../../store/IStoreModule';
 import OnPageTranslationItem from '../vos/OnPageTranslationItem';
-import Vue from 'vue';
 
 export type OnPageTranslationContext = ActionContext<IOnPageTranslationState, any>;
 

@@ -8,7 +8,6 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleNotificationAction, ModuleNotificationGetter } from '../../store/NotificationStore';
 import UserNotifsViewerComponent from '../UserNotifsViewer/UserNotifsViewerComponent';
 import './UserNotifsMarkerComponent.scss';
-import moment = require('moment');
 
 @Component({
     template: require('./UserNotifsMarkerComponent.pug'),
