@@ -46,13 +46,13 @@ import DateHandler from '../../../shared/tools/DateHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 

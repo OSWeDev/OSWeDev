@@ -15,7 +15,7 @@ import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBas
 import VarsController from '../../../shared/modules/Var/VarsController';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
-import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourAndMinutesFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedFilter, truncateFilter } from '../../../shared/tools/Filters';
+import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourAndMinutesFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter } from '../../../shared/tools/Filters';
 import LocaleManager from "../../../shared/tools/LocaleManager";
 import VueAppController from "../../VueAppController";
 import AppVuexStoreManager from "../store/AppVuexStoreManager";
@@ -94,6 +94,16 @@ export function FiltersHandler() {
         this.filter_toFixed_n = n;
         return this;
     };
+    this.setToFixedCeilFilter = function (active = true, n = undefined) {
+        this.filter_toFixedCeil = active;
+        this.filter_toFixed_n = n;
+        return this;
+    };
+    this.setToFixedFloorFilter = function (active = true, n = undefined) {
+        this.filter_toFixedFloor = active;
+        this.filter_toFixed_n = n;
+        return this;
+    };
     this.setHideZeroFilter = function (active = true) {
         this.filter_hideZero = active;
         return this;
@@ -155,6 +165,12 @@ export function FiltersHandler() {
         if (this.filter_toFixed) {
             value = toFixedFilter.write(value);
         }
+        if (this.filter_toFixedCeil) {
+            value = toFixedCeilFilter.write(value);
+        }
+        if (this.filter_toFixedFloor) {
+            value = toFixedFloorFilter.write(value);
+        }
         if (this.filter_hideZero) {
             value = hideZeroFilter.write(value);
         }
@@ -203,6 +219,12 @@ export function FiltersHandler() {
         if (this.filter_toFixed) {
             value = toFixedFilter.read(value, this.filter_toFixed_n);
         }
+        if (this.filter_toFixedCeil) {
+            value = toFixedCeilFilter.read(value, this.filter_toFixed_n);
+        }
+        if (this.filter_toFixedFloor) {
+            value = toFixedFloorFilter.read(value, this.filter_toFixed_n);
+        }
         if (this.filter_hideZero) {
             value = hideZeroFilter.read(value);
         }
@@ -248,6 +270,8 @@ export default class VueComponentBase extends Vue
         amount: amountFilter,
         percent: percentFilter,
         toFixed: toFixedFilter,
+        toFixedCeil: toFixedCeilFilter,
+        toFixedFloor: toFixedFloorFilter,
         hideZero: hideZeroFilter,
         boolean: booleanFilter,
         padHour: padHourFilter,
@@ -274,6 +298,8 @@ export default class VueComponentBase extends Vue
         amount: amountFilter,
         percent: percentFilter,
         toFixed: toFixedFilter,
+        toFixedCeil: toFixedCeilFilter,
+        toFixedFloor: toFixedFloorFilter,
         hideZero: hideZeroFilter,
         boolean: booleanFilter,
         padHour: padHourFilter,

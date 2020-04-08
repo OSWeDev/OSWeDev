@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
@@ -104,7 +105,7 @@ export default class CRUDComponentField extends VueComponentBase {
     @Prop({ default: false })
     private is_disabled: boolean;
 
-    @Prop()
+    @Prop({ default: null })
     private description: string;
 
     @Prop({ default: null })
@@ -114,7 +115,7 @@ export default class CRUDComponentField extends VueComponentBase {
     private select_options: number[] = [];
     private isLoadingOptions: boolean = false;
     private field_value: any = null;
-    private field_value_range: any = {};
+    private field_value_range: { [type_date: string]: string } = {};
     private field_value_refranges_selected_ids: number[] = [];
 
     private inline_input_is_editing: boolean = false;
@@ -182,7 +183,13 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = this.field_value;
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
+        this.$emit('onChangeVO', this.vo);
     }
 
     get alert_path(): string {
@@ -209,6 +216,7 @@ export default class CRUDComponentField extends VueComponentBase {
     @Watch('vo')
     @Watch('datatable')
     @Watch('default_field_data')
+    @Watch('targetModuleTable_count')
     public on_reload_field_value() {
         this.debounced_reload_field_value();
     }
@@ -234,8 +242,8 @@ export default class CRUDComponentField extends VueComponentBase {
             let date: string[] = this.field_value.toString().split('-');
 
             if (date && date.length > 0) {
-                this.field_value_range[this.field.datatable_field_uid + '_start'] = this.formatDateForField(date[0]);
-                this.field_value_range[this.field.datatable_field_uid + '_end'] = this.formatDateForField(date[1]);
+                Vue.set(this.field_value_range, this.field.datatable_field_uid + '_start', this.formatDateForField(date[0]));
+                Vue.set(this.field_value_range, this.field.datatable_field_uid + '_end', this.formatDateForField(date[1]));
             }
         }
 
@@ -367,11 +375,12 @@ export default class CRUDComponentField extends VueComponentBase {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
 
-        if (!this.datatable) {
-            this.$emit('changeValue', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this.datatable);
-        } else {
-            this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
         }
+
+        this.$emit('onChangeVO', this.vo);
     }
 
     private validateMultiInput(values: any[]) {
@@ -382,7 +391,13 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = values;
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
+        this.$emit('onChangeVO', this.vo);
         this.$emit('validateMultiInput', values, this.field, this.vo);
     }
 
@@ -678,12 +693,13 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
-        this.$emit('onChangeVO', this.vo);
 
         if (this.field.onChange) {
             this.field.onChange(this.vo);
+            this.datatable.refresh();
         }
+
+        this.$emit('onChangeVO', this.vo);
     }
 
     private inputValue(value: any) {
@@ -697,7 +713,13 @@ export default class CRUDComponentField extends VueComponentBase {
         if (this.auto_update_field_value) {
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
+        this.$emit('onChangeVO', this.vo);
     }
 
     get is_custom_field_type(): boolean {
@@ -808,7 +830,13 @@ export default class CRUDComponentField extends VueComponentBase {
                 await this.snotify.success(this.label('field.auto_update_field_value.succes'));
             }
         }
-        this.$emit('changeValue', this.vo, this.field, this.field_value, this.datatable);
+
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
+        this.$emit('onChangeVO', this.vo);
 
         this.inline_input_is_editing = false;
 
@@ -847,6 +875,15 @@ export default class CRUDComponentField extends VueComponentBase {
 
     get is_readonly(): boolean {
         return this.field.is_readonly || this.is_disabled;
+    }
+
+    get targetModuleTable_count(): number {
+        let manyToOne: ReferenceDatatableField<any> = (this.field as ReferenceDatatableField<any>);
+        if (manyToOne && manyToOne.targetModuleTable && manyToOne.targetModuleTable.vo_type && this.getStoredDatas && this.getStoredDatas[manyToOne.targetModuleTable.vo_type]) {
+            return ObjectHandler.getInstance().arrayFromMap(this.getStoredDatas[manyToOne.targetModuleTable.vo_type]).length;
+        }
+
+        return null;
     }
 
     get field_value_length(): number {

@@ -1,4 +1,5 @@
 import { RouteConfig } from 'vue-router';
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import CRUDHandler from '../../../../shared/tools/CRUDHandler';
@@ -7,7 +8,6 @@ import MenuBranch from '../../components/menu/vos/MenuBranch';
 import MenuElementBase from '../../components/menu/vos/MenuElementBase';
 import MenuPointer from '../../components/menu/vos/MenuPointer';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
-import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 
 export default class CRUDComponentManager {
 
@@ -30,9 +30,6 @@ export default class CRUDComponentManager {
 
     public cruds_by_api_type_id: { [api_type_id: string]: CRUD<any> } = {};
     public callback_routes: string[] = [];
-    public callback_function_create: (vo: IDistantVOBase) => Promise<void> = null;
-    public callback_function_update: (vo: IDistantVOBase) => Promise<void> = null;
-    public callback_handle_modal_show_hide: (vo: IDistantVOBase) => Promise<void> = null;
     public idistantvo_init: IDistantVOBase[] = [];
 
     public registerCRUDs<T extends IDistantVOBase>(
