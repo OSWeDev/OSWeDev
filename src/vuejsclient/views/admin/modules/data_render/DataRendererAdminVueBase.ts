@@ -1,4 +1,3 @@
-import * as $ from 'jquery';
 import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
@@ -48,6 +47,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
             var formData = new FormData();
             formData.append('render_time_segments_json', JSON.stringify(TimeSegmentHandler.getInstance().getAllDataTimeSegments(moment(this.segment_start_date).utc(true), moment(this.segment_end_date).utc(true), this.time_segment_type)));
 
+            let $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
             await $.ajax({
                 url: '/modules/ModuleDataRender/renderData/' + this.renderer_name,
                 method: "POST",

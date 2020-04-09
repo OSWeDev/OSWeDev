@@ -25,7 +25,7 @@
         "tscv": "tsc -v",
         "tsc-watch-tests": "tsc -w -p ./test",
         "clean": "rimraf dist",
-        "xcopy_vuejsclient": "xcopy \"src\\vuejsclient\" \"dist\\vuejsclient\\\" /D /E /C /Q /H /R /Y /K",
+        "xcopy_vuejsclient": "xcopy \"src\\vuejsclient\" \"dist\\vuejsclient\\\" /D /E /C /F /K /H /R /Y /I /J",
         "build": "npm run-script clean && tsc --project ./",
         "tsc-watch": "tsc-watch --project ./",
         "project-watch": "concurrently --prefix \"[{name}]\" --names \"TSC,WEBPACK\" -c \"bgBlue.bold,bgRed.bold\" \"npm run tsc-watch\" \"npm run watch\"",

@@ -20,7 +20,6 @@ import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
-import Alert from '../../alert/Alert';
 import { ModuleAlertAction } from '../../alert/AlertStore';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
@@ -28,6 +27,7 @@ import DatatableComponent from '../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
+import Alert from '../../../../../shared/modules/Alert/vos/Alert';
 
 @Component({
     template: require('./CRUDComponent.pug'),

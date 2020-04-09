@@ -1,8 +1,3 @@
-// FIXME RIEN A FAIRE ICI
-// if false
-import axios from 'axios';
-import * as $ from 'jquery';
-// endif
 import { debounce } from 'lodash';
 import { decode, encode } from "messagepack";
 import * as moment from 'moment';
@@ -206,7 +201,7 @@ export default class ModuleAjaxCache extends Module {
             this.api_logs.push(light_weight);
         }
 
-        let res = new Promise((resolve, reject) => {
+        let res = new Promise(async (resolve, reject) => {
 
             // On ajoute le système de catch code retour pour les POST aussi
             let cache = self.addCache(
@@ -231,6 +226,7 @@ export default class ModuleAjaxCache extends Module {
             if (contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
                 var buffer = encode(postdatas);
 
+                const { default: axios } = await import('axios');
                 let axios_headers: any = {
                     'Content-Type': contentType,
                     'Accept': 'application/x-msgpack'
@@ -286,8 +282,9 @@ export default class ModuleAjaxCache extends Module {
                 }
                 self.addCallback(cache, resolve, reject);
 
+                const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
                 if ($.ajax) {
-                    return $.ajax(options)
+                    await $.ajax(options)
                         .done((r) => {
                             self.resolve_request(cache, r);
                         })
@@ -637,6 +634,7 @@ export default class ModuleAjaxCache extends Module {
 
                     if (request.contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
 
+                        const { default: axios } = await import('axios');
                         axios.get(
                             request.url,
                             {
@@ -659,6 +657,8 @@ export default class ModuleAjaxCache extends Module {
                         });
 
                     } else {
+
+                        const $ = await import(/* webpackChunkName: "jquery" */ 'jquery');
 
                         if ($.ajaxSetup) {
                             $.ajaxSetup({

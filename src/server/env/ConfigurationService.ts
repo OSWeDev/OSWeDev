@@ -16,6 +16,12 @@ export default class ConfigurationService {
     private static instance: ConfigurationService = null;
 
     public nodeInstall: boolean;
+
+    /**
+     * Just an helper for webpack conf
+     */
+    public shared_params: any;
+
     private nodeEnv: string;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 

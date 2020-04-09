@@ -37,11 +37,8 @@ import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleWrapper from '../shared/modules/ModuleWrapper';
 import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
-import IVueModule from './ts/modules/IVueModule';
-import VueModuleBase from './ts/modules/VueModuleBase';
 import AlertComponent from './ts/components/alert/AlertComponent';
 import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
-import CRUDComponentField from './ts/components/crud/component/field/CRUDComponentField.vue';
 import DefaultHomeComponent from './ts/components/DefaultHome/component/DefaultHomeComponent';
 import Error404Component from './ts/components/Error404/component/Error404Component';
 import MultipleSelectFilterComponent from './ts/components/multiple_select_filter/MultipleSelectFilterComponent';
@@ -55,10 +52,11 @@ import VarPieChartComponent from './ts/components/Var/components/piechart/VarPie
 import VarDataIfComponent from './ts/components/Var/components/varif/VarDataIfComponent';
 import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VueComponentBase from './ts/components/VueComponentBase';
+import IVueModule from './ts/modules/IVueModule';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
+import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
-
 require('moment-json-parser').overrideDefault();
 
 export default abstract class VueAppBase {
@@ -70,7 +68,7 @@ export default abstract class VueAppBase {
     }
 
     public vueInstance: VueComponentBase;
-    protected vueRouter: VueRouter;
+    public vueRouter: VueRouter;
 
     protected constructor(
         public appController: VueAppController,
@@ -343,7 +341,7 @@ export default abstract class VueAppBase {
         Vue.component('var-bar-chart', VarDataBarChartComponent);
         Vue.component('var-pie-chart', VarPieChartComponent);
         Vue.component('Intersect', Intersect);
-        Vue.component('CRUDComponentField', CRUDComponentField);
+        Vue.component('CRUDComponentField', () => import('./ts/components/crud/component/field/CRUDComponentField'));
         Vue.component('MultipleSelectFilterComponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
         Vue.component('AlertComponent', AlertComponent);
