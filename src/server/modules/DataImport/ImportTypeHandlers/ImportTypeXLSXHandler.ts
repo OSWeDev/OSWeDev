@@ -1,6 +1,5 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import { isString } from 'util';
 import * as XLSX from 'xlsx';
 import { CellAddress, WorkBook, WorkSheet } from 'xlsx';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
@@ -17,6 +16,7 @@ import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
 import ImportLogger from '../logger/ImportLogger';
+import TypesHandler from '../../../../shared/tools/TypesHandler';
 
 export default class ImportTypeXLSXHandler {
     public static getInstance() {
@@ -118,7 +118,7 @@ export default class ImportTypeXLSXHandler {
                         if (!!column_data_string) {
                             let titre: string = this.getStringfromColumnDataString(column_data_string);
 
-                            if ((!!titre) && (isString(titre))) {
+                            if ((!!titre) && (TypesHandler.getInstance().isString(titre))) {
                                 titre = titre.trim();
 
                                 //on ignore les retours à la ligne

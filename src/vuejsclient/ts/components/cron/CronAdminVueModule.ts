@@ -7,8 +7,6 @@ import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import VueAppController from '../../../VueAppController';
-import CronComponent from './CronComponent';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 
 export default class CronAdminVueModule extends VueModuleBase {
@@ -57,7 +55,7 @@ export default class CronAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: CronComponent
+            component: () => import(/* webpackChunkName: "CronComponent" */ './CronComponent')
         });
         let menuPointer = new MenuPointer(
             new MenuLeaf('CronRun', MenuElementBase.PRIORITY_ULTRAHIGH, "fa-play"),

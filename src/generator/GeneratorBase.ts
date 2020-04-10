@@ -31,6 +31,8 @@ import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305Cascad
 import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import VendorBuilder from './vendor_builder/VendorBuilder';
+import ModuleAPI from '../shared/modules/API/ModuleAPI';
+import ServerAPIController from '../server/modules/API/ServerAPIController';
 
 export default abstract class GeneratorBase {
 
@@ -51,6 +53,9 @@ export default abstract class GeneratorBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ModulesManager.getInstance().isServerSide = true;
+
+        // On initialise le Controller pour les APIs
+        ModuleAPI.getInstance().setAPIController(ServerAPIController.getInstance());
 
         this.pre_modules_workers = [
             Patch20200331DeleteOrphanTranslations.getInstance(),

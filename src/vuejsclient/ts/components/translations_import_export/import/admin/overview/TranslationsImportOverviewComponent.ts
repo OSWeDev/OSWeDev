@@ -10,7 +10,7 @@ import VOsTypesManager from '../../../../../../../shared/modules/VOsTypesManager
 import DateHandler from '../../../../../../../shared/tools/DateHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import './TranslationsImportOverviewComponent.scss';
-import moment = require('moment');
+const moment = require('moment');
 
 @Component({
     template: require('./TranslationsImportOverviewComponent.pug'),

@@ -1,4 +1,3 @@
-import moment = require('moment');
 import * as bodyParser from 'body-parser-with-msgpack';
 import * as child_process from 'child_process';
 import * as compression from 'compression';
@@ -33,6 +32,7 @@ import EnvHandler from '../shared/tools/EnvHandler';
 import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
+import IServerUserSession from './IServerUserSession';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModuleCronServer from './modules/Cron/ModuleCronServer';
 import ModuleFileServer from './modules/File/ModuleFileServer';
@@ -41,9 +41,10 @@ import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 import VarsdatasComputerBGThread from './modules/Var/bgthreads/VarsdatasComputerBGThread';
-import IServerUserSession from './IServerUserSession';
-import * as TrelloNodeAPI from 'trello-node-api';
+import ModuleAPI from '../shared/modules/API/ModuleAPI';
+import ServerAPIController from './modules/API/ServerAPIController';
 require('moment-json-parser').overrideDefault();
+const moment = require('moment');
 
 export default abstract class ServerBase {
 
@@ -75,6 +76,10 @@ export default abstract class ServerBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+
+        // On initialise le Controller pour les APIs
+        ModuleAPI.getInstance().setAPIController(ServerAPIController.getInstance());
+
         ModulesManager.getInstance().isServerSide = true;
         this.csrfProtection = csrf({ cookie: true });
     }
@@ -644,6 +649,7 @@ export default abstract class ServerBase {
             }), res);
         });
 
+        // TODO FIXME : à passer en API normale !
         if (ModuleCommerce.getInstance().actif) {
             this.app.get('/getIdPanierEnCours', (req: Request, res) => {
                 res.json({ id_panier: this.session.id_panier });

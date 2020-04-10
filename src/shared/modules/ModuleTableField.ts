@@ -1,12 +1,12 @@
-import { isArray, isBoolean, isNull, isNumber } from 'util';
 import ConsoleHandler from '../tools/ConsoleHandler';
+import TypesHandler from '../tools/TypesHandler';
+import Alert from './Alert/vos/Alert';
 import DatatableField from './DAO/vos/datatable/DatatableField';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import TableFieldTypesManager from './TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslationManager from './Translation/DefaultTranslationManager';
 import DefaultTranslation from './Translation/vos/DefaultTranslation';
-import Alert from './Alert/vos/Alert';
 
 export default class ModuleTableField<T> {
 
@@ -266,8 +266,8 @@ export default class ModuleTableField<T> {
         let default_value: string = this.field_default as any;
 
         try {
-            if (!((typeof default_value === 'undefined') || isArray(default_value) ||
-                isNull(default_value) || isNumber(default_value) || isBoolean(default_value))) {
+            if (!((typeof default_value === 'undefined') || TypesHandler.getInstance().isArray(default_value) ||
+                TypesHandler.getInstance().isNull(default_value) || TypesHandler.getInstance().isNumber(default_value) || TypesHandler.getInstance().isBoolean(default_value))) {
                 default_value = "'" + default_value.replace(/'/ig, "''") + "'";
             }
             return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '') + (this.has_default ? ' DEFAULT ' + default_value : '');

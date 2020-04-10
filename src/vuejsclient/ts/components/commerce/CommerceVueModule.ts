@@ -1,9 +1,6 @@
+import { RouteConfig } from 'vue-router';
 import ModuleCommerce from '../../../../shared/modules/Commerce/ModuleCommerce';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import CommandeListeComponent from './commande/liste/CommandeListeComponent';
-import CommandeDetailComponent from './commande/detail/CommandeDetailComponent';
-import ClientComponent from './client/ClientComponent';
-import { RouteConfig } from 'vue-router';
 
 export default class CommerceVueModule extends VueModuleBase {
     public static getInstance(): CommerceVueModule {
@@ -43,7 +40,7 @@ export default class CommerceVueModule extends VueModuleBase {
         return {
             path: '/commandes',
             name: 'commandes',
-            component: CommandeListeComponent
+            component: () => import(/* webpackChunkName: "CommandeListeComponent" */ './commande/liste/CommandeListeComponent')
         };
     }
 
@@ -51,7 +48,7 @@ export default class CommerceVueModule extends VueModuleBase {
         return {
             path: '/commande/:commande_id',
             name: 'commande_detail',
-            component: CommandeDetailComponent,
+            component: () => import(/* webpackChunkName: "CommandeDetailComponent" */ './commande/detail/CommandeDetailComponent'),
             props: (route) => ({
                 commande_id: parseInt(route.params.commande_id)
             })

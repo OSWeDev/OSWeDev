@@ -17,7 +17,8 @@ import IPlanTargetZone from '../../../../../shared/modules/ProgramPlan/interface
 import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import IStoreModule from '../../../store/IStoreModule';
-import moment = require('moment');
+import { Moment } from 'moment';
+const moment = require('moment');
 
 export type ProgramPlanContext = ActionContext<IProgramPlanState, any>;
 
@@ -42,8 +43,8 @@ export interface IProgramPlanState {
     can_edit_self: boolean;
     can_see_fc: boolean;
     selected_rdv: IPlanRDV;
-    filter_date_debut: moment.Moment;
-    filter_date_fin: moment.Moment;
+    filter_date_debut: Moment;
+    filter_date_fin: Moment;
     printable_table_weeks: any;
 }
 
@@ -105,8 +106,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
             printable_table_weeks: (state: IProgramPlanState): any => state.printable_table_weeks,
 
-            filter_date_debut: (state: IProgramPlanState): moment.Moment => state.filter_date_debut,
-            filter_date_fin: (state: IProgramPlanState): moment.Moment => state.filter_date_fin,
+            filter_date_debut: (state: IProgramPlanState): Moment => state.filter_date_debut,
+            filter_date_fin: (state: IProgramPlanState): Moment => state.filter_date_fin,
 
             can_edit_any: (state: IProgramPlanState): boolean => state.can_edit_any,
             can_edit_all: (state: IProgramPlanState): boolean => state.can_edit_all,
@@ -185,8 +186,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
             set_printable_table_weeks: (state: IProgramPlanState, printable_table_weeks: any) => state.printable_table_weeks = printable_table_weeks,
 
-            set_filter_date_debut: (state: IProgramPlanState, filter_date_debut: moment.Moment) => state.filter_date_debut = filter_date_debut,
-            set_filter_date_fin: (state: IProgramPlanState, filter_date_fin: moment.Moment) => state.filter_date_fin = filter_date_fin,
+            set_filter_date_debut: (state: IProgramPlanState, filter_date_debut: Moment) => state.filter_date_debut = filter_date_debut,
+            set_filter_date_fin: (state: IProgramPlanState, filter_date_fin: Moment) => state.filter_date_fin = filter_date_fin,
 
             set_targets_facilitators_by_ids: (state: IProgramPlanState, targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator }) => state.targets_facilitators_by_ids = targets_facilitators_by_ids,
 
@@ -331,8 +332,8 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
 
             set_printable_table_weeks: (context: ProgramPlanContext, printable_table_weeks: any) => commit_set_printable_table_weeks(context, printable_table_weeks),
 
-            set_filter_date_debut: (context: ProgramPlanContext, filter_date_debut: moment.Moment) => commit_set_filter_date_debut(context, filter_date_debut),
-            set_filter_date_fin: (context: ProgramPlanContext, filter_date_fin: moment.Moment) => commit_set_filter_date_fin(context, filter_date_fin),
+            set_filter_date_debut: (context: ProgramPlanContext, filter_date_debut: Moment) => commit_set_filter_date_debut(context, filter_date_debut),
+            set_filter_date_fin: (context: ProgramPlanContext, filter_date_fin: Moment) => commit_set_filter_date_fin(context, filter_date_fin),
 
             set_targets_facilitators_by_ids: (context: ProgramPlanContext, targets_facilitators_by_ids: { [id: number]: IPlanTargetFacilitator }) => commit_set_targets_facilitators_by_ids(context, targets_facilitators_by_ids),
 

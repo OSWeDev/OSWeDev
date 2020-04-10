@@ -1,8 +1,5 @@
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import VueModuleBase from '../../ts/modules/VueModuleBase';
-import AccessPolicyLoginComponent from './login/AccessPolicyLoginComponent';
-import AccessPolicyRecoverComponent from './recover/AccessPolicyRecoverComponent';
-import AccessPolicyResetComponent from './reset/AccessPolicyResetComponent';
 
 
 export default class AccessPolicyLoginVueModule extends VueModuleBase {
@@ -26,22 +23,22 @@ export default class AccessPolicyLoginVueModule extends VueModuleBase {
             {
                 path: '/',
                 name: 'login',
-                component: AccessPolicyLoginComponent
+                component: () => import(/* webpackChunkName: "AccessPolicyLoginComponent" */ './login/AccessPolicyLoginComponent')
             },
             {
                 path: '/recover',
                 name: 'recover',
-                component: AccessPolicyRecoverComponent
+                component: () => import(/* webpackChunkName: "AccessPolicyRecoverComponent" */ './recover/AccessPolicyRecoverComponent')
             },
             {
                 path: '/reset',
                 name: 'reset',
-                component: AccessPolicyResetComponent
+                component: () => import(/* webpackChunkName: "AccessPolicyResetComponent" */ './reset/AccessPolicyResetComponent')
             },
             {
                 path: '/reset/:user_id/:challenge',
                 name: 'reset simplified',
-                component: AccessPolicyResetComponent,
+                component: () => import(/* webpackChunkName: "AccessPolicyResetComponent" */ './reset/AccessPolicyResetComponent'),
                 props: (route) => ({
                     prop_user_id: parseInt(route.params.user_id),
                     prop_challenge: route.params.challenge

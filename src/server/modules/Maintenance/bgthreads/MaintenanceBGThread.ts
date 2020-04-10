@@ -7,7 +7,7 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModulePushDataServer from '../../PushData/ModulePushDataServer';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
-import moment = require('moment');
+const moment = require('moment');
 
 export default class MaintenanceBGThread implements IBGThread {
 

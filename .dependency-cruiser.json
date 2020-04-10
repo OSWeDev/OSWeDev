@@ -1,0 +1,88 @@
+{
+    "forbidden": [{
+        "name": "shared->server",
+        "comment": "don't allow dependencies from shared to server",
+        "severity": "error",
+        "from": {
+            "path": "^src/shared/"
+        },
+        "to": {
+            "path": "^src/server/"
+        }
+    }, {
+        "name": "shared->generator",
+        "comment": "don't allow dependencies from shared to generator",
+        "severity": "error",
+        "from": {
+            "path": "^src/shared/"
+        },
+        "to": {
+            "path": "^src/generator/"
+        }
+    }, {
+        "name": "shared->vuejsclient",
+        "comment": "don't allow dependencies from shared to vuejsclient",
+        "severity": "error",
+        "from": {
+            "path": "^src/shared/"
+        },
+        "to": {
+            "path": "^src/vuejsclient/"
+        }
+    }, {
+        "name": "vuejsclient->server",
+        "comment": "don't allow dependencies from vuejsclient to server",
+        "severity": "error",
+        "from": {
+            "path": "^src/vuejsclient/"
+        },
+        "to": {
+            "path": "^src/server/"
+        }
+    }, {
+        "name": "vuejsclient->generator",
+        "comment": "don't allow dependencies from vuejsclient to generator",
+        "severity": "error",
+        "from": {
+            "path": "^src/vuejsclient/"
+        },
+        "to": {
+            "path": "^src/generator/"
+        }
+    }, {
+        "name": "server->vuejsclient",
+        "comment": "don't allow dependencies from server to vuejsclient",
+        "severity": "error",
+        "from": {
+            "path": "^src/server/"
+        },
+        "to": {
+            "path": "^src/vuejsclient/"
+        }
+    }, {
+        "name": "server->generator",
+        "comment": "don't allow dependencies from server to generator",
+        "severity": "error",
+        "from": {
+            "path": "^src/server/"
+        },
+        "to": {
+            "path": "^src/generator/"
+        }
+    }, {
+        "name": "generator->vuejsclient",
+        "comment": "don't allow dependencies from generator to vuejsclient",
+        "severity": "error",
+        "from": {
+            "path": "^src/generator/"
+        },
+        "to": {
+            "path": "^src/vuejsclient/"
+        }
+    }],
+    "allowed": [{
+        "from": {},
+        "to": {}
+    }],
+    "options": {}
+}

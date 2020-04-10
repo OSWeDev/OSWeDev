@@ -1,13 +1,12 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleVocus from '../../../../shared/modules/Vocus/ModuleVocus';
+import VocusHandler from '../../../../shared/tools/VocusHandler';
 import VueModuleBase from '../../modules/VueModuleBase';
 import MenuBranch from '../menu/vos/MenuBranch';
 import MenuElementBase from '../menu/vos/MenuElementBase';
 import MenuLeaf from '../menu/vos/MenuLeaf';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import MenuPointer from '../menu/vos/MenuPointer';
-import VocusComponent from './VocusComponent';
-import VocusHandler from '../../../../shared/tools/VocusHandler';
 
 
 export default class VocusAdminVueModule extends VueModuleBase {
@@ -47,7 +46,7 @@ export default class VocusAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: VocusComponent,
+            component: () => import(/* webpackChunkName: "VocusComponent" */ './VocusComponent'),
             props: (route) => ({
                 key: main_route_name
             })
@@ -58,7 +57,7 @@ export default class VocusAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name + '__vo',
-            component: VocusComponent,
+            component: () => import(/* webpackChunkName: "VocusComponent" */ './VocusComponent'),
             props: (route) => ({
                 key: main_route_name,
                 vo_id: parseInt(route.params.id),

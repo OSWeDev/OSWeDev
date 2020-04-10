@@ -3,7 +3,6 @@ import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import * as draggable from 'vuedraggable';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import IInstantiatedPageComponent from '../../../../../shared/modules/CMS/interfaces/IInstantiatedPageComponent';
 import ModuleCMS from '../../../../../shared/modules/CMS/ModuleCMS';
 import PageVO from '../../../../../shared/modules/CMS/vos/PageVO';
@@ -13,6 +12,7 @@ import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/Ins
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import WeightHandler from '../../../../../shared/tools/WeightHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
 import ImageViewComponent from '../../image/View/ImageViewComponent';
 import CMSComponentManager from '../CMSComponentManager';
@@ -257,9 +257,9 @@ export default class CMSPageComponent extends VueComponentBase {
         if (force) {
             for (let i in ModuleCMS.getInstance().registered_template_components_by_type) {
                 let registered_template_component: TemplateComponentVO = ModuleCMS.getInstance().registered_template_components_by_type[i];
-                ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([registered_template_component.type_id]);
+                AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([registered_template_component.type_id]);
             }
-            ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([TemplateComponentVO.API_TYPE_ID]);
+            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([TemplateComponentVO.API_TYPE_ID]);
         }
 
         $("#sortable_page_component_list").sortable("destroy");

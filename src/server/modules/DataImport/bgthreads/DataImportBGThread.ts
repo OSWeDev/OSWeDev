@@ -1,5 +1,3 @@
-import moment = require('moment');
-import { isNumber } from 'util';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDataImport from '../../../../shared/modules/DataImport/ModuleDataImport';
@@ -10,6 +8,7 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleDataImportServer from '../ModuleDataImportServer';
+import TypesHandler from '../../../../shared/tools/TypesHandler';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -140,7 +139,7 @@ export default class DataImportBGThread implements IBGThread {
                     return false;
                 }
                 let id = parseInt(insertOrDeleteQueryResult.id);
-                if ((!id) || (!isNumber(id))) {
+                if ((!id) || (!TypesHandler.getInstance().isNumber(id))) {
                     ConsoleHandler.getInstance().error('!id dans handleImportHistoricProgression');
                     return false;
                 }

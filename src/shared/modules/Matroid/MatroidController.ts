@@ -9,7 +9,7 @@ import MatroidBaseController from './MatroidBaseController';
 import MatroidBase from './vos/MatroidBase';
 import MatroidBaseCutResult from './vos/MatroidBaseCutResult';
 import MatroidCutResult from './vos/MatroidCutResult';
-import moment = require('moment');
+const moment = require('moment');
 
 export default class MatroidController {
 

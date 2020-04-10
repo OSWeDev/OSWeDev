@@ -7,7 +7,7 @@ import VOsTypesManager from '../VOsTypesManager';
 import ISimpleNumberVarData from './interfaces/ISimpleNumberVarData';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VarsController from './VarsController';
-import moment = require('moment');
+const moment = require('moment');
 import ModuleAPI from '../API/ModuleAPI';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import APIDAOApiTypeAndMatroidsParamsVO from '../DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';

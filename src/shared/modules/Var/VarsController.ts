@@ -33,7 +33,8 @@ import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
-import moment = require('moment');
+import { Moment } from 'moment';
+const moment = require('moment');
 
 export default class VarsController {
 
@@ -572,7 +573,7 @@ export default class VarsController {
     }
 
 
-    public getInclusiveEndParamTimeSegment<TDataParam extends IVarDataParamVOBase>(param: TDataParam): moment.Moment {
+    public getInclusiveEndParamTimeSegment<TDataParam extends IVarDataParamVOBase>(param: TDataParam): Moment {
 
         if (!(param as any as IDateIndexedVarDataParam).date_index) {
             return null;
@@ -771,7 +772,7 @@ export default class VarsController {
      *  par exemple un compteur de solde d'heures veut la somme des soldes quotidiens depuis le dernier reset ou imports mais
      *  ils sont gérés plus tard
      */
-    public get_tsrange_on_resetable_var(var_id: number, target: moment.Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
+    public get_tsrange_on_resetable_var(var_id: number, target: Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
 
         let controller = VarsController.getInstance().getVarControllerById(var_id);
 
@@ -802,12 +803,12 @@ export default class VarsController {
         min_inclusiv = true;
         max_inclusiv = false;
 
-        let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
+        let closest_earlier_reset_date: Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
             target, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
         return TSRange.createNew(closest_earlier_reset_date, target, min_inclusiv, max_inclusiv, segment_type);
     }
 
-    public getTSRangeToCall(target: moment.Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
+    public getTSRangeToCall(target: Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
         return RangeHandler.getInstance().createNew(
             TSRange.RANGE_TYPE,
             moment('1900-01-01').startOf('day').utc(true),
@@ -909,7 +910,7 @@ export default class VarsController {
 
                 let end_range = RangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
                 // TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
-                let closest_earlier_reset_date: moment.Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
+                let closest_earlier_reset_date: Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
                     end_range, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month).utc(true);
 
                 if (RangeHandler.getInstance().elt_intersects_range(closest_earlier_reset_date, ts_range)) {

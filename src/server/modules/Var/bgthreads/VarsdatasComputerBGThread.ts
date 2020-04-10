@@ -1,4 +1,3 @@
-import moment = require('moment');
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ISimpleNumberVarData from '../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
@@ -11,7 +10,8 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModulePushDataServer from '../../PushData/ModulePushDataServer';
-import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import { Moment } from 'moment';
+const moment = require('moment');
 
 export default class VarsdatasComputerBGThread implements IBGThread {
 
@@ -193,7 +193,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
                 let vars_datas_tmp: ISimpleNumberVarData[] = [];
                 if (!!varcacheconf.cache_timeout_ms) {
-                    let timeout: moment.Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
+                    let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
                     vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<ISimpleNumberVarData>(api_type_id, ' where var_id = ' + varcacheconf.var_id + ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') limit ' + this.request_limit + ';');
                 } else {
                     vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<ISimpleNumberVarData>(api_type_id, ' where value_ts is null and var_id = ' + varcacheconf.var_id + ' limit ' + this.request_limit + ';');

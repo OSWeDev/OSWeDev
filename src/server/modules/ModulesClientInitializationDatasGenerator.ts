@@ -55,6 +55,10 @@ export default class ModulesClientInitializationDatasGenerator {
 
         fileContent += "import EnvHandler from 'oswedev/dist/shared/tools/EnvHandler';\n";
 
+        if (target != 'Test') {
+            fileContent += "import AjaxCacheClientController from 'oswedev/dist/vuejsclient/ts/modules/AjaxCache/AjaxCacheClientController';\n";
+        }
+
         fileContent += "\n";
         fileContent += "export default async function Initialize" + target + "ModulesDatas() {\n";
 
@@ -66,7 +70,9 @@ export default class ModulesClientInitializationDatasGenerator {
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
 
-        fileContent += "    await ModuleAjaxCache.getInstance().getCSRFToken();";
+        if (target != 'Test') {
+            fileContent += "    await AjaxCacheClientController.getInstance().getCSRFToken();";
+        }
         fileContent += "    let promises = [];";
 
         fileContent += this.generateModulesCode(this.generateModuleAsyncInitialisation, target);

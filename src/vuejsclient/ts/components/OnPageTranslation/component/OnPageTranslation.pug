@@ -32,19 +32,13 @@
                             label(:for="editable_translation.translation_code") {{ editable_translation.translation_code }}
                         .col-md-5
 
-                            //- quill-editor(
-                            //-     :class="{'bg-warning': !editable_translation.translation}" 
-                            //-     v-model="editable_translation.editable_translation" 
-                            //-     v-if="show_quill_editor[editable_translation.translation_code]")
-
                             input.form-control(
                                 :class="{'bg-warning': !editable_translation.translation}" 
                                 :name="editable_translation.translation_code" 
                                 type="text" 
                                 size="100" 
                                 v-model="editable_translation.editable_translation"
-                                @keyup.13="save_translation(editable_translation)"
-                                v-if="!show_quill_editor[editable_translation.translation_code]")
+                                @keyup.13="save_translation(editable_translation)")
                         .col-md-3
                             toggle-button(
                                 @change="switch_show_other_langs(editable_translation)" 
@@ -52,13 +46,6 @@
                                 :sync="true"
                                 :width="120"
                                 :labels="{checked: label('on_page_translation.show_other_langs'), unchecked: label('on_page_translation.hide_other_langs')}")
-                            //- toggle-button(
-                            //-     v-if="!updated_translation(editable_translation)"
-                            //-     @change="switch_show_quill_editor(editable_translation)" 
-                            //-     :value="show_quill_editor[editable_translation.translation_code]" 
-                            //-     :sync="true"
-                            //-     :width="120"
-                            //-     :labels="{checked: label('on_page_translation.show_quill_editor'), unchecked: label('on_page_translation.hide_quill_editor')}")
                             button.btn.btn-secondary(v-if="updated_translation(editable_translation)" type="button" @click='rollback_translation(editable_translation)')
                                 i.fa.fa-undo.btn_icon(aria-hidden="true")
                                 | {{ label('on_page_translation.rollback_button') }}

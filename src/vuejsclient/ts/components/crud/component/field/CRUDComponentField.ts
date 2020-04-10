@@ -38,12 +38,15 @@ import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
 import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
+import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
+import 'quill/dist/quill.core.css'; // Compliqué à lazy load
+import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 let debounce = require('lodash/debounce');
-
 
 @Component({
     template: require('./CRUDComponentField.pug'),
     components: {
+        VueQuillEditor: () => import(/* webpackChunkName: "vue-quill-editor" */ 'vue-quill-editor'),
         FileComponent: FileComponent,
         ImageComponent: ImageComponent,
         MultiInputComponent: MultiInputComponent,

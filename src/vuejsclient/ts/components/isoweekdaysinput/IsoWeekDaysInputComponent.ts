@@ -1,4 +1,4 @@
-import moment = require('moment');
+const moment = require('moment');
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';

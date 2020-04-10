@@ -1,9 +1,9 @@
-import { isString } from 'util';
 import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
 import VarDataParamControllerBase from '../../VarDataParamControllerBase';
 import VarsController from '../../VarsController';
 import BinaryVarOperatorDataParamVO from './vos/BinaryVarOperatorDataParamVO';
 import BinaryVarOperatorDataVO from './vos/BinaryVarOperatorDataVO';
+import TypesHandler from '../../../../tools/TypesHandler';
 
 export default class BinaryVarOperatorDataParamController extends VarDataParamControllerBase<BinaryVarOperatorDataVO, BinaryVarOperatorDataParamVO> {
 
@@ -36,7 +36,7 @@ export default class BinaryVarOperatorDataParamController extends VarDataParamCo
 
         let res: BinaryVarOperatorDataParamVO = new BinaryVarOperatorDataParamVO();
 
-        res.var_id = (isString(var_name_or_id) ? VarsController.getInstance().getVarConf(var_name_or_id).id : var_name_or_id);
+        res.var_id = (TypesHandler.getInstance().isString(var_name_or_id) ? VarsController.getInstance().getVarConf(var_name_or_id as string).id : var_name_or_id as number);
         res.left_var_param_index = left_var_param_index;
         res.right_var_param_index = right_var_param_index;
         return res;

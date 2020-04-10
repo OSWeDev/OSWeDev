@@ -1,7 +1,7 @@
 import { EventObjectInput } from 'fullcalendar';
 import { Duration, Moment } from 'moment';
-import HourRange from '../modules/DataRender/vos/HourRange';
-import RangeHandler from './RangeHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
+import HourRange from '../../../shared/modules/DataRender/vos/HourRange';
 
 /**
  * Tools for fullcalendar usage

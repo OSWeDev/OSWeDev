@@ -1,22 +1,21 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleCMS from '../../../../shared/modules/CMS/ModuleCMS';
+import HtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlComponentVO';
+import HtmlHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlHtmlComponentVO';
+import HtmlHtmlHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlHtmlHtmlComponentVO';
+import HtmlImgComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlImgComponentVO';
+import ImgHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/ImgHtmlComponentVO';
 import PageAliasVO from '../../../../shared/modules/CMS/vos/PageAliasVO';
 import PageVO from '../../../../shared/modules/CMS/vos/PageVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import CMSComponentManager from './CMSComponentManager';
-import HtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlComponentVO';
 import HtmlComponentTemplate from './component_templates/Html/HtmlComponentTemplate';
-import HtmlHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlHtmlComponentVO';
-import HtmlHtmlHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlHtmlHtmlComponentVO';
-import ImgHtmlComponentVO from '../../../../shared/modules/CMS/page_components_types/ImgHtmlComponentVO';
-import HtmlImgComponentVO from '../../../../shared/modules/CMS/page_components_types/HtmlImgComponentVO';
-import HtmlHtmlHtmlComponentTemplate from './component_templates/HtmlHtmlHtml/HtmlHtmlHtmlComponentTemplate';
 import HtmlHtmlComponentTemplate from './component_templates/HtmlHtml/HtmlHtmlComponentTemplate';
+import HtmlHtmlHtmlComponentTemplate from './component_templates/HtmlHtmlHtml/HtmlHtmlHtmlComponentTemplate';
 import HtmlImgComponentTemplate from './component_templates/HtmlImg/HtmlImgComponentTemplate';
 import ImgHtmlComponentTemplate from './component_templates/ImgHtml/ImgHtmlComponentTemplate';
-import CMSPageComponent from './component/CMSPageComponent';
 
 export default class CMSFrontVueModule extends VueModuleBase {
 
@@ -83,7 +82,7 @@ export default class CMSFrontVueModule extends VueModuleBase {
             if (cms_route == cleaned_route) {
                 this.routes.push({
                     path: cleaned_route,
-                    component: CMSPageComponent,
+                    component: () => import(/* webpackChunkName: "CMSPageComponent" */ './component/CMSPageComponent'),
                     props: () => ({
                         page_id: page.id,
                         preloaded_page: page

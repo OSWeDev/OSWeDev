@@ -7,8 +7,6 @@ import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
-import ProgramPlanComponent from './ProgramPlanComponent';
-import ProgramsOverviewComponent from './ProgramsOverview/ProgramsOverviewComponent';
 
 export default class ProgramPlanClientVueModule extends VueModuleBase {
 
@@ -49,7 +47,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: ProgramsOverviewComponent
+            component: () => import(/* webpackChunkName: "ProgramsOverviewComponent" */ './ProgramsOverview/ProgramsOverviewComponent')
         });
         let menuPointer = new MenuPointer(
             new MenuLeaf('PlanProgramComponent', MenuElementBase.PRIORITY_ULTRAHIGH, "fa-calendar"),
@@ -64,7 +62,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: ProgramPlanComponent,
+            component: () => import(/* webpackChunkName: "ProgramPlanComponent" */ './ProgramPlanComponent'),
             props: (route) => ({
                 key: 'ProgramPlan_' + parseInt(route.params.program_id),
                 program_id: parseInt(route.params.program_id),
@@ -78,7 +76,7 @@ export default class ProgramPlanClientVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: ProgramPlanComponent,
+            component: () => import(/* webpackChunkName: "ProgramPlanComponent" */ './ProgramPlanComponent'),
             props: (route) => ({
                 key: 'ProgramPlanRDV_' + parseInt(route.params.selected_rdv_id),
                 program_id: parseInt(route.params.program_id),

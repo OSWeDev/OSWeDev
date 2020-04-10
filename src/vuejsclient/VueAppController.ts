@@ -7,6 +7,7 @@ import CacheInvalidationRulesVO from '../shared/modules/AjaxCache/vos/CacheInval
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import LangVO from '../shared/modules/Translation/vos/LangVO';
+import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
 
 export default abstract class VueAppController {
 
@@ -56,7 +57,7 @@ export default abstract class VueAppController {
         })());
 
         promises.push((async () => {
-            datas = JSON.parse(await ModuleAjaxCache.getInstance().get('/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
+            datas = JSON.parse(await AjaxCacheClientController.getInstance().get('/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
         })());
 
         promises.push((async () => {
@@ -72,7 +73,7 @@ export default abstract class VueAppController {
         })());
 
         promises.push((async () => {
-            self.SERVER_HEADERS = JSON.parse(await ModuleAjaxCache.getInstance().get('/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
+            self.SERVER_HEADERS = JSON.parse(await AjaxCacheClientController.getInstance().get('/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
         })());
 
         promises.push((async () => {

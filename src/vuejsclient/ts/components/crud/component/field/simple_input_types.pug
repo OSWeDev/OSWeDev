@@ -110,7 +110,7 @@
     template(v-else-if="field_type == 'timestamp'")
         input(:class="{'form-control': !inline_input_mode}" type="number" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" :id="field.datatable_field_uid")
     template(v-else-if="field_type == 'html'")
-        quill-editor(v-model="field_value" ref="quilleditor" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput" :id="field.datatable_field_uid")
+        VueQuillEditor(v-model="field_value" ref="quilleditor" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput" :id="field.datatable_field_uid")
     template(v-else-if="(field_type == 'file')&&(vo._type == 'file')")
         FileComponent(:filevo="vo" @uploaded="uploadedFile(...arguments)" :id="field.datatable_field_uid" :disabled="is_readonly")
     template(v-else-if="(field_type == 'image')&&(vo._type == 'image')")
@@ -144,11 +144,11 @@
             :deselectLabel='label("multiselect.deselectLabel")'
             :deselectGroupLabel='label("multiselect.deselectGroupLabel")')
     template(v-else-if="field_type == 'number[]'")
-        MultiInputComponent(v-model="field_value", :id="field.datatable_field_uid",, :vo="vo", :field="field", :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="number", @input_with_infos="validateMultiInput")
+        MultiInputComponent(v-model="field_value", :id="field.datatable_field_uid" :vo="vo", :field="field", :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="number", @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'text[]'")
-        MultiInputComponent(v-model="field_value", :id="field.datatable_field_uid",, :vo="vo", :field="field", :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", @input_with_infos="validateMultiInput")
+        MultiInputComponent(v-model="field_value", :id="field.datatable_field_uid" :vo="vo", :field="field", :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", @input_with_infos="validateMultiInput")
     template(v-else-if="field_type == 'html[]'")
-        MultiInputComponent(:id="field.datatable_field_uid",, :use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", @input_with_infos="validateMultiInput")
+        MultiInputComponent(:id="field.datatable_field_uid" :use_wysiwyg='true' v-model="field_value", :vo="vo", :field="field", :required="field.is_required", :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))", type_input="text", @input_with_infos="validateMultiInput")
     template(v-else-if="is_custom_field_type && custom_field_types[field_type].create_update_component")
         .custom_read_field_component(
             :id="field.datatable_field_uid",

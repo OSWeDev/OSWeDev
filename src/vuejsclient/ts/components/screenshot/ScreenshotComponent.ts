@@ -1,14 +1,13 @@
-import moment = require('moment');
+const moment = require('moment');
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
-import './ScreenshotComponent.scss';
 import VueAppController from '../../../VueAppController';
-let html2canvas = require('html2canvas');
+import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
+import './ScreenshotComponent.scss';
 
 @Component({
     template: require('./ScreenshotComponent.pug'),
@@ -44,6 +43,8 @@ export default class ScreenshotComponent extends VueComponentBase {
 
         try {
 
+            let { default: html2canvas } = await import(/* webpackChunkName: "html2canvas" */ 'html2canvas');
+
             html2canvas(
                 document.getElementById("VueMain"),
                 {
@@ -66,7 +67,7 @@ export default class ScreenshotComponent extends VueComponentBase {
                                 let formData = new FormData();
                                 formData.append('file', imgData, 'screenshot_' + VueAppController.getInstance().data_user.id + '_' + moment().utc(true).unix() + '.png');
 
-                                let res = await ModuleAjaxCache.getInstance().post(
+                                let res = await AjaxCacheClientController.getInstance().post(
                                     '/ModuleFileServer/upload',
                                     [FileVO.API_TYPE_ID],
                                     formData,

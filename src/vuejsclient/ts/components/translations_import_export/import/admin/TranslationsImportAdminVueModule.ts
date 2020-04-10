@@ -6,7 +6,6 @@ import MenuElementBase from '../../../menu/vos/MenuElementBase';
 import MenuLeaf from '../../../menu/vos/MenuLeaf';
 import MenuLeafRouteTarget from '../../../menu/vos/MenuLeafRouteTarget';
 import MenuPointer from '../../../menu/vos/MenuPointer';
-import TranslationsImportComponent from './TranslationsImportComponent';
 
 
 
@@ -41,7 +40,7 @@ export default class TranslationsImportAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name,
-            component: TranslationsImportComponent,
+            component: () => import(/* webpackChunkName: "TranslationsImportComponent" */ './TranslationsImportComponent'),
             props: (route) => ({
                 key: main_route_name
             })
@@ -52,7 +51,7 @@ export default class TranslationsImportAdminVueModule extends VueModuleBase {
         this.routes.push({
             path: url,
             name: main_route_name + '__Modal',
-            component: TranslationsImportComponent,
+            component: () => import(/* webpackChunkName: "TranslationsImportComponent" */ './TranslationsImportComponent'),
             props: (route) => ({
                 key: main_route_name,
                 modal_show: true

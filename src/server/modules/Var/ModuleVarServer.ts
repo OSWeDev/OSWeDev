@@ -1,37 +1,34 @@
-import moment = require('moment');
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APIDAOApiTypeAndMatroidsParamsVO from '../../../shared/modules/DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
+import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
+import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ServerBase from '../../ServerBase';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
-import ISimpleNumberVarMatroidData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarMatroidData';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import { Moment } from 'moment';
-import ThreadHandler from '../../../shared/tools/ThreadHandler';
-import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
-import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
-import ServerBase from '../../ServerBase';
+const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
 

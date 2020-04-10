@@ -6,7 +6,7 @@ import 'vue-tables-2';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../../store/VarStore';
 import './VarDescRegistrationsComponent.scss';
-import moment = require('moment');
+const moment = require('moment');
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDAG from '../../../../../../../shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../../../../../shared/modules/Var/graph/var/VarDAGNode';

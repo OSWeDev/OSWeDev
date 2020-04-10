@@ -3,7 +3,7 @@ import TSRange from '../modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
 import ConsoleHandler from './ConsoleHandler';
 import RangeHandler from './RangeHandler';
-import moment = require('moment');
+const moment = require('moment');
 
 export default class ObjectHandler {
     public static getInstance(): ObjectHandler {

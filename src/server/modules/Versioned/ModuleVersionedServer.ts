@@ -10,7 +10,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
-import moment = require('moment');
+const moment = require('moment');
 
 export default class ModuleVersionedServer extends ModuleServerBase {
 

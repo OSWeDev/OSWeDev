@@ -54,6 +54,7 @@
     ],
     "exclude": [
         "src/client/public/bower",
+        "src/vuejsclient/**/*.ts",
         "node_modules"
     ]
 }

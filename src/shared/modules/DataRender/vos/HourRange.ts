@@ -1,14 +1,15 @@
-import moment = require('moment');
+const moment = require('moment');
 import HourSegmentHandler from '../../../tools/HourSegmentHandler';
 import IRange from '../interfaces/IRange';
 import HourSegment from './HourSegment';
+import { Duration } from 'moment';
 
-export default class HourRange implements IRange<moment.Duration> {
+export default class HourRange implements IRange<Duration> {
 
 
     public static RANGE_TYPE: number = 3;
 
-    public static createNew(min: moment.Duration, max: moment.Duration, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): HourRange {
+    public static createNew(min: Duration, max: Duration, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): HourRange {
         if ((!min) || (!max) || (min && max && (min.as('milliseconds') > max.as('milliseconds')))) {
             return null;
         }
@@ -43,7 +44,7 @@ export default class HourRange implements IRange<moment.Duration> {
     /**
      * TODO ASAP TU
      */
-    public static getSegmentedMin(min: moment.Duration, min_inclusiv: boolean, max: moment.Duration, max_inclusiv: boolean, segment_type: number): moment.Duration {
+    public static getSegmentedMin(min: Duration, min_inclusiv: boolean, max: Duration, max_inclusiv: boolean, segment_type: number): Duration {
 
 
         if ((min == null) || (typeof min == 'undefined')) {
@@ -76,7 +77,7 @@ export default class HourRange implements IRange<moment.Duration> {
     /**
      * TODO ASAP TU
      */
-    public static getSegmentedMax(min: moment.Duration, min_inclusiv: boolean, max: moment.Duration, max_inclusiv: boolean, segment_type: number): moment.Duration {
+    public static getSegmentedMax(min: Duration, min_inclusiv: boolean, max: Duration, max_inclusiv: boolean, segment_type: number): Duration {
 
         if ((min == null) || (typeof min == 'undefined')) {
             return null;
@@ -92,7 +93,7 @@ export default class HourRange implements IRange<moment.Duration> {
             HourSegmentHandler.getInstance().decHourSegment(range_max_ts);
         }
 
-        let range_max_end: moment.Duration = HourSegmentHandler.getInstance().getEndHourSegment(range_max_ts);
+        let range_max_end: Duration = HourSegmentHandler.getInstance().getEndHourSegment(range_max_ts);
 
         if (range_max_end.asMilliseconds() < min.asMilliseconds()) {
             return null;
@@ -122,8 +123,8 @@ export default class HourRange implements IRange<moment.Duration> {
         return res;
     }
 
-    public min: moment.Duration;
-    public max: moment.Duration;
+    public min: Duration;
+    public max: Duration;
 
     public min_inclusiv: boolean;
     public max_inclusiv: boolean;

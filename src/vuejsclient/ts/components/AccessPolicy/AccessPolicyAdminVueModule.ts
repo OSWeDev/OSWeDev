@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPo
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
@@ -17,9 +18,7 @@ import MenuElementBase from '../menu/vos/MenuElementBase';
 import MenuLeaf from '../menu/vos/MenuLeaf';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import MenuPointer from '../menu/vos/MenuPointer';
-import AccessPolicyComponent from './AccessPolicyComponent';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
-import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
@@ -76,7 +75,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             this.routes.push({
                 path: url,
                 name: main_route_name,
-                component: AccessPolicyComponent
+                component: () => import(/* webpackChunkName: "AccessPolicyComponent" */ './AccessPolicyComponent')
             });
             let menuPointer = new MenuPointer(
                 new MenuLeaf('AccessPolicyComponent', MenuElementBase.PRIORITY_ULTRAHIGH, "fa-cogs"),

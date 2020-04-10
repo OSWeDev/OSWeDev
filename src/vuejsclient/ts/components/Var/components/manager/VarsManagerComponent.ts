@@ -10,7 +10,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarDescRegistrationsComponent from '../desc/registrations/VarDescRegistrationsComponent';
 import './VarsManagerComponent.scss';
-import moment = require('moment');
+const moment = require('moment');
 
 @Component({
     template: require('./VarsManagerComponent.pug'),

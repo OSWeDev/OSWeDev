@@ -4,7 +4,7 @@ import NotificationVO from '../../../../../../shared/modules/PushData/vos/Notifi
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleNotificationAction } from '../../store/NotificationStore';
 import './UserNotifComponent.scss';
-import moment = require('moment');
+const moment = require('moment');
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 
 @Component({

@@ -2,7 +2,7 @@
     .row(v-for="(value, i) in values")
         .col-md-10
             template(v-if="use_wysiwyg")
-                quill-editor(v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput")
+                VueQuillEditor(v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput")
             template(v-else)
                 template(v-if="type_input == 'slot'")
                     slot(v-bind:value="values[i]" v-model="values[i]" :required="required" :disabled="disabled" @input="emitInput" :field='field' :vo='vo')

@@ -2,7 +2,7 @@ import ModuleCronServer from '../Cron/ModuleCronServer';
 import UpdateRDVStatesCronWorker from './workers/UpdateRDVStates/UpdateRDVStatesCronWorker';
 import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import DateHandler from '../../../shared/tools/DateHandler';
-import moment = require('moment');
+const moment = require('moment');
 
 export default class UpdateRDVStatesCronWorkersHandler {
 

@@ -1,12 +1,12 @@
-import moment = require('moment');
+const moment = require('moment');
 import { Moment } from 'moment';
 import Component from 'vue-class-component';
-import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleFeedback from '../../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import ModuleFormatDatesNombres from '../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import VueAppController from '../../../VueAppController';
+import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 import ConsoleLogLogger from '../console_logger/ConsoleLogLogger';
 import FileComponent from '../file/FileComponent';
 import ScreenshotComponent from '../screenshot/ScreenshotComponent';
@@ -103,7 +103,7 @@ export default class FeedbackHandlerComponent extends VueComponentBase {
 
         let feedback: FeedbackVO = new FeedbackVO();
 
-        feedback.apis_log_json = stringify(ModuleAjaxCache.getInstance().api_logs);
+        feedback.apis_log_json = stringify(AjaxCacheClientController.getInstance().api_logs);
         feedback.console_logs = this.console_logs_tostring_array();
         feedback.email = this.tmp_email;
         feedback.feedback_end_date = moment().utc(true);

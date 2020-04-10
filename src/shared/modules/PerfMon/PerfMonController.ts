@@ -1,5 +1,5 @@
 import PerfMonData from './vos/PerfMonData';
-import moment = require('moment');
+const moment = require('moment');
 import PerfMonFuncStat from './vos/PerfMonFuncStat';
 import { debounce } from 'lodash';
 

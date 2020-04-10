@@ -8,7 +8,7 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataSumComponent.scss';
-import moment = require('moment');
+const moment = require('moment');
 
 @Component({
     template: require('./VarDataSumComponent.pug')

@@ -13,7 +13,7 @@ import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarConfVOBase from './vos/VarConfVOBase';
-import moment = require('moment');
+const moment = require('moment');
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import ModuleVar from './ModuleVar';
 

@@ -5,7 +5,7 @@ import 'vue-tables-2';
 import ReportingComponentBase from '../_base/ReportingComponentBase';
 import ColumnVO from '../vos/ColumnVO';
 import ReportingColumnComponent from './column/ReportingColumnComponent';
-import moment = require('moment');
+const moment = require('moment');
 import GroupColumnDataVO from '../vos/GroupColumnDataVO';
 import ColumnDataVO from '../vos/ColumnDataVO';
 import CustomFilterVueTable from '../vos/CustomFilterVueTable';

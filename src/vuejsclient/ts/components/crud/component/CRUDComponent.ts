@@ -28,6 +28,7 @@ import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
 import Alert from '../../../../../shared/modules/Alert/vos/Alert';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -989,7 +990,7 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     private async reload_datas() {
-        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved(this.api_types_involved);
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved(this.api_types_involved);
         this.api_types_involved = [];
         await this.loaddatas();
     }

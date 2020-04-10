@@ -10,13 +10,12 @@ import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../VueComponentBase';
 import './DocumentHandlerComponent.scss';
-import * as isotope from 'vueisotope';
 import WeightHandler from '../../../../shared/tools/WeightHandler';
 
 @Component({
     template: require('./DocumentHandlerComponent.pug'),
     components: {
-        isotope: isotope
+        isotope: () => import(/* webpackChunkName: "vueisotope" */ 'vueisotope')
     }
 })
 export default class DocumentHandlerComponent extends VueComponentBase {

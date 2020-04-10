@@ -1,6 +1,6 @@
 import * as moment from 'moment';
-import { isNumber } from 'util';
 import ModuleFormatDatesNombres from '../modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import TypesHandler from './TypesHandler';
 
 // FILTERS MIXIN
 function FilterObj(read, write) {
@@ -256,7 +256,7 @@ let readToFixed = function (
         value = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(value, arrondi, arrondi_type);
     }
 
-    if (isNumber(fractionalDigits) && fractionalDigits >= 0) {
+    if (TypesHandler.getInstance().isNumber(fractionalDigits) && fractionalDigits >= 0) {
         value = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
     }
 

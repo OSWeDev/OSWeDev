@@ -5,6 +5,7 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
 import { ModuleDAOAction } from '../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
+import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 
 @Component({
     template: require('./ImageComponent.pug'),
@@ -70,7 +71,7 @@ export default class ImageComponent extends VueComponentBase {
         let dropoptions = {
             url: '/ModuleImageServer/upload',
             headers: {
-                'X-CSRF-Token': ModuleAjaxCache.getInstance().csrf_token,
+                'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token,
             },
             createImageThumbnails: true,
             maxFiles: 1,

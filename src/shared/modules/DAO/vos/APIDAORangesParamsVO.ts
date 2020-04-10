@@ -2,7 +2,7 @@
 // import FieldRange from '../../DataRender/vos/FieldRange';
 // import ModuleTable from '../../ModuleTable';
 // import VOsTypesManager from '../../VOsTypesManager';
-// import moment = require('moment');
+// const moment = require('moment');
 
 // export default class APIDAORangesParamsVO {
 

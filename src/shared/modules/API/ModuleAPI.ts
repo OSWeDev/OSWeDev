@@ -1,17 +1,9 @@
-// if false
-// FIXME RIEN A FAIRE ICI
-import * as $ from 'jquery';
-// endif
-import { isArray } from 'util';
 import ConsoleHandler from '../../tools/ConsoleHandler';
-import ModuleAjaxCache from '../AjaxCache/ModuleAjaxCache';
 import IDistantVOBase from '../IDistantVOBase';
 import Module from '../Module';
-import ModulesManager from '../ModulesManager';
 import VOsTypesManager from '../VOsTypesManager';
+import IAPIController from './interfaces/IAPIController';
 import APIDefinition from './vos/APIDefinition';
-import EnvHandler from '../../tools/EnvHandler';
-
 
 export default class ModuleAPI extends Module {
 
@@ -27,11 +19,16 @@ export default class ModuleAPI extends Module {
     private static instance: ModuleAPI = null;
 
     public registered_apis: { [api_name: string]: APIDefinition<any, any> } = {};
+    private api_controller: IAPIController = null;
 
     private constructor() {
 
         super("api", "API");
         this.forceActivationOnInstallation();
+    }
+
+    public setAPIController(api_controller: IAPIController) {
+        this.api_controller = api_controller;
     }
 
     public registerApi<T, U>(apiDefinition: APIDefinition<T, U>) {
@@ -53,16 +50,15 @@ export default class ModuleAPI extends Module {
     }
 
     public async handleAPI<T, U>(api_name: string, ...api_params): Promise<U> {
+        return await this.api_controller.handleAPI(api_name, ...api_params);
+    }
+
+    public async translate_param<T>(api_name: string, ...api_params): Promise<T> {
+
         let translated_param: T = null;
-        let paramTranslator: (...params) => Promise<T> = this.getParamTranslator<T>(api_name);
-        let apiDefinition: APIDefinition<T, U> = this.registered_apis[api_name];
+        let paramTranslator: (...params) => Promise<T> = ModuleAPI.getInstance().getParamTranslator<T>(api_name);
 
-        // // On ajoute la conversion msgpack à cette étape
-        // if (ModulesManager.getInstance().isServerSide && Buffer.isBuffer(translated_param)) {
-        //     translated_param = translated_param ? decode(translated_param as any as Buffer) : null;
-        // }
-
-        if (api_params && isArray(api_params) && (api_params.length > 1)) {
+        if (api_params && Array.isArray(api_params) && (api_params.length > 1)) {
             // On a besoin de faire appel à un traducteur
             if (!paramTranslator) {
                 ConsoleHandler.getInstance().error("PARAMTRANSLATOR manquant pour l'API " + api_name);
@@ -79,81 +75,8 @@ export default class ModuleAPI extends Module {
             }
         }
 
-        // Si on est côté serveur, on demande le handler serveur
-        // Si on est côté client, on doit transférer la demande au serveur via les apis.
-        //  La suite se passera donc dans la partie serveur de ce module
-        if (ModulesManager.getInstance().isServerSide) {
-            if (apiDefinition.SERVER_HANDLER) {
-                return await apiDefinition.SERVER_HANDLER(translated_param);
-            }
-            return null;
-        } else {
-
-            let API_TYPES_IDS_involved = apiDefinition.API_TYPES_IDS_involved;
-            if (!isArray(API_TYPES_IDS_involved)) {
-                API_TYPES_IDS_involved = API_TYPES_IDS_involved(translated_param);
-            }
-
-            let api_res = null;
-
-            switch (apiDefinition.api_type) {
-                case APIDefinition.API_TYPE_GET:
-
-                    let url_param: string =
-                        apiDefinition.PARAM_TRANSLATE_TO_URL ? await apiDefinition.PARAM_TRANSLATE_TO_URL(translated_param) :
-                            (translated_param ? translated_param.toString() : "");
-
-                    api_res = await ModuleAjaxCache.getInstance().get(
-                        (ModuleAPI.BASE_API_URL + api_name + "/" + url_param).toLowerCase(),
-                        API_TYPES_IDS_involved,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
-                    break;
-
-                case APIDefinition.API_TYPE_POST_FOR_GET:
-
-                    api_res = await ModuleAjaxCache.getInstance().get(
-                        (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
-                        API_TYPES_IDS_involved,
-                        ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(this.try_translate_vos_to_api(translated_param)) : this.try_translate_vos_to_api(translated_param)) : null,
-                        null,
-                        (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
-                        null,
-                        null,
-                        true) as U;
-                    break;
-
-                case APIDefinition.API_TYPE_POST:
-                    if (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE) {
-
-                        let filePath: string = await ModuleAjaxCache.getInstance().post(
-                            (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
-                            API_TYPES_IDS_involved,
-                            ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(this.try_translate_vos_to_api(translated_param)) : this.try_translate_vos_to_api(translated_param)) : null,
-                            null,
-                            (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as string;
-
-                        let iframe = $('<iframe style="display:none" src="' + filePath + '"></iframe>');
-                        $('body').append(iframe);
-                        return;
-                    } else {
-                        api_res = await ModuleAjaxCache.getInstance().post(
-                            (ModuleAPI.BASE_API_URL + api_name).toLowerCase(),
-                            API_TYPES_IDS_involved,
-                            ((typeof translated_param != 'undefined') && (translated_param != null)) ? ((!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(this.try_translate_vos_to_api(translated_param)) : this.try_translate_vos_to_api(translated_param)) : null,
-                            null,
-                            (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE) as U;
-                    }
-                    break;
-            }
-
-            // On tente de traduire si on reconnait un type de vo
-            api_res = this.try_translate_vo_from_api(api_res);
-
-            return api_res;
-        }
+        return translated_param;
     }
-
-
 
     public getAPI_URL<T, U>(apiDefinition: APIDefinition<T, U>): string {
         if (apiDefinition.api_type == APIDefinition.API_TYPE_GET) {
@@ -267,7 +190,7 @@ export default class ModuleAPI extends Module {
         return moduletable.get_api_version(elt);
     }
 
-    private try_translate_vos_from_api(e: any): any {
+    public try_translate_vos_from_api(e: any): any {
 
         if (!e) {
             return e;
@@ -288,7 +211,7 @@ export default class ModuleAPI extends Module {
         return res;
     }
 
-    private try_translate_vos_to_api(e: any): any {
+    public try_translate_vos_to_api(e: any): any {
 
         if (!e) {
             return e;

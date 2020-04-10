@@ -1,7 +1,7 @@
 import * as moment from 'moment';
-import { isNumber } from 'util';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import { ARRONDI_TYPE_CEIL, ARRONDI_TYPE_FLOOR, ARRONDI_TYPE_ROUND } from '../../tools/Filters';
+import TypesHandler from '../../tools/TypesHandler';
 import Module from '../Module';
 import ModuleTableField from '../ModuleTableField';
 
@@ -143,7 +143,7 @@ export default class ModuleFormatDatesNombres extends Module {
 
         try {
             // js failover
-            if (!isNumber(numberToFormat)) {
+            if (!TypesHandler.getInstance().isNumber(numberToFormat)) {
                 numberToFormat = parseFloat((numberToFormat as any).toString());
             }
             number = Math.abs(numberToFormat);
@@ -156,7 +156,7 @@ export default class ModuleFormatDatesNombres extends Module {
             }
 
             // On sépare les milliers
-            while (isNumber(number) && (number >= 1000)) {
+            while (TypesHandler.getInstance().isNumber(number) && (number >= 1000)) {
 
                 let thispart = (number % 1000);
                 let thisparttxt = ((thispart < 100) ? "0" + ((thispart < 10) ? "0" + thispart : thispart) : "" + thispart);
@@ -207,7 +207,7 @@ export default class ModuleFormatDatesNombres extends Module {
 
         try {
             // js failover
-            if (!isNumber(numberToFormat)) {
+            if (!TypesHandler.getInstance().isNumber(numberToFormat)) {
                 numberToFormat = parseFloat((numberToFormat as any).toString());
             }
 

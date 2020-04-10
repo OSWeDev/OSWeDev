@@ -8,6 +8,7 @@ import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegmen
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
+import AjaxCacheClientController from '../../../../ts/modules/AjaxCache/AjaxCacheClientController';
 
 
 @Component({
@@ -54,7 +55,7 @@ export default class DataRendererAdminVueBase extends VueComponentBase {
                 data: formData,
                 contentType: false,
                 processData: false,
-                headers: { 'X-CSRF-Token': ModuleAjaxCache.getInstance().csrf_token }
+                headers: { 'X-CSRF-Token': AjaxCacheClientController.getInstance().csrf_token }
             });
             this.snotify.success("Génération des données terminée !");
             return true;

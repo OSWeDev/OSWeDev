@@ -1,6 +1,6 @@
 import { Moment } from 'moment';
-import { isNumber } from 'util';
 import ConsoleHandler from './ConsoleHandler';
+import TypesHandler from './TypesHandler';
 
 export default class TimeHandler {
     public static MINUTES_TIME_FOR_INDEX_FORMAT: string = 'HH:mm';
@@ -43,12 +43,12 @@ export default class TimeHandler {
             }
 
             let hours: number = parseInt(segments[0]);
-            if ((hours == null) || (!isNumber(hours)) || (isNaN(hours)) || (hours < 0) || (hours > 24)) {
+            if ((hours == null) || (!TypesHandler.getInstance().isNumber(hours)) || (isNaN(hours)) || (hours < 0) || (hours > 24)) {
                 return null;
             }
 
             let minutes: number = ((segments.length > 1) && (segments[1] != '')) ? parseInt(segments[1]) : 0;
-            if ((minutes == null) || (!isNumber(minutes)) || (isNaN(minutes)) || (minutes < 0) || (minutes > 59) || ((hours == 24) && (minutes > 0))) {
+            if ((minutes == null) || (!TypesHandler.getInstance().isNumber(minutes)) || (isNaN(minutes)) || (minutes < 0) || (minutes > 59) || ((hours == 24) && (minutes > 0))) {
                 return null;
             }
 

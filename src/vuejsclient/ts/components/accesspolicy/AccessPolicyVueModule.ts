@@ -1,7 +1,6 @@
-import VueModuleBase from '../../../ts/modules/VueModuleBase';
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import UserComponent from './user/UserComponent';
 import { RouteConfig } from 'vue-router';
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import VueModuleBase from '../../../ts/modules/VueModuleBase';
 
 export default class AccessPolicyVueModule extends VueModuleBase {
     public static getInstance(): AccessPolicyVueModule {
@@ -40,7 +39,7 @@ export default class AccessPolicyVueModule extends VueModuleBase {
         return {
             path: '/user',
             name: 'user',
-            component: UserComponent
+            component: () => import(/* webpackChunkName: "UserComponent" */ './user/UserComponent')
         };
     }
 }

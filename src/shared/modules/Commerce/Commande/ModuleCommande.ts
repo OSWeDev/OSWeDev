@@ -1,26 +1,24 @@
-import CommandeVO from './vos/CommandeVO';
-import ModuleClient from '../Client/ModuleClient';
+import ModuleAPI from '../../API/ModuleAPI';
+import NumberAndStringParamVO from '../../API/vos/apis/NumberAndStringParamVO';
+import NumberParamVO from '../../API/vos/apis/NumberParamVO';
+import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
+import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
+import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
-import LigneCommandeVO from './vos/LigneCommandeVO';
-import LigneCommandeDetailsVO from './vos/LigneCommandeDetailsVO';
 import ModuleTableField from '../../ModuleTableField';
-import ModuleDAO from '../../DAO/ModuleDAO';
-import ModuleAPI from '../../API/ModuleAPI';
-import NumberParamVO from '../../API/vos/apis/NumberParamVO';
-import ModuleProduit from '../Produit/ModuleProduit';
-import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import VOsTypesManager from '../../VOsTypesManager';
+import ModuleClient from '../Client/ModuleClient';
 import ClientVO from '../Client/vos/ClientVO';
-import ProduitVO from '../Produit/vos/ProduitVO';
 import InformationsVO from '../Client/vos/InformationsVO';
-import TypeProduitVO from '../Produit/vos/TypeProduitVO';
+import ModuleProduit from '../Produit/ModuleProduit';
 import ProduitsParamLignesParamVO from '../Produit/vos/apis/ProduitsParamLignesParamVO';
-import PostAPIDefinition from '../../API/vos/PostAPIDefinition';
+import ProduitVO from '../Produit/vos/ProduitVO';
+import TypeProduitVO from '../Produit/vos/TypeProduitVO';
+import CommandeVO from './vos/CommandeVO';
+import LigneCommandeDetailsVO from './vos/LigneCommandeDetailsVO';
+import LigneCommandeVO from './vos/LigneCommandeVO';
 import ParamLigneCommandeVO from './vos/ParamLigneCommandeVO';
-import NumberAndStringParamVO from '../../API/vos/apis/NumberAndStringParamVO';
-import ProduitParamLigneParamVO from '../Produit/vos/apis/ProduitParamLigneParamVO';
-import ModuleAjaxCache from '../../AjaxCache/ModuleAjaxCache';
 
 export default class ModuleCommande extends Module {
     public static APINAME_getCommandesUser: string = "getCommandesUser";
@@ -83,6 +81,11 @@ export default class ModuleCommande extends Module {
             ModuleCommande.APINAME_creationPanier,
             [CommandeVO.API_TYPE_ID],
         ));
+    }
+
+    public async creationPanier(): Promise<CommandeVO> {
+        return await ModuleAPI.getInstance().handleAPI<null, CommandeVO>(ModuleCommande.APINAME_creationPanier);
+        // TODO FIXME  c'est un trigger ça : interdiction de faire du get dans un shared !! AjaxCacheClientController.getInstance().get('/setIdPanierEnCours/' + panier.id, null);
     }
 
     public initialize() {
@@ -183,31 +186,7 @@ export default class ModuleCommande extends Module {
         return null;
     }
 
-    public async ajouterAuPanier(produitsParam: ProduitParamLigneParamVO[]): Promise<CommandeVO> {
-        let panier: CommandeVO = await this.getPanierEnCours();
-        return ModuleAPI.getInstance().handleAPI<ProduitsParamLignesParamVO, CommandeVO>(ModuleCommande.APINAME_ajouterAuPanier, produitsParam, panier);
-    }
-
-    public async creationPanier(): Promise<CommandeVO> {
-        let panier: CommandeVO = await ModuleAPI.getInstance().handleAPI<null, CommandeVO>(ModuleCommande.APINAME_creationPanier);
-
-        ModuleAjaxCache.getInstance().get('/setIdPanierEnCours/' + panier.id, null);
-
-        return panier;
-    }
-
     public async getParamLigneCommandeById(ligneId: number, vo_type_param: string): Promise<ParamLigneCommandeVO> {
         return ModuleAPI.getInstance().handleAPI<NumberAndStringParamVO, ParamLigneCommandeVO>(ModuleCommande.APINAME_getParamLigneCommandeById, ligneId, vo_type_param);
-    }
-
-    public async getPanierEnCours(): Promise<CommandeVO> {
-        let result: { panier_id: number } = await ModuleAjaxCache.getInstance().get('/getIdPanierEnCours', null) as { panier_id: number };
-        let panier: CommandeVO = null;
-
-        if (!result || !result.panier_id) {
-            panier = await this.creationPanier();
-        }
-
-        return panier;
     }
 }

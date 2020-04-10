@@ -6,10 +6,6 @@ import "fullcalendar/dist/locale/de.js";
 import "fullcalendar/dist/locale/es.js";
 import "fullcalendar/dist/locale/fr.js";
 import * as moment from 'moment';
-import 'quill/dist/quill.bubble.css';
-// require styles
-import 'quill/dist/quill.core.css';
-import 'quill/dist/quill.snow.css';
 import 'select2';
 import VCalendar from 'v-calendar';
 import VTooltip from 'v-tooltip';
@@ -21,7 +17,6 @@ import Intersect from 'vue-intersect';
 import ToggleButton from 'vue-js-toggle-button';
 import Multiselect from 'vue-multiselect';
 import 'vue-multiselect/dist/vue-multiselect.min.css';
-import VueQuillEditor from 'vue-quill-editor';
 import * as VueResource from 'vue-resource';
 import VueRouter, { RouterOptions } from 'vue-router';
 import { RouteConfig } from 'vue-router/types/router';
@@ -31,6 +26,8 @@ import { ClientTable } from "vue-tables-2";
 import * as vueDropzone from "vue2-dropzone";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
+import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
+import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import DatatableField from '../shared/modules/DAO/vos/datatable/DatatableField';
 import Module from '../shared/modules/Module';
 import ModulesManager from '../shared/modules/ModulesManager';
@@ -39,8 +36,6 @@ import EnvHandler from '../shared/tools/EnvHandler';
 import LocaleManager from '../shared/tools/LocaleManager';
 import AlertComponent from './ts/components/alert/AlertComponent';
 import ConsoleLogLogger from './ts/components/console_logger/ConsoleLogLogger';
-import DefaultHomeComponent from './ts/components/DefaultHome/component/DefaultHomeComponent';
-import Error404Component from './ts/components/Error404/component/Error404Component';
 import MultipleSelectFilterComponent from './ts/components/multiple_select_filter/MultipleSelectFilterComponent';
 import UserNotifsMarkerComponent from './ts/components/notification/components/UserNotifsMarker/UserNotifsMarkerComponent';
 import VarDataBarChartComponent from './ts/components/Var/components/databarchart/VarDataBarChartComponent';
@@ -52,6 +47,8 @@ import VarPieChartComponent from './ts/components/Var/components/piechart/VarPie
 import VarDataIfComponent from './ts/components/Var/components/varif/VarDataIfComponent';
 import VarDirective from './ts/components/Var/directives/var-directive/VarDirective';
 import VueComponentBase from './ts/components/VueComponentBase';
+import AjaxCacheClientController from './ts/modules/AjaxCache/AjaxCacheClientController';
+import ClientAPIController from './ts/modules/API/ClientAPIController';
 import IVueModule from './ts/modules/IVueModule';
 import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import VueModuleBase from './ts/modules/VueModuleBase';
@@ -79,6 +76,10 @@ export default abstract class VueAppBase {
 
     public async runApp() {
 
+        // On initialise les controllers pour les APIs
+        ModuleAPI.getInstance().setAPIController(ClientAPIController.getInstance());
+        ModuleAjaxCache.getInstance().setClientController(AjaxCacheClientController.getInstance());
+
         // Chargement des données des modules.
         await this.initializeModulesDatas();
 
@@ -92,9 +93,6 @@ export default abstract class VueAppBase {
             if (EnvHandler.getInstance().IS_DEV) {
                 Vue.config.devtools = true;
             }
-            // if (!!await ModuleAjaxCache.getInstance().get('/api/isdev', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED)) {
-            //     Vue.config.devtools = true;
-            // }
         })());
         promises.push((async () => {
             await this.appController.initialize();
@@ -235,14 +233,14 @@ export default abstract class VueAppBase {
             routerOptions.routes.push({
                 path: '/',
                 name: 'Home',
-                component: DefaultHomeComponent
+                component: () => import(/* webpackChunkName: "DefaultHomeComponent" */ './ts/components/DefaultHome/component/DefaultHomeComponent')
             });
         }
 
         routerOptions.routes.push({
             path: '*',
             name: '404',
-            component: Error404Component
+            component: () => import(/* webpackChunkName: "Error404Component" */ './ts/components/Error404/component/Error404Component')
         });
 
         this.vueRouter = new VueRouter(routerOptions);
@@ -319,7 +317,6 @@ export default abstract class VueAppBase {
         Vue.use(Snotify);
         Vue.use(VueRouter);
         Vue.use(FullCalendar);
-        Vue.use(VueQuillEditor);
 
         // Use v-calendar, v-date-picker & v-popover components
         Vue.use(VCalendar, {
@@ -341,7 +338,7 @@ export default abstract class VueAppBase {
         Vue.component('var-bar-chart', VarDataBarChartComponent);
         Vue.component('var-pie-chart', VarPieChartComponent);
         Vue.component('Intersect', Intersect);
-        Vue.component('CRUDComponentField', () => import('./ts/components/crud/component/field/CRUDComponentField'));
+        Vue.component('CRUDComponentField', () => import(/* webpackChunkName: "CRUDComponentField" */ './ts/components/crud/component/field/CRUDComponentField'));
         Vue.component('MultipleSelectFilterComponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
         Vue.component('AlertComponent', AlertComponent);

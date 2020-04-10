@@ -8,7 +8,7 @@ import SendInBlueListDetailVO from '../vos/SendInBlueListDetailVO';
 import SendInBlueSmsCampaignDetailVO from '../vos/SendInBlueSmsCampaignDetailVO';
 import SendInBlueSmsCampaignsVO from '../vos/SendInBlueSmsCampaignsVO';
 import SendInBlueSmsFormatVO from '../vos/SendInBlueSmsFormatVO';
-import moment = require('moment');
+const moment = require('moment');
 
 export default class ModuleSendInBlueSmsCampaignController {
 

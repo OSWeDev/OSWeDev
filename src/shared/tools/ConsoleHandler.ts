@@ -1,4 +1,4 @@
-import moment = require('moment');
+const moment = require('moment');
 
 export default class ConsoleHandler {
 

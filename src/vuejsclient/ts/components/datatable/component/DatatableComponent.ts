@@ -1,8 +1,8 @@
+import TypesHandler from '../../../../../shared/tools/TypesHandler';
 import * as $ from 'jquery';
 import { debounce } from 'lodash';
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import { isBoolean } from 'util';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Event } from 'vue-tables-2';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
@@ -1108,7 +1108,7 @@ export default class DatatableComponent extends VueComponentBase {
 
                                     let istrue: boolean = (query == 'VRAI');
 
-                                    let data_is_true = (!!row[field.datatable_field_uid]) && ((row[field.datatable_field_uid] == 'true') || (isBoolean(row[field.datatable_field_uid])));
+                                    let data_is_true = (!!row[field.datatable_field_uid]) && ((row[field.datatable_field_uid] == 'true') || (TypesHandler.getInstance().isBoolean(row[field.datatable_field_uid])));
                                     return (data_is_true && istrue) || ((!data_is_true) && !istrue);
 
                                 case ModuleTableField.FIELD_TYPE_daterange:

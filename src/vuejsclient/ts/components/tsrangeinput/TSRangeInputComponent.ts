@@ -9,7 +9,7 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../VueComponentBase';
-import moment = require('moment');
+const moment = require('moment');
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 
 @Component({

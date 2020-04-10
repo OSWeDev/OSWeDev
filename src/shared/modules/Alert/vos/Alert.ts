@@ -1,5 +1,5 @@
 import { Moment } from 'moment';
-import moment = require('moment');
+const moment = require('moment');
 
 export default class Alert {
 

@@ -1,7 +1,6 @@
 import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleDataImport from '../../../../../shared/modules/DataImport/ModuleDataImport';
 import DataImportFormatVO from '../../../../../shared/modules/DataImport/vos/DataImportFormatVO';
@@ -15,6 +14,7 @@ import TimeSegmentHandler from '../../../../../shared/tools/TimeSegmentHandler';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../../../ts/components/dao/store/DaoStore';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
 import VueAppController from '../../../../VueAppController';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import FileComponent from '../../file/FileComponent';
 import DataImportComponentBase from '../base/DataImportComponentBase';
 import DataImportAdminVueModule from '../DataImportAdminVueModule';
@@ -1343,7 +1343,7 @@ export default class DataImportComponent extends DataImportComponentBase {
     }
 
     private async reload_datas() {
-        ModuleAjaxCache.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
+        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([DataImportHistoricVO.API_TYPE_ID]);
 
         this.storeDatas({
             API_TYPE_ID: DataImportHistoricVO.API_TYPE_ID,

@@ -1,6 +1,6 @@
 import * as $ from 'jquery';
-import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ImageVO from '../../../../shared/modules/Image/vos/ImageVO';
+import AjaxCacheClientController from '../../modules/AjaxCache/AjaxCacheClientController';
 
 
 export default class ImageComponentManager {
@@ -22,7 +22,7 @@ export default class ImageComponentManager {
             let formData = new FormData();
             formData.append('file', file);
 
-            imagevo = await ModuleAjaxCache.getInstance().post(
+            imagevo = await AjaxCacheClientController.getInstance().post(
                 '/modules/ModuleImage/UploadImage',
                 [ImageVO.API_TYPE_ID],
                 formData,

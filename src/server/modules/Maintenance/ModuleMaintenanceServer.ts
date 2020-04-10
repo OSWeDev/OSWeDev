@@ -13,7 +13,8 @@ import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulePushDataServer from '../PushData/ModulePushDataServer';
 import MaintenanceBGThread from './bgthreads/MaintenanceBGThread';
-import moment = require('moment');
+import { Moment } from 'moment';
+const moment = require('moment');
 
 export default class ModuleMaintenanceServer extends ModuleServerBase {
 
@@ -29,7 +30,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
     // On le rend public via un getter pour indiquer qu'une maintenance planifiée est en cours sans avoir à faire de requete
     public planned_maintenance: MaintenanceVO = null;
 
-    private informed_users_tstzs: { [user_id: number]: moment.Moment } = {};
+    private informed_users_tstzs: { [user_id: number]: Moment } = {};
 
     private constructor() {
         super(ModuleMaintenance.getInstance().name);

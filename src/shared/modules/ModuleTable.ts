@@ -1,5 +1,6 @@
 import { cloneDeep } from 'lodash';
 import * as moment from 'moment';
+import { Moment } from 'moment';
 import ConsoleHandler from '../tools/ConsoleHandler';
 import ConversionHandler from '../tools/ConversionHandler';
 import DateHandler from '../tools/DateHandler';
@@ -241,7 +242,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
     }
 
 
-    public get_segmented_full_name(segmented_value: number | moment.Duration | moment.Moment): string {
+    public get_segmented_full_name(segmented_value: number | moment.Duration | Moment): string {
 
         if (!this.is_segmented) {
             return null;
@@ -256,7 +257,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return this.database + '.' + name;
     }
 
-    public get_segmented_name(segmented_value: number | moment.Duration | moment.Moment): string {
+    public get_segmented_name(segmented_value: number | moment.Duration | Moment): string {
 
         if (!this.is_segmented) {
             return null;
@@ -268,7 +269,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case TSRange.RANGE_TYPE:
                 return this.name + '_' + (segmented_value as moment.Duration).asMilliseconds().toString();
             case HourRange.RANGE_TYPE:
-                return this.name + '_' + DateHandler.getInstance().getUnixForBDD(segmented_value as moment.Moment).toString();
+                return this.name + '_' + DateHandler.getInstance().getUnixForBDD(segmented_value as Moment).toString();
             default:
                 return null;
         }
@@ -620,7 +621,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    let field_as_moment: moment.Moment = moment(e[field.field_id]).utc(true);
+                    let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
                     res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     break;
 
@@ -723,7 +724,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstz:
 
-                    let field_as_moment: moment.Moment = moment(res[field.field_id]).utc(true);
+                    let field_as_moment: Moment = moment(res[field.field_id]).utc(true);
                     res[field.field_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
                     break;
 

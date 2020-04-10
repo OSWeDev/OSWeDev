@@ -86,7 +86,7 @@ export default class CRUDComponentManager {
         routes.push({
             path: url,
             name: route_name,
-            component: CRUDComponent,
+            component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
             props: () => ({
                 crud: crud,
                 key: '__manage__' + API_TYPE_ID,
@@ -98,7 +98,7 @@ export default class CRUDComponentManager {
         routes.push({
             path: url + "/update/:id",
             name: route_name + " --UPDATE",
-            component: CRUDComponent,
+            component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
             props: (route) => ({
                 crud: crud,
                 key: '__manage__' + API_TYPE_ID,
@@ -112,7 +112,7 @@ export default class CRUDComponentManager {
             routes.push({
                 path: url + "/create",
                 name: route_name + " --CREATE",
-                component: CRUDComponent,
+                component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
                 props: (route) => ({
                     crud: crud,
                     key: '__manage__' + API_TYPE_ID,
@@ -124,7 +124,7 @@ export default class CRUDComponentManager {
             routes.push({
                 path: url + "/delete/:id",
                 name: route_name + " --DELETE",
-                component: CRUDComponent,
+                component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
                 props: (route) => ({
                     crud: crud,
                     key: '__manage__' + API_TYPE_ID,
@@ -154,7 +154,7 @@ export default class CRUDComponentManager {
         routes.push({
             path: url,
             name: route_name,
-            component: CRUDComponent,
+            component: () => import(/* webpackChunkName: "CRUDComponent" */ '../../components/crud/component/CRUDComponent'),
             props: () => ({
                 crud: CRUDComponentManager.getInstance().cruds_by_api_type_id[API_TYPE_ID],
                 key: '__manage__' + API_TYPE_ID,

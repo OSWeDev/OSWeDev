@@ -1,9 +1,10 @@
-import moment = require('moment');
+const moment = require('moment');
 import TimeSegmentHandler from '../../../tools/TimeSegmentHandler';
 import IRange from '../interfaces/IRange';
 import TimeSegment from './TimeSegment';
+import { Moment } from 'moment';
 
-export default class TSRange implements IRange<moment.Moment> {
+export default class TSRange implements IRange<Moment> {
 
 
     public static RANGE_TYPE: number = 2;
@@ -13,7 +14,7 @@ export default class TSRange implements IRange<moment.Moment> {
      * @param min_inclusiv defaults to true
      * @param max_inclusiv defaults to true
      */
-    public static createNew(min: moment.Moment, max: moment.Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
+    public static createNew(min: Moment, max: Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
         if ((!min) || (!max) || (min && max && min.isAfter(max))) {
             return null;
         }
@@ -52,7 +53,7 @@ export default class TSRange implements IRange<moment.Moment> {
     /**
      * TODO ASAP TU
      */
-    public static getSegmentedMin(min: moment.Moment, min_inclusiv: boolean, max: moment.Moment, max_inclusiv: boolean, segment_type: number): moment.Moment {
+    public static getSegmentedMin(min: Moment, min_inclusiv: boolean, max: Moment, max_inclusiv: boolean, segment_type: number): Moment {
 
 
         if ((min == null) || (typeof min == 'undefined')) {
@@ -85,7 +86,7 @@ export default class TSRange implements IRange<moment.Moment> {
     /**
      * TODO ASAP TU
      */
-    public static getSegmentedMax(min: moment.Moment, min_inclusiv: boolean, max: moment.Moment, max_inclusiv: boolean, segment_type: number): moment.Moment {
+    public static getSegmentedMax(min: Moment, min_inclusiv: boolean, max: Moment, max_inclusiv: boolean, segment_type: number): Moment {
 
         if ((min == null) || (typeof min == 'undefined')) {
             return null;
@@ -101,7 +102,7 @@ export default class TSRange implements IRange<moment.Moment> {
             TimeSegmentHandler.getInstance().decTimeSegment(range_max_ts);
         }
 
-        let range_max_end: moment.Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
+        let range_max_end: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(range_max_ts);
 
         if (range_max_end.isBefore(min)) {
             return null;
@@ -126,8 +127,8 @@ export default class TSRange implements IRange<moment.Moment> {
         return res;
     }
 
-    public min: moment.Moment;
-    public max: moment.Moment;
+    public min: Moment;
+    public max: Moment;
 
     public min_inclusiv: boolean;
     public max_inclusiv: boolean;

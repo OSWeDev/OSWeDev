@@ -4,10 +4,15 @@ import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/S
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VueComponentBase from '../VueComponentBase';
 import './MultiInputComponent.scss';
+import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
+import 'quill/dist/quill.core.css'; // Compliqué à lazy load
+import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 
 @Component({
     template: require('./MultiInputComponent.pug'),
-    components: {}
+    components: {
+        VueQuillEditor: () => import(/* webpackChunkName: "vue-quill-editor" */ 'vue-quill-editor')
+    }
 })
 export default class MultiInputComponent extends VueComponentBase {
 

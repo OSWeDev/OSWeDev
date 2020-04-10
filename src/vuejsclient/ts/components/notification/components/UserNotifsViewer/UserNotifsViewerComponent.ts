@@ -5,7 +5,7 @@ import VueComponentBase from '../../../VueComponentBase';
 import { ModuleNotificationAction, ModuleNotificationGetter } from '../../store/NotificationStore';
 import UserNotifComponent from '../UserNotif/UserNotifComponent';
 import './UserNotifsViewerComponent.scss';
-import moment = require('moment');
+const moment = require('moment');
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({

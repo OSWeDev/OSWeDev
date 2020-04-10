@@ -2,7 +2,6 @@ import * as moment from "moment";
 import { unitOfTime } from "moment";
 import * as screenfull from "screenfull";
 import { Vue } from "vue-property-decorator";
-import ModuleAjaxCache from "../../../shared/modules/AjaxCache/ModuleAjaxCache";
 import ModuleDataExport from "../../../shared/modules/DataExport/ModuleDataExport";
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import ModuleFormatDatesNombres from "../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres";
@@ -19,6 +18,7 @@ import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroF
 import LocaleManager from "../../../shared/tools/LocaleManager";
 import VocusHandler from '../../../shared/tools/VocusHandler';
 import VueAppController from "../../VueAppController";
+import AjaxCacheClientController from "../modules/AjaxCache/AjaxCacheClientController";
 import AppVuexStoreManager from "../store/AppVuexStoreManager";
 import IDeclareVueComponent from "./IDeclareVueComponent";
 
@@ -452,7 +452,7 @@ export default class VueComponentBase extends Vue
     }
 
     protected invalidateCache() {
-        ModuleAjaxCache.getInstance().invalidateUsingURLRegexp(
+        AjaxCacheClientController.getInstance().invalidateUsingURLRegexp(
             new RegExp(".*", "i")
         );
     }

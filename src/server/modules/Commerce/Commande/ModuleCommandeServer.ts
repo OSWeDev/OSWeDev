@@ -16,7 +16,8 @@ import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
 import ModuleClientServer from '../Client/ModuleClientServer';
 import ModuleProduitServer from '../Produit/ModuleProduitServer';
-import moment = require('moment');
+const moment = require('moment');
+
 export default class ModuleCommandeServer extends ModuleServerBase {
 
     public static getInstance() {

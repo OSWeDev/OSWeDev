@@ -1,9 +1,9 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
-import { isNumber } from 'util';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import IRenderedData from './interfaces/IRenderedData';
 import TimeSegment from './vos/TimeSegment';
+import TypesHandler from '../../tools/TypesHandler';
 
 export default class DataRenderController {
 
@@ -48,11 +48,11 @@ export default class DataRenderController {
      */
     public getTrend(value_a: number, value_b: number): number {
 
-        if (!isNumber(value_a)) {
+        if (!TypesHandler.getInstance().isNumber(value_a)) {
             return value_b;
         }
 
-        if (!isNumber(value_b)) {
+        if (!TypesHandler.getInstance().isNumber(value_b)) {
             return -value_a;
         }
 
@@ -66,7 +66,7 @@ export default class DataRenderController {
      */
     public getPrct(value_a: number, value_b: number): number {
 
-        if ((!isNumber(value_a)) || (!isNumber(value_b)) || (!value_b)) {
+        if ((!TypesHandler.getInstance().isNumber(value_a)) || (!TypesHandler.getInstance().isNumber(value_b)) || (!value_b)) {
             return null;
         }
 
@@ -105,7 +105,7 @@ export default class DataRenderController {
         for (let i in rows) {
             let row: IRenderedData = rows[i];
 
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name])) || (row[field_name] == null)) {
+            if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name])) || (row[field_name] == null)) {
                 continue;
             }
 
@@ -129,7 +129,7 @@ export default class DataRenderController {
         for (let i in rows) {
             let row: IRenderedData = rows[i];
 
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name])) || (row[field_name] == null)) {
+            if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name])) || (row[field_name] == null)) {
                 continue;
             }
 
@@ -155,7 +155,7 @@ export default class DataRenderController {
         for (let i in rows) {
             let row: IRenderedData = rows[i];
 
-            if ((!row) || (typeof row[field_name] == 'undefined') || (!isNumber(row[field_name]) || (row[field_name] == null))) {
+            if ((!row) || (typeof row[field_name] == 'undefined') || (!TypesHandler.getInstance().isNumber(row[field_name]) || (row[field_name] == null))) {
                 continue;
             }
 
@@ -164,7 +164,7 @@ export default class DataRenderController {
             }
 
             let poids = row[field_ponderation_name];
-            if ((typeof poids == 'undefined') || (!isNumber(poids))) {
+            if ((typeof poids == 'undefined') || (!TypesHandler.getInstance().isNumber(poids))) {
                 poids = 1;
             }
 
@@ -207,8 +207,8 @@ export default class DataRenderController {
         let previousCumul: number = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
         let value: number = this.getValueFromRendererData(timeSegment, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
 
-        let hasPreviousValue: boolean = isNumber(previousCumul);
-        let hasValue: boolean = isNumber(value);
+        let hasPreviousValue: boolean = TypesHandler.getInstance().isNumber(previousCumul);
+        let hasValue: boolean = TypesHandler.getInstance().isNumber(value);
         let isInSameSegmentType: boolean = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
 
         if (hasValue && hasPreviousValue && isInSameSegmentType) {
@@ -226,7 +226,7 @@ export default class DataRenderController {
                     timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
                     isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
                     previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
-                    hasPreviousValue = isNumber(previousCumul);
+                    hasPreviousValue = TypesHandler.getInstance().isNumber(previousCumul);
                     if (hasPreviousValue && isInSameSegmentType) {
                         return previousCumul + value;
                     }
@@ -242,7 +242,7 @@ export default class DataRenderController {
                 timeSegment_prec = TimeSegmentHandler.getInstance().getPreviousTimeSegment(timeSegment_prec);
                 isInSameSegmentType = TimeSegmentHandler.getInstance().isInSameSegmentType(timeSegment, timeSegment_prec, TimeSegment.TYPE_YEAR);
                 previousCumul = this.getValueFromRendererData(timeSegment_prec, resource_id, field_name_cumul, segment_id, renderedDatasBySegmentAndResourceId);
-                hasPreviousValue = isNumber(previousCumul);
+                hasPreviousValue = TypesHandler.getInstance().isNumber(previousCumul);
                 if (hasPreviousValue && isInSameSegmentType) {
                     return previousCumul;
                 }
@@ -261,9 +261,9 @@ export default class DataRenderController {
         let value_mm1: number = this.getValueFromRendererData(timeSegment_mm1, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
         let value_mm2: number = this.getValueFromRendererData(timeSegment_mm2, resource_id, field_name, segment_id, renderedDatasBySegmentAndResourceId);
 
-        let hasValue_m: boolean = isNumber(value_m);
-        let hasValue_mm1: boolean = isNumber(value_mm1);
-        let hasValue_mm2: boolean = isNumber(value_mm2);
+        let hasValue_m: boolean = TypesHandler.getInstance().isNumber(value_m);
+        let hasValue_mm1: boolean = TypesHandler.getInstance().isNumber(value_mm1);
+        let hasValue_mm2: boolean = TypesHandler.getInstance().isNumber(value_mm2);
 
         value_m = value_m ? value_m : 0;
         value_mm1 = value_mm1 ? value_mm1 : 0;
