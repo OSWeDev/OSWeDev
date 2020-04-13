@@ -23,7 +23,7 @@ import ModulesManagerServer from '../../ModulesManagerServer';
 import ModuleTranslationsImportDefaultFormats from './ModuleTranslationsImportDefaultFormats';
 
 
-export default class ModuleTranslationsImportServer extends DataImportModuleBase {
+export default class ModuleTranslationsImportServer extends DataImportModuleBase<ImportTranslationRaw> {
 
     public static getInstance(): ModuleTranslationsImportServer {
         if (!ModuleTranslationsImportServer.instance) {

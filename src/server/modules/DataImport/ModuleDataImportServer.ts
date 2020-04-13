@@ -22,7 +22,6 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ServerBase from '../../ServerBase';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -418,7 +417,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
                 continue;
             }
 
-            let postTraitementModule: DataImportModuleBase = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase;
+            let postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
             if (!postTraitementModule) {
                 await ImportLogger.getInstance().log(importHistoric, format, "Impossible de retrouver le module pour tester le format", DataImportLogVO.LOG_LEVEL_ERROR);
                 continue;
@@ -595,7 +594,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
         //  2 - Post-traiter les données
         // PostTraitement des données avec les hooks pour générer les questions et intégrer ce qui peut l'être
-        let postTraitementModule: DataImportModuleBase = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase;
+        let postTraitementModule: DataImportModuleBase<any> = (ModulesManager.getInstance().getModuleByNameAndRole(postTreatementModuleVO.name, DataImportModuleBase.DataImportRoleName)) as DataImportModuleBase<any>;
         try {
             if (await postTraitementModule.hook_merge_imported_datas_in_database(validated_imported_datas, importHistoric)) {
                 postTreated = true;
