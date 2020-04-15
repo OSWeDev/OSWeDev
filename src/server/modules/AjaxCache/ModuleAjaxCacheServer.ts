@@ -101,10 +101,10 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 res.requests_results[wrapped_request.index] = await apiDefinition.SERVER_HANDLER(param);
 
-                if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
-                    (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
-                    res.requests_results[wrapped_request.index] = ModuleAPI.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
-                }
+                // if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
+                //     (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
+                //     res.requests_results[wrapped_request.index] = ModuleAPI.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
+                // }
             })());
 
         }

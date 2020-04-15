@@ -14,10 +14,10 @@ import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPla
     template: require('./ProgramPlanComponentModal.pug'),
     components: {
         field: VueFieldComponent,
-        ProgramPlanComponentModalTargetInfos,
-        ProgramPlanComponentModalCR,
-        ProgramPlanComponentModalPrep,
-        ProgramPlanComponentModalHistoric
+        Programplancomponentmodaltargetinfos: ProgramPlanComponentModalTargetInfos,
+        Programplancomponentmodalcr: ProgramPlanComponentModalCR,
+        Programplancomponentmodalprep: ProgramPlanComponentModalPrep,
+        Programplancomponentmodalhistoric: ProgramPlanComponentModalHistoric
     }
 })
 export default class ProgramPlanComponentModal extends VueComponentBase {

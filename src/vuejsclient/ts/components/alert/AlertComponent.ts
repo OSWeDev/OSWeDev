@@ -9,7 +9,7 @@ import Alert from '../../../../shared/modules/Alert/vos/Alert';
 @Component({
     template: require('./AlertComponent.pug'),
     components: {
-        AlertViewComponent: AlertViewComponent
+        Alertviewcomponent: AlertViewComponent
     }
 })
 export default class AlertComponent extends VueComponentBase {

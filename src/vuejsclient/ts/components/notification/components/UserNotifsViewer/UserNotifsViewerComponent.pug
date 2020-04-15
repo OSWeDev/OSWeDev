@@ -11,7 +11,7 @@
             template(v-if='get_nb_unread > 0')
                 template(v-for='notif in notifs_by_priority')
                     .card.notifs_viewer_notif
-                        UserNotifComponent(:notification='notif')
+                        Usernotifcomponent(:notification='notif')
 
             template(v-else)
                 .card.notifs_viewer_placeholder {{ label('UserNotifsViewerComponent.placeholder') }}

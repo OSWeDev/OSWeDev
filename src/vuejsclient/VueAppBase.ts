@@ -326,7 +326,7 @@ export default abstract class VueAppBase {
 
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.use(ToggleButton);
-        Vue.component('UserNotifsMarkerComponent', UserNotifsMarkerComponent);
+        Vue.component('Usernotifsmarkercomponent', UserNotifsMarkerComponent);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
         Vue.component('vue-dropzone', vueDropzone);
@@ -338,10 +338,10 @@ export default abstract class VueAppBase {
         Vue.component('var-bar-chart', VarDataBarChartComponent);
         Vue.component('var-pie-chart', VarPieChartComponent);
         Vue.component('Intersect', Intersect);
-        Vue.component('CRUDComponentField', () => import(/* webpackChunkName: "CRUDComponentField" */ './ts/components/crud/component/field/CRUDComponentField'));
-        Vue.component('MultipleSelectFilterComponent', MultipleSelectFilterComponent);
+        Vue.component('Crudcomponentfield', () => import(/* webpackChunkName: "CRUDComponentField" */ './ts/components/crud/component/field/CRUDComponentField'));
+        Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
-        Vue.component('AlertComponent', AlertComponent);
+        Vue.component('Alertcomponent', AlertComponent);
 
         Vue.directive('var-directive', VarDirective.getInstance());
 

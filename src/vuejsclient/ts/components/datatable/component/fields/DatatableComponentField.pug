@@ -49,7 +49,7 @@
             div(:is="field.component" :vo="vo" :param="vo[field.parameter_datatable_field_uid]" :param_ref_id="vo[field.parameter_datatable_field_uid + '___id___']")
 
         template(v-else-if="field.type == 'FILE'")
-            FileDatatableFieldComponent(:file_id="vo[field.parameter_datatable_field_uid]")
+            Filedatatablefieldcomponent(:file_id="vo[field.parameter_datatable_field_uid]")
 
         template(v-else)
             span {{ field_value }}

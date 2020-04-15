@@ -12,7 +12,7 @@ import './UserNotifsMarkerComponent.scss';
 @Component({
     template: require('./UserNotifsMarkerComponent.pug'),
     components: {
-        UserNotifsViewerComponent: UserNotifsViewerComponent
+        Usernotifsviewercomponent: UserNotifsViewerComponent
     }
 })
 export default class UserNotifsMarkerComponent extends VueComponentBase {

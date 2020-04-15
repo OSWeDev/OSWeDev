@@ -11,7 +11,7 @@ import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 @Component({
     template: require('./UserNotifsViewerComponent.pug'),
     components: {
-        UserNotifComponent: UserNotifComponent
+        Usernotifcomponent: UserNotifComponent
     }
 })
 export default class UserNotifsViewerComponent extends VueComponentBase {

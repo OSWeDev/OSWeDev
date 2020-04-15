@@ -10,7 +10,7 @@ import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
 @Component({
     template: require('./DatatableComponentField.pug'),
     components: {
-        FileDatatableFieldComponent
+        Filedatatablefieldcomponent: FileDatatableFieldComponent
     }
 })
 export default class DatatableComponentField extends VueComponentBase {

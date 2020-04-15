@@ -104,7 +104,7 @@ v-client-table(
         )
 
     template(v-for="field in datatable.fields" :slot="field.datatable_field_uid" slot-scope="props")
-        DatatableComponentField(
+        Datatablecomponentfield(
             :field="field",
             :vo="props.row",
         )

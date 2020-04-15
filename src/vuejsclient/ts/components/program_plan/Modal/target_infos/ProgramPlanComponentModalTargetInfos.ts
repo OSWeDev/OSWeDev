@@ -24,8 +24,8 @@ import "./ProgramPlanComponentModalTargetInfos.scss";
 @Component({
     template: require('./ProgramPlanComponentModalTargetInfos.pug'),
     components: {
-        VueFieldComponent,
-        ProgramPlanComponentHTMLInfos
+        Vuefieldcomponent: VueFieldComponent,
+        Programplancomponenthtmlinfos: ProgramPlanComponentHTMLInfos
     }
 })
 export default class ProgramPlanComponentModalTargetInfos extends VueComponentBase {

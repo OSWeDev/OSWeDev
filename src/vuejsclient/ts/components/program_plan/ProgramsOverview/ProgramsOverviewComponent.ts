@@ -11,8 +11,7 @@ import './ProgramsOverviewComponent.scss';
 
 @Component({
     template: require('./ProgramsOverviewComponent.pug'),
-    components: {
-    }
+    components: {}
 })
 export default class ProgramsOverviewComponent extends VueComponentBase {
 

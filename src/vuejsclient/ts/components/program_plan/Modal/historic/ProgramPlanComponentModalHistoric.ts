@@ -16,9 +16,9 @@ import "./ProgramPlanComponentModalHistoric.scss";
 @Component({
     template: require('./ProgramPlanComponentModalHistoric.pug'),
     components: {
-        VueFieldComponent,
-        ProgramPlanComponentModalPrep,
-        ProgramPlanComponentModalCR
+        Vuefieldcomponent: VueFieldComponent,
+        Programplancomponentmodalprep: ProgramPlanComponentModalPrep,
+        Programplancomponentmodalcr: ProgramPlanComponentModalCR
     }
 })
 export default class ProgramPlanComponentModalHistoric extends VueComponentBase {

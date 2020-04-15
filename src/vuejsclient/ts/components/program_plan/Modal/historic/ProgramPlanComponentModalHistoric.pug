@@ -4,16 +4,16 @@
             .historic_rdv(v-for='rdv_historic in selected_rdv_historics')
                 .row
                     .col-md-6
-                        VueFieldComponent(isreadonly="true", :name="label('programplan.rdv_modal.rdv_date')", :value="formatDate_FullyearMonthDay(rdv_historic.start_time)")
+                        Vuefieldcomponent(isreadonly="true", :name="label('programplan.rdv_modal.rdv_date')", :value="formatDate_FullyearMonthDay(rdv_historic.start_time)")
                     .col-md-6
-                        VueFieldComponent(isreadonly="true", :name="label('programplan.rdv_modal.facilitator_name')", :value="facilitatorName(rdv_historic)", v-show="!managerName(rdv_historic)")
-                        VueFieldComponent(isreadonly="true", :name="label('programplan.rdv_modal.manager_name')", :value="facilitatorAndManagerName(rdv_historic)", v-show="managerName(rdv_historic)")
+                        Vuefieldcomponent(isreadonly="true", :name="label('programplan.rdv_modal.facilitator_name')", :value="facilitatorName(rdv_historic)", v-show="!managerName(rdv_historic)")
+                        Vuefieldcomponent(isreadonly="true", :name="label('programplan.rdv_modal.manager_name')", :value="facilitatorAndManagerName(rdv_historic)", v-show="managerName(rdv_historic)")
                 .row
                     .col-md-12
-                        ProgramPlanComponentModalPrep(:selected_rdv="rdv_historic" :block_edition="true")
+                        Programplancomponentmodalprep(:selected_rdv="rdv_historic" :block_edition="true")
                 .row
                     .col-md-12
-                        ProgramPlanComponentModalCR(:selected_rdv="rdv_historic" :block_edition="true")
+                        Programplancomponentmodalcr(:selected_rdv="rdv_historic" :block_edition="true")
         template(v-else)
             .row
                 .col-md-12 {{ label('programplan.rdv_modal.no_historic') }}

@@ -12,8 +12,6 @@ export default class ModuleGeoPoint extends Module {
     public static METHOD_GET: string = "GET";
     public static METHOD_POST: string = "POST";
 
-    public static APINAME_sendRequestFromApp = "send_request_from_app";
-
     public static getInstance(): ModuleGeoPoint {
         if (!ModuleGeoPoint.instance) {
             ModuleGeoPoint.instance = new ModuleGeoPoint();

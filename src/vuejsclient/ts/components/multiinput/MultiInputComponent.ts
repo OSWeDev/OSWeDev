@@ -11,7 +11,7 @@ import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 @Component({
     template: require('./MultiInputComponent.pug'),
     components: {
-        VueQuillEditor: () => import(/* webpackChunkName: "vue-quill-editor" */ 'vue-quill-editor')
+        Vuequilleditor: () => import(/* webpackChunkName: "vue-quill-editor" */ 'vue-quill-editor')
     }
 })
 export default class MultiInputComponent extends VueComponentBase {

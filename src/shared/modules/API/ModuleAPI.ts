@@ -4,6 +4,13 @@ import Module from '../Module';
 import VOsTypesManager from '../VOsTypesManager';
 import IAPIController from './interfaces/IAPIController';
 import APIDefinition from './vos/APIDefinition';
+import TypesHandler from '../../tools/TypesHandler';
+import IRange from '../DataRender/interfaces/IRange';
+import RangeHandler from '../../tools/RangeHandler';
+import NumRange from '../DataRender/vos/NumRange';
+import TSRange from '../DataRender/vos/TSRange';
+import HourRange from '../DataRender/vos/HourRange';
+import * as moment from 'moment';
 
 export default class ModuleAPI extends Module {
 
@@ -156,7 +163,21 @@ export default class ModuleAPI extends Module {
 
         let elt = (e as IDistantVOBase);
         if (!elt._type) {
-            return elt;
+
+            if (this.is_range(e as IRange<any>)) {
+                return this.try_translate_range_from_api(e as IRange<any>);
+            }
+
+            if (typeof e === 'object') {
+                let res = Object.assign({}, e);
+                for (let i in res) {
+
+                    res[i] = this.try_translate_vo_from_api(res[i]);
+                }
+                return res;
+            }
+
+            return e;
         }
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[elt._type];
@@ -179,7 +200,21 @@ export default class ModuleAPI extends Module {
 
         let elt = (e as IDistantVOBase);
         if (!elt._type) {
-            return elt;
+
+            if (this.is_range(e as IRange<any>)) {
+                return this.try_translate_range_to_api(e as IRange<any>);
+            }
+
+            if (typeof e === 'object') {
+                let res = Object.assign({}, e);
+                for (let i in res) {
+
+                    res[i] = this.try_translate_vo_to_api(res[i]);
+                }
+                return res;
+            }
+
+            return e;
         }
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[elt._type];
@@ -230,5 +265,63 @@ export default class ModuleAPI extends Module {
         }
 
         return res;
+    }
+
+    /**
+     * On part du principe (faux sur le papier mais peut-etre suffisant) que si on a les champs suivants, on a un range :
+     * range_type number
+     * segment_type number
+     * min_inclusiv boolean
+     * max_inclusiv boolean
+     *
+     * @param e
+     */
+    private is_range(e: IRange<any>): boolean {
+
+        if (TypesHandler.getInstance().isNumber(e.range_type) && TypesHandler.getInstance().isNumber(e.segment_type) &&
+            TypesHandler.getInstance().isBoolean(e.min_inclusiv) && TypesHandler.getInstance().isBoolean(e.max_inclusiv)) {
+            return true;
+        }
+        return false;
+    }
+
+    private try_translate_range_from_api(e: IRange<any>) {
+
+        switch (e.range_type) {
+            case NumRange.RANGE_TYPE:
+                return e;
+            case TSRange.RANGE_TYPE:
+                return RangeHandler.getInstance().createNew(e.range_type, moment(e.min * 1000).utc(), moment(e.max * 1000).utc(), e.min_inclusiv, e.max_inclusiv, e.segment_type);
+            case HourRange.RANGE_TYPE:
+                return RangeHandler.getInstance().createNew(e.range_type, moment.duration(e.min), moment.duration(e.max), e.min_inclusiv, e.max_inclusiv, e.segment_type);
+        }
+        return e;
+    }
+
+    private try_translate_range_to_api(e: IRange<any>) {
+
+        switch (e.range_type) {
+            case NumRange.RANGE_TYPE:
+                return e;
+            case TSRange.RANGE_TYPE:
+                return {
+                    range_type: e.range_type,
+                    min: e.min ? (e.min as moment.Moment).unix() : null,
+                    max: e.max ? (e.max as moment.Moment).unix() : null,
+                    min_inclusiv: e.min_inclusiv,
+                    max_inclusiv: e.max_inclusiv,
+                    segment_type: e.segment_type,
+                };
+            case HourRange.RANGE_TYPE:
+                return {
+                    range_type: e.range_type,
+                    min: e.min ? (e.min as moment.Duration).asMilliseconds() : null,
+                    max: e.max ? (e.max as moment.Duration).asMilliseconds() : null,
+                    min_inclusiv: e.min_inclusiv,
+                    max_inclusiv: e.max_inclusiv,
+                    segment_type: e.segment_type,
+                };
+        }
+        return e;
     }
 }

@@ -60,7 +60,7 @@ include ../../../../views/mixins/loading.pug
                             .alert.alert-warning(v-if="is_only_readable") {{ label('crud.create.modal.readonly') }}
                             template(v-if="newVO")
                                 template(v-if="has_createDatatable", v-for="field in crud.createDatatable.fields")
-                                    CRUDComponentField(
+                                    Crudcomponentfield(
                                         v-show="!field.hidden",
                                         :key="newVO._type + '_createDatatable_' + field.datatable_field_uid + '_' + crud_createDatatable_key",
                                         :field="field",
@@ -96,7 +96,7 @@ include ../../../../views/mixins/loading.pug
                             .alert.alert-danger(v-if="is_only_readable") {{ label('crud.update.modal.readonly') }}
                             template(v-if="selectedVO && editableVO")
                                 template(v-for="field in crud.updateDatatable.fields")
-                                    CRUDComponentField(
+                                    Crudcomponentfield(
                                         v-show="!field.hidden",
                                         :key="newVO._type + '_updateDatatable_' + field.datatable_field_uid + '_' + crud_updateDatatable_key",
                                         :field="field",

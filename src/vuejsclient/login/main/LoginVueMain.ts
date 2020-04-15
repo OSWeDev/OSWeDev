@@ -11,7 +11,7 @@ import './LoginVueMain.scss';
 @Component({
     template: require('./LoginVueMain.pug'),
     components: {
-        OnPageTranslation,
+        Onpagetranslation: OnPageTranslation,
     }
 })
 export default class LoginVueMain extends VueComponentBase {

@@ -29,7 +29,7 @@ import "./ProgramPlanComponentModalPrep.scss";
     template: require('./ProgramPlanComponentModalPrep.pug'),
     components: {
         field: VueFieldComponent,
-        ProgramPlanComponentModalTargetInfos
+        Programplancomponentmodaltargetinfos: ProgramPlanComponentModalTargetInfos
     }
 })
 export default class ProgramPlanComponentModalPrep extends VueComponentBase {

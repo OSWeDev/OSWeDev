@@ -1,16 +1,13 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import FileVO from '../../../../../../../shared/modules/File/vos/FileVO';
-import FileComponent from '../../../../file/FileComponent';
 import VueComponentBase from '../../../../VueComponentBase';
 import './file_datatable_field.scss';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./file_datatable_field.pug'),
-    components: {
-        FileComponent
-    }
+    components: {}
 })
 export default class FileDatatableFieldComponent extends VueComponentBase {
     @Prop()

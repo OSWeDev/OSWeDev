@@ -181,7 +181,9 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             }
 
             if (contentType == ModuleAjaxCache.MSGPACK_REQUEST_TYPE) {
-                var buffer = encode(postdatas);
+
+                let prepared_postdatas = this.prepare_for_encoding(postdatas);
+                var buffer = encode(prepared_postdatas);
 
                 const { default: axios } = await import(/* webpackChunkName: "axios" */ 'axios');
                 let axios_headers: any = {
@@ -670,5 +672,32 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
             };
             callback();
         }
+    }
+
+    private prepare_for_encoding(postdatas: any) {
+
+        // if (typeof postdatas !== 'object') {
+        return postdatas;
+        // }
+
+        // let res = Object.assign({}, postdatas);
+
+        // /**
+        //  * On recherche des functions pour les supprimer
+        //  */
+        // for (let i in postdatas) {
+
+        //     if (typeof postdatas[i] === 'object') {
+        //         res[i] = this.prepare_for_encoding(postdatas[i]);
+        //         continue;
+        //     }
+
+        //     if (typeof postdatas[i] === 'function') {
+        //         delete res[i];
+        //         continue;
+        //     }
+        // }
+
+        // return res;
     }
 }

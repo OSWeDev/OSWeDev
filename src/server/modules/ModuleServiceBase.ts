@@ -418,7 +418,7 @@ export default abstract class ModuleServiceBase {
             ModuleVocusServer.getInstance(),
             ModuleFeedbackServer.getInstance(),
             ModuleRequestServer.getInstance(),
-            ModuleDocumentServer.getInstance(),
+            ModuleDocumentServer.getInstance()
         ];
     }
 }

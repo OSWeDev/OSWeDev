@@ -88,13 +88,13 @@
                             i.fa.fa-asterisk.mandatory
                 .row
                     .col-md-4
-                        ScreenshotComponent(id='tmp_capture_1_vo' :filevo="tmp_capture_1_vo" @uploaded="uploadedCapture1(...arguments)" ref='ScreenshotComponent1')
+                        Screenshotcomponent(id='tmp_capture_1_vo' :filevo="tmp_capture_1_vo" @uploaded="uploadedCapture1(...arguments)" ref='ScreenshotComponent1')
                     .col-md-4
                         template(v-if='!!tmp_capture_1_vo')
-                            ScreenshotComponent(id='tmp_capture_2_vo' :filevo="tmp_capture_2_vo" @uploaded="uploadedCapture2(...arguments)")
+                            Screenshotcomponent(id='tmp_capture_2_vo' :filevo="tmp_capture_2_vo" @uploaded="uploadedCapture2(...arguments)")
                     .col-md-4
                         template(v-if='!!tmp_capture_2_vo')
-                            ScreenshotComponent(id='tmp_capture_3_vo' :filevo="tmp_capture_3_vo" @uploaded="uploadedCapture3(...arguments)")
+                            Screenshotcomponent(id='tmp_capture_3_vo' :filevo="tmp_capture_3_vo" @uploaded="uploadedCapture3(...arguments)")
 
                 .spacer
 
@@ -103,13 +103,13 @@
                         label {{ label('feedback_handler.attachments.label') }}
                 .row
                     .col-md-4
-                        FileComponent(id='tmp_attachment_1_vo' :filevo="tmp_attachment_1_vo" @uploaded="uploadedFile1(...arguments)")
+                        Filecomponent(id='tmp_attachment_1_vo' :filevo="tmp_attachment_1_vo" @uploaded="uploadedFile1(...arguments)")
                     .col-md-4
                         template(v-if='!!tmp_attachment_1_vo')
-                            FileComponent(id='tmp_attachment_2_vo' :filevo="tmp_attachment_2_vo" @uploaded="uploadedFile2(...arguments)")
+                            Filecomponent(id='tmp_attachment_2_vo' :filevo="tmp_attachment_2_vo" @uploaded="uploadedFile2(...arguments)")
                     .col-md-4
                         template(v-if='!!tmp_attachment_2_vo')
-                            FileComponent(id='tmp_attachment_3_vo' :filevo="tmp_attachment_3_vo" @uploaded="uploadedFile3(...arguments)")
+                            Filecomponent(id='tmp_attachment_3_vo' :filevo="tmp_attachment_3_vo" @uploaded="uploadedFile3(...arguments)")
 
                 .spacer
 

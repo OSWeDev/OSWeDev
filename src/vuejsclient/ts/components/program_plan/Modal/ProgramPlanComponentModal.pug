@@ -14,13 +14,13 @@
                 
             .tab-content
                 #rdv_target_infos(v-show="active_view == 'rdv_target_infos'")
-                    ProgramPlanComponentModalTargetInfos
+                    Programplancomponentmodaltargetinfos
                 #rdv_prep(v-show="active_view == 'rdv_prep'")
-                    ProgramPlanComponentModalPrep(:selected_rdv='selected_rdv')
+                    Programplancomponentmodalprep(:selected_rdv='selected_rdv')
                 #rdv_cr(v-show="active_view == 'rdv_cr'")
-                    ProgramPlanComponentModalCR(:selected_rdv='selected_rdv')
+                    Programplancomponentmodalcr(:selected_rdv='selected_rdv')
                 #rdv_historic(v-show="active_view == 'rdv_historic'")
-                    ProgramPlanComponentModalHistoric
+                    Programplancomponentmodalhistoric
 
         template(v-else)
             .admin_task_modal_content {{ label('programplan.rdv_modal.admin_task_modal_content') }}

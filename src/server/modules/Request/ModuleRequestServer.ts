@@ -21,7 +21,7 @@ export default class ModuleRequestServer extends ModuleServerBase {
     private static instance: ModuleRequestServer = null;
 
     constructor() {
-        super(ModuleRequest.MODULE_NAME);
+        super(ModuleRequest.getInstance().name);
     }
 
     public registerServerApiHandlers() {

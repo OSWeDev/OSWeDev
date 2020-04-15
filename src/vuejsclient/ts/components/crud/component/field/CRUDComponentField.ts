@@ -46,15 +46,15 @@ let debounce = require('lodash/debounce');
 @Component({
     template: require('./CRUDComponentField.pug'),
     components: {
-        VueQuillEditor: () => import(/* webpackChunkName: "vue-quill-editor" */ 'vue-quill-editor'),
-        FileComponent: FileComponent,
-        ImageComponent: ImageComponent,
-        MultiInputComponent: MultiInputComponent,
-        HourrangeInputComponent: HourrangeInputComponent,
-        TSRangesInputComponent: TSRangesInputComponent,
-        IsoWeekDaysInputComponent: IsoWeekDaysInputComponent,
-        TSRangeInputComponent: TSRangeInputComponent,
-        TSTZInputComponent: TSTZInputComponent,
+        Vuequilleditor: () => import(/* webpackChunkName: "vue-quill-editor" */ 'vue-quill-editor'),
+        Filecomponent: FileComponent,
+        Imagecomponent: ImageComponent,
+        Multiinputcomponent: MultiInputComponent,
+        Hourrangeinputcomponent: HourrangeInputComponent,
+        Tsrangesinputcomponent: TSRangesInputComponent,
+        Isoweekdaysinputcomponent: IsoWeekDaysInputComponent,
+        Tsrangeinputcomponent: TSRangeInputComponent,
+        Tstzinputcomponent: TSTZInputComponent,
     }
 })
 export default class CRUDComponentField extends VueComponentBase

@@ -17,8 +17,8 @@ const { parse, stringify } = require('flatted/cjs');
 @Component({
     template: require('./FeedbackHandlerComponent.pug'),
     components: {
-        ScreenshotComponent: ScreenshotComponent,
-        FileComponent: FileComponent
+        Screenshotcomponent: ScreenshotComponent,
+        Filecomponent: FileComponent
     }
 })
 export default class FeedbackHandlerComponent extends VueComponentBase {
