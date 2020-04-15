@@ -11,6 +11,8 @@ import NumRange from '../DataRender/vos/NumRange';
 import TSRange from '../DataRender/vos/TSRange';
 import HourRange from '../DataRender/vos/HourRange';
 import * as moment from 'moment';
+import IMomentAPI from './interfaces/IMomentAPI';
+import IDurationAPI from './interfaces/IDurationAPI';
 
 export default class ModuleAPI extends Module {
 
@@ -168,6 +170,14 @@ export default class ModuleAPI extends Module {
                 return this.try_translate_range_from_api(e as IRange<any>);
             }
 
+            if (this.is_moment_from_api(e)) {
+                return this.try_translate_moment_from_api(e);
+            }
+
+            if (this.is_duration_from_api(e)) {
+                return this.try_translate_duration_from_api(e);
+            }
+
             if (typeof e === 'object') {
                 let res = Object.assign({}, e);
                 for (let i in res) {
@@ -203,6 +213,14 @@ export default class ModuleAPI extends Module {
 
             if (this.is_range(e as IRange<any>)) {
                 return this.try_translate_range_to_api(e as IRange<any>);
+            }
+
+            if (TypesHandler.getInstance().isMoment(e)) {
+                return this.try_translate_moment_to_api(e);
+            }
+
+            if (TypesHandler.getInstance().isDuration(e)) {
+                return this.try_translate_duration_to_api(e);
             }
 
             if (typeof e === 'object') {
@@ -285,6 +303,56 @@ export default class ModuleAPI extends Module {
         return false;
     }
 
+    private is_moment_from_api(e: IMomentAPI): boolean {
+
+        return e && (!!e.__ismom);
+    }
+
+    private is_duration_from_api(e: IDurationAPI): boolean {
+
+        return e && (!!e.__isdur);
+    }
+
+    /**
+     * Valide uniquement si TypesHandler.getInstance().isMoment
+     * @param e
+     */
+    private try_translate_moment_from_api(e: IMomentAPI): moment.Moment {
+
+        return moment(e.__munix * 1000).utc();
+    }
+
+    /**
+     * Valide uniquement si TypesHandler.getInstance().isMoment
+     * @param e
+     */
+    private try_translate_moment_to_api(e: moment.Moment): IMomentAPI {
+
+        return e ? { __ismom: true, __munix: e.unix() } : null;
+    }
+
+    /**
+     * Valide uniquement si TypesHandler.getInstance().isduration
+     * @param e
+     */
+    private try_translate_duration_from_api(e: IDurationAPI): moment.Duration {
+
+        return moment.duration(e.__durms);
+    }
+
+    /**
+     * Valide uniquement si TypesHandler.getInstance().isduration
+     * @param e
+     */
+    private try_translate_duration_to_api(e: moment.Duration): IDurationAPI {
+
+        return e ? { __isdur: true, __durms: e.asMilliseconds() } : null;
+    }
+
+    /**
+     * Valide uniquement si is_range
+     * @param e
+     */
     private try_translate_range_from_api(e: IRange<any>) {
 
         switch (e.range_type) {

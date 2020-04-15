@@ -284,7 +284,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         let disabled: boolean = true;
 
         try {
-            let vo: IVarMatroidDataParamVO = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.vo) : null;
+            let vo: IVarMatroidDataParamVO = param ? param.vo as IVarMatroidDataParamVO : null;
             let varsdata: ISimpleNumberVarData[] = await ModuleDAO.getInstance().getVosByExactMatroids<ISimpleNumberVarData, IVarMatroidDataParamVO>(vo._type, [vo as any], {});
 
             let vardata: ISimpleNumberVarData = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
@@ -370,7 +370,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async getSimpleVarDataValueSumFilterByMatroids<T extends ISimpleNumberVarData>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<number> {
 
-        let matroids: IMatroid[] = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.matroids) : null;
+        let matroids: IMatroid[] = param ? param.matroids as IMatroid[] : null;
         let api_type_id: string = param ? param.API_TYPE_ID : null;
         let fields_ids_mapper: { [matroid_field_id: string]: string } = param ? param.fields_ids_mapper : null;
 

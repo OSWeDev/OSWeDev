@@ -689,6 +689,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
+                    // Pourquoi ça marche avec un *1000 ici ????
                     res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : null;
                     break;
 

@@ -230,7 +230,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                 throw new Error('Le module FEEDBACK nécessite la configuration des paramètres FEEDBACK_TRELLO_POSSIBLE_BUG_ID,FEEDBACK_TRELLO_POSSIBLE_INCIDENT_ID,FEEDBACK_TRELLO_POSSIBLE_REQUEST_ID,FEEDBACK_TRELLO_NOT_SET_ID qui indiquent les codes des marqueurs Trello à utiliser (cf URL d\'une card de la liste +.json => labels:id)');
             }
 
-            let feedback: FeedbackVO = param ? ModuleAPI.getInstance().try_translate_vo_from_api(param.vo) : null;
+            let feedback: FeedbackVO = param ? param.vo as FeedbackVO : null;
 
             // Remplir le feedback avec toutes les infos qui sont connues côté serveur,
             feedback.user_connection_date = moment(user_session.last_load_date_unix).utc(true);
