@@ -1,12 +1,13 @@
 import * as $ from 'jquery';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import ModuleAjaxCache from '../../../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import Alert from '../../../../../shared/modules/Alert/vos/Alert';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import DatatableField from '../../../../../shared/modules/DAO/vos/datatable/DatatableField';
 import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToManyReferenceDatatableField';
+import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -20,6 +21,7 @@ import ModuleVocus from '../../../../../shared/modules/Vocus/ModuleVocus';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import { ModuleAlertAction } from '../../alert/AlertStore';
 import { ModuleCRUDAction, ModuleCRUDGetter } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
@@ -27,8 +29,6 @@ import DatatableComponent from '../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
-import Alert from '../../../../../shared/modules/Alert/vos/Alert';
-import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -206,8 +206,8 @@ export default class CRUDComponent extends VueComponentBase {
                 modal_type = 'delete';
             }
 
-            if (CRUDComponentManager.getInstance().callback_handle_modal_show_hide) {
-                await CRUDComponentManager.getInstance().callback_handle_modal_show_hide(vo, modal_type);
+            if (this.crud && this.crud.callback_handle_modal_show_hide) {
+                await this.crud.callback_handle_modal_show_hide(vo, modal_type);
             }
         } else {
             vo = this.getSelectedVOs[0];
@@ -395,6 +395,9 @@ export default class CRUDComponent extends VueComponentBase {
             switch (field.type) {
                 case DatatableField.SIMPLE_FIELD_TYPE:
                     obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as SimpleDatatableField<any, any>).moduleTableField.field_default);
+                    break;
+                case DatatableField.MANY_TO_ONE_FIELD_TYPE:
+                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as ManyToOneReferenceDatatableField<any>).srcField.field_default);
                     break;
 
                 default:
@@ -996,14 +999,14 @@ export default class CRUDComponent extends VueComponentBase {
     }
 
     private async callCallbackFunctionCreate(): Promise<void> {
-        if (CRUDComponentManager.getInstance().callback_function_create) {
-            await CRUDComponentManager.getInstance().callback_function_create(this.newVO);
+        if (this.crud && this.crud.callback_function_create) {
+            await this.crud.callback_function_create(this.newVO);
         }
     }
 
     private async callCallbackFunctionUpdate(): Promise<void> {
-        if (CRUDComponentManager.getInstance().callback_function_update) {
-            await CRUDComponentManager.getInstance().callback_function_update(this.editableVO);
+        if (this.crud && this.crud.callback_function_update) {
+            await this.crud.callback_function_update(this.editableVO);
         }
     }
 

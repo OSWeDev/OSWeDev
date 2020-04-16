@@ -188,6 +188,12 @@ export default class CRUDComponentField extends VueComponentBase
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = this.field_value;
         }
+
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
         this.$emit('onChangeVO', this.vo);
     }
 
@@ -374,6 +380,11 @@ export default class CRUDComponentField extends VueComponentBase
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
 
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
         this.$emit('onChangeVO', this.vo);
     }
 
@@ -385,6 +396,12 @@ export default class CRUDComponentField extends VueComponentBase
         if (this.auto_update_field_value) {
             this.vo[this.field.datatable_field_uid] = values;
         }
+
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
         this.$emit('onChangeVO', this.vo);
         this.$emit('validateMultiInput', values, this.field, this.vo);
     }
@@ -702,6 +719,11 @@ export default class CRUDComponentField extends VueComponentBase
             this.changeValue(this.vo, this.field, this.field_value, this.datatable);
         }
 
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
         this.$emit('onChangeVO', this.vo);
     }
 
@@ -812,6 +834,11 @@ export default class CRUDComponentField extends VueComponentBase
             } else {
                 await this.snotify.success(this.label('field.auto_update_field_value.succes'));
             }
+        }
+
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
         }
 
         this.$emit('onChangeVO', this.vo);

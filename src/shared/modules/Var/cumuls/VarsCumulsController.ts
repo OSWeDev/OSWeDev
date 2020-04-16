@@ -4,6 +4,7 @@ export default class VarsCumulsController {
     public static CUMUL_WEEK_NAME: string = "W";
     public static CUMUL_MONTH_NAME: string = "M";
     public static CUMUL_YEAR_NAME: string = "Y";
+    public static CUMUL_RESET_NAME: string = "R";
 
     public static getInstance(): VarsCumulsController {
         if (!VarsCumulsController.instance) {
@@ -28,6 +29,9 @@ export default class VarsCumulsController {
                 break;
             case VarsCumulsController.CUMUL_YEAR_NAME:
                 cumulName = VarsCumulsController.CUMUL_YEAR_NAME;
+                break;
+            case VarsCumulsController.CUMUL_RESET_NAME:
+                cumulName = VarsCumulsController.CUMUL_RESET_NAME;
                 break;
         }
 
