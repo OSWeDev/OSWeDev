@@ -53,6 +53,18 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     private segmentation_type_: number = null;
 
+    @Watch('vo', { immediate: true })
+    private onchange_vo() {
+        if (!this.vo) {
+            this.tsrange_start = null;
+            this.tsrange_end = null;
+            this.tsrange_date = null;
+            this.tsrange_start_time = null;
+            this.tsrange_end_time = null;
+            this.new_value = null;
+        }
+    }
+
     @Watch('field', { immediate: true })
     private onchange_field() {
         if (!!this.field) {
@@ -92,23 +104,15 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
     }
 
+    @Watch('tsrange_date')
+    @Watch('tsrange_start_time')
+    @Watch('tsrange_end_time')
     @Watch('tsrange_start')
     @Watch('tsrange_end')
     private emitInput(): void {
         this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, this.ts_start, this.ts_end, true, true, this.segmentation_type_);
         this.$emit('input', this.new_value);
 
-        if (!!this.vo) {
-            this.$emit('input_with_infos', this.new_value, this.field, this.vo);
-        }
-    }
-
-    @Watch('tsrange_date')
-    @Watch('tsrange_start_time')
-    @Watch('tsrange_end_time')
-    private on_change_tsrange_date_time(): void {
-        this.new_value = RangeHandler.getInstance().createNew(TSRange.RANGE_TYPE, this.ts_start, this.ts_end, true, true, this.segmentation_type_);
-        this.$emit('input', this.new_value);
         if (!!this.vo) {
             this.$emit('input_with_infos', this.new_value, this.field, this.vo);
         }
@@ -127,9 +131,17 @@ export default class TSRangeInputComponent extends VueComponentBase {
     }
 
     get ts_start(): Moment {
+        if (!this.tsrange_date) {
+            return null;
+        }
+
         if (this.is_segmentation_minute) {
             let start: Moment = moment(this.tsrange_date).utc(true);
             let hours: string[] = (this.tsrange_start_time) ? this.tsrange_start_time.split(':') : null;
+
+            if (!hours) {
+                return null;
+            }
 
             if (hours && hours.length > 0) {
                 start.hours(parseInt(hours[0])).minutes(parseInt(hours[1]));
@@ -142,14 +154,26 @@ export default class TSRangeInputComponent extends VueComponentBase {
     }
 
     get ts_end(): Moment {
+        if (!this.tsrange_date) {
+            return null;
+        }
+
         if (this.is_segmentation_minute) {
             let end: Moment = moment(this.tsrange_date).utc(true);
             let hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
 
-            if (hours && hours.length > 0) {
-                end.hours(parseInt(hours[0])).minutes(parseInt(hours[1]));
+            if (!hours) {
+                return null;
             }
 
+            if (hours && hours.length > 0) {
+                end.hours(parseInt(hours[0])).minutes(parseInt(hours[1]));
+                end.add(-1, 'minute');
+            }
+
+            if (end.isBefore(this.ts_start, 'minute')) {
+                end.add(1, 'day');
+            }
             return end;
         }
 
