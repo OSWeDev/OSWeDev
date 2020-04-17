@@ -1,17 +1,17 @@
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
+import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import EnvHandler from '../../../shared/tools/EnvHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
-import EnvHandler from '../../../shared/tools/EnvHandler';
 
 export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
@@ -94,6 +94,8 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                     case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
                         try {
                             param = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
+                            // On doit traduire ici si (!EnvHandler.getInstance().MSGPCK) ce qui ne l'a pas été puisque encodé en JSON
+                            param = (!EnvHandler.getInstance().MSGPCK) ? ModuleAPI.getInstance().try_translate_vo_from_api(param) : param;
                         } catch (error) {
                             ConsoleHandler.getInstance().error('Erreur récupération params poste_for_get wrapped:' + error + ':');
                         }

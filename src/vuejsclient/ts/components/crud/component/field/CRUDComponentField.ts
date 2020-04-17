@@ -46,7 +46,6 @@ let debounce = require('lodash/debounce');
 @Component({
     template: require('./CRUDComponentField.pug'),
     components: {
-        Vuequilleditor: () => import(/* webpackChunkName: "vue-quill-editor" */ 'vue-quill-editor'),
         Filecomponent: FileComponent,
         Imagecomponent: ImageComponent,
         Multiinputcomponent: MultiInputComponent,
