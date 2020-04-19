@@ -1,0 +1,141 @@
+@import "skin-variables.scss";
+
+.document_handler {
+
+    .modal-header {
+
+        h4 {
+            color: #555;
+            font-size: 1em;
+            margin-bottom: 0.2em;
+        }
+
+        .tag-groups {
+
+            .tag-group {
+
+                color: #555;
+                font-size: 0.7em;
+                margin-top: 0.5em;
+                margin-bottom: 0.1em;
+            }
+
+            .tags {
+
+                button.tag {
+
+                    margin-right: 0.3em;
+                    color: #555;
+                    background-color: #f0f0f0;
+                    font-size: 0.7em;
+                }
+
+                button.tag:hover {
+                    color: $button_text_color;
+                    background-color: $button_primary_bg_color;
+                    opacity: 0.5;
+                }
+
+                button.tag.is-checked {
+
+                    color: $button_text_color;
+                    background-color: $button_primary_bg_color;
+                }
+            }
+        }
+    }
+
+    .document.item {
+
+        padding: 10px;
+        margin-bottom: 8px;
+        box-sizing: border-box;
+        cursor: pointer;
+
+        .document_type {
+
+            float: right;
+            bottom: 0;
+            position: absolute;
+            right: 0.2em;
+        }
+    }
+
+    .document.item.XS {
+        color: #333;
+        background-color: #eee;
+        width: 100px;
+        height: 100px;
+        font-size: 0.5em;
+
+        .document_type {
+
+            font-size: 1em;
+        }
+    }
+
+    .document.item.S {
+        color: #333;
+        background-color: #eee;
+        width: 208px;
+        height: 100px;
+        font-size: 0.75em;
+
+        .document_type {
+
+            font-size: 1.5em;
+        }
+    }
+
+    .document.item.M {
+        color: #333;
+        background-color: #eee;
+        width: 208px;
+        height: 208px;
+        font-size: 1em;
+
+        .document_type {
+
+            font-size: 2em;
+        }
+    }
+
+    .document.item.L {
+        color: $button_text_color;
+        background-color: $button_primary_bg_color;
+        width: 208px;
+        height: 208px;
+        font-size: 1em;
+        
+        .document_type {
+
+            font-size: 2em;
+        }
+    }
+
+    .document.item.XL {
+        color: #333;
+        background-color: #eee;
+        width: 424px;
+        height: 208px;
+        font-size: 1.25em;
+        
+        .document_type {
+
+            font-size: 2.5em;
+        }
+    }
+
+    .document.item.XXL {
+        color: $button_text_color;
+        background-color: $button_primary_bg_color;
+        width: 424px;
+        height: 208px;
+        font-size: 1.25em;
+        
+        .document_type {
+
+            font-size: 2.5em;
+        }
+    }
+}

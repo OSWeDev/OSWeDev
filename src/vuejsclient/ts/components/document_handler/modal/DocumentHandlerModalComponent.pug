@@ -1,0 +1,36 @@
+.document_handler.hide_from_screenshot
+    #document_handler_modal.modal.fade.in(ref="document_handler_modal", tabindex='-1', role='dialog')
+        .modal-dialog.modal-lg(role='document')
+            .modal-content
+                .modal-header
+                    h4.modal-title {{ label('document_handler.modal_title') }}
+                    button.btn.close(@click='switch_hidden') &times;
+                    .tag-groups(v-if='hasMoreThanOneTag')
+                        template(v-for='dtg in dtgs_by_weight')
+                            template(v-if='hasMoreThanOneGroup')
+                                .tag-group(v-tooltip.top='dt.description') {{ dtg.name }}
+                            .tags
+                                button.tag.btn(@click='unfilter' :class="{'is-checked': !filter_tag_id}") {{ label('document_handler.tags.tous') }}
+                                template(v-for='dt in dts_by_weight')
+                                    button.tag.btn(@click='filter_tag(dt)' v-tooltip.top='dt.description' :class="{'is-checked':dt.id == filter_tag_id}") {{ dt.name }}
+
+                .modal-body
+                    template(v-if='loaded')
+                        isotope.documents_wrapper(ref="isotope" :options='options' :list="list" @filter="filterOption=arguments[0]" @sort="sortOption=arguments[0]")
+                            .document.grid-item(v-for="d in list" :key="d.id" @click="open_document(d.document_url)" target='_blank' v-tooltip.top="d.description" :class='classnames[d.importance]')
+                                .document_name {{ d.name }}
+                                
+                                .document_type
+                                    template(v-if='d.type==type_video')
+                                        i.fa.fa-youtube-play.fa-fw(aria-hidden="true")
+                                    template(v-if='d.type==type_pdf')
+                                        i.fa.fa-file-pdf-o.fa-fw(aria-hidden="true")
+                                    template(v-if='d.type==type_xls')
+                                        i.fa.fa-file-excel-o.fa-fw(aria-hidden="true")
+                                    template(v-if='d.type==type_doc')
+                                        i.fa.fa-file-word-o.fa-fw(aria-hidden="true")
+                                    template(v-if='d.type==type_ppt')
+                                        i.fa.fa-file-powerpoint-o.fa-fw(aria-hidden="true")
+                                    template(v-if='d.type==type_other')
+                                        i.fa.fa-file-o.fa-fw(aria-hidden="true")
+                                        

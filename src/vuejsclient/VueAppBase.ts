@@ -55,6 +55,7 @@ import PushDataVueModule from './ts/modules/PushData/PushDataVueModule';
 import VueModuleBase from './ts/modules/VueModuleBase';
 import AppVuexStoreManager from './ts/store/AppVuexStoreManager';
 import VueAppController from './VueAppController';
+import DocumentStore from './ts/components/document_handler/store/DocumentStore';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class VueAppBase {
@@ -347,6 +348,8 @@ export default abstract class VueAppBase {
         Vue.component('Alertcomponent', AlertComponent);
 
         Vue.directive('var-directive', VarDirective.getInstance());
+
+        AppVuexStoreManager.getInstance().registerModule(DocumentStore.getInstance());
 
         this.vueInstance = this.createVueMain();
         this.vueInstance.$mount('#vueDIV');
