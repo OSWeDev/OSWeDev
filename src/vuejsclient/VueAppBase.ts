@@ -9,6 +9,7 @@ import * as moment from 'moment';
 import 'select2';
 import VCalendar from 'v-calendar';
 import VTooltip from 'v-tooltip';
+import VueFlags from "@growthbunker/vueflags";
 import Vue from 'vue';
 import VueDraggableResizable from 'vue-draggable-resizable';
 import FullCalendar from 'vue-full-calendar';
@@ -317,6 +318,7 @@ export default abstract class VueAppBase {
         Vue.use(Snotify);
         Vue.use(VueRouter);
         Vue.use(FullCalendar);
+        Vue.use(VueFlags);
 
         // Use v-calendar, v-date-picker & v-popover components
         Vue.use(VCalendar, {
