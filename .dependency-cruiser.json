@@ -1,5 +1,15 @@
 {
     "forbidden": [{
+        "name": "test->vuejsclient",
+        "comment": "don't allow dependencies from test to vuejsclient",
+        "severity": "error",
+        "from": {
+            "path": "^src/test/"
+        },
+        "to": {
+            "path": "^src/vuejsclient/"
+        }
+    }, {
         "name": "shared->server",
         "comment": "don't allow dependencies from shared to server",
         "severity": "error",
