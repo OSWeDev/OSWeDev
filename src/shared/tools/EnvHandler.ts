@@ -1,5 +1,7 @@
+
 export default class EnvHandler {
 
+    /* istanbul ignore next: not a usefull test to write */
     public static getInstance(): EnvHandler {
         if (!EnvHandler.instance) {
             EnvHandler.instance = new EnvHandler();
