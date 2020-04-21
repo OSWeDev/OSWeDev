@@ -15,6 +15,10 @@ export default class NamedVOHandler {
 
     public sortByNames(vos: INamedVO[], sort_func = null) {
 
+        if (!vos) {
+            return null;
+        }
+
         vos.sort(sort_func ? sort_func : (a: INamedVO, b: INamedVO) => {
             if ((!a) && (!!b)) {
                 return -1;
@@ -44,7 +48,7 @@ export default class NamedVOHandler {
         let res: string[] = [];
 
         for (let i in vos) {
-            if (!vos[i]) {
+            if ((!vos[i]) || (!vos[i].name)) {
                 continue;
             }
             res.push(vos[i].name);
