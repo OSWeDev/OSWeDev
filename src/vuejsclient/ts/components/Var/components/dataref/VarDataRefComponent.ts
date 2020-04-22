@@ -13,7 +13,6 @@ import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
-const moment = require('moment');
 
 @Component({
     template: require('./VarDataRefComponent.pug')

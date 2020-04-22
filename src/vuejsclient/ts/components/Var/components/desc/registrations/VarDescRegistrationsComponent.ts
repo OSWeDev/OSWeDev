@@ -1,12 +1,8 @@
-import * as d3 from 'd3';
-// import * as graphlib from 'dagre-d3/lib/graphlib';
-// import * as render from 'dagre-d3/lib/render';
 import { Component } from 'vue-property-decorator';
 import 'vue-tables-2';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../../store/VarStore';
 import './VarDescRegistrationsComponent.scss';
-const moment = require('moment');
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDAG from '../../../../../../../shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../../../../../shared/modules/Var/graph/var/VarDAGNode';

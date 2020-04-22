@@ -5,7 +5,6 @@ import PerfMonFuncStat from '../../../../../../shared/modules/PerfMon/vos/PerfMo
 import VueComponentBase from '../../../VueComponentBase';
 import { ModulePerfMonAction, ModulePerfMonGetter } from '../../store/PerfMonStore';
 import './FuncStatsComponent.scss';
-const moment = require('moment');
 
 @Component({
     template: require('./FuncStatsComponent.pug')

@@ -1,4 +1,4 @@
-import debounce = require('lodash/debounce');
+import debounce from 'lodash/debounce';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';

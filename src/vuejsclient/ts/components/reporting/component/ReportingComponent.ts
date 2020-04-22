@@ -1,14 +1,13 @@
-import CardVO from '../vos/CardVO';
-import { Prop, Component, Vue, Watch } from 'vue-property-decorator';
-import ReportingCardComponent from './card/ReportingCardComponent';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
-import ReportingComponentBase from '../_base/ReportingComponentBase';
-import ColumnVO from '../vos/ColumnVO';
-import ReportingColumnComponent from './column/ReportingColumnComponent';
-const moment = require('moment');
-import GroupColumnDataVO from '../vos/GroupColumnDataVO';
+import CardVO from '../vos/CardVO';
 import ColumnDataVO from '../vos/ColumnDataVO';
+import ColumnVO from '../vos/ColumnVO';
 import CustomFilterVueTable from '../vos/CustomFilterVueTable';
+import GroupColumnDataVO from '../vos/GroupColumnDataVO';
+import ReportingComponentBase from '../_base/ReportingComponentBase';
+import ReportingCardComponent from './card/ReportingCardComponent';
+import ReportingColumnComponent from './column/ReportingColumnComponent';
 import './ReportingComponent.scss';
 
 @Component({

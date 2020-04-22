@@ -1,3 +1,4 @@
+import { Moment } from 'moment';
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
@@ -17,8 +18,6 @@ import IPlanTargetZone from '../../../../../shared/modules/ProgramPlan/interface
 import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import IStoreModule from '../../../store/IStoreModule';
-import { Moment } from 'moment';
-const moment = require('moment');
 
 export type ProgramPlanContext = ActionContext<IProgramPlanState, any>;
 

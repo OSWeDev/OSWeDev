@@ -1,4 +1,4 @@
-const moment = require('moment');
+import * as moment from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleFile from '../../../../shared/modules/File/ModuleFile';
@@ -50,7 +50,9 @@ export default class ScreenshotComponent extends VueComponentBase {
                 {
                     ignoreElements: function (el: HTMLElement) {
                         return el.classList.contains('hide_from_screenshot');
-                    }
+                    },
+                    scrollX: 0,
+                    scrollY: -window.scrollY
                 }).then(
                     async (canvas) => {
 

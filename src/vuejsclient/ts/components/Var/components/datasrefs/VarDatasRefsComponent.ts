@@ -1,14 +1,12 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
 import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
-import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDatasRefsComponent.scss';
-const moment = require('moment');
 
 @Component({
     template: require('./VarDatasRefsComponent.pug')

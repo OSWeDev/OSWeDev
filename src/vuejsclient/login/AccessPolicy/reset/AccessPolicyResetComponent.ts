@@ -1,4 +1,4 @@
-import debounce = require('lodash/debounce');
+import debounce from 'lodash/debounce';
 import { Component, Prop, Watch } from "vue-property-decorator";
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';

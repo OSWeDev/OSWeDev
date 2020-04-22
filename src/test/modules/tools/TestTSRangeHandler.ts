@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
-const moment = require('moment');
+import * as moment from 'moment';
 import DateHandler from '../../../shared/tools/DateHandler';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import RangeHandler from '../../../shared/tools/RangeHandler';

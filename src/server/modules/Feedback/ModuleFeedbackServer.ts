@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-const { parse, stringify } = require('flatted/cjs');
+const { parse } = require('flatted/cjs');
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
@@ -21,9 +21,7 @@ import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import { Route } from 'vue-router';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -31,6 +29,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleFileServer from '../File/ModuleFileServer';
 
 export default class ModuleFeedbackServer extends ModuleServerBase {
 
@@ -285,6 +284,19 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
+            // On peut pas envoyer plus de 16384 chars à l'api trello pour le message
+            // Donc on limite à 15000 chars et on met tout dans un fichier dont on donne l'adresse au début du message
+
+            let feedback_file_patch = '/files/feedbacks/feedback_' + moment().utc(true).unix() + '.txt';
+            await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/feedbacks/');
+            await ModuleFileServer.getInstance().writeFile('.' + feedback_file_patch, trello_message);
+
+            let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
+            let file_url = envParam.BASE_URL + feedback_file_patch;
+
+            trello_message = ((trello_message.length > 15000) ? trello_message.substr(0, 15000) + ' ... [truncated 15000 cars]' : trello_message);
+            trello_message = '[FEEDBACK FILE : ' + file_url + '](' + file_url + ')' + ModuleFeedbackServer.TRELLO_LINE_SEPARATOR + trello_message;
+
             response = await trello_api.card.create({
                 name: feedback.title,
                 desc: trello_message,
@@ -295,7 +307,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
             // Faire le lien entre le feedback en base et le Trello
             feedback.trello_ref = response;
-            await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            let ires: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(feedback);
+            feedback.id = parseInt(ires.id.toString());
 
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);

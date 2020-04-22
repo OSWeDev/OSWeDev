@@ -9,7 +9,7 @@ import VarsController from '../../../../shared/modules/Var/VarsController';
 import FakeDataParamController from './FakeDataParamController';
 import FakeDataParamVO from './vos/FakeDataParamVO';
 import FakeDataVO from './vos/FakeDataVO';
-const moment = require('moment');
+import * as moment from 'moment';
 
 export default class FakeVarController extends VarControllerBase<FakeDataVO, FakeDataParamVO> {
 

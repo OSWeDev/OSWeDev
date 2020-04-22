@@ -1,5 +1,5 @@
+import * as moment from 'moment';
 import ConsoleLog from './ConsoleLog';
-const moment = require('moment');
 
 export default class ConsoleLogLogger {
 

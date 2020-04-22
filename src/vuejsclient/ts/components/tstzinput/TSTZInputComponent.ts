@@ -6,7 +6,7 @@ import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/S
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../VueComponentBase';
-const moment = require('moment');
+import * as moment from 'moment';
 
 @Component({
     template: require('./TSTZInputComponent.pug'),

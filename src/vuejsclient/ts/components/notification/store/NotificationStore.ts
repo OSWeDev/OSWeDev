@@ -1,4 +1,4 @@
-const moment = require('moment');
+import * as moment from 'moment';
 import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
@@ -6,7 +6,7 @@ import { getStoreAccessors } from "vuex-typescript";
 import NotificationVO from '../../../../../shared/modules/PushData/vos/NotificationVO';
 import IStoreModule from '../../../store/IStoreModule';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import debounce = require('lodash/debounce');
+import debounce from 'lodash/debounce';
 
 export type NotificationContext = ActionContext<INotificationState, any>;
 

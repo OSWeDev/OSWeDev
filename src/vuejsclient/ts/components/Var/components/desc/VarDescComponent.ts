@@ -1,6 +1,4 @@
 import * as d3 from 'd3';
-// import * as graphlib from 'dagre-d3/lib/graphlib';
-// import * as render from 'dagre-d3/lib/render';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
 import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -12,7 +10,6 @@ import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDescComponent.scss';
-const moment = require('moment');
 
 @Component({
     template: require('./VarDescComponent.pug')

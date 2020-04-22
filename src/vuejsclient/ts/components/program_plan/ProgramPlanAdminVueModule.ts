@@ -1,4 +1,5 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ComputedDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComputedDatatableField';
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -14,8 +15,6 @@ import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
 import MenuLeaf from '../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../ts/modules/VueModuleBase';
-const moment = require('moment');
-import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 
 export default class ProgramPlanAdminVueModule extends VueModuleBase {
 
