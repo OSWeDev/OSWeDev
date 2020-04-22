@@ -1,3 +1,4 @@
+/* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
 import BooleanParamVO from '../API/vos/apis/BooleanParamVO';
@@ -28,7 +29,6 @@ import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
 
-/* istanbul ignore next: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 export default class ModuleAccessPolicy extends Module {
 
     public static MODULE_NAME: string = "AccessPolicy";

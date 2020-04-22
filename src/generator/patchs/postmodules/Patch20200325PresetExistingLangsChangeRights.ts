@@ -1,3 +1,4 @@
+/* istanbul ignore file: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModulesManagerServer from '../../../server/modules/ModulesManagerServer';
@@ -9,7 +10,6 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
-/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20200325PresetExistingLangsChangeRights implements IGeneratorWorker {
 
     public static getInstance(): Patch20200325PresetExistingLangsChangeRights {

@@ -1,3 +1,4 @@
+/* istanbul ignore file: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -10,7 +11,6 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 
-/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20191010CreateDefaultAdminAccountIfNone implements IGeneratorWorker {
 
     public static getInstance(): Patch20191010CreateDefaultAdminAccountIfNone {

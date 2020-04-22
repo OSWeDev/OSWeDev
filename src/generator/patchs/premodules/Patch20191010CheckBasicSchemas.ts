@@ -1,7 +1,7 @@
+/* istanbul ignore file: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
-/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20191010CheckBasicSchemas implements IGeneratorWorker {
 
     public static getInstance(): Patch20191010CheckBasicSchemas {

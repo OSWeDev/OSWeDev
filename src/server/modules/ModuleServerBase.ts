@@ -1,9 +1,9 @@
+/* istanbul ignore file: nothing to test */
 import { Express } from 'express';
 import ModulesManager from '../../shared/modules/ModulesManager';
 import IModuleBase from '../../shared/modules/IModuleBase';
 import Module from '../../shared/modules/Module';
 
-/* istanbul ignore next: nothing to test */
 export default abstract class ModuleServerBase implements IModuleBase {
 
     public static SERVER_MODULE_ROLE_NAME: string = "SERVER_MODULE_ROLE_NAME";

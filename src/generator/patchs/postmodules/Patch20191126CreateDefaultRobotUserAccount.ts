@@ -1,3 +1,4 @@
+/* istanbul ignore file: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
@@ -7,7 +8,6 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
-/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20191126CreateDefaultRobotUserAccount implements IGeneratorWorker {
 
     public static getInstance(): Patch20191126CreateDefaultRobotUserAccount {

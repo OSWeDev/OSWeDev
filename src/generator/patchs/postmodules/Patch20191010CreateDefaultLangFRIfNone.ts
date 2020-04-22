@@ -1,10 +1,10 @@
+/* istanbul ignore file: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
-/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20191010CreateDefaultLangFRIfNone implements IGeneratorWorker {
 
     public static getInstance(): Patch20191010CreateDefaultLangFRIfNone {

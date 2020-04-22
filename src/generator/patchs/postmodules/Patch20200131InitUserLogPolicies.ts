@@ -1,3 +1,4 @@
+/* istanbul ignore file: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
@@ -7,7 +8,6 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 
-/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20200131InitUserLogPolicies implements IGeneratorWorker {
 
     public static getInstance(): Patch20200131InitUserLogPolicies {
