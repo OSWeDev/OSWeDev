@@ -1,4 +1,3 @@
-/* istanbul ignore next: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -7,6 +6,7 @@ import TranslatableTextVO from '../../../shared/modules/Translation/vos/Translat
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
+/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20200312ChangeResetPWDMailContent implements IGeneratorWorker {
 
     public static getInstance(): Patch20200312ChangeResetPWDMailContent {

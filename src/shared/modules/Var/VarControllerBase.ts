@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import cloneDeep = require('lodash/cloneDeep');
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import TimeSegment from '../DataRender/vos/TimeSegment';

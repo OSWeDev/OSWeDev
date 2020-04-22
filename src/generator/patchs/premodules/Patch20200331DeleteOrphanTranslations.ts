@@ -1,7 +1,7 @@
-/* istanbul ignore next: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
+/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20200331DeleteOrphanTranslations implements IGeneratorWorker {
 
     public static getInstance(): Patch20200331DeleteOrphanTranslations {

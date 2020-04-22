@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import cloneDeep = require('lodash/cloneDeep');
 import { Moment } from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';

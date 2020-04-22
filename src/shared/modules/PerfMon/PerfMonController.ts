@@ -1,7 +1,7 @@
 import PerfMonData from './vos/PerfMonData';
 const moment = require('moment');
 import PerfMonFuncStat from './vos/PerfMonFuncStat';
-import { debounce } from 'lodash';
+import debounce = require('lodash/debounce');
 
 export default class PerfMonController {
 

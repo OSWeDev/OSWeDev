@@ -1,9 +1,9 @@
-/* istanbul ignore next: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../../../server/env/ConfigurationService';
 import EnvParam from '../../../server/env/EnvParam';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
+/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20191018CHECKEnvParamsForMDPRecovery implements IGeneratorWorker {
 
     public static getInstance(): Patch20191018CHECKEnvParamsForMDPRecovery {

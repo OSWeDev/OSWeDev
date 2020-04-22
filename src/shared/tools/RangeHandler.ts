@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import cloneDeep = require('lodash/cloneDeep');
 import { Moment, Duration, duration } from 'moment';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import ISegment from '../modules/DataRender/interfaces/ISegment';

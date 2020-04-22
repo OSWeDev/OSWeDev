@@ -1,17 +1,13 @@
-import { cloneDeep } from 'lodash';
-import 'mocha';
 import { expect } from 'chai';
+import 'mocha';
+import VarDAG from '../../../shared/modules/Var/graph/var/VarDAG';
+import VarDAGNode from '../../../shared/modules/Var/graph/var/VarDAGNode';
+import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
+import SimpleVarConfVO from '../../../shared/modules/Var/simple_vars/SimpleVarConfVO';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import FakeVarController from './fakes/FakeVarController';
-import DAGController from '../../../shared/modules/Var/graph/dag/DAGController';
-import VarDAG from '../../../shared/modules/Var/graph/var/VarDAG';
-import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import VarDAGNode from '../../../shared/modules/Var/graph/var/VarDAGNode';
 import FakeVarDAGVisitorEmpty from './fakes/FakeVarDAGVisitorEmpty';
-import { truncateSync } from 'fs';
-import SimpleVarConfVO from '../../../shared/modules/Var/simple_vars/SimpleVarConfVO';
 import FakeDataVO from './fakes/vos/FakeDataVO';
-import FakeVarDAGVisitorSimpleMarker from './fakes/FakeVarDAGVisitorSimpleMarker';
 
 let varConf: SimpleVarConfVO = new SimpleVarConfVO();
 varConf.id = 1;

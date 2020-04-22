@@ -1,6 +1,6 @@
 import TypesHandler from '../../../../../shared/tools/TypesHandler';
 import * as $ from 'jquery';
-import { debounce } from 'lodash';
+import debounce = require('lodash/debounce');
 import * as moment from 'moment';
 import { Moment } from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';

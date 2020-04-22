@@ -1,8 +1,8 @@
-/* istanbul ignore next: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import IGeneratorWorker from '../../IGeneratorWorker';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
+/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20200305CascadeChecker implements IGeneratorWorker {
 
     public static getInstance(): Patch20200305CascadeChecker {

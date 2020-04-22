@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import cloneDeep = require('lodash/cloneDeep');
 import * as moment from 'moment';
 import { Moment } from 'moment';
 import ConsoleHandler from '../tools/ConsoleHandler';

@@ -1,6 +1,6 @@
 import { EventObjectInput, View } from 'fullcalendar';
 import * as $ from 'jquery';
-import { debounce } from 'lodash';
+import debounce = require('lodash/debounce');
 import * as moment from 'moment';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';

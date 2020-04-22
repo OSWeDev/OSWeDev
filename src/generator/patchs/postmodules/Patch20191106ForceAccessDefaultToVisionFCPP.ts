@@ -1,4 +1,3 @@
-/* istanbul ignore next: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
@@ -8,6 +7,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleProgramPlanBase from '../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import IGeneratorWorker from '../../IGeneratorWorker';
 
+/* istanbul ignore next: no unit tests on patchs */
 export default class Patch20191106ForceAccessDefaultToVisionFCPP implements IGeneratorWorker {
 
     public static getInstance(): Patch20191106ForceAccessDefaultToVisionFCPP {

@@ -1,10 +1,10 @@
-/* istanbul ignore next: no usefull tests to build => more interested in understanding why this is still needed ? */
 
 import * as i18next from 'i18next';
 import * as i18nextMiddleware from 'i18next-express-middleware';
 import EnvParam from './env/EnvParam';
 import ConfigurationService from './env/ConfigurationService';
 
+/* istanbul ignore next: no usefull tests to build => more interested in understanding why this is still needed ? */
 export default class I18nextInit {
 
     public static getInstance(ALL_LOCALES) {

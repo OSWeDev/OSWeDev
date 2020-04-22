@@ -1,4 +1,4 @@
-import { debounce } from 'lodash';
+import debounce = require('lodash/debounce');
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import ObjectHandler from '../../tools/ObjectHandler';
 import RangeHandler from '../../tools/RangeHandler';

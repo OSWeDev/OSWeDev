@@ -1,14 +1,13 @@
-import { debounce } from 'lodash';
+import debounce = require('lodash/debounce');
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModuleVocus from '../../../../shared/modules/Vocus/ModuleVocus';
+import VocusInfoVO from '../../../../shared/modules/Vocus/vos/VocusInfoVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../VueComponentBase';
-import VocusAdminVueModule from './VocusAdminVueModule';
 import './VocusComponent.scss';
-import VocusInfoVO from '../../../../shared/modules/Vocus/vos/VocusInfoVO';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 
 @Component({
     template: require('./VocusComponent.pug'),

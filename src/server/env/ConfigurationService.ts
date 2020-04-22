@@ -1,4 +1,3 @@
-/* istanbul ignore next: no usefull tests to build */
 import EnvParam from './EnvParam';
 
 
@@ -6,6 +5,7 @@ import EnvParam from './EnvParam';
 //  a besoin de ces fichiers en JS également pour la conf de webpack, donc il faut
 //  recopier le JS à chaque compilation d'une nouvelle version de ces 2 fichiers.
 
+/* istanbul ignore next: no usefull tests to build */
 export default class ConfigurationService {
 
     public static getInstance(): ConfigurationService {

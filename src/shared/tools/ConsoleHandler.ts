@@ -1,6 +1,6 @@
-/* istanbul ignore next: not a usefull test to write */
 const moment = require('moment');
 
+/* istanbul ignore next: not a usefull test to write */
 export default class ConsoleHandler {
 
     public static SEPARATOR: string = ' - ';

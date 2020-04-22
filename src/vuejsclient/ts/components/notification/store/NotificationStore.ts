@@ -6,7 +6,7 @@ import { getStoreAccessors } from "vuex-typescript";
 import NotificationVO from '../../../../../shared/modules/PushData/vos/NotificationVO';
 import IStoreModule from '../../../store/IStoreModule';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
-import { debounce } from 'lodash';
+import debounce = require('lodash/debounce');
 
 export type NotificationContext = ActionContext<INotificationState, any>;
 

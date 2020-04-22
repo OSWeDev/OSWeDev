@@ -3,6 +3,7 @@ import ModulesManager from '../../shared/modules/ModulesManager';
 import IModuleBase from '../../shared/modules/IModuleBase';
 import Module from '../../shared/modules/Module';
 
+/* istanbul ignore next: nothing to test */
 export default abstract class ModuleServerBase implements IModuleBase {
 
     public static SERVER_MODULE_ROLE_NAME: string = "SERVER_MODULE_ROLE_NAME";
@@ -11,7 +12,6 @@ export default abstract class ModuleServerBase implements IModuleBase {
         ModulesManager.getInstance().registerModule(ModuleServerBase.SERVER_MODULE_ROLE_NAME, this);
     }
 
-    /* istanbul ignore next: difficult and unusefull */
     get actif(): boolean {
         return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) ? ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName).actif : false;
     }

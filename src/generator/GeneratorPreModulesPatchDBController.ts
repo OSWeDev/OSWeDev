@@ -1,6 +1,6 @@
-/* istanbul ignore next: not a usefull test to write */
 import { IDatabase } from 'pg-promise';
 
+/* istanbul ignore next: not a usefull test to write */
 export default class GeneratorPreModulesPatchDBController {
 
     public static getInstance(): GeneratorPreModulesPatchDBController {
