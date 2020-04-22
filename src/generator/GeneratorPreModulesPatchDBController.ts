@@ -1,4 +1,5 @@
 /* istanbul ignore file: not a usefull test to write */
+
 import { IDatabase } from 'pg-promise';
 
 export default class GeneratorPreModulesPatchDBController {

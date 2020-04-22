@@ -1,4 +1,5 @@
 /* istanbul ignore file: not a usefull test to write */
+
 export default class EnvHandler {
 
     public static getInstance(): EnvHandler {

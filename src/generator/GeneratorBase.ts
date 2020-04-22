@@ -1,4 +1,5 @@
 /* istanbul ignore file: really difficult tests : not willing to test this part. Maybe divide this in smaller chunks, but I don't see any usefull test */
+
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../server/env/ConfigurationService';

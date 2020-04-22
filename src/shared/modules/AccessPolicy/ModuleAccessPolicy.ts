@@ -1,4 +1,5 @@
 /* istanbul ignore file: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
+
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
 import BooleanParamVO from '../API/vos/apis/BooleanParamVO';

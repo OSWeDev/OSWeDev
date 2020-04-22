@@ -1,4 +1,5 @@
 /* istanbul ignore file: no unit tests on patchs */
+
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';

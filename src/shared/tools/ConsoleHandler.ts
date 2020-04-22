@@ -1,4 +1,5 @@
 /* istanbul ignore file: not a usefull test to write */
+
 const moment = require('moment');
 
 export default class ConsoleHandler {

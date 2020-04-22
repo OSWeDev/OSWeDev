@@ -1,4 +1,5 @@
 /* istanbul ignore file: nothing to test */
+
 import { Express } from 'express';
 import ModulesManager from '../../shared/modules/ModulesManager';
 import IModuleBase from '../../shared/modules/IModuleBase';

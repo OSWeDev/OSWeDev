@@ -1,4 +1,5 @@
 /* istanbul ignore file: no unit tests on patchs */
+
 import { IDatabase } from 'pg-promise';
 import UserLogVO from '../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';

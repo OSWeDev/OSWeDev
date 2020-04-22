@@ -1,4 +1,5 @@
 /* istanbul ignore file: no unit tests on patchs */
+
 import { IDatabase } from 'pg-promise';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
 import ModulesManagerServer from '../../../server/modules/ModulesManagerServer';
