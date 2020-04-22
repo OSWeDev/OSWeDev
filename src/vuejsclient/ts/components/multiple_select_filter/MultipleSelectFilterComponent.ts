@@ -9,6 +9,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './MultipleSelectFilterComponent.scss';
+import { isEqual } from 'lodash';
 
 @Component({
     template: require('./MultipleSelectFilterComponent.pug'),
