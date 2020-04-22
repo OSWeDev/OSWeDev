@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import AccessPolicyController from '../../../shared/modules/AccessPolicy/AccessPolicyController';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -15,6 +16,7 @@ import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import BooleanParamVO from '../../../shared/modules/API/vos/apis/BooleanParamVO';
+import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import IUserData from '../../../shared/modules/DAO/interface/IUserData';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -23,9 +25,11 @@ import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import IServerUserSession from '../../IServerUserSession';
 import ServerBase from '../../ServerBase';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
@@ -36,9 +40,6 @@ import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
-import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
-import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import IServerUserSession from '../../IServerUserSession';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -932,7 +933,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
+        AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
 
         return true;
     }
@@ -948,7 +949,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             this.sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
             return false;
         }
-        ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
+        AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
 
         return true;
     }

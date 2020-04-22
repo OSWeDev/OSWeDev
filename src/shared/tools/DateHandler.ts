@@ -39,6 +39,7 @@ export default class DateHandler {
         return date.format(DateHandler.DateTime_FOR_BDD_FORMAT);
     }
 
+    /* istanbul ignore next: quite difficult test : depends on the local and the moment... might want to write one anyway sometime but doesn't seem very important */
     public humanizeDurationTo(date: Moment): string {
         if (!date) {
             return "";
@@ -61,6 +62,9 @@ export default class DateHandler {
     }
 
     public formatMonthFromVO(date: Moment): string {
+        if ((date == null) || (typeof date == 'undefined')) {
+            return null;
+        }
         return date.format('YYYY-MM');
     }
 

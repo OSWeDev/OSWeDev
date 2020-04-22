@@ -1,3 +1,4 @@
+/* istanbul ignore next: no usefull tests to build */
 import EnvParam from './EnvParam';
 
 

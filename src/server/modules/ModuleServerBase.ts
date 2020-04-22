@@ -11,6 +11,7 @@ export default abstract class ModuleServerBase implements IModuleBase {
         ModulesManager.getInstance().registerModule(ModuleServerBase.SERVER_MODULE_ROLE_NAME, this);
     }
 
+    /* istanbul ignore next: difficult and unusefull */
     get actif(): boolean {
         return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) ? ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName).actif : false;
     }

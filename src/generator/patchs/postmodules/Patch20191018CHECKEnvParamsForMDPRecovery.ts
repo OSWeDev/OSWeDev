@@ -1,3 +1,4 @@
+/* istanbul ignore next: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../../../server/env/ConfigurationService';
 import EnvParam from '../../../server/env/EnvParam';

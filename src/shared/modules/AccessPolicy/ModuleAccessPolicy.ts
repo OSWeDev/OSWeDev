@@ -1,14 +1,17 @@
-import * as moment from 'moment';
+/* istanbul ignore next: WARNING No test on module main file, causes trouble, but NEEDs to externalize any function that can profite a test */
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import DateHandler from '../../tools/DateHandler';
 import ModuleAPI from '../API/ModuleAPI';
 import BooleanParamVO from '../API/vos/apis/BooleanParamVO';
+import NumberParamVO from '../API/vos/apis/NumberParamVO';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import NumSegment from '../DataRender/vos/NumSegment';
+import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import ModuleVO from '../ModuleVO';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import LangVO from '../Translation/vos/LangVO';
 import VOsTypesManager from '../VOsTypesManager';
@@ -17,18 +20,14 @@ import AccessPolicyVO from './vos/AccessPolicyVO';
 import AddRoleToUserParamVO from './vos/apis/AddRoleToUserParamVO';
 import LoginParamVO from './vos/apis/LoginParamVO';
 import ResetPwdParamVO from './vos/apis/ResetPwdParamVO';
+import ResetPwdUIDParamVO from './vos/apis/ResetPwdUIDParamVO';
 import ToggleAccessParamVO from './vos/apis/ToggleAccessParamVO';
 import PolicyDependencyVO from './vos/PolicyDependencyVO';
 import RolePolicyVO from './vos/RolePolicyVO';
 import RoleVO from './vos/RoleVO';
+import UserLogVO from './vos/UserLogVO';
 import UserRoleVO from './vos/UserRoleVO';
 import UserVO from './vos/UserVO';
-import UserLogVO from './vos/UserLogVO';
-import TimeSegment from '../DataRender/vos/TimeSegment';
-import NumSegment from '../DataRender/vos/NumSegment';
-import ModuleVO from '../ModuleVO';
-import ResetPwdUIDParamVO from './vos/apis/ResetPwdUIDParamVO';
-import NumberParamVO from '../API/vos/apis/NumberParamVO';
 
 export default class ModuleAccessPolicy extends Module {
 
@@ -248,17 +247,6 @@ export default class ModuleAccessPolicy extends Module {
 
     public async getMyRoles(): Promise<RoleVO[]> {
         return await ModuleAPI.getInstance().handleAPI<void, RoleVO[]>(ModuleAccessPolicy.APINAME_GET_MY_ROLES);
-    }
-
-    public prepareForInsertOrUpdateAfterPwdChange(user: UserVO, new_pwd1: string): void {
-
-        user.password = new_pwd1;
-        user.password_change_date = DateHandler.getInstance().formatDayForIndex(moment().utc(true));
-        user.invalidated = false;
-        user.recovery_expiration = null;
-        user.recovery_challenge = null;
-        user.reminded_pwd_1 = false;
-        user.reminded_pwd_2 = false;
     }
 
     public initialize() {

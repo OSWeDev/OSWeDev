@@ -1,16 +1,14 @@
+/* istanbul ignore next: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
-import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import LangVO from '../../../shared/modules/Translation/vos/LangVO';
-import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
-import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import IGeneratorWorker from '../../IGeneratorWorker';
-import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
-import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import ModuleTranslationServer from '../../../server/modules/Translation/ModuleTranslationServer';
 import ModuleAccessPolicyServer from '../../../server/modules/AccessPolicy/ModuleAccessPolicyServer';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModulesManagerServer from '../../../server/modules/ModulesManagerServer';
+import ModuleTranslationServer from '../../../server/modules/Translation/ModuleTranslationServer';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import LangVO from '../../../shared/modules/Translation/vos/LangVO';
+import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20200325PresetExistingLangsChangeRights implements IGeneratorWorker {
 

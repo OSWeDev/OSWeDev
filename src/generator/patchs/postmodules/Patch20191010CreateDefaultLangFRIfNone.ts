@@ -1,3 +1,4 @@
+/* istanbul ignore next: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import ModuleDAOServer from '../../../server/modules/DAO/ModuleDAOServer';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';

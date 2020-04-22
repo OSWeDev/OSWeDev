@@ -1,3 +1,4 @@
+/* istanbul ignore next: no usefull tests to build */
 
 export default class EnvParam {
     public CONNECTION_STRING: string;

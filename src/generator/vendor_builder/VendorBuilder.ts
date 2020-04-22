@@ -1,5 +1,4 @@
 import ModuleFileServer from '../../server/modules/File/ModuleFileServer';
-import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import IVendorGeneratorOptions from './IVendorGeneratorOptions';
 
 export default class VendorBuilder {
@@ -15,6 +14,7 @@ export default class VendorBuilder {
 
     private constructor() { }
 
+    /* istanbul ignore next: really difficult test depending on files */
     public async generate_vendor() {
 
         if (process.env.IGNORE_VENDOR_COMPILATION == 'true') {
@@ -24,9 +24,20 @@ export default class VendorBuilder {
         let vendor_path = './vendor/vendor.js';
         let vendor_generator_options: IVendorGeneratorOptions = require(process.cwd() + '/vendor/vendor_generator_options.json');
 
+        let vendor_content = this.get_vendor_file_content(vendor_generator_options);
+
+        await ModuleFileServer.getInstance().writeFile(vendor_path, vendor_content);
+    }
+
+    public get_vendor_file_content(vendor_generator_options: IVendorGeneratorOptions): string {
+
+        if (!vendor_generator_options) {
+            return '';
+        }
+
         let vendor_content = '';
 
-        let vendor_deps: any = vendor_generator_options.addins;
+        let vendor_deps: string[] = vendor_generator_options.addins;
 
         for (let i in vendor_deps) {
 
@@ -39,6 +50,6 @@ export default class VendorBuilder {
             vendor_content += "require('" + dep_name + "');\n";
         }
 
-        await ModuleFileServer.getInstance().writeFile(vendor_path, vendor_content);
+        return vendor_content;
     }
 }

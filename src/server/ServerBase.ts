@@ -22,6 +22,7 @@ import ModuleAccessPolicy from '../shared/modules/AccessPolicy/ModuleAccessPolic
 import UserLogVO from '../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
+import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
@@ -34,6 +35,7 @@ import EnvParam from './env/EnvParam';
 import I18nextInit from './I18nextInit';
 import IServerUserSession from './IServerUserSession';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
+import ServerAPIController from './modules/API/ServerAPIController';
 import ModuleCronServer from './modules/Cron/ModuleCronServer';
 import ModuleFileServer from './modules/File/ModuleFileServer';
 import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServer';
@@ -41,17 +43,17 @@ import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 import VarsdatasComputerBGThread from './modules/Var/bgthreads/VarsdatasComputerBGThread';
-import ModuleAPI from '../shared/modules/API/ModuleAPI';
-import ServerAPIController from './modules/API/ServerAPIController';
+import * as moment from 'moment';
 require('moment-json-parser').overrideDefault();
-const moment = require('moment');
 
 export default abstract class ServerBase {
 
+    /* istanbul ignore next: nothing to test here */
     public static getInstance(): ServerBase {
         return ServerBase.instance;
     }
 
+    /* istanbul ignore next: nothing to test here */
     protected static instance: ServerBase = null;
 
     public csrfProtection;
@@ -71,6 +73,7 @@ export default abstract class ServerBase {
     private session;
     // private subscription;
 
+    /* istanbul ignore next: nothing to test here */
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
         ServerBase.instance = this;
         this.modulesService = modulesService;
@@ -86,10 +89,12 @@ export default abstract class ServerBase {
 
     public abstract getHttpContext();
 
+    /* istanbul ignore next: nothing to test here */
     public async getUserData(uid: number) {
         return null;
     }
 
+    /* istanbul ignore next: FIXME Don't want to test this file, but there are many things that should be externalized in smaller files and tested */
     public async initializeNodeServer() {
 
         await this.createMandatoryFolders();
@@ -720,8 +725,10 @@ export default abstract class ServerBase {
         // pgp.end();
     }
 
+    /* istanbul ignore next: nothing to test here */
     protected async hook_on_ready() { }
 
+    /* istanbul ignore next: hardly testable */
     protected handleError(promise, res) {
         promise.catch((err) => {
             ConsoleHandler.getInstance().error("error: " + (err.message || err));
@@ -729,23 +736,29 @@ export default abstract class ServerBase {
         });
     }
 
+    /* istanbul ignore next: hardly testable */
     protected sendError(res, errormessage) {
         ConsoleHandler.getInstance().error("error: " + errormessage);
         return res.status(500).send(errormessage);
     }
 
+    /* istanbul ignore next: nothing to test here */
     protected abstract initializeDataImports();
+    /* istanbul ignore next: nothing to test here */
     protected abstract hook_configure_express();
+    /* istanbul ignore next: nothing to test here */
     protected getVersion() {
         return require('../../package.json').version;
     }
 
+    /* istanbul ignore next: nothing to test here */
     protected registerApis(app) {
     }
 
     /**
      * On s'assure de la création des dossiers nécessaires au bon fonctionnement de l'application
      */
+    /* istanbul ignore next: hardly testable */
     protected async createMandatoryFolders() {
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./temp');
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./files');

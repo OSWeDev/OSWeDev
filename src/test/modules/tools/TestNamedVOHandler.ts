@@ -4,7 +4,7 @@ import NamedVOHandler from '../../../shared/tools/NamedVOHandler';
 import INamedVO from '../../../shared/interfaces/INamedVO';
 
 
-describe('TestNamedVOHandler', () => {
+describe('NamedVOHandler', () => {
 
     it('test getByName', () => {
 

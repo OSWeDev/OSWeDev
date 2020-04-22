@@ -6,6 +6,7 @@ import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ServerBase from '../../../ServerBase';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
+import AccessPolicyController from '../../../../shared/modules/AccessPolicy/AccessPolicyController';
 
 export default class PasswordReset {
 
@@ -73,7 +74,7 @@ export default class PasswordReset {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         httpContext.set('IS_CLIENT', false);
 
-        ModuleAccessPolicy.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
+        AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
         await ModuleDAO.getInstance().insertOrUpdateVO(user);
         return true;
     }

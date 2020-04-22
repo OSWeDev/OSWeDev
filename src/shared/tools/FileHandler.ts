@@ -1,3 +1,4 @@
+/* istanbul ignore next: only one method, and not willing to test it right now */
 import ThreadHandler from './ThreadHandler';
 import { statSync, Stats } from 'fs';
 
@@ -20,6 +21,7 @@ export default class FileHandler {
      *  Pour se faire on utilise la taille et la date de modification, en se disant que si on garde les 2 infos fixent pendant plus de x
      *  millisecondes, on doit pouvoir considérer que le transfert est terminé
      */
+    /* istanbul ignore next: really difficult test : depends on files and timeouts, would need to divide the function and test separate things */
     public async wait_for_file_end_creation(filename: string, timeout_ms: number) {
 
         let has_changes: boolean = true;

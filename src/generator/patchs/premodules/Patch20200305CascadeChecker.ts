@@ -1,3 +1,4 @@
+/* istanbul ignore next: no unit tests on patchs */
 import { IDatabase } from 'pg-promise';
 import IGeneratorWorker from '../../IGeneratorWorker';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
