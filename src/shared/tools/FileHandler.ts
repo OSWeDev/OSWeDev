@@ -1,7 +1,7 @@
+/* istanbul ignore file: only one method, and not willing to test it right now*/
 import ThreadHandler from './ThreadHandler';
 import { statSync, Stats } from 'fs';
 
-/* istanbul ignore next: only one method, and not willing to test it right now */
 export default class FileHandler {
 
     public static getInstance(): FileHandler {
