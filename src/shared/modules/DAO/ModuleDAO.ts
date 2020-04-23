@@ -123,22 +123,16 @@ export default class ModuleDAO extends Module {
         ));
 
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOParamsVO, IDistantVOBase[]>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamsVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_GET_VOS_BY_IDS,
             (param: APIDAOParamsVO) => [param.API_TYPE_ID],
-            APIDAOParamsVO.translateCheckAccessParams,
-            APIDAOParamsVO.URL,
-            APIDAOParamsVO.translateToURL,
-            APIDAOParamsVO.translateFromREQ
+            APIDAOParamsVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAOIdsRangesParamsVO, IDistantVOBase[]>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOIdsRangesParamsVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
             (param: APIDAOIdsRangesParamsVO) => [param.API_TYPE_ID],
-            APIDAOIdsRangesParamsVO.translateCheckAccessParams,
-            APIDAOIdsRangesParamsVO.URL,
-            APIDAOIdsRangesParamsVO.translateToURL,
-            APIDAOIdsRangesParamsVO.translateFromREQ
+            APIDAOIdsRangesParamsVO.translateCheckAccessParams
         ));
 
         // ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndFieldRangesParamsVO, IDistantVOBase[]>(
@@ -184,40 +178,28 @@ export default class ModuleDAO extends Module {
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAORefFieldParamsVO, IDistantVOBase[]>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAORefFieldParamsVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS,
             (param: APIDAORefFieldParamsVO) => [param.API_TYPE_ID],
-            APIDAORefFieldParamsVO.translateCheckAccessParams,
-            APIDAORefFieldParamsVO.URL,
-            APIDAORefFieldParamsVO.translateToURL,
-            APIDAORefFieldParamsVO.translateFromREQ
+            APIDAORefFieldParamsVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAORefFieldsParamsVO, IDistantVOBase[]>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAORefFieldsParamsVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS,
             (param: APIDAORefFieldsParamsVO) => [param.API_TYPE_ID],
-            APIDAORefFieldsParamsVO.translateCheckAccessParams,
-            APIDAORefFieldsParamsVO.URL,
-            APIDAORefFieldsParamsVO.translateToURL,
-            APIDAORefFieldsParamsVO.translateFromREQ
+            APIDAORefFieldsParamsVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAORefFieldsAndFieldsStringParamsVO, IDistantVOBase[]>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAORefFieldsAndFieldsStringParamsVO, IDistantVOBase[]>(
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING,
             (param: APIDAORefFieldsAndFieldsStringParamsVO) => [param.API_TYPE_ID],
-            APIDAORefFieldsAndFieldsStringParamsVO.translateCheckAccessParams,
-            APIDAORefFieldsAndFieldsStringParamsVO.URL,
-            APIDAORefFieldsAndFieldsStringParamsVO.translateToURL,
-            APIDAORefFieldsAndFieldsStringParamsVO.translateFromREQ
+            APIDAORefFieldsAndFieldsStringParamsVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
             ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME,
             (param: APIDAONamedParamVO) => [param.API_TYPE_ID],
-            APIDAONamedParamVO.translateCheckAccessParams,
-            APIDAONamedParamVO.URL,
-            APIDAONamedParamVO.translateToURL,
-            APIDAONamedParamVO.translateFromREQ
+            APIDAONamedParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
