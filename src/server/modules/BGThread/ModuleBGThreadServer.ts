@@ -10,6 +10,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import IBGThread from './interfaces/IBGThread';
+import BGThreadServerController from './BGThreadServerController';
 
 export default class ModuleBGThreadServer extends ModuleServerBase {
 
@@ -34,8 +35,6 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     }
 
     private static instance: ModuleBGThreadServer = null;
-
-    public registered_BGThreads: { [name: string]: IBGThread } = {};
 
     private constructor() {
         super(ModuleBGThread.getInstance().name);
@@ -66,7 +65,23 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     }
 
     public registerBGThread(bgthread: IBGThread) {
-        this.registered_BGThreads[bgthread.name] = bgthread;
+
+        // On vérifie qu'on peut register les bgthreads
+        if (!BGThreadServerController.getInstance().register_bgthreads) {
+            return;
+        }
+
+        BGThreadServerController.getInstance().registered_BGThreads[bgthread.name] = bgthread;
+
+        // On vérifie qu'on peut lancer des bgthreads
+        if (!BGThreadServerController.getInstance().run_bgthreads) {
+            return;
+        }
+
+        // On vérifie qu'on peut lancer ce bgthread
+        if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread.name]) {
+            return;
+        }
 
         let self = this;
         setTimeout(function () {
@@ -75,10 +90,19 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
     }
 
     private async execute_bgthread(bgthread: IBGThread) {
+
+        let self = this;
+
         try {
 
             if (!bgthread) {
                 return;
+            }
+
+            if (!BGThreadServerController.getInstance().server_ready) {
+                setTimeout(function () {
+                    self.execute_bgthread(bgthread);
+                }, bgthread.current_timeout);
             }
 
             let timeout_coef: number = 1;
@@ -101,7 +125,6 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
             ConsoleHandler.getInstance().error(error);
         }
 
-        let self = this;
         setTimeout(function () {
             self.execute_bgthread(bgthread);
         }, bgthread.current_timeout);

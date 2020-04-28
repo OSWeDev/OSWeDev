@@ -75,6 +75,8 @@ import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleDocument from '../../shared/modules/Document/ModuleDocument';
 import ModuleDocumentServer from './Document/ModuleDocumentServer';
 import ModuleTableDBService from './ModuleTableDBService';
+import ModuleFork from '../../shared/modules/Fork/ModuleFork';
+import ModuleForkServer from './Fork/ModuleForkServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -381,6 +383,7 @@ export default abstract class ModuleServiceBase {
             ModuleFeedback.getInstance(),
             ModuleRequest.getInstance(),
             ModuleDocument.getInstance(),
+            ModuleFork.getInstance()
         ];
     }
 
@@ -418,7 +421,8 @@ export default abstract class ModuleServiceBase {
             ModuleVocusServer.getInstance(),
             ModuleFeedbackServer.getInstance(),
             ModuleRequestServer.getInstance(),
-            ModuleDocumentServer.getInstance()
+            ModuleDocumentServer.getInstance(),
+            ModuleForkServer.getInstance()
         ];
     }
 }

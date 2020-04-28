@@ -9,6 +9,7 @@ import * as createLocaleMiddleware from 'express-locale';
 import * as expressSession from 'express-session';
 import * as sharedsession from 'express-socket.io-session';
 import * as fs from 'fs';
+import * as moment from 'moment';
 import * as msgpackResponse from 'msgpack-response';
 import * as path from 'path';
 import * as pg from 'pg';
@@ -36,14 +37,14 @@ import I18nextInit from './I18nextInit';
 import IServerUserSession from './IServerUserSession';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import ServerAPIController from './modules/API/ServerAPIController';
-import ModuleCronServer from './modules/Cron/ModuleCronServer';
+import BGThreadServerController from './modules/BGThread/BGThreadServerController';
+import CronServerController from './modules/Cron/CronServerController';
 import ModuleFileServer from './modules/File/ModuleFileServer';
+import ForkServerController from './modules/Fork/ForkServerController';
 import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServer';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import VarsdatasComputerBGThread from './modules/Var/bgthreads/VarsdatasComputerBGThread';
-import * as moment from 'moment';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -79,6 +80,10 @@ export default abstract class ServerBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+
+        // Les bgthreads peuvent être register mais pas run dans le process server principal. On le dédie à Express et aux APIs
+        BGThreadServerController.getInstance().register_bgthreads = true;
+        CronServerController.getInstance().register_crons = true;
 
         // On initialise le Controller pour les APIs
         ModuleAPI.getInstance().setAPIController(ServerAPIController.getInstance());
@@ -649,7 +654,7 @@ export default abstract class ServerBase {
             // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
             httpContext.set('IS_CLIENT', false);
 
-            return ServerBase.getInstance().handleError(ModuleCronServer.getInstance().executeWorkers().then(() => {
+            return ServerBase.getInstance().handleError(CronServerController.getInstance().executeWorkers().then(() => {
                 res.json();
             }), res);
         });
@@ -715,7 +720,9 @@ export default abstract class ServerBase {
 
                 await ServerBase.getInstance().hook_on_ready();
 
-                VarsdatasComputerBGThread.getInstance().server_ready = true;
+                ForkServerController.getInstance().fork_threads();
+                BGThreadServerController.getInstance().server_ready = true;
+
                 ConsoleHandler.getInstance().log('Server ready to go !');
             })
             .catch((err) => {

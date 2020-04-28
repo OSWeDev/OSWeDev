@@ -28,6 +28,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import VarServerController from './VarServerController';
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -43,6 +44,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleVar.getInstance().name);
+        VarServerController.getInstance();
     }
 
     public async configure() {
@@ -314,8 +316,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 }
             }
 
-            // Si on a un vardata mais pas de value_ts, 
-            //  On stocke l'info pour le batch BG de recompilation qu'on veut renvoyer le res de ces vars datas à l'utilisateur et /ou aux 
+            // Si on a un vardata mais pas de value_ts,
+            //  On stocke l'info pour le batch BG de recompilation qu'on veut renvoyer le res de ces vars datas à l'utilisateur et /ou aux
             //  utilisateurs qui sont à l'origine de la demande. Et c'est le bgthread qui gère de notifier du coup
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
             if (!!httpContext) {
@@ -323,10 +325,10 @@ export default class ModuleVarServer extends ModuleServerBase {
                 let uid: number = httpContext ? httpContext.get('UID') : null;
                 if (!!uid) {
                     let var_index: string = VarsController.getInstance().getIndex(vardata);
-                    if (!VarsdatasComputerBGThread.getInstance().uid_waiting_for_indexes[var_index]) {
-                        VarsdatasComputerBGThread.getInstance().uid_waiting_for_indexes[var_index] = {};
+                    if (!VarServerController.getInstance().uid_waiting_for_indexes[var_index]) {
+                        VarServerController.getInstance().uid_waiting_for_indexes[var_index] = {};
                     }
-                    VarsdatasComputerBGThread.getInstance().uid_waiting_for_indexes[var_index][uid] = true;
+                    VarServerController.getInstance().uid_waiting_for_indexes[var_index][uid] = true;
                 }
             }
 

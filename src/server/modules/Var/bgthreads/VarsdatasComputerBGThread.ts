@@ -11,6 +11,7 @@ import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModulePushDataServer from '../../PushData/ModulePushDataServer';
 import { Moment } from 'moment';
+import VarServerController from '../VarServerController';
 const moment = require('moment');
 
 export default class VarsdatasComputerBGThread implements IBGThread {
@@ -23,10 +24,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     }
 
     private static instance: VarsdatasComputerBGThread = null;
-
-    public server_ready: boolean = false;
-
-    public uid_waiting_for_indexes: { [index: string]: { [uid: number]: boolean } } = {};
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
@@ -60,10 +57,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public async work(): Promise<number> {
 
         try {
-
-            if (!this.server_ready) {
-                return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
-            }
 
             // On se donne timeout ms pour calculer des vars, après on arrête et on rend la main.
             //  On indique le nombre de var qu'on a pu calculer en info, et si on a timeout et pas fini, on retourne true pour continuer rapidement
@@ -105,6 +98,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 // On tente de supprimer les vars dont la value est 0 après calcul. ATTENTION aux effets de bord potentiels ...
                 let computed_datas_to_delete: ISimpleNumberVarData[] = [];
                 let computed_datas_to_update: ISimpleNumberVarData[] = [];
+                let datas_notif: ISimpleNumberVarData[] = [];
 
                 for (let i in computed_datas) {
                     let computed_data = computed_datas[i];
@@ -126,15 +120,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     var_data.value_ts = moment().utc(true);
                     var_data.value_type = VarsController.VALUE_TYPE_COMPUTED;
 
-                    if (this.uid_waiting_for_indexes[var_index]) {
-                        for (let uid in this.uid_waiting_for_indexes[var_index]) {
-
-                            ModulePushDataServer.getInstance().notifyVarData(parseInt(uid.toString()), var_data);
-                        }
-                        delete this.uid_waiting_for_indexes[var_index];
-                    }
+                    datas_notif.push(var_data);
                 }
 
+                VarServerController.getInstance().notify_computedvardatas(datas_notif);
                 await ModuleDAO.getInstance().insertOrUpdateVOs(computed_datas_to_update);
                 await ModuleDAO.getInstance().deleteVOs(computed_datas_to_delete);
 

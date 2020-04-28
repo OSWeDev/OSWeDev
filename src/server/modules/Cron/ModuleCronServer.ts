@@ -1,4 +1,3 @@
-import * as moment from 'moment';
 import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
@@ -10,8 +9,6 @@ import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorker
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import DateHandler from '../../../shared/tools/DateHandler';
 import ServerBase from '../../ServerBase';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -19,6 +16,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModulePushDataServer from '../PushData/ModulePushDataServer';
+import CronServerController from './CronServerController';
 import ICronWorker from './interfaces/ICronWorker';
 
 export default class ModuleCronServer extends ModuleServerBase {
@@ -32,13 +30,9 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     private static instance: ModuleCronServer = null;
 
-    public registered_cronWorkers: { [worker_uid: string]: ICronWorker } = {};
-    public cronWorkers_semaphores: { [worker_uid: string]: boolean } = {};
-
-    private semaphore: boolean = false;
-
     private constructor() {
         super(ModuleCron.getInstance().name);
+        CronServerController.getInstance();
     }
 
     public async configure() {
@@ -77,11 +71,25 @@ export default class ModuleCronServer extends ModuleServerBase {
     }
 
     public registerCronWorker(cronWorker: ICronWorker) {
-        this.registered_cronWorkers[cronWorker.worker_uid] = cronWorker;
-        this.cronWorkers_semaphores[cronWorker.worker_uid] = true;
+
+        if (!CronServerController.getInstance().register_crons) {
+            return;
+        }
+
+        CronServerController.getInstance().registered_cronWorkers[cronWorker.worker_uid] = cronWorker;
+        CronServerController.getInstance().cronWorkers_semaphores[cronWorker.worker_uid] = true;
     }
 
     public async planCronWorker(cronWorkerPlan: CronWorkerPlanification) {
+
+        if (!CronServerController.getInstance().register_crons) {
+            return;
+        }
+
+        if (!CronServerController.getInstance().valid_crons_names[cronWorkerPlan.worker_uid]) {
+            return;
+        }
+
         let vo: CronWorkerPlanification = await ModuleDAOServer.getInstance().selectOne<CronWorkerPlanification>(CronWorkerPlanification.API_TYPE_ID, "where t.planification_uid = $1", [cronWorkerPlan.planification_uid]);
 
         if (!vo) {
@@ -92,12 +100,18 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async executeWorkersManually() {
 
+        if (!CronServerController.getInstance().run_crons) {
+
+            // Si on arrive ici sans avoir le droit
+            return;
+        }
+
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let uid: number = httpContext ? httpContext.get('UID') : null;
         ModulePushDataServer.getInstance().notifySimpleINFO(uid, 'cron.execute_manually.start');
         try {
 
-            await this.executeWorkers();
+            CronServerController.getInstance().executeWorkers();
             ModulePushDataServer.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually.success');
         } catch (error) {
             ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'cron.execute_manually.failed');
@@ -118,89 +132,10 @@ export default class ModuleCronServer extends ModuleServerBase {
         ModulePushDataServer.getInstance().notifySimpleINFO(uid, 'cron.execute_manually_indiv.start');
         try {
 
-            await this.executeWorker(worker_uid);
+            CronServerController.getInstance().executeWorker(worker_uid);
             ModulePushDataServer.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually_indiv.success');
         } catch (error) {
             ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'cron.execute_manually_indiv.failed');
         }
-    }
-
-    public async executeWorkers() {
-
-        if (this.semaphore) {
-            return false;
-        }
-        this.semaphore = true;
-
-        try {
-
-            let plannedWorkers: CronWorkerPlanification[] = await ModuleDAO.getInstance().getVos<CronWorkerPlanification>(CronWorkerPlanification.API_TYPE_ID);
-
-            for (let i in plannedWorkers) {
-                let plannedWorker: CronWorkerPlanification = plannedWorkers[i];
-
-                if (plannedWorker.date_heure_planifiee && moment(plannedWorker.date_heure_planifiee).utc(true).isBefore(moment().utc(true))) {
-                    await this.executeWorker(plannedWorker.worker_uid);
-                    await this.nextRecurrence(plannedWorker);
-                }
-            }
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-        }
-        this.semaphore = false;
-    }
-
-    protected async nextRecurrence(plannedWorker: CronWorkerPlanification) {
-        if ((!plannedWorker) || (plannedWorker.type_recurrence == CronWorkerPlanification.TYPE_RECURRENCE_AUCUNE)) {
-            plannedWorker.date_heure_planifiee = null;
-            await ModuleDAO.getInstance().insertOrUpdateVO(plannedWorker);
-
-            return;
-        }
-
-        let date_heure_planifiee: moment.Moment = moment(plannedWorker.date_heure_planifiee).utc(true);
-
-        switch (plannedWorker.type_recurrence) {
-            case CronWorkerPlanification.TYPE_RECURRENCE_ANNEES:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'year');
-                break;
-            case CronWorkerPlanification.TYPE_RECURRENCE_HEURES:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'hour');
-                break;
-            case CronWorkerPlanification.TYPE_RECURRENCE_JOURS:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'day');
-                break;
-            case CronWorkerPlanification.TYPE_RECURRENCE_MINUTES:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'minute');
-                break;
-            case CronWorkerPlanification.TYPE_RECURRENCE_MOIS:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'month');
-                break;
-            case CronWorkerPlanification.TYPE_RECURRENCE_SEMAINES:
-                date_heure_planifiee.add(plannedWorker.intervale_recurrence, 'week');
-                break;
-            default:
-        }
-        plannedWorker.date_heure_planifiee = DateHandler.getInstance().formatDateTimeForBDD(date_heure_planifiee);
-
-        await ModuleDAO.getInstance().insertOrUpdateVO(plannedWorker);
-    }
-
-    private async executeWorker(worker_uid: string) {
-        if ((!worker_uid) || (!this.registered_cronWorkers[worker_uid]) || (!this.registered_cronWorkers[worker_uid].work)) {
-            return;
-        }
-
-        if (!this.cronWorkers_semaphores[worker_uid]) {
-            return;
-        }
-
-        this.cronWorkers_semaphores[worker_uid] = false;
-
-        ConsoleHandler.getInstance().log('CRON:LANCEMENT:' + worker_uid);
-        await this.registered_cronWorkers[worker_uid].work();
-        ConsoleHandler.getInstance().log('CRON:FIN:' + worker_uid);
-
-        this.cronWorkers_semaphores[worker_uid] = true;
     }
 }

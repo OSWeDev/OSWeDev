@@ -8,6 +8,7 @@ import LocaleManager from '../../../../shared/tools/LocaleManager';
 import VueAppBase from '../../../VueAppBase';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
+import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -81,13 +82,22 @@ export default class PushDataVueModule extends VueModuleBase {
 
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VARDATA], async function (notification: NotificationVO) {
-            if (VueAppBase.instance_ && LocaleManager.getInstance().i18n && notification.vo) {
+            if (VueAppBase.instance_ && LocaleManager.getInstance().i18n && notification.vos) {
 
-                let vo: IDistantVOBase = null;
-                if (!!notification.vo) {
-                    vo = VOsTypesManager.getInstance().moduleTables_by_voType[notification.vo._type].from_api_version(notification.vo);
-                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([vo._type]);
-                    VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarData', vo);
+                let vos: IDistantVOBase[] = null;
+                if (!!notification.vos) {
+                    vos = ModuleAPI.getInstance().try_translate_vos_from_api(notification.vos);
+
+                    let types: { [name: string]: boolean } = {};
+                    for (let i in vos) {
+                        let vo = vos[i];
+
+                        if (!types[vo._type]) {
+                            types[vo._type] = true;
+                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([vo._type]);
+                        }
+                    }
+                    VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
                 }
             }
         });

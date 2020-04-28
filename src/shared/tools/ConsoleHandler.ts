@@ -30,7 +30,7 @@ export default class ConsoleHandler {
     }
 
     private get_text_msg(error: string | Error): string {
-        return this.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? (error as Error).message || error : error);
+        return process.pid + ':' + this.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? (error as Error).message || error : error);
     }
 
     private get_timestamp(): string {

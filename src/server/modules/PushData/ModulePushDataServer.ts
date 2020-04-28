@@ -22,6 +22,7 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -167,18 +168,22 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     public async notifyVarData(user_id: number, vo: IVarDataVOBase) {
 
-        if ((!user_id) || (!vo)) {
+        let notification: NotificationVO = this.getVarDataNotif(user_id, vo ? [vo] : null);
+        if (!notification) {
             return;
         }
 
-        let notification: NotificationVO = new NotificationVO();
+        await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
+    }
 
-        notification.api_type_id = vo._type;
-        notification.notification_type = NotificationVO.TYPE_NOTIF_VARDATA;
-        notification.read = false;
-        notification.user_id = user_id;
-        notification.auto_read_if_connected = true;
-        notification.vo = vo;
+    public async notifyVarsDatas(user_id: number, vos: IVarDataVOBase[]) {
+
+        let notification: NotificationVO = this.getVarDataNotif(user_id, vos);
+        if (!notification) {
+            return;
+        }
+
         await this.notify(notification);
         await ThreadHandler.getInstance().sleep(ModulePushDataServer.NOTIF_INTERVAL_MS);
     }
@@ -369,8 +374,9 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
             if (socketWrappers && socketWrappers.length) {
 
-                if (!!notification.vo) {
-                    notification.vo = VOsTypesManager.getInstance().moduleTables_by_voType[notification.vo._type].get_api_version(notification.vo);
+                if (!!notification.vos) {
+
+                    notification.vos = ModuleAPI.getInstance().try_translate_vo_to_api(notification.vos);
                 }
 
                 for (let i in socketWrappers) {
@@ -382,5 +388,22 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
             ConsoleHandler.getInstance().error('notify:' + notification.user_id + ':' + error);
         }
+    }
+
+    private getVarDataNotif(user_id: number, vos: IVarDataVOBase[]): NotificationVO {
+
+        if ((!user_id) || (!vos) || (!vos.length)) {
+            return null;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.api_type_id = null;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_VARDATA;
+        notification.read = false;
+        notification.user_id = user_id;
+        notification.auto_read_if_connected = true;
+        notification.vos = vos;
+        return notification;
     }
 }

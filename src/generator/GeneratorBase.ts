@@ -4,10 +4,12 @@ import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../server/env/ConfigurationService';
 import EnvParam from '../server/env/EnvParam';
+import ServerAPIController from '../server/modules/API/ServerAPIController';
 import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
 import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
+import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import ModulesManager from '../shared/modules/ModulesManager';
 import IGeneratorWorker from './IGeneratorWorker';
 import Patch20191010CreateDefaultAdminAccountIfNone from './patchs/postmodules/Patch20191010CreateDefaultAdminAccountIfNone';
@@ -18,6 +20,7 @@ import Patch20191112AddPwdCryptTrigger from './patchs/postmodules/Patch20191112A
 import Patch20191126CreateDefaultRobotUserAccount from './patchs/postmodules/Patch20191126CreateDefaultRobotUserAccount';
 import Patch20200131InitUserLogPolicies from './patchs/postmodules/Patch20200131InitUserLogPolicies';
 import Patch20200312ChangeResetPWDMailContent from './patchs/postmodules/Patch20200312ChangeResetPWDMailContent';
+import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -30,11 +33,8 @@ import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112Check
 import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
-import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import VendorBuilder from './vendor_builder/VendorBuilder';
-import ModuleAPI from '../shared/modules/API/ModuleAPI';
-import ServerAPIController from '../server/modules/API/ServerAPIController';
 
 export default abstract class GeneratorBase {
 
