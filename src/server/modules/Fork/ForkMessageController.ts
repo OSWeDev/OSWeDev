@@ -58,9 +58,9 @@ export default class ForkMessageController {
         msg = ModuleAPI.getInstance().try_translate_vo_to_api(msg);
 
         if (!child_process) {
-            process.send(new BroadcastWrapperForkMessage(msg));
+            process.send(msg);
         } else {
-            child_process.send(new BroadcastWrapperForkMessage(msg));
+            child_process.send(msg);
         }
     }
 }
