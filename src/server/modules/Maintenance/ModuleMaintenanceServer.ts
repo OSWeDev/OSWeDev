@@ -1,3 +1,4 @@
+import { Moment } from 'moment';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
@@ -11,9 +12,8 @@ import ServerBase from '../../ServerBase';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
-import ModulePushDataServer from '../PushData/ModulePushDataServer';
+import PushDataServerController from '../PushData/PushDataServerController';
 import MaintenanceBGThread from './bgthreads/MaintenanceBGThread';
-import { Moment } from 'moment';
 const moment = require('moment');
 
 export default class ModuleMaintenanceServer extends ModuleServerBase {
@@ -129,9 +129,9 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         maintenance.maintenance_over = true;
 
-        await ModulePushDataServer.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
+        await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
-        await ModulePushDataServer.getInstance().notifyDAOGetVoById(session.uid, MaintenanceVO.API_TYPE_ID, maintenance.id);
+        await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, MaintenanceVO.API_TYPE_ID, maintenance.id);
     }
 
     public async inform_user_on_request(user_id: number): Promise<void> {
@@ -150,11 +150,11 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let timeout_minutes_msg3: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
 
         if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg3, 'minute').isSameOrBefore(moment().utc(true))) {
-            await ModulePushDataServer.getInstance().notifySimpleERROR(user_id, ModuleMaintenance.MSG3_code_text);
+            await PushDataServerController.getInstance().notifySimpleERROR(user_id, ModuleMaintenance.MSG3_code_text);
         } else if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg2, 'minute').isSameOrBefore(moment().utc(true))) {
-            await ModulePushDataServer.getInstance().notifySimpleWARN(user_id, ModuleMaintenance.MSG2_code_text);
+            await PushDataServerController.getInstance().notifySimpleWARN(user_id, ModuleMaintenance.MSG2_code_text);
         } else if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg1, 'minute').isSameOrBefore(moment().utc(true))) {
-            await ModulePushDataServer.getInstance().notifySimpleINFO(user_id, ModuleMaintenance.MSG1_code_text);
+            await PushDataServerController.getInstance().notifySimpleINFO(user_id, ModuleMaintenance.MSG1_code_text);
         }
 
         this.informed_users_tstzs[user_id] = moment().utc(true);

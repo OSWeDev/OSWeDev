@@ -29,6 +29,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarServerController from './VarServerController';
+import SimpleVarDataValueRes from '../../../shared/modules/Var/simple_vars/SimpleVarDataValueRes';
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -276,10 +277,10 @@ export default class ModuleVarServer extends ModuleServerBase {
     //     await ModuleDAO.getInstance().insertOrUpdateVO(empty_shell);
     // }
 
-    private async getSimpleVarDataCachedValueFromParam(param: APISimpleVOParamVO): Promise<number> {
+    private async getSimpleVarDataCachedValueFromParam(param: APISimpleVOParamVO): Promise<SimpleVarDataValueRes> {
 
         if ((!param) || (!param.vo)) {
-            return null;
+            return new SimpleVarDataValueRes();
         }
 
         VarsdatasComputerBGThread.getInstance().disable();
@@ -303,7 +304,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if ((!res) || (!res.id)) {
                     disabled = false;
                     VarsdatasComputerBGThread.getInstance().enable();
-                    return null;
+                    return new SimpleVarDataValueRes();
                 }
 
                 vardata.id = parseInt(res.id.toString());
@@ -312,7 +313,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if (!!vardata.value_ts) {
                     disabled = false;
                     VarsdatasComputerBGThread.getInstance().enable();
-                    return vardata.value;
+                    return new SimpleVarDataValueRes(true, vardata.value);
                 }
             }
 
@@ -367,7 +368,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         // ConsoleHandler.getInstance().warn('TIMEOUT on var data request:' + JSON.stringify(vo) + ':');
-        return null;
+        return new SimpleVarDataValueRes();
     }
 
     private async getSimpleVarDataValueSumFilterByMatroids<T extends ISimpleNumberVarData>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<number> {

@@ -35,7 +35,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import ModulePushDataServer from '../PushData/ModulePushDataServer';
+import PushDataServerController from '../PushData/PushDataServerController';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
@@ -1430,6 +1430,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let uid: number = httpContext ? httpContext.get('UID') : null;
 
-        ModulePushDataServer.getInstance().notifySimpleERROR(uid, msg_translatable_code);
+        PushDataServerController.getInstance().notifySimpleERROR(uid, msg_translatable_code);
     }
 }

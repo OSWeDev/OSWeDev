@@ -1,4 +1,5 @@
 import { Express, Request, Response } from 'express';
+import APIController from '../../../shared/modules/API/APIController';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -28,16 +29,16 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             switch (api.api_type) {
                 case APIDefinition.API_TYPE_GET:
-                    ConsoleHandler.getInstance().log("AJOUT API GET  :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
-                    app.get(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
+                    ConsoleHandler.getInstance().log("AJOUT API GET  :" + APIController.getInstance().getAPI_URL(api).toLowerCase());
+                    app.get(APIController.getInstance().getAPI_URL(api).toLowerCase(), this.createApiRequestHandler(api).bind(this));
                     break;
                 case APIDefinition.API_TYPE_POST:
-                    ConsoleHandler.getInstance().log("AJOUT API POST :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
-                    app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
+                    ConsoleHandler.getInstance().log("AJOUT API POST :" + APIController.getInstance().getAPI_URL(api).toLowerCase());
+                    app.post(APIController.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     break;
                 case APIDefinition.API_TYPE_POST_FOR_GET:
-                    ConsoleHandler.getInstance().log("AJOUT API POST FOR GET :" + ModuleAPI.getInstance().getAPI_URL(api).toLowerCase());
-                    app.post(ModuleAPI.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
+                    ConsoleHandler.getInstance().log("AJOUT API POST FOR GET :" + APIController.getInstance().getAPI_URL(api).toLowerCase());
+                    app.post(APIController.getInstance().getAPI_URL(api).toLowerCase(), ServerBase.getInstance().csrfProtection, this.createApiRequestHandler(api).bind(this));
                     break;
             }
         }
@@ -66,7 +67,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             } else {
                 if (((api.api_type == APIDefinition.API_TYPE_POST) && (req.body)) ||
                     ((api.api_type == APIDefinition.API_TYPE_POST_FOR_GET) && (req.body))) {
-                    param = ModuleAPI.getInstance().try_translate_vo_from_api(req.body) as T;
+                    param = APIController.getInstance().try_translate_vo_from_api(req.body) as T;
                 }
             }
 
@@ -94,7 +95,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
                         returnvalue = {} as any;
                     }
                 case APIDefinition.API_RETURN_TYPE_FILE:
-                    returnvalue = ModuleAPI.getInstance().try_translate_vo_to_api(returnvalue);
+                    returnvalue = APIController.getInstance().try_translate_vo_to_api(returnvalue);
                     res.json(returnvalue);
                     return;
 

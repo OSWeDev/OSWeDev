@@ -15,7 +15,7 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import ModulePushDataServer from '../PushData/ModulePushDataServer';
+import PushDataServerController from '../PushData/PushDataServerController';
 import CronServerController from './CronServerController';
 import ICronWorker from './interfaces/ICronWorker';
 
@@ -108,13 +108,13 @@ export default class ModuleCronServer extends ModuleServerBase {
 
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let uid: number = httpContext ? httpContext.get('UID') : null;
-        ModulePushDataServer.getInstance().notifySimpleINFO(uid, 'cron.execute_manually.start');
+        PushDataServerController.getInstance().notifySimpleINFO(uid, 'cron.execute_manually.start');
         try {
 
             CronServerController.getInstance().executeWorkers();
-            ModulePushDataServer.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually.success');
+            PushDataServerController.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually.success');
         } catch (error) {
-            ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'cron.execute_manually.failed');
+            PushDataServerController.getInstance().notifySimpleERROR(uid, 'cron.execute_manually.failed');
         }
     }
 
@@ -129,13 +129,13 @@ export default class ModuleCronServer extends ModuleServerBase {
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let uid: number = httpContext ? httpContext.get('UID') : null;
 
-        ModulePushDataServer.getInstance().notifySimpleINFO(uid, 'cron.execute_manually_indiv.start');
+        PushDataServerController.getInstance().notifySimpleINFO(uid, 'cron.execute_manually_indiv.start');
         try {
 
             CronServerController.getInstance().executeWorker(worker_uid);
-            ModulePushDataServer.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually_indiv.success');
+            PushDataServerController.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually_indiv.success');
         } catch (error) {
-            ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'cron.execute_manually_indiv.failed');
+            PushDataServerController.getInstance().notifySimpleERROR(uid, 'cron.execute_manually_indiv.failed');
         }
     }
 }

@@ -29,7 +29,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import ModulePushDataServer from '../PushData/ModulePushDataServer';
+import PushDataServerController from '../PushData/PushDataServerController';
 import DataImportBGThread from './bgthreads/DataImportBGThread';
 import DataImportCronWorkersHandler from './DataImportCronWorkersHandler';
 import DataImportModuleBase from './DataImportModuleBase/DataImportModuleBase';
@@ -619,7 +619,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         // Alors c'est tellement gourmand que même pour un user on le fait pour l'instant...
         // let api_type_ids: string[] = postTraitementModule.get_merged_api_type_ids();
         // for (let i in api_type_ids) {
-        //     await ModulePushDataServer.getInstance().notifyDAOGetVos(importHistoric.user_id, api_type_ids[i]);
+        //     await PushDataServerController.getInstance().notifyDAOGetVos(importHistoric.user_id, api_type_ids[i]);
         // }
 
         await this.logAndUpdateHistoric(importHistoric, format, ModuleDataImport.IMPORTATION_STATE_POSTTREATED, "Fin import : " + moment().utc(true).format("Y-MM-DD HH:mm"), "import.success.posttreated", DataImportLogVO.LOG_LEVEL_SUCCESS);
@@ -627,7 +627,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {
         await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
-        await ModulePushDataServer.getInstance().notifyDAOGetVoById(importHistoric.user_id, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
+        await PushDataServerController.getInstance().notifyDAOGetVoById(importHistoric.user_id, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
     }
 
     public async logAndUpdateHistoric(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, import_state: number, logmsg: string, notif_code: string, log_lvl: number) {
@@ -638,16 +638,16 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         switch (log_lvl) {
             case DataImportLogVO.LOG_LEVEL_FATAL:
             case DataImportLogVO.LOG_LEVEL_ERROR:
-                await ModulePushDataServer.getInstance().notifySimpleERROR(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleERROR(importHistoric.user_id, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_WARN:
-                await ModulePushDataServer.getInstance().notifySimpleWARN(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleWARN(importHistoric.user_id, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_SUCCESS:
-                await ModulePushDataServer.getInstance().notifySimpleSUCCESS(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleSUCCESS(importHistoric.user_id, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_INFO:
-                await ModulePushDataServer.getInstance().notifySimpleINFO(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleINFO(importHistoric.user_id, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_DEBUG:
             default:

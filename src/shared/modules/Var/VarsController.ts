@@ -34,6 +34,7 @@ import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
 import { Moment } from 'moment';
+import SimpleVarDataValueRes from './simple_vars/SimpleVarDataValueRes';
 const moment = require('moment');
 
 export default class VarsController {
@@ -1618,17 +1619,21 @@ export default class VarsController {
                     return;
                 } else if (ne_peut_pas_calculer) {
 
-                    let value: number = await ModuleVar.getInstance().getSimpleVarDataCachedValueFromParam(node.param);
+                    let value: SimpleVarDataValueRes = await ModuleVar.getInstance().getSimpleVarDataCachedValueFromParam(node.param);
+
                     node.loaded_datas_matroids = [];
                     node.computed_datas_matroids = [];
-                    node.loaded_datas_matroids_sum_value = value;
+                    node.loaded_datas_matroids_sum_value = value ? value.value : null;
 
-                    let var_value: ISimpleNumberVarMatroidData = MatroidController.getInstance().cloneFrom(node.param as ISimpleNumberVarMatroidData);
-                    var_value.value = value;
-                    var_value.value_type = VarsController.VALUE_TYPE_IMPORT;
-                    node.value = var_value;
+                    if (value && value.has_value) {
 
-                    VarsController.getInstance().setVarData(var_value, true);
+                        let var_value: ISimpleNumberVarMatroidData = MatroidController.getInstance().cloneFrom(node.param as ISimpleNumberVarMatroidData);
+                        var_value.value = value.value;
+                        var_value.value_type = VarsController.VALUE_TYPE_IMPORT;
+                        node.value = var_value;
+
+                        VarsController.getInstance().setVarData(var_value, true);
+                    }
                     this.post_computeNode(node);
 
                     if (!node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED)) {

@@ -10,6 +10,6 @@ export default class APISimpleVOParamVO {
 
     public constructor(
         public vo: IDistantVOBase) {
-        // this.vo = ModuleAPI.getInstance().try_translate_vo_to_api(vo);
+        // this.vo = APIController.getInstance().try_translate_vo_to_api(vo);
     }
 }

@@ -21,6 +21,7 @@ import ModulesManager from '../ModulesManager';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
 import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
+import SimpleVarDataValueRes from './simple_vars/SimpleVarDataValueRes';
 
 export default class ModuleVar extends Module {
 
@@ -111,7 +112,7 @@ export default class ModuleVar extends Module {
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, number>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, SimpleVarDataValueRes>(
             ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam,
             (param: APISimpleVOParamVO) => ((param && param.vo) ? [param.vo._type] : null),
             APISimpleVOParamVO.translateCheckAccessParams
@@ -136,12 +137,12 @@ export default class ModuleVar extends Module {
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, API_TYPE_ID, matroids, fields_ids_mapper);
     }
 
-    public async getSimpleVarDataCachedValueFromParam<T extends IVarMatroidDataParamVO>(param: T): Promise<number> {
+    public async getSimpleVarDataCachedValueFromParam<T extends IVarMatroidDataParamVO>(param: T): Promise<SimpleVarDataValueRes> {
         if (!param) {
             return null;
         }
 
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, number>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, SimpleVarDataValueRes>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
     }
 
     // public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {

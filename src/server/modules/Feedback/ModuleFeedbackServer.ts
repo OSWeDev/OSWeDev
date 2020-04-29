@@ -1,35 +1,35 @@
 import * as moment from 'moment';
-const { parse } = require('flatted/cjs');
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
+import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFeedback from '../../../shared/modules/Feedback/ModuleFeedback';
 import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
+import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import IServerUserSession from '../../IServerUserSession';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import ModuleServerBase from '../ModuleServerBase';
-import ModulePushDataServer from '../PushData/ModulePushDataServer';
-import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
-import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
-import ModuleParams from '../../../shared/modules/Params/ModuleParams';
-import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
+import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
-import CRUDHandler from '../../../shared/tools/CRUDHandler';
-import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import FileVO from '../../../shared/modules/File/vos/FileVO';
-import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import ModulesManagerServer from '../ModulesManagerServer';
-import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import IServerUserSession from '../../IServerUserSession';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleFileServer from '../File/ModuleFileServer';
+import ModuleServerBase from '../ModuleServerBase';
+import ModulesManagerServer from '../ModulesManagerServer';
+import PushDataServerController from '../PushData/PushDataServerController';
+import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
+import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
+const { parse } = require('flatted/cjs');
 
 export default class ModuleFeedbackServer extends ModuleServerBase {
 
@@ -313,12 +313,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
 
-            ModulePushDataServer.getInstance().notifySimpleSUCCESS(ModuleAccessPolicyServer.getInstance().getLoggedUserId(), 'feedback.feedback.success');
+            PushDataServerController.getInstance().notifySimpleSUCCESS(ModuleAccessPolicyServer.getInstance().getLoggedUserId(), 'feedback.feedback.success');
 
             return true;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
-            ModulePushDataServer.getInstance().notifySimpleERROR(ModuleAccessPolicyServer.getInstance().getLoggedUserId(), 'feedback.feedback.error');
+            PushDataServerController.getInstance().notifySimpleERROR(ModuleAccessPolicyServer.getInstance().getLoggedUserId(), 'feedback.feedback.error');
             return false;
         }
     }

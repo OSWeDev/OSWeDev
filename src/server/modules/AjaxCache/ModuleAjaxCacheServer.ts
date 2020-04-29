@@ -4,6 +4,7 @@ import ModuleAjaxCache from '../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import LightWeightSendableRequestVO from '../../../shared/modules/AjaxCache/vos/LightWeightSendableRequestVO';
 import RequestResponseCacheVO from '../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsWrapperResult from '../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
+import APIController from '../../../shared/modules/API/APIController';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -67,7 +68,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 for (let j in ModuleAPI.getInstance().registered_apis) {
                     let registered_api = ModuleAPI.getInstance().registered_apis[j];
-                    if (ModuleAPI.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, ModuleAPI.getInstance().getAPI_URL(registered_api))) {
+                    if (APIController.getInstance().requestUrlMatchesApiUrl(wrapped_request.url, APIController.getInstance().getAPI_URL(registered_api))) {
                         apiDefinition = registered_api;
                         break;
                     }
@@ -85,9 +86,9 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                         if (!!apiDefinition.PARAM_TRANSLATE_FROM_REQ) {
                             // Il faut un objet request.params à ce niveau avec chaque param séparé si c'est possible.
                             //
-                            param = await apiDefinition.PARAM_TRANSLATE_FROM_REQ(ModuleAPI.getInstance().getFakeRequestParamsFromUrl(
+                            param = await apiDefinition.PARAM_TRANSLATE_FROM_REQ(APIController.getInstance().getFakeRequestParamsFromUrl(
                                 wrapped_request.url,
-                                ModuleAPI.getInstance().getAPI_URL(apiDefinition)));
+                                APIController.getInstance().getAPI_URL(apiDefinition)));
                         }
                         break;
 
@@ -95,7 +96,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                         try {
                             param = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(wrapped_request.postdatas) : wrapped_request.postdatas;
                             // On doit traduire ici si (!EnvHandler.getInstance().MSGPCK) ce qui ne l'a pas été puisque encodé en JSON
-                            param = (!EnvHandler.getInstance().MSGPCK) ? ModuleAPI.getInstance().try_translate_vo_from_api(param) : param;
+                            param = (!EnvHandler.getInstance().MSGPCK) ? APIController.getInstance().try_translate_vo_from_api(param) : param;
                         } catch (error) {
                             ConsoleHandler.getInstance().error('Erreur récupération params poste_for_get wrapped:' + error + ':');
                         }
@@ -105,7 +106,7 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
 
                 // if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
                 //     (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {
-                //     res.requests_results[wrapped_request.index] = ModuleAPI.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
+                //     res.requests_results[wrapped_request.index] = APIController.getInstance().try_translate_vo_to_api(res.requests_results[wrapped_request.index]);
                 // }
             })());
 

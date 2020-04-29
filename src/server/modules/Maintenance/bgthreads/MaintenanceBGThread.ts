@@ -5,7 +5,7 @@ import NotificationVO from '../../../../shared/modules/PushData/vos/Notification
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
-import ModulePushDataServer from '../../PushData/ModulePushDataServer';
+import PushDataServerController from '../../PushData/PushDataServerController';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
 const moment = require('moment');
 
@@ -55,7 +55,7 @@ export default class MaintenanceBGThread implements IBGThread {
             if (!maintenance.broadcasted_msg1) {
 
                 if (moment(maintenance.start_ts).utc(true).add(-timeout_minutes_msg1, 'minute').isSameOrBefore(moment().utc(true))) {
-                    await ModulePushDataServer.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_INFO, ModuleMaintenance.MSG1_code_text);
+                    await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_INFO, ModuleMaintenance.MSG1_code_text);
                     maintenance.broadcasted_msg1 = true;
                     changed = true;
                 }
@@ -64,7 +64,7 @@ export default class MaintenanceBGThread implements IBGThread {
             if (!maintenance.broadcasted_msg2) {
 
                 if (moment(maintenance.start_ts).utc(true).add(-timeout_minutes_msg2, 'minute').isSameOrBefore(moment().utc(true))) {
-                    await ModulePushDataServer.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_WARN, ModuleMaintenance.MSG2_code_text);
+                    await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_WARN, ModuleMaintenance.MSG2_code_text);
                     maintenance.broadcasted_msg2 = true;
                     changed = true;
                 }
@@ -73,7 +73,7 @@ export default class MaintenanceBGThread implements IBGThread {
             if (!maintenance.broadcasted_msg3) {
 
                 if (moment(maintenance.start_ts).utc(true).add(-timeout_minutes_msg3, 'minute').isSameOrBefore(moment().utc(true))) {
-                    await ModulePushDataServer.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_ERROR, ModuleMaintenance.MSG3_code_text);
+                    await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_ERROR, ModuleMaintenance.MSG3_code_text);
                     maintenance.broadcasted_msg3 = true;
                     changed = true;
                 }

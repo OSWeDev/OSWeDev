@@ -1,11 +1,11 @@
 import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import ForkedProcessWrapperBase from '../Fork/ForkedProcessWrapperBase';
-import ForkMessageController from '../Fork/ForkMessageController';
-import ModulePushDataServer from '../PushData/ModulePushDataServer';
-import ComputedVarDatasForkMessage from './messages/ComputedVarDatasForkMessage';
+import ForkedTasksController from '../Fork/ForkedTasksController';
+import PushDataServerController from '../PushData/PushDataServerController';
 
 export default class VarServerController {
+
+    public static TASK_NAME_computedvardatas: string = 'VarServerController.computedvardatas';
 
     public static getInstance() {
         if (!VarServerController.instance) {
@@ -19,26 +19,15 @@ export default class VarServerController {
     public uid_waiting_for_indexes: { [index: string]: { [uid: number]: boolean } } = {};
 
     private constructor() {
-        ForkMessageController.getInstance().register_message_handler(ComputedVarDatasForkMessage.FORK_MESSAGE_TYPE, this.handle_computedvardatas_message.bind(this));
+        ForkedTasksController.getInstance().register_task(VarServerController.TASK_NAME_computedvardatas, this.notify_computedvardatas.bind(this));
     }
 
-    /**
-     * C'est le process parent qui gère ça, donc si on est chez le fils on renvoie au dessus, sinon on s'exécute
-     * @param var_datas
-     */
-    public notify_computedvardatas(var_datas: IVarDataVOBase[]) {
-        if (!!ForkedProcessWrapperBase.getInstance()) {
-            ForkMessageController.getInstance().send(new ComputedVarDatasForkMessage(var_datas));
+    public notify_computedvardatas(var_datas: IVarDataVOBase[]): boolean {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarServerController.TASK_NAME_computedvardatas, var_datas)) {
             return;
         }
-        return this.do_notify_computedvardatas(var_datas);
-    }
 
-    private async handle_computedvardatas_message(msg: ComputedVarDatasForkMessage): Promise<boolean> {
-        return this.do_notify_computedvardatas(msg.message_content);
-    }
-
-    private do_notify_computedvardatas(var_datas: IVarDataVOBase[]): boolean {
         let datas_by_uid_for_notif: { [uid: number]: IVarDataVOBase[] } = {};
 
         for (let i in var_datas) {
@@ -62,7 +51,7 @@ export default class VarServerController {
 
             let uid = parseInt(uid_i.toString());
 
-            ModulePushDataServer.getInstance().notifyVarsDatas(uid, datas_by_uid_for_notif[uid_i]);
+            PushDataServerController.getInstance().notifyVarsDatas(uid, datas_by_uid_for_notif[uid_i]);
         }
         return true;
     }

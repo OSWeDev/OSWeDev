@@ -1,10 +1,10 @@
-import ForkedProcessWrapperBase from './ForkedProcessWrapperBase';
+import { ChildProcess } from 'child_process';
+import { Server, Socket } from 'net';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ForkServerController from './ForkServerController';
 import IForkMessage from './interfaces/IForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
-import { ChildProcess } from 'child_process';
-import { Socket, Server } from 'net';
+import APIController from '../../../shared/modules/API/APIController';
 
 export default class ForkMessageController {
 
@@ -30,7 +30,7 @@ export default class ForkMessageController {
             return false;
         }
 
-        msg = ModuleAPI.getInstance().try_translate_vo_from_api(msg);
+        msg = APIController.getInstance().try_translate_vo_from_api(msg);
 
         return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
     }
@@ -41,7 +41,7 @@ export default class ForkMessageController {
      */
     public broadcast(msg: IForkMessage) {
 
-        if (!!ForkedProcessWrapperBase.getInstance()) {
+        if (!ForkServerController.getInstance().is_main_process) {
             this.send(new BroadcastWrapperForkMessage(msg));
         } else {
 
@@ -55,7 +55,7 @@ export default class ForkMessageController {
 
     public send(msg: IForkMessage, child_process: ChildProcess = null) {
 
-        msg = ModuleAPI.getInstance().try_translate_vo_to_api(msg);
+        msg = APIController.getInstance().try_translate_vo_to_api(msg);
 
         if (!child_process) {
             process.send(msg);

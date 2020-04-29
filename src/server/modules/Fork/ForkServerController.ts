@@ -6,6 +6,7 @@ import ICronWorker from '../Cron/interfaces/ICronWorker';
 import ForkMessageController from './ForkMessageController';
 import IFork from './interfaces/IFork';
 import IForkProcess from './interfaces/IForkProcess';
+import ForkedProcessWrapperBase from './ForkedProcessWrapperBase';
 
 export default class ForkServerController {
 
@@ -30,6 +31,10 @@ export default class ForkServerController {
 
     get process_fork_by_type_and_name(): { [exec_type: string]: { [name: string]: IFork } } {
         return this.fork_by_type_and_name;
+    }
+
+    get is_main_process(): boolean {
+        return !ForkedProcessWrapperBase.getInstance();
     }
 
     public fork_threads() {

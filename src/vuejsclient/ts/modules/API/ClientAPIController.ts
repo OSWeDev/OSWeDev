@@ -4,6 +4,7 @@ import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
+import APIController from '../../../../shared/modules/API/APIController';
 
 export default class ClientAPIController implements IAPIController {
 
@@ -79,7 +80,7 @@ export default class ClientAPIController implements IAPIController {
         }
 
         // On tente de traduire si on reconnait un type de vo
-        api_res = ModuleAPI.getInstance().try_translate_vo_from_api(api_res);
+        api_res = APIController.getInstance().try_translate_vo_from_api(api_res);
 
         return api_res;
     }

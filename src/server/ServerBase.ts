@@ -43,7 +43,7 @@ import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkServerController from './modules/Fork/ForkServerController';
 import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServer';
 import ModuleServiceBase from './modules/ModuleServiceBase';
-import ModulePushDataServer from './modules/PushData/ModulePushDataServer';
+import PushDataServerController from './modules/PushData/PushDataServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 require('moment-json-parser').overrideDefault();
 
@@ -709,7 +709,7 @@ export default abstract class ServerBase {
                         return;
                     }
 
-                    ModulePushDataServer.getInstance().registerSocket(session.uid ? session.uid : null, session.id, socket);
+                    PushDataServerController.getInstance().registerSocket(session.uid ? session.uid : null, session.id, socket);
                 }.bind(ServerBase.getInstance()));
 
                 io.on('error', function (err) {

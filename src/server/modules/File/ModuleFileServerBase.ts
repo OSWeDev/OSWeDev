@@ -9,11 +9,10 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
+import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
-import ModulePushDataServer from '../PushData/ModulePushDataServer';
-import AjaxCacheException from '../../../shared/modules/AjaxCache/exceptions/AjaxCacheException';
-import ConfigurationService from '../../env/ConfigurationService';
+import PushDataServerController from '../PushData/PushDataServerController';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
@@ -177,12 +176,12 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
             }
         } catch (error) {
             console.error(error);
-            ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'file.upload.error');
+            PushDataServerController.getInstance().notifySimpleERROR(uid, 'file.upload.error');
             res.json(JSON.stringify(null));
             return;
         }
 
-        ModulePushDataServer.getInstance().notifySimpleSUCCESS(uid, 'file.upload.success');
+        PushDataServerController.getInstance().notifySimpleSUCCESS(uid, 'file.upload.success');
 
         let filepath: string = import_file.path;
         let name: string = import_file.name;
@@ -192,7 +191,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
         filevo.path = filepath;
         let insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
         if ((!insertres) || (!insertres.id)) {
-            ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'file.upload.error');
+            PushDataServerController.getInstance().notifySimpleERROR(uid, 'file.upload.error');
             res.json(JSON.stringify(null));
             return;
         }
