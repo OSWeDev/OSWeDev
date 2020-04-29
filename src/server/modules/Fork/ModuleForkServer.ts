@@ -51,9 +51,9 @@ export default class ModuleForkServer extends ModuleServerBase {
      * On est donc sur le parent, on décapsule et on broadcast le vrai message
      * @param msg
      */
-    private async handle_broadcast_message(msg: IForkMessage): Promise<boolean> {
+    private async handle_broadcast_message(msg: BroadcastWrapperForkMessage): Promise<boolean> {
 
-        ForkMessageController.getInstance().broadcast(msg.message_content);
+        ForkMessageController.getInstance().broadcast(msg.message_content, (msg.ignore_sender ? msg.sender_uid : null));
 
         return true;
     }

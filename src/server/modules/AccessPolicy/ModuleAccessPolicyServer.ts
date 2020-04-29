@@ -40,6 +40,7 @@ import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
+import ForkedTasksController from '../Fork/ForkedTasksController';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -987,14 +988,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async preload_registered_roles() {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         AccessPolicyServerController.getInstance().clean_registered_roles();
-        AccessPolicyServerController.getInstance().registered_roles_by_ids = {};
 
         let roles: RoleVO[] = await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID);
-        AccessPolicyServerController.getInstance().registered_roles_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(roles);
         for (let i in roles) {
             let role: RoleVO = roles[i];
 
-            AccessPolicyServerController.getInstance().set_registered_role(role.translatable_name, role);
+            AccessPolicyServerController.getInstance().set_registered_role(role);
 
             if (role.translatable_name == AccessPolicyServerController.getInstance().role_admin.translatable_name) {
                 AccessPolicyServerController.getInstance().role_admin = role;
@@ -1011,10 +1010,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async preload_registered_policies() {
         // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
         AccessPolicyServerController.getInstance().clean_registered_policies();
-        AccessPolicyServerController.getInstance().registered_policies_by_ids = {};
 
         let policies: AccessPolicyVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID);
-        AccessPolicyServerController.getInstance().registered_policies_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(policies);
         for (let i in policies) {
             let policy: AccessPolicyVO = policies[i];
 
@@ -1022,7 +1019,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             if (policy.module_id && ((!moduleVO) || (!moduleVO.actif))) {
                 continue;
             }
-            AccessPolicyServerController.getInstance().set_registered_policy(policy.translatable_name, policy);
+            AccessPolicyServerController.getInstance().set_registered_policy(policy);
         }
     }
 
@@ -1050,9 +1047,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        AccessPolicyServerController.getInstance().set_registered_policy(vo.translatable_name, vo);
-        AccessPolicyServerController.getInstance().registered_policies_by_ids[vo.id] = vo;
-
+        ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_policy, vo);
         return true;
     }
 
@@ -1061,10 +1056,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        if (!AccessPolicyServerController.getInstance().registered_dependencies[vo.src_pol_id]) {
-            AccessPolicyServerController.getInstance().registered_dependencies[vo.src_pol_id] = [];
-        }
-        AccessPolicyServerController.getInstance().registered_dependencies[vo.src_pol_id].push(vo);
+        ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_policy_dependency, vo);
         return true;
     }
 
@@ -1073,10 +1065,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        if (!AccessPolicyServerController.getInstance().registered_roles_policies[vo.role_id]) {
-            AccessPolicyServerController.getInstance().registered_roles_policies[vo.role_id] = {};
-        }
-        AccessPolicyServerController.getInstance().registered_roles_policies[vo.role_id][vo.accpol_id] = vo;
+        ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_role_policy, vo);
         return true;
     }
 
@@ -1085,8 +1074,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        AccessPolicyServerController.getInstance().set_registered_role(vo.translatable_name, vo);
-        AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.id] = vo;
+        ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_role, vo);
         return true;
     }
 
@@ -1095,10 +1083,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        if (!AccessPolicyServerController.getInstance().registered_users_roles[vo.user_id]) {
-            AccessPolicyServerController.getInstance().registered_users_roles[vo.user_id] = [];
-        }
-        AccessPolicyServerController.getInstance().registered_users_roles[vo.user_id].push(AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.role_id]);
+        ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_user_role, vo);
         return true;
     }
 
@@ -1107,15 +1092,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        if ((!AccessPolicyServerController.getInstance().registered_policies_by_ids[vo.id]) || (!AccessPolicyServerController.getInstance().get_registered_policy(AccessPolicyServerController.getInstance().registered_policies_by_ids[vo.id].translatable_name))) {
-            return true;
-        }
-
-        if (AccessPolicyServerController.getInstance().registered_policies_by_ids[vo.id].translatable_name != vo.translatable_name) {
-            AccessPolicyServerController.getInstance().delete_registered_policy(AccessPolicyServerController.getInstance().registered_policies_by_ids[vo.id].translatable_name);
-        }
-        AccessPolicyServerController.getInstance().set_registered_policy(vo.translatable_name, vo);
-        AccessPolicyServerController.getInstance().registered_policies_by_ids[vo.id] = vo;
+        ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_registered_policy, vo);
         return true;
     }
 
@@ -1124,22 +1101,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        for (let i in AccessPolicyServerController.getInstance().registered_dependencies[vo.src_pol_id]) {
-            if (AccessPolicyServerController.getInstance().registered_dependencies[vo.src_pol_id][i].id == vo.id) {
-                AccessPolicyServerController.getInstance().registered_dependencies[vo.src_pol_id][i] = vo;
-                return true;
-            }
-        }
-
-        // Si on le trouve pas c'est probablement un changement de src_pol_id, on lance une recherche plus large
-        for (let j in AccessPolicyServerController.getInstance().registered_dependencies) {
-            for (let i in AccessPolicyServerController.getInstance().registered_dependencies[j]) {
-                if (AccessPolicyServerController.getInstance().registered_dependencies[j][i].id == vo.id) {
-                    AccessPolicyServerController.getInstance().registered_dependencies[j][i] = vo;
-                    return true;
-                }
-            }
-        }
+        ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_policy_dependency, vo);
         return true;
     }
 
@@ -1176,10 +1138,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         if (AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.id].translatable_name != vo.translatable_name) {
-            AccessPolicyServerController.getInstance().delete_registered_role(AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.id].translatable_name);
+            AccessPolicyServerController.getInstance().delete_registered_role(AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.id]);
         }
-        AccessPolicyServerController.getInstance().set_registered_role(vo.translatable_name, vo);
-        AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.id] = vo;
+        AccessPolicyServerController.getInstance().set_registered_role(vo);
         return true;
     }
 
@@ -1219,7 +1180,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         AccessPolicyServerController.getInstance().delete_registered_policy(AccessPolicyServerController.getInstance().registered_policies_by_ids[vo.id].translatable_name);
-        delete AccessPolicyServerController.getInstance().registered_policies_by_ids[vo.id];
         return true;
     }
 
@@ -1279,8 +1239,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        AccessPolicyServerController.getInstance().delete_registered_role(AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.id].translatable_name);
-        delete AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.id];
+        AccessPolicyServerController.getInstance().delete_registered_role(AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.id]);
         return true;
     }
 
@@ -1289,24 +1248,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        let role: RoleVO = AccessPolicyServerController.getInstance().registered_roles_by_ids[vo.role_id];
-
-        for (let i in AccessPolicyServerController.getInstance().registered_users_roles[vo.user_id]) {
-            if (AccessPolicyServerController.getInstance().registered_users_roles[vo.user_id][i].id == role.id) {
-                AccessPolicyServerController.getInstance().registered_users_roles[vo.user_id].splice(parseInt(i), 1);
-                return true;
-            }
-        }
-
-        // Si on le trouve pas c'est probablement un changement de user_id, on lance une recherche plus large
-        for (let j in AccessPolicyServerController.getInstance().registered_users_roles) {
-            for (let i in AccessPolicyServerController.getInstance().registered_users_roles[j]) {
-                if (AccessPolicyServerController.getInstance().registered_users_roles[j][i].id == role.id) {
-                    AccessPolicyServerController.getInstance().registered_users_roles[j].splice(parseInt(i), 1);
-                    return true;
-                }
-            }
-        }
+        ForkedTasksController.getInstance().broadexec(delete_registered_user_role, vo);
         return true;
     }
 

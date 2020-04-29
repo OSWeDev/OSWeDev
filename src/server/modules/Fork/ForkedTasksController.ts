@@ -1,6 +1,7 @@
 import ForkMessageController from './ForkMessageController';
 import ForkServerController from './ForkServerController';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
+import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 
 export default class ForkedTasksController {
 
@@ -25,6 +26,27 @@ export default class ForkedTasksController {
         this.registered_tasks[task_uid] = handler;
     }
 
+    /**
+     * Objectif : Exécuter la fonction sur tous les threads, et le plus vite possible (et en synchrone) en local
+     *  donc on envoie un message pour tous les autres threads, mais on indique bien que nous c'est fait
+     * @param task_uid
+     * @param task_params
+     */
+    public broadexec(task_uid: string, ...task_params): boolean {
+        if (!ForkServerController.getInstance().is_main_process) {
+            ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
+        } else {
+            ForkMessageController.getInstance().broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
+        }
+        this.registered_tasks[task_uid](...task_params);
+        return true;
+    }
+
+    /**
+     * Objectif : Exécuter la fonction sur le thread principal. On envoie la demande au thread maitre si besoin, sinon on exécute directement
+     * @param task_uid
+     * @param task_params
+     */
     public exec_self_on_main_process(task_uid: string, ...task_params): boolean {
         if (!ForkServerController.getInstance().is_main_process) {
             ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params));

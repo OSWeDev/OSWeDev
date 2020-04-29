@@ -1,10 +1,9 @@
 import { ChildProcess } from 'child_process';
 import { Server, Socket } from 'net';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIController from '../../../shared/modules/API/APIController';
 import ForkServerController from './ForkServerController';
 import IForkMessage from './interfaces/IForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
-import APIController from '../../../shared/modules/API/APIController';
 
 export default class ForkMessageController {
 
@@ -25,7 +24,7 @@ export default class ForkMessageController {
         this.registered_messages_handlers[message_type] = handler;
     }
 
-    public async message_handler(msg: IForkMessage, sendHandle: Socket | Server): Promise<boolean> {
+    public async message_handler(msg: IForkMessage, sendHandle: Socket | Server = null): Promise<boolean> {
         if ((!msg) || (!this.registered_messages_handlers[msg.message_type])) {
             return false;
         }
@@ -39,7 +38,7 @@ export default class ForkMessageController {
      * On envoie le message à tous les process. Si on est dans un childprocess, on renvoi vers le parent qui enverra vers tout le monde, y compris nous
      *  Donc si on associe un comportement à ce message, il ne faut pas le faire manuellement, il sera exécuté par le message handler
      */
-    public broadcast(msg: IForkMessage) {
+    public broadcast(msg: IForkMessage, ignore_uid: number = null) {
 
         if (!ForkServerController.getInstance().is_main_process) {
             this.send(new BroadcastWrapperForkMessage(msg));
@@ -48,8 +47,12 @@ export default class ForkMessageController {
             for (let i in ForkServerController.getInstance().process_forks) {
                 let forked = ForkServerController.getInstance().process_forks[i];
 
+                if ((!!ignore_uid) && (ignore_uid == forked.uid)) {
+                    continue;
+                }
                 this.send(msg, forked.child_process);
             }
+            this.message_handler(msg);
         }
     }
 

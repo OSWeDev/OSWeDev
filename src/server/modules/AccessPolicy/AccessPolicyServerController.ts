@@ -11,8 +11,26 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ForkedTasksController from '../Fork/ForkedTasksController';
+import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 
 export default class AccessPolicyServerController {
+
+    public static TASK_NAME_set_registered_role = 'AccessPolicyServerController.set_registered_role';
+    public static TASK_NAME_set_registered_user_role = 'AccessPolicyServerController.set_registered_user_role';
+    public static TASK_NAME_delete_registered_user_role = 'AccessPolicyServerController.delete_registered_user_role';
+    public static TASK_NAME_set_registered_policy = 'AccessPolicyServerController.set_registered_policy';
+    public static TASK_NAME_set_policy_dependency = 'AccessPolicyServerController.set_policy_dependency';
+    public static TASK_NAME_set_role_policy = 'AccessPolicyServerController.set_role_policy';
+    public static TASK_NAME_update_registered_policy = 'AccessPolicyServerController.update_registered_policy';
+    public static TASK_NAME_update_policy_dependency = 'AccessPolicyServerController.update_policy_dependency';
+    public static TASK_NAME_onUpdateRolePolicyVO = 'AccessPolicyServerController.onUpdateRolePolicyVO';
+    public static TASK_NAME_onUpdateRoleVO = 'AccessPolicyServerController.onUpdateRoleVO';
+    public static TASK_NAME_onUpdateUserRoleVO = 'AccessPolicyServerController.onUpdateUserRoleVO';
+    public static TASK_NAME_onDeleteAccessPolicyVO = 'AccessPolicyServerController.onDeleteAccessPolicyVO';
+    public static TASK_NAME_onDeletePolicyDependencyVO = 'AccessPolicyServerController.onDeletePolicyDependencyVO';
+    public static TASK_NAME_onDeleteRolePolicyVO = 'AccessPolicyServerController.onDeleteRolePolicyVO';
+    public static TASK_NAME_onDeleteRoleVO = 'AccessPolicyServerController.onDeleteRoleVO';
 
     public static getInstance() {
         if (!AccessPolicyServerController.instance) {
@@ -27,16 +45,34 @@ export default class AccessPolicyServerController {
     public role_logged: RoleVO = null;
     public role_admin: RoleVO = null;
 
-    public registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] };
+    private registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
 
-    public registered_roles_by_ids: { [role_id: number]: RoleVO };
-    public registered_users_roles: { [uid: number]: RoleVO[] };
-    public registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } };
-    public registered_policies_by_ids: { [policy_id: number]: AccessPolicyVO };
+    private registered_roles_by_ids: { [role_id: number]: RoleVO } = {};
+    private registered_users_roles: { [uid: number]: RoleVO[] } = {};
+    private registered_roles_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {};
+    private registered_policies_by_ids: { [policy_id: number]: AccessPolicyVO } = {};
 
-    private registered_roles: { [role_name: string]: RoleVO };
-    private registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO };
-    private registered_policies: { [policy_name: string]: AccessPolicyVO };
+    private registered_roles: { [role_name: string]: RoleVO } = {};
+    private registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO } = {};
+    private registered_policies: { [policy_name: string]: AccessPolicyVO } = {};
+
+    public constructor() {
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, this.set_registered_role.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_user_role, this.set_registered_user_role.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_user_role, this.delete_registered_user_role.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_policy, this.set_registered_policy.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_policy_dependency, this.set_policy_dependency.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, this.set_role_policy.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, this.update_registered_policy.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, this.update_policy_dependency.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onUpdateRolePolicyVO, this.onUpdateRolePolicyVO.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onUpdateRoleVO, this.onUpdateRoleVO.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onUpdateUserRoleVO, this.onUpdateUserRoleVO.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onDeleteAccessPolicyVO, this.onDeleteAccessPolicyVO.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onDeletePolicyDependencyVO, this.onDeletePolicyDependencyVO.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onDeleteRolePolicyVO, this.onDeleteRolePolicyVO.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onDeleteRoleVO, this.onDeleteRoleVO.bind(this));
+    }
 
     public get_registered_role(role_name: string): RoleVO {
         return this.registered_roles[role_name ? role_name.toLowerCase() : role_name];
@@ -52,6 +88,7 @@ export default class AccessPolicyServerController {
 
     public clean_registered_roles() {
         this.registered_roles = {};
+        this.registered_roles_by_ids = {};
     }
 
     public clean_registered_policy_groups() {
@@ -60,34 +97,130 @@ export default class AccessPolicyServerController {
 
     public clean_registered_policies() {
         this.registered_policies = {};
+        this.registered_policies_by_ids = {};
     }
 
-    public set_registered_role(name: string, object: RoleVO) {
-        if (!name) {
-            return;
-        }
-        this.registered_roles[name.toLowerCase()] = object;
+    public set_registered_role(object: RoleVO) {
+        this.registered_roles[object.translatable_name.toLowerCase()] = object;
+        this.registered_roles_by_ids[object.id] = object;
     }
 
-    public set_registered_policy_group(name: string, object: AccessPolicyGroupVO) {
-        if (!name) {
+    public set_registered_user_role(vo: UserRoleVO) {
+        if (!vo) {
             return;
         }
-        this.registered_policy_groups[name.toLowerCase()] = object;
+
+        if (!this.registered_users_roles[vo.user_id]) {
+            this.registered_users_roles[vo.user_id] = [];
+        }
+        this.registered_users_roles[vo.user_id].push(this.registered_roles_by_ids[vo.role_id]);
     }
 
-    public set_registered_policy(name: string, object: AccessPolicyVO) {
-        if (!name) {
+    public set_registered_policy_group(object: AccessPolicyGroupVO) {
+        if (!object) {
             return;
         }
-        this.registered_policies[name.toLowerCase()] = object;
+        this.registered_policy_groups[object.translatable_name.toLowerCase()] = object;
     }
 
-    public delete_registered_role(name: string) {
-        if (!name) {
+    public set_registered_policy(object: AccessPolicyVO) {
+        if (!object) {
             return;
         }
-        delete this.registered_roles[name.toLowerCase()];
+        this.registered_policies[object.translatable_name.toLowerCase()] = object;
+        this.registered_policies_by_ids[object.id] = object;
+    }
+
+    public update_registered_policy(object: AccessPolicyVO) {
+        if (!object) {
+            return;
+        }
+        if ((!this.registered_policies_by_ids[object.id]) || (!this.get_registered_policy(this.registered_policies_by_ids[object.id].translatable_name))) {
+            return true;
+        }
+
+        if (this.registered_policies_by_ids[object.id].translatable_name != object.translatable_name) {
+            this.delete_registered_policy(this.registered_policies_by_ids[object.id].translatable_name);
+        }
+        this.set_registered_policy(object);
+    }
+
+    public set_policy_dependency(object: PolicyDependencyVO) {
+        if (!object) {
+            return;
+        }
+
+        if (!this.registered_dependencies[object.src_pol_id]) {
+            this.registered_dependencies[object.src_pol_id] = [];
+        }
+        this.registered_dependencies[object.src_pol_id].push(object);
+    }
+
+    public update_policy_dependency(object: PolicyDependencyVO) {
+        if (!object) {
+            return;
+        }
+
+        for (let i in this.registered_dependencies[object.src_pol_id]) {
+            if (this.registered_dependencies[object.src_pol_id][i].id == object.id) {
+                this.registered_dependencies[object.src_pol_id][i] = object;
+                return true;
+            }
+        }
+
+        // Si on le trouve pas c'est probablement un changement de src_pol_id, on lance une recherche plus large
+        for (let j in this.registered_dependencies) {
+            for (let i in this.registered_dependencies[j]) {
+                if (this.registered_dependencies[j][i].id == object.id) {
+                    this.registered_dependencies[j][i] = object;
+                    return true;
+                }
+            }
+        }
+    }
+
+    public set_role_policy(object: RolePolicyVO) {
+        if (!object) {
+            return;
+        }
+
+        if (!this.registered_roles_policies[object.role_id]) {
+            this.registered_roles_policies[object.role_id] = {};
+        }
+        this.registered_roles_policies[object.role_id][object.accpol_id] = object;
+    }
+
+    public delete_registered_role(role: RoleVO) {
+        if (!role) {
+            return;
+        }
+        delete this.registered_roles[role.translatable_name.toLowerCase()];
+        delete this.registered_roles_by_ids[role.id];
+    }
+
+    public delete_registered_user_role(vo: UserRoleVO) {
+        if (!vo) {
+            return;
+        }
+
+        let role: RoleVO = this.registered_roles_by_ids[vo.role_id];
+
+        for (let i in this.registered_users_roles[vo.user_id]) {
+            if (this.registered_users_roles[vo.user_id][i].id == role.id) {
+                this.registered_users_roles[vo.user_id].splice(parseInt(i), 1);
+                return;
+            }
+        }
+
+        // Si on le trouve pas c'est probablement un changement de user_id, on lance une recherche plus large
+        for (let j in this.registered_users_roles) {
+            for (let i in this.registered_users_roles[j]) {
+                if (this.registered_users_roles[j][i].id == role.id) {
+                    this.registered_users_roles[j].splice(parseInt(i), 1);
+                    return;
+                }
+            }
+        }
     }
 
     public delete_registered_policy_group(name: string) {
@@ -102,6 +235,7 @@ export default class AccessPolicyServerController {
             return;
         }
         delete this.registered_policies[name.toLowerCase()];
+        delete this.registered_policies_by_ids[name.toLowerCase()];
     }
 
     /**
@@ -115,15 +249,15 @@ export default class AccessPolicyServerController {
 
         let translatable_name: string = role.translatable_name.toLowerCase();
 
-        if (!AccessPolicyServerController.getInstance().registered_roles) {
-            AccessPolicyServerController.getInstance().registered_roles = {};
+        if (!this.registered_roles) {
+            this.registered_roles = {};
         }
-        if (!AccessPolicyServerController.getInstance().registered_roles_by_ids) {
-            AccessPolicyServerController.getInstance().registered_roles_by_ids = {};
+        if (!this.registered_roles_by_ids) {
+            this.registered_roles_by_ids = {};
         }
 
-        if (AccessPolicyServerController.getInstance().registered_roles[translatable_name]) {
-            return AccessPolicyServerController.getInstance().registered_roles[translatable_name];
+        if (this.registered_roles[translatable_name]) {
+            return this.registered_roles[translatable_name];
         }
 
         if (default_translation) {
@@ -137,22 +271,22 @@ export default class AccessPolicyServerController {
         //  - si c'est le rôle 'admin', son parent est 'identifié'
         //  - pour tout autre rôle, son parent est soit 'identifié' soit un autre rôle ajouté (ne peut dépendre de 'anonyme' ou de 'admin')
 
-        if (role.translatable_name == AccessPolicyServerController.getInstance().role_anonymous.translatable_name) {
+        if (role.translatable_name == this.role_anonymous.translatable_name) {
             role.parent_role_id = null;
-        } else if (role.translatable_name == AccessPolicyServerController.getInstance().role_logged.translatable_name) {
-            role.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
-        } else if (role.translatable_name == AccessPolicyServerController.getInstance().role_admin.translatable_name) {
-            role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        } else if (role.translatable_name == this.role_logged.translatable_name) {
+            role.parent_role_id = this.role_anonymous.id;
+        } else if (role.translatable_name == this.role_admin.translatable_name) {
+            role.parent_role_id = this.role_logged.id;
         } else {
-            if ((!role.parent_role_id) || (role.parent_role_id == AccessPolicyServerController.getInstance().role_anonymous.id) || (role.parent_role_id == AccessPolicyServerController.getInstance().role_admin.id)) {
-                role.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+            if ((!role.parent_role_id) || (role.parent_role_id == this.role_anonymous.id) || (role.parent_role_id == this.role_admin.id)) {
+                role.parent_role_id = this.role_logged.id;
             }
         }
 
         let roleFromBDD: RoleVO = await ModuleDAOServer.getInstance().selectOne<RoleVO>(RoleVO.API_TYPE_ID, "where translatable_name = $1", [role.translatable_name]);
         if (roleFromBDD) {
-            AccessPolicyServerController.getInstance().registered_roles[translatable_name] = roleFromBDD;
-            AccessPolicyServerController.getInstance().registered_roles_by_ids[roleFromBDD.id] = roleFromBDD;
+            this.registered_roles[translatable_name] = roleFromBDD;
+            this.registered_roles_by_ids[roleFromBDD.id] = roleFromBDD;
             return roleFromBDD;
         }
 
@@ -163,8 +297,8 @@ export default class AccessPolicyServerController {
         }
 
         role.id = parseInt(insertOrDeleteQueryResult.id);
-        AccessPolicyServerController.getInstance().registered_roles[role.translatable_name] = role;
-        AccessPolicyServerController.getInstance().registered_roles_by_ids[role.id] = role;
+        this.registered_roles[role.translatable_name] = role;
+        this.registered_roles_by_ids[role.id] = role;
         ConsoleHandler.getInstance().error('Ajout du role OK:' + role.translatable_name + ':');
         return role;
     }
@@ -180,12 +314,12 @@ export default class AccessPolicyServerController {
 
         let translatable_name: string = group.translatable_name.toLowerCase();
 
-        if (!AccessPolicyServerController.getInstance().registered_policy_groups) {
-            AccessPolicyServerController.getInstance().registered_policy_groups = {};
+        if (!this.registered_policy_groups) {
+            this.registered_policy_groups = {};
         }
 
-        if (AccessPolicyServerController.getInstance().registered_policy_groups[translatable_name]) {
-            return AccessPolicyServerController.getInstance().registered_policy_groups[translatable_name];
+        if (this.registered_policy_groups[translatable_name]) {
+            return this.registered_policy_groups[translatable_name];
         }
 
         if (default_translation) {
@@ -195,7 +329,7 @@ export default class AccessPolicyServerController {
 
         let groupFromBDD: AccessPolicyGroupVO = await ModuleDAOServer.getInstance().selectOne<AccessPolicyGroupVO>(AccessPolicyGroupVO.API_TYPE_ID, "where translatable_name = $1", [group.translatable_name]);
         if (groupFromBDD) {
-            AccessPolicyServerController.getInstance().registered_policy_groups[translatable_name] = groupFromBDD;
+            this.registered_policy_groups[translatable_name] = groupFromBDD;
             return groupFromBDD;
         }
 
@@ -206,7 +340,7 @@ export default class AccessPolicyServerController {
         }
 
         group.id = parseInt(insertOrDeleteQueryResult.id);
-        AccessPolicyServerController.getInstance().registered_policy_groups[translatable_name] = group;
+        this.registered_policy_groups[translatable_name] = group;
         ConsoleHandler.getInstance().error('Ajout du groupe OK :' + group.translatable_name + ':');
         return group;
     }
