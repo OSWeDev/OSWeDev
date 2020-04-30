@@ -13,12 +13,18 @@ export default class BGThreadServerController {
 
     private static instance: BGThreadServerController = null;
 
+    /**
+     * Monothreaded cache -----
+     */
     public registered_BGThreads: { [name: string]: IBGThread } = {};
 
     public register_bgthreads: boolean = false;
     public run_bgthreads: boolean = false;
     public valid_bgthreads_names: { [name: string]: boolean } = {};
     public server_ready: boolean = false;
+    /**
+     * ----- Monothreaded cache
+     */
 
     private constructor() { }
 }

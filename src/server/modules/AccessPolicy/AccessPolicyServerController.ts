@@ -4,6 +4,7 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleVO from '../../../shared/modules/ModuleVO';
@@ -12,7 +13,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
-import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
+import ModulesManagerServer from '../ModulesManagerServer';
 
 export default class AccessPolicyServerController {
 
@@ -24,13 +25,13 @@ export default class AccessPolicyServerController {
     public static TASK_NAME_set_role_policy = 'AccessPolicyServerController.set_role_policy';
     public static TASK_NAME_update_registered_policy = 'AccessPolicyServerController.update_registered_policy';
     public static TASK_NAME_update_policy_dependency = 'AccessPolicyServerController.update_policy_dependency';
-    public static TASK_NAME_onUpdateRolePolicyVO = 'AccessPolicyServerController.onUpdateRolePolicyVO';
-    public static TASK_NAME_onUpdateRoleVO = 'AccessPolicyServerController.onUpdateRoleVO';
-    public static TASK_NAME_onUpdateUserRoleVO = 'AccessPolicyServerController.onUpdateUserRoleVO';
-    public static TASK_NAME_onDeleteAccessPolicyVO = 'AccessPolicyServerController.onDeleteAccessPolicyVO';
-    public static TASK_NAME_onDeletePolicyDependencyVO = 'AccessPolicyServerController.onDeletePolicyDependencyVO';
-    public static TASK_NAME_onDeleteRolePolicyVO = 'AccessPolicyServerController.onDeleteRolePolicyVO';
-    public static TASK_NAME_onDeleteRoleVO = 'AccessPolicyServerController.onDeleteRoleVO';
+    public static TASK_NAME_update_role_policy = 'AccessPolicyServerController.update_role_policy';
+    public static TASK_NAME_update_role = 'AccessPolicyServerController.update_role';
+    public static TASK_NAME_update_user_role = 'AccessPolicyServerController.update_user_role';
+    public static TASK_NAME_delete_registered_policy = 'AccessPolicyServerController.delete_registered_policy';
+    public static TASK_NAME_delete_registered_policy_dependency = 'AccessPolicyServerController.delete_registered_policy_dependency';
+    public static TASK_NAME_delete_registered_role_policy = 'AccessPolicyServerController.delete_registered_role_policy';
+    public static TASK_NAME_delete_registered_role = 'AccessPolicyServerController.delete_registered_role';
 
     public static getInstance() {
         if (!AccessPolicyServerController.instance) {
@@ -45,6 +46,9 @@ export default class AccessPolicyServerController {
     public role_logged: RoleVO = null;
     public role_admin: RoleVO = null;
 
+    /**
+     * Multithreaded cache -----
+     */
     private registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
 
     private registered_roles_by_ids: { [role_id: number]: RoleVO } = {};
@@ -55,6 +59,9 @@ export default class AccessPolicyServerController {
     private registered_roles: { [role_name: string]: RoleVO } = {};
     private registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO } = {};
     private registered_policies: { [policy_name: string]: AccessPolicyVO } = {};
+    /**
+     * ----- Multithreaded cache
+     */
 
     public constructor() {
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_registered_role, this.set_registered_role.bind(this));
@@ -65,17 +72,108 @@ export default class AccessPolicyServerController {
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_set_role_policy, this.set_role_policy.bind(this));
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_registered_policy, this.update_registered_policy.bind(this));
         ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_policy_dependency, this.update_policy_dependency.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onUpdateRolePolicyVO, this.onUpdateRolePolicyVO.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onUpdateRoleVO, this.onUpdateRoleVO.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onUpdateUserRoleVO, this.onUpdateUserRoleVO.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onDeleteAccessPolicyVO, this.onDeleteAccessPolicyVO.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onDeletePolicyDependencyVO, this.onDeletePolicyDependencyVO.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onDeleteRolePolicyVO, this.onDeleteRolePolicyVO.bind(this));
-        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_onDeleteRoleVO, this.onDeleteRoleVO.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role_policy, this.update_role_policy.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_role, this.update_role.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_update_user_role, this.update_user_role.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy, this.delete_registered_policy.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_policy_dependency, this.delete_registered_policy_dependency.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role_policy, this.delete_registered_role_policy.bind(this));
+        ForkedTasksController.getInstance().register_task(AccessPolicyServerController.TASK_NAME_delete_registered_role, this.delete_registered_role.bind(this));
+    }
+
+    public async preload_registered_roles_policies() {
+        this.registered_roles_policies = {};
+
+        let rolesPolicies: RolePolicyVO[] = await ModuleDAO.getInstance().getVos<RolePolicyVO>(RolePolicyVO.API_TYPE_ID);
+        for (let i in rolesPolicies) {
+            let rolePolicy: RolePolicyVO = rolesPolicies[i];
+
+            if (!this.registered_roles_policies[rolePolicy.role_id]) {
+                this.registered_roles_policies[rolePolicy.role_id] = {};
+            }
+
+            this.registered_roles_policies[rolePolicy.role_id][rolePolicy.accpol_id] = rolePolicy;
+        }
+    }
+
+    public async preload_registered_users_roles() {
+        this.registered_users_roles = {};
+
+        let usersRoles: UserRoleVO[] = await ModuleDAO.getInstance().getVos<UserRoleVO>(UserRoleVO.API_TYPE_ID);
+        for (let i in usersRoles) {
+            let userRole: UserRoleVO = usersRoles[i];
+
+            if (!this.registered_users_roles[userRole.user_id]) {
+                this.registered_users_roles[userRole.user_id] = [];
+            }
+
+            this.registered_users_roles[userRole.user_id].push(this.registered_roles_by_ids[userRole.role_id]);
+        }
+    }
+
+    public async preload_registered_roles() {
+        // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
+        this.clean_registered_roles();
+
+        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID);
+        for (let i in roles) {
+            let role: RoleVO = roles[i];
+
+            this.set_registered_role(role);
+
+            if (role.translatable_name == this.role_admin.translatable_name) {
+                this.role_admin = role;
+            }
+            if (role.translatable_name == this.role_anonymous.translatable_name) {
+                this.role_anonymous = role;
+            }
+            if (role.translatable_name == this.role_logged.translatable_name) {
+                this.role_logged = role;
+            }
+        }
+    }
+
+    public async preload_registered_policies() {
+        // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
+        this.clean_registered_policies();
+
+        let policies: AccessPolicyVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID);
+        for (let i in policies) {
+            let policy: AccessPolicyVO = policies[i];
+
+            let moduleVO: ModuleVO = policy.module_id ? await ModulesManagerServer.getInstance().getModuleVOById(policy.module_id) : null;
+            if (policy.module_id && ((!moduleVO) || (!moduleVO.actif))) {
+                continue;
+            }
+            this.set_registered_policy(policy);
+        }
+    }
+
+    public async preload_registered_dependencies() {
+        // Normalement à ce stade toutes les déclarations sont en BDD, on clear et on reload bêtement
+        this.registered_dependencies = {};
+
+        let dependencies: PolicyDependencyVO[] = await ModuleDAO.getInstance().getVos<PolicyDependencyVO>(PolicyDependencyVO.API_TYPE_ID);
+        for (let i in dependencies) {
+            let dependency: PolicyDependencyVO = dependencies[i];
+
+            if (!this.registered_dependencies[dependency.src_pol_id]) {
+                this.registered_dependencies[dependency.src_pol_id] = [];
+            }
+            this.registered_dependencies[dependency.src_pol_id].push(dependency);
+        }
     }
 
     public get_registered_role(role_name: string): RoleVO {
         return this.registered_roles[role_name ? role_name.toLowerCase() : role_name];
+    }
+
+    public get_registered_role_by_id(role_id: number): RoleVO {
+        return this.registered_roles_by_ids[role_id];
+    }
+
+    public get_role_policy_by_ids(role_id: number, policy_id: number): RolePolicyVO {
+        return this.registered_roles_policies[role_id] ? this.registered_roles_policies[role_id][policy_id] : null;
     }
 
     public get_registered_policy_group(group_name: string): AccessPolicyGroupVO {
@@ -86,25 +184,44 @@ export default class AccessPolicyServerController {
         return this.registered_policies[policy_name ? policy_name.toLowerCase() : policy_name];
     }
 
+    public get_registered_policy_by_id(policy_id: number): AccessPolicyVO {
+        return this.registered_policies_by_ids[policy_id];
+    }
+
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public clean_registered_roles() {
         this.registered_roles = {};
         this.registered_roles_by_ids = {};
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public clean_registered_policy_groups() {
         this.registered_policy_groups = {};
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public clean_registered_policies() {
         this.registered_policies = {};
         this.registered_policies_by_ids = {};
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public set_registered_role(object: RoleVO) {
         this.registered_roles[object.translatable_name.toLowerCase()] = object;
         this.registered_roles_by_ids[object.id] = object;
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public set_registered_user_role(vo: UserRoleVO) {
         if (!vo) {
             return;
@@ -116,6 +233,9 @@ export default class AccessPolicyServerController {
         this.registered_users_roles[vo.user_id].push(this.registered_roles_by_ids[vo.role_id]);
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public set_registered_policy_group(object: AccessPolicyGroupVO) {
         if (!object) {
             return;
@@ -123,6 +243,9 @@ export default class AccessPolicyServerController {
         this.registered_policy_groups[object.translatable_name.toLowerCase()] = object;
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public set_registered_policy(object: AccessPolicyVO) {
         if (!object) {
             return;
@@ -131,6 +254,9 @@ export default class AccessPolicyServerController {
         this.registered_policies_by_ids[object.id] = object;
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public update_registered_policy(object: AccessPolicyVO) {
         if (!object) {
             return;
@@ -140,11 +266,14 @@ export default class AccessPolicyServerController {
         }
 
         if (this.registered_policies_by_ids[object.id].translatable_name != object.translatable_name) {
-            this.delete_registered_policy(this.registered_policies_by_ids[object.id].translatable_name);
+            this.delete_registered_policy(this.registered_policies_by_ids[object.id]);
         }
         this.set_registered_policy(object);
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public set_policy_dependency(object: PolicyDependencyVO) {
         if (!object) {
             return;
@@ -156,6 +285,9 @@ export default class AccessPolicyServerController {
         this.registered_dependencies[object.src_pol_id].push(object);
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public update_policy_dependency(object: PolicyDependencyVO) {
         if (!object) {
             return;
@@ -179,6 +311,9 @@ export default class AccessPolicyServerController {
         }
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public set_role_policy(object: RolePolicyVO) {
         if (!object) {
             return;
@@ -190,6 +325,80 @@ export default class AccessPolicyServerController {
         this.registered_roles_policies[object.role_id][object.accpol_id] = object;
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
+    public update_role_policy(object: RolePolicyVO) {
+        if (!object) {
+            return;
+        }
+
+        if (this.registered_roles_policies[object.role_id] && this.registered_roles_policies[object.role_id][object.accpol_id] &&
+            (this.registered_roles_policies[object.role_id][object.accpol_id].id == object.id)) {
+            this.registered_roles_policies[object.role_id][object.accpol_id] = object;
+            return;
+        }
+
+        // Sinon il y a eu un changement dans les ids, on fait une recherche intégrale
+        for (let j in this.registered_roles_policies) {
+            for (let i in this.registered_roles_policies[j]) {
+                if (this.registered_roles_policies[j][i].id == object.id) {
+                    this.registered_roles_policies[j][i] = object;
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
+    public update_role(object: RoleVO) {
+        if (!object) {
+            return;
+        }
+
+        if ((!this.registered_roles_by_ids[object.id]) || (!this.get_registered_role(this.registered_roles_by_ids[object.id].translatable_name))) {
+            return;
+        }
+
+        if (this.registered_roles_by_ids[object.id].translatable_name != object.translatable_name) {
+            this.delete_registered_role(this.registered_roles_by_ids[object.id]);
+        }
+        this.set_registered_role(object);
+    }
+
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
+    public update_user_role(object: UserRoleVO) {
+        if (!object) {
+            return;
+        }
+
+        let role: RoleVO = this.registered_roles_by_ids[object.role_id];
+
+        for (let i in this.registered_users_roles[object.user_id]) {
+            if (this.registered_users_roles[object.user_id][i].id == role.id) {
+                this.registered_users_roles[object.user_id][i] = role;
+                return true;
+            }
+        }
+
+        // Si on le trouve pas c'est probablement un changement de user_id, on lance une recherche plus large
+        for (let j in this.registered_users_roles) {
+            for (let i in this.registered_users_roles[j]) {
+                if (this.registered_users_roles[j][i].id == role.id) {
+                    this.registered_users_roles[j][i] = role;
+                    return true;
+                }
+            }
+        }
+    }
+
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public delete_registered_role(role: RoleVO) {
         if (!role) {
             return;
@@ -198,6 +407,9 @@ export default class AccessPolicyServerController {
         delete this.registered_roles_by_ids[role.id];
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public delete_registered_user_role(vo: UserRoleVO) {
         if (!vo) {
             return;
@@ -223,6 +435,9 @@ export default class AccessPolicyServerController {
         }
     }
 
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
     public delete_registered_policy_group(name: string) {
         if (!name) {
             return;
@@ -230,12 +445,60 @@ export default class AccessPolicyServerController {
         delete this.registered_policy_groups[name.toLowerCase()];
     }
 
-    public delete_registered_policy(name: string) {
-        if (!name) {
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
+    public delete_registered_policy(object: AccessPolicyVO) {
+        if (!object) {
             return;
         }
-        delete this.registered_policies[name.toLowerCase()];
-        delete this.registered_policies_by_ids[name.toLowerCase()];
+        delete this.registered_policies[object.translatable_name.toLowerCase()];
+        delete this.registered_policies_by_ids[object.id];
+    }
+
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
+    public delete_registered_policy_dependency(object: PolicyDependencyVO) {
+
+        for (let i in this.registered_dependencies[object.src_pol_id]) {
+            if (this.registered_dependencies[object.src_pol_id][i].id == object.id) {
+                this.registered_dependencies[object.src_pol_id].splice(parseInt(i), 1);
+                return;
+            }
+        }
+
+        // Si on le trouve pas c'est probablement un changement de src_pol_id, on lance une recherche plus large
+        for (let j in this.registered_dependencies) {
+            for (let i in this.registered_dependencies[j]) {
+                if (this.registered_dependencies[j][i].id == object.id) {
+                    this.registered_dependencies[j].splice(parseInt(i), 1);
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * WARN : After application initialisation (and first load of these cached datas), no update should stay in one thread, and has to be brocasted
+     */
+    public delete_registered_role_policy(object: RolePolicyVO) {
+
+        if (this.registered_roles_policies[object.role_id] && this.registered_roles_policies[object.role_id][object.accpol_id] &&
+            (this.registered_roles_policies[object.role_id][object.accpol_id].id == object.id)) {
+            delete this.registered_roles_policies[object.role_id][object.accpol_id];
+            return;
+        }
+
+        // Sinon il y a eu un changement dans les ids, on fait une recherche intégrale
+        for (let j in this.registered_roles_policies) {
+            for (let i in this.registered_roles_policies[j]) {
+                if (this.registered_roles_policies[j][i].id == object.id) {
+                    delete this.registered_roles_policies[j][i];
+                    return;
+                }
+            }
+        }
     }
 
     /**
@@ -358,16 +621,16 @@ export default class AccessPolicyServerController {
         policy.module_id = moduleVoID;
         let translatable_name: string = policy.translatable_name.toLowerCase();
 
-        if (!AccessPolicyServerController.getInstance().registered_policies) {
-            AccessPolicyServerController.getInstance().registered_policies = {};
+        if (!this.registered_policies) {
+            this.registered_policies = {};
         }
 
-        if (!AccessPolicyServerController.getInstance().registered_policies_by_ids) {
-            AccessPolicyServerController.getInstance().registered_policies_by_ids = {};
+        if (!this.registered_policies_by_ids) {
+            this.registered_policies_by_ids = {};
         }
 
-        if (AccessPolicyServerController.getInstance().registered_policies[translatable_name]) {
-            return AccessPolicyServerController.getInstance().registered_policies[translatable_name];
+        if (this.registered_policies[translatable_name]) {
+            return this.registered_policies[translatable_name];
         }
 
         if (default_translation) {
@@ -396,8 +659,8 @@ export default class AccessPolicyServerController {
                 ConsoleHandler.getInstance().error('Modification du droit :' + policyFromBDD.translatable_name + ': OK');
             }
 
-            AccessPolicyServerController.getInstance().registered_policies[translatable_name] = policyFromBDD;
-            AccessPolicyServerController.getInstance().registered_policies_by_ids[policyFromBDD.id] = policyFromBDD;
+            this.registered_policies[translatable_name] = policyFromBDD;
+            this.registered_policies_by_ids[policyFromBDD.id] = policyFromBDD;
             return policyFromBDD;
         }
 
@@ -408,10 +671,51 @@ export default class AccessPolicyServerController {
         }
 
         policy.id = parseInt(insertOrDeleteQueryResult.id);
-        AccessPolicyServerController.getInstance().registered_policies[translatable_name] = policy;
-        AccessPolicyServerController.getInstance().registered_policies_by_ids[policy.id] = policy;
+        this.registered_policies[translatable_name] = policy;
+        this.registered_policies_by_ids[policy.id] = policy;
         ConsoleHandler.getInstance().error('Ajout du droit OK :' + policy.translatable_name + ':');
         return policy;
+    }
+
+    public async registerPolicyDependency(dependency: PolicyDependencyVO): Promise<PolicyDependencyVO> {
+
+        if (!this.registered_dependencies) {
+            this.registered_dependencies = {};
+        }
+
+        if (this.registered_dependencies[dependency.src_pol_id]) {
+
+            for (let i in this.registered_dependencies[dependency.src_pol_id]) {
+                if (this.registered_dependencies[dependency.src_pol_id][i].depends_on_pol_id == dependency.depends_on_pol_id) {
+                    return this.registered_dependencies[dependency.src_pol_id][i];
+                }
+            }
+        }
+
+        if (!this.registered_dependencies[dependency.src_pol_id]) {
+            this.registered_dependencies[dependency.src_pol_id] = [];
+        }
+
+        let dependencyFromBDD: PolicyDependencyVO = await ModuleDAOServer.getInstance().selectOne<PolicyDependencyVO>(PolicyDependencyVO.API_TYPE_ID, "where src_pol_id = $1 and depends_on_pol_id = $2", [dependency.src_pol_id, dependency.depends_on_pol_id]);
+        if (dependencyFromBDD) {
+            this.registered_dependencies[dependency.src_pol_id].push(dependencyFromBDD);
+            return dependencyFromBDD;
+        }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(dependency);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            ConsoleHandler.getInstance().error('Ajout de dépendance échouée :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
+            return null;
+        }
+
+        dependency.id = parseInt(insertOrDeleteQueryResult.id);
+        this.registered_dependencies[dependency.src_pol_id].push(dependency);
+        ConsoleHandler.getInstance().error('Ajout de dépendance OK :' + dependency.src_pol_id + ':' + dependency.depends_on_pol_id + ":");
+        return dependency;
+    }
+
+    public get_registered_user_roles_by_uid(uid: number): RoleVO[] {
+        return this.registered_users_roles[uid];
     }
 
     /**
@@ -421,13 +725,14 @@ export default class AccessPolicyServerController {
      */
     public getUsersRoles(
         logged_in: boolean,
-        bdd_user_roles: RoleVO[],
-        all_roles: { [role_id: number]: RoleVO }): { [role_id: number]: RoleVO } {
+        uid: number,
+        bdd_user_roles: RoleVO[] = this.registered_users_roles[uid],
+        all_roles: { [role_id: number]: RoleVO } = this.registered_roles_by_ids): { [role_id: number]: RoleVO } {
         let res: { [role_id: number]: RoleVO } = {};
 
         if ((!logged_in) || (!all_roles)) {
             return {
-                [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
+                [this.role_anonymous.id]: this.role_anonymous
             };
         }
 
@@ -439,7 +744,7 @@ export default class AccessPolicyServerController {
                 user_roles.push(bdd_user_roles[i]);
             }
         }
-        user_roles.push(AccessPolicyServerController.getInstance().role_logged);
+        user_roles.push(this.role_logged);
 
         for (let i in user_roles) {
             let role: RoleVO = user_roles[i];
@@ -464,28 +769,28 @@ export default class AccessPolicyServerController {
         let res: { [policy_id: number]: { [role_id: number]: boolean } } = {};
 
         // Pour toutes les policies et tous les rôles, on fait un checkaccess. C'est bourrin mais pas mieux en stock pour être sûr d'avoir le bon résultat
-        for (let i in AccessPolicyServerController.getInstance().registered_policies) {
-            let policy: AccessPolicyVO = AccessPolicyServerController.getInstance().registered_policies[i];
+        for (let i in this.registered_policies) {
+            let policy: AccessPolicyVO = this.registered_policies[i];
 
             if (!res[policy.id]) {
                 res[policy.id] = {};
             }
 
-            for (let j in AccessPolicyServerController.getInstance().registered_roles) {
-                let role: RoleVO = AccessPolicyServerController.getInstance().registered_roles[j];
+            for (let j in this.registered_roles) {
+                let role: RoleVO = this.registered_roles[j];
 
                 // On ignore l'admin qui a accès à tout
-                if (role.id == AccessPolicyServerController.getInstance().role_admin.id) {
+                if (role.id == this.role_admin.id) {
                     continue;
                 }
 
-                res[policy.id][role.id] = AccessPolicyServerController.getInstance().checkAccessTo(
+                res[policy.id][role.id] = this.checkAccessTo(
                     policy,
                     { [role.id]: role },
-                    AccessPolicyServerController.getInstance().registered_roles_by_ids,
-                    AccessPolicyServerController.getInstance().registered_roles_policies,
-                    AccessPolicyServerController.getInstance().registered_policies_by_ids,
-                    AccessPolicyServerController.getInstance().registered_dependencies,
+                    this.registered_roles_by_ids,
+                    this.registered_roles_policies,
+                    this.registered_policies_by_ids,
+                    this.registered_dependencies,
                     ignore_role ? role : null);
             }
         }
@@ -508,10 +813,10 @@ export default class AccessPolicyServerController {
     public checkAccessTo(
         target_policy: AccessPolicyVO,
         user_roles: { [role_id: number]: RoleVO },
-        all_roles: { [role_id: number]: RoleVO },
-        role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } },
-        policies: { [policy_id: number]: AccessPolicyVO },
-        policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] },
+        all_roles: { [role_id: number]: RoleVO } = this.registered_roles_by_ids,
+        role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = this.registered_roles_policies,
+        policies: { [policy_id: number]: AccessPolicyVO } = this.registered_policies_by_ids,
+        policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = this.registered_dependencies,
         ignore_role_policy: RoleVO = null): boolean {
 
         if ((!target_policy) || (!user_roles) || (!all_roles)) {

@@ -1427,32 +1427,32 @@ describe('AccessPolicyServer', () => {
         new_role.id = 1001;
 
         all_roles[new_role.id] = new_role;
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(false, null, null)).to.deep.equal({
+        expect(AccessPolicyServerController.getInstance().getUsersRoles(false, null, null, null)).to.deep.equal({
             [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(false, [], all_roles)).to.deep.equal({
+        expect(AccessPolicyServerController.getInstance().getUsersRoles(false, null, [], all_roles)).to.deep.equal({
             [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, [], all_roles)).to.deep.equal({
+        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [], all_roles)).to.deep.equal({
             [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
             [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, all_roles)).to.deep.equal({
+        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, null, all_roles)).to.deep.equal({
             [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
             [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, [
+        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [
             AccessPolicyServerController.getInstance().role_anonymous
         ], all_roles)).to.deep.equal({
             [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous,
             [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, [
+        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [
             AccessPolicyServerController.getInstance().role_anonymous,
             AccessPolicyServerController.getInstance().role_logged
         ], all_roles)).to.deep.equal({
@@ -1460,7 +1460,7 @@ describe('AccessPolicyServer', () => {
             [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, [
+        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [
             new_role
         ], all_roles)).to.deep.equal({
             [new_role.id]: new_role,
@@ -1468,7 +1468,7 @@ describe('AccessPolicyServer', () => {
             [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous
         });
 
-        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, [
+        expect(AccessPolicyServerController.getInstance().getUsersRoles(true, null, [
             AccessPolicyServerController.getInstance().role_admin
         ], all_roles)).to.deep.equal({
             [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin,

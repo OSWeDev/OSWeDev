@@ -192,6 +192,8 @@ export default abstract class ModuleServiceBase {
 
         // On lance la configuration des modules, et avant on configure les apis des modules server
         await this.configure_server_modules_apis();
+        // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
+        await this.preload_segmented_known_databases();
 
         if ((!!is_generator) || (!ConfigurationService.getInstance().getNodeConfiguration().SERVER_START_BOOSTER)) {
 
@@ -235,6 +237,26 @@ export default abstract class ModuleServiceBase {
             if (server_module.actif) {
                 server_module.registerServerApiHandlers();
                 await server_module.configure();
+            }
+        }
+    }
+
+    public async preload_segmented_known_databases() {
+
+        for (let i in this.server_modules) {
+            let module_: Module = this.registered_modules[i];
+
+            if (!module_.actif) {
+                continue;
+            }
+            for (let j in module_.datatables) {
+                let t = module_.datatables[j];
+
+                if (!t.is_segmented) {
+                    continue;
+                }
+
+                await ModuleDAOServer.getInstance().preload_segmented_known_database(t);
             }
         }
     }

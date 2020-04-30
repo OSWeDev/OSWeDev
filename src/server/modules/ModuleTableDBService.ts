@@ -2,12 +2,13 @@ import IRange from '../../shared/modules/DataRender/interfaces/IRange';
 import IDistantVOBase from '../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../shared/modules/ModuleTable';
 import ModuleTableField from '../../shared/modules/ModuleTableField';
+import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../shared/tools/ObjectHandler';
 import RangeHandler from '../../shared/tools/RangeHandler';
 import ModuleDAOServer from './DAO/ModuleDAOServer';
+import ForkedTasksController from './Fork/ForkedTasksController';
 import TableColumnDescriptor from './TableColumnDescriptor';
 import TableDescriptor from './TableDescriptor';
-import ConsoleHandler from '../../shared/tools/ConsoleHandler';
 
 export default class ModuleTableDBService {
 
@@ -38,30 +39,7 @@ export default class ModuleTableDBService {
 
     // Après installation de tous les modules
     public async datatable_configure(moduleTable: ModuleTable<any>) {
-
         return true;
-    }
-
-
-    // création nouvelle table segmentée => créer la table et changer la séquence pour utiliser la séquence commune => à faire juste avant insertion d'une data sur nouveau segment
-    public async add_segmentation_to_moduletable(moduleTable: ModuleTable<any>, segmented_value) {
-
-        let common_id_seq_name = this.get_segmented_table_common_limited_seq_label(moduleTable);
-        let table_name = moduleTable.get_segmented_name(segmented_value);
-        let database_name = moduleTable.database;
-        await this.do_check_or_update_moduletable(moduleTable, database_name, table_name);
-
-        // Dans le doute la séquence peut manquer
-        await this.db.query(
-            'CREATE SEQUENCE IF NOT EXISTS ' + moduleTable.database + '.' + common_id_seq_name +
-            '  INCREMENT 1' +
-            '  MINVALUE 1' +
-            '  MAXVALUE 9223372036854775807' +
-            '  START 1' +
-            '  CACHE 1;');
-
-
-        await this.db.query("ALTER TABLE " + database_name + "." + table_name + " ALTER COLUMN id SET DEFAULT nextval('" + moduleTable.database + "." + common_id_seq_name + "'::regclass);");
     }
 
     /**
@@ -164,7 +142,7 @@ export default class ModuleTableDBService {
                 let table_name = moduleTable.get_segmented_name(segmented_value);
                 await self.do_check_or_update_moduletable(moduleTable, database_name, table_name);
 
-                ModuleDAOServer.getInstance().segmented_known_databases[database_name + "." + table_name] = true;
+                ForkedTasksController.getInstance().broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
 
                 if (!migration_todo) {
 

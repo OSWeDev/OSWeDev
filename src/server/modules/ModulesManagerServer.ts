@@ -13,6 +13,9 @@ export default class ModulesManagerServer {
 
     private static instance: ModulesManagerServer = null;
 
+    /**
+     * Cache qui n'est remis à jour qu'au démarrage de l'appli, comme de toutes façons les modifs concernées sont trop risquées en cours de fonctionnement
+     */
     private modulesVoByName: { [module_name: string]: ModuleVO } = {};
     private modulesVoById: { [id: number]: ModuleVO } = {};
 

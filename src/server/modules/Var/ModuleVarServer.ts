@@ -30,6 +30,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarServerController from './VarServerController';
 import SimpleVarDataValueRes from '../../../shared/modules/Var/simple_vars/SimpleVarDataValueRes';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -465,8 +466,12 @@ export default class ModuleVarServer extends ModuleServerBase {
             // }
 
             for (let segmentation_i in segmentations) {
-                let segmentation = segmentations[segmentation_i];
+                let segmentation: NumRange = segmentations[segmentation_i];
                 let segmented_value = segmentation.min;
+
+                if (!ModuleDAOServer.getInstance().has_segmented_known_database(moduleTable, segmented_value)) {
+                    continue;
+                }
 
                 let full_name = moduleTable.database + '.' + moduleTable.get_segmented_name(segmented_value);
                 let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', full_name, exact_search_fields);

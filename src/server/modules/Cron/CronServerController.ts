@@ -24,6 +24,9 @@ export default class CronServerController {
 
     private static instance: CronServerController = null;
 
+    /**
+     * Monothreaded cache -----
+     */
     public registered_cronWorkers: { [worker_uid: string]: ICronWorker } = {};
     public cronWorkers_semaphores: { [worker_uid: string]: boolean } = {};
 
@@ -33,6 +36,9 @@ export default class CronServerController {
     public server_ready: boolean = false;
 
     public semaphore: boolean = false;
+    /**
+     * ----- Monothreaded cache
+     */
 
     private constructor() {
         ForkMessageController.getInstance().register_message_handler(RunCronForkMessage.FORK_MESSAGE_TYPE, this.handle_runcron_message.bind(this));

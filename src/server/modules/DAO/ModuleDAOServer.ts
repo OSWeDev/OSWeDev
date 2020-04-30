@@ -23,6 +23,7 @@ import APIDAORefFieldsAndFieldsStringParamsVO from '../../../shared/modules/DAO/
 import APIDAORefFieldsParamsVO from '../../../shared/modules/DAO/vos/APIDAORefFieldsParamsVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -56,6 +57,8 @@ import DAOTriggerHook from './triggers/DAOTriggerHook';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
+    public static TASK_NAME_add_segmented_known_databases: string = ModuleDAO.getInstance().name + ".add_segmented_known_databases";
+
     public static getInstance() {
         if (!ModuleDAOServer.instance) {
             ModuleDAOServer.instance = new ModuleDAOServer();
@@ -65,9 +68,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private static instance: ModuleDAOServer = null;
 
-    // Un cache des tables segmentées connues, qui n'a pas vocation à être exhaustif mais simplement si la table est dans ce tableau, elle existe en base
-    //  on ne supprime pas de table de toutes manières, donc ça doit pas être faux.
-    public segmented_known_databases: { [name: string]: boolean } = {};
+    /**
+     * Multithreaded cache -----
+     */
+    /**
+     * Le nombre est la valeur du segment de la table. L'existence de la table est liée à sa présence dans l'objet simplement.
+     */
+    private segmented_known_databases: { [database_name: string]: { [table_name: string]: number } } = {};
+    /**
+     * ----- Multithreaded cache
+     */
+
+    /**
+     * Monothreaded cache -----
+     */
 
     // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
     private access_hooks: { [api_type_id: string]: { [access_type: string]: IHookFilterVos<IDistantVOBase> } } = {};
@@ -81,8 +95,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private post_update_trigger_hook: DAOTriggerHook;
     private post_create_trigger_hook: DAOTriggerHook;
     // private post_delete_trigger_hook: DAOTriggerHook;
-
-    private insertOrUpdateVOs_debounced_vos_by_ids: { [id: number]: IDistantVOBase[] } = {};
+    /**
+     * Monothreaded cache -----
+     */
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
@@ -344,6 +359,40 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     /**
+     * WARN : Except for initialisation, needs to be brocasted
+     * @param database_name
+     * @param table_name With segmentation (complete table name)
+     * @param segmented_value
+     */
+    public add_segmented_known_databases(database_name: string, table_name: string, segmented_value: number) {
+        if (!this.segmented_known_databases) {
+            this.segmented_known_databases = {};
+        }
+
+        if (!this.segmented_known_databases[database_name]) {
+            this.segmented_known_databases[database_name] = {};
+        }
+        this.segmented_known_databases[database_name][table_name] = segmented_value;
+    }
+
+    public async preload_segmented_known_database(t: ModuleTable<any>) {
+        let segments_by_segmented_value: { [segmented_value: number]: string } = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(t);
+
+        for (let i in segments_by_segmented_value) {
+            let table_name = segments_by_segmented_value[i];
+
+            this.add_segmented_known_databases(t.database, table_name, parseInt(i.toString()));
+        }
+    }
+
+    public has_segmented_known_database(t: ModuleTable<any>, segment_value: number): boolean {
+        if ((!this.segmented_known_databases[t.database]) || (!this.segmented_known_databases[t.database][t.get_segmented_name(segment_value)])) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Objectif : Renvoyer la partie de la requête à intégrer dans le where pour faire un filter by matroid (inclusif, pas intersect)
      * Return null si on a pas de filtre
      * @param api_type_id
@@ -500,8 +549,12 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
+            let self = this;
             await RangeHandler.getInstance().foreach_ranges(ranges, async (segment_value) => {
 
+                if (!self.has_segmented_known_database(datatable, segment_value)) {
+                    return;
+                }
                 await ModuleServiceBase.getInstance().db.none("TRUNCATE " + datatable.get_segmented_full_name(segment_value) + ";");
 
             }, datatable.table_segmented_field_segment_type);
@@ -523,17 +576,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // Si on est sur une table segmentée on adapte le comportement
             if (!ranges) {
-                let segments_by_segmented_value: { [segmented_value: number]: string } = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(moduleTable);
-                ranges = [];
-
-                for (let i in segments_by_segmented_value) {
-                    let table_name = segments_by_segmented_value[i];
-
-                    let splits = table_name.split('_');
-                    let segmented = parseInt(splits[splits.length - 1]);
-
-                    ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segmented, moduleTable.table_segmented_field_segment_type));
-                }
+                ranges = this.get_all_ranges_from_segmented_table(moduleTable);
             }
 
             if ((!ranges) || (RangeHandler.getInstance().getCardinalFromArray(ranges) < 1)) {
@@ -542,18 +585,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let segmented_res: T[] = [];
 
+            let self = this;
             await RangeHandler.getInstance().foreach_ranges(ranges, async (segment_value) => {
 
                 // UNION ALL plutôt que x requetes non ? => attention dans ce cas la query doit surtout pas avoir un ;
                 //  Grosse blague TODO FIXME : quid d'un limit ???? il se lance à chaque requête... résultat on a bcp plus de res que la limit
 
-                try {
+                if (!self.has_segmented_known_database(moduleTable, segment_value)) {
+                    return;
+                }
 
-                    let segment_res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
-                    for (let i in segment_res) {
-                        segmented_res.push(segment_res[i]);
-                    }
-                } catch (error) {
+                let segment_res = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT " + (distinct ? 'distinct' : '') + " t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query ? query : ''), queryParams ? queryParams : []) as T[]);
+                for (let i in segment_res) {
+                    segmented_res.push(segment_res[i]);
                 }
             }, moduleTable.table_segmented_field_segment_type);
 
@@ -568,19 +612,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     public async selectOne<T extends IDistantVOBase>(API_TYPE_ID: string, query: string = null, queryParams: any[] = null, depends_on_api_type_ids: string[] = null, ranges: Array<IRange<any>> = null): Promise<T> {
-        let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
+        let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[API_TYPE_ID];
 
         // On vérifie qu'on peut faire un select
-        if (!await this.checkAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+        if (!await this.checkAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
             return null;
         }
 
-        if (datatable.is_segmented) {
+        if (moduleTable.is_segmented) {
 
             // Si on est sur une table segmentée on adapte le comportement
             if (!ranges) {
-                // On refuse de tout questionner en vrac
-                throw new Error('Not Implemented');
+                ranges = this.get_all_ranges_from_segmented_table(moduleTable);
             }
 
             if ((!ranges) || (RangeHandler.getInstance().getCardinalFromArray(ranges) < 1)) {
@@ -589,33 +632,38 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             let segmented_vo: T = null;
             let error: boolean = false;
+            let self = this;
             await RangeHandler.getInstance().foreach_ranges(ranges, async (segment_value) => {
 
-                let segment_vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.get_segmented_full_name(segment_value) + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
+                if (!self.has_segmented_known_database(moduleTable, segment_value)) {
+                    return;
+                }
+
+                let segment_vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment_value) + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
 
                 if ((!!segmented_vo) && (!!segment_vo)) {
-                    ConsoleHandler.getInstance().error('More than one result on selectOne on segmented table :' + datatable.get_segmented_full_name(segment_value) + ';');
+                    ConsoleHandler.getInstance().error('More than one result on selectOne on segmented table :' + moduleTable.get_segmented_full_name(segment_value) + ';');
                     error = true;
                 }
 
                 if (!!segment_vo) {
                     segmented_vo = segment_vo;
                 }
-            }, datatable.table_segmented_field_segment_type);
+            }, moduleTable.table_segmented_field_segment_type);
 
             if (error) {
                 return null;
             }
 
             // On filtre les vo suivant les droits d'accès
-            return await this.filterVOAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, segmented_vo);
+            return await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, segmented_vo);
         }
 
-        let vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
-        datatable.forceNumeric(vo);
+        let vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
+        moduleTable.forceNumeric(vo);
 
         // On filtre suivant les droits d'accès
-        return await this.filterVOAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
+        return await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
     }
 
     /**
@@ -741,36 +789,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
         }
     }
-
-    // /**
-    //  * Version serveur pour alléger certains traitements qui permet de regrouper en batch les modifs sur des cas où finalement on considère que la modif est pas urgente et donc on peut éviter de faire 1000 appels par seconde
-    //  *  ATTENTION : ça signifie 2 choses :
-    //  *      - si un update passe en parralèle sur un VO, donc après la demande à cette fonction mais avant le timeout du debounce, on se retrouve à insérer une data en base dont la date est plus ancienne....
-    //  *      - si on demande 3 updates sur une data et qu'on change 3 champs différents, on aura au final que la dernière modif demandée qui sera appliquée, donc on changera un champs, pas 3
-    //  */
-    // public async insertOrUpdateVOs_debounced(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
-
-    //     // Le fonctionnement : On fait un appel à une version debounced de insertor_update qui insèrera une liste de vos issue de insertOrUpdateVOs_debounced_vos_by_ids :
-    //     //  On prend tous les index 0 => les créations
-    //     //  On prend le dernier (pop) de chaque id (les updates)
-    //     for (let i in vos){
-    //         let vo = vos[i];
-
-    //         let vo_id = vo.id ? vo.id : 0;
-
-    //         if (!this.insertOrUpdateVOs_debounced_vos_by_ids[vo_id]){
-    //             this.insertOrUpdateVOs_debounced_vos_by_ids[vo_id] = [];
-    //         }
-    //         this.insertOrUpdateVOs_debounced_vos_by_ids[vo_id].push(vo);
-    //     }
-
-    //     if (this.insertOrUpdateVOs_debounced_semaphore){
-    //         return;
-    //     }
-    //     this.insertOrUpdateVOs_debounced_semaphore = true;
-
-
-    // }
 
     private async insertOrUpdateVOs(vos: IDistantVOBase[]): Promise<InsertOrDeleteQueryResult[]> {
 
@@ -967,9 +985,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     continue;
                 }
 
-                let datatable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+                let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
 
-                if (!datatable) {
+                if (!moduletable) {
                     ConsoleHandler.getInstance().error("Impossible de trouver le datatable de ce _type ! " + JSON.stringify(vo));
                     continue;
                 }
@@ -983,12 +1001,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 let full_name = null;
 
-                if (datatable.is_segmented) {
-
+                if (moduletable.is_segmented) {
                     // Si on est sur une table segmentée on adapte le comportement
-                    full_name = datatable.get_segmented_full_name_from_vo(vo);
+                    full_name = moduletable.get_segmented_full_name_from_vo(vo);
                 } else {
-                    full_name = datatable.full_name;
+                    full_name = moduletable.full_name;
                 }
 
                 const sql = "DELETE FROM " + full_name + " where id = ${id} RETURNING id";
@@ -1073,15 +1090,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (moduleTable.is_segmented) {
                 // Si on est sur une table segmentée on adapte le comportement
+                let name = moduleTable.get_segmented_name_from_vo(vo);
                 full_name = moduleTable.get_segmented_full_name_from_vo(vo);
 
                 // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
-                if (!this.segmented_known_databases[full_name]) {
+                if ((!this.segmented_known_databases[moduleTable.database]) || (!this.segmented_known_databases[moduleTable.database][name])) {
 
                     await ModuleTableDBService.getInstance(null).create_or_update_datatable(
                         moduleTable,
                         [RangeHandler.getInstance().create_single_elt_range(moduleTable.table_segmented_field_range_type, moduleTable.get_segmented_field_value_from_vo(vo), moduleTable.table_segmented_field_segment_type)]);
-                    this.segmented_known_databases[full_name] = true;
                 }
             } else {
                 full_name = moduleTable.full_name;
@@ -1206,21 +1223,25 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (moduleTable.is_segmented) {
 
             let request = null;
-            let segmentations_tables_by_segmented_value: { [segmented_value: number]: string } = {};
+            let segmentations: { [table_name: string]: number } = {};
 
             if (apiDAOParamVO.segmentation_ranges && apiDAOParamVO.segmentation_ranges.length) {
 
+                let self = this;
                 await RangeHandler.getInstance().foreach_ranges(apiDAOParamVO.segmentation_ranges, (segmented_value) => {
 
+                    if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
+                        return;
+                    }
+
                     let table_name = moduleTable.get_segmented_name(segmented_value);
-                    segmentations_tables_by_segmented_value[segmented_value] = table_name;
+                    segmentations[table_name] = segmented_value;
                 });
             } else {
-                segmentations_tables_by_segmented_value = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(moduleTable);
+                segmentations = this.segmented_known_databases[moduleTable.database];
             }
 
-            for (let i in segmentations_tables_by_segmented_value) {
-                let segmentation_table = segmentations_tables_by_segmented_value[i];
+            for (let segmentation_table in segmentations) {
 
                 if (!request) {
                     request = '';
@@ -1309,36 +1330,30 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 for (let i in apiDAOParamsVO.ids) {
                     let id = apiDAOParamsVO.ids[i];
 
+                    if (!this.has_segmented_known_database(moduleTable, id)) {
+                        continue;
+                    }
+
                     if (!id) {
                         continue;
                     }
 
-                    let tmp_vos = [];
-
-                    try {
-                        tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.get_segmented_full_name(id) + request) as T[]);
-                    } catch (error) {
-                    }
+                    let tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.get_segmented_full_name(id) + request) as T[]);
                     if ((!!tmp_vos) && (tmp_vos.length)) {
                         vos = vos.concat(tmp_vos);
                     }
                 }
             } else {
                 // si on cherche sur un autre champs, ça revient à faire la requete sur chaque segment
-                let segments: { [segmented_value: number]: string; } = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(moduleTable);
+                let segments: { [table_name: string]: number } = this.segmented_known_databases[moduleTable.database];
                 for (let i in segments) {
-                    let segment = segments[i];
+                    let segment: number = segments[i];
 
                     if (!segment) {
                         continue;
                     }
 
-                    let tmp_vos = [];
-
-                    try {
-                        tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.get_segmented_full_name(parseInt(segment.toString())) + request) as T[]);
-                    } catch (error) {
-                    }
+                    let tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.get_segmented_full_name(segment) + request) as T[]);
                     if ((!!tmp_vos) && (tmp_vos.length)) {
                         vos = vos.concat(tmp_vos);
                     }
@@ -1478,11 +1493,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // TODO FIXME comme pour le by id on doit pouvoir passer un ranges en param
 
-            let segmentations_tables_by_segmented_value: { [segmented_value: number]: string } = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(moduleTable);
+            let segmentations: { [table_name: string]: number } = this.segmented_known_databases[moduleTable.database];
             let request = null;
 
-            for (let i in segmentations_tables_by_segmented_value) {
-                let segmentation_table = segmentations_tables_by_segmented_value[i];
+            for (let segmentation_table in segmentations) {
 
                 if (!request) {
                     request = '';
@@ -1646,7 +1660,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (moduleTable.is_segmented) {
 
             let request = null;
-            let segmentations_tables_by_segmented_value: { [segmented_value: number]: string } = {};
+            let segmentations_tables: { [table_name: string]: number } = {};
 
             // On cherche dans le matroid le field qui est la segmentation. Si on a pas, on info qu'on peut éviter de faire une recherche en masse peut-être
             let segmented_matroid_filed_id = moduleTable.table_segmented_field.field_id;
@@ -1662,7 +1676,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let segmentations: Array<IRange<any>> = [];
             if ((!segmented_matroid_filed_id) || (!matroid[segmented_matroid_filed_id]) || (!matroid[segmented_matroid_filed_id].length)) {
                 ConsoleHandler.getInstance().log('filterVosByMatroid sur table segmentée - ' + moduleTable.full_name + ' - sans info de segment sur le matroid');
-                segmentations_tables_by_segmented_value = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(moduleTable);
+                segmentations_tables = this.segmented_known_databases[moduleTable.database];
             } else {
                 segmentations = matroid[segmented_matroid_filed_id];
 
@@ -1673,15 +1687,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // switch (matroid_field.field_type) {
                 // }
 
+                let self = this;
                 await RangeHandler.getInstance().foreach_ranges(segmentations, (segmented_value) => {
 
+                    if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
+                        return;
+                    }
+
                     let table_name = moduleTable.get_segmented_name(segmented_value);
-                    segmentations_tables_by_segmented_value[segmented_value] = table_name;
+                    segmentations_tables[table_name] = segmented_value;
                 });
             }
 
-            for (let i in segmentations_tables_by_segmented_value) {
-                let segmentation_table = segmentations_tables_by_segmented_value[i];
+            for (let segmentation_table in segmentations_tables) {
 
                 if (!request) {
                     request = '';
@@ -1700,14 +1718,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 request += 'select * from ' + db_full_name + ' t where ' + filter_by_matroid_clause + ' ';
             }
 
-            /**
-             * Attention en cas de segmentation on peut très bien ne pas avoir de table du tout ! Donc la requête plante complètement et ça veut juste dire 0 résultats
-             */
-            let vos = null;
-            try {
-                vos = await ModuleServiceBase.getInstance().db.query(request + ';') as T[];
-            } catch (error) {
-            }
+            let vos = await ModuleServiceBase.getInstance().db.query(request + ';') as T[];
 
             return moduleTable.forceNumerics(vos);
         } else {
@@ -1855,7 +1866,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (moduleTable.is_segmented) {
 
             let request = null;
-            let segmentations_tables_by_segmented_value: { [segmented_value: number]: string } = {};
+            let segmentations_tables: { [table_name: string]: number } = {};
 
             // On cherche dans le matroid le field qui est la segmentation. Si on a pas, on refuse de chercher en masse
             let segmented_matroid_field_id = moduleTable.table_segmented_field.field_id;
@@ -1889,17 +1900,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 if (segmentations && segmentations.length) {
 
+                    let self = this;
                     await RangeHandler.getInstance().foreach_ranges(segmentations, (segmented_value) => {
 
+                        if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
+                            return;
+                        }
                         let table_name = moduleTable.get_segmented_name(segmented_value);
-                        segmentations_tables_by_segmented_value[segmented_value] = table_name;
+                        segmentations_tables[table_name] = segmented_value;
                     });
                 } else {
-                    throw new Error('Not Implemented');
+                    segmentations_tables = this.segmented_known_databases[moduleTable.database];
                 }
 
-                for (let j in segmentations_tables_by_segmented_value) {
-                    let segmentation_table = segmentations_tables_by_segmented_value[j];
+                for (let segmentation_table in segmentations_tables) {
 
                     if (!request) {
                         request = '';
@@ -2052,7 +2066,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         if (moduleTable.is_segmented) {
 
             let request = null;
-            let segmentations_tables_by_segmented_value: { [segmented_value: number]: string } = {};
+            let segmentations_tables: { [table_name: string]: number } = {};
 
             // On cherche dans le matroid le field qui est la segmentation. Si on a pas, on refuse de chercher en masse
             let segmented_matroid_field_id = moduleTable.table_segmented_field.field_id;
@@ -2087,17 +2101,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 if (segmentations && segmentations.length) {
 
+                    let self = this;
                     await RangeHandler.getInstance().foreach_ranges(segmentations, (segmented_value) => {
 
+                        if (!self.has_segmented_known_database(moduleTable, segmented_value)) {
+                            return;
+                        }
+
                         let table_name = moduleTable.get_segmented_name(segmented_value);
-                        segmentations_tables_by_segmented_value[segmented_value] = table_name;
+                        segmentations_tables[table_name] = segmented_value;
                     });
                 } else {
                     throw new Error('Not Implemented');
                 }
 
-                for (let j in segmentations_tables_by_segmented_value) {
-                    let segmentation_table = segmentations_tables_by_segmented_value[j];
+                for (let segmentation_table in segmentations_tables) {
 
                     if (!request) {
                         request = '';
@@ -2593,5 +2611,22 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return null;
+    }
+
+    private get_all_ranges_from_segmented_table(moduleTable: ModuleTable<any>): NumRange[] {
+        let segmentations: { [table_name: string]: number } = this.segmented_known_databases[moduleTable.database];
+        if (!segmentations) {
+            return null;
+        }
+
+        let ranges: NumRange[] = [];
+
+        for (let i in segmentations) {
+            let segment = segmentations[i];
+
+            ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segment, moduleTable.table_segmented_field_segment_type));
+        }
+
+        return ranges;
     }
 }

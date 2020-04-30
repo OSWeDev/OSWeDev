@@ -100,21 +100,6 @@ export default class PeriodHandler {
         return (!!date) && (!!lower) && (!!upper) && (date.isSameOrAfter(lower) && date.isSameOrBefore(upper));
     }
 
-    public isDateInPeriodForceUTC(date: Moment, period: string): boolean {
-        if (!period) {
-            return false;
-        }
-
-        if (!date) {
-            return false;
-        }
-
-        let lower: Moment = this.lowerMoment(period, 'days');
-        let upper: Moment = this.upperMoment(period, 'days');
-
-        return (!!date) && (!!lower) && (!!upper) && (date.isSameOrAfter(lower.utc(true)) && date.isSameOrBefore(upper.utc(true)));
-    }
-
     public get_ts_range_from_period(period: string, segment_type: number): TSRange {
 
         return TSRange.createNew(
