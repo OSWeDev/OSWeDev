@@ -15,7 +15,6 @@ export default class AccessPolicyController {
 
     private constructor() { }
 
-
     public prepareForInsertOrUpdateAfterPwdChange(user: UserVO, new_pwd1: string): void {
 
         user.password = new_pwd1;

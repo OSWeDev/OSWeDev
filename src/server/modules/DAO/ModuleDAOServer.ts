@@ -69,18 +69,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private static instance: ModuleDAOServer = null;
 
     /**
-     * Multithreaded cache -----
+     * Global application cache - Brocasted CUD - Local R -----
      */
     /**
      * Le nombre est la valeur du segment de la table. L'existence de la table est liée à sa présence dans l'objet simplement.
      */
     private segmented_known_databases: { [database_name: string]: { [table_name: string]: number } } = {};
     /**
-     * ----- Multithreaded cache
+     * ----- Global application cache - Brocasted CUD - Local R
      */
 
     /**
-     * Monothreaded cache -----
+     * Local thread cache -----
      */
 
     // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
@@ -96,7 +96,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private post_create_trigger_hook: DAOTriggerHook;
     // private post_delete_trigger_hook: DAOTriggerHook;
     /**
-     * Monothreaded cache -----
+     * Local thread cache -----
      */
 
     private constructor() {

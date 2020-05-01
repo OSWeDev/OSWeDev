@@ -76,8 +76,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
     private static instance: ModuleProgramPlanBase = null;
 
-    public showProgramAdministration: boolean = true;
-
     protected constructor(
         name: string,
         reflexiveClassName: string,

@@ -23,8 +23,6 @@ export default class ModulePushDataServer extends ModuleServerBase {
 
     private static instance: ModulePushDataServer = null;
 
-    private registeredSockets: { [userId: number]: { [sessId: string]: SocketWrapper[] } } = {};
-
     private constructor() {
         super(ModulePushData.getInstance().name);
     }

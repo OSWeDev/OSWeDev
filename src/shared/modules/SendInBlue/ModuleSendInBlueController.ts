@@ -15,7 +15,13 @@ export default class ModuleSendInBlueController {
     private static instance: ModuleSendInBlueController = null;
     private static VERSION_API: string = '/v3/';
 
+    /**
+     * Local thread cache -----
+     */
     public param: SendInBlueVO = null;
+    /**
+     * ----- Local thread cache
+     */
 
     public async loadParam(): Promise<void> {
         if (!this.param) {

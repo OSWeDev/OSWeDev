@@ -17,9 +17,6 @@ export default class ModulePaiement extends Module {
 
     private static instance: ModulePaiement = null;
 
-    public datatable_paiement: ModuleTable<PaiementVO> = null;
-    public datatable_mode_paiement: ModuleTable<ModePaiementVO> = null;
-
     private constructor() {
         super(PaiementVO.API_TYPE_ID, 'Paiement', 'Commerce/Paiement');
     }
@@ -38,8 +35,7 @@ export default class ModulePaiement extends Module {
         let datatable_fields = [
             default_label_field,
         ];
-        this.datatable_mode_paiement = new ModuleTable<ModePaiementVO>(this, ModePaiementVO.API_TYPE_ID, () => new ModePaiementVO(), datatable_fields, default_label_field, 'Mode de paiement');
-        this.datatables.push(this.datatable_mode_paiement);
+        this.datatables.push(new ModuleTable<ModePaiementVO>(this, ModePaiementVO.API_TYPE_ID, () => new ModePaiementVO(), datatable_fields, default_label_field, 'Mode de paiement'));
     }
 
     public initializePaiement(): void {
@@ -55,9 +51,9 @@ export default class ModulePaiement extends Module {
                 [PaiementVO.STATUT_SUCCES]: PaiementVO.STATUT_LABELS[PaiementVO.STATUT_SUCCES],
             }),
         ];
-        this.datatable_paiement = new ModuleTable<PaiementVO>(this, PaiementVO.API_TYPE_ID, () => new PaiementVO(), datatable_fields, field_mode_paiement_id, 'Paiement');
+        let dt = new ModuleTable<PaiementVO>(this, PaiementVO.API_TYPE_ID, () => new PaiementVO(), datatable_fields, field_mode_paiement_id, 'Paiement');
         field_abonnement_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[AbonnementVO.API_TYPE_ID]);
-        field_mode_paiement_id.addManyToOneRelation(this.datatable_mode_paiement);
-        this.datatables.push(this.datatable_paiement);
+        field_mode_paiement_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ModePaiementVO.API_TYPE_ID]);
+        this.datatables.push(dt);
     }
 }

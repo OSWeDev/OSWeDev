@@ -20,8 +20,16 @@ export default class ModulesManager {
 
     private static instance: ModulesManager = null;
 
+    /**
+     * Local thread cache -----
+     */
+
     public isServerSide: boolean = false;
     public modules_by_name: { [key: string]: ModuleWrapper } = {};
+
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
 

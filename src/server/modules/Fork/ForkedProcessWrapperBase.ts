@@ -20,10 +20,16 @@ export default abstract class ForkedProcessWrapperBase {
 
     protected static instance: ForkedProcessWrapperBase;
 
+    /**
+     * Local thread cache -----
+     */
     private modulesService: ModuleServiceBase;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
 
     private UID: number;
+    /**
+     * ----- Local thread cache
+     */
 
     constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 

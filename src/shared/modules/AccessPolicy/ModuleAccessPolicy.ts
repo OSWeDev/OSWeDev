@@ -80,9 +80,6 @@ export default class ModuleAccessPolicy extends Module {
 
     private static instance: ModuleAccessPolicy = null;
 
-    public connected_user: UserVO = null;
-
-
     private constructor() {
 
         super("access_policy", ModuleAccessPolicy.MODULE_NAME);

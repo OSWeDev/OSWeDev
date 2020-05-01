@@ -39,6 +39,14 @@ const moment = require('moment');
 
 export default class VarsController {
 
+    /**
+     * Multithreading notes :
+     *  - Each thread has its own VarsController and can do computation. But the goal is to use the BGthread computation
+     *  - It's not possible to force the functions to be called only on the var compute bgthread thread since that's shared code
+     *      that executes on the client to (and ForkedTasks are server)
+     *  - So we need to make sure we nearly never end up calling registering vars from shared code. should be client or server via bgthread
+     */
+
     public static VALUE_TYPE_LABELS: string[] = ['var_data.value_type.import', 'var_data.value_type.computed'];
     public static VALUE_TYPE_IMPORT: number = 0;
     public static VALUE_TYPE_COMPUTED: number = 1;
@@ -310,9 +318,6 @@ export default class VarsController {
     }
 
     public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, search_in_batch_cache: boolean = false): T {
-        if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController)) {
-            return null;
-        }
         let index: string = this.getIndex(param);
 
         return this.getVarDataByIndex(index, search_in_batch_cache);
@@ -641,9 +646,7 @@ export default class VarsController {
             let promises = [];
 
             for (let i in params) {
-                promises.push((async () => {
-                    await this.registerDataParamAndReturnVarData(params[i], reload_on_register, ignore_unvalidated_datas);
-                })());
+                promises.push(this.registerDataParamAndReturnVarData(params[i], reload_on_register, ignore_unvalidated_datas));
             }
             await Promise.all(promises);
 

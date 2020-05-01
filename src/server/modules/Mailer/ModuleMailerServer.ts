@@ -18,7 +18,13 @@ export default class ModuleMailerServer extends ModuleServerBase {
 
     private static instance: ModuleMailerServer = null;
 
+    /**
+     * Local thread cache -----
+     */
     private transporter: SMTPTransport;
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
         super(ModuleMailer.getInstance().name);

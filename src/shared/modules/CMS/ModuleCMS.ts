@@ -41,7 +41,15 @@ export default class ModuleCMS extends Module {
 
     private static instance: ModuleCMS = null;
 
+    /**
+     * Local thread cache -----
+     */
     public registered_template_components_by_type: { [type: string]: TemplateComponentVO } = {};
+    /**
+     * ----- Local thread cache
+     */
+
+
     private constructor() {
 
         super("cms", ModuleCMS.MODULE_NAME);

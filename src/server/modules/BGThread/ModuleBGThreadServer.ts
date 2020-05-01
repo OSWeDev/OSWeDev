@@ -103,6 +103,7 @@ export default class ModuleBGThreadServer extends ModuleServerBase {
                 setTimeout(function () {
                     self.execute_bgthread(bgthread);
                 }, bgthread.current_timeout);
+                return;
             }
 
             let timeout_coef: number = 1;

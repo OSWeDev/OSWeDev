@@ -1,7 +1,14 @@
 export default abstract class TriggerHook<Conditions, Params, Out> {
 
     public static NO_CONDITION_UID: string = "___NOCONDITION";
+
+    /**
+     * Local thread cache -----
+     */
     protected registered_handlers: { [conditionUID: string]: [(params: Params) => Promise<Out>] } = {};
+    /**
+     * ----- Local thread cache
+     */
 
     constructor(public trigger_type_UID: string) {
     }

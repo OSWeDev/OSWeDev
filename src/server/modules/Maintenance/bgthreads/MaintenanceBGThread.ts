@@ -6,6 +6,7 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import PushDataServerController from '../../PushData/PushDataServerController';
+import MaintenanceServerController from '../MaintenanceServerController';
 import ModuleMaintenanceServer from '../ModuleMaintenanceServer';
 const moment = require('moment');
 
@@ -38,9 +39,9 @@ export default class MaintenanceBGThread implements IBGThread {
             // On veut voir si une maintenance est en base et inconnue pour le moment du système
             //  ou si la maintenance que l'on croit devoir préparer est toujours d'actualité
             //  et on informe si c'est pas fait les utilisateurs
-            let maintenance: MaintenanceVO = await this.get_planned_maintenance();
+            let maintenance: MaintenanceVO = await ModuleMaintenanceServer.getInstance().get_planned_maintenance();
 
-            ModuleMaintenanceServer.getInstance().planned_maintenance = maintenance;
+            MaintenanceServerController.getInstance().set_planned_maintenance_vo(maintenance);
 
             if (!maintenance) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
@@ -87,19 +88,5 @@ export default class MaintenanceBGThread implements IBGThread {
         }
 
         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
-    }
-
-    private async get_planned_maintenance(): Promise<MaintenanceVO> {
-        let maintenances: MaintenanceVO[] = await ModuleDAO.getInstance().getVos<MaintenanceVO>(MaintenanceVO.API_TYPE_ID);
-
-        for (let i in maintenances) {
-            let maintenance = maintenances[i];
-
-            if (!maintenance.maintenance_over) {
-                return maintenance;
-            }
-        }
-
-        return null;
     }
 }

@@ -14,7 +14,7 @@ export default class BGThreadServerController {
     private static instance: BGThreadServerController = null;
 
     /**
-     * Monothreaded cache -----
+     * Local thread cache -----
      */
     public registered_BGThreads: { [name: string]: IBGThread } = {};
 
@@ -23,7 +23,7 @@ export default class BGThreadServerController {
     public valid_bgthreads_names: { [name: string]: boolean } = {};
     public server_ready: boolean = false;
     /**
-     * ----- Monothreaded cache
+     * ----- Local thread cache
      */
 
     private constructor() { }

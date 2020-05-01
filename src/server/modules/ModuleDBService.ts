@@ -15,10 +15,15 @@ export default class ModuleDBService {
     }
     private static instance: ModuleDBService = null;
 
+    /**
+     * Local thread cache -----
+     */
     public hook_after_registered_all_modules: (modules: Module[]) => {};
 
-    private registered_modules: Module[] = [];
     private bdd_owner: string;
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor(private db) {
         ModuleDBService.instance = this;

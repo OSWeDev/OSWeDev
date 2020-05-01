@@ -31,7 +31,14 @@ export default class ModuleAjaxCache extends Module {
 
     private static instance: ModuleAjaxCache = null;
 
+    /**
+     * Local thread cache -----
+     *  And probably misplaced since it refers to client....
+     */
     private client_controller: IAjaxCacheClientController = null;
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
 

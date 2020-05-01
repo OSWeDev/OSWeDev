@@ -1,12 +1,16 @@
-import IModuleBase from './IModuleBase';
-import ModuleParamChange from './ModuleParamChange';
 import ModulesManager from './ModulesManager';
 import ModuleTable from './ModuleTable';
 import ModuleTableField from './ModuleTableField';
+import IModuleBase from './IModuleBase';
+import ModuleParamChange from './ModuleParamChange';
 
 export default abstract class Module implements IModuleBase {
 
     public static SharedModuleRoleName: string = "SharedModule";
+
+    /**
+     * Local thread cache -----
+     */
 
     public actif: boolean = false;
 
@@ -18,6 +22,9 @@ export default abstract class Module implements IModuleBase {
 
     public activate_on_installation: boolean = false;
 
+    /**
+     * ----- Local thread cache
+     */
 
     constructor(
         name: string,

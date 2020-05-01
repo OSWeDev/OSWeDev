@@ -47,7 +47,7 @@ export default class AccessPolicyServerController {
     public role_admin: RoleVO = null;
 
     /**
-     * Multithreaded cache -----
+     * Global application cache - Brocasted CUD - Local R -----
      */
     private registered_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {};
 
@@ -60,7 +60,7 @@ export default class AccessPolicyServerController {
     private registered_policy_groups: { [group_name: string]: AccessPolicyGroupVO } = {};
     private registered_policies: { [policy_name: string]: AccessPolicyVO } = {};
     /**
-     * ----- Multithreaded cache
+     * ----- Global application cache - Brocasted CUD - Local R
      */
 
     public constructor() {

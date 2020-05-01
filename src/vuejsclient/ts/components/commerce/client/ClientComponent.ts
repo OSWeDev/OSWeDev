@@ -1,9 +1,9 @@
 import Component from 'vue-class-component';
-import VueComponentBase from '../../VueComponentBase';
-import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleClient from '../../../../../shared/modules/Commerce/Client/ModuleClient';
 import InformationsVO from '../../../../../shared/modules/Commerce/Client/vos/InformationsVO';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
+import VueAppController from '../../../../VueAppController';
+import VueComponentBase from '../../VueComponentBase';
 
 @Component({
     template: require('./ClientComponent.pug'),
@@ -14,11 +14,11 @@ export default class ClientComponent extends VueComponentBase {
     public isEditable: boolean = false;
 
     private async created(): Promise<void> {
-        if (ModuleAccessPolicy.getInstance().connected_user) {
+        if (VueAppController.getInstance().data_user) {
             this.startLoading();
 
             // On charge les infos client
-            this.client = await ModuleClient.getInstance().getInformationsClientUser(ModuleAccessPolicy.getInstance().connected_user.id);
+            this.client = await ModuleClient.getInstance().getInformationsClientUser(VueAppController.getInstance().data_user.id);
 
             this.stopLoading();
         }

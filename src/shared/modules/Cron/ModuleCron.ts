@@ -1,11 +1,11 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
+import StringParamVO from '../API/vos/apis/StringParamVO';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import CronWorkerPlanification from './vos/CronWorkerPlanification';
-import StringParamVO from '../API/vos/apis/StringParamVO';
 
 export default class ModuleCron extends Module {
 
@@ -25,8 +25,6 @@ export default class ModuleCron extends Module {
     }
 
     private static instance: ModuleCron = null;
-
-    public datatable_cronworkplan: ModuleTable<CronWorkerPlanification>;
 
     private constructor() {
 
@@ -67,7 +65,6 @@ export default class ModuleCron extends Module {
             new ModuleTableField('intervale_recurrence', ModuleTableField.FIELD_TYPE_float, 'intervale_recurrence', true),
         ];
 
-        this.datatable_cronworkplan = new ModuleTable(this, CronWorkerPlanification.API_TYPE_ID, () => new CronWorkerPlanification(), datatable_fields, label_field, "Tâches planifiées");
-        this.datatables.push(this.datatable_cronworkplan);
+        this.datatables.push(new ModuleTable(this, CronWorkerPlanification.API_TYPE_ID, () => new CronWorkerPlanification(), datatable_fields, label_field, "Tâches planifiées"));
     }
 }

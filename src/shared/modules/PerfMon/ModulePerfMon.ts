@@ -1,5 +1,5 @@
 import Module from '../Module';
-import PerfMonController from './PerfMonController';
+// import PerfMonController from './PerfMonController';
 
 export default class ModulePerfMon extends Module {
 
@@ -25,13 +25,13 @@ export default class ModulePerfMon extends Module {
         this.datatables = [];
     }
 
-    public async hook_module_async_client_admin_initialization(): Promise<any> {
-        await PerfMonController.getInstance().initialize();
-        return true;
-    }
+    // public async hook_module_async_client_admin_initialization(): Promise<any> {
+    //     await PerfMonController.getInstance().initialize();
+    //     return true;
+    // }
 
-    public async hook_module_configure(): Promise<boolean> {
-        await PerfMonController.getInstance().initialize();
-        return true;
-    }
+    // public async hook_module_configure(): Promise<boolean> {
+    //     await PerfMonController.getInstance().initialize();
+    //     return true;
+    // }
 }

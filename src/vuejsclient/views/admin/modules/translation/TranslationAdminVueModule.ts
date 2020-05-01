@@ -1,4 +1,5 @@
 import ModuleAccessPolicy from '../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 import Datatable from '../../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
@@ -13,7 +14,6 @@ import MenuElementBase from '../../../../ts/components/menu/vos/MenuElementBase'
 import MenuLeaf from '../../../../ts/components/menu/vos/MenuLeaf';
 import MenuPointer from '../../../../ts/components/menu/vos/MenuPointer';
 import VueModuleBase from '../../../../ts/modules/VueModuleBase';
-import CRUD from '../../../../../shared/modules/DAO/vos/CRUD';
 
 export default class TranslationAdminVueModule extends VueModuleBase {
 
@@ -76,14 +76,14 @@ export default class TranslationAdminVueModule extends VueModuleBase {
 
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
             "lang_id",
-            ModuleTranslation.getInstance().datatable_lang,
+            VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID],
             [
                 new SimpleDatatableField("code_lang")
             ]
         ));
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField(
             "text_id",
-            ModuleTranslation.getInstance().datatable_translatabletext,
+            VOsTypesManager.getInstance().moduleTables_by_voType[TranslatableTextVO.API_TYPE_ID],
             [
                 new SimpleDatatableField("code_text")
             ]

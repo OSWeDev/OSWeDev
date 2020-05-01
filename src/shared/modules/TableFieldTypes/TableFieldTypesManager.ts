@@ -12,7 +12,13 @@ export default class TableFieldTypesManager {
 
     private static instance: TableFieldTypesManager = null;
 
+    /**
+     * Local thread cache -----
+     */
     public registeredTableFieldTypeControllers: { [name: string]: TableFieldTypeControllerBase } = {};
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
     }

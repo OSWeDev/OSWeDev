@@ -14,7 +14,13 @@ export default class ForkedTasksController {
 
     private static instance: ForkedTasksController = null;
 
+    /**
+     * Local thread cache -----
+     */
     private registered_tasks: { [task_uid: string]: (...task_params) => Promise<boolean> } = {};
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() { }
 

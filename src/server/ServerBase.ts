@@ -40,8 +40,9 @@ import ServerAPIController from './modules/API/ServerAPIController';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
 import ModuleFileServer from './modules/File/ModuleFileServer';
+import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import ForkServerController from './modules/Fork/ForkServerController';
-import ModuleMaintenanceServer from './modules/Maintenance/ModuleMaintenanceServer';
+import MaintenanceServerController from './modules/Maintenance/MaintenanceServerController';
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
@@ -76,6 +77,9 @@ export default abstract class ServerBase {
 
     /* istanbul ignore next: nothing to test here */
     protected constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
+
         ServerBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
@@ -422,8 +426,8 @@ export default abstract class ServerBase {
                 httpContext.set('UID', session.uid);
                 httpContext.set('SESSION', session);
 
-                if (ModuleMaintenanceServer.getInstance().has_planned_maintenance) {
-                    ModuleMaintenanceServer.getInstance().inform_user_on_request(session.uid);
+                if (MaintenanceServerController.getInstance().has_planned_maintenance) {
+                    MaintenanceServerController.getInstance().inform_user_on_request(session.uid);
                 }
 
                 if (!!EnvHandler.getInstance().NODE_VERBOSE) {

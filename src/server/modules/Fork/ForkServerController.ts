@@ -19,9 +19,15 @@ export default class ForkServerController {
 
     private static instance: ForkServerController = null;
 
+    /**
+     * Local thread cache -----
+     */
     private forks: { [uid: number]: IFork } = {};
     private fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
     private UID: number = 0;
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() { }
 

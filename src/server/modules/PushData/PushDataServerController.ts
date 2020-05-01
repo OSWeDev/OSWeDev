@@ -40,7 +40,13 @@ export default class PushDataServerController {
 
     private static instance: PushDataServerController = null;
 
+    /**
+     * Global application cache - Handled by Main process -----
+     */
     private registeredSockets: { [userId: number]: { [sessId: string]: SocketWrapper[] } } = {};
+    /**
+     * ----- Global application cache - Handled by Main process
+     */
 
     private constructor() {
 
@@ -58,7 +64,16 @@ export default class PushDataServerController {
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifySimpleERROR, this.notifySimpleERROR.bind(this));
     }
 
+    /**
+     * WARN : Only on main thread (express).
+     * @param userId
+     * @param sessId
+     * @param socket
+     */
     public registerSocket(userId: number, sessId: string, socket: socketIO.Socket) {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
+
         // No user or session, don't save this socket
         if ((!userId) || (!sessId)) {
             return;
@@ -73,7 +88,13 @@ export default class PushDataServerController {
         this.registeredSockets[userId][sessId].push(new SocketWrapper(userId, sessId, socket));
     }
 
+    /**
+     * WARN : Only on main thread (express).
+     * @param userId
+     */
     public getUserSockets(userId: number): SocketWrapper[] {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
 
         let res: SocketWrapper[] = [];
         let newUserSockets: { [sessId: string]: SocketWrapper[] } = {};
@@ -98,7 +119,12 @@ export default class PushDataServerController {
         return res;
     }
 
+    /**
+     * WARN : Only on main thread (express).
+     */
     public getAllSockets(): SocketWrapper[] {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
 
         let res: SocketWrapper[] = [];
 

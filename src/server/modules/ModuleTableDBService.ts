@@ -140,9 +140,7 @@ export default class ModuleTableDBService {
             await RangeHandler.getInstance().foreach_ranges(segments, async (segmented_value) => {
 
                 let table_name = moduleTable.get_segmented_name(segmented_value);
-                await self.do_check_or_update_moduletable(moduleTable, database_name, table_name);
-
-                ForkedTasksController.getInstance().broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
+                await self.do_check_or_update_moduletable(moduleTable, database_name, table_name, segmented_value);
 
                 if (!migration_todo) {
 
@@ -210,12 +208,12 @@ export default class ModuleTableDBService {
 
             // On doit entre autre ajouter la table en base qui gère les fields
             if (moduleTable.get_fields() && (moduleTable.get_fields().length > 0)) {
-                await self.do_check_or_update_moduletable(moduleTable, moduleTable.database, moduleTable.name);
+                await self.do_check_or_update_moduletable(moduleTable, moduleTable.database, moduleTable.name, null);
             }
         }
     }
 
-    private async do_check_or_update_moduletable(moduleTable: ModuleTable<any>, database_name: string, table_name: string) {
+    private async do_check_or_update_moduletable(moduleTable: ModuleTable<any>, database_name: string, table_name: string, segmented_value: number) {
         // Changement radical, si on a une table déjà en place on vérifie la structure, principalement pour ajouter des champs supplémentaires
         //  et alerter si il y a des champs en base que l'on ne connait pas dans la structure métier
 
@@ -225,6 +223,10 @@ export default class ModuleTableDBService {
 
         if ((!table_cols) || (!table_cols.length)) {
             await this.create_new_datatable(moduleTable, database_name, table_name);
+
+            if (segmented_value != null) {
+                ForkedTasksController.getInstance().broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
+            }
         } else {
             await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols);
         }

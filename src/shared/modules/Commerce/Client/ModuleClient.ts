@@ -1,4 +1,7 @@
-import AccessPolicyVO from '../../AccessPolicy/vos/AccessPolicyVO';
+import UserVO from '../../AccessPolicy/vos/UserVO';
+import ModuleAPI from '../../API/ModuleAPI';
+import NumberParamVO from '../../API/vos/apis/NumberParamVO';
+import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
 import ModuleDAO from '../../DAO/ModuleDAO';
 import Module from '../../Module';
 import ModuleTable from '../../ModuleTable';
@@ -6,10 +9,6 @@ import ModuleTableField from '../../ModuleTableField';
 import VOsTypesManager from '../../VOsTypesManager';
 import ClientVO from './vos/ClientVO';
 import InformationsVO from './vos/InformationsVO';
-import ModuleAPI from '../../API/ModuleAPI';
-import NumberParamVO from '../../API/vos/apis/NumberParamVO';
-import GetAPIDefinition from '../../API/vos/GetAPIDefinition';
-import UserVO from '../../AccessPolicy/vos/UserVO';
 
 export default class ModuleClient extends Module {
     public static APINAME_getInformationsClientUser: string = "getInformationsClientUser";
@@ -23,9 +22,6 @@ export default class ModuleClient extends Module {
     }
 
     private static instance: ModuleClient = null;
-
-    public datatable_informations: ModuleTable<InformationsVO> = null;
-    public datatable_client: ModuleTable<ClientVO> = null;
 
     private constructor() {
         super(ClientVO.API_TYPE_ID, 'Client', 'Commerce/Client');
@@ -72,8 +68,7 @@ export default class ModuleClient extends Module {
             new ModuleTableField('siret', ModuleTableField.FIELD_TYPE_string, 'Siret'),
             default_label_field,
         ];
-        this.datatable_informations = new ModuleTable<InformationsVO>(this, InformationsVO.API_TYPE_ID, () => new InformationsVO(), datatable_fields, default_label_field, 'Informations');
-        this.datatables.push(this.datatable_informations);
+        this.datatables.push(new ModuleTable<InformationsVO>(this, InformationsVO.API_TYPE_ID, () => new InformationsVO(), datatable_fields, default_label_field, 'Informations'));
     }
 
     public initializeClient(): void {
@@ -85,10 +80,10 @@ export default class ModuleClient extends Module {
             field_user_id,
             field_informations_id
         ];
-        this.datatable_client = new ModuleTable<ClientVO>(this, ClientVO.API_TYPE_ID, () => new ClientVO(), datatable_fields, field_user_id, 'Client');
+        let dt = new ModuleTable<ClientVO>(this, ClientVO.API_TYPE_ID, () => new ClientVO(), datatable_fields, field_user_id, 'Client');
         field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        field_informations_id.addManyToOneRelation(this.datatable_informations);
-        this.datatables.push(this.datatable_client);
+        field_informations_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[InformationsVO.API_TYPE_ID]);
+        this.datatables.push(dt);
     }
 
     public async getInformationsClientUser(userId: number): Promise<InformationsVO> {

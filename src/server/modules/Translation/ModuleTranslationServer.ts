@@ -1,26 +1,25 @@
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import GetTranslationParamVO from '../../../shared/modules/Translation/apis/GetTranslationParamVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import ModuleServerBase from '../ModuleServerBase';
-import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
-import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ModulesManagerServer from '../ModulesManagerServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ModuleServerBase from '../ModuleServerBase';
+import ModulesManagerServer from '../ModulesManagerServer';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
@@ -34,7 +33,13 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private static instance: ModuleTranslationServer = null;
 
+    /**
+     * Local thread cache -----
+     */
     public policy_group: AccessPolicyGroupVO = null;
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
         super(ModuleTranslation.getInstance().name);

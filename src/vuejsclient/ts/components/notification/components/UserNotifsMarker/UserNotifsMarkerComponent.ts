@@ -1,9 +1,9 @@
 import { Component } from 'vue-property-decorator';
 import 'vue-tables-2';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import NotificationVO from '../../../../../../shared/modules/PushData/vos/NotificationVO';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import VueAppController from '../../../../../VueAppController';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleNotificationAction, ModuleNotificationGetter } from '../../store/NotificationStore';
 import UserNotifsViewerComponent from '../UserNotifsViewer/UserNotifsViewerComponent';
@@ -37,12 +37,12 @@ export default class UserNotifsMarkerComponent extends VueComponentBase {
 
     private async reload_notifications() {
 
-        if (!ModuleAccessPolicy.getInstance().connected_user) {
+        if (!VueAppController.getInstance().data_user) {
             return;
         }
 
         this.set_is_updating(true);
-        this.set_notifications_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByRefFieldIds<NotificationVO>(NotificationVO.API_TYPE_ID, 'user_id', [ModuleAccessPolicy.getInstance().connected_user.id])));
+        this.set_notifications_by_ids(VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVosByRefFieldIds<NotificationVO>(NotificationVO.API_TYPE_ID, 'user_id', [VueAppController.getInstance().data_user.id])));
         this.set_is_updating(false);
     }
 

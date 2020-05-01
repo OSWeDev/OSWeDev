@@ -61,6 +61,9 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_month: string = 'month';
     public static FIELD_TYPE_translatable_text: string = 'translatable_text';
 
+    /**
+     * Local thread cache -----
+     */
     public field_value: T;
     public field_loaded: boolean;
 
@@ -113,6 +116,10 @@ export default class ModuleTableField<T> {
      * Nouvelle version de validation plus complète, qui doit remplacer l'ancienne version à terme
      */
     public validate_input: (input_value: any, field: DatatableField<any, any>, vo: any) => Alert[];
+
+    /**
+     * ----- Local thread cache
+     */
 
     constructor(
         public field_id: string,

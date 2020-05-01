@@ -21,7 +21,13 @@ export default class VersionedVOController implements IVOController {
     private static TRASHED_DATABASE: string = 'trashed';
     private static VERSIONED_TRASHED_DATABASE: string = VersionedVOController.TRASHED_DATABASE + '__' + VersionedVOController.VERSIONED_DATABASE;
 
+    /**
+     * Local thread cache -----
+     */
     public registeredModuleTables: Array<ModuleTable<any>> = [];
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
     }

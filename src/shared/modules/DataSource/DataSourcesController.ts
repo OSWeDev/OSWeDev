@@ -11,7 +11,9 @@ export default class DataSourcesController {
         return DataSourcesController.instance;
     }
 
-    private static BATCH_UID: number = 0;
+    /**
+     * Local thread cache -----
+     */
 
     private static instance: DataSourcesController = null;
 
@@ -27,6 +29,9 @@ export default class DataSourcesController {
 
     public registeredDataSourcesController: { [name: string]: IDataSourceController<any, any> } = {};
     public registeredDataSourcesControllerByVoTypeDep: { [vo_type: string]: Array<IDataSourceController<any, any>> } = {};
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() { }
 

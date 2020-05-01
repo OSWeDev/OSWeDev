@@ -36,9 +36,6 @@ export default class ModuleCommande extends Module {
 
     private static instance: ModuleCommande = null;
 
-    public datatable_commande: ModuleTable<CommandeVO> = null;
-    public datatable_ligne_commande: ModuleTable<LigneCommandeVO> = null;
-
     private constructor() {
         super(CommandeVO.API_TYPE_ID, 'Commande', 'Commerce/Commande');
     }
@@ -114,9 +111,9 @@ export default class ModuleCommande extends Module {
             }),
             field_client_id
         ];
-        this.datatable_commande = new ModuleTable<CommandeVO>(this, CommandeVO.API_TYPE_ID, () => new CommandeVO(), datatable_fields, field_client_id, 'Commande');
+        let dt = new ModuleTable<CommandeVO>(this, CommandeVO.API_TYPE_ID, () => new CommandeVO(), datatable_fields, field_client_id, 'Commande');
         field_client_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ClientVO.API_TYPE_ID]);
-        this.datatables.push(this.datatable_commande);
+        this.datatables.push(dt);
     }
 
     public initializeLigneCommande(): void {
@@ -132,11 +129,11 @@ export default class ModuleCommande extends Module {
             field_produit_id,
             field_informations_id
         ];
-        this.datatable_ligne_commande = new ModuleTable<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, () => new LigneCommandeVO(), datatable_fields, field_commande_id, 'Ligne commande');
+        let dt = new ModuleTable<LigneCommandeVO>(this, LigneCommandeVO.API_TYPE_ID, () => new LigneCommandeVO(), datatable_fields, field_commande_id, 'Ligne commande');
         field_commande_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[CommandeVO.API_TYPE_ID]);
         field_produit_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ProduitVO.API_TYPE_ID]);
         field_informations_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[InformationsVO.API_TYPE_ID]);
-        this.datatables.push(this.datatable_ligne_commande);
+        this.datatables.push(dt);
     }
 
     public async getCommandesUser(userId: number): Promise<CommandeVO[]> {

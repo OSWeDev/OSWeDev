@@ -1,27 +1,26 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ModuleAPI from '../API/ModuleAPI';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import APIDAOApiTypeAndMatroidsParamsVO from '../DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
+import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
+import IDistantVOBase from '../IDistantVOBase';
+import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
+import ModulesManager from '../ModulesManager';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import ISimpleNumberVarData from './interfaces/ISimpleNumberVarData';
+import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
+import ConfigureVarCacheParamVO from './params/ConfigureVarCacheParamVO';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
+import SimpleVarDataValueRes from './simple_vars/SimpleVarDataValueRes';
 import VarsController from './VarsController';
-const moment = require('moment');
-import ModuleAPI from '../API/ModuleAPI';
-import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import APIDAOApiTypeAndMatroidsParamsVO from '../DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
-import IDistantVOBase from '../IDistantVOBase';
-import IMatroid from '../Matroid/interfaces/IMatroid';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfVOBase from './vos/VarConfVOBase';
-import ModuleDAO from '../DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
-import ModulesManager from '../ModulesManager';
-import ConsoleHandler from '../../tools/ConsoleHandler';
-import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
-import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
-import SimpleVarDataValueRes from './simple_vars/SimpleVarDataValueRes';
+const moment = require('moment');
 
 export default class ModuleVar extends Module {
 
@@ -36,10 +35,7 @@ export default class ModuleVar extends Module {
 
     public static APINAME_getSimpleVarDataValueSumFilterByMatroids: string = 'getSimpleVarDataValueSumFilterByMatroids';
     public static APINAME_getSimpleVarDataCachedValueFromParam: string = 'getSimpleVarDataCachedValueFromParam';
-
-
-    public static varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
-    public static varcacheconf_by_api_type_ids: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
+    public static APINAME_configureVarCache: string = 'configureVarCache';
 
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
@@ -64,47 +60,13 @@ export default class ModuleVar extends Module {
         this.initializeVarCacheConfVO();
     }
 
-    public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
-        let server_side: boolean = (!!ModulesManager.getInstance().isServerSide);
-        // Si on est côté client, on a pas besoin de la conf du cache
-
-        if (!server_side) {
-            return var_cache_conf;
-        }
-
-        let existing_bdd_conf: VarCacheConfVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<VarCacheConfVO>(VarCacheConfVO.API_TYPE_ID, 'var_id', [var_cache_conf.var_id]);
-
-        if ((!!existing_bdd_conf) && existing_bdd_conf.length) {
-
-            if (existing_bdd_conf.length == 1) {
-                ModuleVar.varcacheconf_by_var_ids[var_conf.id] = existing_bdd_conf[0];
-                if (!ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
-                    ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
-                }
-                ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = existing_bdd_conf[0];
-                return existing_bdd_conf[0];
-            }
-            return null;
-        }
-
-        let insert_or_update_result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
-
-        if ((!insert_or_update_result) || (!insert_or_update_result.id)) {
-            ConsoleHandler.getInstance().error('Impossible de configurer le cache de la var :' + var_conf.id + ':');
-            return null;
-        }
-
-        var_cache_conf.id = parseInt(insert_or_update_result.id.toString());
-
-        ModuleVar.varcacheconf_by_var_ids[var_conf.id] = var_cache_conf;
-        if (!ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
-            ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
-        }
-        ModuleVar.varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = var_cache_conf;
-        return var_cache_conf;
-    }
-
     public registerApis() {
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ConfigureVarCacheParamVO, VarCacheConfVO>(
+            ModuleVar.APINAME_configureVarCache,
+            [VarCacheConfVO.API_TYPE_ID],
+            ConfigureVarCacheParamVO.translateCheckAccessParams,
+        ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
             ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids,
@@ -127,6 +89,17 @@ export default class ModuleVar extends Module {
         //     ModuleVar.APINAME_register_matroid_for_precalc,
         //     (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
         // ));
+    }
+
+    public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
+        let server_side: boolean = (!!ModulesManager.getInstance().isServerSide);
+        // Si on est côté client, on a pas besoin de la conf du cache
+
+        if (!server_side) {
+            return var_cache_conf;
+        }
+
+        return await ModuleAPI.getInstance().handleAPI<ConfigureVarCacheParamVO, VarCacheConfVO>(ModuleVar.APINAME_configureVarCache, var_conf, var_cache_conf);
     }
 
     public async getSimpleVarDataValueSumFilterByMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {

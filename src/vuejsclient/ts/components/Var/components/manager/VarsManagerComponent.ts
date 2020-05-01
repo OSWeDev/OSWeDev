@@ -5,7 +5,6 @@ import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces
 import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
-import FuncStatsComponent from '../../../PerfMon/components/funcStats/FuncStatsComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarDescRegistrationsComponent from '../desc/registrations/VarDescRegistrationsComponent';
@@ -15,7 +14,7 @@ import './VarsManagerComponent.scss';
     template: require('./VarsManagerComponent.pug'),
     components: {
         "var-desc-registrations": VarDescRegistrationsComponent,
-        "perfmon-funcstats": FuncStatsComponent
+        // "perfmon-funcstats": () => import(/* webpackChunkName: "FuncStatsComponent" */ '../../../PerfMon/components/funcStats/FuncStatsComponent')
     }
 })
 export default class VarsManagerComponent extends VueComponentBase {

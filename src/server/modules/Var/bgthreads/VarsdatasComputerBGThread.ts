@@ -1,6 +1,6 @@
+import { Moment } from 'moment';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ISimpleNumberVarData from '../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
@@ -9,8 +9,7 @@ import DateHandler from '../../../../shared/tools/DateHandler';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
-import ModulePushDataServer from '../../PushData/ModulePushDataServer';
-import { Moment } from 'moment';
+import ModuleVarServer from '../ModuleVarServer';
 import VarServerController from '../VarServerController';
 const moment = require('moment');
 
@@ -25,8 +24,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     private static instance: VarsdatasComputerBGThread = null;
 
-    public current_timeout: number = 2000;
-    public MAX_timeout: number = 2000;
+    public current_timeout: number = 500;
+    public MAX_timeout: number = 500;
     public MIN_timeout: number = 100;
 
     public timeout: number = 500;
@@ -110,7 +109,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                         continue;
                     }
 
-                    if (ModuleVar.varcacheconf_by_var_ids[computed_data.var_id] && ModuleVar.varcacheconf_by_var_ids[computed_data.var_id].consider_null_as_0_and_auto_clean_0_in_cache && !computed_data.value) {
+                    if (ModuleVarServer.getInstance().varcacheconf_by_var_ids[computed_data.var_id] && ModuleVarServer.getInstance().varcacheconf_by_var_ids[computed_data.var_id].consider_null_as_0_and_auto_clean_0_in_cache && !computed_data.value) {
                         computed_datas_to_delete.push(var_data);
                     } else {
                         var_data.value = (!computed_data.value) ? 0 : computed_data.value;
@@ -170,8 +169,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private async get_vars_to_compute(): Promise<ISimpleNumberVarData[]> {
         let vars_datas: ISimpleNumberVarData[] = [];
         // OPTI TODO : possible de regrouper les requetes d'une meme api_type_id, en préparant en amont les condition de la requête et en faisant pour tous les var_id en 1 fois
-        for (let api_type_id in ModuleVar.varcacheconf_by_api_type_ids) {
-            let varcacheconf_by_var_ids = ModuleVar.varcacheconf_by_api_type_ids[api_type_id];
+        for (let api_type_id in ModuleVarServer.getInstance().varcacheconf_by_api_type_ids) {
+            let varcacheconf_by_var_ids = ModuleVarServer.getInstance().varcacheconf_by_api_type_ids[api_type_id];
             for (let var_id in varcacheconf_by_var_ids) {
                 let varcacheconf: VarCacheConfVO = varcacheconf_by_var_ids[var_id];
 

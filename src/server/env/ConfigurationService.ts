@@ -17,6 +17,10 @@ export default class ConfigurationService {
     }
     private static instance: ConfigurationService = null;
 
+    /**
+     * Local thread cache -----
+     */
+
     public nodeInstall: boolean;
 
     /**
@@ -26,6 +30,9 @@ export default class ConfigurationService {
 
     private nodeEnv: string;
     private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
         this.nodeEnv = process.env.NODE_ENV || 'DEV';

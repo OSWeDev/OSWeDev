@@ -17,7 +17,13 @@ export default class ModuleTrelloAPIServer extends ModuleServerBase {
 
     private static instance: ModuleTrelloAPIServer = null;
 
+    /**
+     * Local thread cache -----
+     */
     private trello: TrelloNodeApi = null;
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
         super(ModuleTrelloAPI.getInstance().name);

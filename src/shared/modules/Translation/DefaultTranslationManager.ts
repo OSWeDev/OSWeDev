@@ -10,7 +10,13 @@ export default class DefaultTranslationManager {
 
     private static instance: DefaultTranslationManager;
 
+    /**
+     * Local thread cache -----
+     */
     public registered_default_translations: { [code_text: string]: DefaultTranslation } = {};
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() { }
 

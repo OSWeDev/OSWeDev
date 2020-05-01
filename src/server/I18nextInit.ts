@@ -4,6 +4,7 @@ import * as i18next from 'i18next';
 import * as i18nextMiddleware from 'i18next-express-middleware';
 import EnvParam from './env/EnvParam';
 import ConfigurationService from './env/ConfigurationService';
+import ForkedTasksController from './modules/Fork/ForkedTasksController';
 
 export default class I18nextInit {
 
@@ -20,6 +21,9 @@ export default class I18nextInit {
     public i18nextMiddleware = null;
 
     private constructor(ALL_LOCALES) {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
+
         const envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
 
         // JNE MODIF FLK : traductions

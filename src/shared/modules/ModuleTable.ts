@@ -66,6 +66,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return ModuleTable.UID++;
     }
 
+    /**
+     * Local thread cache -----
+     */
+
     public table_name: string;
     public full_name: string;
     public uid: string;
@@ -120,6 +124,9 @@ export default class ModuleTable<T extends IDistantVOBase> {
     private fields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
 
     private sortedFields: Array<ModuleTableField<any>> = [];
+    /**
+     * ----- Local thread cache
+     */
 
     constructor(
         tmp_module: Module,

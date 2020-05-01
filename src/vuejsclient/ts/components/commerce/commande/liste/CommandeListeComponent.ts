@@ -1,8 +1,8 @@
 import Component from 'vue-class-component';
-import VueComponentBase from '../../../VueComponentBase';
-import CommandeVO from '../../../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
 import ModuleCommande from '../../../../../../shared/modules/Commerce/Commande/ModuleCommande';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import CommandeVO from '../../../../../../shared/modules/Commerce/Commande/vos/CommandeVO';
+import VueAppController from '../../../../../VueAppController';
+import VueComponentBase from '../../../VueComponentBase';
 import CommandeListeLigneComponent from './ligne/CommandeListeLigneComponent';
 
 @Component({
@@ -17,9 +17,9 @@ export default class CommandeListeComponent extends VueComponentBase {
     private async created(): Promise<void> {
         this.startLoading();
 
-        if (ModuleAccessPolicy.getInstance().connected_user) {
+        if (VueAppController.getInstance().data_user) {
             // On charge les commandes
-            this.commandes = await ModuleCommande.getInstance().getCommandesUser(ModuleAccessPolicy.getInstance().connected_user.id);
+            this.commandes = await ModuleCommande.getInstance().getCommandesUser(VueAppController.getInstance().data_user.id);
         }
 
         // Fin de chargement

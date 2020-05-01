@@ -14,7 +14,13 @@ export default class ModuleTrigger extends Module {
 
     private static instance: ModuleTrigger = null;
 
+    /**
+     * Local thread cache -----
+     */
     private triggerHooks: { [trigger_type_UID: string]: TriggerHook<any, any, any> } = {};
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
 

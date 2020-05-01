@@ -47,13 +47,22 @@ export default class ModuleClientServer extends ModuleServerBase {
         );
     }
 
-    public async getFirstClientByUserId(user: UserVO): Promise<ClientVO> {
-        if (!user || user.id) {
+    public async getFirstClientByUser(user: UserVO): Promise<ClientVO> {
+        if ((!user) || (!user.id)) {
             return null;
         }
 
-        let clients: ClientVO[] = await this.getClientsByUserId(new NumberParamVO(user.id));
+        return await this.getFirstClientByUserId(user.id);
+    }
+
+    public async getFirstClientByUserId(uid: number): Promise<ClientVO> {
+        if (!uid) {
+            return null;
+        }
+
+        let clients: ClientVO[] = await this.getClientsByUserId(new NumberParamVO(uid));
 
         return (clients && clients.length > 0) ? clients[0] : null;
     }
+
 }

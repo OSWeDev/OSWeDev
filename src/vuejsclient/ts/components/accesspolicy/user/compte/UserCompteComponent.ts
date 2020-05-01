@@ -1,15 +1,15 @@
 import Component from 'vue-class-component';
-import VueComponentBase from '../../../VueComponentBase';
 import UserVO from '../../../../../../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
+import VueAppController from '../../../../../VueAppController';
+import VueComponentBase from '../../../VueComponentBase';
 
 @Component({
     template: require('./UserCompteComponent.pug'),
     components: {}
 })
 export default class UserCompteComponent extends VueComponentBase {
-    public user: UserVO = ModuleAccessPolicy.getInstance().connected_user;
+    public user: UserVO = VueAppController.getInstance().data_user;
     public isEditable: boolean = false;
 
     private async created(): Promise<void> { }

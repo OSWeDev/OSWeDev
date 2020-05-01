@@ -25,7 +25,7 @@ export default class CronServerController {
     private static instance: CronServerController = null;
 
     /**
-     * Monothreaded cache -----
+     * Local thread cache -----
      */
     public registered_cronWorkers: { [worker_uid: string]: ICronWorker } = {};
     public cronWorkers_semaphores: { [worker_uid: string]: boolean } = {};
@@ -37,7 +37,7 @@ export default class CronServerController {
 
     public semaphore: boolean = false;
     /**
-     * ----- Monothreaded cache
+     * ----- Local thread cache
      */
 
     private constructor() {

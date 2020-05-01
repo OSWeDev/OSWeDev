@@ -85,6 +85,9 @@ export default abstract class ModuleServiceBase {
     }
     private static instance: ModuleServiceBase;
 
+    /**
+     * Local thread cache -----
+     */
     public db: IDatabase<any>;
 
     protected registered_child_modules: Module[] = [];
@@ -98,6 +101,9 @@ export default abstract class ModuleServiceBase {
     private registered_base_modules: Module[] = [];
     private login_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
+    /**
+     * ----- Local thread cache
+     */
 
     protected constructor() {
         ModuleServiceBase.instance = null;
@@ -243,7 +249,7 @@ export default abstract class ModuleServiceBase {
 
     public async preload_segmented_known_databases() {
 
-        for (let i in this.server_modules) {
+        for (let i in this.registered_modules) {
             let module_: Module = this.registered_modules[i];
 
             if (!module_.actif) {

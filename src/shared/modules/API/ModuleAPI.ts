@@ -14,8 +14,14 @@ export default class ModuleAPI extends Module {
 
     private static instance: ModuleAPI = null;
 
+    /**
+     * Local thread cache -----
+     */
     public registered_apis: { [api_name: string]: APIDefinition<any, any> } = {};
     private api_controller: IAPIController = null;
+    /**
+     * ----- Local thread cache
+     */
 
     private constructor() {
 

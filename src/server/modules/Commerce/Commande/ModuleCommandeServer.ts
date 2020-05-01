@@ -16,6 +16,7 @@ import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleServerBase from '../../ModuleServerBase';
 import ModuleClientServer from '../Client/ModuleClientServer';
 import ModuleProduitServer from '../Produit/ModuleProduitServer';
+import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 const moment = require('moment');
 
 export default class ModuleCommandeServer extends ModuleServerBase {
@@ -59,7 +60,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
     }
 
     public async creationPanier(): Promise<CommandeVO> {
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicy.getInstance().connected_user);
+        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getInstance().getLoggedUserId());
         let panier: CommandeVO = new CommandeVO();
         panier.client_id = (client) ? client.id : null;
         panier.date = moment().utc(true).toLocaleString();
@@ -87,7 +88,7 @@ export default class ModuleCommandeServer extends ModuleServerBase {
             return null;
         }
 
-        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicy.getInstance().connected_user);
+        let client: ClientVO = await ModuleClientServer.getInstance().getFirstClientByUserId(ModuleAccessPolicyServer.getInstance().getLoggedUserId());
         let ligne: LigneCommandeVO = new LigneCommandeVO();
         ligne.commande_id = commande.id;
         ligne.informations_id = (client) ? client.informations_id : null;

@@ -16,8 +16,13 @@ export default class ForkMessageController {
 
     private static instance: ForkMessageController = null;
 
+    /**
+     * Local thread cache -----
+     */
     private registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, sendHandle: Socket | Server) => Promise<boolean> } = {};
-
+    /**
+     * ----- Local thread cache
+     */
     private constructor() { }
 
     public register_message_handler(message_type: string, handler: (msg: IForkMessage, sendHandle: Socket | Server) => Promise<boolean>) {

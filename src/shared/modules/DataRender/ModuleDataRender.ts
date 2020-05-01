@@ -26,9 +26,6 @@ export default class ModuleDataRender extends Module {
 
     private static instance: ModuleDataRender = null;
 
-    private datatable_log: ModuleTable<DataRenderingLogVO>;
-    private datatable_renderer: ModuleTable<DataRendererVO>;
-
     private constructor() {
 
         super("data_render", "DataRender");
@@ -232,8 +229,8 @@ export default class ModuleDataRender extends Module {
             label_field,
             new ModuleTableField('render_handler_module', ModuleTableField.FIELD_TYPE_string, 'render_handler_module', false),
         ];
-        this.datatable_renderer = new ModuleTable(this, DataRendererVO.API_TYPE_ID, () => new DataRendererVO(), datatable_fields, label_field, "Renderers");
-        this.datatables.push(this.datatable_renderer);
+        let datatable_renderer = new ModuleTable(this, DataRendererVO.API_TYPE_ID, () => new DataRendererVO(), datatable_fields, label_field, "Renderers");
+        this.datatables.push(datatable_renderer);
 
         label_field = new ModuleTableField('date', ModuleTableField.FIELD_TYPE_string, 'date', false);
         let rendered_api_type_id = new ModuleTableField('rendered_api_type_id', ModuleTableField.FIELD_TYPE_foreign_key, 'rendered_api_type_id', false);
@@ -245,8 +242,8 @@ export default class ModuleDataRender extends Module {
             new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'message', false),
         ];
 
-        this.datatable_log = new ModuleTable(this, DataRenderingLogVO.API_TYPE_ID, () => new DataRenderingLogVO(), datatable_fields, label_field, "Logs de render");
-        rendered_api_type_id.addManyToOneRelation(this.datatable_renderer);
-        this.datatables.push(this.datatable_log);
+        let datatable_log = new ModuleTable(this, DataRenderingLogVO.API_TYPE_ID, () => new DataRenderingLogVO(), datatable_fields, label_field, "Logs de render");
+        rendered_api_type_id.addManyToOneRelation(datatable_renderer);
+        this.datatables.push(datatable_log);
     }
 }

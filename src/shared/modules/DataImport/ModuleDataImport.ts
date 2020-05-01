@@ -5,6 +5,7 @@ import ModuleAPI from '../API/ModuleAPI';
 import NumberParamVO from '../API/vos/apis/NumberParamVO';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
@@ -17,7 +18,6 @@ import DataImportColumnVO from './vos/DataImportColumnVO';
 import DataImportFormatVO from './vos/DataImportFormatVO';
 import DataImportHistoricVO from './vos/DataImportHistoricVO';
 import DataImportLogVO from './vos/DataImportLogVO';
-import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 
 export default class ModuleDataImport extends Module {
 
@@ -75,11 +75,6 @@ export default class ModuleDataImport extends Module {
     }
 
     private static instance: ModuleDataImport = null;
-
-    public datatable_desc: ModuleTable<DataImportFormatVO>;
-    public datatable_column: ModuleTable<DataImportColumnVO>;
-    public datatable_historic: ModuleTable<DataImportHistoricVO>;
-    public datatable_log: ModuleTable<DataImportLogVO>;
 
     private constructor() {
 
@@ -263,11 +258,11 @@ export default class ModuleDataImport extends Module {
 
             field_post_exec_module_id
         ];
-        this.datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, () => new DataImportFormatVO(), datatable_fields, label_field, "Fichiers d'import");
+        let datatable_desc = new ModuleTable(this, DataImportFormatVO.API_TYPE_ID, () => new DataImportFormatVO(), datatable_fields, label_field, "Fichiers d'import");
         field_file_id.donotCascadeOnDelete();
         field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
         field_post_exec_module_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID]);
-        this.datatables.push(this.datatable_desc);
+        this.datatables.push(datatable_desc);
 
         // Création de la table dataimportcolumn
         label_field = new ModuleTableField('title', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Fichier)', true);
@@ -281,9 +276,9 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('vo_field_name', ModuleTableField.FIELD_TYPE_string, 'Nom de la colonne (Vo)', true),
             new ModuleTableField('other_column_labels', ModuleTableField.FIELD_TYPE_string_array, 'Autres noms possibles (Fichier)', true, true, "{}")
         ];
-        this.datatable_column = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, () => new DataImportColumnVO(), datatable_fields, label_field, "Colonnes importées");
-        field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
-        this.datatables.push(this.datatable_column);
+        let dt2 = new ModuleTable(this, DataImportColumnVO.API_TYPE_ID, () => new DataImportColumnVO(), datatable_fields, label_field, "Colonnes importées");
+        field_data_import_format_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DataImportFormatVO.API_TYPE_ID]);
+        this.datatables.push(dt2);
 
         label_field = new ModuleTableField('historic_uid', ModuleTableField.FIELD_TYPE_string, 'ID unique', false);
         field_data_import_format_id = new ModuleTableField('data_import_format_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Format d\'import', false);
@@ -362,13 +357,13 @@ export default class ModuleDataImport extends Module {
             new ModuleTableField('nb_row_unvalidated', ModuleTableField.FIELD_TYPE_int, 'Nb. de lignes invalidées', false),
             new ModuleTableField('autovalidate', ModuleTableField.FIELD_TYPE_boolean, 'Validation automatique', false, true, false),
         ];
-        this.datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, () => new DataImportHistoricVO(), datatable_fields, label_field, "Historiques d'importation").hideAnyToManyByDefault();
-        field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
+        let datatable_historic = new ModuleTable(this, DataImportHistoricVO.API_TYPE_ID, () => new DataImportHistoricVO(), datatable_fields, label_field, "Historiques d'importation").hideAnyToManyByDefault();
+        field_data_import_format_id.addManyToOneRelation(datatable_desc);
         field_user_id.donotCascadeOnDelete();
         field_user_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        reimport_of_dih_id.addManyToOneRelation(this.datatable_historic);
+        reimport_of_dih_id.addManyToOneRelation(datatable_historic);
         field_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
-        this.datatables.push(this.datatable_historic);
+        this.datatables.push(datatable_historic);
 
 
         label_field = new ModuleTableField('date', ModuleTableField.FIELD_TYPE_tstz, 'Date', false);
@@ -390,9 +385,9 @@ export default class ModuleDataImport extends Module {
                 [DataImportLogVO.LOG_LEVEL_FATAL]: DataImportLogVO.LOG_LEVEL_LABELS[DataImportLogVO.LOG_LEVEL_FATAL],
             })
         ];
-        this.datatable_log = new ModuleTable(this, DataImportLogVO.API_TYPE_ID, () => new DataImportLogVO(), datatable_fields, label_field, "Logs d'importation").hideAnyToManyByDefault();
-        field_data_import_format_id.addManyToOneRelation(this.datatable_desc);
-        field_data_import_historic_id.addManyToOneRelation(this.datatable_historic);
-        this.datatables.push(this.datatable_log);
+        let datatable_log = new ModuleTable(this, DataImportLogVO.API_TYPE_ID, () => new DataImportLogVO(), datatable_fields, label_field, "Logs d'importation").hideAnyToManyByDefault();
+        field_data_import_format_id.addManyToOneRelation(datatable_desc);
+        field_data_import_historic_id.addManyToOneRelation(datatable_historic);
+        this.datatables.push(datatable_log);
     }
 }

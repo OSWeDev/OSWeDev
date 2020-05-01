@@ -1,5 +1,4 @@
 import IWeightedItem from './interfaces/IWeightedItem';
-import VOsTypesManager from '../modules/VOsTypesManager';
 import ObjectHandler from './ObjectHandler';
 
 export default class WeightHandler {

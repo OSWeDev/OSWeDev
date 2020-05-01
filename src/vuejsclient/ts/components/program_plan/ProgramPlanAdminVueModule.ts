@@ -18,6 +18,8 @@ import VueModuleBase from '../../../ts/modules/VueModuleBase';
 
 export default class ProgramPlanAdminVueModule extends VueModuleBase {
 
+    public static showProgramAdministration: boolean = true;
+
     public static DEFAULT_MENU_BRANCH: MenuBranch = new MenuBranch(
         "ProgramPlanAdminVueModule",
         MenuElementBase.PRIORITY_HIGH,
@@ -51,7 +53,7 @@ export default class ProgramPlanAdminVueModule extends VueModuleBase {
 
         let menuBranch: MenuBranch = ProgramPlanAdminVueModule.DEFAULT_MENU_BRANCH;
 
-        if (ModuleProgramPlanBase.getInstance().showProgramAdministration) {
+        if (ProgramPlanAdminVueModule.showProgramAdministration) {
 
             if (!!ModuleProgramPlanBase.getInstance().program_category_type_id) {
                 CRUDComponentManager.getInstance().registerCRUD(

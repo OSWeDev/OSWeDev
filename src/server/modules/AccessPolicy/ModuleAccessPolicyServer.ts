@@ -910,9 +910,6 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    /**
-     * Faut généraliser ce concept c'est ridicule
-     */
     private async onCreateAccessPolicyVO(vo: AccessPolicyVO): Promise<boolean> {
         if ((!vo) || (!vo.id)) {
             return true;

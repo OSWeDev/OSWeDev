@@ -7,6 +7,7 @@ import APIDAOApiTypeAndMatroidsParamsVO from '../../../shared/modules/DAO/vos/AP
 import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
+import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
@@ -15,8 +16,10 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import SimpleVarDataValueRes from '../../../shared/modules/Var/simple_vars/SimpleVarDataValueRes';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ServerBase from '../../ServerBase';
@@ -24,16 +27,20 @@ import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarServerController from './VarServerController';
-import SimpleVarDataValueRes from '../../../shared/modules/Var/simple_vars/SimpleVarDataValueRes';
-import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
+
+    public static TASK_NAME_getSimpleVarDataCachedValueFromParam = ModuleVar.getInstance().name + '.getSimpleVarDataCachedValueFromParam';
+    public static TASK_NAME_delete_varcacheconf_from_cache = ModuleVar.getInstance().name + '.delete_varcacheconf_from_cache';
+    public static TASK_NAME_update_varcacheconf_from_cache = ModuleVar.getInstance().name + '.update_varcacheconf_from_cache';
 
     public static getInstance() {
         if (!ModuleVarServer.instance) {
@@ -44,9 +51,28 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private static instance: ModuleVarServer = null;
 
+    /**
+     * Global application cache - Brocasted CUD - Local R -----
+     */
+
+    private varcacheconf_by_var_ids_: { [var_id: number]: VarCacheConfVO } = {};
+    private varcacheconf_by_api_type_ids_: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
+
+    /**
+     * ----- Global application cache - Brocasted CUD - Local R
+     */
+
     private constructor() {
         super(ModuleVar.getInstance().name);
         VarServerController.getInstance();
+    }
+
+    get varcacheconf_by_var_ids(): { [var_id: number]: VarCacheConfVO } {
+        return this.varcacheconf_by_var_ids_;
+    }
+
+    get varcacheconf_by_api_type_ids(): { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } {
+        return this.varcacheconf_by_api_type_ids_;
     }
 
     public async configure() {
@@ -145,6 +171,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'StepByStep'
         }, 'var_desc.pause.___LABEL___'));
+
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
     }
 
     public registerServerApiHandlers() {
@@ -152,6 +182,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_matroid_for_precalc, this.register_matroid_for_precalc.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, this.getSimpleVarDataValueSumFilterByMatroids.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
 
     }
 
@@ -280,6 +311,10 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async getSimpleVarDataCachedValueFromParam(param: APISimpleVOParamVO): Promise<SimpleVarDataValueRes> {
 
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, param)) {
+            return;
+        }
+
         if ((!param) || (!param.vo)) {
             return new SimpleVarDataValueRes();
         }
@@ -327,10 +362,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 let uid: number = httpContext ? httpContext.get('UID') : null;
                 if (!!uid) {
                     let var_index: string = VarsController.getInstance().getIndex(vardata);
-                    if (!VarServerController.getInstance().uid_waiting_for_indexes[var_index]) {
-                        VarServerController.getInstance().uid_waiting_for_indexes[var_index] = {};
-                    }
-                    VarServerController.getInstance().uid_waiting_for_indexes[var_index][uid] = true;
+                    VarServerController.getInstance().add_uid_waiting_for_indexes(uid, var_index);
                 }
             }
 
@@ -524,16 +556,65 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
     }
 
+    private async configureVarCache(param: ConfigureVarCacheParamVO): Promise<VarCacheConfVO> {
+        let var_conf: VarConfVOBase = param.var_conf;
+        let var_cache_conf: VarCacheConfVO = param.var_cache_conf;
+
+        let existing_bdd_conf: VarCacheConfVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<VarCacheConfVO>(VarCacheConfVO.API_TYPE_ID, 'var_id', [var_cache_conf.var_id]);
+
+        if ((!!existing_bdd_conf) && existing_bdd_conf.length) {
+
+            if (existing_bdd_conf.length == 1) {
+                this.varcacheconf_by_var_ids_[var_conf.id] = existing_bdd_conf[0];
+                if (!this.varcacheconf_by_api_type_ids_[var_conf.var_data_vo_type]) {
+                    this.varcacheconf_by_api_type_ids_[var_conf.var_data_vo_type] = {};
+                }
+                this.varcacheconf_by_api_type_ids_[var_conf.var_data_vo_type][var_conf.id] = existing_bdd_conf[0];
+                return existing_bdd_conf[0];
+            }
+            return null;
+        }
+
+        let insert_or_update_result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
+
+        if ((!insert_or_update_result) || (!insert_or_update_result.id)) {
+            ConsoleHandler.getInstance().error('Impossible de configurer le cache de la var :' + var_conf.id + ':');
+            return null;
+        }
+
+        var_cache_conf.id = parseInt(insert_or_update_result.id.toString());
+
+        this.varcacheconf_by_var_ids_[var_conf.id] = var_cache_conf;
+        if (!this.varcacheconf_by_api_type_ids_[var_conf.var_data_vo_type]) {
+            this.varcacheconf_by_api_type_ids_[var_conf.var_data_vo_type] = {};
+        }
+        this.varcacheconf_by_api_type_ids_[var_conf.var_data_vo_type][var_conf.id] = var_cache_conf;
+        return var_cache_conf;
+    }
+
     private async onCUVarCacheConf(vcc: VarCacheConfVO) {
         if (!vcc) {
             return;
         }
 
-        ModuleVar.varcacheconf_by_var_ids[vcc.var_id] = vcc;
-        if (!ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) {
-            ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type] = {};
+        ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, vcc);
+    }
+
+    private update_varcacheconf_from_cache(vcc: VarCacheConfVO) {
+        this.varcacheconf_by_var_ids_[vcc.var_id] = vcc;
+        if (!this.varcacheconf_by_api_type_ids_[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) {
+            this.varcacheconf_by_api_type_ids_[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type] = {};
         }
-        ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id] = vcc;
+        this.varcacheconf_by_api_type_ids_[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id] = vcc;
+    }
+
+    private delete_varcacheconf_from_cache(vcc: VarCacheConfVO) {
+        delete this.varcacheconf_by_var_ids_[vcc.var_id];
+
+        if ((!!this.varcacheconf_by_api_type_ids_[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) &&
+            (!!this.varcacheconf_by_api_type_ids_[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id])) {
+            delete this.varcacheconf_by_api_type_ids_[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id];
+        }
     }
 
     private async onPreDVarCacheConf(vcc: VarCacheConfVO) {
@@ -541,12 +622,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        delete ModuleVar.varcacheconf_by_var_ids[vcc.var_id];
-
-        if ((!!ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) &&
-            (!!ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id])) {
-            delete ModuleVar.varcacheconf_by_api_type_ids[VarsController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type][vcc.var_id];
-        }
+        ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, vcc);
     }
-
 }

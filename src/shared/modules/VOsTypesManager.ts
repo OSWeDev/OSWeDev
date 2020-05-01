@@ -12,8 +12,15 @@ export default class VOsTypesManager {
 
     private static instance: VOsTypesManager = null;
 
+    /**
+     * Local thread cache -----
+     */
+
     public moduleTables_by_voType: { [voType: string]: ModuleTable<any> } = {};
 
+    /**
+     * ----- Local thread cache
+     */
     private constructor() { }
 
     public addAlias(api_type_id_alias: string, vo_type: string) {
