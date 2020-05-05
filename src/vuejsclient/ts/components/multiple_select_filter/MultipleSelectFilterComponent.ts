@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import DataFilterOptionsHandler from '../../../../shared/modules/DataRender/DataFilterOptionsHandler';
@@ -9,7 +10,6 @@ import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import './MultipleSelectFilterComponent.scss';
-import { isEqual } from 'lodash';
 
 @Component({
     template: require('./MultipleSelectFilterComponent.pug'),
@@ -81,6 +81,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
     @Prop({ default: false })
     private update_selectable_options_in_store: boolean;
 
+    @Prop({
+        default: null
+    })
+    private sort_options_func: (options: DataFilterOption[]) => void;
+
     private tmp_filter_active_options: DataFilterOption[] = [];
 
     private filter_state_selected: number = DataFilterOption.STATE_SELECTED;
@@ -115,7 +120,11 @@ export default class MultipleSelectFilterComponent extends VueComponentBase {
             }
         }
 
-        DataFilterOptionsHandler.getInstance().sort_options(res);
+        if (this.sort_options_func) {
+            this.sort_options_func(res);
+        } else {
+            DataFilterOptionsHandler.getInstance().sort_options(res);
+        }
 
         return res;
     }
