@@ -46,6 +46,8 @@ import MaintenanceServerController from './modules/Maintenance/MaintenanceServer
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
+import FileVO from '../shared/modules/File/vos/FileVO';
+import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -441,6 +443,36 @@ export default abstract class ServerBase {
             next();
         });
 
+        this.app.use(ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + ':file_name', async (req: Request, res: Response, next: NextFunction) => {
+
+            let file_name = req.params.file_name;
+
+            if (file_name.indexOf(';') >= 0) {
+                next();
+                return;
+            }
+
+            if (file_name.indexOf(')') >= 0) {
+                next();
+                return;
+            }
+
+            if (file_name.indexOf("'") >= 0) {
+                next();
+                return;
+            }
+
+            let file: FileVO = await ModuleDAOServer.getInstance().selectOne<FileVO>(FileVO.API_TYPE_ID, " where is_secured and path = $1;", [ModuleFile.SECURED_FILES_ROOT + file_name]);
+
+            if ((!file) || (!file.file_access_policy_name) || (!await ModuleAccessPolicy.getInstance().checkAccess(file.file_access_policy_name))) {
+
+                ServerBase.getInstance().redirect_login_or_home(req, res);
+                return;
+            }
+            res.sendFile(path.resolve(file.path));
+        });
+
+
         await this.modulesService.configure_server_modules(this.app);
         // A ce stade on a chargé toutes les trads par défaut possible et immaginables
         await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations();
@@ -452,15 +484,10 @@ export default abstract class ServerBase {
             ignoreRoutes: ["/public"]
         }));
 
-        this.app.get('/', async (req, res) => {
+        this.app.get('/', async (req: Request, res: Response) => {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS)) {
-                if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
-                    let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                    res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
-                    return;
-                }
-                res.redirect('/login');
+                ServerBase.getInstance().redirect_login_or_home(req, res);
                 return;
             }
             res.sendFile(path.resolve('./dist/client/public/generated/index.html'));
@@ -470,12 +497,7 @@ export default abstract class ServerBase {
 
             if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS)) {
 
-                if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
-                    let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                    res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
-                    return;
-                }
-                res.redirect('/');
+                ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
             }
             res.sendFile(path.resolve('./dist/admin/public/generated/admin.html'));
@@ -490,12 +512,7 @@ export default abstract class ServerBase {
                 || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS))
                 || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS))) {
 
-                if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
-                    let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                    res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
-                    return;
-                }
-                res.redirect('/');
+                ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
             }
             res.sendFile(path.resolve('./iisnode/' + file_name));
@@ -773,7 +790,18 @@ export default abstract class ServerBase {
     protected async createMandatoryFolders() {
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./temp');
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./files');
+        await ModuleFileServer.getInstance().makeSureThisFolderExists('./sfiles');
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./files/upload');
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./logs');
+    }
+
+    private redirect_login_or_home(req: Request, res: Response, url: string = null) {
+        if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
+            let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+            res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
+            return;
+        }
+        res.redirect(url ? url : '/login');
+        return;
     }
 }

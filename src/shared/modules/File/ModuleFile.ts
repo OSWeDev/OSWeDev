@@ -16,6 +16,8 @@ export default class ModuleFile extends Module {
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleFile.MODULE_NAME + '.BO_ACCESS';
 
     public static FILES_ROOT: string = './files/';
+    public static SECURED_FILES_ROOT: string = './sfiles/';
+    public static TEMP_FILES_ROOT: string = './temp/';
 
     public static APINAME_TEST_FILE_EXISTENZ = "test_file_existenz";
 
@@ -41,6 +43,8 @@ export default class ModuleFile extends Module {
         let label_field = new ModuleTableField('path', ModuleTableField.FIELD_TYPE_file_field, 'Fichier', false);
         let datatable_fields = [
             label_field,
+            new ModuleTableField('is_secured', ModuleTableField.FIELD_TYPE_boolean, 'Fichier sécurisé', true, true, false),
+            new ModuleTableField('file_access_policy_name', ModuleTableField.FIELD_TYPE_string, 'Nom du droit nécessaire si sécurisé', false),
         ];
 
         let datatable = new ModuleTable(this, FileVO.API_TYPE_ID, () => new FileVO(), datatable_fields, label_field, "Fichiers");

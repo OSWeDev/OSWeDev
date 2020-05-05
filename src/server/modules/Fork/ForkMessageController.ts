@@ -34,8 +34,6 @@ export default class ForkMessageController {
             return false;
         }
 
-        msg = APIController.getInstance().try_translate_vo_from_api(msg);
-
         return await this.registered_messages_handlers[msg.message_type](msg, sendHandle);
     }
 
@@ -43,10 +41,11 @@ export default class ForkMessageController {
      * On envoie le message à tous les process. Si on est dans un childprocess, on renvoi vers le parent qui enverra vers tout le monde, y compris nous
      *  Donc si on associe un comportement à ce message, il ne faut pas le faire manuellement, il sera exécuté par le message handler
      */
-    public broadcast(msg: IForkMessage, ignore_uid: number = null) {
+    public async broadcast(msg: IForkMessage, ignore_uid: number = null): Promise<boolean> {
 
         if (!ForkServerController.getInstance().is_main_process) {
             this.send(new BroadcastWrapperForkMessage(msg));
+            return true;
         } else {
 
             for (let i in ForkServerController.getInstance().process_forks) {
@@ -57,7 +56,7 @@ export default class ForkMessageController {
                 }
                 this.send(msg, forked.child_process);
             }
-            this.message_handler(msg);
+            await this.message_handler(msg);
         }
     }
 

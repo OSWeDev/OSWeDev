@@ -1,5 +1,7 @@
+import { Server, Socket } from 'net';
 import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
+import APIController from '../../../shared/modules/API/APIController';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModulesManager from '../../../shared/modules/ModulesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -10,6 +12,7 @@ import BGThreadServerController from '../BGThread/BGThreadServerController';
 import CronServerController from '../Cron/CronServerController';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ForkMessageController from './ForkMessageController';
+import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
 
 export default abstract class ForkedProcessWrapperBase {
@@ -93,7 +96,10 @@ export default abstract class ForkedProcessWrapperBase {
 
         BGThreadServerController.getInstance().server_ready = true;
         CronServerController.getInstance().server_ready = true;
-        process.on('message', ForkMessageController.getInstance().message_handler.bind(ForkMessageController.getInstance()));
+        process.on('message', async (msg: IForkMessage, sendHandle?: Socket | Server) => {
+            msg = APIController.getInstance().try_translate_vo_from_api(msg);
+            ForkMessageController.getInstance().message_handler(msg, sendHandle);
+        });
 
         // On prévient le process parent qu'on est ready
         ForkMessageController.getInstance().send(new AliveForkMessage());

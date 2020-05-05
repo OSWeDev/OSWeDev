@@ -7,4 +7,6 @@ export default class FileVO implements IDistantVOBase {
     public _type: string = FileVO.API_TYPE_ID;
 
     public path: string;
+    public is_secured: boolean;
+    public file_access_policy_name: string;
 }

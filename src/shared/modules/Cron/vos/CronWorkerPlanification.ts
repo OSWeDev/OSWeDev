@@ -1,5 +1,4 @@
 import IDistantVOBase from '../../IDistantVOBase';
-import ConversionHandler from '../../../tools/ConversionHandler';
 
 export default class CronWorkerPlanification implements IDistantVOBase {
     public static API_TYPE_ID: string = "cronworkplan";

@@ -10,6 +10,8 @@ import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import ExportDataToXLSXParamVO from './vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from './vos/apis/ExportLogVO';
+import ExportHistoricVO from './vos/ExportHistoricVO';
+import FileVO from '../File/vos/FileVO';
 
 export default class ModuleDataExport extends Module {
 
@@ -38,6 +40,7 @@ export default class ModuleDataExport extends Module {
         this.datatables = [];
 
         this.initializeExportLogVO();
+        this.initializeExportHistoricVO();
     }
 
     public registerApis() {
@@ -47,6 +50,33 @@ export default class ModuleDataExport extends Module {
             null,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
+    }
+
+    private initializeExportHistoricVO(): void {
+        let export_to_uid = new ModuleTableField('export_to_uid', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ fr: "Destinataire - Utilisateur" }), false);
+        let exported_file_id = new ModuleTableField('exported_file_id', ModuleTableField.FIELD_TYPE_foreign_key, new DefaultTranslation({ fr: "Fichier exporté" }), false);
+
+        let datatable_fields = [
+            new ModuleTableField('export_type_id', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: "Type d'export" }), true),
+            new ModuleTableField('export_is_secured', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: "Fichier sécurisé" }), true, true, false),
+            new ModuleTableField('export_file_access_policy_name', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: "Droit d\'accès au fichier" }), false),
+            new ModuleTableField('export_params_stringified', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: "Paramètres" }), false),
+            new ModuleTableField('export_to_mails', ModuleTableField.FIELD_TYPE_string_array, new DefaultTranslation({ fr: "Emails destinataires" }), false),
+            export_to_uid,
+            exported_file_id,
+            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, new DefaultTranslation({ fr: "Status" }), true, true, ExportHistoricVO.EXPORT_STATE_TODO).setEnumValues(ExportHistoricVO.EXPORT_STATE_LABELS),
+            new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date de création" }), true).set_segmentation_type(TimeSegment.TYPE_MS),
+            new ModuleTableField('start_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date de début" }), false).set_segmentation_type(TimeSegment.TYPE_MS),
+            new ModuleTableField('sent_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date d'envoi" }), false).set_segmentation_type(TimeSegment.TYPE_MS),
+            new ModuleTableField('export_date', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: "Date d'export" }), false).set_segmentation_type(TimeSegment.TYPE_MS),
+        ];
+
+        let moduleTable: ModuleTable<ExportHistoricVO> = new ModuleTable<ExportHistoricVO>(this, ExportHistoricVO.API_TYPE_ID, () => new ExportHistoricVO(), datatable_fields, null);
+
+        export_to_uid.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        exported_file_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[FileVO.API_TYPE_ID]);
+
+        this.datatables.push(moduleTable);
     }
 
     private initializeExportLogVO(): void {

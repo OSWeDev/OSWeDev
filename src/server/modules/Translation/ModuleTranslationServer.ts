@@ -21,6 +21,7 @@ import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
+import TParamVO from '../../../shared/modules/Translation/apis/TParamVO';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -678,6 +679,18 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             }
         }
         return res;
+    }
+
+    private async t(param: TParamVO): Promise<string> {
+        let translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [param.code_text]);
+        let translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [param.lang_id, translatable.id]);
+
+        return translation.translated;
+    }
+
+    private async label(param: TParamVO): Promise<string> {
+        param.code_text += DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return await this.t(param);
     }
 
     private async onPreCreateTranslatableTextVO(vo: TranslatableTextVO): Promise<boolean> {

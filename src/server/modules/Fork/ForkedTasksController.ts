@@ -38,14 +38,13 @@ export default class ForkedTasksController {
      * @param task_uid
      * @param task_params
      */
-    public broadexec(task_uid: string, ...task_params): boolean {
+    public async broadexec(task_uid: string, ...task_params): Promise<boolean> {
         if (!ForkServerController.getInstance().is_main_process) {
             ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new MainProcessTaskForkMessage(task_uid, task_params)).except_self());
+            return true;
         } else {
-            ForkMessageController.getInstance().broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
+            return await ForkMessageController.getInstance().broadcast(new MainProcessTaskForkMessage(task_uid, task_params));
         }
-        this.registered_tasks[task_uid](...task_params);
-        return true;
     }
 
     /**

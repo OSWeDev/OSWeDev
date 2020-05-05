@@ -176,6 +176,10 @@ export default class AccessPolicyServerController {
         return this.registered_roles_policies[role_id] ? this.registered_roles_policies[role_id][policy_id] : null;
     }
 
+    public get_user_roles_by_uid(uid: number): RoleVO[] {
+        return this.registered_users_roles[uid];
+    }
+
     public get_registered_policy_group(group_name: string): AccessPolicyGroupVO {
         return this.registered_policy_groups[group_name ? group_name.toLowerCase() : group_name];
     }

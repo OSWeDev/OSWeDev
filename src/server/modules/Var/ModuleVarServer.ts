@@ -597,7 +597,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, vcc);
+        await ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, vcc);
     }
 
     private update_varcacheconf_from_cache(vcc: VarCacheConfVO) {
@@ -622,6 +622,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             return;
         }
 
-        ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, vcc);
+        await ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, vcc);
     }
 }
