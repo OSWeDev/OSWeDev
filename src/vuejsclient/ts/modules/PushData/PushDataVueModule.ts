@@ -1,14 +1,13 @@
 import * as io from 'socket.io-client/dist/socket.io.slim.js';
+import APIController from '../../../../shared/modules/API/APIController';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
-import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import VueAppBase from '../../../VueAppBase';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
-import ModuleAPI from '../../../../shared/modules/API/ModuleAPI';
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -86,7 +85,7 @@ export default class PushDataVueModule extends VueModuleBase {
 
                 let vos: IDistantVOBase[] = null;
                 if (!!notification.vos) {
-                    vos = ModuleAPI.getInstance().try_translate_vos_from_api(notification.vos);
+                    vos = APIController.getInstance().try_translate_vos_from_api(notification.vos);
 
                     let types: { [name: string]: boolean } = {};
                     for (let i in vos) {
