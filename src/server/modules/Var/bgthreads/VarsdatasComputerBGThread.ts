@@ -86,7 +86,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 }
 
 
-                // On est le seul thread de l'appli à faire des calculs, on se permet de vider l'arbre entre chaque calcul
+                // WARNING FAUX : On est le seul thread de l'appli à faire des calculs, on se permet de vider l'arbre entre chaque calcul
                 VarsController.getInstance().varDAG.clearDAG();
                 let computed_datas: ISimpleNumberVarData[] = await VarsController.getInstance().registerDataParamsAndReturnVarDatas(vars_datas, true, true);
 
