@@ -63,6 +63,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
     public static APINAME_LOGIN_AND_REDIRECT = "LOGIN_AND_REDIRECT";
     public static APINAME_GET_LOGGED_USER_ID = "GET_LOGGED_USER_ID";
+    public static APINAME_GET_LOGGED_USER_NAME = "GET_LOGGED_USER_NAME";
     public static APINAME_RESET_PWDUID = "RESET_PWDUID";
     public static APINAME_getMyLang = "getMyLang";
 
@@ -126,6 +127,11 @@ export default class ModuleAccessPolicy extends Module {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, number>(
             ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID,
+            [UserVO.API_TYPE_ID]
+        ));
+
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, string>(
+            ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME,
             [UserVO.API_TYPE_ID]
         ));
 
@@ -194,6 +200,10 @@ export default class ModuleAccessPolicy extends Module {
 
     public async getLoggedUserId(): Promise<number> {
         return await ModuleAPI.getInstance().handleAPI<void, number>(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID);
+    }
+
+    public async getLoggedUserName(): Promise<string> {
+        return await ModuleAPI.getInstance().handleAPI<void, string>(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME);
     }
 
     public async impersonateLogin(email: string): Promise<number> {
