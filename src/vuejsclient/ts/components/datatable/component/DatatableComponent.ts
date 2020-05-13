@@ -1,4 +1,3 @@
-import TypesHandler from '../../../../../shared/tools/TypesHandler';
 import * as $ from 'jquery';
 import debounce from 'lodash/debounce';
 import * as moment from 'moment';
@@ -22,6 +21,7 @@ import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../../shared/tools/DateHandler';
 import RangeHandler from '../../../../../shared/tools/RangeHandler';
+import TypesHandler from '../../../../../shared/tools/TypesHandler';
 import AppVuexStoreManager from '../../../store/AppVuexStoreManager';
 import { ModuleCRUDAction } from '../../crud/store/CRUDStore';
 import { ModuleDAOAction, ModuleDAOGetter } from '../../dao/store/DaoStore';
@@ -142,7 +142,7 @@ export default class DatatableComponent extends VueComponentBase {
 
     private handle_filters_preload() {
 
-        this.custom_filters_values = {};
+        // this.custom_filters_values = {};
         this.preload_custom_filters = [];
 
         // En fait, on parcourt le type et pour chaque champ, si il existe en param un 'FILTER__' + field_id
@@ -602,7 +602,6 @@ export default class DatatableComponent extends VueComponentBase {
 
     @Watch('custom_filters_values', { deep: true })
     private onChangeFilterValue() {
-
         for (let i in this.datatable.fields) {
             let field = this.datatable.fields[i];
             if (field.type == DatatableField.SIMPLE_FIELD_TYPE) {
@@ -1011,6 +1010,8 @@ export default class DatatableComponent extends VueComponentBase {
             this.custom_filters_values[this.date_filtered_fields[i].datatable_field_uid] = {
                 start: null,
                 end: null,
+                // start: DateHandler.getInstance().formatDayForIndex(moment('2020-01-01').utc(true)),
+                // end: DateHandler.getInstance().formatDayForIndex(moment('2020-12-15').utc(true)),
             };
         }
         this.handle_filters_preload();
