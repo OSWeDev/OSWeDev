@@ -1,7 +1,11 @@
 import * as moment from 'moment';
+import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
+import 'quill/dist/quill.core.css'; // Compliqué à lazy load
+import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 import Vue from 'vue';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
 import ICRUDComponentField from '../../../../../../shared/modules/DAO/interface/ICRUDComponentField';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import Datatable from '../../../../../../shared/modules/DAO/vos/datatable/Datatable';
@@ -37,10 +41,6 @@ import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponen
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
-import Alert from '../../../../../../shared/modules/Alert/vos/Alert';
-import 'quill/dist/quill.bubble.css'; // Compliqué à lazy load
-import 'quill/dist/quill.core.css'; // Compliqué à lazy load
-import 'quill/dist/quill.snow.css'; // Compliqué à lazy load
 let debounce = require('lodash/debounce');
 
 @Component({
@@ -193,7 +193,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onChangeVO', this.vo);
+        this.$emit('onchangevo', this.vo);
     }
 
     get alert_path(): string {
@@ -384,7 +384,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onChangeVO', this.vo);
+        this.$emit('onchangevo', this.vo);
     }
 
     private validateMultiInput(values: any[]) {
@@ -401,8 +401,8 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onChangeVO', this.vo);
-        this.$emit('validateMultiInput', values, this.field, this.vo);
+        this.$emit('onchangevo', this.vo);
+        this.$emit('validatemultiinput', values, this.field, this.vo);
     }
 
 
@@ -488,7 +488,7 @@ export default class CRUDComponentField extends VueComponentBase
      * @param fileVo
      */
     private async uploadedFile(fileVo: FileVO) {
-        this.$emit('uploadedFile', this.vo, this.field, fileVo);
+        this.$emit('uploadedfile', this.vo, this.field, fileVo);
     }
 
     private async prepare_select_options() {
@@ -703,7 +703,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onChangeVO', this.vo);
+        this.$emit('onchangevo', this.vo);
     }
 
     private inputValue(value: any) {
@@ -723,7 +723,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onChangeVO', this.vo);
+        this.$emit('onchangevo', this.vo);
     }
 
     get is_custom_field_type(): boolean {
@@ -840,7 +840,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onChangeVO', this.vo);
+        this.$emit('onchangevo', this.vo);
 
         this.inline_input_is_editing = false;
 

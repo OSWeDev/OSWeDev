@@ -1,5 +1,5 @@
 .rootElt
-    vue-draggable-resizable.row#external-events(:resizable="opened" ref="external_events" :w="width" :h="height" :minh="minh" :minw="minw" :x="initialx" :y="10" :z="10000" dragHandle="#external_events_drag_handle" v-on:resizing="onResize" :class="{'opened':opened}")
+    vue-draggable-resizable.row#external-events(:resizable="opened" ref="external_events" :w="width" :h="height" :minh="minh" :minw="minw" :x="initialx" :y="10" :z="10000" drag-handle="#external_events_drag_handle" v-on:resizing="onResize" :class="{'opened':opened}")
         .col-md-12
             .row#external_events_drag_handle
                 .col-md-12  

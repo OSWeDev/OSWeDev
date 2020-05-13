@@ -20,15 +20,15 @@
         :searchable="true",
         :internal-search="false",
         :allow-empty="!field.is_required",
-        :preselectFirst="false",
+        :preselect-first="false",
         :disabled="is_readonly",
         @search-change="asyncLoadOptions",
         @input="onChangeField",
         :multiple="true"
 
-        :selectLabel='label("multiselect.selectLabel")'
-        :selectGroupLabel='label("multiselect.selectGroupLabel")'
-        :selectedLabel='label("multiselect.selectedLabel")'
-        :deselectLabel='label("multiselect.deselectLabel")'
-        :deselectGroupLabel='label("multiselect.deselectGroupLabel")'
+        :select-label='label("multiselect.selectLabel")'
+        :select-group-label='label("multiselect.selectGroupLabel")'
+        :selected-label='label("multiselect.selectedLabel")'
+        :deselect-label='label("multiselect.deselectLabel")'
+        :deselect-group-label='label("multiselect.deselectGroupLabel")'
     )

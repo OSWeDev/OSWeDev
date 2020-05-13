@@ -7,6 +7,6 @@
                     th {{ label('client.panier.prix') }}
             tbody
                 template(v-for="produitParam in produitsParam")
-                    panier_ajout_ligne(:produitParam="produitParam")
+                    panier_ajout_ligne(:produitparam="produitParam")
 
         button(v-on:click="ajouterAuPanier") {{ label('client.panier.ajouter') }}

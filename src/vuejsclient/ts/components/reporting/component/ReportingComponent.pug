@@ -20,7 +20,7 @@
                     tr.main_total_line(slot="prependBody", :class="groupColumn.name")
                         template(v-for='columnData in groupColumn.columns')
                             td(:colspan='columnData.column.colspan', :class='getClassesColumnData(columnData)')
-                                column_widget(:columnData="columnData")
+                                column_widget(:columndata="columnData")
 
                 template(v-if="selected_card.columnsFooter && selected_card.columnsFooter.length > 0")        
                     tr.tfoot_repeat(slot="prependBody")
@@ -28,7 +28,7 @@
                             td(:colspan='column.colspan', :class='getClassesColumn(column)') {{ t(column.label) }}
 
                 template(v-for="columnName in selected_card_columns_without_first", :slot="columnName", slot-scope="props")
-                    column_widget(:columnData="getColumnByProps(props)")
+                    column_widget(:columndata="getColumnByProps(props)")
 
                 template(v-if="selected_card.columnsFooter && selected_card.columnsFooter.length > 0")        
                     tfoot(slot="afterBody")

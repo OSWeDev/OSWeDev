@@ -1,8 +1,8 @@
-import { Component, Vue, Watch, Prop } from 'vue-property-decorator';
+import { Component, Prop } from 'vue-property-decorator';
 import VueComponentBase from '../../../VueComponentBase';
+import ColumnDataVO from '../../vos/ColumnDataVO';
 import ColumnVO from '../../vos/ColumnVO';
 import ReportingTrendComponent from '../trend/ReportingTrendComponent';
-import ColumnDataVO from '../../vos/ColumnDataVO';
 
 @Component({
     template: require('./ReportingColumnComponent.pug'),
@@ -13,7 +13,7 @@ import ColumnDataVO from '../../vos/ColumnDataVO';
 export default class ReportingColumnComponent extends VueComponentBase {
 
     @Prop({ default: null })
-    public columnData: ColumnDataVO;
+    public columndata: ColumnDataVO;
 
     public mounted(): void { }
 

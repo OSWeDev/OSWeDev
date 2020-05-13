@@ -2,7 +2,7 @@
     template(v-if='!hide')
         label.lang_selector_label(for="lang_selector_list") {{ label('lang_selector.label') }}
         multiselect.lang_selector_list.pull-right(
-            :preselectFirst="false"
+            :preselect-first="false"
             :multiple="false"
             v-model="tmp_user_lang"
             :options="langs"
@@ -12,11 +12,11 @@
             :searchable="true"
             :internal-search="true"
             
-            selectLabel=''
-            selectGroupLabel=''
-            selectedLabel=''
-            deselectLabel=''
-            deselectGroupLabel=''
+            select-label=''
+            select-group-label=''
+            selected-label=''
+            deselect-label=''
+            deselect-group-label=''
 
             placeholder=''
             

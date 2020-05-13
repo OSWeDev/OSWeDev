@@ -2,7 +2,7 @@
     ul#mainmenu.navbar-nav.navbar-sidenav
         template(v-for="menuElement in getMenuElements")
             li.nav-item(data-placement='right', :title='t(menuElement.translatable_title)')
-                //Composants récursif ???? : menu_element(:menuElement="menuElement", :lvl="1")
+                //Composants récursif ???? : menu_element(:menu-element="menuElement", :lvl="1")
                 template(v-if='menuElement.type == "LEAF"')
                     template(v-if='menuElement.target.type == "href"')
                         a.nav-link(:href='menuElement.target.href')

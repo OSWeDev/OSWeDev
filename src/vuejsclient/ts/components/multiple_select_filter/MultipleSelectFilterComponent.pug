@@ -12,7 +12,7 @@
     //-             i.fa.fa-object-group(aria-hidden='true')
     //-             span {{ option.label }}
     multiselect(
-        :preselectFirst="false"
+        :preselect-first="false"
         :multiple="true"
         v-model="tmp_filter_active_options"
         :placeholder="placeholder"
@@ -27,11 +27,11 @@
         :id="'multifilter_' + api_type_id"
         :disabled="disabled",
         
-        :selectLabel='label("multiselect.selectLabel")'
-        :selectGroupLabel='label("multiselect.selectGroupLabel")'
-        :selectedLabel='label("multiselect.selectedLabel")'
-        :deselectLabel='label("multiselect.deselectLabel")'
-        :deselectGroupLabel='label("multiselect.deselectGroupLabel")'
+        :select-label='label("multiselect.selectLabel")'
+        :select-group-label='label("multiselect.selectGroupLabel")'
+        :selected-label='label("multiselect.selectedLabel")'
+        :deselect-label='label("multiselect.deselectLabel")'
+        :deselect-group-label='label("multiselect.deselectGroupLabel")'
     )
         span(slot="noOptions") -
 

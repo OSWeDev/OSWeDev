@@ -1,9 +1,9 @@
-.col-md-12.default(v-if="columnData")
+.col-md-12.default(v-if="columndata")
     div(v-if="column && column.is_decimal")
-        trend_widget(:positive_min="0.1", :medium_min="0", :column_data="columnData")
+        trend_widget(:positive_min="0.1", :medium_min="0", :column_data="columndata")
         
     div(v-else)
-        .row(v-if="columnData.value != null")
-            span(:class="columnData.classLabelData") {{ columnData.value }}
-        .row(v-if="columnData.moyenne != null")
-            span.italic(:class="columnData.classLabelData") {{ columnData.moyenne }}
+        .row(v-if="columndata.value != null")
+            span(:class="columndata.classLabelData") {{ columndata.value }}
+        .row(v-if="columndata.moyenne != null")
+            span.italic(:class="columndata.classLabelData") {{ columndata.moyenne }}

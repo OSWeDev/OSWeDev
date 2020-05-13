@@ -47,13 +47,13 @@ v-client-table(
                 :options="custom_filters_options[field.datatable_field_uid]"
                 :custom-label="multiselectOptionLabel"
                 :allow-empty="true"
-                :selectLabel='label("multiselect.selectLabel")'
-                :selectGroupLabel='label("multiselect.selectGroupLabel")'
-                :selectedLabel='label("multiselect.selectedLabel")'
-                :deselectLabel='label("multiselect.deselectLabel")'
-                :deselectGroupLabel='label("multiselect.deselectGroupLabel")'
+                :select-label='label("multiselect.selectLabel")'
+                :select-group-label='label("multiselect.selectGroupLabel")'
+                :select-label='label("multiselect.selectedLabel")'
+                :deselect-label='label("multiselect.deselectLabel")'
+                :deselect-group-label='label("multiselect.deselectGroupLabel")'
                 :placeholder="t(field.translatable_place_holder)"
-                :preselectFirst="false"
+                :preselect-first="false"
                 :disabled="false"
                 :loading="false"
                 track-by="id"
@@ -73,7 +73,7 @@ v-client-table(
         //- :internal-search="false"
         //- @search-change="(query) => updateMultiSelectFilterOptions(query, field)"
 
-        //- :preselectFirst="false",
+        //- :preselect-first="false",
         //- :multiple="true",
         //- v-model="field_value_refranges_selected_ids",
         //- :custom-label="field.voIdToHumanReadable",
@@ -96,11 +96,11 @@ v-client-table(
             :placeholder="t(field.translatable_place_holder)"
             :options="custom_filters_options[field.datatable_field_uid]"
             :custom-label="multiselectOptionLabel"
-            :selectLabel='label("multiselect.selectLabel")'
-            :selectGroupLabel='label("multiselect.selectGroupLabel")'
-            :selectedLabel='label("multiselect.selectedLabel")'
-            :deselectLabel='label("multiselect.deselectLabel")'
-            :deselectGroupLabel='label("multiselect.deselectGroupLabel")'
+            :select-label='label("multiselect.selectLabel")'
+            :select-group-label='label("multiselect.selectGroupLabel")'
+            :selected-label='label("multiselect.selectedLabel")'
+            :deselect-label='label("multiselect.deselectLabel")'
+            :deselect-group-label='label("multiselect.deselectGroupLabel")'
         )
 
     template(v-for="field in datatable.fields" :slot="field.datatable_field_uid" slot-scope="props")

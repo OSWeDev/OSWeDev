@@ -1,12 +1,12 @@
 import Component from 'vue-class-component';
 import { Prop } from 'vue-property-decorator';
-import VueComponentBase from '../../../../VueComponentBase';
-import ProduitVO from '../../../../../../../shared/modules/Commerce/Produit/vos/ProduitVO';
-import FacturationVO from '../../../../../../../shared/modules/Commerce/Produit/vos/FacturationVO';
 import ModuleProduit from '../../../../../../../shared/modules/Commerce/Produit/ModuleProduit';
-import FacturationProduitVO from '../../../../../../../shared/modules/Commerce/Produit/vos/FacturationProduitVO';
-import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
 import ProduitParamLigneParamVO from '../../../../../../../shared/modules/Commerce/Produit/vos/apis/ProduitParamLigneParamVO';
+import FacturationProduitVO from '../../../../../../../shared/modules/Commerce/Produit/vos/FacturationProduitVO';
+import FacturationVO from '../../../../../../../shared/modules/Commerce/Produit/vos/FacturationVO';
+import ProduitVO from '../../../../../../../shared/modules/Commerce/Produit/vos/ProduitVO';
+import ModuleDAO from '../../../../../../../shared/modules/DAO/ModuleDAO';
+import VueComponentBase from '../../../../VueComponentBase';
 
 @Component({
     template: require('./PanierAjoutLigneComponent.pug'),
@@ -14,7 +14,7 @@ import ProduitParamLigneParamVO from '../../../../../../../shared/modules/Commer
 })
 export default class PanierAjoutLigneComponent extends VueComponentBase {
     @Prop({ default: null })
-    private produitParam: ProduitParamLigneParamVO;
+    private produitparam: ProduitParamLigneParamVO;
 
     private facturations_produit: FacturationProduitVO[] = null;
     private facturation: FacturationVO = null;
@@ -34,8 +34,8 @@ export default class PanierAjoutLigneComponent extends VueComponentBase {
     }
 
     get produit(): ProduitVO {
-        if (this.produitParam) {
-            return this.produitParam.produit;
+        if (this.produitparam) {
+            return this.produitparam.produit;
         }
 
         return null;
