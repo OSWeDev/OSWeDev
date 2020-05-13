@@ -1,3 +1,8 @@
+import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import RoleVO from '../AccessPolicy/vos/RoleVO';
+import UserVO from '../AccessPolicy/vos/UserVO';
+import ModuleAPI from '../API/ModuleAPI';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -6,17 +11,14 @@ import LangVO from '../Translation/vos/LangVO';
 import VersionedVOController from '../Versioned/VersionedVOController';
 import VOsTypesManager from '../VOsTypesManager';
 import DocumentDocumentTagVO from './vos/DocumentDocumentTagVO';
+import DocumentLangVO from './vos/DocumentLangVO';
+import DocumentRoleVO from './vos/DocumentRoleVO';
 import DocumentTagDocumentTagGroupVO from './vos/DocumentTagDocumentTagGroupVO';
 import DocumentTagGroupLangVO from './vos/DocumentTagGroupLangVO';
 import DocumentTagGroupVO from './vos/DocumentTagGroupVO';
 import DocumentTagLangVO from './vos/DocumentTagLangVO';
 import DocumentTagVO from './vos/DocumentTagVO';
 import DocumentVO from './vos/DocumentVO';
-import DocumentLangVO from './vos/DocumentLangVO';
-import AccessPolicyTools from '../../tools/AccessPolicyTools';
-import ModuleAPI from '../API/ModuleAPI';
-import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import UserVO from '../AccessPolicy/vos/UserVO';
 
 export default class ModuleDocument extends Module {
 
@@ -80,6 +82,7 @@ export default class ModuleDocument extends Module {
         this.initializeDocumentTagVO();
         this.initializeDocumentTagGroupVO();
 
+        this.initializeDocumentRoleVO();
         this.initializeDocumentLangVO();
         this.initializeDocumentTagLangVO();
         this.initializeDocumentTagGroupLangVO();
@@ -122,6 +125,23 @@ export default class ModuleDocument extends Module {
         let table = new ModuleTable(this, DocumentTagVO.API_TYPE_ID, () => new DocumentTagVO(), fields, name, 'Documents - Tags');
         this.datatables.push(table);
     }
+
+    private initializeDocumentRoleVO() {
+        let d_id = new ModuleTableField('d_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Document', true);
+        let role_id = new ModuleTableField('role_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Role', true);
+
+        let fields = [
+            d_id,
+            role_id
+        ];
+
+        let table = new ModuleTable(this, DocumentRoleVO.API_TYPE_ID, () => new DocumentRoleVO(), fields, null, 'Roles d\'accès aux Documents');
+        this.datatables.push(table);
+
+        d_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[DocumentVO.API_TYPE_ID]);
+        role_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[RoleVO.API_TYPE_ID]);
+    }
+
 
     private initializeDocumentLangVO() {
         let d_id = new ModuleTableField('d_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Document', true);

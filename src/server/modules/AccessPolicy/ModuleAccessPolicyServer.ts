@@ -672,6 +672,32 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
+    public checkAccessByRoleIds(role_ids: number[]): boolean {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!role_ids) || (!role_ids.length)) {
+            return false;
+        }
+
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+            return true;
+        }
+
+        let uid: number = httpContext.get('UID');
+        if (!uid) {
+            return role_ids.indexOf(AccessPolicyServerController.getInstance().role_anonymous.id) >= 0;
+        }
+
+        let user_roles: { [role_id: number]: RoleVO } = AccessPolicyServerController.getInstance().getUsersRoles(true, uid);
+
+        for (let i in user_roles) {
+            if (role_ids.indexOf(user_roles[i].id) >= 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private async togglePolicy(params: ToggleAccessParamVO): Promise<boolean> {
         if ((!params.policy_id) || (!params.role_id)) {
             return false;
