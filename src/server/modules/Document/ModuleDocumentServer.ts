@@ -27,6 +27,7 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import EnvParam from '../../env/EnvParam';
 import ConfigurationService from '../../env/ConfigurationService';
+import DocumentRoleVO from '../../../shared/modules/Document/vos/DocumentRoleVO';
 
 export default class ModuleDocumentServer extends ModuleServerBase {
 
@@ -186,7 +187,7 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
         let vos: DocumentVO[] = await ModuleDAO.getInstance().getVos<DocumentVO>(DocumentVO.API_TYPE_ID);
         if ((!vos) || (!vos.length)) {
-            return vos;
+            return null;
         }
 
         let user_lang: LangVO = await ModuleAccessPolicyServer.getInstance().getMyLang();
@@ -198,11 +199,31 @@ export default class ModuleDocumentServer extends ModuleServerBase {
         let d_ids: number[] = ObjectHandler.getInstance().getIdsList(vos);
         let d_by_ids: { [id: number]: DocumentVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vos);
         let doc_langs: DocumentLangVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentLangVO.API_TYPE_ID, 'lang_id', [user_lang.id], 'd_id', d_ids);
+        let doc_roles: DocumentRoleVO[] = await ModuleDAO.getInstance().getVosByRefFieldsIds(DocumentRoleVO.API_TYPE_ID, 'd_id', d_ids);
+        let doc_role_ids_by_docid: { [docid: number]: number[] } = {};
+
+        for (let i in doc_roles) {
+            let doc_role = doc_roles[i];
+
+            if (!doc_role_ids_by_docid[doc_role.d_id]) {
+                doc_role_ids_by_docid[doc_role.d_id] = [];
+            }
+            doc_role_ids_by_docid[doc_role.d_id].push(doc_role.role_id);
+        }
 
         for (let i in doc_langs) {
             let doc_lang = doc_langs[i];
+            let doc: DocumentVO = d_by_ids[doc_lang.d_id];
 
-            res.push(d_by_ids[doc_lang.d_id]);
+            if (!doc_role_ids_by_docid[doc.id]) {
+                res.push(doc);
+                continue;
+            }
+
+            if (ModuleAccessPolicyServer.getInstance().checkAccessByRoleIds(doc_role_ids_by_docid[doc.id])) {
+                res.push(doc);
+                continue;
+            }
         }
         return res;
     }
