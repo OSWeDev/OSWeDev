@@ -502,6 +502,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID, this.getLoggedUserId.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME, this.getLoggedUserName.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
@@ -578,6 +579,23 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (session && session.uid) {
                 return session.uid;
+            }
+            return null;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+            return null;
+        }
+    }
+
+    public async getLoggedUserName(): Promise<string> {
+
+        try {
+
+            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+            let session = httpContext ? httpContext.get('SESSION') : null;
+
+            if (session && session.uid) {
+                return (await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid)).name;
             }
             return null;
         } catch (error) {
