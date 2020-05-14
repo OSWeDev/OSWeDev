@@ -10,6 +10,7 @@ import ForkMessageController from './ForkMessageController';
 import IFork from './interfaces/IFork';
 import IForkMessage from './interfaces/IForkMessage';
 import IForkProcess from './interfaces/IForkProcess';
+import ConfigurationService from '../../env/ConfigurationService';
 
 export default class ForkServerController {
 
@@ -70,12 +71,14 @@ export default class ForkServerController {
         for (let i in this.forks) {
             let forked: IFork = this.forks[i];
 
-            if (!!process.debugPort) {
+            if (ConfigurationService.getInstance().getNodeConfiguration().ISDEV && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked), {
-                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1)]
+                    execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096']
                 });
             } else {
-                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked));
+                forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked), {
+                    execArgv: ['--max-old-space-size=4096']
+                });
             }
             forked.child_process.on('message', async (msg: IForkMessage, sendHandle?: Socket | Server) => {
                 msg = APIController.getInstance().try_translate_vo_from_api(msg);
