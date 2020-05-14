@@ -578,6 +578,12 @@ export default class VarsController {
         }
     }
 
+    public clean_caches_and_vardag() {
+        VarsController.getInstance().varDAG.clearDAG();
+        this.imported_datas_by_index = {};
+        this.imported_datas_by_var_id = {};
+        this.checked_var_indexes = {};
+    }
 
     public getInclusiveEndParamTimeSegment<TDataParam extends IVarDataParamVOBase>(param: TDataParam): Moment {
 
