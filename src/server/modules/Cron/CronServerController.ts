@@ -10,6 +10,7 @@ import ICronWorker from './interfaces/ICronWorker';
 import RunCronForkMessage from './messages/RunCronForkMessage';
 import RunCronsForkMessage from './messages/RunCronsForkMessage';
 import DateHandler from '../../../shared/tools/DateHandler';
+import BroadcastWrapperForkMessage from '../Fork/messages/BroadcastWrapperForkMessage';
 
 export default class CronServerController {
 
@@ -55,10 +56,10 @@ export default class CronServerController {
         if (!!ForkedProcessWrapperBase.getInstance()) {
 
             if (CronServerController.getInstance().valid_crons_names[worker_uid]) {
-                // On laisse en asynchrone, on veut pas le résultat et surtout pas tout bloquer
-                ModuleCron.getInstance().executeWorkerManually(worker_uid);
+                await this.handle_runcron_message(new RunCronForkMessage(worker_uid));
+            } else {
+                ForkMessageController.getInstance().send(new BroadcastWrapperForkMessage(new RunCronForkMessage(worker_uid)));
             }
-            ForkMessageController.getInstance().send(new RunCronForkMessage(worker_uid));
         } else {
 
             if ((!ForkServerController.getInstance().process_fork_by_type_and_name[CronServerController.ForkedProcessType]) ||

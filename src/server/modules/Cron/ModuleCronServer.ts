@@ -100,12 +100,6 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async executeWorkersManually() {
 
-        if (!CronServerController.getInstance().run_crons) {
-
-            // Si on arrive ici sans avoir le droit
-            return;
-        }
-
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let uid: number = httpContext ? httpContext.get('UID') : null;
         PushDataServerController.getInstance().notifySimpleINFO(uid, 'cron.execute_manually.start');
