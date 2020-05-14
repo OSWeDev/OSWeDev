@@ -71,16 +71,23 @@ export default class ModuleMailerServer extends ModuleServerBase {
             let suffix: string = ModuleMailer.getInstance().getParamValue(ModuleMailer.PARAM_NAME_SUBJECT_SUFFIX);
             mailOptions.subject = (prefix ? prefix : '') + mailOptions.subject + (suffix ? suffix : '');
 
-            let mailtransport = nodemailer.createTransport(this.transporter);
-            mailtransport.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    ConsoleHandler.getInstance().error(error);
-                    resolve();
-                } else {
-                    ConsoleHandler.getInstance().log('Message sent: ' + info.messageId);
-                    resolve();
-                }
-            });
+            try {
+                let mailtransport = nodemailer.createTransport(this.transporter);
+
+                ConsoleHandler.getInstance().log('Try send mail :to:' + mailOptions.to + ':from:' + mailOptions.from + ':subject:' + mailOptions.subject);
+
+                mailtransport.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        ConsoleHandler.getInstance().error(error);
+                        resolve();
+                    } else {
+                        ConsoleHandler.getInstance().log('Message sent: ' + info.messageId);
+                        resolve();
+                    }
+                });
+            } catch (error) {
+                ConsoleHandler.getInstance().error(error);
+            }
         });
     }
 }

@@ -4,15 +4,14 @@ import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHisto
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
-import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import EnvParam from '../../env/EnvParam';
 import ModuleMailerServer from '../Mailer/ModuleMailerServer';
+import default_mail_html_template from './default_export_mail_html_template.html';
 import IExportableDatas from './interfaces/IExportableDatas';
 import IExportHandler from './interfaces/IExportHandler';
 import ModuleDataExportServer from './ModuleDataExportServer';
-let default_mail_html_template = require('./default_export_mail_html_template.html');
 
 export default abstract class ExportHandlerBase implements IExportHandler {
 
@@ -69,11 +68,11 @@ export default abstract class ExportHandlerBase implements IExportHandler {
                 (await ModuleTranslation.getInstance().getTranslation(user.lang_id, default_export_mail_subject.id)).translated,
                 user.lang_id, {
                 EXPORT_TYPE_ID: exhi.export_type_id,
-                FILE_URL: envParam.BASE_URL + exported_file.path
+                FILE_URL: envParam.BASE_URL + exported_file.path.replace(/^[.][/]/, '/')
             });
             let prepared_html: string = await ModuleMailerServer.getInstance().prepareHTML(default_mail_html_template, user.lang_id, {
                 EXPORT_TYPE_ID: exhi.export_type_id,
-                FILE_URL: envParam.BASE_URL + exported_file.path
+                FILE_URL: envParam.BASE_URL + exported_file.path.replace(/^[.][/]/, '/')
             });
 
             await ModuleMailerServer.getInstance().sendMail({
