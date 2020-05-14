@@ -48,6 +48,7 @@ import PushDataServerController from './modules/PushData/PushDataServerControlle
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 import FileVO from '../shared/modules/File/vos/FileVO';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
+import FileLoggerHandler from './FileLoggerHandler';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -86,6 +87,11 @@ export default abstract class ServerBase {
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+
+        FileLoggerHandler.getInstance().prepare().then(() => {
+            ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
+            ConsoleHandler.getInstance().log("Main Process starting");
+        });
 
         // Les bgthreads peuvent être register mais pas run dans le process server principal. On le dédie à Express et aux APIs
         BGThreadServerController.getInstance().register_bgthreads = true;

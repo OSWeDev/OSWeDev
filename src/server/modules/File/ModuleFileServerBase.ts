@@ -1,18 +1,16 @@
 import { Express, Request, Response } from 'express';
 import * as formidable from 'express-formidable';
 import * as fs from 'fs';
-import * as mkdirp from 'mkdirp';
-import * as path from 'path';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
-import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
+import FileServerController from './FileServerController';
 
 export default abstract class ModuleFileServerBase<T extends FileVO> extends ModuleServerBase {
 
@@ -37,16 +35,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
      * @returns the new path
      */
     public async moveFile(old_path: string, toFolder: string, file_name: string = null): Promise<string> {
-
-        await this.makeSureThisFolderExists(toFolder);
-        file_name = (file_name ? file_name : path.basename(old_path));
-        let new_path = toFolder + file_name;
-        while (fs.existsSync(new_path)) {
-            file_name = '_' + file_name;
-            new_path = toFolder + file_name;
-        }
-        fs.renameSync(old_path, new_path);
-        return new_path;
+        return FileServerController.getInstance().copyFile(old_path, toFolder, file_name);
     }
 
     /**
@@ -56,16 +45,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
      * @returns the new path
      */
     public async copyFile(srcFile: string, toFolder: string, file_name: string = null): Promise<string> {
-
-        await this.makeSureThisFolderExists(toFolder);
-        file_name = (file_name ? file_name : path.basename(srcFile));
-        let new_path = toFolder + file_name;
-        while (fs.existsSync(new_path)) {
-            file_name = '_' + file_name;
-            new_path = toFolder + file_name;
-        }
-        fs.copyFileSync(srcFile, new_path);
-        return new_path;
+        return FileServerController.getInstance().copyFile(srcFile, toFolder, file_name);
     }
 
     public async copyFileVo(fileVo: T, toFolder: string): Promise<string> {
@@ -87,78 +67,32 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     }
 
     public async makeSureThisFolderExists(folder: string) {
-        return new Promise((resolve, reject) => {
-            mkdirp(folder, function (err) {
-                if (err) {
-                    console.error(err);
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        return FileServerController.getInstance().makeSureThisFolderExists(folder);
     }
 
     public async dirExists(filepath: string) {
-        return new Promise((resolve, reject) => {
-            fs.exists(filepath, (res) => {
-                resolve(res);
-            });
-        });
+        return FileServerController.getInstance().dirExists(filepath);
     }
 
     public async dirCreate(filepath: string) {
-        return new Promise((resolve, reject) => {
-            fs.mkdir(filepath, (res) => {
-                resolve(res);
-            });
-        });
+        return FileServerController.getInstance().dirCreate(filepath);
     }
 
     public async writeFile(filepath: string, fileContent: string) {
-        return new Promise((resolve, reject) => {
-            fs.writeFile(filepath, fileContent, function (err) {
-                if (err) {
-                    console.error(err);
-                    resolve(err);
-                    return;
-                }
-                console.log("File overwritten : " + filepath);
-                resolve();
-            });
-        });
+        return FileServerController.getInstance().writeFile(filepath, fileContent);
     }
 
     public async readFile(filepath: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            fs.readFile(filepath, ConfigurationService.getInstance().getNodeConfiguration().SERVER_ENCODING, function (err, data: string) {
-                if (err) {
-                    console.error(err);
-                    resolve(null);
-                    return;
-                }
-                console.log("File read : " + filepath);
-                resolve(data);
-            });
-        });
+        return FileServerController.getInstance().readFile(filepath);
     }
 
 
     public async appendFile(filepath: string, fileContent: string) {
-        return new Promise((resolve, reject) => {
-            fs.appendFile(filepath, fileContent, function (err) {
-                if (err) {
-                    console.error(err);
-                    resolve(err);
-                    return;
-                }
-                resolve();
-            });
-        });
+        return FileServerController.getInstance().appendFile(filepath, fileContent);
     }
 
     public getWriteStream(filepath: string, flags: string): fs.WriteStream {
-        return fs.createWriteStream(filepath, { flags: flags });
+        return FileServerController.getInstance().getWriteStream(filepath, flags);
     }
 
     protected abstract getNewVo(): T;

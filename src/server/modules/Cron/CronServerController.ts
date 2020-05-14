@@ -115,8 +115,7 @@ export default class CronServerController {
 
     private async handle_runcron_message(msg: RunCronForkMessage): Promise<boolean> {
         try {
-            // On laisse en asynchrone, on veut pas le résultat et surtout pas tout bloquer
-            this.run_cron(msg.message_content);
+            await this.run_cron(msg.message_content);
         } catch (error) {
             ConsoleHandler.getInstance().error('handle_runcron_message:' + error);
         }

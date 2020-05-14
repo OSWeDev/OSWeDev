@@ -35,6 +35,8 @@ import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/P
 import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import VendorBuilder from './vendor_builder/VendorBuilder';
+import FileLoggerHandler from '../server/FileLoggerHandler';
+import ConsoleHandler from '../shared/tools/ConsoleHandler';
 
 export default abstract class GeneratorBase {
 
@@ -91,6 +93,12 @@ export default abstract class GeneratorBase {
     public async generate() {
 
         ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+
+        FileLoggerHandler.getInstance().prepare().then(() => {
+            ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
+            ConsoleHandler.getInstance().log("Generator starting");
+        });
+
         const envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
 
         let connectionString = envParam.CONNECTION_STRING;

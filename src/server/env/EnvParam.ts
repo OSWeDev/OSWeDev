@@ -18,4 +18,5 @@ export default class EnvParam {
     public MAX_POOL: number = 10;
     public SERVER_START_BOOSTER: boolean;
     public SERVER_ENCODING: string;
+    public CONSOLE_LOG_TO_FILE: boolean = true;
 }

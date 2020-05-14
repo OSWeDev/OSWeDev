@@ -14,6 +14,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ForkMessageController from './ForkMessageController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
+import FileLoggerHandler from '../../FileLoggerHandler';
 
 export default abstract class ForkedProcessWrapperBase {
 
@@ -36,11 +37,15 @@ export default abstract class ForkedProcessWrapperBase {
 
     constructor(modulesService: ModuleServiceBase, STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
 
-        ConsoleHandler.getInstance().log("Forked Process starting");
-
         ForkedProcessWrapperBase.instance = this;
         this.modulesService = modulesService;
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
+        ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
+        FileLoggerHandler.getInstance().prepare().then(() => {
+            ConsoleHandler.getInstance().logger_handler = FileLoggerHandler.getInstance();
+            ConsoleHandler.getInstance().log("Forked Process starting");
+        });
+
         ModulesManager.getInstance().isServerSide = true;
 
         // Les bgthreads peuvent être register et run - reste à définir lesquels
@@ -83,7 +88,6 @@ export default abstract class ForkedProcessWrapperBase {
 
     public async run() {
 
-        ConfigurationService.getInstance().setEnvParams(this.STATIC_ENV_PARAMS);
         const envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
 
         let connectionString = envParam.CONNECTION_STRING;

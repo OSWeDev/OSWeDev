@@ -1,5 +1,6 @@
 /* istanbul ignore file: not a usefull test to write */
 
+import ILoggerHandler from './interfaces/ILoggerHandler';
 const moment = require('moment');
 
 export default class ConsoleHandler {
@@ -15,18 +16,36 @@ export default class ConsoleHandler {
 
     private static instance: ConsoleHandler = null;
 
+    public logger_handler: ILoggerHandler = null;
+
     private constructor() { }
 
     public error(error: string | Error): void {
-        console.error(this.get_text_msg(error));
+
+        let msg = this.get_text_msg(error);
+
+        if (!!this.logger_handler) {
+            this.logger_handler.log("ERROR -- " + msg);
+        }
+        console.error(msg);
     }
 
     public warn(error: string | Error): void {
-        console.warn(this.get_text_msg(error));
+        let msg = this.get_text_msg(error);
+
+        if (!!this.logger_handler) {
+            this.logger_handler.log("WARN  -- " + msg);
+        }
+        console.warn(msg);
     }
 
     public log(error: string | Error): void {
-        console.log(this.get_text_msg(error));
+        let msg = this.get_text_msg(error);
+
+        if (!!this.logger_handler) {
+            this.logger_handler.log("DEBUG -- " + msg);
+        }
+        console.log(msg);
     }
 
     private get_text_msg(error: string | Error): string {
