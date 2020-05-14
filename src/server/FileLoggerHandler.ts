@@ -24,6 +24,7 @@ export default class FileLoggerHandler implements ILoggerHandler {
     private constructor() { }
 
     public async prepare() {
+
         if (ConfigurationService.getInstance().getNodeConfiguration().CONSOLE_LOG_TO_FILE) {
             await FileServerController.getInstance().makeSureThisFolderExists('./nodes_logs');
             this.log_file = FileServerController.getInstance().getWriteStream('./nodes_logs/node_log_' + process.pid + '_' + moment().unix() + '.txt', 'a');

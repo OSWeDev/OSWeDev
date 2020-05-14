@@ -18,7 +18,26 @@ export default class ConsoleHandler {
 
     public logger_handler: ILoggerHandler = null;
 
-    private constructor() { }
+    private old_console_log: (message?: any, ...optionalParams: any[]) => void = null;
+    private old_console_warn: (message?: any, ...optionalParams: any[]) => void = null;
+    private old_console_error: (message?: any, ...optionalParams: any[]) => void = null;
+
+    private constructor() {
+        this.old_console_log = console.log;
+        console.log = function (msg) {
+            ConsoleHandler.getInstance().log(msg);
+        };
+
+        this.old_console_warn = console.warn;
+        console.warn = function (msg) {
+            ConsoleHandler.getInstance().warn(msg);
+        };
+
+        this.old_console_error = console.error;
+        console.error = function (msg) {
+            ConsoleHandler.getInstance().error(msg);
+        };
+    }
 
     public error(error: string | Error): void {
 
@@ -27,7 +46,7 @@ export default class ConsoleHandler {
         if (!!this.logger_handler) {
             this.logger_handler.log("ERROR -- " + msg);
         }
-        console.error(msg);
+        this.old_console_error(msg);
     }
 
     public warn(error: string | Error): void {
@@ -36,7 +55,7 @@ export default class ConsoleHandler {
         if (!!this.logger_handler) {
             this.logger_handler.log("WARN  -- " + msg);
         }
-        console.warn(msg);
+        this.old_console_warn(msg);
     }
 
     public log(error: string | Error): void {
@@ -45,11 +64,11 @@ export default class ConsoleHandler {
         if (!!this.logger_handler) {
             this.logger_handler.log("DEBUG -- " + msg);
         }
-        console.log(msg);
+        this.old_console_log(msg);
     }
 
     private get_text_msg(error: string | Error): string {
-        return process.pid + ':' + this.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? (error as Error).message || error : error);
+        return process.pid + ':' + this.get_timestamp() + ConsoleHandler.SEPARATOR + (error ? ((error as Error).message ? ((error as Error).message + ':' + (error as Error).stack) : error) : error);
     }
 
     private get_timestamp(): string {
