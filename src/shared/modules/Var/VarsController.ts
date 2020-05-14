@@ -579,6 +579,10 @@ export default class VarsController {
     }
 
     public clean_caches_and_vardag() {
+        // On veut surtout pas supprimer l'arbre pendant qu'un update est en cours
+        if (this.updateSemaphore) {
+            return;
+        }
         VarsController.getInstance().varDAG.clearDAG();
         this.imported_datas_by_index = {};
         this.imported_datas_by_var_id = {};
