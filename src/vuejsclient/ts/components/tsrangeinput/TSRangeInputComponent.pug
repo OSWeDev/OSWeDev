@@ -7,9 +7,9 @@
         Datepicker(v-model="tsrange_end" :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_fin')" :required="required" :disabled="disabled" :format="format_datepicker_day" class="form-control" @input="emitInput")
     template(v-if='is_segmentation_minute')
         .row
-            .col-md-6
+            .col-sm-6
                 Datepicker(v-model="tsrange_date" :language="languages[language]" :placeholder="label('ts_range_input.placeholder.date_debut')" :required="required" :disabled="disabled" :format="format_datepicker_day" class="form-control max-width" @input="emitInput")
-            .col-md-3
+            .col-sm-3
                 input.form-control.max-width(v-model="tsrange_start_time", type="time", id="tsrange_start_time" :disabled="disabled")
-            .col-md-3
+            .col-sm-3
                 input.form-control.max-width(v-model="tsrange_end_time", type="time", id="tsrange_end_time" :disabled="disabled")
