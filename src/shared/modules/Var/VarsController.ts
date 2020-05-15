@@ -587,6 +587,7 @@ export default class VarsController {
         this.imported_datas_by_index = {};
         this.imported_datas_by_var_id = {};
         this.checked_var_indexes = {};
+        this.loaded_imported_datas_of_vars_ids = {};
     }
 
     public getInclusiveEndParamTimeSegment<TDataParam extends IVarDataParamVOBase>(param: TDataParam): Moment {
