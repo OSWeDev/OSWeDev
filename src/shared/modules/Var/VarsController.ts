@@ -89,6 +89,7 @@ export default class VarsController {
 
 
     public registered_var_callbacks: { [index: string]: VarUpdateCallback[] } = {};
+    public registered_vars_by_datasource: { [datasource_id: string]: Array<VarControllerBase<any, any>> } = {};
 
     public registered_var_data_api_types: { [api_type: string]: boolean } = {};
     public imported_datas_by_index: { [index: string]: IVarDataVOBase } = {};
@@ -99,6 +100,8 @@ export default class VarsController {
     public varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
     public varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
     public varDatasBATCHCache: { [index: string]: IVarDataVOBase } = {};
+
+    public cached_var_id_by_datasource_by_api_type_id: { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarControllerBase<any, any> } } } = {};
 
     // private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
     // private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
@@ -1000,6 +1003,35 @@ export default class VarsController {
             this.setVar(varConf, controller);
             return varConf;
         }
+
+        // On enregistre le lien entre DS et VAR
+        let dss: Array<IDataSourceController<any, any>> = this.get_datasource_deps(controller);
+        for (let i in dss) {
+            let ds = dss[i];
+
+            if (!this.registered_vars_by_datasource[ds.name]) {
+                this.registered_vars_by_datasource[ds.name] = [];
+            }
+            this.registered_vars_by_datasource[ds.name].push(controller);
+
+            if (!!controller.getVarCacheConf()) {
+
+                for (let j in ds.vo_api_type_ids) {
+                    let vo_api_type_id = ds.vo_api_type_ids[j];
+
+                    if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id]) {
+                        this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id] = {};
+                    }
+
+                    if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name]) {
+                        this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name] = {};
+                    }
+
+                    this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][controller.varConf.id] = controller;
+                }
+            }
+        }
+
 
         let daoVarConf: VarConfVOBase = await ModuleDAO.getInstance().getNamedVoByName<VarConfVOBase>(varConf._type, varConf.name);
 

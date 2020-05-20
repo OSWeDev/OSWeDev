@@ -118,6 +118,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public matroid_cloner: (src: T) => T = ((src: T) => { }) as any;
 
+    /**
+     * Mappings de traduction d'un Vo de ce type vers un Vo du type b
+     *  Par défaut il faut lever une erreur si on cherche un mapping undefined
+     *  et si on veut rien mapper de particulier mais permettre le mapping, mettre {}
+     *  le mapping sera fait à l'identique
+     */
+    public mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_id_a: string]: string } } = {};
+
     private vo_interfaces: { [interface_name: string]: boolean } = {};
 
     private fields_: Array<ModuleTableField<any>> = [];
@@ -403,6 +411,16 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public addAlias(api_type_id_alias: string): ModuleTable<any> {
         VOsTypesManager.getInstance().addAlias(api_type_id_alias, this.vo_type);
+        return this;
+    }
+
+    /**
+     * A utiliser sur tous les params pour indiquer vers quels autres params on peut mapper des champs (pour des intersections principalement)
+     *  et sur tous les vos pour indiquer vers quels params on peut mapper des champs (pour des intersections également en base)
+     * @param mapping_by_api_type_ids
+     */
+    public set_mapping_by_api_type_ids(mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_id_a: string]: string } }): ModuleTable<any> {
+        this.mapping_by_api_type_ids = mapping_by_api_type_ids;
         return this;
     }
 

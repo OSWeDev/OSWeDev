@@ -16,6 +16,11 @@ export default interface IDataSourceController<TData extends IVarDataVOBase & TD
      */
     can_use_client_side: boolean;
 
+    /**
+     * Les api_type_ids qui engendrent un refresh potentiel du cache
+     */
+    vo_api_type_ids: string[];
+
     load_for_batch(vars_params: { [index: string]: TDataParam }): Promise<void>;
 
     get_data(param: TDataParam): any;

@@ -34,6 +34,11 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarServerController from './VarServerController';
 import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
+import VarControllerBase from '../../../shared/modules/Var/VarControllerBase';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import DataSourcesController from '../../../shared/modules/DataSource/DataSourcesController';
+import DataSourceMatroidControllerBase from '../../../shared/modules/DataSource/DataSourceMatroidControllerBase';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -85,6 +90,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
 
         let postCTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let preUTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         let postUTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
         let preDTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
@@ -175,6 +181,30 @@ export default class ModuleVarServer extends ModuleServerBase {
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
+
+        /**
+         * Ajout des triggers d'invalidation des données de cache en BDD
+         *  - on part de la liste des vars qui ont un cache et des datasources
+         */
+        for (let api_type_id in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id) {
+
+            postCTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+            preUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+            postUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+            preDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+        }
+    }
+
+    public async invalidate_var_cache_from_vo(vo: IDistantVOBase) {
+
+        for (let ds_name in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type]) {
+
+            // Pour chaque DS on doit demander les intercepteurs, en filtrant les var_ids qui nous intéressent
+
+            // Pour l'instant on ne sait faire ça que sur des DS matroids
+            let ds: DataSourceMatroidControllerBase<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name] as DataSourceMatroidControllerBase<any, any>;
+            TODO interceptors = ds.get_param_intersectors_from_vo_update_by_var_id(vo, ObjectHandler.getInstance().arrayFromMap(VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type][ds_name]));
+        }
     }
 
     public registerServerApiHandlers() {
