@@ -39,7 +39,9 @@ import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import DataSourcesController from '../../../shared/modules/DataSource/DataSourcesController';
 import DataSourceMatroidControllerBase from '../../../shared/modules/DataSource/DataSourceMatroidControllerBase';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
-const moment = require('moment');
+import IVarMatroidDataVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataVO';
+import RangeHandler from '../../../shared/tools/RangeHandler';
+import { Duration, Moment } from 'moment';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -197,13 +199,75 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public async invalidate_var_cache_from_vo(vo: IDistantVOBase) {
 
-        for (let ds_name in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type]) {
+        try {
 
-            // Pour chaque DS on doit demander les intercepteurs, en filtrant les var_ids qui nous intéressent
+            for (let ds_name in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type]) {
 
-            // Pour l'instant on ne sait faire ça que sur des DS matroids
-            let ds: DataSourceMatroidControllerBase<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name] as DataSourceMatroidControllerBase<any, any>;
-            TODO interceptors = ds.get_param_intersectors_from_vo_update_by_var_id(vo, ObjectHandler.getInstance().arrayFromMap(VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type][ds_name]));
+                // Pour chaque DS on doit demander les intercepteurs, en filtrant les var_ids qui nous intéressent
+
+                // Pour l'instant on ne sait faire ça que sur des DS matroids
+                let ds: DataSourceMatroidControllerBase<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name] as DataSourceMatroidControllerBase<any, any>;
+                let interceptors_by_var_ids: { [var_id: number]: IVarMatroidDataParamVO[]; } = ds.get_param_intersectors_from_vo_update_by_var_id(vo, ObjectHandler.getInstance().arrayFromMap(VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type][ds_name]));
+
+                for (let var_id_s in interceptors_by_var_ids) {
+                    let var_id: number = parseInt(var_id_s.toString());
+                    let interceptors = interceptors_by_var_ids[var_id_s];
+
+                    for (let i in interceptors) {
+                        let interceptor: IVarMatroidDataParamVO = interceptors[i];
+
+                        let moduletable_interceptor: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[interceptor._type];
+                        let moduletable_vardata: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[VarsController.getInstance().getVarConfById(var_id).var_data_vo_type];
+
+                        if (moduletable_vardata.is_segmented) {
+
+                            // Si segmenté, on cherche le segment et on fait une requête par segment
+                            let moduletable_vardata_segment_field_name: string = moduletable_vardata.table_segmented_field.field_id;
+
+                            // On prend l'équivalent dans le matroid
+                            let mapping_intersector_to_vardata: { [field_id_a: string]: string; } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
+                            let intersector_segment_field_name: string = moduletable_vardata_segment_field_name;
+                            for (let field_a in mapping_intersector_to_vardata) {
+                                let field_b = mapping_intersector_to_vardata[field_a];
+
+                                if (field_b == moduletable_vardata_segment_field_name) {
+                                    intersector_segment_field_name = field_a;
+                                }
+                            }
+
+                            // et on foreach sur le champ de l'intersector qui est segmenté
+                            await RangeHandler.getInstance().foreach(interceptor[intersector_segment_field_name], async (segment: number | Duration | Moment) => {
+
+                                // On enlève le filtrage sur le champ segmenté, inutile
+                                let segment_interceptor = Object.assign({}, interceptor);
+                                delete segment_interceptor[intersector_segment_field_name];
+
+                                let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null where ' +
+                                    ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(
+                                        moduletable_vardata.vo_type,
+                                        interceptor,
+                                        moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type],
+                                        't',
+                                        moduletable_vardata.get_segmented_full_name(segment)
+                                    ) + ';';
+                                await ModuleServiceBase.getInstance().db.query(request);
+                            }, moduletable_vardata.table_segmented_field_segment_type);
+                        } else {
+                            let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null where ' +
+                                ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(
+                                    moduletable_vardata.vo_type,
+                                    interceptor,
+                                    moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type],
+                                    't',
+                                    moduletable_vardata.full_name
+                                ) + ';';
+                            await ModuleServiceBase.getInstance().db.query(request);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + vo + ':' + error);
         }
     }
 
