@@ -8,6 +8,8 @@ import LocaleManager from '../../../../shared/tools/LocaleManager';
 import VueAppBase from '../../../VueAppBase';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
+import VarsController from '../../../../shared/modules/Var/VarsController';
+import IVarDataVOBase from '../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 
 export default class PushDataVueModule extends VueModuleBase {
 
@@ -95,8 +97,9 @@ export default class PushDataVueModule extends VueModuleBase {
                             types[vo._type] = true;
                             AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([vo._type]);
                         }
+                        VarsController.getInstance().setNewValueOutsideNormalUpdate(vo as IVarDataVOBase);
                     }
-                    VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
+                    // VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
                 }
             }
         });

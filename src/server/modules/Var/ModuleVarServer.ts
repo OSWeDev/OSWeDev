@@ -42,6 +42,7 @@ import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import IVarMatroidDataVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataVO';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import { Duration, Moment } from 'moment';
+import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -184,17 +185,19 @@ export default class ModuleVarServer extends ModuleServerBase {
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
 
-        /**
-         * Ajout des triggers d'invalidation des données de cache en BDD
-         *  - on part de la liste des vars qui ont un cache et des datasources
-         */
-        for (let api_type_id in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id) {
+        ModuleServiceBase.getInstance().post_modules_installation_hooks.push(() => {
+            /**
+             * Ajout des triggers d'invalidation des données de cache en BDD
+             *  - on part de la liste des vars qui ont un cache et des datasources
+             */
+            for (let api_type_id in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id) {
 
-            postCTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
-            preUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
-            postUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
-            preDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
-        }
+                postCTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+                preUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+                postUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+                preDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+            }
+        });
     }
 
     public async invalidate_var_cache_from_vo(vo: IDistantVOBase) {
@@ -207,67 +210,105 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                 // Pour l'instant on ne sait faire ça que sur des DS matroids
                 let ds: DataSourceMatroidControllerBase<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name] as DataSourceMatroidControllerBase<any, any>;
-                let interceptors_by_var_ids: { [var_id: number]: IVarMatroidDataParamVO[]; } = ds.get_param_intersectors_from_vo_update_by_var_id(vo, ObjectHandler.getInstance().arrayFromMap(VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type][ds_name]));
+                let interceptors_by_var_ids: { [var_id: number]: IVarMatroidDataParamVO[]; } = ds.get_param_intersectors_from_vo_update_by_var_id(vo, VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type][ds_name]);
 
                 for (let var_id_s in interceptors_by_var_ids) {
                     let var_id: number = parseInt(var_id_s.toString());
                     let interceptors = interceptors_by_var_ids[var_id_s];
+                    let moduletable_vardata: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[VarsController.getInstance().getVarConfById(var_id).var_data_vo_type];
+
+                    if (interceptors == null) {
+
+                        // On veut tout invalider
+                        await this.invalider_tout(moduletable_vardata);
+                        continue;
+                    }
 
                     for (let i in interceptors) {
                         let interceptor: IVarMatroidDataParamVO = interceptors[i];
 
                         let moduletable_interceptor: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[interceptor._type];
-                        let moduletable_vardata: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[VarsController.getInstance().getVarConfById(var_id).var_data_vo_type];
 
-                        if (moduletable_vardata.is_segmented) {
+                        let mappings: { [field_id_a: string]: string } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
 
-                            // Si segmenté, on cherche le segment et on fait une requête par segment
-                            let moduletable_vardata_segment_field_name: string = moduletable_vardata.table_segmented_field.field_id;
+                        if (typeof mappings === 'undefined') {
+                            throw new Error('Mapping missing:from:' + interceptor._type + ":to:" + moduletable_vardata.vo_type + ":");
+                        }
 
-                            // On prend l'équivalent dans le matroid
-                            let mapping_intersector_to_vardata: { [field_id_a: string]: string; } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
-                            let intersector_segment_field_name: string = moduletable_vardata_segment_field_name;
-                            for (let field_a in mapping_intersector_to_vardata) {
-                                let field_b = mapping_intersector_to_vardata[field_a];
+                        //En mettant null on dit qu'on veut pas mapper, donc on veut tout invalider
+                        //  par exemple en cas de modif(undefined pas de mapping, null mapping impossible donc dans le doute on invalide tout)
+                        if (!mappings) {
 
-                                if (field_b == moduletable_vardata_segment_field_name) {
-                                    intersector_segment_field_name = field_a;
+                            await this.invalider_tout(moduletable_vardata);
+
+                        } else {
+
+                            if (moduletable_vardata.is_segmented) {
+
+                                // Si segmenté, on cherche le segment et on fait une requête par segment
+                                let moduletable_vardata_segment_field_name: string = moduletable_vardata.table_segmented_field.field_id;
+
+                                // On prend l'équivalent dans le matroid
+                                let mapping_intersector_to_vardata: { [field_id_a: string]: string; } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
+                                let intersector_segment_field_name: string = moduletable_vardata_segment_field_name;
+                                for (let field_a in mapping_intersector_to_vardata) {
+                                    let field_b = mapping_intersector_to_vardata[field_a];
+
+                                    if (field_b == moduletable_vardata_segment_field_name) {
+                                        intersector_segment_field_name = field_a;
+                                    }
                                 }
-                            }
 
-                            // et on foreach sur le champ de l'intersector qui est segmenté
-                            await RangeHandler.getInstance().foreach(interceptor[intersector_segment_field_name], async (segment: number | Duration | Moment) => {
+                                // et on foreach sur le champ de l'intersector qui est segmenté
+                                await RangeHandler.getInstance().foreach_ranges(interceptor[intersector_segment_field_name], async (segment: number | Duration | Moment) => {
 
-                                // On enlève le filtrage sur le champ segmenté, inutile
-                                let segment_interceptor = Object.assign({}, interceptor);
-                                delete segment_interceptor[intersector_segment_field_name];
+                                    // On enlève le filtrage sur le champ segmenté, inutile
+                                    let segment_interceptor = Object.assign({}, interceptor);
+                                    delete segment_interceptor[intersector_segment_field_name];
 
+                                    let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value_ts=null where ' +
+                                        ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(
+                                            moduletable_vardata.vo_type,
+                                            interceptor,
+                                            mappings,
+                                            't',
+                                            moduletable_vardata.get_segmented_full_name(segment)
+                                        ) + ';';
+                                    await ModuleServiceBase.getInstance().db.query(request);
+                                }, moduletable_vardata.table_segmented_field_segment_type);
+                            } else {
                                 let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null where ' +
                                     ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(
                                         moduletable_vardata.vo_type,
                                         interceptor,
-                                        moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type],
+                                        mappings,
                                         't',
-                                        moduletable_vardata.get_segmented_full_name(segment)
+                                        moduletable_vardata.full_name
                                     ) + ';';
                                 await ModuleServiceBase.getInstance().db.query(request);
-                            }, moduletable_vardata.table_segmented_field_segment_type);
-                        } else {
-                            let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null where ' +
-                                ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(
-                                    moduletable_vardata.vo_type,
-                                    interceptor,
-                                    moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type],
-                                    't',
-                                    moduletable_vardata.full_name
-                                ) + ';';
-                            await ModuleServiceBase.getInstance().db.query(request);
+                            }
                         }
                     }
                 }
             }
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + vo + ':' + error);
+        }
+    }
+
+    public async invalider_tout(moduletable_vardata: ModuleTable<IVarDataVOBase>) {
+        if (moduletable_vardata.is_segmented) {
+
+            let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+
+            await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
+                let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value_ts=null;';
+                await ModuleServiceBase.getInstance().db.query(request);
+            }, moduletable_vardata.table_segmented_field_segment_type);
+
+        } else {
+            let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null;';
+            await ModuleServiceBase.getInstance().db.query(request);
         }
     }
 

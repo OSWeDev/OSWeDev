@@ -468,6 +468,41 @@ export default class VarsController {
     //     this.debouncedUpdateDatas();
     // }
 
+    public setNewValueOutsideNormalUpdate<TData extends IVarDataVOBase>(value: TData) {
+
+        this.setVarData(value, false);
+
+        let index: string = this.getIndex(value);
+        if ((!index) || (!this.varDAG.nodes[index])) {
+            return;
+        }
+
+        let node = this.varDAG.nodes[index];
+        node.value = value;
+
+        this.setVarsData_([value]);
+
+        // Si en cours d'update, on marque pour le prochain batch et on ne demande pas la mise à jour ça sert à rien
+        if (this.updateSemaphore) {
+
+            for (let i in node.incoming) {
+                let incoming = node.incoming[i];
+
+                if ((!incoming.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) && (!incoming.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE)) &&
+                    (!incoming.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE))) {
+                    incoming.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, this.varDAG);
+                }
+            }
+        } else {
+            for (let i in node.incoming) {
+                let incoming = node.incoming[i];
+
+                incoming.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, this.varDAG);
+            }
+            this.debouncedUpdateDatas();
+        }
+    }
+
     public stageUpdateData<TDataParam extends IVarDataParamVOBase>(param: TDataParam, force_reload_if_updating: boolean = false) {
 
         let index: string = this.getIndex(param);
@@ -477,7 +512,7 @@ export default class VarsController {
 
         let node = this.varDAG.nodes[index];
         // Si en cours d'update, on marque pour le prochain batch et on ne demande pas la mise à jour ça sert à rien
-        if ((this.step_number != 1) && (!force_reload_if_updating)) {
+        if (this.updateSemaphore && (!force_reload_if_updating)) {
 
             if ((!node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) && (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE)) &&
                 (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE))) {
@@ -1004,35 +1039,6 @@ export default class VarsController {
             return varConf;
         }
 
-        // On enregistre le lien entre DS et VAR
-        let dss: Array<IDataSourceController<any, any>> = this.get_datasource_deps(controller);
-        for (let i in dss) {
-            let ds = dss[i];
-
-            if (!this.registered_vars_by_datasource[ds.name]) {
-                this.registered_vars_by_datasource[ds.name] = [];
-            }
-            this.registered_vars_by_datasource[ds.name].push(controller);
-
-            if (!!controller.getVarCacheConf()) {
-
-                for (let j in ds.vo_api_type_ids) {
-                    let vo_api_type_id = ds.vo_api_type_ids[j];
-
-                    if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id]) {
-                        this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id] = {};
-                    }
-
-                    if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name]) {
-                        this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name] = {};
-                    }
-
-                    this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][controller.varConf.id] = controller;
-                }
-            }
-        }
-
-
         let daoVarConf: VarConfVOBase = await ModuleDAO.getInstance().getNamedVoByName<VarConfVOBase>(varConf._type, varConf.name);
 
         if (daoVarConf) {
@@ -1107,6 +1113,34 @@ export default class VarsController {
         datasource_deps.forEach((datasource_dep) => {
             datasource_dep.registerDataSource();
         });
+
+        // On enregistre le lien entre DS et VAR
+        let dss: Array<IDataSourceController<any, any>> = this.get_datasource_deps(controller);
+        for (let i in dss) {
+            let ds = dss[i];
+
+            if (!this.registered_vars_by_datasource[ds.name]) {
+                this.registered_vars_by_datasource[ds.name] = [];
+            }
+            this.registered_vars_by_datasource[ds.name].push(controller);
+
+            if (!!controller.getVarCacheConf()) {
+
+                for (let j in ds.vo_api_type_ids) {
+                    let vo_api_type_id = ds.vo_api_type_ids[j];
+
+                    if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id]) {
+                        this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id] = {};
+                    }
+
+                    if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name]) {
+                        this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name] = {};
+                    }
+
+                    this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][varConf.id] = controller;
+                }
+            }
+        }
     }
 
     /**

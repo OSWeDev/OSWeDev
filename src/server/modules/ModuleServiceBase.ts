@@ -90,6 +90,8 @@ export default abstract class ModuleServiceBase {
      */
     public db: IDatabase<any>;
 
+    public post_modules_installation_hooks: Array<() => void> = [];
+
     protected registered_child_modules: Module[] = [];
     protected login_child_modules: Module[] = [];
     protected server_child_modules: ModuleServerBase[] = [];
@@ -101,6 +103,7 @@ export default abstract class ModuleServiceBase {
     private registered_base_modules: Module[] = [];
     private login_base_modules: Module[] = [];
     private server_base_modules: ModuleServerBase[] = [];
+
     /**
      * ----- Local thread cache
      */
@@ -201,38 +204,46 @@ export default abstract class ModuleServiceBase {
         // On charge le cache des tables segmentées. On cherche à être exhaustifs pour le coup
         await this.preload_segmented_known_databases();
 
-        if ((!!is_generator) || (!ConfigurationService.getInstance().getNodeConfiguration().SERVER_START_BOOSTER)) {
+        // A mon avis c'est de la merde ça... on charge où la vérif des params, le hook install, ... ?
+        // if ((!!is_generator) || (!ConfigurationService.getInstance().getNodeConfiguration().SERVER_START_BOOSTER)) {
 
-            // On appelle le hook de configuration
-            await this.configure_modules();
+        //     // On appelle le hook de configuration
+        //     await this.configure_modules();
 
-        } else {
+        // } else {
 
-            for (let i in this.registered_modules) {
-                let registered_module = this.registered_modules[i];
+        for (let i in this.registered_modules) {
+            let registered_module = this.registered_modules[i];
 
-                if (!registered_module.actif) {
-                    continue;
-                }
-
-                // Sinon on doit juste appeler les hooks qui vont bien et le chargement des params + rechargement automatique
-                if (!await registered_module.hook_module_configure()) {
-                    return false;
-                }
-
-                // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
-                if (registered_module.fields && (registered_module.fields.length > 0)) {
-
-                    await ModuleDBService.getInstance(db).loadParams(registered_module);
-
-                    setTimeout(function () {
-                        ModuleDBService.getInstance(db).reloadParamsThread(registered_module);
-                    }, ModuleDBService.reloadParamsTimeout);
-                }
-
-                // On appelle le hook de fin d'installation
-                await registered_module.hook_module_install();
+            if (!registered_module.actif) {
+                continue;
             }
+
+            // Sinon on doit juste appeler les hooks qui vont bien et le chargement des params + rechargement automatique
+            if (!await registered_module.hook_module_configure()) {
+                return false;
+            }
+
+            // On lance le thread de reload de la conf toutes les X seconds, si il y a des paramètres
+            if (registered_module.fields && (registered_module.fields.length > 0)) {
+
+                await ModuleDBService.getInstance(db).loadParams(registered_module);
+
+                setTimeout(function () {
+                    ModuleDBService.getInstance(db).reloadParamsThread(registered_module);
+                }, ModuleDBService.reloadParamsTimeout);
+            }
+
+            // On appelle le hook de fin d'installation
+            await registered_module.hook_module_install();
+        }
+        // }
+
+        for (let i in this.post_modules_installation_hooks) {
+            let post_modules_installation_hook = this.post_modules_installation_hooks[i];
+
+            // Appel async
+            post_modules_installation_hook();
         }
     }
 

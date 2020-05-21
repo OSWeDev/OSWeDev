@@ -103,6 +103,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
         super(ModuleDAO.getInstance().name);
     }
 
+    public get_all_ranges_from_segmented_table(moduleTable: ModuleTable<any>): NumRange[] {
+        let segmentations: { [table_name: string]: number } = this.segmented_known_databases[moduleTable.database];
+        if (!segmentations) {
+            return null;
+        }
+
+        let ranges: NumRange[] = [];
+
+        for (let i in segmentations) {
+            let segment = segmentations[i];
+
+            ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segment, moduleTable.table_segmented_field_segment_type));
+        }
+
+        return ranges;
+    }
+
     /**
      * On définit les droits d'accès du module
      */
@@ -2611,22 +2628,5 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return null;
-    }
-
-    private get_all_ranges_from_segmented_table(moduleTable: ModuleTable<any>): NumRange[] {
-        let segmentations: { [table_name: string]: number } = this.segmented_known_databases[moduleTable.database];
-        if (!segmentations) {
-            return null;
-        }
-
-        let ranges: NumRange[] = [];
-
-        for (let i in segmentations) {
-            let segment = segmentations[i];
-
-            ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segment, moduleTable.table_segmented_field_segment_type));
-        }
-
-        return ranges;
     }
 }
