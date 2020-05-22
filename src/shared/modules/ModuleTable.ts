@@ -803,7 +803,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             let field_value = e[field.field_id];
 
-            if ((typeof field_value == 'undefined') || (field_value == null)) {
+            if ((typeof field_value == 'undefined') || (field_value === null)) {
                 continue;
             }
 

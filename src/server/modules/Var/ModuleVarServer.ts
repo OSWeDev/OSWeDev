@@ -1,3 +1,4 @@
+import { Duration, Moment } from 'moment';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
@@ -8,20 +9,26 @@ import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParam
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import DataSourceMatroidControllerBase from '../../../shared/modules/DataSource/DataSourceMatroidControllerBase';
+import DataSourcesController from '../../../shared/modules/DataSource/DataSourcesController';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
+import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
 import SimpleVarDataValueRes from '../../../shared/modules/Var/simple_vars/SimpleVarDataValueRes';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import ServerBase from '../../ServerBase';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -32,17 +39,8 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import VarCronWorkersHandler from './VarCronWorkersHandler';
 import VarServerController from './VarServerController';
-import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
-import VarControllerBase from '../../../shared/modules/Var/VarControllerBase';
-import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import DataSourcesController from '../../../shared/modules/DataSource/DataSourcesController';
-import DataSourceMatroidControllerBase from '../../../shared/modules/DataSource/DataSourceMatroidControllerBase';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import IVarMatroidDataVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataVO';
-import RangeHandler from '../../../shared/tools/RangeHandler';
-import { Duration, Moment } from 'moment';
-import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -200,7 +198,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         });
     }
 
-    public async invalidate_var_cache_from_vo(vo: IDistantVOBase) {
+    public async invalidate_var_cache_from_vo(vo: IDistantVOBase): Promise<boolean> {
 
         try {
 
@@ -217,7 +215,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                     let interceptors = interceptors_by_var_ids[var_id_s];
                     let moduletable_vardata: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[VarsController.getInstance().getVarConfById(var_id).var_data_vo_type];
 
-                    if (interceptors == null) {
+                    if (interceptors === null) {
 
                         // On veut tout invalider
                         await this.invalider_tout(moduletable_vardata);
@@ -229,15 +227,16 @@ export default class ModuleVarServer extends ModuleServerBase {
 
                         let moduletable_interceptor: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[interceptor._type];
 
+                        let needs_mapping: boolean = moduletable_vardata.vo_type != moduletable_interceptor.vo_type;
                         let mappings: { [field_id_a: string]: string } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
 
-                        if (typeof mappings === 'undefined') {
+                        if (needs_mapping && (typeof mappings === 'undefined')) {
                             throw new Error('Mapping missing:from:' + interceptor._type + ":to:" + moduletable_vardata.vo_type + ":");
                         }
 
                         //En mettant null on dit qu'on veut pas mapper, donc on veut tout invalider
                         //  par exemple en cas de modif(undefined pas de mapping, null mapping impossible donc dans le doute on invalide tout)
-                        if (!mappings) {
+                        if (needs_mapping && !mappings) {
 
                             await this.invalider_tout(moduletable_vardata);
 
@@ -267,23 +266,19 @@ export default class ModuleVarServer extends ModuleServerBase {
                                     delete segment_interceptor[intersector_segment_field_name];
 
                                     let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value_ts=null where ' +
-                                        ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(
+                                        ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(
                                             moduletable_vardata.vo_type,
                                             interceptor,
-                                            mappings,
-                                            't',
-                                            moduletable_vardata.get_segmented_full_name(segment)
+                                            mappings
                                         ) + ';';
                                     await ModuleServiceBase.getInstance().db.query(request);
                                 }, moduletable_vardata.table_segmented_field_segment_type);
                             } else {
                                 let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null where ' +
-                                    ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(
+                                    ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(
                                         moduletable_vardata.vo_type,
                                         interceptor,
-                                        mappings,
-                                        't',
-                                        moduletable_vardata.full_name
+                                        mappings
                                     ) + ';';
                                 await ModuleServiceBase.getInstance().db.query(request);
                             }
@@ -294,6 +289,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + vo + ':' + error);
         }
+        return true;
     }
 
     public async invalider_tout(moduletable_vardata: ModuleTable<IVarDataVOBase>) {
@@ -319,6 +315,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
 
+    }
+
+    public registerCrons(): void {
+        VarCronWorkersHandler.getInstance();
     }
 
     /**
@@ -653,7 +653,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 } catch (error) {
                 }
 
-                if ((!local_res) || (!local_res[0]) || (local_res[0]['res'] == null) || (typeof local_res[0]['res'] == 'undefined')) {
+                if ((!local_res) || (!local_res[0]) || (local_res[0]['res'] === null) || (typeof local_res[0]['res'] == 'undefined')) {
                     local_res = null;
                 } else {
                     local_res = local_res[0]['res'];
@@ -683,7 +683,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             } catch (error) {
             }
 
-            if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
+            if ((!res) || (!res[0]) || (res[0]['res'] === null) || (typeof res[0]['res'] == 'undefined')) {
                 return null;
             }
 

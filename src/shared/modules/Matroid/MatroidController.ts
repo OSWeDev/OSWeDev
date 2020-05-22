@@ -257,7 +257,9 @@ export default class MatroidController {
         if (moduletablea != moduletableb) {
 
             // Les matroids sont différents à la base, on veut traduire l'un des deux pour permettre l'intersection
-            if (!fields_mapping) {
+            // si le mapping est undefined, on va prendre les champs avec le nom identique et si on échoue on renvoit false
+            //  et si le mapping est null, alors on peut pas comparer et on considère que ça intersecte jamais.
+            if (fields_mapping === null) {
                 return false;
             }
         }
@@ -268,6 +270,12 @@ export default class MatroidController {
             let matroid_field = matroid_fields[i];
 
             let a_ranges = a[matroid_field.field_id];
+
+            // Si ce champ est mappé à null, on ignore
+            if (fields_mapping && (fields_mapping[matroid_field.field_id] === null)) {
+                continue;
+            }
+
             let b_ranges = (fields_mapping && fields_mapping[matroid_field.field_id]) ? b[fields_mapping[matroid_field.field_id]] : b[matroid_field.field_id];
 
             if ((!a_ranges) || (!a_ranges.length) || (!b_ranges) || (!b_ranges.length)) {

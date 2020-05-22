@@ -116,7 +116,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
                 let computed_datas_matroid_res: ISimpleNumberVarMatroidData = this.updateData(varDAGNode, varDAG, data_matroid_to_compute) as any;
 
-                if (res_matroid.value == null) {
+                if ((res_matroid.value === null) || (typeof res_matroid.value === 'undefined')) {
                     res_matroid.value = computed_datas_matroid_res.value;
                 } else {
                     res_matroid.value += computed_datas_matroid_res.value;

@@ -97,7 +97,7 @@ export default class DefaultTranslationsServerManager {
 
             if (!translation_str) {
                 // On en crée artificiellement une à partir de la langue par défaut
-                if ((default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == null) || (typeof default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
+                if ((default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] === null) || (typeof default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
                     ConsoleHandler.getInstance().error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(default_translation));
                     continue;
                 }

@@ -102,6 +102,8 @@ export default class VarsController {
     public varDatasBATCHCache: { [index: string]: IVarDataVOBase } = {};
 
     public cached_var_id_by_datasource_by_api_type_id: { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarControllerBase<any, any> } } } = {};
+    public cached_var_by_var_id: { [var_id: number]: VarControllerBase<any, any> } = {};
+    public parent_vars_by_var_id: { [var_id: number]: { [parent_var_id: number]: VarControllerBase<any, any> } } = {};
 
     // private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
     // private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
@@ -511,6 +513,12 @@ export default class VarsController {
         }
 
         let node = this.varDAG.nodes[index];
+
+        // Si on demande à update un param qui est calculé côté serveur, on doit absolument recharger depuis le serveur
+        if (!this.getVarControllerById(param.var_id).is_computable_client_side) {
+            node.removeMarker(VarDAG.VARDAG_MARKER_loadImportedOrPrecompiledDatas_ok, this.varDAG, true);
+        }
+
         // Si en cours d'update, on marque pour le prochain batch et on ne demande pas la mise à jour ça sert à rien
         if (this.updateSemaphore && (!force_reload_if_updating)) {
 
@@ -1126,6 +1134,7 @@ export default class VarsController {
 
             if (!!controller.getVarCacheConf()) {
 
+                this.cached_var_by_var_id[varConf.id] = controller;
                 for (let j in ds.vo_api_type_ids) {
                     let vo_api_type_id = ds.vo_api_type_ids[j];
 
@@ -1140,6 +1149,16 @@ export default class VarsController {
                     this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][varConf.id] = controller;
                 }
             }
+        }
+
+        let deps: number[] = controller.getVarsIdsDependencies();
+        for (let i in deps) {
+            let dep = deps[i];
+
+            if (!this.parent_vars_by_var_id[dep]) {
+                this.parent_vars_by_var_id[dep] = {};
+            }
+            this.parent_vars_by_var_id[dep][varConf.id] = controller;
         }
     }
 
@@ -1172,6 +1191,9 @@ export default class VarsController {
         if (!!this.setUpdatingDatas) {
             this.setUpdatingDatas(true);
         }
+
+        // Première étape on propage l'update tout de suite dans l'arbre vers les parents
+        VarDAGDefineNodePropagateRequest.varDAGPropagateInvalidationToParents(this.varDAG);
 
         // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
         //  ou manuellement en éditant le noeud du varDAG)
@@ -1267,6 +1289,9 @@ export default class VarsController {
             return;
         }
 
+        // Première étape on propage l'update tout de suite dans l'arbre vers les parents
+        VarDAGDefineNodePropagateRequest.varDAGPropagateInvalidationToParents(this.varDAG);
+
         // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
         //  ou manuellement en éditant le noeud du varDAG)
         await this.loadImportedDatas();
@@ -1360,6 +1385,17 @@ export default class VarsController {
                     this.setUpdatingDatas(true);
                 }
 
+                // Première étape on propage l'update tout de suite dans l'arbre vers les parents
+                VarDAGDefineNodePropagateRequest.varDAGPropagateInvalidationToParents(this.varDAG);
+
+                if ((!!this.is_stepping) && this.setStepNumber) {
+                    this.setIsWaiting(true);
+                    this.setStepNumber(10);
+                    break;
+                }
+
+            case 10:
+
                 // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
                 //  ou manuellement en éditant le noeud du varDAG)
                 await this.loadImportedDatas();
@@ -1376,7 +1412,7 @@ export default class VarsController {
                 //  chargement des deps. ça va permettre de booster très fortement les chargements de données. Si un switch impact une dep de var, il
                 //  faut l'avoir en param d'un constructeur de var et le changement du switch sera à prendre en compte dans la var au cas par cas.
                 // TODO FIXME VARS les deps on les charge quand on ajoute des vars en fait c'est pas mieux ici et on devrait pas avoir à reparcourir l'arbre
-                // à ce stade
+                // à ce stade => sauf si on a des DS pre deps ...
                 await this.solveDeps();
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
@@ -1843,7 +1879,7 @@ export default class VarsController {
             for (let j in matroids_list) {
                 let matroid = matroids_list[j];
 
-                if ((matroid.value == null) || (typeof matroid.value == "undefined")) {
+                if ((matroid.value === null) || (typeof matroid.value == "undefined")) {
                     continue;
                 }
 

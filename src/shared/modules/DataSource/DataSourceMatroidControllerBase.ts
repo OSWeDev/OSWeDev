@@ -95,7 +95,9 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
                      */
                     let moduletable: ModuleTable<TDataParam> = VOsTypesManager.getInstance().moduleTables_by_voType[intersector._type];
 
-                    if (MatroidController.getInstance().matroid_intersects_matroid(intersector, param, moduletable.mapping_by_api_type_ids[param._type])) {
+                    // Si le mapping est null, on veut invalider dans tous les cas
+                    if ((moduletable.mapping_by_api_type_ids[param._type] === null) ||
+                        (MatroidController.getInstance().matroid_intersects_matroid(intersector, param, moduletable.mapping_by_api_type_ids[param._type]))) {
                         res[index] = param;
                         break;
                     }

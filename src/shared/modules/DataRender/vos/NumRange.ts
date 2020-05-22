@@ -19,11 +19,11 @@ export default class NumRange implements IRange<number> {
             return null;
         }
 
-        if (min == null) {
+        if (min === null) {
             return null;
         }
 
-        if (max == null) {
+        if (max === null) {
             return null;
         }
 
@@ -70,11 +70,11 @@ export default class NumRange implements IRange<number> {
     public static getSegmentedMin(min: number, min_inclusiv: boolean, max: number, max_inclusiv: boolean, segment_type: number): number {
 
 
-        if ((min == null) || (typeof min == 'undefined')) {
+        if ((min === null) || (typeof min == 'undefined')) {
             return null;
         }
 
-        if ((max == null) || (typeof max == 'undefined')) {
+        if ((max === null) || (typeof max == 'undefined')) {
             return null;
         }
 
@@ -102,11 +102,11 @@ export default class NumRange implements IRange<number> {
      */
     public static getSegmentedMax(min: number, min_inclusiv: boolean, max: number, max_inclusiv: boolean, segment_type: number): number {
 
-        if ((min == null) || (typeof min == 'undefined')) {
+        if ((min === null) || (typeof min == 'undefined')) {
             return null;
         }
 
-        if ((max == null) || (typeof max == 'undefined')) {
+        if ((max === null) || (typeof max == 'undefined')) {
             return null;
         }
 
