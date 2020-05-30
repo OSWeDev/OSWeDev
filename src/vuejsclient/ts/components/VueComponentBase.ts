@@ -536,32 +536,6 @@ export default class VueComponentBase extends Vue
             ) + 1
         );
     }
-    protected getWeekOfMonth(month) {
-        if (!month) {
-            return null;
-        }
-
-        let weeks = [];
-        let week = moment(month).utc(true)
-            .startOf("month")
-            .startOf("isoweek" as unitOfTime.StartOf);
-        let format_date = "YYYY-MM-DD";
-
-        weeks.push({
-            date: week.format(format_date),
-            iso: week.isoWeek()
-        });
-
-        for (var i = 1; i < this.getNbWeekInMonth(month); i++) {
-            week.add(1, "week");
-            weeks.push({
-                date: week.format(format_date),
-                iso: week.isoWeek()
-            });
-        }
-
-        return weeks;
-    }
 
     // MONTHS MIXIN
     protected getMonthName(month_number) {
