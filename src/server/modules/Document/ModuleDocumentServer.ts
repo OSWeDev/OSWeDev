@@ -28,6 +28,7 @@ import FileVO from '../../../shared/modules/File/vos/FileVO';
 import EnvParam from '../../env/EnvParam';
 import ConfigurationService from '../../env/ConfigurationService';
 import DocumentRoleVO from '../../../shared/modules/Document/vos/DocumentRoleVO';
+import FileHandler from '../../../shared/tools/FileHandler';
 
 export default class ModuleDocumentServer extends ModuleServerBase {
 
@@ -143,9 +144,13 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             'document_handler.tags.tous.___LABEL___'));
 
         let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
         preCreateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file.bind(this));
         preUpdateTrigger.registerHandler(DocumentVO.API_TYPE_ID, this.force_document_path_from_file.bind(this));
+
+        // Quand on change un fichier on check si on doit changer l'url d'un doc au passage.
+        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.force_document_path_from_file_changed.bind(this));
     }
 
     public registerServerApiHandlers() {
@@ -175,14 +180,39 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return false;
         }
 
-        let url = envParam.BASE_URL + file.path;
-        if (envParam.BASE_URL.endsWith('/') && file.path.startsWith('/')) {
-            url = envParam.BASE_URL + file.path.substr(1, file.path.length - 1);
-        }
+        let url = FileHandler.getInstance().get_full_url(file.path);
 
         d.document_url = url;
         return true;
     }
+
+    private async force_document_path_from_file_changed(f: FileVO): Promise<void> {
+
+        if (!f) {
+            return;
+        }
+
+        let docs: DocumentVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<DocumentVO>(DocumentVO.API_TYPE_ID, 'file_id', [f.id]);
+        if ((!docs) || (!docs.length)) {
+            return;
+        }
+
+        let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
+
+        let url = FileHandler.getInstance().get_full_url(f.path);
+
+        for (let i in docs) {
+            let doc = docs[i];
+
+            if (doc.document_url != url) {
+                // Techniquement, en faisant cette modif avec le DAO ça fait lancer le trigger preupdate du doc et donc recalc le field... mais bon
+                //  on est en post update du file donc ça marche ...
+                doc.document_url = url;
+                await ModuleDAO.getInstance().insertOrUpdateVO(doc);
+            }
+        }
+    }
+
 
     private async get_ds_by_user_lang(): Promise<DocumentVO[]> {
         let vos: DocumentVO[] = await ModuleDAO.getInstance().getVos<DocumentVO>(DocumentVO.API_TYPE_ID);

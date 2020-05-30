@@ -1,14 +1,18 @@
-import ModuleFile from '../../../shared/modules/File/ModuleFile';
-import FileVO from '../../../shared/modules/File/vos/FileVO';
-import ModuleFileServerBase from './ModuleFileServerBase';
+import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
-import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
-import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleFile from '../../../shared/modules/File/ModuleFile';
+import FileVO from '../../../shared/modules/File/vos/FileVO';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
+import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModulesManagerServer from '../ModulesManagerServer';
+import PushDataServerController from '../PushData/PushDataServerController';
+import ModuleFileServerBase from './ModuleFileServerBase';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
@@ -49,7 +53,76 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
+    public async configure() {
+        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Impossible de déclarer un fichier sécurisé sans associer un droit d\'accès' },
+            'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing'
+        ));
+
+        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Le chemin d\'accès actuel du fichier semble invalide, il devrait commencer par [' + ModuleFile.FILES_ROOT + '] ou [' + ModuleFile.SECURED_FILES_ROOT + ']. Les fichiers temporaires ne peuvent pas être sécurisés.' },
+            'ModuleFileServer.check_secured_files_conf.f_path_start_unknown'
+        ));
+
+        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preCreateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf.bind(this));
+        preUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.check_secured_files_conf.bind(this));
+    }
+
     protected getNewVo(): FileVO {
         return new FileVO();
+    }
+
+    private async check_secured_files_conf(f: FileVO): Promise<boolean> {
+        let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+
+        if (f.is_secured && !f.file_access_policy_name) {
+
+            if (!!uid) {
+                await PushDataServerController.getInstance().notifySimpleERROR(uid, 'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing');
+            }
+            return false;
+        }
+
+        if (f.is_secured && (!f.path.startsWith(ModuleFile.SECURED_FILES_ROOT))) {
+            /**
+             * Fichier qu'on vient de sécuriser, et qui n'est pas dans le bon répertoire, il faut le déplacer
+             */
+
+            if (!f.path.startsWith(ModuleFile.FILES_ROOT)) {
+                if (!!uid) {
+                    await PushDataServerController.getInstance().notifySimpleERROR(uid, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
+                }
+                return false;
+            }
+
+            let new_path = ModuleFile.SECURED_FILES_ROOT + f.path.substring(ModuleFile.FILES_ROOT.length);
+
+            await this.makeSureThisFolderExists(new_path.substring(0, new_path.lastIndexOf('/')));
+            await this.moveFile(f.path, new_path);
+            f.path = new_path;
+            return true;
+        }
+
+        if ((!f.is_secured) && (!f.path.startsWith(ModuleFile.FILES_ROOT))) {
+            /**
+             * Fichier qu'on vient de sécuriser, et qui n'est pas dans le bon répertoire, il faut le déplacer
+             */
+
+            if (!f.path.startsWith(ModuleFile.SECURED_FILES_ROOT)) {
+                if (!!uid) {
+                    await PushDataServerController.getInstance().notifySimpleERROR(uid, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
+                }
+                return false;
+            }
+
+            let new_path = ModuleFile.FILES_ROOT + f.path.substring(ModuleFile.SECURED_FILES_ROOT.length);
+
+            await this.makeSureThisFolderExists(new_path.substring(0, new_path.lastIndexOf('/')));
+            await this.moveFile(f.path, new_path);
+            f.path = new_path;
+            return true;
+        }
     }
 }
