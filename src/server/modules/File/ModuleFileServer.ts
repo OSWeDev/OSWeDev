@@ -98,9 +98,10 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
             }
 
             let new_path = ModuleFile.SECURED_FILES_ROOT + f.path.substring(ModuleFile.FILES_ROOT.length);
+            let new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
 
-            await this.makeSureThisFolderExists(new_path.substring(0, new_path.lastIndexOf('/')));
-            await this.moveFile(f.path, new_path);
+            await this.makeSureThisFolderExists(new_folder);
+            await this.moveFile(f.path, new_folder);
             f.path = new_path;
             return true;
         }
@@ -118,11 +119,14 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
             }
 
             let new_path = ModuleFile.FILES_ROOT + f.path.substring(ModuleFile.SECURED_FILES_ROOT.length);
+            let new_folder = new_path.substring(0, new_path.lastIndexOf('/') + 1);
 
-            await this.makeSureThisFolderExists(new_path.substring(0, new_path.lastIndexOf('/')));
-            await this.moveFile(f.path, new_path);
+            await this.makeSureThisFolderExists(new_folder);
+            await this.moveFile(f.path, new_folder);
             f.path = new_path;
             return true;
         }
+
+        return true;
     }
 }
