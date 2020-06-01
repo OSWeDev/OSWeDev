@@ -48,8 +48,10 @@ export default class TSRangesInputComponent extends VueComponentBase {
         }
 
         RangeHandler.getInstance().foreach_ranges_sync(this.value, (e: Moment) => {
-            // Ya certainement mieux....
-            this.selectedDates.push(moment(e.format('Y-MM-DD HH:mm')).utc(true).toDate());
+            // On met UTC false car le composant v-date-picker utilise sans UTC et il compare directement la date
+            // Ca pose donc un soucis de comparaison pour v-date-picker
+            // Il faut bien laisser utc(false)
+            this.selectedDates.push(moment(e.format('Y-MM-DD')).utc(false).toDate());
         }, this.field.moduleTableField.segmentation_type);
     }
 
