@@ -21,7 +21,8 @@ export default class DataImportBGThread implements IBGThread {
 
     private static instance: DataImportBGThread = null;
 
-    private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by last_up_date desc limit 1;';
+    // private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by last_up_date desc limit 1;';
+    private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by start_date asc limit 1;';
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
