@@ -9,6 +9,7 @@ import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleDataImportServer from '../ModuleDataImportServer';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 
 export default class DataImportBGThread implements IBGThread {
 
@@ -22,7 +23,9 @@ export default class DataImportBGThread implements IBGThread {
     private static instance: DataImportBGThread = null;
 
     // private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by last_up_date desc limit 1;';
+
     private static request: string = ' where state in ($1, $3, $4, $5) or (state = $2 and autovalidate = true) order by start_date asc limit 1;';
+    private static importing_dih_id_param_name: string = 'DataImportBGThread.importing_dih_id';
 
     public current_timeout: number = 2000;
     public MAX_timeout: number = 2000;
@@ -39,21 +42,45 @@ export default class DataImportBGThread implements IBGThread {
 
         try {
 
+
             // Objectif, on prend l'import en attente le plus ancien, et on l'importe tout simplement.
             //  en fin d'import, si on voit qu'il y en a un autre à importer, on demande d'aller plus vite.
 
-            let dih: DataImportHistoricVO = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID,
-                DataImportBGThread.request, [
-                ModuleDataImport.IMPORTATION_STATE_UPLOADED,
-                ModuleDataImport.IMPORTATION_STATE_FORMATTED,
-                ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
-                ModuleDataImport.IMPORTATION_STATE_IMPORTED,
-                ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT
-            ]);
+            // Si un import est en cours et doit être continuer, on le récupère et on continue, sinon on en cherche un autre
+            let importing_dih_id_param: string = await ModuleParams.getInstance().getParamValue(DataImportBGThread.importing_dih_id_param_name);
+            let importing_dih_id: number = null;
+            let dih: DataImportHistoricVO = null;
+            if (!!importing_dih_id_param) {
+                importing_dih_id = parseInt(importing_dih_id_param);
+                dih = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importing_dih_id);
+
+                if ((!dih) || (
+                    (dih.state != ModuleDataImport.IMPORTATION_STATE_UPLOADED) &&
+                    (dih.state != ModuleDataImport.IMPORTATION_STATE_FORMATTED) &&
+                    (dih.state != ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT) &&
+                    (dih.state != ModuleDataImport.IMPORTATION_STATE_IMPORTED) &&
+                    (dih.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT))) {
+                    dih = null;
+                    await ModuleParams.getInstance().setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
+                }
+            }
+
+            if (!dih) {
+                dih = await ModuleDAOServer.getInstance().selectOne<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID,
+                    DataImportBGThread.request, [
+                    ModuleDataImport.IMPORTATION_STATE_UPLOADED,
+                    ModuleDataImport.IMPORTATION_STATE_FORMATTED,
+                    ModuleDataImport.IMPORTATION_STATE_READY_TO_IMPORT,
+                    ModuleDataImport.IMPORTATION_STATE_IMPORTED,
+                    ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT
+                ]);
+            }
 
             if (!dih) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
+
+            await ModuleParams.getInstance().setParamValue(DataImportBGThread.importing_dih_id_param_name, dih.id.toString());
 
             if (!await this.handleImportHistoricProgression(dih)) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
@@ -70,6 +97,7 @@ export default class DataImportBGThread implements IBGThread {
             ]);
 
             if (!dih) {
+                await ModuleParams.getInstance().setParamValue(DataImportBGThread.importing_dih_id_param_name, null);
                 return ModuleBGThreadServer.TIMEOUT_COEF_LITTLE_BIT_SLOWER;
             }
             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
