@@ -322,6 +322,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS, this.deleteVOs.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_DELETE_VOS_BY_IDS, this.deleteVOsByIds.bind(this));
+
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS, this.insertOrUpdateVOs.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_VO, this.insertOrUpdateVO.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_INSERT_OR_UPDATE_DATATABLE_VO, this.INSERT_OR_UPDATE_DATATABLE_VO.bind(this));
@@ -1018,6 +1020,84 @@ export default class ModuleDAOServer extends ModuleServerBase {
         });
 
         return results;
+    }
+
+    private async deleteVOsByIds(param: APIDAOParamsVO): Promise<any[]> {
+
+        // On vérifie qu'on peut faire un delete
+        if ((!param) || (!param.API_TYPE_ID) || (!param.ids) || (!param.ids.length)) {
+            return null;
+        }
+
+        // En fait avec les triggers qui prennent en param le vo, on est obligé de faire une requete sur le vo avant d'en demander la suppression...
+        let vos: IDistantVOBase[] = await this.getVosByIds(param);
+        return await this.deleteVOs(vos);
+
+        // let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[param.API_TYPE_ID];
+
+        // if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[param.API_TYPE_ID], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
+        //     return null;
+        // }
+
+        // if (!moduletable) {
+        //     ConsoleHandler.getInstance().error("Impossible de trouver le datatable de ce _type ! " + param.API_TYPE_ID);
+        //     return null;
+        // }
+
+        // // Ajout des triggers, avant et après suppression.
+        // //  Attention si un des output est false avant suppression, on annule la suppression
+        // let res: boolean[] = await this.pre_delete_trigger_hook.trigger(vo._type, vo);
+        // if (!BooleanHandler.getInstance().AND(res, true)) {
+        //     continue;
+        // }
+
+        // let full_name = null;
+
+        // let ids:number[] =
+
+        // if (moduletable.is_segmented) {
+        //     // Si on est sur une table segmentée on adapte le comportement
+        //     // On sait pas où se trouve l'élément dans ce cas puisqu'on a que l'id pour la suppression.
+        //     //  On met un warn en log, c'est pas idéal d'utiliser cette fonction du coup puisqu'on va devoir lancer la
+        //     //  requete sur toutes les tables de la segmentation
+        //     full_name = moduletable.get_segmented_full_name_from_vo(vo);
+
+        //     ConsoleHandler.getInstance().warn('Suppression par id sur table segmentée, à revoir peut-être car très peu efficient:' + param.API_TYPE_ID);
+
+        //     for (let i in this.segmented_known_databases[param.API_TYPE_ID]) {
+        //         let table_name = this.segmented_known_databases[param.API_TYPE_ID];
+        //         await ModuleServiceBase.getInstance().db.query('DELETE FROM ' + param.API_TYPE_ID + '.' + table_name + ' where id in ('+ids.+')');
+        //     }
+        // } else {
+        //     full_name = moduletable.full_name;
+        // }
+
+        // const sql = "DELETE FROM " + full_name + " where id = ${id} RETURNING id";
+        // await db.oneOrNone(sql, vo);
+
+        // let results: any[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
+
+        //     let queries: any[] = [];
+
+        //     for (let i in vos) {
+        //         let vo = vos[i];
+
+        //         if (!vo._type) {
+        //             ConsoleHandler.getInstance().error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
+        //             continue;
+        //         }
+
+        //         let moduletable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+
+
+
+
+        //     }
+
+        //     return t.batch(queries);
+        // });
+
+        // return results;
     }
 
     private async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase): Promise<string> {

@@ -21,6 +21,7 @@ import APIDAORefFieldParamsVO from './vos/APIDAORefFieldParamsVO';
 import APIDAORefFieldsAndFieldsStringParamsVO from './vos/APIDAORefFieldsAndFieldsStringParamsVO';
 import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
+import NumberParamVO from '../API/vos/apis/NumberParamVO';
 
 export default class ModuleDAO extends Module {
 
@@ -31,6 +32,7 @@ export default class ModuleDAO extends Module {
     public static POLICY_GROUP_MODULES_CONF: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_MODULES_CONF';
 
     public static APINAME_DELETE_VOS = "DAO_DELETE_VOS";
+    public static APINAME_DELETE_VOS_BY_IDS = "DAO_DELETE_VOS_BY_IDS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
     public static APINAME_INSERT_OR_UPDATE_VO = "DAO_INSERT_OR_UPDATE_VO";
     public static APINAME_INSERT_OR_UPDATE_DATATABLE_VO = "INSERT_OR_UPDATE_DATATABLE_VO";
@@ -96,6 +98,10 @@ export default class ModuleDAO extends Module {
 
                 return res;
             }
+        ));
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamsVO, any[]>(
+            ModuleDAO.APINAME_DELETE_VOS_BY_IDS,
+            (param: APIDAOParamsVO) => [param.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
@@ -224,6 +230,21 @@ export default class ModuleDAO extends Module {
 
     public async getBaseUrl(): Promise<string> {
         return await ModuleAPI.getInstance().handleAPI<void, string>(ModuleDAO.APINAME_GET_BASE_URL);
+    }
+
+    public async deleteVOsByIds(API_TYPE_ID: string, ids: number[]): Promise<any[]> {
+        let nettoyage_ids: number[] = [];
+        for (let i in ids) {
+            if (!!ids[i]) {
+                nettoyage_ids.push(ids[i]);
+            }
+        }
+
+        if ((!nettoyage_ids) || (!nettoyage_ids.length)) {
+            return null;
+        }
+
+        return await ModuleAPI.getInstance().handleAPI<APIDAOParamsVO, any[]>(ModuleDAO.APINAME_DELETE_VOS_BY_IDS, API_TYPE_ID, nettoyage_ids);
     }
 
     public async deleteVOs(vos: IDistantVOBase[]): Promise<any[]> {

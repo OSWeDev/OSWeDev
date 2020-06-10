@@ -35,7 +35,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
      * @returns the new path
      */
     public async moveFile(old_path: string, toFolder: string, file_name: string = null): Promise<string> {
-        return FileServerController.getInstance().copyFile(old_path, toFolder, file_name);
+        return FileServerController.getInstance().moveFile(old_path, toFolder, file_name);
     }
 
     /**

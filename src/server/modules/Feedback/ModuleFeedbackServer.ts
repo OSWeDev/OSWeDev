@@ -29,6 +29,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
 import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
+import FileHandler from '../../../shared/tools/FileHandler';
 const { parse } = require('flatted/cjs');
 
 export default class ModuleFeedbackServer extends ModuleServerBase {
@@ -326,7 +327,6 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
     private async api_logs_to_string(feedback: FeedbackVO): Promise<string> {
         let FEEDBACK_TRELLO_API_LOG_LIMIT: string = await ModuleParams.getInstance().getParamValue(ModuleFeedbackServer.FEEDBACK_TRELLO_API_LOG_LIMIT_PARAM_NAME);
         let API_LOG_LIMIT: number = FEEDBACK_TRELLO_API_LOG_LIMIT ? parseInt(FEEDBACK_TRELLO_API_LOG_LIMIT.toString()) : 100;
-        let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
 
         let apis_log: LightWeightSendableRequestVO[] = parse(feedback.apis_log_json);
         let apis_log_message: string = '';
@@ -357,10 +357,7 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
-            let url = envParam.BASE_URL + api_log.url;
-            if (envParam.BASE_URL.endsWith('/') && api_log.url.startsWith('/')) {
-                url = envParam.BASE_URL + api_log.url.substr(1, api_log.url.length - 1);
-            }
+            let url = FileHandler.getInstance().get_full_url(api_log.url);
             apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
         }
 
