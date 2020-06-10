@@ -19,4 +19,5 @@ export default class EnvParam {
     public SERVER_START_BOOSTER: boolean;
     public SERVER_ENCODING: string;
     public CONSOLE_LOG_TO_FILE: boolean = true;
+    public DEBUG_FORKS: boolean = false;
 }

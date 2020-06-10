@@ -71,7 +71,7 @@ export default class ForkServerController {
         for (let i in this.forks) {
             let forked: IFork = this.forks[i];
 
-            if (ConfigurationService.getInstance().getNodeConfiguration().ISDEV && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
+            if (ConfigurationService.getInstance().getNodeConfiguration().DEBUG_FORKS && (process.debugPort != null) && (typeof process.debugPort !== 'undefined')) {
                 forked.child_process = fork('./dist/server/ForkedProcessWrapper.js', this.get_argv(forked), {
                     execArgv: ['--inspect=' + (process.debugPort + forked.uid + 1), '--max-old-space-size=4096']
                 });
