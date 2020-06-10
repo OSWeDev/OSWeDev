@@ -44,6 +44,7 @@ export default class TSRangeInputComponent extends VueComponentBase {
 
     private new_value: TSRange = null;
 
+    private format_datepicker_year: string = 'yyyy';
     private format_datepicker_month: string = 'MM/yyyy';
     private format_datepicker_day: string = 'dd/MM/yyyy';
     private format_time: string = 'HH:mm';
@@ -118,6 +119,10 @@ export default class TSRangeInputComponent extends VueComponentBase {
         }
     }
 
+    get is_segmentation_year(): boolean {
+        return this.segmentation_type_ == TimeSegment.TYPE_YEAR;
+    }
+
     get is_segmentation_mois(): boolean {
         return this.segmentation_type_ == TimeSegment.TYPE_MONTH;
     }
@@ -131,11 +136,11 @@ export default class TSRangeInputComponent extends VueComponentBase {
     }
 
     get ts_start(): Moment {
-        if (!this.tsrange_date) {
-            return null;
-        }
-
         if (this.is_segmentation_minute) {
+            if (!this.tsrange_date) {
+                return null;
+            }
+
             let start: Moment = moment(this.tsrange_date).utc(true);
             let hours: string[] = (this.tsrange_start_time) ? this.tsrange_start_time.split(':') : null;
 
@@ -150,15 +155,19 @@ export default class TSRangeInputComponent extends VueComponentBase {
             return start;
         }
 
+        if (!this.tsrange_start) {
+            return null;
+        }
+
         return moment(this.tsrange_start).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.segmentation_type_));
     }
 
     get ts_end(): Moment {
-        if (!this.tsrange_date) {
-            return null;
-        }
-
         if (this.is_segmentation_minute) {
+            if (!this.tsrange_date) {
+                return null;
+            }
+
             let end: Moment = moment(this.tsrange_date).utc(true);
             let hours: string[] = (this.tsrange_end_time) ? this.tsrange_end_time.split(':') : null;
 
@@ -175,6 +184,10 @@ export default class TSRangeInputComponent extends VueComponentBase {
                 end.add(1, 'day');
             }
             return end;
+        }
+
+        if (!this.tsrange_end) {
+            return null;
         }
 
         return moment(this.tsrange_end).utc(true).startOf(TimeSegmentHandler.getInstance().getCorrespondingMomentUnitOfTime(this.segmentation_type_));
