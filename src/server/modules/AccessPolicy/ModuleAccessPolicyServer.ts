@@ -1169,7 +1169,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.impersonated = true;
             user_log.referer = httpContext.get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
-            user_log.comment = 'Impersonated from user_id [' + session.impersonated_from.user.id + ']';
+            user_log.comment = 'Impersonated from user_id [' + session.impersonated_from.uid + ']';
 
             // On await pas ici on se fiche du résultat
             ModuleDAO.getInstance().insertOrUpdateVO(user_log);
