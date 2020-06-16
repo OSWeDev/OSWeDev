@@ -54,6 +54,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
+import DAOServerController from './DAOServerController';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -67,37 +68,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private static instance: ModuleDAOServer = null;
-
-    /**
-     * Global application cache - Brocasted CUD - Local R -----
-     */
-    /**
-     * Le nombre est la valeur du segment de la table. L'existence de la table est liée à sa présence dans l'objet simplement.
-     */
-    private segmented_known_databases: { [database_name: string]: { [table_name: string]: number } } = {};
-    /**
-     * ----- Global application cache - Brocasted CUD - Local R
-     */
-
-    /**
-     * Local thread cache -----
-     */
-
-    // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
-    private access_hooks: { [api_type_id: string]: { [access_type: string]: IHookFilterVos<IDistantVOBase> } } = {};
-
-    // private pre_read_trigger_hook: DAOTriggerHook;
-    private pre_update_trigger_hook: DAOTriggerHook;
-    private pre_create_trigger_hook: DAOTriggerHook;
-    private pre_delete_trigger_hook: DAOTriggerHook;
-
-    // private post_read_trigger_hook: DAOTriggerHook;
-    private post_update_trigger_hook: DAOTriggerHook;
-    private post_create_trigger_hook: DAOTriggerHook;
-    // private post_delete_trigger_hook: DAOTriggerHook;
-    /**
-     * Local thread cache -----
-     */
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
@@ -279,19 +249,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     public async configure() {
         // this.pre_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_READ_TRIGGER);
-        this.pre_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(this.pre_update_trigger_hook);
-        this.pre_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(this.pre_create_trigger_hook);
-        this.pre_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(this.pre_delete_trigger_hook);
+        DAOServerController.getInstance().pre_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_update_trigger_hook);
+        DAOServerController.getInstance().pre_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_create_trigger_hook);
+        DAOServerController.getInstance().pre_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_delete_trigger_hook);
 
         // this.post_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_READ_TRIGGER);
 
-        this.post_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(this.post_update_trigger_hook);
-        this.post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
-        ModuleTrigger.getInstance().registerTriggerHook(this.post_create_trigger_hook);
+        DAOServerController.getInstance().post_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_update_trigger_hook);
+        DAOServerController.getInstance().post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_create_trigger_hook);
         // this.post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
         // ModuleTrigger.getInstance().registerTriggerHook(this.post_delete_trigger_hook);
 
@@ -314,10 +284,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {
-        if (!this.access_hooks[API_TYPE_ID]) {
-            this.access_hooks[API_TYPE_ID] = {};
+        if (!DAOServerController.getInstance().access_hooks[API_TYPE_ID]) {
+            DAOServerController.getInstance().access_hooks[API_TYPE_ID] = {};
         }
-        this.access_hooks[API_TYPE_ID][access_type] = hook;
+        DAOServerController.getInstance().access_hooks[API_TYPE_ID][access_type] = hook;
     }
 
     public registerServerApiHandlers() {
@@ -360,35 +330,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await ModuleAccessPolicy.getInstance().checkAccess(ModuleDAO.getInstance().getAccessPolicyName(access_type, datatable.vo_type));
     }
 
-    /**
-     * WARN : Except for initialisation, needs to be brocasted
-     * @param database_name
-     * @param table_name With segmentation (complete table name)
-     * @param segmented_value
-     */
-    public add_segmented_known_databases(database_name: string, table_name: string, segmented_value: number) {
-        if (!this.segmented_known_databases) {
-            this.segmented_known_databases = {};
-        }
-
-        if (!this.segmented_known_databases[database_name]) {
-            this.segmented_known_databases[database_name] = {};
-        }
-        this.segmented_known_databases[database_name][table_name] = segmented_value;
-    }
-
     public async preload_segmented_known_database(t: ModuleTable<any>) {
         let segments_by_segmented_value: { [segmented_value: number]: string } = await ModuleTableDBService.getInstance(null).get_existing_segmentations_tables_of_moduletable(t);
 
         for (let i in segments_by_segmented_value) {
             let table_name = segments_by_segmented_value[i];
 
-            this.add_segmented_known_databases(t.database, table_name, parseInt(i.toString()));
+            DAOServerController.getInstance().add_segmented_known_databases(t.database, table_name, parseInt(i.toString()));
         }
     }
 
     public has_segmented_known_database(t: ModuleTable<any>, segment_value: number): boolean {
-        if ((!this.segmented_known_databases[t.database]) || (!this.segmented_known_databases[t.database][t.get_segmented_name(segment_value)])) {
+        if ((!DAOServerController.getInstance().segmented_known_databases[t.database]) || (!DAOServerController.getInstance().segmented_known_databases[t.database][t.get_segmented_name(segment_value)])) {
             return false;
         }
         return true;
@@ -848,10 +801,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 for (let i in results) {
 
                     if (isUpdates[i]) {
-                        await this.post_update_trigger_hook.trigger(vos[i]._type, vos[i]);
+                        await DAOServerController.getInstance().post_update_trigger_hook.trigger(vos[i]._type, vos[i]);
                     } else {
                         vos[i].id = parseInt(results[i].id.toString());
-                        await this.post_create_trigger_hook.trigger(vos[i]._type, vos[i]);
+                        await DAOServerController.getInstance().post_create_trigger_hook.trigger(vos[i]._type, vos[i]);
                     }
                 }
             }
@@ -902,10 +855,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (result && vo) {
                 if (isUpdate) {
-                    await this.post_update_trigger_hook.trigger(vo._type, vo);
+                    await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, vo);
                 } else {
                     vo.id = parseInt(result.id.toString());
-                    await this.post_create_trigger_hook.trigger(vo._type, vo);
+                    await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo);
                 }
             }
 
@@ -953,10 +906,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         //     if (result && vo) {
         //         if (isUpdate) {
-        //             await this.post_update_trigger_hook.trigger(vo._type, vo);
+        //             await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, vo);
         //         } else {
         //             vo.id = parseInt(result.id.toString());
-        //             await this.post_create_trigger_hook.trigger(vo._type, vo);
+        //             await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo);
         //         }
         //     }
 
@@ -996,7 +949,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
                 // Ajout des triggers, avant et après suppression.
                 //  Attention si un des output est false avant suppression, on annule la suppression
-                let res: boolean[] = await this.pre_delete_trigger_hook.trigger(vo._type, vo);
+                let res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(vo._type, vo);
                 if (!BooleanHandler.getInstance().AND(res, true)) {
                     continue;
                 }
@@ -1046,7 +999,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // // Ajout des triggers, avant et après suppression.
         // //  Attention si un des output est false avant suppression, on annule la suppression
-        // let res: boolean[] = await this.pre_delete_trigger_hook.trigger(vo._type, vo);
+        // let res: boolean[] = await DAOServerController.getInstance().pre_delete_trigger_hook.trigger(vo._type, vo);
         // if (!BooleanHandler.getInstance().AND(res, true)) {
         //     continue;
         // }
@@ -1064,8 +1017,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         //     ConsoleHandler.getInstance().warn('Suppression par id sur table segmentée, à revoir peut-être car très peu efficient:' + param.API_TYPE_ID);
 
-        //     for (let i in this.segmented_known_databases[param.API_TYPE_ID]) {
-        //         let table_name = this.segmented_known_databases[param.API_TYPE_ID];
+        //     for (let i in DAOServerController.getInstance().segmented_known_databases[param.API_TYPE_ID]) {
+        //         let table_name = DAOServerController.getInstance().segmented_known_databases[param.API_TYPE_ID];
         //         await ModuleServiceBase.getInstance().db.query('DELETE FROM ' + param.API_TYPE_ID + '.' + table_name + ' where id in ('+ids.+')');
         //     }
         // } else {
@@ -1120,7 +1073,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // Ajout des triggers, avant et après modification.
             //  Attention si un des output est false avant modification, on annule la modification
-            let res: boolean[] = await this.pre_update_trigger_hook.trigger(vo._type, vo);
+            let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, vo);
             if (!BooleanHandler.getInstance().AND(res, true)) {
                 return null;
             }
@@ -1150,7 +1103,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // Ajout des triggers, avant et après modification.
             //  Attention si un des output est false avant modification, on annule la modification
-            let res: boolean[] = await this.pre_create_trigger_hook.trigger(vo._type, vo);
+            let res: boolean[] = await DAOServerController.getInstance().pre_create_trigger_hook.trigger(vo._type, vo);
             if (!BooleanHandler.getInstance().AND(res, true)) {
                 return null;
             }
@@ -1174,7 +1127,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 full_name = moduleTable.get_segmented_full_name_from_vo(vo);
 
                 // Si on est sur du segmented en insert on doit vérifier l'existence de la table, sinon il faut la créer avant d'insérer la première donnée
-                if ((!this.segmented_known_databases[moduleTable.database]) || (!this.segmented_known_databases[moduleTable.database][name])) {
+                if ((!DAOServerController.getInstance().segmented_known_databases[moduleTable.database]) || (!DAOServerController.getInstance().segmented_known_databases[moduleTable.database][name])) {
 
                     await ModuleTableDBService.getInstance(null).create_or_update_datatable(
                         moduleTable,
@@ -1197,7 +1150,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
-        let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
+        let hook = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
             if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
@@ -1244,7 +1197,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
-        let hook = this.access_hooks[datatable.vo_type] && this.access_hooks[datatable.vo_type][access_type] ? this.access_hooks[datatable.vo_type][access_type] : null;
+        let hook = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
             let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
 
@@ -1318,7 +1271,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     segmentations[table_name] = segmented_value;
                 });
             } else {
-                segmentations = this.segmented_known_databases[moduleTable.database];
+                segmentations = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
             }
 
             for (let segmentation_table in segmentations) {
@@ -1336,7 +1289,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
              */
             vo = null;
             try {
-                vo = await ModuleServiceBase.getInstance().db.oneOrNone(request + ';') as T;
+                vo = request ? await ModuleServiceBase.getInstance().db.oneOrNone(request + ';') as T : null;
             } catch (error) {
             }
 
@@ -1425,7 +1378,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
             } else {
                 // si on cherche sur un autre champs, ça revient à faire la requete sur chaque segment
-                let segments: { [table_name: string]: number } = this.segmented_known_databases[moduleTable.database];
+                let segments: { [table_name: string]: number } = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
                 for (let i in segments) {
                     let segment: number = segments[i];
 
@@ -1573,7 +1526,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // TODO FIXME comme pour le by id on doit pouvoir passer un ranges en param
 
-            let segmentations: { [table_name: string]: number } = this.segmented_known_databases[moduleTable.database];
+            let segmentations: { [table_name: string]: number } = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
             let request = null;
 
             for (let segmentation_table in segmentations) {
@@ -1591,7 +1544,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
              */
             vos = null;
             try {
-                vos = await ModuleServiceBase.getInstance().db.query(request + ';') as T[];
+                vos = request ? await ModuleServiceBase.getInstance().db.query(request + ';') as T[] : null;
             } catch (error) {
             }
 
@@ -1605,7 +1558,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
     }
 
-    private async  getVosByIdsRanges<T extends IDistantVOBase>(apiDAOIdsRangesParamsVO: APIDAOIdsRangesParamsVO): Promise<T[]> {
+    private async getVosByIdsRanges<T extends IDistantVOBase>(apiDAOIdsRangesParamsVO: APIDAOIdsRangesParamsVO): Promise<T[]> {
 
         if ((!apiDAOIdsRangesParamsVO) || (!apiDAOIdsRangesParamsVO.ranges) || (!apiDAOIdsRangesParamsVO.ranges.length)) {
             return null;
@@ -1756,7 +1709,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let segmentations: Array<IRange<any>> = [];
             if ((!segmented_matroid_filed_id) || (!matroid[segmented_matroid_filed_id]) || (!matroid[segmented_matroid_filed_id].length)) {
                 ConsoleHandler.getInstance().log('filterVosByMatroid sur table segmentée - ' + moduleTable.full_name + ' - sans info de segment sur le matroid');
-                segmentations_tables = this.segmented_known_databases[moduleTable.database];
+                segmentations_tables = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
             } else {
                 segmentations = matroid[segmented_matroid_filed_id];
 
@@ -1796,6 +1749,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 request += 'select * from ' + db_full_name + ' t where ' + filter_by_matroid_clause + ' ';
+            }
+
+            if (!request) {
+                return null;
             }
 
             let vos = await ModuleServiceBase.getInstance().db.query(request + ';') as T[];
@@ -1990,7 +1947,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                         segmentations_tables[table_name] = segmented_value;
                     });
                 } else {
-                    segmentations_tables = this.segmented_known_databases[moduleTable.database];
+                    segmentations_tables = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
                 }
 
                 for (let segmentation_table in segmentations_tables) {
@@ -2008,7 +1965,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  */
                 let tmp_vos = null;
                 try {
-                    tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]);
+                    tmp_vos = request ? moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]) : null;
                 } catch (error) {
                 }
 
@@ -2210,7 +2167,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                  */
                 let tmp_vos = null;
                 try {
-                    tmp_vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]);
+                    tmp_vos = request ? moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ';') as T[]) : null;
                 } catch (error) {
                 }
 
@@ -2694,7 +2651,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     private get_all_ranges_from_segmented_table(moduleTable: ModuleTable<any>): NumRange[] {
-        let segmentations: { [table_name: string]: number } = this.segmented_known_databases[moduleTable.database];
+        let segmentations: { [table_name: string]: number } = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
         if (!segmentations) {
             return null;
         }
