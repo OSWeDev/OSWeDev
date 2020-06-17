@@ -224,6 +224,9 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
         try {
             switch (moduleTableField.field_type) {
 
+                case ModuleTableField.FIELD_TYPE_translatable_text:
+                    return field_value;
+
                 case ModuleTableField.FIELD_TYPE_enum:
                     return field_value;
 
