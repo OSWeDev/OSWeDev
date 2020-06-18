@@ -406,14 +406,12 @@ export default class PushDataServerController {
 
             if (socketWrappers && socketWrappers.length) {
 
-                if (!!notification.vos) {
-
-                    notification.vos = APIController.getInstance().try_translate_vo_to_api(notification.vos);
-                }
+                let notification_type = NotificationVO.TYPE_NAMES[notification.notification_type];
+                notification = APIController.getInstance().try_translate_vo_to_api(notification);
 
                 for (let i in socketWrappers) {
                     let socketWrapper: SocketWrapper = socketWrappers[i];
-                    socketWrapper.socket.emit(NotificationVO.TYPE_NAMES[notification.notification_type], notification);
+                    socketWrapper.socket.emit(notification_type, notification);
                 }
             }
         } catch (error) {

@@ -34,7 +34,10 @@ export default class PushDataVueModule extends VueModuleBase {
         // test suppression base api url this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
         this.socket = io.connect('');
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {
+
             if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {
+
+                notification = APIController.getInstance().try_translate_vo_from_api(notification);
 
                 let content = LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
                 switch (notification.simple_notif_type) {
@@ -61,6 +64,8 @@ export default class PushDataVueModule extends VueModuleBase {
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DAO], async function (notification: NotificationVO) {
             if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {
 
+                notification = APIController.getInstance().try_translate_vo_from_api(notification);
+
                 switch (notification.dao_notif_type) {
                     case NotificationVO.DAO_GET_VO_BY_ID:
                         AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
@@ -82,6 +87,8 @@ export default class PushDataVueModule extends VueModuleBase {
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VARDATA], async function (notification: NotificationVO) {
             if (VueAppBase.instance_ && LocaleManager.getInstance().i18n && notification.vos) {
+
+                notification = APIController.getInstance().try_translate_vo_from_api(notification);
 
                 let vos: IDistantVOBase[] = null;
                 if (!!notification.vos) {

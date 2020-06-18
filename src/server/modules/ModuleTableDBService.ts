@@ -223,12 +223,14 @@ export default class ModuleTableDBService {
 
         if ((!table_cols) || (!table_cols.length)) {
             await this.create_new_datatable(moduleTable, database_name, table_name);
+            await this.chec_indexes(moduleTable, database_name, table_name);
 
             if (segmented_value != null) {
                 await ForkedTasksController.getInstance().broadexec(ModuleDAOServer.TASK_NAME_add_segmented_known_databases, database_name, table_name, segmented_value);
             }
         } else {
             await this.check_datatable_structure(moduleTable, database_name, table_name, table_cols);
+            await this.chec_indexes(moduleTable, database_name, table_name);
         }
     }
 
@@ -446,6 +448,26 @@ export default class ModuleTableDBService {
                 console.error('ACTION: Aucune. Résoudre manuellement');
                 console.error('---');
             }
+        }
+    }
+
+    private async chec_indexes(moduleTable: ModuleTable<any>, database_name: string, table_name: string) {
+
+        for (let i = 0; i < moduleTable.get_fields().length; i++) {
+            let field = moduleTable.get_fields()[i];
+
+            let index_str = field.getPGSqlFieldIndex(database_name, table_name);
+            if (!index_str) {
+                continue;
+            }
+
+            let res: any[] = await this.db.query("SELECT * FROM pg_indexes WHERE tablename = '" + table_name + "' and schemaname = '" + database_name + "' and indexname = '" + field.get_index_name(table_name) + "';");
+            if ((!!res) && (!!res.length)) {
+                continue;
+            }
+
+            ConsoleHandler.getInstance().log('ADDING INDEX:' + database_name + '.' + table_name + '.' + field.get_index_name(table_name) + ':');
+            await this.db.query(index_str);
         }
     }
 
