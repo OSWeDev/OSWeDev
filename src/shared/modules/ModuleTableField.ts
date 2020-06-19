@@ -67,6 +67,9 @@ export default class ModuleTableField<T> {
     public field_value: T;
     public field_loaded: boolean;
 
+    public custom_translate_to_api: (value: any) => any = null;
+    public custom_translate_from_api: (value: any) => any = null;
+
     public has_relation: boolean;
     public target_database: string = null;
     public target_table: string = null;
@@ -198,6 +201,18 @@ export default class ModuleTableField<T> {
         return this;
     }
 
+    public set_custom_translate_to_api(custom_translate_to_api: (value: any) => any): ModuleTableField<T> {
+        this.custom_translate_to_api = custom_translate_to_api;
+
+        return this;
+    }
+
+    public set_custom_translate_from_api(custom_translate_from_api: (value: any) => any): ModuleTableField<T> {
+        this.custom_translate_from_api = custom_translate_from_api;
+
+        return this;
+    }
+
     public setModuleTable(moduleTable: ModuleTable<any>): ModuleTableField<T> {
         this.module_table = moduleTable;
 
@@ -306,10 +321,11 @@ export default class ModuleTableField<T> {
     }
 
     public get_index_name(table_name: string): string {
+        let res = table_name + this.field_id + "_idx";
         if (table_name.startsWith('module_')) {
-            return table_name.substring(7, table_name.length) + this.field_id + "_idx";
+            res = table_name.substring(7, table_name.length) + this.field_id + "_idx";
         }
-        return table_name + this.field_id + "_idx";
+        return res.toLowerCase();
     }
 
     public getPGSqlFieldConstraint() {

@@ -24,6 +24,8 @@ export default abstract class TableFieldTypeControllerBase {
     public abstract dataToIHM<T extends IDistantVOBase, U extends IDistantVOBase>(vo: T, field: SimpleDatatableField<any, any>, res: U, datatable: Datatable<any>, isUpdate: boolean);
     public abstract IHMToData<T extends IDistantVOBase, U extends IDistantVOBase>(vo: T, field: SimpleDatatableField<any, any>, res: U, datatable: Datatable<any>, isUpdate: boolean);
 
+    public abstract getIHMToExportString<T extends IDistantVOBase>(vo: T, field: SimpleDatatableField<any, any>, datatable: Datatable<any>): string;
+
     public abstract defaultDataToReadIHM<T extends IDistantVOBase>(field_value: any, moduleTableField: ModuleTableField<any>, vo: T): any;
     public abstract defaultReadIHMToData<T extends IDistantVOBase>(value: any, moduleTableField: ModuleTableField<any>, vo: T): any;
 
