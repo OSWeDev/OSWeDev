@@ -77,33 +77,33 @@ export default class ModuleFeedback extends Module {
             file_attachment_2_id,
             file_attachment_3_id,
 
-            new ModuleTableField('feedback_start_date', ModuleTableField.FIELD_TYPE_tstz, 'Début du Feedback', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('feedback_start_date', ModuleTableField.FIELD_TYPE_tstz, 'Début du Feedback', true).set_segmentation_type(TimeSegment.TYPE_SECOND).hide_from_datatable(),
             new ModuleTableField('feedback_end_date', ModuleTableField.FIELD_TYPE_tstz, 'Fin du Feedback', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('user_connection_date', ModuleTableField.FIELD_TYPE_tstz, 'Début navigation utilisateur', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('impersonated_from_user_connection_date', ModuleTableField.FIELD_TYPE_tstz, 'Début navigation admin', false).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('user_login_date', ModuleTableField.FIELD_TYPE_tstz, 'Début session utilisateur', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('impersonated_from_user_login_date', ModuleTableField.FIELD_TYPE_tstz, 'Début session admin', false).set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('user_connection_date', ModuleTableField.FIELD_TYPE_tstz, 'Début navigation utilisateur', true).set_segmentation_type(TimeSegment.TYPE_SECOND).hide_from_datatable(),
+            new ModuleTableField('impersonated_from_user_connection_date', ModuleTableField.FIELD_TYPE_tstz, 'Début navigation admin', false).set_segmentation_type(TimeSegment.TYPE_SECOND).hide_from_datatable(),
+            new ModuleTableField('user_login_date', ModuleTableField.FIELD_TYPE_tstz, 'Début session utilisateur', true).set_segmentation_type(TimeSegment.TYPE_SECOND).hide_from_datatable(),
+            new ModuleTableField('impersonated_from_user_login_date', ModuleTableField.FIELD_TYPE_tstz, 'Début session admin', false).set_segmentation_type(TimeSegment.TYPE_SECOND).hide_from_datatable(),
 
-            new ModuleTableField('trello_ref', ModuleTableField.FIELD_TYPE_string, 'trello_ref', false),
+            new ModuleTableField('trello_ref', ModuleTableField.FIELD_TYPE_string, 'trello_ref', false).hide_from_datatable(),
 
-            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true),
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', true),
-            new ModuleTableField('phone', ModuleTableField.FIELD_TYPE_string, 'Téléphone', false),
+            new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).hide_from_datatable(),
+            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', true).hide_from_datatable(),
+            new ModuleTableField('phone', ModuleTableField.FIELD_TYPE_string, 'Téléphone', false).hide_from_datatable(),
             new ModuleTableField('title', ModuleTableField.FIELD_TYPE_string, 'Titre', true),
-            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message', true),
+            new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message', true).hide_from_datatable(),
 
-            new ModuleTableField('is_impersonated', ModuleTableField.FIELD_TYPE_boolean, 'LogAs ?', true, true, false),
+            new ModuleTableField('is_impersonated', ModuleTableField.FIELD_TYPE_boolean, 'LogAs ?', true, true, false).hide_from_datatable(),
 
             new ModuleTableField('feedback_type', ModuleTableField.FIELD_TYPE_enum, 'Type de feedback', true, true, FeedbackVO.FEEDBACK_TYPE_NOT_SET).setEnumValues(FeedbackVO.FEEDBACK_TYPE_LABELS),
 
             new ModuleTableField('feedback_start_url', ModuleTableField.FIELD_TYPE_string, 'URL début Feedback', true),
-            new ModuleTableField('feedback_end_url', ModuleTableField.FIELD_TYPE_string, 'URL fin Feedback', true),
+            new ModuleTableField('feedback_end_url', ModuleTableField.FIELD_TYPE_string, 'URL fin Feedback', true).hide_from_datatable(),
 
-            new ModuleTableField('routes_fullpaths', ModuleTableField.FIELD_TYPE_string, 'Routes - Fullpath', true),
+            new ModuleTableField('routes_fullpaths', ModuleTableField.FIELD_TYPE_string, 'Routes - Fullpath', true).hide_from_datatable(),
 
-            new ModuleTableField('apis_log_json', ModuleTableField.FIELD_TYPE_string, 'APIs Log - JSON', true),
+            new ModuleTableField('apis_log_json', ModuleTableField.FIELD_TYPE_string, 'APIs Log - JSON', true).hide_from_datatable(),
 
-            new ModuleTableField('console_logs', ModuleTableField.FIELD_TYPE_string_array, 'Console Logs', false),
+            new ModuleTableField('console_logs', ModuleTableField.FIELD_TYPE_string_array, 'Console Logs', false).hide_from_datatable(),
         ];
 
         let table = new ModuleTable(this, FeedbackVO.API_TYPE_ID, () => new FeedbackVO(), fields, null, 'Feedbacks');

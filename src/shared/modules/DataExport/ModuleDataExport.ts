@@ -16,6 +16,7 @@ import FileVO from '../File/vos/FileVO';
 export default class ModuleDataExport extends Module {
 
     public static APINAME_ExportDataToXLSXParamVO: string = 'ExportDataToXLSXParamVO';
+    public static APINAME_ExportDataToXLSXParamVOFile: string = 'ExportDataToXLSXParamVOFile';
 
     public static getInstance(): ModuleDataExport {
         if (!ModuleDataExport.instance) {
@@ -31,8 +32,12 @@ export default class ModuleDataExport extends Module {
         this.forceActivationOnInstallation();
     }
 
-    public async exportDataToXLSX(exportDataToXLSXParamVO: ExportDataToXLSXParamVO): Promise<any> {
-        return await ModuleAPI.getInstance().handleAPI<ExportDataToXLSXParamVO, any>(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, exportDataToXLSXParamVO);
+    public async exportDataToXLSX(exportDataToXLSXParamVO: ExportDataToXLSXParamVO): Promise<string> {
+        return await ModuleAPI.getInstance().handleAPI<ExportDataToXLSXParamVO, string>(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, exportDataToXLSXParamVO);
+    }
+
+    public async exportDataToXLSXFile(exportDataToXLSXParamVO: ExportDataToXLSXParamVO): Promise<FileVO> {
+        return await ModuleAPI.getInstance().handleAPI<ExportDataToXLSXParamVO, FileVO>(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, exportDataToXLSXParamVO);
     }
 
     public initialize() {
@@ -49,6 +54,10 @@ export default class ModuleDataExport extends Module {
             [],
             null,
             APIDefinition.API_RETURN_TYPE_FILE
+        ));
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, FileVO>(
+            ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile,
+            [FileVO.API_TYPE_ID]
         ));
     }
 

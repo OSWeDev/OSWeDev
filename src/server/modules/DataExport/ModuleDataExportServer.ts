@@ -15,10 +15,9 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
-import IExportableDatas from './interfaces/IExportableDatas';
-import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
@@ -67,20 +66,21 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
     }
 
     public async exportDataToXLSX(params: ExportDataToXLSXParamVO): Promise<string> {
         return await this.exportDataToXLSX_base(params);
     }
 
-    public async exportDataToXLSX_file(datas: ExportDataToXLSXParamVO, is_secured: boolean = false, file_access_policy_name: string = null): Promise<FileVO> {
+    public async exportDataToXLSXFile(params: ExportDataToXLSXParamVO): Promise<FileVO> {
 
-        let filepath: string = await this.exportDataToXLSX_base(datas, is_secured, file_access_policy_name);
+        let filepath: string = await this.exportDataToXLSX_base(params);
 
         let file: FileVO = new FileVO();
         file.path = filepath;
-        file.file_access_policy_name = file_access_policy_name;
-        file.is_secured = is_secured;
+        file.file_access_policy_name = params.file_access_policy_name;
+        file.is_secured = params.is_secured;
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
         if ((!res) || (!res.id)) {
             ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
@@ -91,16 +91,16 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         return file;
     }
 
-    private async exportDataToXLSX_base(datas: IExportableDatas, is_secured: boolean = false, file_access_policy_name: string = null): Promise<string> {
+    private async exportDataToXLSX_base(params: ExportDataToXLSXParamVO): Promise<string> {
 
-        if ((!datas) || (!datas.filename) || (!datas.datas) || (!datas.column_labels) || (!datas.ordered_column_list)) {
+        if ((!params) || (!params.filename) || (!params.datas) || (!params.column_labels) || (!params.ordered_column_list)) {
             return null;
         }
 
-        ConsoleHandler.getInstance().log('EXPORT : ' + datas.filename);
+        ConsoleHandler.getInstance().log('EXPORT : ' + params.filename);
 
         let worksheetColumns = [];
-        for (let i in datas.ordered_column_list) {
+        for (let i in params.ordered_column_list) {
             worksheetColumns.push({ wch: 25 });
         }
 
@@ -108,20 +108,20 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         let ws_data = [];
         let ws_row = [];
-        for (let i in datas.ordered_column_list) {
-            let data_field_name: string = datas.ordered_column_list[i];
-            let title: string = datas.column_labels[data_field_name];
+        for (let i in params.ordered_column_list) {
+            let data_field_name: string = params.ordered_column_list[i];
+            let title: string = params.column_labels[data_field_name];
 
             ws_row.push(title);
         }
         ws_data.push(ws_row);
 
-        for (let r in datas.datas) {
-            let row_data = datas.datas[r];
+        for (let r in params.datas) {
+            let row_data = params.datas[r];
             ws_row = [];
 
-            for (let i in datas.ordered_column_list) {
-                let data_field_name: string = datas.ordered_column_list[i];
+            for (let i in params.ordered_column_list) {
+                let data_field_name: string = params.ordered_column_list[i];
                 let data = row_data[data_field_name];
 
                 ws_row.push(data);
@@ -132,7 +132,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         let ws = XLSX.utils.aoa_to_sheet(ws_data);
         XLSX.utils.book_append_sheet(workbook, ws, "Datas");
 
-        let filepath: string = (is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.TEMP_FILES_ROOT) + datas.filename;
+        let filepath: string = (params.is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + params.filename;
         XLSX.writeFile(workbook, filepath);
 
         let user_log_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
@@ -140,7 +140,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         // On log l'export
         if (!!user_log_id) {
             await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
-                datas.api_type_id,
+                params.api_type_id,
                 moment().utc(true),
                 user_log_id
             ));

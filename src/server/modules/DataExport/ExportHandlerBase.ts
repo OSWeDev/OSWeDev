@@ -12,6 +12,7 @@ import default_mail_html_template from './default_export_mail_html_template.html
 import IExportableDatas from './interfaces/IExportableDatas';
 import IExportHandler from './interfaces/IExportHandler';
 import ModuleDataExportServer from './ModuleDataExportServer';
+import ExportDataToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 
 export default abstract class ExportHandlerBase implements IExportHandler {
 
@@ -30,7 +31,10 @@ export default abstract class ExportHandlerBase implements IExportHandler {
 
         try {
 
-            let file: FileVO = await ModuleDataExportServer.getInstance().exportDataToXLSX_file(datas, exhi.export_is_secured, exhi.export_file_access_policy_name);
+            let file: FileVO = await ModuleDataExportServer.getInstance().exportDataToXLSXFile(new ExportDataToXLSXParamVO(
+                datas.filename, datas.datas, datas.ordered_column_list, datas.column_labels, datas.api_type_id,
+                exhi.export_is_secured, exhi.export_file_access_policy_name
+            ));
             exhi.exported_file_id = file.id;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
