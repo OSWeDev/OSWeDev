@@ -31,7 +31,7 @@ export default abstract class Module implements IModuleBase {
         reflexiveClassName: string,
         specificImportPath: string = null) {
 
-        this.name = name;
+        this.name = name.toLowerCase();
         this.reflexiveClassName = reflexiveClassName;
         this.specificImportPath = specificImportPath;
         ModulesManager.getInstance().registerModule(Module.SharedModuleRoleName, this);

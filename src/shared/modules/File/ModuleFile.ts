@@ -17,7 +17,7 @@ export default class ModuleFile extends Module {
 
     public static FILES_ROOT: string = './files/';
     public static SECURED_FILES_ROOT: string = './sfiles/';
-    public static TEMP_FILES_ROOT: string = './temp/';
+    // public static TEMP_FILES_ROOT: string = './temp/';
 
     public static APINAME_TEST_FILE_EXISTENZ = "test_file_existenz";
 

@@ -449,8 +449,20 @@ export default abstract class ServerBase {
             next();
         });
 
-        this.app.use(ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + ':file_name', async (req: Request, res: Response, next: NextFunction) => {
+        /**
+         * Pas trouvé à faire une route récursive propre, on limite à 5 sous-reps
+         */
+        this.app.use(ModuleFile.SECURED_FILES_ROOT.replace(/^[.][/]/, '/') + '(:folder1/)?(:folder2/)?(:folder3/)?(:folder4/)?(:folder5/)?:file_name', async (req: Request, res: Response, next: NextFunction) => {
 
+            let folders = (req.params.folder1 ? req.params.folder1 + '/' + (
+                req.params.folder2 ? req.params.folder2 + '/' + (
+                    req.params.folder3 ? req.params.folder3 + '/' + (
+                        req.params.folder4 ? req.params.folder4 + '/' + (
+                            req.params.folder5 ? req.params.folder5 + '/' : ''
+                        ) : ''
+                    ) : ''
+                ) : ''
+            ) : '');
             let file_name = req.params.file_name;
 
             if (file_name.indexOf(';') >= 0) {
@@ -468,7 +480,7 @@ export default abstract class ServerBase {
                 return;
             }
 
-            let file: FileVO = await ModuleDAOServer.getInstance().selectOne<FileVO>(FileVO.API_TYPE_ID, " where is_secured and path = $1;", [ModuleFile.SECURED_FILES_ROOT + file_name]);
+            let file: FileVO = await ModuleDAOServer.getInstance().selectOne<FileVO>(FileVO.API_TYPE_ID, " where is_secured and path = $1;", [ModuleFile.SECURED_FILES_ROOT + folders + file_name]);
 
             if ((!file) || (!file.file_access_policy_name) || (!await ModuleAccessPolicy.getInstance().checkAccess(file.file_access_policy_name))) {
 

@@ -612,6 +612,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
             let new_id = fieldIdToAPIMap[field.field_id];
 
+            /**
+             * Si le champ possible un custom_to_api
+             */
+            if (!!field.custom_translate_to_api) {
+                res[new_id] = field.custom_translate_to_api(e[field.field_id]);
+                continue;
+            }
+
             switch (field.field_type) {
 
                 case ModuleTableField.FIELD_TYPE_numrange_array:
@@ -666,6 +674,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
             let field = this.fields_[i];
 
             let old_id = fieldIdToAPIMap[field.field_id];
+
+            /**
+             * Si le champ possible un custom_from_api
+             */
+            if (!!field.custom_translate_from_api) {
+                res[field.field_id] = field.custom_translate_from_api(e[old_id]);
+                continue;
+            }
 
             switch (field.field_type) {
 

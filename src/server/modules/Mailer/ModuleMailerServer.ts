@@ -1,11 +1,14 @@
 import * as nodemailer from 'nodemailer';
 import { SendMailOptions } from 'nodemailer';
+import { Address } from 'nodemailer/lib/mailer';
 import * as SMTPTransport from 'nodemailer/lib/smtp-transport';
 import ModuleMailer from '../../../shared/modules/Mailer/ModuleMailer';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import TemplateHandlerServer from './TemplateHandlerServer';
+import TypesHandler from '../../../shared/tools/TypesHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ModuleServerBase from '../ModuleServerBase';
+import TemplateHandlerServer from './TemplateHandlerServer';
+
 
 export default class ModuleMailerServer extends ModuleServerBase {
 
@@ -58,9 +61,16 @@ export default class ModuleMailerServer extends ModuleServerBase {
     public async sendMail(mailOptions: SendMailOptions): Promise<any> {
 
         // On check que l'env permet d'envoyer des mails
+        // On vérifie la whitelist
         if (ConfigurationService.getInstance().getNodeConfiguration().BLOCK_MAIL_DELIVERY) {
-            ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env: ' + mailOptions.subject);
-            return;
+
+            if (this.check_mail_whitelist(mailOptions.to, mailOptions.cc, mailOptions.bcc)) {
+                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + mailOptions.to + ':' + mailOptions.cc + ':' + mailOptions.bcc);
+
+            } else {
+                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env: ' + mailOptions.subject);
+                return;
+            }
         }
 
         return new Promise((resolve, reject) => {
@@ -89,5 +99,59 @@ export default class ModuleMailerServer extends ModuleServerBase {
                 ConsoleHandler.getInstance().error(error);
             }
         });
+    }
+
+    /**
+     * Returns true if all the adresses are whitelisted
+     * @param to
+     * @param cc
+     * @param bcc
+     */
+    private check_mail_whitelist(
+        to: string | Address | Array<string | Address>,
+        cc: string | Address | Array<string | Address>,
+        bcc: string | Address | Array<string | Address>): boolean {
+        let whitelisted_emails: string[] = ConfigurationService.getInstance().getNodeConfiguration().MAIL_DELIVERY_WHITELIST ?
+            ConfigurationService.getInstance().getNodeConfiguration().MAIL_DELIVERY_WHITELIST.split(',') : null;
+
+        if ((!whitelisted_emails) || (!whitelisted_emails.length)) {
+            return false;
+        }
+
+        return this.check_adresses_whitelist(to, whitelisted_emails) &&
+            this.check_adresses_whitelist(cc, whitelisted_emails) &&
+            this.check_adresses_whitelist(bcc, whitelisted_emails);
+    }
+
+    /**
+     *
+     * @param address
+     * @param whitelisted_emails ne doit pas être null
+     */
+    private check_adresses_whitelist(
+        address: string | Address | Array<string | Address>, whitelisted_emails: string[]): boolean {
+
+        if (!address) {
+            return true;
+        }
+
+        if (TypesHandler.getInstance().isString(address)) {
+            return whitelisted_emails.indexOf(address as string) >= 0;
+        }
+
+        if (TypesHandler.getInstance().isArray(address)) {
+            for (let i in address as Array<string | Address>) {
+                let e = address[i];
+
+                if (!this.check_adresses_whitelist(address, whitelisted_emails)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        let address_ = address as Address;
+        return whitelisted_emails.indexOf(address_.address) >= 0;
     }
 }

@@ -67,6 +67,9 @@ export default class ModuleTableField<T> {
     public field_value: T;
     public field_loaded: boolean;
 
+    public custom_translate_to_api: (value: any) => any = null;
+    public custom_translate_from_api: (value: any) => any = null;
+
     public has_relation: boolean;
     public target_database: string = null;
     public target_table: string = null;
@@ -79,6 +82,8 @@ export default class ModuleTableField<T> {
 
     public min_values: number = 0;
     public max_values: number = 999;
+
+    public is_indexed: boolean = false;
 
     /**
      * Sur date : identifie si la date est utilisée dans le code comme inclusive ou exclusive (le jour ciblé est inclus ou non)
@@ -162,6 +167,16 @@ export default class ModuleTableField<T> {
         return this;
     }
 
+    public index(): ModuleTableField<T> {
+        this.is_indexed = true;
+        return this;
+    }
+
+    public do_not_index(): ModuleTableField<T> {
+        this.is_indexed = false;
+        return this;
+    }
+
     public hide_print(): ModuleTableField<T> {
         this.hidden_print = true;
 
@@ -182,6 +197,18 @@ export default class ModuleTableField<T> {
 
     public hide_from_datatable(): ModuleTableField<T> {
         this.is_visible_datatable = false;
+
+        return this;
+    }
+
+    public set_custom_translate_to_api(custom_translate_to_api: (value: any) => any): ModuleTableField<T> {
+        this.custom_translate_to_api = custom_translate_to_api;
+
+        return this;
+    }
+
+    public set_custom_translate_from_api(custom_translate_from_api: (value: any) => any): ModuleTableField<T> {
+        this.custom_translate_from_api = custom_translate_from_api;
 
         return this;
     }
@@ -284,6 +311,23 @@ export default class ModuleTableField<T> {
         return this.field_id + ' ' + this.getPGSqlFieldType() + (this.field_required ? ' NOT NULL' : '');
     }
 
+    public getPGSqlFieldIndex(database_name: string, table_name: string) {
+
+        if (!this.is_indexed) {
+            return null;
+        }
+
+        return "CREATE INDEX " + this.get_index_name(table_name) + " ON " + database_name + "." + table_name + "(" + this.field_id + " ASC NULLS LAST);";
+    }
+
+    public get_index_name(table_name: string): string {
+        let res = table_name + this.field_id + "_idx";
+        if (table_name.startsWith('module_')) {
+            res = table_name.substring(7, table_name.length) + this.field_id + "_idx";
+        }
+        return res.toLowerCase();
+    }
+
     public getPGSqlFieldConstraint() {
         if (!this.has_relation) {
             return null;
@@ -310,6 +354,8 @@ export default class ModuleTableField<T> {
         this.target_table = target_database.name;
         this.target_field = 'id';
         this.has_relation = true;
+
+        this.index();
 
         return this;
     }

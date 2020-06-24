@@ -12,6 +12,7 @@ export default class EnvParam {
     public URL_RECOVERY: string;
     public BASE_URL: string;
     public BLOCK_MAIL_DELIVERY: boolean;
+    public MAIL_DELIVERY_WHITELIST: string;
     public BDD_OWNER: string;
     public NODE_VERBOSE: boolean;
     public ACTIVATE_LONG_JOHN: boolean;

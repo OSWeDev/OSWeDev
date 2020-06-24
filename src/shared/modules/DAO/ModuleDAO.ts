@@ -101,7 +101,8 @@ export default class ModuleDAO extends Module {
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamsVO, any[]>(
             ModuleDAO.APINAME_DELETE_VOS_BY_IDS,
-            (param: APIDAOParamsVO) => [param.API_TYPE_ID]
+            (param: APIDAOParamsVO) => [param.API_TYPE_ID],
+            APIDAOParamsVO.translateCheckAccessParams
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,

@@ -31,6 +31,8 @@ import CustomFilterItem from './CustomFilterItem';
 import './DatatableComponent.scss';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
+import { cloneDeep } from 'lodash';
+import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -304,7 +306,7 @@ export default class DatatableComponent extends VueComponentBase {
         this.exportable_datatable_data = [];
 
         for (let i in (this.$refs.vclienttable as any).allFilteredData) {
-            let cloned_data = Object.assign({}, (this.$refs.vclienttable as any).allFilteredData[i]);
+            let cloned_data = cloneDeep((this.$refs.vclienttable as any).allFilteredData[i]);
 
             if (!!cloned_data[DatatableComponent.MULTISELECT_COLUMN_ID]) {
                 delete cloned_data[DatatableComponent.MULTISELECT_COLUMN_ID];
@@ -318,6 +320,47 @@ export default class DatatableComponent extends VueComponentBase {
 
                 if (this.exportable_datatable_columns.indexOf(column) < 0) {
                     cloned_data[column] = undefined;
+                }
+
+                /**
+                 * On doit aussi traduire les colonnes de type références multiples pour ne pas exporter un objet mais un texte
+                 */
+                let datatable_field = this.datatable.getFieldByDatatableFieldUID(column);
+                if (!datatable_field) {
+                    // Ex: id
+                    continue;
+                }
+
+                let field_as_simple = (datatable_field as SimpleDatatableField<any, any>);
+
+                // Si c'est un custom :
+                if (TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers && field_as_simple && field_as_simple.moduleTableField &&
+                    TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[field_as_simple.moduleTableField.field_type] &&
+                    TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[field_as_simple.moduleTableField.field_type].getIHMToExportString) {
+                    cloned_data[column] = TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers[
+                        field_as_simple.moduleTableField.field_type].getIHMToExportString(cloned_data, field_as_simple, this.datatable);
+                    continue;
+                }
+
+                switch (datatable_field.type) {
+                    case DatatableField.MANY_TO_MANY_FIELD_TYPE:
+                    case DatatableField.ONE_TO_MANY_FIELD_TYPE:
+
+                        let values = cloned_data[column];
+                        let res = "";
+                        for (let valuei in values) {
+                            let value = values[valuei];
+
+                            if (!value) {
+                                continue;
+                            }
+
+                            res += ((res && res.length) ? ', ' : '') + value['label'];
+                        }
+                        cloned_data[column] = res;
+                        break;
+                    default:
+                        break;
                 }
             }
 

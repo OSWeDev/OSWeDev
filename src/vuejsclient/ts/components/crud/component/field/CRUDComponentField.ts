@@ -193,7 +193,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo);
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
     }
 
     get alert_path(): string {
@@ -384,7 +384,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo);
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
     }
 
     private validateMultiInput(values: any[]) {
@@ -401,7 +401,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo);
+        this.$emit('onchangevo', this.vo, this.field, values);
         this.$emit('validatemultiinput', values, this.field, this.vo);
     }
 
@@ -703,7 +703,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo);
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
     }
 
     private inputValue(value: any) {
@@ -723,7 +723,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo);
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
     }
 
     get is_custom_field_type(): boolean {
@@ -840,7 +840,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo);
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
 
         this.inline_input_is_editing = false;
 

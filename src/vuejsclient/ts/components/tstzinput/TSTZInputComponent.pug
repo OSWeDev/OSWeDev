@@ -1,7 +1,7 @@
 .tstz_input
     .row
         div(:class="segmentation_time ? 'col-md-6' : 'col-md-12'")
-            Datepicker(v-model="date_value" :language="languages[language]" :placeholder="label('tstz_input.placeholder.date_debut')"  :required="required" :disabled="disabled" :format="format_datepicker" :minimum-view="datepicker_view" maximum-view="year" class="form-control" @input="emitInput")
+            Datepicker(v-model="date_value" :monday-first='true' :language="languages[language]" :placeholder="label('tstz_input.placeholder.date_debut')"  :required="required" :disabled="disabled" :format="format_datepicker" :minimum-view="datepicker_view" maximum-view="year" class="form-control" @input="emitInput")
         
         template(v-if="segmentation_time")
             .col-md-6
