@@ -283,15 +283,18 @@ export default class ModuleFormatDatesNombres extends Module {
                 break;
         }
 
-        let entier = Math.floor(numberRound);
+        let entier = numberRound > 0 ? Math.floor(numberRound) : Math.ceil(numberRound);
         let decimale = numberRound - entier;
 
-        let res: string = "";
-        res += this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier);
-        if (decimale > 0) {
-            res += this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + decimale.toString().replace("0.", "");
-        }
-        return res;
+        let res = entier + decimale;
+        return '' + res;
+
+        // let res: string = "";
+        // res += this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier);
+        // if (decimale > 0) {
+        //     res += this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + decimale.toString().replace("0.", "");
+        // }
+        // return res;
     }
 
     public initialize() {
