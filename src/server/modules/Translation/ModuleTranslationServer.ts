@@ -6,6 +6,7 @@ import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
 import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import GetTranslationParamVO from '../../../shared/modules/Translation/apis/GetTranslationParamVO';
+import TParamVO from '../../../shared/modules/Translation/apis/TParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -21,7 +22,6 @@ import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
-import TParamVO from '../../../shared/modules/Translation/apis/TParamVO';
 
 export default class ModuleTranslationServer extends ModuleServerBase {
 
@@ -563,6 +563,8 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATION, this.getTranslation.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_GET_TRANSLATIONS, this.getTranslations.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_getALL_LOCALES, this.getALL_LOCALES.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_LABEL, this.label.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleTranslation.APINAME_T, this.t.bind(this));
     }
 
     public async getTranslatableTexts(): Promise<TranslatableTextVO[]> {
@@ -683,6 +685,11 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private async t(param: TParamVO): Promise<string> {
         let translatable = await ModuleDAOServer.getInstance().selectOne<TranslatableTextVO>(TranslatableTextVO.API_TYPE_ID, 'where code_text = $1', [param.code_text]);
+
+        if (!translatable) {
+            return null;
+        }
+
         let translation = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, 'WHERE t.lang_id = $1 and t.text_id = $2', [param.lang_id, translatable.id]);
 
         return translation.translated;
