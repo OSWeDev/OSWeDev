@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import { amountFilter, hourAndMinutesFilter, hourFilter, percentFilter } from '../../../shared/tools/Filters';
+import { amountFilter, hourAndMinutesFilter, hourFilter, percentFilter, toFixedFilter } from '../../../shared/tools/Filters';
 
 
 describe('TestFilters', () => {
@@ -45,6 +45,24 @@ describe('TestFilters', () => {
         expect(percentFilter.read("1000000")).to.equal("&infin;");
         expect(percentFilter.read("-1000000")).to.equal("-&infin;");
         expect(percentFilter.read("-1000")).to.equal("-&infin;");
+    });
+
+    it('test toFixed read', () => {
+
+        ModuleFormatDatesNombres.getInstance().actif = true;
+
+        expect(toFixedFilter.read(null)).to.equal(null);
+        expect(toFixedFilter.read(0)).to.equal(0);
+        expect(toFixedFilter.read(-0.5, null, 0.5)).to.equal("-0.5");
+        expect(toFixedFilter.read(-1.6, null, 0.5)).to.equal("-1.5");
+        expect(toFixedFilter.read(-1.9, null, 0.5)).to.equal("-2");
+        expect(toFixedFilter.read(0.5, null, 0.5)).to.equal("0.5");
+        expect(toFixedFilter.read(-0.1, null, 0.5)).to.equal("0");
+        expect(toFixedFilter.read(-0.3, null, 0.5)).to.equal("-0.5");
+        expect(toFixedFilter.read(0.1, null, 0.5)).to.equal("0");
+        expect(toFixedFilter.read(0.3, null, 0.5)).to.equal("0.5");
+        expect(toFixedFilter.read(1.6, null, 0.5)).to.equal("1.5");
+        expect(toFixedFilter.read(1.9, null, 0.5)).to.equal("2");
     });
 
 

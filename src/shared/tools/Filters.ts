@@ -264,6 +264,9 @@ let readToFixed = function (
 };
 
 let writeToFixed = function (value) {
+    if (TypesHandler.getInstance().isNull(value)) {
+        return null;
+    }
     value = value.replace(",", "");
     return value && value.length ? parseFloat(value) : 0;
 };

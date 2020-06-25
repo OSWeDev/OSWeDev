@@ -1,6 +1,8 @@
 /* istanbul ignore file: no usefull tests to build */
 
-export default class EnvParam {
+import IEnvParam from './IEnvParam';
+
+export default class EnvParam implements IEnvParam {
     public CONNECTION_STRING: string;
     public PORT: string;
     public ISDEV: boolean;

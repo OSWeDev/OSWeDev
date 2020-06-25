@@ -49,6 +49,7 @@ import DefaultTranslationsServerManager from './modules/Translation/DefaultTrans
 import FileVO from '../shared/modules/File/vos/FileVO';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import FileLoggerHandler from './FileLoggerHandler';
+import ThreadHandler from '../shared/tools/ThreadHandler';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -689,13 +690,29 @@ export default abstract class ServerBase {
         // // !JNE : Savoir si on est en DEV depuis la Vue.js client
 
         // Déclenchement du cron
-        this.app.get('/cron', (req: Request, res) => {
+        this.app.get('/cron', async (req: Request, res) => {
             // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
             httpContext.set('IS_CLIENT', false);
 
-            return ServerBase.getInstance().handleError(CronServerController.getInstance().executeWorkers().then(() => {
-                res.json();
-            }), res);
+            /**
+             * Cas particulier du cron qui est appelé directement par les taches planifiées et qui doit
+             *  attendre la fin du démarrage du serveur et des childs threads pour lancer le broadcast
+             */
+            let timeout_sec: number = 30;
+            while ((!ForkServerController.getInstance().forks_are_initialized) && (timeout_sec > 0)) {
+                await ThreadHandler.getInstance().sleep(1000);
+                timeout_sec--;
+            }
+
+            if (!ForkServerController.getInstance().forks_are_initialized) {
+                ConsoleHandler.getInstance().error('CRON non lancé car le thread enfant n\'est pas disponible en 30 secondes.');
+                res.send();
+            } else {
+
+                return ServerBase.getInstance().handleError(CronServerController.getInstance().executeWorkers().then(() => {
+                    res.json();
+                }), res);
+            }
         });
 
         // TODO FIXME : à passer en API normale !
