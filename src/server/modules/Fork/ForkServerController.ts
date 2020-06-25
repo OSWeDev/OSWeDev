@@ -29,6 +29,8 @@ export default class ForkServerController {
     private forks: { [uid: number]: IFork } = {};
     private fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
     private UID: number = 0;
+    public forks_are_initialized: boolean = false;
+    public forks_waiting_to_be_alive: number = 0;
     /**
      * ----- Local thread cache
      */
@@ -66,6 +68,7 @@ export default class ForkServerController {
         this.prepare_forked_bgtreads(default_fork);
         this.prepare_forked_crons(default_fork);
 
+        this.forks_waiting_to_be_alive = Object.keys(this.forks).length;
 
         // On crée les process et on stocke les liens pour pouvoir envoyer les messages en temps voulu (typiquement pour le lancement des crons)
         for (let i in this.forks) {

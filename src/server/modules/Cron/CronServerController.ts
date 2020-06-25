@@ -76,6 +76,7 @@ export default class CronServerController {
      * On broadcast la demande de executeWorkers, et quand on recevra le message on gèrera comme les autres process
      */
     public async executeWorkers() {
+
         await ForkMessageController.getInstance().broadcast(new RunCronsForkMessage());
     }
 

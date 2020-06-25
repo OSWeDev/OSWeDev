@@ -1,6 +1,7 @@
 /* istanbul ignore file: no usefull tests to build */
 
 import EnvParam from './EnvParam';
+import IEnvParam from './IEnvParam';
 
 
 // ATTENTION subtilité sur ConfigurationService et STATIC_ENV_PARAMS, on
@@ -29,7 +30,7 @@ export default class ConfigurationService {
     public shared_params: any;
 
     private nodeEnv: string;
-    private STATIC_ENV_PARAMS: { [env: string]: EnvParam };
+    private STATIC_ENV_PARAMS: { [env: string]: IEnvParam };
     /**
      * ----- Local thread cache
      */
@@ -40,11 +41,11 @@ export default class ConfigurationService {
         ConfigurationService.instance = this;
     }
 
-    public setEnvParams(STATIC_ENV_PARAMS: { [env: string]: EnvParam }) {
+    public setEnvParams(STATIC_ENV_PARAMS: { [env: string]: IEnvParam }) {
         this.STATIC_ENV_PARAMS = STATIC_ENV_PARAMS;
     }
 
-    public getNodeConfiguration(): EnvParam {
-        return Object.assign(new EnvParam(), this.STATIC_ENV_PARAMS[this.nodeEnv]);
+    public getNodeConfiguration<T extends IEnvParam>(): T {
+        return Object.assign(new EnvParam(), this.STATIC_ENV_PARAMS[this.nodeEnv]) as T;
     }
 }

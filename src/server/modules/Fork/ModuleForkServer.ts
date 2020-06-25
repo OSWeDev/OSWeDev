@@ -8,6 +8,7 @@ import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage'
 import { Socket, Server } from 'net';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import ForkedTasksController from './ForkedTasksController';
+import ForkServerController from './ForkServerController';
 
 export default class ModuleForkServer extends ModuleServerBase {
 
@@ -43,6 +44,10 @@ export default class ModuleForkServer extends ModuleServerBase {
     }
 
     private async handle_alive_message(msg: IForkMessage, sendHandle: Socket | Server): Promise<boolean> {
+        ForkServerController.getInstance().forks_waiting_to_be_alive--;
+        if (ForkServerController.getInstance().forks_waiting_to_be_alive <= 0) {
+            ForkServerController.getInstance().forks_are_initialized = true;
+        }
         ConsoleHandler.getInstance().log('Process [' + msg.message_content + ']: ALIVE');
         return true;
     }
