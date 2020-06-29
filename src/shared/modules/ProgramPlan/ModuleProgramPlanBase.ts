@@ -36,45 +36,36 @@ import IPlanTargetGroupContact from './interfaces/IPlanTargetGroupContact';
 
 export default abstract class ModuleProgramPlanBase extends Module {
 
-    public static MODULE_NAME: string = 'ProgramPlanBase';
+    get POLICY_GROUP(): string { return AccessPolicyTools.POLICY_GROUP_UID_PREFIX + this.name; }
+    get POLICY_BO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.BO_ACCESS'; }
+    get POLICY_FO_ACCESS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_ACCESS'; }
 
-    public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME;
-    public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.BO_ACCESS';
-    public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_ACCESS';
+    get POLICY_FO_SEE_FC(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_SEE_FC'; }
+    get POLICY_FO_SEE_ALL_TEAMS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_SEE_ALL_TEAMS'; }
+    get POLICY_FO_SEE_OWN_TEAM(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_SEE_OWN_TEAM'; }
 
-    public static POLICY_FO_SEE_FC: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_SEE_FC';
-    public static POLICY_FO_SEE_ALL_TEAMS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_SEE_ALL_TEAMS';
-    public static POLICY_FO_SEE_OWN_TEAM: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_SEE_OWN_TEAM';
+    get POLICY_FO_EDIT(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT'; }
 
-    public static POLICY_FO_EDIT: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT';
+    get POLICY_FO_EDIT_OWN_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_OWN_RDVS'; }
+    get POLICY_FO_EDIT_OWN_TEAM_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_OWN_TEAM_RDVS'; }
+    get POLICY_FO_EDIT_ALL_RDVS(): string { return AccessPolicyTools.POLICY_UID_PREFIX + this.name + '.FO_EDIT_ALL_RDVS'; }
 
-    public static POLICY_FO_EDIT_OWN_RDVS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT_OWN_RDVS';
-    public static POLICY_FO_EDIT_OWN_TEAM_RDVS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT_OWN_TEAM_RDVS';
-    public static POLICY_FO_EDIT_ALL_RDVS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleProgramPlanBase.MODULE_NAME + '.FO_EDIT_ALL_RDVS';
+    get APINAME_GET_RDVS_OF_PROGRAM_SEGMENT() { return this.name + "_GET_RDVS_OF_PROGRAM_SEGMENT"; }
+    get APINAME_GET_CRS_OF_PROGRAM_SEGMENT() { return this.name + "_GET_CRS_OF_PROGRAM_SEGMENT"; }
+    get APINAME_GET_PREPS_OF_PROGRAM_SEGMENT() { return this.name + "_GET_PREPS_OF_PROGRAM_SEGMENT"; }
 
-    public static APINAME_GET_RDVS_OF_PROGRAM_SEGMENT = "GET_RDVS_OF_PROGRAM_SEGMENT";
-    public static APINAME_GET_CRS_OF_PROGRAM_SEGMENT = "GET_CRS_OF_PROGRAM_SEGMENT";
-    public static APINAME_GET_PREPS_OF_PROGRAM_SEGMENT = "GET_PREPS_OF_PROGRAM_SEGMENT";
-
-    public static RDV_STATE_LABELS: string[] = [
-        'programplan.rdv.states.created', 'programplan.rdv.states.confirmed', 'programplan.rdv.states.prep_ok', 'programplan.rdv.states.cr_ok'
-    ];
-    public static RDV_STATE_CREATED: number = 0;
-    public static RDV_STATE_CONFIRMED: number = 1;
-    public static RDV_STATE_PREP_OK: number = 2;
-    public static RDV_STATE_CR_OK: number = 3;
-
-    // public static PROGRAM_TARGET_STATE_LABELS: string[] = ['programplan.program.target.created', 'programplan.program.target.ongoing', 'programplan.program.target.closed', 'programplan.program.target.late'];
-    // public static PROGRAM_TARGET_STATE_CREATED: number = 0;
-    // public static PROGRAM_TARGET_STATE_ONGOING: number = 1;
-    // public static PROGRAM_TARGET_STATE_CLOSED: number = 2;
-    // public static PROGRAM_TARGET_STATE_LATE: number = 3;
-
-    public static getInstance(): ModuleProgramPlanBase {
-        return ModuleProgramPlanBase.instance;
+    get RDV_STATE_LABELS(): string[] {
+        return [
+            this.name + '.rdv.states.created',
+            this.name + '.rdv.states.confirmed',
+            this.name + '.rdv.states.prep_ok',
+            this.name + '.rdv.states.cr_ok'
+        ];
     }
-
-    private static instance: ModuleProgramPlanBase = null;
+    get RDV_STATE_CREATED(): number { return 0; }
+    get RDV_STATE_CONFIRMED(): number { return 1; }
+    get RDV_STATE_PREP_OK(): number { return 2; }
+    get RDV_STATE_CR_OK(): number { return 3; }
 
     protected constructor(
         name: string,
@@ -108,8 +99,6 @@ export default abstract class ModuleProgramPlanBase extends Module {
         specificImportPath: string) {
 
         super(name, reflexiveClassName, specificImportPath);
-
-        ModuleProgramPlanBase.instance = this;
 
         this.initialize_later();
     }
@@ -151,9 +140,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
 
     public registerApis() {
+        let self = this;
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDV[]>(
-            ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
-            () => [ModuleProgramPlanBase.getInstance().rdv_type_id],
+            self.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
+            () => [self.rdv_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
             ProgramSegmentParamVO.translateToURL,
@@ -161,8 +151,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVCR[]>(
-            ModuleProgramPlanBase.APINAME_GET_CRS_OF_PROGRAM_SEGMENT,
-            () => [ModuleProgramPlanBase.getInstance().rdv_type_id, ModuleProgramPlanBase.getInstance().rdv_cr_type_id],
+            self.APINAME_GET_CRS_OF_PROGRAM_SEGMENT,
+            () => [self.rdv_type_id, self.rdv_cr_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
             ProgramSegmentParamVO.translateToURL,
@@ -170,8 +160,8 @@ export default abstract class ModuleProgramPlanBase extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVPrep[]>(
-            ModuleProgramPlanBase.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
-            () => [ModuleProgramPlanBase.getInstance().rdv_type_id, ModuleProgramPlanBase.getInstance().rdv_prep_type_id],
+            self.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
+            () => [self.rdv_type_id, self.rdv_prep_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
             ProgramSegmentParamVO.URL,
             ProgramSegmentParamVO.translateToURL,
@@ -186,30 +176,30 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         if (!rdv.target_validation) {
-            return ModuleProgramPlanBase.RDV_STATE_CREATED;
+            return this.RDV_STATE_CREATED;
         }
 
         if (!prep) {
-            return ModuleProgramPlanBase.RDV_STATE_CONFIRMED;
+            return this.RDV_STATE_CONFIRMED;
         }
 
         if (!cr) {
-            return ModuleProgramPlanBase.RDV_STATE_PREP_OK;
+            return this.RDV_STATE_PREP_OK;
         }
 
-        return ModuleProgramPlanBase.RDV_STATE_CR_OK;
+        return this.RDV_STATE_CR_OK;
     }
 
     public async getRDVsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDV[]> {
-        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDV[]>(ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
+        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDV[]>(this.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
     }
 
     public async getCRsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVCR[]> {
-        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDVCR[]>(ModuleProgramPlanBase.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
+        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDVCR[]>(this.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
     }
 
     public async getPrepsOfProgramSegment(program_id: number, timeSegment: TimeSegment): Promise<IPlanRDVPrep[]> {
-        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDVPrep[]>(ModuleProgramPlanBase.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
+        return await ModuleAPI.getInstance().handleAPI<ProgramSegmentParamVO, IPlanRDVPrep[]>(this.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, program_id, timeSegment);
     }
 
     protected abstract callInitializePlanProgramCategory();
@@ -704,10 +694,10 @@ export default abstract class ModuleProgramPlanBase extends Module {
         }
 
         states = states ? states : {
-            [ModuleProgramPlanBase.RDV_STATE_CREATED]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CREATED],
-            [ModuleProgramPlanBase.RDV_STATE_CONFIRMED]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CONFIRMED],
-            [ModuleProgramPlanBase.RDV_STATE_PREP_OK]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_PREP_OK],
-            [ModuleProgramPlanBase.RDV_STATE_CR_OK]: ModuleProgramPlanBase.RDV_STATE_LABELS[ModuleProgramPlanBase.RDV_STATE_CR_OK]
+            [this.RDV_STATE_CREATED]: this.RDV_STATE_LABELS[this.RDV_STATE_CREATED],
+            [this.RDV_STATE_CONFIRMED]: this.RDV_STATE_LABELS[this.RDV_STATE_CONFIRMED],
+            [this.RDV_STATE_PREP_OK]: this.RDV_STATE_LABELS[this.RDV_STATE_PREP_OK],
+            [this.RDV_STATE_CR_OK]: this.RDV_STATE_LABELS[this.RDV_STATE_CR_OK]
         };
 
         let task_id;
@@ -729,7 +719,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         additional_fields.unshift(
             label_field,
             new ModuleTableField('end_time', ModuleTableField.FIELD_TYPE_tstz, 'Fin', false),
-            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, ' Statut', true, true, ModuleProgramPlanBase.RDV_STATE_CREATED).setEnumValues(
+            new ModuleTableField('state', ModuleTableField.FIELD_TYPE_enum, ' Statut', true, true, this.RDV_STATE_CREATED).setEnumValues(
                 states)
         );
 

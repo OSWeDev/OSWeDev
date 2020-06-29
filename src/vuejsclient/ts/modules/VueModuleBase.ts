@@ -21,7 +21,12 @@ export default abstract class VueModuleBase implements IVueModule {
     }
 
     get actif(): boolean {
-        return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) ? ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName).actif : false;
+        let shared_module = this.shared_module;
+        return shared_module ? shared_module.actif : false;
+    }
+
+    get shared_module(): Module {
+        return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
     }
 
     public registerApis() { }

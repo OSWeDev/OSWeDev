@@ -26,19 +26,15 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import UpdateRDVStatesCronWorkersHandler from './UpdateRDVStatesCronWorkersHandler';
 
 export default abstract class ModuleProgramPlanServerBase extends ModuleServerBase {
 
-    public static getInstance() {
-        return ModuleProgramPlanServerBase.instance;
-    }
-
-    private static instance: ModuleProgramPlanServerBase = null;
-
     protected constructor(name: string) {
         super(name);
-        ModuleProgramPlanServerBase.instance = this;
+    }
+
+    get programplan_shared_module(): ModuleProgramPlanBase {
+        return this.shared_module as ModuleProgramPlanBase;
     }
 
     public async configure() {
@@ -50,16 +46,16 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         //  Mise à jour du RDV : On demande à recalculer le statut du RDV
         //  Ajout / Suppression de CR ou Prep : On demande à recalculer le statut du RDV
         let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
+        preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
 
         let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
+        preUpdateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
 
-        preCreateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, this.handleTriggerPreCreateCr.bind(this));
-        preCreateTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, this.handleTriggerPreCreatePrep.bind(this));
+        preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this.handleTriggerPreCreateCr.bind(this));
+        preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this.handleTriggerPreCreatePrep.bind(this));
         let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
-        preDeleteTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, this.handleTriggerPreDeleteCr.bind(this));
-        preDeleteTrigger.registerHandler(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, this.handleTriggerPreDeletePrep.bind(this));
+        preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this.handleTriggerPreDeleteCr.bind(this));
+        preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this.handleTriggerPreDeletePrep.bind(this));
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -105,9 +101,9 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     public registerServerApiHandlers() {
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleProgramPlanBase.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleProgramPlanBase.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(ModuleProgramPlanBase.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
     }
 
     public registerAccessHooks(): void {
@@ -116,7 +112,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         // id
         // READ team ou tous
         ModuleDAOServer.getInstance().registerAccessHook(
-            ModuleProgramPlanBase.getInstance().manager_type_id,
+            this.programplan_shared_module.manager_type_id,
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterManagerByIdByAccess.bind(this));
 
@@ -124,7 +120,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         // manager_id
         // READ team ou tous
         ModuleDAOServer.getInstance().registerAccessHook(
-            ModuleProgramPlanBase.getInstance().facilitator_type_id,
+            this.programplan_shared_module.facilitator_type_id,
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterIPlanFacilitatorByManagerByAccess.bind(this));
 
@@ -132,20 +128,20 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         // facilitator_id
         // READ team ou tous(en fonction du manager lié au facilitator_id du RDV ...)
         ModuleDAOServer.getInstance().registerAccessHook(
-            ModuleProgramPlanBase.getInstance().rdv_type_id,
+            this.programplan_shared_module.rdv_type_id,
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterRDVsByFacilitatorIdByAccess.bind(this));
         // et CREATE / UPDATE / DELETE own / team / tous => on part du principe que c'est l'interface qui bloque à ce niveau
 
         // IPlanRDVCR => en fonction du IPlanRDV sur CRUD
         ModuleDAOServer.getInstance().registerAccessHook(
-            ModuleProgramPlanBase.getInstance().rdv_cr_type_id,
+            this.programplan_shared_module.rdv_cr_type_id,
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
 
         // IPlanRDVPrep => en fonction du IPlanRDV sur CRUD
         ModuleDAOServer.getInstance().registerAccessHook(
-            ModuleProgramPlanBase.getInstance().rdv_prep_type_id,
+            this.programplan_shared_module.rdv_prep_type_id,
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
     }
@@ -155,7 +151,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
      */
     public async registerAccessPolicies(): Promise<void> {
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
-        group.translatable_name = ModuleProgramPlanBase.POLICY_GROUP;
+        group.translatable_name = this.programplan_shared_module.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
             fr: 'ProgramPlan'
         }));
@@ -163,7 +159,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
         bo_access.group_id = group.id;
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        bo_access.translatable_name = ModuleProgramPlanBase.POLICY_BO_ACCESS;
+        bo_access.translatable_name = this.programplan_shared_module.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
             fr: 'Administration du ProgramPlan'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
@@ -176,7 +172,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let fo_access: AccessPolicyVO = new AccessPolicyVO();
         fo_access.group_id = group.id;
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        fo_access.translatable_name = ModuleProgramPlanBase.POLICY_FO_ACCESS;
+        fo_access.translatable_name = this.programplan_shared_module.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
             fr: 'Accès au ProgramPlan'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
@@ -184,7 +180,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let fo_see_fc: AccessPolicyVO = new AccessPolicyVO();
         fo_see_fc.group_id = group.id;
         fo_see_fc.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        fo_see_fc.translatable_name = ModuleProgramPlanBase.POLICY_FO_SEE_FC;
+        fo_see_fc.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_FC;
         fo_see_fc = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_see_fc, new DefaultTranslation({
             fr: 'Vision calendrier du ProgramPlan'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
@@ -198,7 +194,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let fo_edit: AccessPolicyVO = new AccessPolicyVO();
         fo_edit.group_id = group.id;
         fo_edit.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        fo_edit.translatable_name = ModuleProgramPlanBase.POLICY_FO_EDIT;
+        fo_edit.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT;
         fo_edit = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_edit, new DefaultTranslation({
             fr: 'Edition du ProgramPlan'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
@@ -222,7 +218,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         for (let i in rdvs) {
             ids.push(rdvs[i].id);
         }
-        return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', ids);
+        return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', ids);
     }
 
     public async getCRsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDVCR[]> {
@@ -235,11 +231,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         for (let i in rdvs) {
             ids.push(rdvs[i].id);
         }
-        return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', ids);
-    }
-
-    public registerCrons(): void {
-        UpdateRDVStatesCronWorkersHandler.getInstance();
+        return await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', ids);
     }
 
     public async getRDVsOfProgramSegment(params: ProgramSegmentParamVO): Promise<IPlanRDV[]> {
@@ -253,16 +245,16 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let start_time: Moment = TimeSegmentHandler.getInstance().getStartTimeSegment(timeSegment);
         let end_time: Moment = TimeSegmentHandler.getInstance().getEndTimeSegment(timeSegment);
 
-        if (!ModuleProgramPlanBase.getInstance().program_type_id) {
+        if (!this.programplan_shared_module.program_type_id) {
 
             return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
-                ModuleProgramPlanBase.getInstance().rdv_type_id,
+                this.programplan_shared_module.rdv_type_id,
                 ' where start_time < $2 and end_time >= $1',
                 [DateHandler.getInstance().getUnixForBDD(start_time), DateHandler.getInstance().getUnixForBDD(end_time)]);
         }
 
         return await ModuleDAOServer.getInstance().selectAll<IPlanRDV>(
-            ModuleProgramPlanBase.getInstance().rdv_type_id,
+            this.programplan_shared_module.rdv_type_id,
             ' where start_time < $2 and end_time >= $1 and program_id = $3',
             [DateHandler.getInstance().getUnixForBDD(start_time), DateHandler.getInstance().getUnixForBDD(end_time), program_id]);
     }
@@ -271,7 +263,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let see_own_team: AccessPolicyVO = new AccessPolicyVO();
         see_own_team.group_id = group.id;
         see_own_team.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        see_own_team.translatable_name = ModuleProgramPlanBase.POLICY_FO_SEE_OWN_TEAM;
+        see_own_team.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM;
         see_own_team = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_own_team, new DefaultTranslation({
             fr: 'Voir son équipe'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
@@ -284,7 +276,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let see_all_teams: AccessPolicyVO = new AccessPolicyVO();
         see_all_teams.group_id = group.id;
         see_all_teams.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        see_all_teams.translatable_name = ModuleProgramPlanBase.POLICY_FO_SEE_ALL_TEAMS;
+        see_all_teams.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS;
         see_all_teams = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_all_teams, new DefaultTranslation({
             fr: 'Voir toutes les équipes'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
@@ -305,7 +297,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let edit_own_rdvs: AccessPolicyVO = new AccessPolicyVO();
         edit_own_rdvs.group_id = group.id;
         edit_own_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        edit_own_rdvs.translatable_name = ModuleProgramPlanBase.POLICY_FO_EDIT_OWN_RDVS;
+        edit_own_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_OWN_RDVS;
         edit_own_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_rdvs, new DefaultTranslation({
             fr: 'Modifier ses propres RDVs'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
@@ -318,7 +310,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let edit_own_team_rdvs: AccessPolicyVO = new AccessPolicyVO();
         edit_own_team_rdvs.group_id = group.id;
         edit_own_team_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        edit_own_team_rdvs.translatable_name = ModuleProgramPlanBase.POLICY_FO_EDIT_OWN_TEAM_RDVS;
+        edit_own_team_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_OWN_TEAM_RDVS;
         edit_own_team_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_team_rdvs, new DefaultTranslation({
             fr: 'Modifier les RDVs de son équipe'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
@@ -336,7 +328,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let edit_all_teams_rdvs: AccessPolicyVO = new AccessPolicyVO();
         edit_all_teams_rdvs.group_id = group.id;
         edit_all_teams_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        edit_all_teams_rdvs.translatable_name = ModuleProgramPlanBase.POLICY_FO_EDIT_ALL_RDVS;
+        edit_all_teams_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_ALL_RDVS;
         edit_all_teams_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_all_teams_rdvs, new DefaultTranslation({
             fr: 'Modifier tous les RDVs'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
@@ -353,20 +345,20 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     private async filterIPlanFacilitatorByManagerByAccess(datatable: ModuleTable<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_SEE_OWN_TEAM)) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
     }
 
     private async filterManagerByIdByAccess(datatable: ModuleTable<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_SEE_OWN_TEAM)) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterManagerByIdByAccess_own_team(datatable, vos, uid);
         }
         return null;
@@ -374,7 +366,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
     private async filterManagerByIdByAccess_own_team(datatable: ModuleTable<IPlanManager>, vos: IPlanManager[], uid: number): Promise<IPlanManager[]> {
 
-        if (!ModuleProgramPlanBase.getInstance().manager_type_id) {
+        if (!this.programplan_shared_module.manager_type_id) {
             return null;
         }
 
@@ -400,7 +392,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         // On check si on est un manager
         let user_managers: IPlanManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanManager>(
-            ModuleProgramPlanBase.getInstance().manager_type_id, 'user_id', [loggedUserId]);
+            this.programplan_shared_module.manager_type_id, 'user_id', [loggedUserId]);
         if ((!!user_managers) && (user_managers.length > 0)) {
 
             let res_: IPlanFacilitator[] = [];
@@ -423,7 +415,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         let user_facilitators: IPlanFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanFacilitator>(
-            ModuleProgramPlanBase.getInstance().facilitator_type_id, 'user_id', [loggedUserId]);
+            this.programplan_shared_module.facilitator_type_id, 'user_id', [loggedUserId]);
 
         if ((!user_facilitators) || (!user_facilitators.length)) {
             return null;
@@ -454,7 +446,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
     private async filterIPlanFacilitatorByManagerByAccess_ownTeam(datatable: ModuleTable<IPlanFacilitator>, vos: IPlanFacilitator[], uid: number): Promise<IPlanFacilitator[]> {
 
-        if (!ModuleProgramPlanBase.getInstance().manager_type_id) {
+        if (!this.programplan_shared_module.manager_type_id) {
             return null;
         }
 
@@ -484,7 +476,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
         // On check si on est un manager
         let user_managers: IPlanManager[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanManager>(
-            ModuleProgramPlanBase.getInstance().manager_type_id, 'user_id', [loggedUserId]);
+            this.programplan_shared_module.manager_type_id, 'user_id', [loggedUserId]);
         if ((!!user_managers) && (user_managers.length > 0)) {
 
             let res_: IPlanFacilitator[] = [];
@@ -507,7 +499,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         let user_facilitators: IPlanFacilitator[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanFacilitator>(
-            ModuleProgramPlanBase.getInstance().facilitator_type_id, 'user_id', [loggedUserId]);
+            this.programplan_shared_module.facilitator_type_id, 'user_id', [loggedUserId]);
 
         if ((!user_facilitators) || (!user_facilitators.length)) {
             return null;
@@ -539,10 +531,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
 
 
     private async filterRDVsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDV>, vos: IPlanRDV[], uid: number): Promise<IPlanRDV[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_SEE_OWN_TEAM)) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -552,7 +544,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res: IPlanRDV[] = [];
 
         let facilitators_by_ids: { [id: number]: IPlanFacilitator } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<IPlanFacilitator>(ModuleProgramPlanBase.getInstance().facilitator_type_id)
+            await ModuleDAO.getInstance().getVos<IPlanFacilitator>(this.programplan_shared_module.facilitator_type_id)
         );
         for (let i in vos) {
             let vo = vos[i];
@@ -564,10 +556,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     }
 
     private async filterRDVCRPrepsByFacilitatorIdByAccess(datatable: ModuleTable<IPlanRDVCR | IPlanRDVPrep>, vos: IPlanRDVCR[] | IPlanRDVPrep[], uid: number): Promise<IPlanRDVCR[] | IPlanRDVPrep[]> {
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_SEE_ALL_TEAMS)) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS)) {
             return vos;
         }
-        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleProgramPlanBase.POLICY_FO_SEE_OWN_TEAM)) {
+        if (await ModuleAccessPolicy.getInstance().checkAccess(this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM)) {
             return await this.filterRDVCRPrepsByFacilitatorIdByAccess_ownTeam(datatable, vos, uid);
         }
         return null;
@@ -577,7 +569,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let res = [];
 
         let rdvs_by_ids: { [id: number]: IPlanRDV } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
-            await ModuleDAO.getInstance().getVos<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id)
+            await ModuleDAO.getInstance().getVos<IPlanRDV>(this.programplan_shared_module.rdv_type_id)
         );
         for (let i in vos) {
             let vo = vos[i];
@@ -594,24 +586,24 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
 
         if (!rdv.id) {
-            rdv.state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, null, null);
+            rdv.state = this.programplan_shared_module.getRDVState(rdv, null, null);
             return true;
         }
 
         // Si on est sur une modification on veut juste tester le confirmed, surtout pas les preps et crs ici qui sont gérés sur les triggers des vos en question
-        if ((rdv.state >= ModuleProgramPlanBase.RDV_STATE_CONFIRMED) && (!rdv.target_validation)) {
-            rdv.state = ModuleProgramPlanBase.RDV_STATE_CREATED;
+        if ((rdv.state >= this.programplan_shared_module.RDV_STATE_CONFIRMED) && (!rdv.target_validation)) {
+            rdv.state = this.programplan_shared_module.RDV_STATE_CREATED;
             return true;
         }
-        if ((rdv.state == ModuleProgramPlanBase.RDV_STATE_CREATED) && (rdv.target_validation)) {
+        if ((rdv.state == this.programplan_shared_module.RDV_STATE_CREATED) && (rdv.target_validation)) {
 
-            let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', [rdv.id]);
-            let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', [rdv.id]);
+            let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
+            let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', [rdv.id]);
 
             let prep = preps ? preps[0] : null;
             let cr = crs ? crs[0] : null;
 
-            let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, prep, cr);
+            let state = this.programplan_shared_module.getRDVState(rdv, prep, cr);
 
             if (rdv.state != state) {
                 rdv.state = state;
@@ -628,17 +620,17 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
+        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, cr.rdv_id);
 
         if ((!rdv) || (!rdv.id)) {
             return true;
         }
 
-        let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', [rdv.id]);
+        let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
 
         let prep = preps ? preps[0] : null;
 
-        let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, prep, cr);
+        let state = this.programplan_shared_module.getRDVState(rdv, prep, cr);
 
         if (rdv.state != state) {
             rdv.state = state;
@@ -653,17 +645,17 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
+        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, prep.rdv_id);
 
         if ((!rdv) || (!rdv.id)) {
             return true;
         }
 
-        let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', [rdv.id]);
+        let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', [rdv.id]);
 
         let cr = crs ? crs[0] : null;
 
-        let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, prep, cr);
+        let state = this.programplan_shared_module.getRDVState(rdv, prep, cr);
 
         if (rdv.state != state) {
             rdv.state = state;
@@ -678,17 +670,17 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, cr.rdv_id);
+        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, cr.rdv_id);
 
         if ((!rdv) || (!rdv.id)) {
             return true;
         }
 
-        let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(ModuleProgramPlanBase.getInstance().rdv_prep_type_id, 'rdv_id', [rdv.id]);
+        let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
 
         let prep = preps ? preps[0] : null;
 
-        let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, prep, null);
+        let state = this.programplan_shared_module.getRDVState(rdv, prep, null);
 
         if (rdv.state != state) {
             rdv.state = state;
@@ -703,17 +695,17 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
+        let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, prep.rdv_id);
 
         if ((!rdv) || (!rdv.id)) {
             return true;
         }
 
-        let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(ModuleProgramPlanBase.getInstance().rdv_cr_type_id, 'rdv_id', [rdv.id]);
+        let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', [rdv.id]);
 
         let cr = crs ? crs[0] : null;
 
-        let state = ModuleProgramPlanBase.getInstance().getRDVState(rdv, null, cr);
+        let state = this.programplan_shared_module.getRDVState(rdv, null, cr);
 
         if (rdv.state != state) {
             rdv.state = state;
