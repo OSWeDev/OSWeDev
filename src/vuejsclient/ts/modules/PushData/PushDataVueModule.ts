@@ -79,6 +79,15 @@ export default class PushDataVueModule extends VueModuleBase {
                         VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
                         console.debug("NotificationVO.DAO_GET_VOS:" + notification.api_type_id);
                         break;
+                    case NotificationVO.DAO_REMOVE_ID:
+                        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
+                        VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/removeData', {
+                            API_TYPE_ID: notification.api_type_id,
+                            id: notification.dao_notif_vo_id
+                        });
+                        console.debug("NotificationVO.DAO_REMOVE_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
+                        break;
+
                     default:
                 }
             }

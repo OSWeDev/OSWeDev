@@ -30,6 +30,8 @@ export default abstract class DatatableField<T, U> {
 
     public moduleTable: ModuleTable<any>;
 
+    public tooltip: string = null;
+
     /**
      * Used in the CREATE or UPDATE views
      */
@@ -98,6 +100,12 @@ export default abstract class DatatableField<T, U> {
     public show(): DatatableField<T, U> {
         this.hidden = false;
         this.hidden_print = false;
+
+        return this;
+    }
+
+    public set_tooltip(tooltip: string): DatatableField<T, U> {
+        this.tooltip = tooltip;
 
         return this;
     }
