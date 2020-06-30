@@ -645,6 +645,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
+        if (!this.programplan_shared_module.rdv_prep_type_id) {
+            return false;
+        }
+
         let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, prep.rdv_id);
 
         if ((!rdv) || (!rdv.id)) {
@@ -693,6 +697,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     private async handleTriggerPreDeletePrep(prep: IPlanRDVPrep): Promise<boolean> {
         if ((!prep) || (!prep.id)) {
             return true;
+        }
+
+        if (!this.programplan_shared_module.rdv_prep_type_id) {
+            return false;
         }
 
         let rdv: IPlanRDV = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.programplan_shared_module.rdv_type_id, prep.rdv_id);

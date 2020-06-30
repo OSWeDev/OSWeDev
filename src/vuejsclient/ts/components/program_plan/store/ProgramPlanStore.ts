@@ -116,6 +116,20 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
             can_see_fc: (state: IProgramPlanState): boolean => state.can_see_fc,
 
             get_targets_facilitators_by_ids: (state: IProgramPlanState): { [id: number]: IPlanTargetFacilitator } => state.targets_facilitators_by_ids,
+            get_facilitators_by_target_ids: (state: IProgramPlanState): { [target_id: number]: IPlanFacilitator[] } => {
+                let res: { [target_id: number]: IPlanFacilitator[] } = {};
+
+                for (let i in state.targets_facilitators_by_ids) {
+                    let target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
+
+                    if (!res[target_facilitator.target_id]) {
+                        res = [];
+                    }
+                    res[target_facilitator.target_id].push(state.facilitators_by_ids[target_facilitator.facilitator_id]);
+                }
+
+                return res;
+            },
 
             selected_rdv: (state: IProgramPlanState): IPlanRDV => state.selected_rdv,
 
