@@ -52,10 +52,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         preUpdateTrigger.registerHandler(this.programplan_shared_module.rdv_type_id, this.handleTriggerSetStateRDV.bind(this));
 
         preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this.handleTriggerPreCreateCr.bind(this));
-        preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this.handleTriggerPreCreatePrep.bind(this));
         let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
         preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_cr_type_id, this.handleTriggerPreDeleteCr.bind(this));
-        preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this.handleTriggerPreDeletePrep.bind(this));
+
+        if (!!this.programplan_shared_module.rdv_prep_type_id) {
+            preCreateTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this.handleTriggerPreCreatePrep.bind(this));
+            preDeleteTrigger.registerHandler(this.programplan_shared_module.rdv_prep_type_id, this.handleTriggerPreDeletePrep.bind(this));
+        }
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -103,7 +106,11 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT, this.getRDVsOfProgramSegment.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_CRS_OF_PROGRAM_SEGMENT, this.getCRsOfProgramSegment.bind(this));
-        ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
+
+        if (!!this.programplan_shared_module.rdv_prep_type_id) {
+
+            ModuleAPI.getInstance().registerServerApiHandler(this.programplan_shared_module.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT, this.getPrepsOfProgramSegment.bind(this));
+        }
     }
 
     public registerAccessHooks(): void {
@@ -139,11 +146,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             ModuleDAO.DAO_ACCESS_TYPE_READ,
             this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
 
-        // IPlanRDVPrep => en fonction du IPlanRDV sur CRUD
-        ModuleDAOServer.getInstance().registerAccessHook(
-            this.programplan_shared_module.rdv_prep_type_id,
-            ModuleDAO.DAO_ACCESS_TYPE_READ,
-            this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
+        if (!!this.programplan_shared_module.rdv_prep_type_id) {
+            // IPlanRDVPrep => en fonction du IPlanRDV sur CRUD
+            ModuleDAOServer.getInstance().registerAccessHook(
+                this.programplan_shared_module.rdv_prep_type_id,
+                ModuleDAO.DAO_ACCESS_TYPE_READ,
+                this.filterRDVCRPrepsByFacilitatorIdByAccess.bind(this));
+        }
     }
 
     /**
@@ -153,7 +162,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         let group: AccessPolicyGroupVO = new AccessPolicyGroupVO();
         group.translatable_name = this.programplan_shared_module.POLICY_GROUP;
         group = await ModuleAccessPolicyServer.getInstance().registerPolicyGroup(group, new DefaultTranslation({
-            fr: 'ProgramPlan'
+            fr: 'ProgramPlan - ' + this.programplan_shared_module.name
         }));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -161,7 +170,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         bo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_access.translatable_name = this.programplan_shared_module.POLICY_BO_ACCESS;
         bo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_access, new DefaultTranslation({
-            fr: 'Administration du ProgramPlan'
+            fr: 'Administration du ProgramPlan - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let admin_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -174,7 +183,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         fo_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_access.translatable_name = this.programplan_shared_module.POLICY_FO_ACCESS;
         fo_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_access, new DefaultTranslation({
-            fr: 'Accès au ProgramPlan'
+            fr: 'Accès au ProgramPlan - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let fo_see_fc: AccessPolicyVO = new AccessPolicyVO();
@@ -182,7 +191,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         fo_see_fc.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_see_fc.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_FC;
         fo_see_fc = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_see_fc, new DefaultTranslation({
-            fr: 'Vision calendrier du ProgramPlan'
+            fr: 'Vision calendrier du ProgramPlan - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency_seefc: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency_seefc.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -196,7 +205,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         fo_edit.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         fo_edit.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT;
         fo_edit = await ModuleAccessPolicyServer.getInstance().registerPolicy(fo_edit, new DefaultTranslation({
-            fr: 'Edition du ProgramPlan'
+            fr: 'Edition du ProgramPlan - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -265,7 +274,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         see_own_team.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         see_own_team.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_OWN_TEAM;
         see_own_team = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_own_team, new DefaultTranslation({
-            fr: 'Voir son équipe'
+            fr: 'Voir son équipe - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -278,7 +287,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         see_all_teams.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         see_all_teams.translatable_name = this.programplan_shared_module.POLICY_FO_SEE_ALL_TEAMS;
         see_all_teams = await ModuleAccessPolicyServer.getInstance().registerPolicy(see_all_teams, new DefaultTranslation({
-            fr: 'Voir toutes les équipes'
+            fr: 'Voir toutes les équipes - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -299,7 +308,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_own_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         edit_own_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_OWN_RDVS;
         edit_own_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_rdvs, new DefaultTranslation({
-            fr: 'Modifier ses propres RDVs'
+            fr: 'Modifier ses propres RDVs - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         let front_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -312,7 +321,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_own_team_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         edit_own_team_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_OWN_TEAM_RDVS;
         edit_own_team_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_own_team_rdvs, new DefaultTranslation({
-            fr: 'Modifier les RDVs de son équipe'
+            fr: 'Modifier les RDVs de son équipe - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -330,7 +339,7 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         edit_all_teams_rdvs.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         edit_all_teams_rdvs.translatable_name = this.programplan_shared_module.POLICY_FO_EDIT_ALL_RDVS;
         edit_all_teams_rdvs = await ModuleAccessPolicyServer.getInstance().registerPolicy(edit_all_teams_rdvs, new DefaultTranslation({
-            fr: 'Modifier tous les RDVs'
+            fr: 'Modifier tous les RDVs - ' + this.programplan_shared_module.name
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         front_access_dependency = new PolicyDependencyVO();
         front_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
@@ -597,11 +606,15 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         }
         if ((rdv.state == this.programplan_shared_module.RDV_STATE_CREATED) && (rdv.target_validation)) {
 
-            let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
             let crs: IPlanRDVCR[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVCR>(this.programplan_shared_module.rdv_cr_type_id, 'rdv_id', [rdv.id]);
 
-            let prep = preps ? preps[0] : null;
             let cr = crs ? crs[0] : null;
+
+            let prep = null;
+            if (!!this.programplan_shared_module.rdv_prep_type_id) {
+                let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
+                prep = preps ? preps[0] : null;
+            }
 
             let state = this.programplan_shared_module.getRDVState(rdv, prep, cr);
 
@@ -626,9 +639,12 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
+        let prep = null;
+        if (!!this.programplan_shared_module.rdv_prep_type_id) {
+            let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
 
-        let prep = preps ? preps[0] : null;
+            prep = preps ? preps[0] : null;
+        }
 
         let state = this.programplan_shared_module.getRDVState(rdv, prep, cr);
 
@@ -680,9 +696,13 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
             return true;
         }
 
-        let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
+        let prep = null;
 
-        let prep = preps ? preps[0] : null;
+        if (!!this.programplan_shared_module.rdv_prep_type_id) {
+            let preps: IPlanRDVPrep[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanRDVPrep>(this.programplan_shared_module.rdv_prep_type_id, 'rdv_id', [rdv.id]);
+
+            prep = preps ? preps[0] : null;
+        }
 
         let state = this.programplan_shared_module.getRDVState(rdv, prep, null);
 

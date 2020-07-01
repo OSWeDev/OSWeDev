@@ -4,6 +4,7 @@ import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../server/env/ConfigurationService';
 import EnvParam from '../server/env/EnvParam';
+import FileLoggerHandler from '../server/FileLoggerHandler';
 import ServerAPIController from '../server/modules/API/ServerAPIController';
 import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
@@ -11,6 +12,7 @@ import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigur
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
 import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import ModulesManager from '../shared/modules/ModulesManager';
+import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import IGeneratorWorker from './IGeneratorWorker';
 import Patch20191010CreateDefaultAdminAccountIfNone from './patchs/postmodules/Patch20191010CreateDefaultAdminAccountIfNone';
 import Patch20191010CreateDefaultLangFRIfNone from './patchs/postmodules/Patch20191010CreateDefaultLangFRIfNone';
@@ -34,9 +36,8 @@ import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
+import Patch20200701SkipCascadeChecker from './patchs/premodules/Patch20200701SkipCascadeChecker';
 import VendorBuilder from './vendor_builder/VendorBuilder';
-import FileLoggerHandler from '../server/FileLoggerHandler';
-import ConsoleHandler from '../shared/tools/ConsoleHandler';
 
 export default abstract class GeneratorBase {
 
@@ -63,10 +64,11 @@ export default abstract class GeneratorBase {
 
         this.pre_modules_workers = [
             Patch20200331DeleteOrphanTranslations.getInstance(),
+            Patch20191112CheckExtensions.getInstance(),
+            Patch20200701SkipCascadeChecker.getInstance(),
             Patch20200305CascadeChecker.getInstance(),
             Patch20200131DeleteVersioningVOAccessPolicies.getInstance(),
             Patch20191010CheckBasicSchemas.getInstance(),
-            Patch20191112CheckExtensions.getInstance(),
             ActivateDataImport.getInstance(),
             ActivateDataRender.getInstance(),
             ChangeTypeDatesNotificationVO.getInstance(),

@@ -159,14 +159,16 @@ export default abstract class ModuleProgramPlanBase extends Module {
             ProgramSegmentParamVO.translateFromREQ
         ));
 
-        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVPrep[]>(
-            self.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
-            () => [self.rdv_type_id, self.rdv_prep_type_id],
-            ProgramSegmentParamVO.translateCheckAccessParams,
-            ProgramSegmentParamVO.URL,
-            ProgramSegmentParamVO.translateToURL,
-            ProgramSegmentParamVO.translateFromREQ
-        ));
+        if (!!this.rdv_prep_type_id) {
+            ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVPrep[]>(
+                self.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
+                () => [self.rdv_type_id, self.rdv_prep_type_id],
+                ProgramSegmentParamVO.translateCheckAccessParams,
+                ProgramSegmentParamVO.URL,
+                ProgramSegmentParamVO.translateToURL,
+                ProgramSegmentParamVO.translateFromREQ
+            ));
+        }
     }
 
     public getRDVState(rdv: IPlanRDV, prep: IPlanRDVPrep, cr: IPlanRDVCR): number {

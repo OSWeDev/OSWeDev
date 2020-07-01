@@ -486,6 +486,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Langue'
         }, 'lang_selector.label.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Droits'
+        }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____module_id'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }
 

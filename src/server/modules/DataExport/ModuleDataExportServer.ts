@@ -43,6 +43,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this.handleTriggerExportHistoricVOCreate.bind(this));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Exports'
+        }, 'fields.labels.ref.module_data_export_export_log.___LABEL____user_id'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Fichier exporté : %%VAR%%EXPORT_TYPE_ID%%'
         }, 'export.default_mail.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

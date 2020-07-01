@@ -15,7 +15,7 @@ export default abstract class ProgramPlanControllerBase {
         return ProgramPlanControllerBase.controller_by_name[name];
     }
 
-    private static controller_by_name: { [name: string]: ProgramPlanControllerBase } = {};
+    protected static controller_by_name: { [name: string]: ProgramPlanControllerBase } = {};
 
     public load_rdv_on_segment_change: boolean = true;
 

@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { Component } from 'vue-property-decorator';
+import { Component, Prop } from 'vue-property-decorator';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
 import IPlanFacilitator from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
@@ -56,7 +56,10 @@ export default class ProgramPlanComponentImpression extends VueComponentBase {
     @ModuleProgramPlanGetter
     public printable_table_weeks: any;
 
+    @Prop({ default: 1 })
+    private slot_interval: number;
+
     get nb_day_slices() {
-        return Math.floor(24 / ProgramPlanControllerBase.getInstance().slot_interval);
+        return Math.floor(24 / this.slot_interval);
     }
 }

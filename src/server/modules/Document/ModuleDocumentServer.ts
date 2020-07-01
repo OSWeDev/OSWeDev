@@ -77,6 +77,10 @@ export default class ModuleDocumentServer extends ModuleServerBase {
     public async configure() {
 
         await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Documents' },
+            'fields.labels.ref.module_document_document.___LABEL____file_id'));
+
+        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Youtube' },
             'DOCUMENT.DOCUMENT_TYPE.YOUTUBE'));
         await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
