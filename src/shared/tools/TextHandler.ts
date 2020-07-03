@@ -33,18 +33,32 @@ export default class TextHandler {
     }
 
     public standardize_for_comparaison(src: string): string {
+
+        if (!src) {
+            return null;
+        }
+
         let res: string = src.trim().toLowerCase();
+        let standardized_res: string = '';
         let length: number = res.length;
 
         for (let i = 0; i < length; i++) {
             let c = res[i];
 
             if (!!TextHandler.accents_replacements[c]) {
-                res = ((i > 0) ? res.substr(0, i) : '') + TextHandler.accents_replacements[c] + ((i < (length - 1)) ? i + 1 : length);
+                standardized_res += TextHandler.accents_replacements[c];
+                continue;
             }
+
+            if (c.charCodeAt(0) == 160) {
+                standardized_res += ' ';
+                continue;
+            }
+
+            standardized_res += c;
         }
 
-        return res;
+        return standardized_res;
     }
 
     /**

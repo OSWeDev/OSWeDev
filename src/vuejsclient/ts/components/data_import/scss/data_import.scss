@@ -40,7 +40,8 @@ body.page-Manage.dih .crud-wrapper {
             background: $success_color;
         }
 
-        span.Import_interdit::before {
+        span.Import_interdit::before,
+        span.Importation_interdite::before {
             content: 'Interdit';
             background: $danger_color;
         }

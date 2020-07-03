@@ -2,6 +2,7 @@
 
 import { IDatabase } from 'pg-promise';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class Patch20200131DeleteVersioningVOAccessPolicies implements IGeneratorWorker {
 
@@ -25,7 +26,7 @@ export default class Patch20200131DeleteVersioningVOAccessPolicies implements IG
             // Supprimer pour tous les vos qui servent à versionner d'autres VO les droits d'accès
             await db.query("delete from ref.module_access_policy_accpol where translatable_name like ' %.versioned__ % ' or translatable_name like ' %.__trashed__versioned__ % ' or translatable_name like ' %.__trashed__ %';");
         } catch (error) {
-            console.error('Patch20200131DeleteVersioningVOAccessPolicies : ' + error);
+            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
         }
     }
 }

@@ -40,23 +40,23 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         // On enregistre le BGThread d'avancement/information sur les maintenances
         ModuleBGThreadServer.getInstance().registerBGThread(MaintenanceBGThread.getInstance());
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Terminer la maintenance' },
             'fields.labels.ref.module_maintenance_maintenance.__component__end_maintenance.___LABEL___'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Terminer la maintenance' },
             'endmaintenance_component.endmaintenance.___LABEL___'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Maintenances' },
             'menu.menuelements.MaintenanceAdminVueModule.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Maintenances' },
             'menu.menuelements.MaintenanceVO.___LABEL___'));
 
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             {
                 fr: 'Une opération de maintenance est prévue dans moins de 2H.',
                 de: 'Eine Wartung ist in weniger als 2 Stunden geplant.',
@@ -65,7 +65,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG1_code_text
         ));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             {
                 fr: 'Une opération de maintenance est imminente. Enregistrez votre travail.',
                 de: 'Ein Wartungsvorgang steht unmittelbar bevor. Speichern Sie Ihre Arbeit.',
@@ -74,7 +74,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG2_code_text
         ));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             {
                 fr: 'Une opération de maintenance est en cours, votre travail ne sera pas enregistré.',
                 de: 'Ein Wartungsvorgang wird ausgeführt, Ihre Arbeit wird nicht gespeichert.',
@@ -83,7 +83,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             ModuleMaintenance.MSG3_code_text
         ));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             {
                 fr: 'L\'opération de maintenance est terminée',
                 de: 'Der Wartungsvorgang ist abgeschlossen',

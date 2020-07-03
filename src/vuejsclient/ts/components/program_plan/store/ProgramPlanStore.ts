@@ -123,7 +123,7 @@ export default class ProgramPlanStore implements IStoreModule<IProgramPlanState,
                     let target_facilitator: IPlanTargetFacilitator = state.targets_facilitators_by_ids[i];
 
                     if (!res[target_facilitator.target_id]) {
-                        res = [];
+                        res[target_facilitator.target_id] = [];
                     }
                     res[target_facilitator.target_id].push(state.facilitators_by_ids[target_facilitator.facilitator_id]);
                 }

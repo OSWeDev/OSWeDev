@@ -30,6 +30,8 @@ export default class Patch20191112CheckExtensions implements IGeneratorWorker {
         try {
             await db.query("CREATE EXTENSION IF NOT EXISTS btree_gist;");
             await db.query("CREATE EXTENSION IF NOT EXISTS pgcrypto;");
+            await db.query("CREATE EXTENSION IF NOT EXISTS cube;");
+            await db.query("CREATE EXTENSION IF NOT EXISTS earthdistance;");
             await db.query("ALTER ROLE " + ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER + " NOSUPERUSER;");
 
         } catch (error) {

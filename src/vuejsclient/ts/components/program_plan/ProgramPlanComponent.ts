@@ -245,11 +245,22 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     private debounced_onchange_calendar_date = debounce(this.onchange_calendar_date, 1000);
 
+    private debounced_async_load = debounce(this.async_load, 100);
+
     get route_path(): string {
         return this.global_route_path + ((!!this.program_id) ? this.program_id : 'g');
     }
 
+    @Watch('program_plan_shared_module')
+    public async onchange_program_plan_shared_module() {
+        await this.debounced_async_load();
+    }
+
     public async mounted() {
+        await this.debounced_async_load();
+    }
+
+    public async async_load() {
         let self = this;
         this.$nextTick(async () => {
 
@@ -568,6 +579,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
         await Promise.all(promises);
         self.nextLoadingStep();
+        promises = [];
 
         // targets facilitators
         if (!!this.program_plan_shared_module.target_facilitator_type_id) {
@@ -593,9 +605,6 @@ export default class ProgramPlanComponent extends VueComponentBase {
         }
 
         if (!!this.program_plan_shared_module.enseigne_type_id) {
-
-            promises = [];
-
             // enseignes
             promises.push((async () => {
                 let ids: { [id: number]: boolean } = [];
@@ -619,9 +628,8 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
                 self.setEnseignesByIds(enseignes_by_ids);
             })());
-
-            await Promise.all(promises);
         }
+        await Promise.all(promises);
 
         self.stopLoading();
     }

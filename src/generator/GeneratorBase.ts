@@ -32,11 +32,8 @@ import Patch20191008ChangeDILDateType from './patchs/premodules/Patch20191008Cha
 import Patch20191008SupprimerTacheReimport from './patchs/premodules/Patch20191008SupprimerTacheReimport';
 import Patch20191010CheckBasicSchemas from './patchs/premodules/Patch20191010CheckBasicSchemas';
 import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112CheckExtensions';
-import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
-import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
-import Patch20200701SkipCascadeChecker from './patchs/premodules/Patch20200701SkipCascadeChecker';
 import VendorBuilder from './vendor_builder/VendorBuilder';
 
 export default abstract class GeneratorBase {
@@ -65,8 +62,6 @@ export default abstract class GeneratorBase {
         this.pre_modules_workers = [
             Patch20200331DeleteOrphanTranslations.getInstance(),
             Patch20191112CheckExtensions.getInstance(),
-            Patch20200701SkipCascadeChecker.getInstance(),
-            Patch20200305CascadeChecker.getInstance(),
             Patch20200131DeleteVersioningVOAccessPolicies.getInstance(),
             Patch20191010CheckBasicSchemas.getInstance(),
             ActivateDataImport.getInstance(),
@@ -75,8 +70,7 @@ export default abstract class GeneratorBase {
             ChangeCronDateHeurePlanifiee.getInstance(),
             Patch20191008ChangeDIHDateType.getInstance(),
             Patch20191008ChangeDILDateType.getInstance(),
-            Patch20191008SupprimerTacheReimport.getInstance(),
-            Patch20191202GeoPoint.getInstance()
+            Patch20191008SupprimerTacheReimport.getInstance()
         ];
 
         this.post_modules_workers = [
@@ -126,8 +120,6 @@ export default abstract class GeneratorBase {
 
         console.log("configure_server_modules...");
         await this.modulesService.configure_server_modules(null);
-        console.log("saveDefaultTranslations...");
-        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
 
         console.log("post modules initialization workers...");
         if (!!this.post_modules_workers) {
@@ -137,6 +129,12 @@ export default abstract class GeneratorBase {
             }
         }
         console.log("post modules initialization workers done.");
+
+        /**
+         * On décale les trads après les post modules workers sinon les trads sont pas générées sur créa d'une lang en post worker => cas de la créa de nouveau projet
+         */
+        console.log("saveDefaultTranslations...");
+        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
 
         console.log("Generate Vendor: ...");
         await VendorBuilder.getInstance().generate_vendor();

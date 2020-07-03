@@ -1287,12 +1287,10 @@ export default class DataImportComponent extends DataImportComponentBase {
             importHistoric.state = ModuleDataImport.IMPORTATION_STATE_UPLOADED;
             importHistoric.user_id = (!!VueAppController.getInstance().data_user) ? VueAppController.getInstance().data_user.id : null;
 
+            this.storeData(importHistoric);
             importHistorics.push(importHistoric);
-        }
-        await ModuleDAO.getInstance().insertOrUpdateVOs(importHistorics);
-
-        for (let i in importHistorics) {
-            this.storeData(importHistorics[i]);
+            let res = await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
+            importHistoric.id = parseInt(res.id);
         }
 
         this.$router.push(this.get_url_for_modal ? this.get_url_for_modal(segment_date_index) : this.route_path + '/' + DataImportAdminVueModule.IMPORT_MODAL + '/' + segment_date_index);
