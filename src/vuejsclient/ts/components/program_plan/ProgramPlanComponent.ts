@@ -258,6 +258,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     @Watch('program_plan_shared_module')
     public async onchange_program_plan_shared_module() {
+        this.startLoading();
         await this.debounced_async_load();
     }
 
@@ -267,6 +268,7 @@ export default class ProgramPlanComponent extends VueComponentBase {
 
     public async async_load() {
         let self = this;
+
         this.$nextTick(async () => {
 
             // On va vérifier qu'on a le droit de faire cette action

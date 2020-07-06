@@ -12,11 +12,14 @@ import ExportDataToXLSXParamVO from './vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from './vos/apis/ExportLogVO';
 import ExportHistoricVO from './vos/ExportHistoricVO';
 import FileVO from '../File/vos/FileVO';
+import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
 
 export default class ModuleDataExport extends Module {
 
     public static APINAME_ExportDataToXLSXParamVO: string = 'ExportDataToXLSXParamVO';
     public static APINAME_ExportDataToXLSXParamVOFile: string = 'ExportDataToXLSXParamVOFile';
+    public static APINAME_ExportDataToMultiSheetsXLSXParamVO: string = 'ExportDataToMultiSheetsXLSXParamVO';
+    public static APINAME_ExportDataToMultiSheetsXLSXParamVOFile: string = 'ExportDataToMultiSheetsXLSXParamVOFile';
 
     public static getInstance(): ModuleDataExport {
         if (!ModuleDataExport.instance) {
@@ -40,6 +43,14 @@ export default class ModuleDataExport extends Module {
         return await ModuleAPI.getInstance().handleAPI<ExportDataToXLSXParamVO, FileVO>(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, exportDataToXLSXParamVO);
     }
 
+    public async exportDataToMultiSheetsXLSX(exportDataToMultiSheetsXLSXParamVO: ExportDataToMultiSheetsXLSXParamVO): Promise<string> {
+        return await ModuleAPI.getInstance().handleAPI<ExportDataToMultiSheetsXLSXParamVO, string>(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, exportDataToMultiSheetsXLSXParamVO);
+    }
+
+    public async exportDataToMultiSheetsXLSXFile(exportDataToMultiSheetsXLSXParamVO: ExportDataToMultiSheetsXLSXParamVO): Promise<FileVO> {
+        return await ModuleAPI.getInstance().handleAPI<ExportDataToMultiSheetsXLSXParamVO, FileVO>(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, exportDataToMultiSheetsXLSXParamVO);
+    }
+
     public initialize() {
         this.fields = [];
         this.datatables = [];
@@ -57,6 +68,16 @@ export default class ModuleDataExport extends Module {
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, FileVO>(
             ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile,
+            [FileVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, string>(
+            ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO,
+            [],
+            null,
+            APIDefinition.API_RETURN_TYPE_FILE
+        ));
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, FileVO>(
+            ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile,
             [FileVO.API_TYPE_ID]
         ));
     }
