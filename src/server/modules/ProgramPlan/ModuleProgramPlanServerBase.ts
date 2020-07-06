@@ -101,6 +101,10 @@ export default abstract class ModuleProgramPlanServerBase extends ModuleServerBa
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Erreur de modification'
         }, 'programplan.fc.update.error.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Date'
+        }, 'programplan.rdv_modal.rdv_date.___LABEL___'));
     }
 
     public registerServerApiHandlers() {

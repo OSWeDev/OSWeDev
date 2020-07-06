@@ -232,8 +232,13 @@ export default class ProgramPlanComponent extends VueComponentBase {
         moment(this.calendar_date).utc(true),
         (this.viewname == "timelineWeek") ? TimeSegment.TYPE_WEEK : TimeSegment.TYPE_MONTH);
 
-    private custom_filter_component = this.program_plan_controller.customFilterComponent;
-    private custom_overview_program_plan_component = this.program_plan_controller.customOverviewProgramPlanComponent;
+    get custom_filter_component() {
+        return this.program_plan_controller.customFilterComponent;
+    }
+
+    get custom_overview_program_plan_component() {
+        return this.program_plan_controller.customOverviewProgramPlanComponent;
+    }
 
     private show_targets: boolean = true;
 

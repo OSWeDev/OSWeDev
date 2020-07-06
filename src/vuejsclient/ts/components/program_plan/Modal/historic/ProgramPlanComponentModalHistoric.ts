@@ -59,6 +59,10 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
     @Prop()
     private can_edit: boolean;
 
+    get has_prep() {
+        return !!this.program_plan_shared_module.rdv_prep_type_id;
+    }
+
     private facilitatorAndManagerName(rdv_historic: IPlanRDV): string {
         return this.facilitatorName(rdv_historic) + (this.managerName(rdv_historic) ? " / " + this.managerName(rdv_historic) : "");
     }
