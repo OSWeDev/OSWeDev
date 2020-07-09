@@ -5,6 +5,7 @@ import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
+import ExportDataToMultiSheetsXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToMultiSheetsXLSXParamVO';
 import ExportDataToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
@@ -14,13 +15,12 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import DataExportBGThread from './bgthreads/DataExportBGThread';
-import ExportDataToMultiSheetsXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToMultiSheetsXLSXParamVO';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
 
 export default class ModuleDataExportServer extends ModuleServerBase {
 
@@ -78,7 +78,9 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     }
 
     public async exportDataToXLSX(params: ExportDataToXLSXParamVO): Promise<string> {
-        return await this.exportDataToXLSX_base(params);
+        let filepath: string = await this.exportDataToXLSX_base(params);
+        await this.getFileVo(filepath, params.is_secured, params.file_access_policy_name);
+        return filepath;
     }
 
     public async exportDataToXLSXFile(params: ExportDataToXLSXParamVO): Promise<FileVO> {
@@ -159,17 +161,23 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
 
     private async exportDataToMultiSheetsXLSX(params: ExportDataToMultiSheetsXLSXParamVO): Promise<string> {
-        return await this.exportDataToMultiSheetsXLSX_base(params);
+        let filepath: string = await this.exportDataToMultiSheetsXLSX_base(params);
+        await this.getFileVo(filepath, params.is_secured, params.file_access_policy_name);
+        return filepath;
     }
 
     private async exportDataToMultiSheetsXLSXFile(params: ExportDataToMultiSheetsXLSXParamVO): Promise<FileVO> {
 
         let filepath: string = await this.exportDataToMultiSheetsXLSX_base(params);
 
+        return await this.getFileVo(filepath, params.is_secured, params.file_access_policy_name);
+    }
+
+    private async getFileVo(filepath: string, is_secured: boolean, file_access_policy_name: string): Promise<FileVO> {
         let file: FileVO = new FileVO();
         file.path = filepath;
-        file.file_access_policy_name = params.file_access_policy_name;
-        file.is_secured = params.is_secured;
+        file.file_access_policy_name = file_access_policy_name;
+        file.is_secured = is_secured;
         let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
         if ((!res) || (!res.id)) {
             ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);

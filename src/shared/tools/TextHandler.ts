@@ -66,7 +66,7 @@ export default class TextHandler {
      * @param txt Le texte à convertir
      */
     public formatTextToID(txt: string): string {
-        return txt.toLowerCase().replace(/[^a-z]/g, '_').replace(/__+/g, '_');
+        return txt ? txt.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/__+/g, '_') : null;
     }
 
     public generateChallenge(): string {
