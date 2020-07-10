@@ -193,7 +193,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
     get alert_path(): string {
@@ -225,11 +225,20 @@ export default class CRUDComponentField extends VueComponentBase
         this.debounced_reload_field_value();
     }
 
+    get needs_options(): boolean {
+        let simpleField: SimpleDatatableField<any, any> = (this.field as SimpleDatatableField<any, any>);
+        return ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) ||
+            ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) && (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum));
+    }
+
     private async reload_field_value() {
 
         this.can_insert_or_update_target = false;
 
-        if (this.inline_input_mode && this.inline_input_read_value) {
+        if (this.inline_input_mode && this.inline_input_read_value && ((!this.needs_options) || ((!!this.select_options) && this.select_options.length))) {
             // Si inline input mode et inline_input_read_value on esquive cette mise à jour puisque la valeur par défaut du champ est déjà définie à ce stade normalement
             return;
         }
@@ -384,7 +393,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
     private validateMultiInput(values: any[]) {
@@ -401,7 +410,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, values);
+        this.$emit('onchangevo', this.vo, this.field, values, this);
         this.$emit('validatemultiinput', values, this.field, this.vo);
     }
 
@@ -703,7 +712,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
     private inputValue(value: any) {
@@ -723,7 +732,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
     get is_custom_field_type(): boolean {
@@ -840,7 +849,7 @@ export default class CRUDComponentField extends VueComponentBase
             this.datatable.refresh();
         }
 
-        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo));
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
 
         this.inline_input_is_editing = false;
 

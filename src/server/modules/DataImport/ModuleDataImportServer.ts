@@ -339,6 +339,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Upload en cours...' },
             'import.upload_started.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Autovalidation' },
+            'import.success.autovalidation'));
     }
 
 

@@ -1,6 +1,7 @@
 import { Component } from 'vue-property-decorator';
-import VueComponentBase from '../../VueComponentBase';
+import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import ModuleSASSSkinConfigurator from '../../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import VueComponentBase from '../../VueComponentBase';
 
 @Component({
     template: require('./DefaultHome.pug'),
@@ -8,10 +9,14 @@ import ModuleSASSSkinConfigurator from '../../../../../shared/modules/SASSSkinCo
 })
 export default class DefaultHomeComponent extends VueComponentBase {
 
-    get main_background_url(): string {
-        let res: string = (ModuleSASSSkinConfigurator.getInstance().actif ? ModuleSASSSkinConfigurator.getInstance().getParamValue('main_background_url') : '/public/img/background.jpg');
+    private main_background_url: string = null;
 
-        // Compatibilité anciennes datas
-        return res.replace(/"/g, '');
+    private async mounted() {
+        this.main_background_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.main_background_url')
+        if (!this.main_background_url) {
+            this.main_background_url = '/public/img/background.jpg';
+        } else {
+            this.main_background_url = this.main_background_url.replace(/"/g, '');
+        }
     }
 }
