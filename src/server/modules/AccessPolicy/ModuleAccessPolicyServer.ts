@@ -54,6 +54,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private static instance: ModuleAccessPolicyServer = null;
 
     private debug_check_access: boolean = false;
+    private rights_have_been_preloaded: boolean = false;
 
     private constructor() {
         super(ModuleAccessPolicy.getInstance().name);
@@ -63,6 +64,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * Call @ server startup to preload all access right configuration
      */
     public async preload_access_rights() {
+        if (this.rights_have_been_preloaded) {
+            return;
+        }
+
+        this.rights_have_been_preloaded = true;
         // On preload ce qui l'a pas été et on complète les listes avec les données en base qui peuvent
         //  avoir été ajoutée en parralèle des déclarations dans le source
         await AccessPolicyServerController.getInstance().preload_registered_roles();
@@ -510,6 +516,30 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
+    }
+
+    public async activate_policies_for_roles(policy_names: string[], role_names: string[]) {
+
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
+
+        let access_matrix: {
+            [policy_id: number]: {
+                [role_id: number]: boolean;
+            };
+        } = await ModuleAccessPolicy.getInstance().getAccessMatrix(false);
+
+        let roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
+        let policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
+
+        for (let i in policy_names) {
+            let policy_name = policy_names[i];
+
+            for (let j in role_names) {
+                let role_name = role_names[j];
+
+                await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], access_matrix);
+            }
+        }
     }
 
     public async getMyLang(): Promise<LangVO> {
@@ -1214,5 +1244,45 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let uid: number = httpContext ? httpContext.get('UID') : null;
 
         PushDataServerController.getInstance().notifySimpleERROR(uid, msg_translatable_code);
+    }
+
+    private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
+        let roles_ids_by_name: { [role_name: string]: number } = {};
+        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID);
+
+        for (let i in roles) {
+            let role = roles[i];
+
+            roles_ids_by_name[role.translatable_name] = role.id;
+        }
+
+        return roles_ids_by_name;
+    }
+
+    private async get_policies_ids_by_name(): Promise<{ [policy_name: string]: number }> {
+        let policies_ids_by_name: { [role_name: string]: number } = {};
+        let policies: AccessPolicyVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID);
+
+        for (let i in policies) {
+            let policy = policies[i];
+
+            policies_ids_by_name[policy.translatable_name] = policy.id;
+        }
+
+        return policies_ids_by_name;
+    }
+
+    private async activate_policy(
+        policy_id: number,
+        role_id: number,
+        access_matrix: {
+            [policy_id: number]: {
+                [role_id: number]: boolean;
+            };
+        }) {
+
+        if ((!access_matrix[policy_id]) || (!access_matrix[policy_id][role_id])) {
+            await ModuleAccessPolicy.getInstance().togglePolicy(policy_id, role_id);
+        }
     }
 }
