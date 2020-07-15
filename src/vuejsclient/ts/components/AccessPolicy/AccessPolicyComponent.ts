@@ -243,7 +243,7 @@ export default class AccessPolicyComponent extends VueComponentBase {
                         continue;
                     }
 
-                    if (!this.access_matrix[dependency.depends_on_pol_id][role.id]) {
+                    if (!this.access_matrix[dependency.depends_on_pol_id] || !this.access_matrix[dependency.depends_on_pol_id][role.id]) {
                         visible = false;
                         break;
                     }
