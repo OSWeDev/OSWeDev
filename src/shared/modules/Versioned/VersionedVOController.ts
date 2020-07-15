@@ -37,10 +37,10 @@ export default class VersionedVOController implements IVOController {
 
         this.registeredModuleTables.push(moduleTable);
 
-        let version_edit_author_id = new ModuleTableField('version_edit_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Modificateur', true).hide_from_datatable();
+        let version_edit_author_id = new ModuleTableField('version_edit_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Modificateur', false).hide_from_datatable();
         version_edit_author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         version_edit_author_id.setModuleTable(moduleTable);
-        let version_author_id = new ModuleTableField('version_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Créateur', true).hide_from_datatable();
+        let version_author_id = new ModuleTableField('version_author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Créateur', false).hide_from_datatable();
         version_author_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         version_author_id.setModuleTable(moduleTable);
 

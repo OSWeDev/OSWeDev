@@ -86,13 +86,13 @@ export default class PushDataVueModule extends VueModuleBase {
 
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VARDATA], async function (notification: NotificationVO) {
-            if (VueAppBase.instance_ && LocaleManager.getInstance().i18n && notification.vos) {
+            if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {
 
                 notification = APIController.getInstance().try_translate_vo_from_api(notification);
 
                 let vos: IDistantVOBase[] = null;
                 if (!!notification.vos) {
-                    vos = APIController.getInstance().try_translate_vos_from_api(notification.vos);
+                    vos = APIController.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
 
                     let types: { [name: string]: boolean } = {};
                     for (let i in vos) {

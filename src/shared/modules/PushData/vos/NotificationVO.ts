@@ -43,5 +43,5 @@ export default class NotificationVO implements IDistantVOBase {
     public creation_date: Moment;
     public read_date: Moment;
 
-    public vos: IDistantVOBase[];
+    public vos: string;
 }
