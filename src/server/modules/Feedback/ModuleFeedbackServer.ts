@@ -357,7 +357,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
-            let url = FileHandler.getInstance().get_full_url(api_log.url);
+            let BASE_URL: string = ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+            let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
             apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
         }
 

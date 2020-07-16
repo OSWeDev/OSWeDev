@@ -46,7 +46,8 @@ body.page-Manage.dih .crud-wrapper {
             background: $danger_color;
         }
 
-        span.Post-traitement__chou_::before {
+        span.Post-traitement__chou_::before,
+        span.Echec_lors_du_post-traitement::before {
             content: 'Echec';
             background: $danger_color;
         }

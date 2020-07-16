@@ -1,10 +1,8 @@
 /* istanbul ignore file: only one method, and not willing to test it right now*/
 
-import ThreadHandler from './ThreadHandler';
-import { statSync, Stats } from 'fs';
-import FileVO from '../modules/File/vos/FileVO';
-import ConfigurationService from '../../server/env/ConfigurationService';
+import { Stats, statSync } from 'fs';
 import EnvParam from '../../server/env/EnvParam';
+import ThreadHandler from './ThreadHandler';
 
 export default class FileHandler {
 
@@ -57,18 +55,17 @@ export default class FileHandler {
         }
     }
 
-    public get_full_url(file_path: string): string {
-        let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
+    public get_full_url(BASE_URL: string, file_path: string): string {
 
         let url = null;
-        if (envParam.BASE_URL.endsWith('/') && file_path.startsWith('/')) {
-            url = envParam.BASE_URL + file_path.substr(1, file_path.length - 1);
-        } else if (envParam.BASE_URL.endsWith('/') && file_path.startsWith('./')) {
-            url = envParam.BASE_URL + file_path.substr(2, file_path.length - 2);
-        } else if ((!envParam.BASE_URL.endsWith('/')) && file_path.startsWith('./')) {
-            url = envParam.BASE_URL + file_path.substr(1, file_path.length - 1);
+        if (BASE_URL.endsWith('/') && file_path.startsWith('/')) {
+            url = BASE_URL + file_path.substr(1, file_path.length - 1);
+        } else if (BASE_URL.endsWith('/') && file_path.startsWith('./')) {
+            url = BASE_URL + file_path.substr(2, file_path.length - 2);
+        } else if ((!BASE_URL.endsWith('/')) && file_path.startsWith('./')) {
+            url = BASE_URL + file_path.substr(1, file_path.length - 1);
         } else {
-            url = envParam.BASE_URL + file_path;
+            url = BASE_URL + file_path;
         }
 
         return url;

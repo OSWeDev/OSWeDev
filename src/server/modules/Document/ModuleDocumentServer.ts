@@ -184,7 +184,8 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return false;
         }
 
-        let url = FileHandler.getInstance().get_full_url(file.path);
+        let BASE_URL: string = ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+        let url = FileHandler.getInstance().get_full_url(BASE_URL, file.path);
 
         d.document_url = url;
         return true;
@@ -203,7 +204,8 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
         let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
 
-        let url = FileHandler.getInstance().get_full_url(f.path);
+        let BASE_URL: string = ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+        let url = FileHandler.getInstance().get_full_url(BASE_URL, f.path);
 
         for (let i in docs) {
             let doc = docs[i];
