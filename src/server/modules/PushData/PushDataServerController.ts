@@ -22,6 +22,7 @@ export default class PushDataServerController {
     public static TASK_NAME_notifyVarData: string = 'PushDataServerController' + '.notifyVarData';
     public static TASK_NAME_notifyVarsDatas: string = 'PushDataServerController' + '.notifyVarsDatas';
     public static TASK_NAME_notifyDAOGetVoById: string = 'PushDataServerController' + '.notifyDAOGetVoById';
+    public static TASK_NAME_notifyDAORemoveId: string = 'PushDataServerController' + '.notifyDAORemoveId';
     public static TASK_NAME_notifyDAOGetVos: string = 'PushDataServerController' + '.notifyDAOGetVos';
     public static TASK_NAME_broadcastLoggedSimple: string = 'PushDataServerController' + '.broadcastLoggedSimple';
     public static TASK_NAME_broadcastAllSimple: string = 'PushDataServerController' + '.broadcastAllSimple';
@@ -202,6 +203,29 @@ export default class PushDataServerController {
 
         notification.api_type_id = api_type_id;
         notification.dao_notif_type = NotificationVO.DAO_GET_VO_BY_ID;
+        notification.dao_notif_vo_id = vo_id;
+        notification.notification_type = NotificationVO.TYPE_NOTIF_DAO;
+        notification.read = false;
+        notification.user_id = user_id;
+        notification.auto_read_if_connected = true;
+        await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    }
+
+    public async notifyDAORemoveId(user_id: number, api_type_id: string, vo_id: number) {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyDAORemoveId, user_id, api_type_id, vo_id)) {
+            return;
+        }
+
+        if ((!user_id) || (!api_type_id) || (!vo_id)) {
+            return;
+        }
+
+        let notification: NotificationVO = new NotificationVO();
+
+        notification.api_type_id = api_type_id;
+        notification.dao_notif_type = NotificationVO.DAO_REMOVE_ID;
         notification.dao_notif_vo_id = vo_id;
         notification.notification_type = NotificationVO.TYPE_NOTIF_DAO;
         notification.read = false;

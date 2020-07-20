@@ -28,6 +28,10 @@ export default class VarDirective {
 
     public async bind(el, binding, vnode) {
 
+        if (!binding || !binding.value) {
+            return;
+        }
+
         let var_param: IVarDataParamVOBase = binding.value.var_param;
         let reload_on_register: boolean = binding.value.reload_on_register ? binding.value.reload_on_register : false;
 
@@ -41,6 +45,10 @@ export default class VarDirective {
     }
 
     public async unbind(el, binding, vnode) {
+
+        if (!binding || !binding.value) {
+            return;
+        }
 
         let var_param: IVarDataParamVOBase = binding.value.var_param;
 

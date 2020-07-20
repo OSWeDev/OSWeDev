@@ -1,6 +1,5 @@
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
-import ModuleAjaxCache from '../../../../shared/modules/AjaxCache/ModuleAjaxCache';
 import ModuleFile from '../../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../../shared/modules/File/vos/FileVO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
@@ -54,7 +53,7 @@ export default class FileComponent extends VueComponentBase {
             return;
         }
         dropzone.removeAllFiles();
-        if (!this.filevo) {
+        if (!this.filevo || !this.filevo.path) {
             return;
         }
 
@@ -66,10 +65,11 @@ export default class FileComponent extends VueComponentBase {
 
         mock.accepted = true;
 
-        dropzone.files.push(mock);
-        dropzone.emit('addedfile', mock);
-        dropzone.createThumbnailFromUrl(mock, mock.url);
-        dropzone.emit('complete', mock);
+        // On ajoute pas le fichier dans le DropZone car on a déjà un lien vers le fichier
+        // dropzone.manuallyAddFile(mock, mock.url);
+        // dropzone.emit('addedfile', mock);
+        // dropzone.createThumbnailFromUrl(mock, mock.url);
+        // dropzone.emit('complete', mock);
     }
 
     public async mounted() {

@@ -231,6 +231,9 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             fr: 'Actions'
         }, 'datatable.actions_column.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Champ requis non renseigné'
+        }, 'crud.check_form.field_required.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Colonnes'
         }, 'datatable.columns.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

@@ -337,6 +337,9 @@ export default class VueComponentBase extends Vue
     }
 
     public label(txt, params = {}): string {
+        if (!txt) {
+            return txt;
+        }
         return this.t(
             txt + DefaultTranslation.DEFAULT_LABEL_EXTENSION,
             params

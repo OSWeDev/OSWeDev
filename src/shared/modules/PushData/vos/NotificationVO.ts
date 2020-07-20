@@ -17,9 +17,10 @@ export default class NotificationVO implements IDistantVOBase {
     public static SIMPLE_WARN: number = 2;
     public static SIMPLE_ERROR: number = 3;
 
-    public static DAO_NAMES: string[] = ['notification.DAO_GET_VO_BY_ID', 'notification.DAO_GET_VOS'];
+    public static DAO_NAMES: string[] = ['notification.DAO_GET_VO_BY_ID', 'notification.DAO_GET_VOS', 'notification.DAO_REMOVE_ID'];
     public static DAO_GET_VO_BY_ID: number = 0;
     public static DAO_GET_VOS: number = 1;
+    public static DAO_REMOVE_ID: number = 2;
 
     public id: number;
     public _type: string = NotificationVO.API_TYPE_ID;
