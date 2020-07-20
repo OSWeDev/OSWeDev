@@ -64,13 +64,17 @@
 .inline_input_mode {
     text-align: center;
 
-    input[type~="number"], input[type~="text"], input[type~="password"] {
+    input[type~="number"], input[type~="text"], input[type~="password"], .bool_field_inline_readonly_value, .html_field_inline_readonly_value {
         width: calc(100% - 3.6em);
         background: white;
         border: none;
         line-height: 1.7em;
         vertical-align: bottom;
         text-align: center;
+    }
+
+    .bool_field_inline_readonly_value, .html_field_inline_readonly_value {
+        display: inline-block;
     }
 
     .multiselect {
