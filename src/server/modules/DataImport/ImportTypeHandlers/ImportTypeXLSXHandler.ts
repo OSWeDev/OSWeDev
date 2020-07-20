@@ -296,7 +296,7 @@ export default class ImportTypeXLSXHandler {
     }
 
     public getStringfromColumnDataString(column_data_string: any): string {
-        let res = null;
+        let res: string = null;
 
         if (column_data_string.h && column_data_string.h != "") {
             res = column_data_string.h;
@@ -307,6 +307,14 @@ export default class ImportTypeXLSXHandler {
         }
 
         if (res) {
+
+            if (!res.replace) {
+                /**
+                 * Très probablement un nombre au lieu d'une string
+                 */
+                res = '' + res;
+            }
+
             res = res.replace(/&apos;/ig, "'");
             res = res.replace(/&quot;/ig, '"');
             res = res.replace(/&lt;/ig, '<');
