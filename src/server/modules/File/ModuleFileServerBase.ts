@@ -1,5 +1,5 @@
 import { Express, Request, Response } from 'express';
-import * as formidable from 'express-formidable';
+import * as fileUpload from 'express-fileupload';
 import * as fs from 'fs';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import NumberParamVO from '../../../shared/modules/API/vos/apis/NumberParamVO';
@@ -21,7 +21,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     }
 
     public registerExpressApis(app: Express): void {
-        app.post(this.api_upload_uri, ServerBase.getInstance().csrfProtection, formidable(), this.uploadFile.bind(this));
+        app.post(this.api_upload_uri, ServerBase.getInstance().csrfProtection, fileUpload(), this.uploadFile.bind(this));
     }
 
     public registerServerApiHandlers() {
@@ -99,12 +99,12 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
     private async uploadFile(req: Request, res: Response) {
 
-        let import_file = null;
+        let import_file: fileUpload.UploadedFile = null;
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         let uid: number = httpContext ? httpContext.get('UID') : null;
 
         try {
-            import_file = req.files[Object.keys(req.files)[0]];
+            import_file = req.files[Object.keys(req.files)[0]] as fileUpload.UploadedFile;
             if (!import_file) {
                 throw new Error('uploadFile- No file found');
             }
@@ -117,21 +117,30 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
 
         PushDataServerController.getInstance().notifySimpleSUCCESS(uid, 'file.upload.success');
 
-        let filepath: string = import_file.path;
         let name: string = import_file.name;
-        filepath = await this.copyFile(filepath, ModuleFile.FILES_ROOT + 'upload/', name);
+        let filepath: string = ModuleFile.FILES_ROOT + 'upload/' + name;
 
-        let filevo: T = this.getNewVo();
-        filevo.path = filepath;
-        let insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
-        if ((!insertres) || (!insertres.id)) {
-            PushDataServerController.getInstance().notifySimpleERROR(uid, 'file.upload.error');
-            res.json(JSON.stringify(null));
-            return;
-        }
+        return import_file.mv(filepath, async (err) => {
+            if (err) {
+                console.error(err);
+                PushDataServerController.getInstance().notifySimpleERROR(uid, 'file.upload.error');
+                res.json(JSON.stringify(null));
+                return;
+            }
 
-        filevo.id = parseInt(insertres.id.toString());
-        res.json(JSON.stringify(filevo));
+            let filevo: T = this.getNewVo();
+            filevo.path = filepath;
+
+            let insertres: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(filevo);
+            if ((!insertres) || (!insertres.id)) {
+                PushDataServerController.getInstance().notifySimpleERROR(uid, 'file.upload.error');
+                res.json(JSON.stringify(null));
+                return;
+            }
+
+            filevo.id = parseInt(insertres.id.toString());
+            res.json(JSON.stringify(filevo));
+        });
     }
 
     private async testFileExistenz(param: NumberParamVO): Promise<boolean> {

@@ -24,7 +24,6 @@ import { RouteConfig } from 'vue-router/types/router';
 import vSelect from 'vue-select';
 import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
-import * as vueDropzone from "vue2-dropzone";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
@@ -329,7 +328,7 @@ export default abstract class VueAppBase {
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
         Vue.component('v-slider', async () => (await import(/* webpackChunkName: "VueSlider" */  'vue-slider-component')));
-        Vue.component('vue-dropzone', vueDropzone);
+        Vue.component('vue-dropzone', async () => (await import(/* webpackChunkName: "Vue2Dropzone" */  'vue2-dropzone')));
         Vue.component('var-data', () => import(/* webpackChunkName: "VarDataRefComponent" */ './ts/components/Var/components/dataref/VarDataRefComponent'));
         Vue.component('vars-sum', () => import(/* webpackChunkName: "VarDataSumComponent" */ './ts/components/Var/components/datasum/VarDataSumComponent'));
         Vue.component('vars-data', () => import(/* webpackChunkName: "VarDatasRefsComponent" */ './ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
