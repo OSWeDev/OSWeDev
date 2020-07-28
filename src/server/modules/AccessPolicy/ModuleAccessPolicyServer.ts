@@ -41,6 +41,7 @@ import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
+import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -103,6 +104,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         POLICY_IMPERSONATE.translatable_name = ModuleAccessPolicy.POLICY_IMPERSONATE;
         POLICY_IMPERSONATE = await this.registerPolicy(POLICY_IMPERSONATE, new DefaultTranslation({
             fr: 'Impersonate'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_SENDINITPWD: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_SENDINITPWD.group_id = group.id;
+        POLICY_SENDINITPWD.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_SENDINITPWD.translatable_name = ModuleAccessPolicy.POLICY_SENDINITPWD;
+        POLICY_SENDINITPWD = await this.registerPolicy(POLICY_SENDINITPWD, new DefaultTranslation({
+            fr: 'Envoi Mail init PWD'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -437,6 +446,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Accéder au site'
+        }, 'mails.pwd.initpwd.submit'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Initialisation du mot de passe'
+        }, 'mails.pwd.initpwd.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Cliquez sur le lien ci-dessous pour initialiser votre mot de passe.'
+        }, 'mails.pwd.initpwd.html'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Accéder au site'
         }, 'mails.pwd.recovery.submit'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Récupération du mot de passe'
@@ -496,6 +515,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Droits'
         }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____module_id'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mail d\'initialisation du mot de passe envoyé'
+        }, 'sendinitpwd.ok.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mail init mdp'
+        }, 'fields.labels.ref.user.__component__sendinitpwd.___LABEL___'));
+
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }
 
@@ -516,6 +544,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd, this.begininitpwd.bind(this));
+    }
+
+    public async begininitpwd(param: StringParamVO): Promise<void> {
+        if ((!param) || (!param.text)) {
+            return;
+        }
+
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+            return;
+        }
+
+        await PasswordInitialisation.getInstance().begininitpwd(param.text);
     }
 
     public async activate_policies_for_roles(policy_names: string[], role_names: string[]) {

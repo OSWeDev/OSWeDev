@@ -6,6 +6,7 @@ import TableFieldTypesManager from '../../../../../../shared/modules/TableFieldT
 import TableFieldTypeControllerBase from '../../../../../../shared/modules/TableFieldTypes/vos/TableFieldTypeControllerBase';
 import VueComponentBase from '../../../VueComponentBase';
 import FileDatatableFieldComponent from '../fields/file/file_datatable_field';
+import './DatatableComponentField.scss';
 
 @Component({
     template: require('./DatatableComponentField.pug'),
