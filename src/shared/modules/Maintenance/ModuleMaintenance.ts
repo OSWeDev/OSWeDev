@@ -25,6 +25,8 @@ export default class ModuleMaintenance extends Module {
     public static PARAM_NAME_INFORM_EVERY_MINUTES = 'inform_minutes';
 
     public static APINAME_END_MAINTENANCE: string = "end_maintenance";
+    public static APINAME_START_MAINTENANCE: string = "start_maintenance";
+    public static APINAME_END_PLANNED_MAINTENANCE: string = "end_planned_maintenance";
 
     public static getInstance(): ModuleMaintenance {
         if (!ModuleMaintenance.instance) {
@@ -43,6 +45,14 @@ export default class ModuleMaintenance extends Module {
 
     public registerApis() {
 
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
+            ModuleMaintenance.APINAME_START_MAINTENANCE,
+            [MaintenanceVO.API_TYPE_ID]
+        ));
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
+            ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE,
+            [MaintenanceVO.API_TYPE_ID]
+        ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
             ModuleMaintenance.APINAME_END_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID],
@@ -50,8 +60,16 @@ export default class ModuleMaintenance extends Module {
         ));
     }
 
+    public async start_maintenance(): Promise<void> {
+        return ModuleAPI.getInstance().handleAPI<void, void>(ModuleMaintenance.APINAME_START_MAINTENANCE);
+    }
+
     public async end_maintenance(maintenance_vo_id: number): Promise<void> {
         return ModuleAPI.getInstance().handleAPI<NumberParamVO, void>(ModuleMaintenance.APINAME_END_MAINTENANCE, maintenance_vo_id);
+    }
+
+    public async end_planned_maintenance(): Promise<void> {
+        return ModuleAPI.getInstance().handleAPI<void, void>(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE);
     }
 
     public initialize() {

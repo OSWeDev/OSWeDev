@@ -21,6 +21,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
     public static TASK_NAME_set_planned_maintenance_vo = 'ModuleMaintenanceServer.set_planned_maintenance_vo';
     public static TASK_NAME_handleTriggerPreC_MaintenanceVO = 'ModuleMaintenanceServer.handleTriggerPreC_MaintenanceVO';
     public static TASK_NAME_end_maintenance = 'ModuleMaintenanceServer.end_maintenance';
+    public static TASK_NAME_start_maintenance = 'ModuleMaintenanceServer.start_maintenance';
+    public static TASK_NAME_end_planned_maintenance = 'ModuleMaintenanceServer.end_planned_maintenance';
 
     public static getInstance() {
         if (!ModuleMaintenanceServer.instance) {
@@ -108,6 +110,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_END_MAINTENANCE, this.end_maintenance.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_START_MAINTENANCE, this.start_maintenance.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE, this.end_planned_maintenance.bind(this));
     }
 
     public async end_maintenance(param: NumberParamVO): Promise<void> {
@@ -130,10 +134,60 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         let maintenance: MaintenanceVO = await ModuleDAO.getInstance().getVoById<MaintenanceVO>(MaintenanceVO.API_TYPE_ID, param.num);
 
         maintenance.maintenance_over = true;
+        maintenance.end_ts = moment().utc(true);
 
         await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
         await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, MaintenanceVO.API_TYPE_ID, maintenance.id);
+    }
+
+    public async end_planned_maintenance(): Promise<void> {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_end_planned_maintenance)) {
+            return;
+        }
+
+        let planned_maintenance: MaintenanceVO = await this.get_planned_maintenance();
+
+        if (!planned_maintenance) {
+            return;
+        }
+
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        let session = httpContext ? httpContext.get('SESSION') : null;
+
+        planned_maintenance.maintenance_over = true;
+        planned_maintenance.end_ts = moment().utc(true);
+
+        await PushDataServerController.getInstance().broadcastAllSimple(NotificationVO.SIMPLE_SUCCESS, ModuleMaintenance.MSG4_code_text);
+        await ModuleDAO.getInstance().insertOrUpdateVO(planned_maintenance);
+        if (session && !!session.uid) {
+            await PushDataServerController.getInstance().notifyDAOGetVoById(session.uid, MaintenanceVO.API_TYPE_ID, planned_maintenance.id);
+        }
+    }
+
+    public async start_maintenance(): Promise<void> {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_start_maintenance)) {
+            return;
+        }
+
+        let maintenance: MaintenanceVO = new MaintenanceVO();
+
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        let session = httpContext ? httpContext.get('SESSION') : null;
+
+        if (session && !!session.uid) {
+            maintenance.author_id = session.uid;
+        }
+        maintenance.broadcasted_msg1 = true;
+        maintenance.broadcasted_msg2 = true;
+        maintenance.broadcasted_msg3 = false;
+        maintenance.start_ts = moment().utc(true);
+        maintenance.end_ts = null;
+        maintenance.maintenance_over = false;
+
+        await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
     }
 
     public async get_planned_maintenance(): Promise<MaintenanceVO> {
