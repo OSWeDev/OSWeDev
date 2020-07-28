@@ -14,6 +14,7 @@ import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import MaintenanceBGThread from './bgthreads/MaintenanceBGThread';
+import MaintenanceCronWorkersHandler from './MaintenanceCronWorkersHandler';
 const moment = require('moment');
 
 export default class ModuleMaintenanceServer extends ModuleServerBase {
@@ -35,6 +36,10 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleMaintenance.getInstance().name);
+    }
+
+    public registerCrons(): void {
+        MaintenanceCronWorkersHandler.getInstance();
     }
 
     public async configure() {
@@ -106,6 +111,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_start_maintenance, this.start_maintenance.bind(this));
+        ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_end_planned_maintenance, this.end_planned_maintenance.bind(this));
     }
 
     public registerServerApiHandlers() {
@@ -184,7 +191,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         maintenance.broadcasted_msg2 = true;
         maintenance.broadcasted_msg3 = false;
         maintenance.start_ts = moment().utc(true);
-        maintenance.end_ts = null;
+        maintenance.end_ts = moment().utc(true).add(1, 'hour');
         maintenance.maintenance_over = false;
 
         await ModuleDAO.getInstance().insertOrUpdateVO(maintenance);
@@ -223,7 +230,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }
 
         maintenance.creation_date = moment().utc(true);
-        maintenance.author_id = session.uid;
+        maintenance.author_id = maintenance.author_id ? maintenance.author_id : (session ? session.uid : null);
 
         return true;
     }

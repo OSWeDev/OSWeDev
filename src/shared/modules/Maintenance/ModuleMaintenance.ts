@@ -85,7 +85,7 @@ export default class ModuleMaintenance extends Module {
     }
 
     private initializeMaintenanceVO() {
-        let author_id = new ModuleTableField('author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', true);
+        let author_id = new ModuleTableField('author_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Auteur', false);
 
         let fields = [
             new ModuleTableField('start_ts', ModuleTableField.FIELD_TYPE_tstz, 'Début de la maintenance', true).set_segmentation_type(TimeSegment.TYPE_SECOND),
