@@ -1079,13 +1079,18 @@ export default class DataImportComponent extends DataImportComponentBase {
             createImageThumbnails: false,
             acceptedFiles: self.acceptedFiles,
             timeout: 3600000,
+            init: function () {
+                this.on('maxfilesexceeded', function (file) {
+                    this.removeFile(file);
+                });
+            },
             error: (infos, error_message) => {
                 self.snotify.error(error_message);
             },
             accept: (file, done) => {
 
                 this.checkUnfinishedImportsAndReplacement(null, done);
-            }
+            },
         };
     }
 
@@ -1102,13 +1107,18 @@ export default class DataImportComponent extends DataImportComponentBase {
                     createImageThumbnails: false,
                     acceptedFiles: self.acceptedFiles,
                     timeout: 3600000,
+                    init: function () {
+                        this.on('maxfilesexceeded', function (file) {
+                            this.removeFile(file);
+                        });
+                    },
                     error: (infos, error_message) => {
                         self.snotify.error(error_message);
                     },
                     accept: (file, done) => {
 
                         this.checkUnfinishedImportsAndReplacement(segment_date_index, done);
-                    }
+                    },
                 };
             })(segment.dateIndex);
         }

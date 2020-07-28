@@ -1,7 +1,7 @@
 @import 'skin-variables';
 
 .tooltip.vue-tooltip-theme {
-    z-index: 9999999;
+  z-index: 9999999;
 }
 
 .v-select {
@@ -249,4 +249,44 @@ i.fa.fa-spin:before {
 
 .f-l {
   float: left;
+}
+
+.dropzone {
+  padding: 0px 5px;
+  text-align: center;
+
+  & .dz-preview {
+    margin: 5px;
+    min-height: 0;
+
+    &:not(.dz-processing) {
+      display: none;
+    }
+
+    & .dz-details,
+    & .dz-success-mark,
+    & .dz-error-mark,
+    & .dz-error-message,
+    & .dz-details,
+    & .dz-image {
+      display: none;
+    }
+
+    & .dz-progress {
+      position: relative;
+      left: 0;
+      top: 0;
+      margin-top: 0px;
+      margin-left: 0px;
+      background: lightgray;
+
+      & .dz-upload {
+        background: #28a745;
+      }
+    }
+  }
+
+  &.dz-started .dz-message {
+    display: block;
+  }
 }

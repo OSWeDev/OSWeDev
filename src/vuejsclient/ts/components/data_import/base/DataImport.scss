@@ -8,36 +8,24 @@
         }
     }
 
-    .dropzone {
-        padding: 0px 20px;
-    }
-
-    .dropzone .dz-preview {
-        display: none;
-    }
-
-    .dropzone.dz-started .dz-message {
-        display: block;
-    }
-
     .imported_file_link {
-        
+
         margin-bottom: 10px;
 
-        span{
+        span {
             font-weight: bold;
             vertical-align: -webkit-baseline-middle;
             vertical-align: sub;
         }
     }
 
-    .jumbotron{
+    .jumbotron {
         ul.raw_datas_stats {
             margin-bottom: 10px;
         }
     }
 
-    .data_import_segment_overview{
+    .data_import_segment_overview {
         text-align: CENTER;
         border-width: 10px !important;
         /* margin: 10px; */
@@ -70,4 +58,3 @@
         margin: 20px;
     }
 }
-
