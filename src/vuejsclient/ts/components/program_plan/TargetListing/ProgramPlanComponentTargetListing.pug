@@ -13,9 +13,15 @@
                 template(v-if='use_targets')
                     .row(v-for="(target, i) in filtered_ordered_targets")
                         .col-md-12
-                            program-plan-component-rdv(:event_type="target._type", :event_name="target.name", :event_id="target.id", :key="target.id")
+                            program-plan-component-rdv(
+                                :program_plan_shared_module='program_plan_shared_module'
+                                :program_plan_controller='program_plan_controller' 
+                                :event_type="target._type", :event_name="target.name", :event_id="target.id", :key="target.id")
                 template(v-else)
                     .row(v-for="(t_ou_tt, i) in filtered_ordered_tasks_or_tasks_types")
                         .col-md-12
-                            program-plan-component-rdv(:event_type="t_ou_tt._type", :event_name="t_ou_tt.name", :event_id="t_ou_tt.id", :key="t_ou_tt.id")
+                            program-plan-component-rdv(
+                                :program_plan_shared_module='program_plan_shared_module'
+                                :program_plan_controller='program_plan_controller' 
+                                :event_type="t_ou_tt._type", :event_name="t_ou_tt.name", :event_id="t_ou_tt.id", :key="t_ou_tt.id")
                 

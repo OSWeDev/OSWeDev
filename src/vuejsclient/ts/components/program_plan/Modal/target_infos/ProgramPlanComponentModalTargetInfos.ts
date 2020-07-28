@@ -1,5 +1,5 @@
 import * as $ from 'jquery';
-import { Component, Watch } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../../../shared/modules/IDistantVOBase';
 import IPlanContact from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
@@ -18,6 +18,7 @@ import VueFieldComponent from '../../../field/field';
 import VueComponentBase from '../../../VueComponentBase';
 import ProgramPlanComponentHTMLInfos from '../../HTMLInfos/ProgramPlanComponentHTMLInfos';
 import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
+import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import "./ProgramPlanComponentModalTargetInfos.scss";
 
@@ -65,24 +66,31 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
 
     @ModuleProgramPlanGetter
     public selected_rdv: IPlanRDV;
+
+    @Prop({ default: null })
+    private program_plan_shared_module: ModuleProgramPlanBase;
+
+    @Prop({ default: null })
+    private program_plan_controller: ProgramPlanControllerBase;
+
     private target_contacts: IPlanContact[] = [];
 
     get customTargetInfosComponent() {
-        return ProgramPlanControllerBase.getInstance().customTargetInfosComponent;
+        return this.program_plan_controller.customTargetInfosComponent;
     }
 
     @Watch('selected_rdv', { immediate: true })
     private async onChangeSelectedRDV() {
         let target_contact_links: IPlanTargetContact[] = [];
-        if (!!ModuleProgramPlanBase.getInstance().target_contact_type_id) {
+        if (!!this.program_plan_shared_module.target_contact_type_id) {
             target_contact_links = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanTargetContact>(
-                ModuleProgramPlanBase.getInstance().target_contact_type_id, "target_id", [this.selected_rdv.target_id]);
+                this.program_plan_shared_module.target_contact_type_id, "target_id", [this.selected_rdv.target_id]);
         }
 
         let target_group_contact_links: IPlanTargetGroupContact[] = [];
-        if (!!ModuleProgramPlanBase.getInstance().target_group_contact_type_id) {
+        if (!!this.program_plan_shared_module.target_group_contact_type_id) {
             target_group_contact_links = await ModuleDAO.getInstance().getVosByRefFieldIds<IPlanTargetGroupContact>(
-                ModuleProgramPlanBase.getInstance().target_group_contact_type_id, "target_group_id", [this.target.group_id]);
+                this.program_plan_shared_module.target_group_contact_type_id, "target_group_id", [this.target.group_id]);
         }
 
         let contacts_ids: number[] = [];
@@ -104,7 +112,7 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
         }
 
         this.target_contacts = await ModuleDAO.getInstance().getVosByIds<IPlanContact>(
-            ModuleProgramPlanBase.getInstance().contact_type_id, contacts_ids);
+            this.program_plan_shared_module.contact_type_id, contacts_ids);
     }
 
     get target(): IPlanTarget {
@@ -129,7 +137,7 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
             return null;
         }
 
-        return ProgramPlanControllerBase.getInstance().getResourceName(facilitator.firstname, facilitator.lastname);
+        return ProgramPlanTools.getResourceName(facilitator.firstname, facilitator.lastname);
     }
 
     get managerName() {
@@ -147,7 +155,7 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
             return null;
         }
 
-        return ProgramPlanControllerBase.getInstance().getResourceName(manager.firstname, manager.lastname);
+        return ProgramPlanTools.getResourceName(manager.firstname, manager.lastname);
     }
 
     get GmapQ() {
@@ -166,7 +174,7 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
         }
 
         let target: IPlanTarget = this.getTargetsByIds[this.selected_rdv.target_id] as IPlanTarget;
-        let address: string = ProgramPlanControllerBase.getInstance().getAddressHTMLFromTarget(target);
+        let address: string = ProgramPlanTools.getAddressHTMLFromTarget(target);
         return address;
     }
 
@@ -175,7 +183,7 @@ export default class ProgramPlanComponentModalTargetInfos extends VueComponentBa
             return null;
         }
 
-        let contactInfos: string = ProgramPlanControllerBase.getInstance().getContactInfosHTMLFromTarget(this.target_contacts);
+        let contactInfos: string = ProgramPlanTools.getContactInfosHTMLFromTarget(this.target_contacts);
         return contactInfos;
     }
 }

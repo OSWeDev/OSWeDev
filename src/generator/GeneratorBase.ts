@@ -4,6 +4,7 @@ import * as pg_promise from 'pg-promise';
 import { IDatabase } from 'pg-promise';
 import ConfigurationService from '../server/env/ConfigurationService';
 import EnvParam from '../server/env/EnvParam';
+import FileLoggerHandler from '../server/FileLoggerHandler';
 import ServerAPIController from '../server/modules/API/ServerAPIController';
 import ModulesClientInitializationDatasGenerator from '../server/modules/ModulesClientInitializationDatasGenerator';
 import ModuleServiceBase from '../server/modules/ModuleServiceBase';
@@ -11,6 +12,7 @@ import ModuleSASSSkinConfiguratorServer from '../server/modules/SASSSkinConfigur
 import DefaultTranslationsServerManager from '../server/modules/Translation/DefaultTranslationsServerManager';
 import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import ModulesManager from '../shared/modules/ModulesManager';
+import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import IGeneratorWorker from './IGeneratorWorker';
 import Patch20191010CreateDefaultAdminAccountIfNone from './patchs/postmodules/Patch20191010CreateDefaultAdminAccountIfNone';
 import Patch20191010CreateDefaultLangFRIfNone from './patchs/postmodules/Patch20191010CreateDefaultLangFRIfNone';
@@ -30,13 +32,9 @@ import Patch20191008ChangeDILDateType from './patchs/premodules/Patch20191008Cha
 import Patch20191008SupprimerTacheReimport from './patchs/premodules/Patch20191008SupprimerTacheReimport';
 import Patch20191010CheckBasicSchemas from './patchs/premodules/Patch20191010CheckBasicSchemas';
 import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112CheckExtensions';
-import Patch20191202GeoPoint from './patchs/premodules/Patch20191202GeoPoint';
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
-import Patch20200305CascadeChecker from './patchs/premodules/Patch20200305CascadeChecker';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import VendorBuilder from './vendor_builder/VendorBuilder';
-import FileLoggerHandler from '../server/FileLoggerHandler';
-import ConsoleHandler from '../shared/tools/ConsoleHandler';
 
 export default abstract class GeneratorBase {
 
@@ -63,18 +61,16 @@ export default abstract class GeneratorBase {
 
         this.pre_modules_workers = [
             Patch20200331DeleteOrphanTranslations.getInstance(),
-            Patch20200305CascadeChecker.getInstance(),
+            Patch20191112CheckExtensions.getInstance(),
             Patch20200131DeleteVersioningVOAccessPolicies.getInstance(),
             Patch20191010CheckBasicSchemas.getInstance(),
-            Patch20191112CheckExtensions.getInstance(),
             ActivateDataImport.getInstance(),
             ActivateDataRender.getInstance(),
             ChangeTypeDatesNotificationVO.getInstance(),
             ChangeCronDateHeurePlanifiee.getInstance(),
             Patch20191008ChangeDIHDateType.getInstance(),
             Patch20191008ChangeDILDateType.getInstance(),
-            Patch20191008SupprimerTacheReimport.getInstance(),
-            Patch20191202GeoPoint.getInstance()
+            Patch20191008SupprimerTacheReimport.getInstance()
         ];
 
         this.post_modules_workers = [
@@ -124,8 +120,6 @@ export default abstract class GeneratorBase {
 
         console.log("configure_server_modules...");
         await this.modulesService.configure_server_modules(null);
-        console.log("saveDefaultTranslations...");
-        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
 
         console.log("post modules initialization workers...");
         if (!!this.post_modules_workers) {
@@ -135,6 +129,12 @@ export default abstract class GeneratorBase {
             }
         }
         console.log("post modules initialization workers done.");
+
+        /**
+         * On décale les trads après les post modules workers sinon les trads sont pas générées sur créa d'une lang en post worker => cas de la créa de nouveau projet
+         */
+        console.log("saveDefaultTranslations...");
+        await DefaultTranslationsServerManager.getInstance().saveDefaultTranslations(true);
 
         console.log("Generate Vendor: ...");
         await VendorBuilder.getInstance().generate_vendor();

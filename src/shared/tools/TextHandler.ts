@@ -5,6 +5,12 @@ export default class TextHandler {
             'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
+    public static Password_Cars: string[] =
+        ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+            '*', '-', '+', 'ù', '$', '£', '!', '§', ':', '/', ';', '.', ',', '?', '-', '&', 'é', '~', '²', '_', 'è', 'ç', 'à', '@', '=', '}', '{'];
+
     public static accents_replacements: { [src: string]: string } =
         {
             é: 'e',
@@ -33,18 +39,32 @@ export default class TextHandler {
     }
 
     public standardize_for_comparaison(src: string): string {
+
+        if (!src) {
+            return null;
+        }
+
         let res: string = src.trim().toLowerCase();
+        let standardized_res: string = '';
         let length: number = res.length;
 
         for (let i = 0; i < length; i++) {
             let c = res[i];
 
             if (!!TextHandler.accents_replacements[c]) {
-                res = ((i > 0) ? res.substr(0, i) : '') + TextHandler.accents_replacements[c] + ((i < (length - 1)) ? i + 1 : length);
+                standardized_res += TextHandler.accents_replacements[c];
+                continue;
             }
+
+            if (c.charCodeAt(0) == 160) {
+                standardized_res += ' ';
+                continue;
+            }
+
+            standardized_res += c;
         }
 
-        return res;
+        return standardized_res;
     }
 
     /**
@@ -52,7 +72,7 @@ export default class TextHandler {
      * @param txt Le texte à convertir
      */
     public formatTextToID(txt: string): string {
-        return txt.toLowerCase().replace(/[^a-z]/g, '_').replace(/__+/g, '_');
+        return txt ? txt.trim().toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/__+/g, '_') : null;
     }
 
     public generateChallenge(): string {
@@ -62,6 +82,19 @@ export default class TextHandler {
 
         while (i < 8) {
             res += TextHandler.Challenge_Cars[Math.floor(Math.random() * TextHandler.Challenge_Cars.length)];
+            i++;
+        }
+
+        return res;
+    }
+
+    public generatePassword(): string {
+        // On génère un code à 12 caractères, chiffres, minuscules, majuscules, caractères spéciaux.
+        let res: string = "";
+        let i: number = 0;
+
+        while (i < 12) {
+            res += TextHandler.Password_Cars[Math.floor(Math.random() * TextHandler.Password_Cars.length)];
             i++;
         }
 

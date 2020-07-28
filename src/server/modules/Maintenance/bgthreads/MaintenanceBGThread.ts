@@ -21,9 +21,9 @@ export default class MaintenanceBGThread implements IBGThread {
 
     private static instance: MaintenanceBGThread = null;
 
-    public current_timeout: number = ModuleBGThreadServer.DEFAULT_initial_timeout;
-    public MAX_timeout: number = ModuleBGThreadServer.DEFAULT_MAX_timeout;
-    public MIN_timeout: number = ModuleBGThreadServer.DEFAULT_MIN_timeout;
+    public current_timeout: number = 1000;
+    public MAX_timeout: number = 5000;
+    public MIN_timeout: number = 1000;
 
     private constructor() {
     }

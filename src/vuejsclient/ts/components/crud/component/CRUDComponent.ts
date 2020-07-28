@@ -408,6 +408,10 @@ export default class CRUDComponent extends VueComponentBase {
         // On passe la traduction en IHM sur les champs
         this.newVO = this.dataToIHM(obj, this.crud.createDatatable, false);
 
+        if (!!this.crud.hook_prepare_new_vo_for_creation) {
+            this.crud.hook_prepare_new_vo_for_creation(this.newVO);
+        }
+
         this.onChangeVO(this.newVO);
     }
 

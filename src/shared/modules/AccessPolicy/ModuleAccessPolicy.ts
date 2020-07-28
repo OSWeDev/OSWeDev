@@ -39,6 +39,7 @@ export default class ModuleAccessPolicy extends Module {
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".FO_ACCESS";
 
     public static POLICY_IMPERSONATE: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".IMPERSONATE";
+    public static POLICY_SENDINITPWD: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".SENDINITPWD";
 
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_BO_MODULES_MANAGMENT_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_MODULES_MANAGMENT_ACCESS";
@@ -66,6 +67,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_GET_LOGGED_USER_NAME = "GET_LOGGED_USER_NAME";
     public static APINAME_RESET_PWDUID = "RESET_PWDUID";
     public static APINAME_getMyLang = "getMyLang";
+    public static APINAME_begininitpwd = "begininitpwd";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -146,6 +148,12 @@ export default class ModuleAccessPolicy extends Module {
             AddRoleToUserParamVO.translateCheckAccessParams
         ));
 
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleAccessPolicy.APINAME_begininitpwd,
+            [UserVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams
+        ));
+
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER,
             [UserVO.API_TYPE_ID],
@@ -188,6 +196,10 @@ export default class ModuleAccessPolicy extends Module {
             NumberParamVO.translateCheckAccessParams
         ));
 
+    }
+
+    public async begininitpwd(email: string): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, void>(ModuleAccessPolicy.APINAME_begininitpwd, email);
     }
 
     public async getMyLang(): Promise<LangVO> {

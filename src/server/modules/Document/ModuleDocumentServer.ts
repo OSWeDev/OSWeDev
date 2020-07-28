@@ -76,70 +76,74 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
     public async configure() {
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+            { fr: 'Documents' },
+            'fields.labels.ref.module_document_document.___LABEL____file_id'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Youtube' },
             'DOCUMENT.DOCUMENT_TYPE.YOUTUBE'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'PDF' },
             'DOCUMENT.DOCUMENT_TYPE.PDF'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'PPT' },
             'DOCUMENT.DOCUMENT_TYPE.PPT'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'XLS' },
             'DOCUMENT.DOCUMENT_TYPE.XLS'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'DOC' },
             'DOCUMENT.DOCUMENT_TYPE.DOC'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'AUTRE' },
             'DOCUMENT.DOCUMENT_TYPE.OTHER'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'XS' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XS'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'S' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.S'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'M' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.M'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'L' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.L'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'XL' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XL'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'XXL' },
             'DOCUMENT.DOCUMENT_IMPORTANCE.XXL'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Documents' },
             'menu.menuelements.DocumentAdminVueModule.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Feedbacks' },
             'menu.menuelements.FeedbackAdminVueModule.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Documents' },
             'menu.menuelements.document.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Tags' },
             'menu.menuelements.dt.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Groupes de tags' },
             'menu.menuelements.dtg.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Feedbacks' },
             'menu.menuelements.feedback.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: ' ' },
             'tstz_input.placeholder.date_debut.___LABEL___'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Documentation' },
             'document_handler.modal_title.___LABEL___'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Tous' },
             'document_handler.tags.tous.___LABEL___'));
 
@@ -180,7 +184,8 @@ export default class ModuleDocumentServer extends ModuleServerBase {
             return false;
         }
 
-        let url = FileHandler.getInstance().get_full_url(file.path);
+        let BASE_URL: string = ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+        let url = FileHandler.getInstance().get_full_url(BASE_URL, file.path);
 
         d.document_url = url;
         return true;
@@ -199,7 +204,8 @@ export default class ModuleDocumentServer extends ModuleServerBase {
 
         let envParam: EnvParam = ConfigurationService.getInstance().getNodeConfiguration();
 
-        let url = FileHandler.getInstance().get_full_url(f.path);
+        let BASE_URL: string = ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+        let url = FileHandler.getInstance().get_full_url(BASE_URL, f.path);
 
         for (let i in docs) {
             let doc = docs[i];

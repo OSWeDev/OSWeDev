@@ -2,6 +2,7 @@
 
 import { IDatabase } from 'pg-promise';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class ActivateDataRender implements IGeneratorWorker {
 
@@ -28,7 +29,7 @@ export default class ActivateDataRender implements IGeneratorWorker {
 
             await db.none("update admin.modules set actif = true where name = 'data_render';");
         } catch (error) {
-            console.error('ActivateDataRender : ' + error);
+            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
         }
     }
 }

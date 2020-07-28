@@ -281,6 +281,7 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public callback_handle_modal_show_hide: (vo: IDistantVOBase, modal_type: string) => Promise<void>;
 
+    public hook_prepare_new_vo_for_creation: (vo: IDistantVOBase) => Promise<void>;
     public callback_function_create: (vo: IDistantVOBase) => Promise<void>;
 
     public callback_function_update: (vo: IDistantVOBase) => Promise<void>;

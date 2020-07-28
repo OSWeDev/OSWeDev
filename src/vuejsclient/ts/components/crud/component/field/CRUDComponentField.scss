@@ -24,6 +24,7 @@
     }
 
     .inline_input_show_clear,
+    .inline_input_hide_clear,
     .inline_input_is_editing,
     .inline_input_cancel_input,
     .inline_input_is_not_editing {
@@ -33,11 +34,17 @@
         padding-top: 0.3em;
         font-size: 1em;
         width: 1.8em;
-        vertical-align: bottom;
+        vertical-align: top;
         cursor: pointer;
     }
 
+    .inline_input_hide_clear {
+        opacity: 0.5;
+        cursor: inherit;
+    }
+
     .inline_input_show_clear.busy,
+    .inline_input_hide_clear.busy,
     .inline_input_is_editing.busy,
     .inline_input_cancel_input.busy,
     .inline_input_is_not_editing.busy {
@@ -48,14 +55,87 @@
     }
 }
 
+.inline_input_mode_simple_text {
+    background: white;
+    line-height: 1.8em;
+    text-align: center;
+}
+
 .inline_input_mode {
     text-align: center;
 
-    input {
+    input[type~="number"], input[type~="text"], input[type~="password"], .bool_field_inline_readonly_value, .html_field_inline_readonly_value {
+        width: calc(100% - 3.6em);
+        min-width: 0;
         background: white;
         border: none;
         line-height: 1.7em;
         vertical-align: bottom;
         text-align: center;
+    }
+
+    .bool_field_inline_readonly_value, .html_field_inline_readonly_value {
+        display: inline-block;
+    }
+
+    .multiselect {
+        width: calc(100% - 3.6em);
+        min-width: 0;
+        display: inline-block;
+        line-height: 1em;
+        border: none;
+        line-height: 1.7em;
+        vertical-align: top;
+        text-align: center;
+
+        .multiselect__option {
+            white-space: inherit;
+        }
+
+        .multiselect__option::after {
+            display:none;
+        }
+
+        .multiselect__tags {
+            border: none;
+            border-radius: 0;
+        }
+    }
+
+    .multiselect--disabled {
+        opacity: 1;
+    }
+
+    .multiselect--disabled .multiselect__current, .multiselect--disabled .multiselect__select {
+        background: none;
+        color: transparent;
+    }
+
+    .multiselect--disabled .multiselect__current::before, .multiselect--disabled .multiselect__select::before {
+        display:none;
+    }
+
+    .multiselect, .multiselect__input, .multiselect__single {
+        font-size: inherit;
+    }
+
+    .quill-editor {
+
+        width: calc(100% - 3.6em);
+        min-width: 0;
+        display: inline-block;
+    }
+
+    .form-checks {
+        width: calc(100% - 3.6em);
+        min-width: 0;
+        display: inline-block;
+        background: white;
+
+        .form-check label {
+
+            margin-left: 0.3em;
+            vertical-align: middle;
+        }
     }
 }

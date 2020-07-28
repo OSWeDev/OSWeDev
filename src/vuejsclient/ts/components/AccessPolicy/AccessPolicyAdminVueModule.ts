@@ -10,6 +10,7 @@ import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
+import TextHandler from '../../../../shared/tools/TextHandler';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
@@ -19,6 +20,7 @@ import MenuLeaf from '../menu/vos/MenuLeaf';
 import MenuLeafRouteTarget from '../menu/vos/MenuLeafRouteTarget';
 import MenuPointer from '../menu/vos/MenuPointer';
 import ImpersonateComponent from './user/impersonate/ImpersonateComponent';
+import SendInitPwdComponent from './user/sendinitpwd/SendInitPwdComponent';
 
 export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
@@ -134,6 +136,14 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         }
 
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password"));
+        if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+            crud.readDatatable.pushField(new ComponentDatatableField(
+                'sendinitpwd',
+                SendInitPwdComponent,
+                'id'
+            ));
+        }
+
         crud.readDatatable.pushField(new ManyToOneReferenceDatatableField<any>(
             "lang_id",
             VOsTypesManager.getInstance().moduleTables_by_voType[LangVO.API_TYPE_ID], [
@@ -151,6 +161,13 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+
+        crud.reset_newvo_after_each_creation = true;
+        crud.hook_prepare_new_vo_for_creation = async (vo: UserVO) => {
+            // On génère un mot de passe par défaut
+
+            vo.password = TextHandler.getInstance().generatePassword();
+        };
 
         return crud;
     }

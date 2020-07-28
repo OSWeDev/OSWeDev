@@ -34,14 +34,19 @@
         template(v-else-if="field.type == 'ManyToOne'")
             template(v-if="field_value")
                 template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___']))")
-                    router-link.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___'])" target='_blank') {{ field_value }}
+                    router-link.btn.btn-sm.btn-info.many_to_one(:to="getCRUDUpdateLink(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___'])" target='_blank')
+                        img(src='/vuejsclient/public/img/many_to_one.svg')
+                        | {{ field_value }}
+                       
                 template(v-else)
                     span {{ field_value }}
         template(v-else-if="(field.type == 'ManyToMany') || (field.type == 'OneToMany')")
             template(v-if="field_value")
                 template(v-for="e in field_value")
                     template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id))")
-                        router-link.many-router-links.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id)" target='_blank') {{ e.label }}
+                        router-link.many-router-links.btn.btn-sm.btn-info(:class='["many_to_many", "one_to_many"][field.type == "ManyToMany" ? 0 : 1]' :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id)" target='_blank')
+                            img(:src='["/vuejsclient/public/img/many_to_many.svg", "/vuejsclient/public/img/one_to_many.svg"][field.type == "ManyToMany" ? 0 : 1]')
+                            | {{ e.label }}
                     template(v-else)
                         span {{ e.label }}
 

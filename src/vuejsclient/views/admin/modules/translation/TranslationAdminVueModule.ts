@@ -55,7 +55,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
 
             CRUDComponentManager.getInstance().registerCRUD(
                 LangVO.API_TYPE_ID,
-                null,
+                this.getLangCRUD(),
                 new MenuPointer(
                     new MenuLeaf("LangVOTranslationAdminVueModule", MenuElementBase.PRIORITY_ULTRALOW, "fa-language"),
                     translationMenuBranch),
@@ -92,6 +92,15 @@ export default class TranslationAdminVueModule extends VueModuleBase {
 
         CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
         CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[TranslationVO.API_TYPE_ID]);
+
+        return crud;
+    }
+
+    protected getLangCRUD(): CRUD<LangVO> {
+        let crud: CRUD<LangVO> = new CRUD<LangVO>(new Datatable<LangVO>(LangVO.API_TYPE_ID));
+
+        crud.readDatatable.pushField(new SimpleDatatableField("code_lang"));
+        crud.readDatatable.pushField(new SimpleDatatableField("code_flag"));
 
         return crud;
     }
