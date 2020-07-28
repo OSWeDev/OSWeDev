@@ -99,7 +99,7 @@
         "i18next-express-middleware": "1.1.1",
         "jquery": "3.4.1",
         "jqueryui": "1.11.1",
-        "lodash": "4.17.15",
+        "lodash": "4.17.19",
         "longjohn": "0.2.12",
         "messagepack": "1.1.10",
         "mkdirp": "0.5.1",
