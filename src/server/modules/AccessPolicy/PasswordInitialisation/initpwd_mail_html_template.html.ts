@@ -173,12 +173,12 @@ let template: string = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitiona
     '                <table class="container" border="0" cellpadding="0" cellspacing="0" width="620" style="width: 620px;">' +
     '                    <tr>' +
     '                        <td class="cta-block__title" style="padding: 35px 0 0 0; font-size: 26px; text-align: center;">' +
-    '                             %%TRAD%%mails.pwd.recovery.subject%%' +
+    '                             %%TRAD%%mails.pwd.initpwd.subject%%' +
     '                        </td>' +
     '                    </tr>' +
     '                    <tr>' +
     '                        <td class="cta-block__content" style="padding: 20px 0 27px 0; font-size: 16px; line-height: 27px; color: #969696; text-align: center;">' +
-    '                             %%TRAD%%mails.pwd.recovery.html%%' +
+    '                             %%TRAD%%mails.pwd.initpwd.html%%' +
     '                        </td>' +
     '                    </tr>' +
     '                    <tr>' +
@@ -187,7 +187,7 @@ let template: string = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitiona
     '                                <tr>' +
     '                                    <td class="cta-block__button" width="230" align="center" style="width: 200px;padding-bottom: 30px">' +
     '                                        <a href="%%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%" style="border: 3px solid #eeeeee; color: #969696; text-decoration: none; padding: 15px 45px; text-transform: uppercase; display: block; text-align: center; font-size: 16px;">' +
-    '                                           %%TRAD%%mails.pwd.recovery.submit%%' +
+    '                                           %%TRAD%%mails.pwd.initpwd.submit%%' +
     '                                        </a>' +
     '                                    </td>' +
     '                                </tr>' +

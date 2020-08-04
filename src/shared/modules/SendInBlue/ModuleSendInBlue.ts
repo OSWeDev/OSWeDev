@@ -3,7 +3,6 @@ import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
-import ModuleSendInBlueController from './ModuleSendInBlueController';
 import SendInBlueVO from './vos/SendInBlueVO';
 
 export default class ModuleSendInBlue extends Module {
@@ -33,11 +32,6 @@ export default class ModuleSendInBlue extends Module {
         this.datatables = [];
 
         this.initializeSendInBlueVO();
-    }
-
-    public async hook_module_configure(): Promise<boolean> {
-        await ModuleSendInBlueController.getInstance().loadParam();
-        return true;
     }
 
     public initializeSendInBlueVO(): void {

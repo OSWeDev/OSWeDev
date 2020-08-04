@@ -107,7 +107,7 @@ export default class ModuleMailerServer extends ModuleServerBase {
      * @param cc
      * @param bcc
      */
-    private check_mail_whitelist(
+    public check_mail_whitelist(
         to: string | Address | Array<string | Address>,
         cc: string | Address | Array<string | Address>,
         bcc: string | Address | Array<string | Address>): boolean {

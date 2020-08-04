@@ -42,6 +42,7 @@ import AccessPolicyServerController from './AccessPolicyServerController';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
+import TextHandler from '../../../shared/tools/TextHandler';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -595,6 +596,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user_id);
 
         return await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
+    }
+
+    public async generate_challenge(user: UserVO) {
+
+        // on génère un code qu'on stocke dans le user en base (en datant) et qu'on envoie par mail
+        let challenge: string = TextHandler.getInstance().generateChallenge();
+        user.recovery_challenge = challenge;
+        console.debug("challenge:" + user.email + ':' + challenge + ':');
+        user.recovery_expiration = moment().utc(true).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours').valueOf();
+        await ModuleDAO.getInstance().insertOrUpdateVO(user);
     }
 
     public async change_lang(param: NumberParamVO): Promise<void> {
