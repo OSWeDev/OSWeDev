@@ -3,6 +3,7 @@
 import { Stats, statSync } from 'fs';
 import EnvParam from '../../server/env/EnvParam';
 import ThreadHandler from './ThreadHandler';
+import ConsoleHandler from './ConsoleHandler';
 
 export default class FileHandler {
 
@@ -37,6 +38,8 @@ export default class FileHandler {
             has_changes = false;
 
             let stats: Stats = statSync(filename);
+
+            ConsoleHandler.getInstance().log(JSON.stringify(stats));
 
             if ((!old_mtimeMs) || (stats.mtimeMs != old_mtimeMs)) {
                 old_mtimeMs = stats.mtimeMs;
