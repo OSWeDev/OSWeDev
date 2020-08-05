@@ -37,6 +37,22 @@ export default class PasswordInitialisation {
             return false;
         }
 
+        return await this.begininitpwd_user(user);
+    }
+
+    public async begininitpwd_uid(uid: number): Promise<boolean> {
+
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
+
+        if (!user) {
+            return false;
+        }
+
+        return await this.begininitpwd_user(user);
+    }
+
+    public async begininitpwd_user(user: UserVO): Promise<boolean> {
+
         // On doit se comporter comme un server à ce stade
         let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
         httpContext.set('IS_CLIENT', false);
@@ -74,5 +90,6 @@ export default class PasswordInitialisation {
                 })
             });
         }
+        return true;
     }
 }

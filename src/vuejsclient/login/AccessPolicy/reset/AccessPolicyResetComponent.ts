@@ -25,6 +25,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
 
     private message: string = null;
     private status: boolean = false;
+    private show_init_link: boolean = false;
 
     private debounced_load_props = debounce(this.load_props, 100);
     private logo_url: string = null;
@@ -78,11 +79,27 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
 
         let reset_res: boolean = false;
         if (this.is_simplified) {
+
+            if (!await ModuleAccessPolicy.getInstance().checkCodeUID(this.prop_user_id, this.prop_challenge)) {
+                this.message = this.label('login.reset.code_invalid');
+                this.snotify.error(this.label('reset.code_invalid'));
+                this.status = false;
+                this.show_init_link = true;
+                return;
+            }
             reset_res = await ModuleAccessPolicy.getInstance().resetPwdUID(this.prop_user_id, this.prop_challenge, this.new_pwd1);
         } else {
+            if (!await ModuleAccessPolicy.getInstance().checkCode(this.email, this.challenge)) {
+                this.message = this.label('login.reset.code_invalid');
+                this.snotify.error(this.label('reset.code_invalid'));
+                this.status = false;
+                this.show_init_link = true;
+                return;
+            }
             reset_res = await ModuleAccessPolicy.getInstance().resetPwd(this.email, this.challenge, this.new_pwd1);
         }
 
+        this.show_init_link = false;
         if (reset_res) {
             this.snotify.success(this.label('reset.ok'));
             this.message = this.label('login.reset.answer_ok');
@@ -96,6 +113,20 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
             }
             this.status = false;
         }
+    }
+
+    private async send_init_pwd() {
+        if (this.is_simplified) {
+            await ModuleAccessPolicy.getInstance().begininitpwd_uid(this.prop_user_id);
+        } else {
+            await ModuleAccessPolicy.getInstance().begininitpwd(this.email);
+        }
+        this.snotify.success(this.label('reset.sent_init_pwd'));
+    }
+
+    @Watch('email')
+    private onchange_email() {
+        this.show_init_link = false;
     }
 
     private async load_logo_url() {

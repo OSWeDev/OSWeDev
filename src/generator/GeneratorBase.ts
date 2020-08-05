@@ -35,6 +35,7 @@ import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112Check
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import VendorBuilder from './vendor_builder/VendorBuilder';
+import Patch20200731MailParamsInit from './patchs/postmodules/Patch20200731MailParamsInit';
 
 export default abstract class GeneratorBase {
 
@@ -82,7 +83,8 @@ export default abstract class GeneratorBase {
             Patch20191126CreateDefaultRobotUserAccount.getInstance(),
             Patch20200131InitUserLogPolicies.getInstance(),
             Patch20200312ChangeResetPWDMailContent.getInstance(),
-            Patch20200325PresetExistingLangsChangeRights.getInstance()
+            Patch20200325PresetExistingLangsChangeRights.getInstance(),
+            Patch20200731MailParamsInit.getInstance()
         ];
     }
 

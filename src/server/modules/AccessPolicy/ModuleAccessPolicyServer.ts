@@ -29,6 +29,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
 import ServerBase from '../../ServerBase';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -39,10 +40,9 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
+import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
-import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
-import TextHandler from '../../../shared/tools/TextHandler';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
@@ -524,6 +524,20 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Mail init mdp'
         }, 'fields.labels.ref.user.__component__sendinitpwd.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Renvoyer le mail'
+        }, 'login.reset.send_init_pwd.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Pour des raisons de sécurité, le mail d\'initialisation du mot de passe a expiré. Vous devez faire une nouvelle procédure de récupération du mot de passe en cliquant sur "Renvoyer le mail" ou en utilisant la procédure d\'oubli de mot de passe sur la page de connexion.'
+        }, 'login.reset.code_invalid.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Dans la page de connexion, cliquez sur "oubli du mot de passe"'
+        }, 'reset.code_invalid.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mail renvoyé, merci de consulter votre messagerie'
+        }, 'reset.sent_init_pwd.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }
@@ -537,6 +551,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, this.beginRecover.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWDUID, this.resetPwdUID.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_checkCode, this.checkCode.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_checkCodeUID, this.checkCodeUID.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX, this.getAccessMatrix.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
@@ -546,6 +562,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd, this.begininitpwd.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
     }
 
     public async begininitpwd(param: StringParamVO): Promise<void> {
@@ -558,6 +575,18 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await PasswordInitialisation.getInstance().begininitpwd(param.text);
+    }
+
+    public async begininitpwd_uid(param: NumberParamVO): Promise<void> {
+        if ((!param) || (!param.num)) {
+            return;
+        }
+
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+            return;
+        }
+
+        await PasswordInitialisation.getInstance().begininitpwd_uid(param.num);
     }
 
     public async activate_policies_for_roles(policy_names: string[], role_names: string[]) {
@@ -986,6 +1015,24 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         return PasswordRecovery.getInstance().beginRecovery(param.text);
+    }
+
+    private async checkCode(params: ResetPwdParamVO): Promise<boolean> {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
+            return false;
+        }
+
+        return await PasswordReset.getInstance().checkCode(params.email, params.challenge);
+    }
+
+    private async checkCodeUID(params: ResetPwdUIDParamVO): Promise<boolean> {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
+            return false;
+        }
+
+        return await PasswordReset.getInstance().checkCodeUID(params.uid, params.challenge);
     }
 
     private async resetPwd(params: ResetPwdParamVO): Promise<boolean> {
