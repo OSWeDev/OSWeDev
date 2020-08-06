@@ -77,6 +77,8 @@ import ModuleTranslationServer from './Translation/ModuleTranslationServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
+import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageFormat';
+import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -411,7 +413,8 @@ export default abstract class ModuleServiceBase {
             ModuleFeedback.getInstance(),
             ModuleRequest.getInstance(),
             ModuleDocument.getInstance(),
-            ModuleFork.getInstance()
+            ModuleFork.getInstance(),
+            ModuleImageFormat.getInstance()
         ];
     }
 
@@ -450,7 +453,8 @@ export default abstract class ModuleServiceBase {
             ModuleFeedbackServer.getInstance(),
             ModuleRequestServer.getInstance(),
             ModuleDocumentServer.getInstance(),
-            ModuleForkServer.getInstance()
+            ModuleForkServer.getInstance(),
+            ModuleImageFormatServer.getInstance()
         ];
     }
 }
