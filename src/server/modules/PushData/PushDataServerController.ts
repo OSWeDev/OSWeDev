@@ -457,7 +457,7 @@ export default class PushDataServerController {
         notification.read = false;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
-        notification.vos = vos;
+        notification.vos = JSON.stringify(APIController.getInstance().try_translate_vos_to_api(vos));
         return notification;
     }
 }

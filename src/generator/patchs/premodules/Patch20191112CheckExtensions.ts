@@ -1,8 +1,9 @@
 /* istanbul ignore file: no unit tests on patchs */
 
 import { IDatabase } from 'pg-promise';
-import IGeneratorWorker from '../../IGeneratorWorker';
+import ConfigurationService from '../../../server/env/ConfigurationService';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import IGeneratorWorker from '../../IGeneratorWorker';
 
 export default class Patch20191112CheckExtensions implements IGeneratorWorker {
 
@@ -27,10 +28,14 @@ export default class Patch20191112CheckExtensions implements IGeneratorWorker {
      */
     public async work(db: IDatabase<any>) {
         try {
-            await db.one("SELECT * FROM pg_extension where extname = 'btree_gist';");
-            await db.one("SELECT * FROM pg_extension where extname = 'pgcrypto';");
+            await db.query("CREATE EXTENSION IF NOT EXISTS btree_gist;");
+            await db.query("CREATE EXTENSION IF NOT EXISTS pgcrypto;");
+            await db.query("CREATE EXTENSION IF NOT EXISTS cube;");
+            await db.query("CREATE EXTENSION IF NOT EXISTS earthdistance;");
+            await db.query("ALTER ROLE " + ConfigurationService.getInstance().getNodeConfiguration().BDD_OWNER + " NOSUPERUSER;");
+
         } catch (error) {
-            ConsoleHandler.getInstance().error('Les extensions suivantes sont obligatoires: "btree_gist" et "pgcrypto". Erreur: ' + error);
+            ConsoleHandler.getInstance().error('Le rôle de la base doit être initialement configuré en superuser. Ce patch supprime ensuite le droit superuser. Les extensions suivantes sont obligatoires: "btree_gist" et "pgcrypto". Erreur: ' + error);
             throw new Error('Les extensions suivantes sont obligatoires: "btree_gist" et "pgcrypto".');
         }
     }

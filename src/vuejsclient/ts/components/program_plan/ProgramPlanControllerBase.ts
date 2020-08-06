@@ -1,20 +1,21 @@
 import { EventObjectInput, View } from 'fullcalendar';
-import IPlanContact from '../../../../shared/modules/ProgramPlan/interfaces/IPlanContact';
+import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import Module from '../../../../shared/modules/Module';
+import ModulesManager from '../../../../shared/modules/ModulesManager';
 import IPlanFacilitator from '../../../../shared/modules/ProgramPlan/interfaces/IPlanFacilitator';
 import IPlanRDV from '../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanTarget from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import IPlanTask from '../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 import ModuleProgramPlanBase from '../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueAppBase from '../../../VueAppBase';
-import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 
 export default abstract class ProgramPlanControllerBase {
 
-    public static getInstance() {
-        return ProgramPlanControllerBase.instance;
+    public static getInstance(name: string) {
+        return ProgramPlanControllerBase.controller_by_name[name];
     }
 
-    private static instance: ProgramPlanControllerBase = null;
+    protected static controller_by_name: { [name: string]: ProgramPlanControllerBase } = {};
 
     public load_rdv_on_segment_change: boolean = true;
 
@@ -32,7 +33,8 @@ export default abstract class ProgramPlanControllerBase {
 
     public customOverviewProgramPlanComponent = null;
 
-    protected constructor(
+    public constructor(
+        public name: string,
         public customPrepCreateComponent,
         public customPrepReadComponent,
         public customPrepUpdateComponent,
@@ -45,11 +47,15 @@ export default abstract class ProgramPlanControllerBase {
         public month_view: boolean = true,
         public use_print_component: boolean = true
     ) {
-        ProgramPlanControllerBase.instance = this;
+        ProgramPlanControllerBase.controller_by_name[name] = this;
     }
 
-    public getResourceName(first_name, name) {
-        return name + ' ' + first_name.substring(0, 1) + '.';
+    get shared_module(): Module {
+        return ModulesManager.getInstance().getModuleByNameAndRole(this.name, Module.SharedModuleRoleName) as Module;
+    }
+
+    get programplan_shared_module(): ModuleProgramPlanBase {
+        return this.shared_module as ModuleProgramPlanBase;
     }
 
     /**
@@ -106,16 +112,16 @@ export default abstract class ProgramPlanControllerBase {
         let rdv: IPlanRDV = getRdvsByIds[event.rdv_id];
 
         switch (rdv.state) {
-            case ModuleProgramPlanBase.RDV_STATE_CONFIRMED:
+            case this.programplan_shared_module.RDV_STATE_CONFIRMED:
                 icon = "fa-circle rdv-state-confirmed";
                 break;
-            case ModuleProgramPlanBase.RDV_STATE_CR_OK:
+            case this.programplan_shared_module.RDV_STATE_CR_OK:
                 icon = "fa-circle rdv-state-crok";
                 break;
-            case ModuleProgramPlanBase.RDV_STATE_PREP_OK:
+            case this.programplan_shared_module.RDV_STATE_PREP_OK:
                 icon = "fa-circle rdv-state-prepok";
                 break;
-            case ModuleProgramPlanBase.RDV_STATE_CREATED:
+            case this.programplan_shared_module.RDV_STATE_CREATED:
             default:
                 icon = "fa-circle rdv-state-created";
         }
@@ -128,37 +134,6 @@ export default abstract class ProgramPlanControllerBase {
      * Renvoie une instance de RDV
      */
     public abstract getRDVNewInstance(): IPlanRDV;
-
-    public getAddressHTMLFromTarget(target: IPlanTarget): string {
-        let res: string;
-
-        if ((!target) || (!target.address)) {
-            return null;
-        }
-
-        res = target.address + (target.cp ? '<br>' + target.cp : '') + (target.city ? '<br>' + target.city : '') + (target.country ? '<br>' + target.country : '');
-        return res;
-    }
-
-    public getContactInfosHTMLFromTarget(target_contacts: IPlanContact[]): string {
-        let res: string;
-
-        if ((!target_contacts) || (target_contacts.length <= 0)) {
-            return null;
-        }
-
-        for (let i in target_contacts) {
-            let target_contact = target_contacts[i];
-
-            res = (target_contact.firstname ? ((res != '') ? '<br><hr>' : '') + target_contact.firstname : '');
-            res += (target_contact.lastname ? ((res != '') ? ' ' : '') + target_contact.lastname : '');
-            res += (target_contact.mobile ? ((res != '') ? '<br>' : '') + target_contact.mobile : '');
-            res += (target_contact.mail ? ((res != '') ? '<br>' : '') + target_contact.mail : '');
-            res += (target_contact.infos ? ((res != '') ? '<br>' : '') + target_contact.infos : '');
-        }
-
-        return res;
-    }
 
     public async component_hook_onAsyncLoading(
         getStoredDatas: { [API_TYPE_ID: string]: { [id: number]: IDistantVOBase } },

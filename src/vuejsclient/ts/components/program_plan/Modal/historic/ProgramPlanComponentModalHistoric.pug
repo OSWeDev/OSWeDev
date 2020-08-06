@@ -8,12 +8,18 @@
                     .col-md-6
                         Vuefieldcomponent(isreadonly="true", :name="label('programplan.rdv_modal.facilitator_name')", :value="facilitatorName(rdv_historic)", v-show="!managerName(rdv_historic)")
                         Vuefieldcomponent(isreadonly="true", :name="label('programplan.rdv_modal.manager_name')", :value="facilitatorAndManagerName(rdv_historic)", v-show="managerName(rdv_historic)")
+                .row(v-if='has_prep')
+                    .col-md-12
+                        Programplancomponentmodalprep(
+                            :program_plan_shared_module='program_plan_shared_module'
+                            :program_plan_controller='program_plan_controller' 
+                            :selected_rdv="rdv_historic" :block_edition="true")
                 .row
                     .col-md-12
-                        Programplancomponentmodalprep(:selected_rdv="rdv_historic" :block_edition="true")
-                .row
-                    .col-md-12
-                        Programplancomponentmodalcr(:selected_rdv="rdv_historic" :block_edition="true")
+                        Programplancomponentmodalcr(
+                            :program_plan_shared_module='program_plan_shared_module'
+                            :program_plan_controller='program_plan_controller' 
+                            :selected_rdv="rdv_historic" :block_edition="true")
         template(v-else)
             .row
                 .col-md-12 {{ label('programplan.rdv_modal.no_historic') }}

@@ -54,7 +54,7 @@ export default class Patch20191106ForceAccessDefaultToVisionFCPP implements IGen
         policies_ids_by_name: { [policy_name: string]: number },
         role_id: number) {
 
-        await this.activate_policy(policies_ids_by_name[ModuleProgramPlanBase.POLICY_FO_SEE_FC], role_id, access_matrix);
+        // ATTENTION : Modifié après coup, cette conf devrait être dans le projet directement et incompatible 0.17.x await this.activate_policy(policies_ids_by_name[ModuleProgramPlanBase.POLICY_FO_SEE_FC], role_id, access_matrix);
     }
 
     private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {

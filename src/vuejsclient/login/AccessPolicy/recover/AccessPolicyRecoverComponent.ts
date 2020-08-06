@@ -3,6 +3,7 @@ import { Component } from "vue-property-decorator";
 import './AccessPolicyRecoverComponent.scss';
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 
 @Component({
     template: require('./AccessPolicyRecoverComponent.pug')
@@ -12,15 +13,12 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
     private email: string = "";
     private message: string = null;
 
-    get logo_url(): string {
-        let logo_url: string = ModuleSASSSkinConfigurator.getInstance().getParamValue('logo_url');
-        if (logo_url && (logo_url != '""') && (logo_url != '')) {
-            return logo_url;
-        }
-        return null;
-    }
+    private logo_url: string = null;
+
 
     private mounted() {
+        this.load_logo_url();
+
         for (let j in this.$route.query) {
             switch (j) {
                 case 'email':
@@ -28,6 +26,14 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
                     break;
             }
         }
+    }
+
+    private async load_logo_url() {
+        this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES + '.logo_url');
+        if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
+            return;
+        }
+        this.logo_url = null;
     }
 
     private async recover() {

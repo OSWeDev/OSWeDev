@@ -2,7 +2,7 @@ include ../../../views/mixins/loading.pug
 
 .rootElt#program-plan
     +loading()
-        program-plan-component-impression
+        program-plan-component-impression(:slot_interval='program_plan_controller.slot_interval')
 
         .row(v-if="!!custom_filter_component")
             .col-md-12
@@ -13,7 +13,10 @@ include ../../../views/mixins/loading.pug
                 .custom_overview_program_plan_component(:is="custom_overview_program_plan_component" @select_rdv="select_rdv" :valid_targets='valid_targets' :segment='fcSegment')
 
 
-        program-plan-component-target-listing.hidden-print(v-show='show_targets' v-if="can_edit_any")
+        program-plan-component-target-listing.hidden-print(
+            :program_plan_shared_module='program_plan_shared_module'
+            :program_plan_controller='program_plan_controller' 
+            v-show='show_targets' v-if="can_edit_any")
 
         .row.hidden-print(v-show='can_see_fc')
             input#pplan_date_input(type='date' v-model='calendar_date')
@@ -44,7 +47,10 @@ include ../../../views/mixins/loading.pug
                         router-link.btn.close(:to="route_path") &times;
                     
                     .modal-body
-                        program-plan-component-modal(:key='selected_rdv.id')
+                        program-plan-component-modal(
+                            :program_plan_shared_module='program_plan_shared_module'
+                            :program_plan_controller='program_plan_controller' 
+                            :key='selected_rdv.id')
 
                     .modal-footer
                         button.btn.btn-danger(type='button', @click="deleteSelectedEvent", v-if="can_edit_any") {{ label('programplan.rdv_modal.delete_rdv') }}

@@ -610,6 +610,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
+            moduleTable.forceNumeric(segmented_vo);
+
             // On filtre les vo suivant les droits d'accès
             return await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, segmented_vo);
         }

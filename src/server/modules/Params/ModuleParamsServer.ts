@@ -33,7 +33,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
     public async configure() {
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Paramètres' },
             'menu.menuelements.param.___LABEL___'));
     }

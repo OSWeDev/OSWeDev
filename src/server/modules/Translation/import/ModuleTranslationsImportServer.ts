@@ -98,7 +98,7 @@ export default class ModuleTranslationsImportServer extends DataImportModuleBase
 
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
-            ImportLogger.getInstance().log(historic, format, "Erreur de posttraitement : " + error, DataImportLogVO.LOG_LEVEL_FATAL);
+            await ImportLogger.getInstance().log(historic, format, "Erreur de posttraitement : " + error, DataImportLogVO.LOG_LEVEL_FATAL);
             res = false;
         }
         return res;

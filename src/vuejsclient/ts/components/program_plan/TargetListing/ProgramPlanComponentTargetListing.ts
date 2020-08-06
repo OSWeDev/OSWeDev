@@ -1,14 +1,15 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
-import VueComponentBase from '../../VueComponentBase';
-import ProgramPlanComponentRDV from '../RDV/ProgramPlanComponentRDV';
 import IPlanEnseigne from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanEnseigne';
-import './ProgramPlanComponentTargetListing.scss';
-import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';
-import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
+import IPlanTarget from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
 import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
-import WeightHandler from '../../../../../shared/tools/WeightHandler';
+import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
 import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
+import WeightHandler from '../../../../../shared/tools/WeightHandler';
+import VueComponentBase from '../../VueComponentBase';
+import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
+import ProgramPlanComponentRDV from '../RDV/ProgramPlanComponentRDV';
+import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';
+import './ProgramPlanComponentTargetListing.scss';
 
 @Component({
     template: require('./ProgramPlanComponentTargetListing.pug'),
@@ -29,6 +30,12 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
 
     @ModuleProgramPlanGetter
     public get_tasks_by_ids: { [id: number]: IPlanTask };
+
+    @Prop({ default: null })
+    private program_plan_shared_module: ModuleProgramPlanBase;
+
+    @Prop({ default: null })
+    private program_plan_controller: ProgramPlanControllerBase;
 
     private filtre_etablissement = null;
 
@@ -54,7 +61,7 @@ export default class ProgramPlanComponentTargetListing extends VueComponentBase 
     private opened: boolean = true;
 
     get use_targets(): boolean {
-        return !ModuleProgramPlanBase.getInstance().task_type_id;
+        return !this.program_plan_shared_module.task_type_id;
     }
 
     get filtered_ordered_targets(): IPlanTarget[] {

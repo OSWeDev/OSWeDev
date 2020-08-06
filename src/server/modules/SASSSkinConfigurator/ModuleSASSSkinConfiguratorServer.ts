@@ -3,6 +3,7 @@ import ModuleSASSSkinConfigurator from '../../../shared/modules/SASSSkinConfigur
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleFileServer from '../File/ModuleFileServer';
 import ModuleServerBase from '../ModuleServerBase';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 
 export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
@@ -23,9 +24,20 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
 
         return new Promise(async (resolve, reject) => {
 
-            let fileContent = this.getFileContent();
             try {
 
+                for (let param_name in ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES) {
+                    let default_value: string = ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[param_name];
+
+                    let param_value: string = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name);
+                    if ((!param_value) && (!!default_value)) {
+                        await ModuleParams.getInstance().setParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.' + param_name, default_value);
+                    } else {
+                        ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES[param_name] = param_value;
+                    }
+                }
+
+                let fileContent = this.getFileContent();
                 await ModuleFileServer.getInstance().makeSureThisFolderExists('./src/vuejsclient/scss/generated/');
                 await ModuleFileServer.getInstance().writeFile('./src/vuejsclient/scss/generated/skin-variables.scss', fileContent);
             } catch (error) {
@@ -40,19 +52,19 @@ export default class ModuleSASSSkinConfiguratorServer extends ModuleServerBase {
     private getFileContent() {
         let fileContent = "";
 
-        fileContent += this.getSassVariablesDefinition(ModuleSASSSkinConfigurator.getInstance().fields);
+        fileContent += this.getSassVariablesDefinition(ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES);
 
         return fileContent;
     }
 
-    private getSassVariablesDefinition(variables: Array<ModuleTableField<string>>): string {
+    private getSassVariablesDefinition(variables: { [param_name: string]: string }): string {
 
         let res = '';
 
-        for (let i in variables) {
-            let variable: ModuleTableField<string> = variables[i];
+        for (let param_name in variables) {
+            let value: string = variables[param_name];
 
-            res = res + this.getSassVariableDefinition(variable.field_id, variable.field_value) + '\n';
+            res = res + this.getSassVariableDefinition(param_name, value) + '\n';
         }
         return res;
     }

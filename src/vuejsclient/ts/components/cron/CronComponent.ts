@@ -1,8 +1,9 @@
 import Component from 'vue-class-component';
 import ModuleCron from '../../../../shared/modules/Cron/ModuleCron';
-import VueComponentBase from '../../../ts/components/VueComponentBase';
 import CronWorkerPlanification from '../../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import VueComponentBase from '../../../ts/components/VueComponentBase';
+import './CronComponent.scss';
 
 @Component({
     template: require('./CronComponent.pug'),
