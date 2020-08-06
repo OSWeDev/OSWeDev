@@ -36,6 +36,7 @@ import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/P
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import VendorBuilder from './vendor_builder/VendorBuilder';
 import Patch20200731MailParamsInit from './patchs/postmodules/Patch20200731MailParamsInit';
+import Patch20200806InitBaseImageFormats from './patchs/postmodules/Patch20200806InitBaseImageFormats';
 
 export default abstract class GeneratorBase {
 
@@ -84,7 +85,8 @@ export default abstract class GeneratorBase {
             Patch20200131InitUserLogPolicies.getInstance(),
             Patch20200312ChangeResetPWDMailContent.getInstance(),
             Patch20200325PresetExistingLangsChangeRights.getInstance(),
-            Patch20200731MailParamsInit.getInstance()
+            Patch20200731MailParamsInit.getInstance(),
+            Patch20200806InitBaseImageFormats.getInstance()
         ];
     }
 
