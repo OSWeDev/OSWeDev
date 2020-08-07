@@ -86,15 +86,6 @@ export default class CumulativVarController {
     //         return null;
     //     }
 
-    //     let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
-    //     if (!moduletable) {
-    //         return null;
-    //     }
-
-    //     if (!moduletable.isMatroidTable) {
-    //         return null;
-    //     }
-
     //     let end_date = moment(target);
     //     let start_date = null;
 

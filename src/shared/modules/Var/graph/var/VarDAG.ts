@@ -93,13 +93,6 @@ export default class VarDAG extends DAG<VarDAGNode> {
 
             if (reload_on_register) {
                 // On doit aussi clean le node pour le remettre à 0 pour les calculs à venir
-                if (VarsController.getInstance().imported_datas_by_var_id && VarsController.getInstance().imported_datas_by_var_id[param.var_id]) {
-                    delete VarsController.getInstance().imported_datas_by_var_id[param.var_id][index];
-                }
-                if (VarsController.getInstance().imported_datas_by_index && VarsController.getInstance().imported_datas_by_index[index]) {
-                    delete VarsController.getInstance().imported_datas_by_index[index];
-                }
-
                 if (VarsController.getInstance().varDatasBATCHCache && VarsController.getInstance().varDatasBATCHCache[index]) {
                     delete VarsController.getInstance().varDatasBATCHCache[index];
                 }
@@ -110,7 +103,6 @@ export default class VarDAG extends DAG<VarDAGNode> {
                     delete VarsController.getInstance().varDatasStaticCache[index];
                 }
 
-                node.setImportedData(null, this);
                 node.loaded_datas_matroids = null;
                 node.computed_datas_matroids = null;
                 node.loaded_datas_matroids_sum_value = null;

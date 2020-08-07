@@ -169,23 +169,6 @@ export default class VarDescComponent extends VueComponentBase {
         return this.t(VarsController.getInstance().get_translatable_description_code(this.var_param.var_id));
     }
 
-    get ismatroid(): boolean {
-        if (!this.var_param) {
-            return null;
-        }
-
-        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
-
-        if (!controller) {
-            return null;
-        }
-
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
-
-        return moduletable && moduletable.isMatroidTable;
-    }
-
-
     public async get_copy_with_explaining_fields(matroid): Promise<IVarDataParamVOBase> {
         if ((!this.var_param) || (!matroid)) {
             return null;
@@ -340,7 +323,7 @@ export default class VarDescComponent extends VueComponentBase {
     }
 
     @Watch('var_param', { immediate: true })
-    private async  onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+    private async onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
@@ -394,7 +377,7 @@ export default class VarDescComponent extends VueComponentBase {
         await this.update_var_infos();
     }
 
-    private async  set_loaded_datas_matroids_desc(): Promise<void> {
+    private async set_loaded_datas_matroids_desc(): Promise<void> {
         if (!this.var_index) {
             this.loaded_datas_matroids_desc = null;
         }

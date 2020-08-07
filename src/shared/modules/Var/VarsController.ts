@@ -91,8 +91,6 @@ export default class VarsController {
     public registered_var_callbacks: { [index: string]: VarUpdateCallback[] } = {};
 
     public registered_var_data_api_types: { [api_type: string]: boolean } = {};
-    public imported_datas_by_index: { [index: string]: IVarDataVOBase } = {};
-    public imported_datas_by_var_id: { [var_id: number]: { [index: string]: IVarDataVOBase } } = {};
 
     public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void = null;
 
@@ -282,41 +280,6 @@ export default class VarsController {
         // }
     }
 
-    /**
-     * 2 objectifs : mettre à jour le cache du batch en cours, et mettre à jour le store pour les datas qui sont affichées
-     * @param imported_datas
-     */
-    public setImportedDatas<T extends IVarDataVOBase>(imported_datas: { [var_id: number]: { [param_index: string]: T } }) {
-
-        if (!imported_datas) {
-            return null;
-        }
-
-        for (let var_id_s in imported_datas) {
-            let var_id: number = parseInt(var_id_s.toString());
-
-            // let BATCH_UID: number = this.BATCH_UIDs_by_var_id[var_id];
-
-            // if (!((BATCH_UID != null) && (typeof BATCH_UID != 'undefined'))) {
-            //     ConsoleHandler.getInstance().error('setImportedDatasInBatchCache:Tried set datas in unknown batch');
-            //     return;
-            // }
-
-            this.varDatasBATCHCache = imported_datas[var_id_s];
-
-            // Pour des raisons de perf on laisse le système des vars mettre à jour le cache à la fin du calcul uniquement
-            // // On met à jour le store pour l'affichage directement ici par ce qu'on peut déjà afficher les datas issues d'un import
-            // for (let j in imported_datas[var_id_s]) {
-            //     let imported_data: T = imported_datas[var_id_s][j];
-            //     if (!!this.varDAG.nodes[this.getIndex(imported_data)]) {
-            //         if (!!this.setVarData_) {
-            //             this.setVarData_(imported_data);
-            //         }
-            //     }
-            // }
-        }
-    }
-
     public getVarData<T extends IVarDataVOBase>(param: IVarDataParamVOBase, search_in_batch_cache: boolean = false): T {
         let index: string = this.getIndex(param);
 
@@ -500,18 +463,6 @@ export default class VarsController {
 
         this.loaded_imported_datas_of_vars_ids[param.var_id] = false;
 
-        if (remove_import) {
-            if (this.imported_datas_by_var_id) {
-                if (this.imported_datas_by_var_id[param.var_id]) {
-                    delete this.imported_datas_by_var_id[param.var_id][index];
-                }
-
-                delete this.imported_datas_by_index[index];
-            }
-
-            this.varDAG.nodes[index].setImportedData(null, this.varDAG);
-        }
-
         this.stageUpdateData(param, true);
     }
 
@@ -584,8 +535,6 @@ export default class VarsController {
             return;
         }
         VarsController.getInstance().varDAG.clearDAG();
-        this.imported_datas_by_index = {};
-        this.imported_datas_by_var_id = {};
         this.checked_var_indexes = {};
         this.loaded_imported_datas_of_vars_ids = {};
     }
@@ -806,11 +755,6 @@ export default class VarsController {
             return null;
         }
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[conf.var_data_vo_type];
-        if (!moduletable.isMatroidTable) {
-            return null;
-        }
-
         if (max_inclusiv) {
             TimeSegmentHandler.getInstance().incMoment(target, controller.segment_type, 1);
             TimeSegmentHandler.getInstance().forceStartSegment(target, controller.segment_type);
@@ -848,11 +792,6 @@ export default class VarsController {
         let conf = controller.varConf;
 
         if (!conf) {
-            return;
-        }
-
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[conf.var_data_vo_type];
-        if (!moduletable.isMatroidTable) {
             return;
         }
 
@@ -907,11 +846,6 @@ export default class VarsController {
 
         if (!conf) {
             return false;
-        }
-
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[conf.var_data_vo_type];
-        if (!moduletable.isMatroidTable) {
-            return true;
         }
 
         let tsranged_param = param as ITSRangesVarDataParam;
@@ -1107,10 +1041,6 @@ export default class VarsController {
             this.setUpdatingDatas(true);
         }
 
-        // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
-        //  ou manuellement en éditant le noeud du varDAG)
-        await this.loadImportedDatas();
-
         // Si des deps restent à résoudre, on les gère à ce niveau. On part du principe maintenant qu'on interdit une dep à un datasource pour le
         //  chargement des deps. ça va permettre de booster très fortement les chargements de données. Si un switch impact une dep de var, il
         //  faut l'avoir en param d'un constructeur de var et le changement du switch sera à prendre en compte dans la var au cas par cas.
@@ -1201,10 +1131,6 @@ export default class VarsController {
             return;
         }
 
-        // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
-        //  ou manuellement en éditant le noeud du varDAG)
-        await this.loadImportedDatas();
-
         // Si des deps restent à résoudre, on les gère à ce niveau. On part du principe maintenant qu'on interdit une dep à un datasource pour le
         //  chargement des deps. ça va permettre de booster très fortement les chargements de données. Si un switch impact une dep de var, il
         //  faut l'avoir en param d'un constructeur de var et le changement du switch sera à prendre en compte dans la var au cas par cas.
@@ -1293,10 +1219,6 @@ export default class VarsController {
                 if (!!this.setUpdatingDatas) {
                     this.setUpdatingDatas(true);
                 }
-
-                // On charge les données importées si c'est pas encore fait (une mise à jour de donnée importée devra être faite via registration de dao
-                //  ou manuellement en éditant le noeud du varDAG)
-                await this.loadImportedDatas();
 
                 if ((!!this.is_stepping) && this.setStepNumber) {
                     this.setIsWaiting(true);
@@ -1494,14 +1416,6 @@ export default class VarsController {
     private markNoeudsAGererImportMatroids(marker_todo: string, marker_ok: string) {
         for (let marker_name in this.varDAG.marked_nodes_names) {
             if (!marker_name.startsWith(VarDAG.VARDAG_MARKER_VAR_ID)) {
-                continue;
-            }
-
-            let var_id: number = parseInt(marker_name.replace(VarDAG.VARDAG_MARKER_VAR_ID, ""));
-
-            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(var_id).var_data_vo_type];
-
-            if (!moduletable.isMatroidTable) {
                 continue;
             }
 
@@ -1909,90 +1823,6 @@ export default class VarsController {
 
             //  5- On recommence avec la liste des noeuds à gérer mise à jour
             noeuds_a_gerer = this.getNoeudsAGererImportMatroids(marker_todo);
-        }
-    }
-
-    /**
-     * Troisième version : on charge toutes les datas de toutes les var_ids présents dans l'arbre ou dont dépendent des éléments de l'arbre
-     * Attention, on ne recharge plus les datasd importées de vars déjà chargées. Il faut les mettre à jour au besoin par ailleurs
-     */
-    private async loadImportedDatas() {
-
-        let var_ids: number[] = [];
-        let all_ids: number[] = [];
-        for (let marker_name in this.varDAG.marked_nodes_names) {
-            if (!marker_name.startsWith(VarDAG.VARDAG_MARKER_VAR_ID)) {
-                continue;
-            }
-
-            let var_id: number = parseInt(marker_name.replace(VarDAG.VARDAG_MARKER_VAR_ID, ""));
-
-            if (!!this.loaded_imported_datas_of_vars_ids[var_id]) {
-                continue;
-            }
-
-            if (all_ids.indexOf(var_id) < 0) {
-
-                all_ids.push(var_id);
-
-                let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[this.getVarConfById(var_id).var_data_vo_type];
-                if (moduletable && moduletable.isMatroidTable) {
-                    continue;
-                }
-
-                var_ids.push(var_id);
-                this.loaded_imported_datas_of_vars_ids[var_id] = true;
-                this.populateListVarIds(var_id, var_ids);
-            }
-        }
-
-        let var_imported_data_vo_types: string[] = [];
-        let var_ids_by_imported_data_vo_types: { [var_imported_data_vo_type: string]: number[] } = {};
-        for (let i in var_ids) {
-            let varConf: VarConfVOBase = this.getVarConfById(var_ids[i]);
-
-            if (var_imported_data_vo_types.indexOf(varConf.var_data_vo_type) < 0) {
-                var_imported_data_vo_types.push(varConf.var_data_vo_type);
-                var_ids_by_imported_data_vo_types[varConf.var_data_vo_type] = [];
-            }
-
-            if (var_ids_by_imported_data_vo_types[varConf.var_data_vo_type].indexOf(var_ids[i]) < 0) {
-
-                var_ids_by_imported_data_vo_types[varConf.var_data_vo_type].push(var_ids[i]);
-            }
-        }
-
-        let promises = [];
-        for (let i in var_imported_data_vo_types) {
-            let var_imported_data_vo_type: string = var_imported_data_vo_types[i];
-
-            promises.push((async () => {
-                await this.loadVarImportedDataVoType(var_imported_data_vo_type, var_ids_by_imported_data_vo_types[var_imported_data_vo_type]);
-            })());
-        }
-        await Promise.all(promises);
-    }
-
-    private async loadVarImportedDataVoType(var_imported_data_vo_type: string, var_ids: number[]): Promise<void> {
-        let importeds: IVarDataVOBase[] = await ModuleDAO.getInstance().getVosByRefFieldIds<IVarDataVOBase>(
-            var_imported_data_vo_type, 'var_id', var_ids);
-
-        if (importeds) {
-            for (let j in importeds) {
-                let imported: IVarDataVOBase = importeds[j];
-                let importedIndex: string = this.getIndex(imported);
-
-                // Stocke tout et si on peut on met à jour les nodes existants
-                if (!!this.varDAG.nodes[importedIndex]) {
-                    this.varDAG.nodes[importedIndex].setImportedData(imported, this.varDAG);
-                }
-
-                if (!this.imported_datas_by_var_id[imported.var_id]) {
-                    this.imported_datas_by_var_id[imported.var_id] = {};
-                }
-                this.imported_datas_by_var_id[imported.var_id][importedIndex] = imported;
-                this.imported_datas_by_index[importedIndex] = imported;
-            }
         }
     }
 

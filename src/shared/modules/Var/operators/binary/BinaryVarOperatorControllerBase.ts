@@ -61,14 +61,6 @@ export default abstract class BinaryVarOperatorControllerBase<
     public updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): TData {
 
         let param: TDataParam = varDAGNode.param as TDataParam;
-        let index: string = VarsController.getInstance().getIndex(param);
-
-        // Si importé, on renvoie la valeur importée, sinon on fait le calcul
-        if (VarsController.getInstance().varDAG.nodes[index].hasMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA)) {
-
-            VarsController.getInstance().setVarData(VarsController.getInstance().varDAG.nodes[index].imported, true);
-            return;
-        }
 
         let res: TData = Object.assign(this.varDataConstructor(), param);
         res.var_id = this.varConf.id;

@@ -9,10 +9,6 @@ import ModulesManager from '../../../ModulesManager';
 
 export default class VarDAGNode extends DAGNode {
 
-
-    // Old version : sans matroids
-    public imported: IVarDataVOBase = null;
-
     // New version : with matroids
     public loaded_datas_matroids: IVarMatroidDataVO[] = null;
     public computed_datas_matroids: IVarMatroidDataVO[] = null;
@@ -50,13 +46,7 @@ export default class VarDAGNode extends DAGNode {
     public constructor(name: string, dag: VarDAG, public param: IVarDataParamVOBase) {
         super(name, dag);
 
-        // TODO FIXME VARS : ICI on force les matroids à ne pas dep de vars normales, et on saute l'étape de deps des vars classiques
-        // let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[param._type];
-        // if (moduletable.isMatroidTable) {
-        //     this.addMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, dag);
-        // } else {
         this.addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, dag);
-        // }
 
         // On en profite pour afficher l'info de la nécessité ou non de chargement de data pour les matroids
         let var_controller = VarsController.getInstance().getVarControllerById(param.var_id);
@@ -71,28 +61,10 @@ export default class VarDAGNode extends DAGNode {
         this.needs_parent_to_load_precompiled_or_imported_data = false;
     }
 
-    public setImportedData(imported: IVarDataVOBase, dag: VarDAG) {
-
-        if (!this.hasMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA) && imported) {
-            this.addMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA, dag);
-        }
-
-        // Si pas d'import, on considère que l'on veut le supprimer
-        if (!imported) {
-            if (this.hasMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA)) {
-                this.removeMarker(VarDAG.VARDAG_MARKER_IMPORTED_DATA, dag);
-            }
-        }
-
-        this.imported = imported;
-    }
-
     public initializeNode(dag: VarDAG) {
         super.initializeNode(dag);
         this.addMarker(VarDAG.VARDAG_MARKER_VAR_ID + this.param.var_id, dag);
-        if (VarsController.getInstance().imported_datas_by_index[this.name]) {
-            this.setImportedData(VarsController.getInstance().imported_datas_by_index[this.name], dag);
-        }
+
     }
 
     public getD3NodeDefinition(use_var_name_as_label: boolean = false): any {
