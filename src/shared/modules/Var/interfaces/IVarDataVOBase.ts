@@ -10,6 +10,4 @@ export default interface IVarDataVOBase extends IDistantVOBase, IVarDataParamVOB
 
     value_type: number;
     value_ts: Moment;
-
-    missing_datas_infos: string[];
 }

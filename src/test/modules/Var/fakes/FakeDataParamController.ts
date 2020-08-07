@@ -4,6 +4,7 @@ import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import VarDataParamControllerBase from '../../../../shared/modules/Var/VarDataParamControllerBase';
 import FakeDataParamVO from './vos/FakeDataParamVO';
 import FakeDataVO from './vos/FakeDataVO';
+import RangeHandler from '../../../../shared/tools/RangeHandler';
 
 export default class FakeDataParamController extends VarDataParamControllerBase<FakeDataVO, FakeDataParamVO> {
 
@@ -26,16 +27,14 @@ export default class FakeDataParamController extends VarDataParamControllerBase<
     public cloneParam(param: FakeDataParamVO): FakeDataParamVO {
         let res: FakeDataParamVO = new FakeDataParamVO();
 
-        res.date_index = param.date_index;
-        res.fake_y_id = param.fake_y_id;
-        res.fake_z_id = param.fake_z_id;
+        res.ts_ranges = RangeHandler.getInstance().cloneArrayFrom(param.ts_ranges);
         res.var_id = param.var_id;
 
         return res;
     }
 
     public getImpactedParamsList(paramUpdated: FakeDataParamVO, paramsRegisteredByIndex: { [index: string]: FakeDataParamVO }): FakeDataParamVO[] {
-        if ((!paramUpdated) || (!paramUpdated.date_index) || (!paramsRegisteredByIndex)) {
+        if ((!paramUpdated) || (!paramUpdated.ts_ranges) || (!paramsRegisteredByIndex)) {
             return null;
         }
 
@@ -45,9 +44,7 @@ export default class FakeDataParamController extends VarDataParamControllerBase<
             let paramRegistered: FakeDataParamVO = paramsRegisteredByIndex[index];
 
             if ((paramRegistered.var_id == paramUpdated.var_id) &&
-                (paramUpdated.fake_y_id == paramRegistered.fake_y_id) &&
-                (paramUpdated.fake_z_id == paramRegistered.fake_z_id) &&
-                moment(paramRegistered.date_index).isAfter(moment(paramUpdated.date_index))) {
+                RangeHandler.getInstance().any_range_intersects_any_range(paramRegistered.ts_ranges, paramUpdated.ts_ranges)) {
                 res.push(paramRegistered);
             }
         }
@@ -59,34 +56,8 @@ export default class FakeDataParamController extends VarDataParamControllerBase<
 
         res += param.var_id;
 
-        res += "_" + (param.date_index ? param.date_index : "");
-        res += "_" + (param.fake_y_id ? param.fake_y_id : "");
-        res += "_" + (param.fake_z_id ? param.fake_z_id : "");
+        res += "_" + RangeHandler.getInstance().getIndexRanges(param.ts_ranges);
 
         return res;
-    }
-
-    protected compareParams(paramA: FakeDataParamVO, paramB: FakeDataParamVO) {
-
-        if ((!paramA) || (!paramB)) {
-            return null;
-        }
-
-        let diff: number = paramA.fake_y_id - paramB.fake_y_id;
-
-        if (diff) {
-            return diff;
-        }
-
-        diff = paramA.fake_z_id - paramB.fake_z_id;
-
-        if (diff) {
-            return diff;
-        }
-
-        let momentA: Moment = moment(paramA.date_index);
-        let momentB: Moment = moment(paramB.date_index);
-
-        return momentA.diff(momentB);
     }
 }

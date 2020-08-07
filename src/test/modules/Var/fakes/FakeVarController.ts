@@ -70,7 +70,6 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
 
         let param: FakeDataParamVO = varDAGNode.param as FakeDataParamVO;
         let res: FakeDataVO = Object.assign({
-            datafound: true,
             value: 42,
             value_type: VarsController.VALUE_TYPE_COMPUTED,
             value_ts: moment(),

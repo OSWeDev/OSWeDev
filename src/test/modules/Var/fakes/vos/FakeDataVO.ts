@@ -7,7 +7,6 @@ export default class FakeDataVO extends FakeDataParamVO implements ISimpleNumber
     public static API_TYPE_ID: string = "fake_data";
 
     public _type: string = FakeDataVO.API_TYPE_ID;
-    public datafound: boolean;
 
     public value: number;
 

@@ -1,4 +1,5 @@
 import debounce = require('lodash/debounce');
+import { Moment } from 'moment';
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import ObjectHandler from '../../tools/ObjectHandler';
 import RangeHandler from '../../tools/RangeHandler';
@@ -21,7 +22,6 @@ import VarDAGDefineNodeDeps from './graph/var/visitors/VarDAGDefineNodeDeps';
 import VarDAGDefineNodePropagateRequest from './graph/var/visitors/VarDAGDefineNodePropagateRequest';
 import VarDAGMarkForDeletion from './graph/var/visitors/VarDAGMarkForDeletion';
 import VarDAGMarkForNextUpdate from './graph/var/visitors/VarDAGMarkForNextUpdate';
-import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
 import ISimpleNumberVarMatroidData from './interfaces/ISimpleNumberVarMatroidData';
 import ITSRangesVarDataParam from './interfaces/ITSRangesVarDataParam';
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
@@ -30,11 +30,10 @@ import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
 import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
 import ModuleVar from './ModuleVar';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
+import SimpleVarDataValueRes from './simple_vars/SimpleVarDataValueRes';
 import VarControllerBase from './VarControllerBase';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarUpdateCallback from './vos/VarUpdateCallback';
-import { Moment } from 'moment';
-import SimpleVarDataValueRes from './simple_vars/SimpleVarDataValueRes';
 const moment = require('moment');
 
 export default class VarsController {
@@ -466,17 +465,6 @@ export default class VarsController {
         this.stageUpdateData(param, true);
     }
 
-    public checkDateIndex<TDataParam extends IVarDataParamVOBase>(param: TDataParam): void {
-        // FIXME DIRTY test sur le date_index
-        if ((!param) || (!(param as any as IDateIndexedVarDataParam).date_index) || (this.checked_var_indexes[this._getIndex(param)]) || (!this.getVarControllerById(param.var_id))) {
-            return;
-        }
-
-        let date_indexed: IDateIndexedVarDataParam = param as any as IDateIndexedVarDataParam;
-        date_indexed.date_index = TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_indexed.date_index).utc(true), this.getVarControllerById(param.var_id).segment_type).dateIndex;
-        this.checked_var_indexes[this._getIndex(date_indexed)] = true;
-    }
-
     public registerDataParam<TDataParam extends IVarDataParamVOBase>(
         param: TDataParam,
         reload_on_register: boolean = false,
@@ -488,8 +476,6 @@ export default class VarsController {
             return false;
         }
 
-        // On check la validité de la date si daté
-        this.checkDateIndex(param);
         // Idem pour les compteurs matroids
         this.check_tsrange_on_resetable_var(param);
 
@@ -539,17 +525,6 @@ export default class VarsController {
         this.loaded_imported_datas_of_vars_ids = {};
     }
 
-    public getInclusiveEndParamTimeSegment<TDataParam extends IVarDataParamVOBase>(param: TDataParam): Moment {
-
-        if (!(param as any as IDateIndexedVarDataParam).date_index) {
-            return null;
-        }
-
-        let date_index: string = (param as any as IDateIndexedVarDataParam).date_index;
-        return TimeSegmentHandler.getInstance().getInclusiveEndTimeSegment(TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index).utc(true), this.getVarControllerById(param.var_id).segment_type));
-    }
-
-
     public unregisterCallbacks<TDataParam extends IVarDataParamVOBase>(param: TDataParam, var_callbacks_uids: number[]) {
 
         if (!param) {
@@ -574,8 +549,7 @@ export default class VarsController {
         param: TDataParam, reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false): Promise<IVarDataVOBase> {
 
         this.changeTsRanges(param);
-        // On check la validité de la date si daté
-        this.checkDateIndex(param);
+
         // Idem pour les compteurs matroids
         this.check_tsrange_on_resetable_var(param);
 
@@ -696,11 +670,6 @@ export default class VarsController {
         if (!param) {
             return null;
         }
-
-        this.checkDateIndex(param);
-        // TODO FIXME ASAP : A supprimer si on voit qu'il n'y a pas de problème
-        //  le but est de limiter ce contrôle qui peut couter cher
-        // this.check_tsrange_on_resetable_var(param);
 
         return this._getIndex(param);
     }

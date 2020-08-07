@@ -1,14 +1,17 @@
 import { expect } from 'chai';
 import 'mocha';
-import VarDAGDefineNodeDeps from '../../../shared/modules/Var/graph/var/visitors/VarDAGDefineNodeDeps';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import VarDAG from '../../../shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/var/VarDAGNode';
+import VarDAGDefineNodeDeps from '../../../shared/modules/Var/graph/var/visitors/VarDAGDefineNodeDeps';
 import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import VarsController from '../../../shared/modules/Var/VarsController';
-import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
 import SimpleVarConfVO from '../../../shared/modules/Var/simple_vars/SimpleVarConfVO';
+import VarsController from '../../../shared/modules/Var/VarsController';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import FakeVarController from '../Var/fakes/FakeVarController';
 import FakeDataParamVO from '../Var/fakes/vos/FakeDataParamVO';
+import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
+import moment = require('moment');
 
 describe('VarDAGDefineNodeDeps', () => {
 
@@ -195,25 +198,19 @@ describe('VarDAGDefineNodeDeps', () => {
             _type: 'fake_type',
             var_id: 1,
             id: undefined,
-            date_index: "2019-01-01",
-            fake_y_id: 1,
-            fake_z_id: 1
+            ts_ranges: [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-01").utc(true), TimeSegment.TYPE_DAY)]
         };
         let param2: FakeDataParamVO = {
             _type: 'fake_type',
             var_id: 1,
             id: undefined,
-            date_index: "2019-01-02",
-            fake_y_id: 1,
-            fake_z_id: 1
+            ts_ranges: [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-02").utc(true), TimeSegment.TYPE_DAY)]
         };
         let param3: FakeDataParamVO = {
             _type: 'fake_type',
             var_id: 1,
             id: undefined,
-            date_index: "2019-01-03",
-            fake_y_id: 1,
-            fake_z_id: 1
+            ts_ranges: [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-03").utc(true), TimeSegment.TYPE_DAY)]
         };
 
         let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(name, d, param), null);

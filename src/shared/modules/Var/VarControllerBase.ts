@@ -1,21 +1,18 @@
 import cloneDeep = require('lodash/cloneDeep');
 import ConsoleHandler from '../../tools/ConsoleHandler';
-import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
-import TimeSegment from '../DataRender/vos/TimeSegment';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
 import IMatroid from '../Matroid/interfaces/IMatroid';
 import VarDAG from './graph/var/VarDAG';
 import VarDAGNode from './graph/var/VarDAGNode';
-import IDateIndexedVarDataParam from './interfaces/IDateIndexedVarDataParam';
 import ISimpleNumberVarMatroidData from './interfaces/ISimpleNumberVarMatroidData';
 import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
+import ModuleVar from './ModuleVar';
 import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
+import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfVOBase from './vos/VarConfVOBase';
 const moment = require('moment');
-import VarCacheConfVO from './vos/VarCacheConfVO';
-import ModuleVar from './ModuleVar';
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
 
@@ -106,7 +103,6 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
             // Si on est sur des matroids, on doit créer la réponse nous mêmes
             //  en additionnant les imports/précalculs + les res de calcul des computed matroids
-            //  le datafound est true si l'un des computed est true
             let res_matroid: ISimpleNumberVarMatroidData = Object.assign({}, varDAGNode.param as TDataParam) as any;
 
             res_matroid.value = varDAGNode.loaded_datas_matroids_sum_value;
@@ -134,21 +130,6 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
             res.value_type = VarsController.VALUE_TYPE_COMPUTED;
         }
 
-        // On aggrège au passage les missing_datas_infos des childs vers ce noeud :
-        if ((typeof res.missing_datas_infos === 'undefined') || (!res.missing_datas_infos)) {
-            res.missing_datas_infos = [];
-        }
-
-        for (let i in varDAGNode.outgoingNames) {
-            let outgoing_name = varDAGNode.outgoingNames[i];
-            let outgoing_data = VarsController.getInstance().getVarData(varDAGNode.outgoing[outgoing_name].param, true);
-
-            if (outgoing_data && outgoing_data.missing_datas_infos && outgoing_data.missing_datas_infos.length) {
-
-                res.missing_datas_infos = res.missing_datas_infos.concat(outgoing_data.missing_datas_infos);
-            }
-        }
-
         VarsController.getInstance().setVarData(res, true);
     }
 
@@ -171,12 +152,6 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
                 continue;
             }
 
-            // DIRTY : on fait un peu au pif ici un filtre sur le date_index...
-
-            if (!!(param as IDateIndexedVarDataParam).date_index) {
-                (param as IDateIndexedVarDataParam).date_index = VarsController.getInstance().getVarControllerById(param.var_id).getTimeSegment(param).dateIndex;
-            }
-
             res_.push(param);
         }
 
@@ -190,23 +165,5 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
         varDAGNode: VarDAGNode,
         varDAG: VarDAG): IVarDataParamVOBase[];
 
-    protected getTimeSegment(param: TDataParam): TimeSegment {
-        let date_index: string = ((param as any) as IDateIndexedVarDataParam).date_index;
-
-        return TimeSegmentHandler.getInstance().getCorrespondingTimeSegment(moment(date_index).utc(true), this.segment_type);
-    }
-
     protected abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG, matroid_to_compute?: IMatroid): TData;
-
-    protected push_missing_datas_infos(var_data: TData, translatable_code: string) {
-        if (!var_data) {
-            return;
-        }
-
-        if (!var_data.missing_datas_infos) {
-            var_data.missing_datas_infos = [];
-        }
-
-        var_data.missing_datas_infos.push(translatable_code);
-    }
 }
