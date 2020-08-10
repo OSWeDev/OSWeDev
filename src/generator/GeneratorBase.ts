@@ -24,6 +24,7 @@ import Patch20200131InitUserLogPolicies from './patchs/postmodules/Patch20200131
 import Patch20200312ChangeResetPWDMailContent from './patchs/postmodules/Patch20200312ChangeResetPWDMailContent';
 import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
 import Patch20200731MailParamsInit from './patchs/postmodules/Patch20200731MailParamsInit';
+import Patch20200806InitBaseImageFormats from './patchs/postmodules/Patch20200806InitBaseImageFormats';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -84,7 +85,8 @@ export default abstract class GeneratorBase {
             Patch20200131InitUserLogPolicies.getInstance(),
             Patch20200312ChangeResetPWDMailContent.getInstance(),
             Patch20200325PresetExistingLangsChangeRights.getInstance(),
-            Patch20200731MailParamsInit.getInstance()
+            Patch20200731MailParamsInit.getInstance(),
+            Patch20200806InitBaseImageFormats.getInstance()
         ];
     }
 
