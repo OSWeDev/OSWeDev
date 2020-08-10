@@ -23,6 +23,7 @@ import Patch20191126CreateDefaultRobotUserAccount from './patchs/postmodules/Pat
 import Patch20200131InitUserLogPolicies from './patchs/postmodules/Patch20200131InitUserLogPolicies';
 import Patch20200312ChangeResetPWDMailContent from './patchs/postmodules/Patch20200312ChangeResetPWDMailContent';
 import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
+import Patch20200731MailParamsInit from './patchs/postmodules/Patch20200731MailParamsInit';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -35,7 +36,6 @@ import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112Check
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import VendorBuilder from './vendor_builder/VendorBuilder';
-import Patch20200731MailParamsInit from './patchs/postmodules/Patch20200731MailParamsInit';
 
 export default abstract class GeneratorBase {
 
@@ -115,10 +115,10 @@ export default abstract class GeneratorBase {
 
         await this.modulesService.register_all_modules(db, true);
 
-        console.log("ModulesClientInitializationDatasGenerator.getInstance().generate()");
-        await ModulesClientInitializationDatasGenerator.getInstance().generate();
         console.log("ModuleSASSSkinConfiguratorServer.getInstance().generate()");
         await ModuleSASSSkinConfiguratorServer.getInstance().generate();
+        console.log("ModulesClientInitializationDatasGenerator.getInstance().generate()");
+        await ModulesClientInitializationDatasGenerator.getInstance().generate();
 
         console.log("configure_server_modules...");
         await this.modulesService.configure_server_modules(null);
