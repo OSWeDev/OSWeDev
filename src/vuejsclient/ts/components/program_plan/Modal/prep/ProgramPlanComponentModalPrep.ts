@@ -18,6 +18,7 @@ import { ModuleDAOGetter } from '../../../dao/store/DaoStore';
 import VueFieldComponent from '../../../field/field';
 import VueComponentBase from '../../../VueComponentBase';
 import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
+import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanAction, ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalTargetInfos from '../target_infos/ProgramPlanComponentModalTargetInfos';
 import ICustomPrepCreateComponent from './interfaces/ICustomPrepCreateComponent';
@@ -90,6 +91,12 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
     })
     private block_edition: boolean;
 
+    @Prop({ default: null })
+    private program_plan_shared_module: ModuleProgramPlanBase;
+
+    @Prop({ default: null })
+    private program_plan_controller: ProgramPlanControllerBase;
+
     private rdv_confirmed: boolean = false;
 
     private user = VueAppController.getInstance().data_user;
@@ -99,9 +106,9 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
 
     private edited_prep: IPlanRDVPrep = null;
 
-    private custom_prep_create_component: ICustomPrepCreateComponent = ProgramPlanControllerBase.getInstance().customPrepCreateComponent;
-    private custom_prep_read_component: ICustomPrepReadComponent = ProgramPlanControllerBase.getInstance().customPrepReadComponent;
-    private custom_prep_update_component: ICustomPrepUpdateComponent = ProgramPlanControllerBase.getInstance().customPrepUpdateComponent;
+    private custom_prep_create_component: ICustomPrepCreateComponent = this.program_plan_controller.customPrepCreateComponent;
+    private custom_prep_read_component: ICustomPrepReadComponent = this.program_plan_controller.customPrepReadComponent;
+    private custom_prep_update_component: ICustomPrepUpdateComponent = this.program_plan_controller.customPrepUpdateComponent;
 
     @Watch('selected_rdv', { immediate: true })
     private async onChangeSelectedRDV() {
@@ -183,8 +190,8 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             }
 
             // TODO passer par une synchro via les notifs de dao ...
-            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([ModuleProgramPlanBase.getInstance().rdv_type_id]);
-            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, this.selected_rdv.id);
+            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
+            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, this.selected_rdv.id);
             this.updateRdv(rdv);
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -274,7 +281,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return null;
         }
 
-        return ProgramPlanControllerBase.getInstance().getResourceName(facilitator.firstname, facilitator.lastname);
+        return ProgramPlanTools.getResourceName(facilitator.firstname, facilitator.lastname);
     }
 
     get managerName() {
@@ -292,7 +299,7 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
             return null;
         }
 
-        return ProgramPlanControllerBase.getInstance().getResourceName(manager.firstname, manager.lastname);
+        return ProgramPlanTools.getResourceName(manager.firstname, manager.lastname);
     }
 
     get can_edit(): boolean {
@@ -406,8 +413,8 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                             self.setPrepById(prep);
 
                             // TODO passer par une synchro via les notifs de dao ...
-                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([ModuleProgramPlanBase.getInstance().rdv_type_id]);
-                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
+                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
+                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, prep.rdv_id);
                             self.updateRdv(rdv);
                         } catch (error) {
                             ConsoleHandler.getInstance().error(error);
@@ -460,8 +467,8 @@ export default class ProgramPlanComponentModalPrep extends VueComponentBase {
                             self.updatePrep(prep);
 
                             // TODO passer par une synchro via les notifs de dao ...
-                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([ModuleProgramPlanBase.getInstance().rdv_type_id]);
-                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(ModuleProgramPlanBase.getInstance().rdv_type_id, prep.rdv_id);
+                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([this.program_plan_shared_module.rdv_type_id]);
+                            let rdv = await ModuleDAO.getInstance().getVoById<IPlanRDV>(this.program_plan_shared_module.rdv_type_id, prep.rdv_id);
                             self.updateRdv(rdv);
                         } catch (error) {
                             ConsoleHandler.getInstance().error(error);

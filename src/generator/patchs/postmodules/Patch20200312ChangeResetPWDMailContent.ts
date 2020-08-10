@@ -7,6 +7,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class Patch20200312ChangeResetPWDMailContent implements IGeneratorWorker {
 
@@ -25,9 +26,6 @@ export default class Patch20200312ChangeResetPWDMailContent implements IGenerato
 
     private constructor() { }
 
-    /**
-     * On check tous les foreign keys et on compare le param cascade en bdd au param issu du code
-     */
     public async work(db: IDatabase<any>) {
 
         try {
@@ -38,6 +36,7 @@ export default class Patch20200312ChangeResetPWDMailContent implements IGenerato
             trad.translated = 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.';
             await ModuleDAO.getInstance().insertOrUpdateVO(trad);
         } catch (error) {
+            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
         }
     }
 }

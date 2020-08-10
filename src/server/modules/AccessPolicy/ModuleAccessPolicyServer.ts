@@ -29,6 +29,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
 import ServerBase from '../../ServerBase';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -39,6 +40,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import AccessPolicyCronWorkersHandler from './AccessPolicyCronWorkersHandler';
 import AccessPolicyServerController from './AccessPolicyServerController';
+import PasswordInitialisation from './PasswordInitialisation/PasswordInitialisation';
 import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 
@@ -54,6 +56,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private static instance: ModuleAccessPolicyServer = null;
 
     private debug_check_access: boolean = false;
+    private rights_have_been_preloaded: boolean = false;
 
     private constructor() {
         super(ModuleAccessPolicy.getInstance().name);
@@ -63,6 +66,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * Call @ server startup to preload all access right configuration
      */
     public async preload_access_rights() {
+        if (this.rights_have_been_preloaded) {
+            return;
+        }
+
+        this.rights_have_been_preloaded = true;
         // On preload ce qui l'a pas été et on complète les listes avec les données en base qui peuvent
         //  avoir été ajoutée en parralèle des déclarations dans le source
         await AccessPolicyServerController.getInstance().preload_registered_roles();
@@ -97,6 +105,14 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         POLICY_IMPERSONATE.translatable_name = ModuleAccessPolicy.POLICY_IMPERSONATE;
         POLICY_IMPERSONATE = await this.registerPolicy(POLICY_IMPERSONATE, new DefaultTranslation({
             fr: 'Impersonate'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
+        let POLICY_SENDINITPWD: AccessPolicyVO = new AccessPolicyVO();
+        POLICY_SENDINITPWD.group_id = group.id;
+        POLICY_SENDINITPWD.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        POLICY_SENDINITPWD.translatable_name = ModuleAccessPolicy.POLICY_SENDINITPWD;
+        POLICY_SENDINITPWD = await this.registerPolicy(POLICY_SENDINITPWD, new DefaultTranslation({
+            fr: 'Envoi Mail init PWD'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
 
         let bo_access: AccessPolicyVO = new AccessPolicyVO();
@@ -431,6 +447,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Accéder au site'
+        }, 'mails.pwd.initpwd.submit'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Initialisation du mot de passe'
+        }, 'mails.pwd.initpwd.subject'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Cliquez sur le lien ci-dessous pour initialiser votre mot de passe.'
+        }, 'mails.pwd.initpwd.html'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Accéder au site'
         }, 'mails.pwd.recovery.submit'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Récupération du mot de passe'
@@ -486,6 +512,33 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Langue'
         }, 'lang_selector.label.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Droits'
+        }, 'fields.labels.ref.module_access_policy_accpol.___LABEL____module_id'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mail d\'initialisation du mot de passe envoyé'
+        }, 'sendinitpwd.ok.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mail init mdp'
+        }, 'fields.labels.ref.user.__component__sendinitpwd.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Renvoyer le mail'
+        }, 'login.reset.send_init_pwd.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Pour des raisons de sécurité, le mail d\'initialisation du mot de passe a expiré. Vous devez faire une nouvelle procédure de récupération du mot de passe en cliquant sur "Renvoyer le mail" ou en utilisant la procédure d\'oubli de mot de passe sur la page de connexion.'
+        }, 'login.reset.code_invalid.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Dans la page de connexion, cliquez sur "oubli du mot de passe"'
+        }, 'reset.code_invalid.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mail renvoyé, merci de consulter votre messagerie'
+        }, 'reset.sent_init_pwd.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Un utilisateur avec cette adresse mail existe déjà' }, 'accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION));
     }
 
@@ -498,6 +551,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, this.beginRecover.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWDUID, this.resetPwdUID.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_checkCode, this.checkCode.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_checkCodeUID, this.checkCodeUID.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX, this.getAccessMatrix.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_TOGGLE_ACCESS, this.togglePolicy.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT, this.loginAndRedirect.bind(this));
@@ -506,6 +561,56 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_impersonateLogin, this.impersonateLogin.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd, this.begininitpwd.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
+    }
+
+    public async begininitpwd(param: StringParamVO): Promise<void> {
+        if ((!param) || (!param.text)) {
+            return;
+        }
+
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+            return;
+        }
+
+        await PasswordInitialisation.getInstance().begininitpwd(param.text);
+    }
+
+    public async begininitpwd_uid(param: NumberParamVO): Promise<void> {
+        if ((!param) || (!param.num)) {
+            return;
+        }
+
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+            return;
+        }
+
+        await PasswordInitialisation.getInstance().begininitpwd_uid(param.num);
+    }
+
+    public async activate_policies_for_roles(policy_names: string[], role_names: string[]) {
+
+        await ModuleAccessPolicyServer.getInstance().preload_access_rights();
+
+        let access_matrix: {
+            [policy_id: number]: {
+                [role_id: number]: boolean;
+            };
+        } = await ModuleAccessPolicy.getInstance().getAccessMatrix(false);
+
+        let roles_ids_by_name: { [role_name: string]: number } = await this.get_roles_ids_by_name();
+        let policies_ids_by_name: { [policy_name: string]: number } = await this.get_policies_ids_by_name();
+
+        for (let i in policy_names) {
+            let policy_name = policy_names[i];
+
+            for (let j in role_names) {
+                let role_name = role_names[j];
+
+                await this.activate_policy(policies_ids_by_name[policy_name], roles_ids_by_name[role_name], access_matrix);
+            }
+        }
     }
 
     public async getMyLang(): Promise<LangVO> {
@@ -520,6 +625,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user_id);
 
         return await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
+    }
+
+    public async generate_challenge(user: UserVO) {
+
+        // on génère un code qu'on stocke dans le user en base (en datant) et qu'on envoie par mail
+        let challenge: string = TextHandler.getInstance().generateChallenge();
+        user.recovery_challenge = challenge;
+        console.debug("challenge:" + user.email + ':' + challenge + ':');
+        user.recovery_expiration = moment().utc(true).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours').valueOf();
+        await ModuleDAO.getInstance().insertOrUpdateVO(user);
     }
 
     public async change_lang(param: NumberParamVO): Promise<void> {
@@ -902,6 +1017,24 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return PasswordRecovery.getInstance().beginRecovery(param.text);
     }
 
+    private async checkCode(params: ResetPwdParamVO): Promise<boolean> {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
+            return false;
+        }
+
+        return await PasswordReset.getInstance().checkCode(params.email, params.challenge);
+    }
+
+    private async checkCodeUID(params: ResetPwdUIDParamVO): Promise<boolean> {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
+            return false;
+        }
+
+        return await PasswordReset.getInstance().checkCodeUID(params.uid, params.challenge);
+    }
+
     private async resetPwd(params: ResetPwdParamVO): Promise<boolean> {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
@@ -1210,5 +1343,45 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let uid: number = httpContext ? httpContext.get('UID') : null;
 
         PushDataServerController.getInstance().notifySimpleERROR(uid, msg_translatable_code);
+    }
+
+    private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {
+        let roles_ids_by_name: { [role_name: string]: number } = {};
+        let roles: RoleVO[] = await ModuleDAO.getInstance().getVos<RoleVO>(RoleVO.API_TYPE_ID);
+
+        for (let i in roles) {
+            let role = roles[i];
+
+            roles_ids_by_name[role.translatable_name] = role.id;
+        }
+
+        return roles_ids_by_name;
+    }
+
+    private async get_policies_ids_by_name(): Promise<{ [policy_name: string]: number }> {
+        let policies_ids_by_name: { [role_name: string]: number } = {};
+        let policies: AccessPolicyVO[] = await ModuleDAO.getInstance().getVos<AccessPolicyVO>(AccessPolicyVO.API_TYPE_ID);
+
+        for (let i in policies) {
+            let policy = policies[i];
+
+            policies_ids_by_name[policy.translatable_name] = policy.id;
+        }
+
+        return policies_ids_by_name;
+    }
+
+    private async activate_policy(
+        policy_id: number,
+        role_id: number,
+        access_matrix: {
+            [policy_id: number]: {
+                [role_id: number]: boolean;
+            };
+        }) {
+
+        if ((!access_matrix[policy_id]) || (!access_matrix[policy_id][role_id])) {
+            await ModuleAccessPolicy.getInstance().togglePolicy(policy_id, role_id);
+        }
     }
 }

@@ -39,6 +39,7 @@ export default class ModuleAccessPolicy extends Module {
     public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".FO_ACCESS";
 
     public static POLICY_IMPERSONATE: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".IMPERSONATE";
+    public static POLICY_SENDINITPWD: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".SENDINITPWD";
 
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_ACCESS";
     public static POLICY_BO_MODULES_MANAGMENT_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleAccessPolicy.MODULE_NAME + ".BO_MODULES_MANAGMENT_ACCESS";
@@ -66,6 +67,10 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_GET_LOGGED_USER_NAME = "GET_LOGGED_USER_NAME";
     public static APINAME_RESET_PWDUID = "RESET_PWDUID";
     public static APINAME_getMyLang = "getMyLang";
+    public static APINAME_begininitpwd = "begininitpwd";
+    public static APINAME_begininitpwd_uid = "begininitpwd_uid";
+    public static APINAME_checkCode = "checkCode";
+    public static APINAME_checkCodeUID = "checkCodeUID";
 
     public static PARAM_NAME_REMINDER_PWD1_DAYS = 'reminder_pwd1_days';
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
@@ -146,6 +151,18 @@ export default class ModuleAccessPolicy extends Module {
             AddRoleToUserParamVO.translateCheckAccessParams
         ));
 
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleAccessPolicy.APINAME_begininitpwd,
+            [UserVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
+            ModuleAccessPolicy.APINAME_begininitpwd_uid,
+            [UserVO.API_TYPE_ID],
+            NumberParamVO.translateCheckAccessParams
+        ));
+
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER,
             [UserVO.API_TYPE_ID],
@@ -160,6 +177,18 @@ export default class ModuleAccessPolicy extends Module {
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
             ModuleAccessPolicy.APINAME_RESET_PWDUID,
+            [UserVO.API_TYPE_ID],
+            ResetPwdUIDParamVO.translateCheckAccessParams
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
+            ModuleAccessPolicy.APINAME_checkCode,
+            [UserVO.API_TYPE_ID],
+            ResetPwdParamVO.translateCheckAccessParams
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
+            ModuleAccessPolicy.APINAME_checkCodeUID,
             [UserVO.API_TYPE_ID],
             ResetPwdUIDParamVO.translateCheckAccessParams
         ));
@@ -188,6 +217,14 @@ export default class ModuleAccessPolicy extends Module {
             NumberParamVO.translateCheckAccessParams
         ));
 
+    }
+
+    public async begininitpwd(email: string): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, void>(ModuleAccessPolicy.APINAME_begininitpwd, email);
+    }
+
+    public async begininitpwd_uid(uid: number): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<NumberParamVO, void>(ModuleAccessPolicy.APINAME_begininitpwd_uid, uid);
     }
 
     public async getMyLang(): Promise<LangVO> {
@@ -241,6 +278,14 @@ export default class ModuleAccessPolicy extends Module {
         return await ModuleAPI.getInstance().handleAPI<string, boolean>(ModuleAccessPolicy.APINAME_RESET_PWDUID, uid, challenge, new_pwd1);
     }
 
+    public async checkCode(email: string, challenge: string): Promise<boolean> {
+        return await ModuleAPI.getInstance().handleAPI<string, boolean>(ModuleAccessPolicy.APINAME_checkCode, email, challenge, null);
+    }
+
+    public async checkCodeUID(uid: number, challenge: string): Promise<boolean> {
+        return await ModuleAPI.getInstance().handleAPI<string, boolean>(ModuleAccessPolicy.APINAME_checkCodeUID, uid, challenge, null);
+    }
+
     public async addRoleToUser(user_id: number, role_id: number): Promise<boolean> {
         return await ModuleAPI.getInstance().handleAPI<AddRoleToUserParamVO, boolean>(ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER, user_id, role_id);
     }
@@ -258,12 +303,7 @@ export default class ModuleAccessPolicy extends Module {
     }
 
     public initialize() {
-        this.fields = [
-            new ModuleTableField(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD1_DAYS, ModuleTableField.FIELD_TYPE_int, 'reminder_pwd1_days', true, true, 20),
-            new ModuleTableField(ModuleAccessPolicy.PARAM_NAME_REMINDER_PWD2_DAYS, ModuleTableField.FIELD_TYPE_int, 'reminder_pwd2_days', true, true, 3),
-            new ModuleTableField(ModuleAccessPolicy.PARAM_NAME_PWD_INVALIDATION_DAYS, ModuleTableField.FIELD_TYPE_int, 'pwd_invalidation_days', true, true, 90),
-            new ModuleTableField(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS, ModuleTableField.FIELD_TYPE_float, 'recovery_hours', true, true, 2),
-        ];
+        this.fields = [];
         this.datatables = [];
 
         this.initializeUser();

@@ -92,106 +92,106 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
 
     public async configure() {
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Un incident technique - un comportement inhabituel de la solution - , qui induit une indisponibilité partielle ou totale du service' },
             'feedback_handler.type.incident.tooltip.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Une erreur logicielle reproductible par rapport au fonctionnement attendu au sein de l\'application' },
             'feedback_handler.type.bug.tooltip.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Une demande d\'évolution ou une suggestion pour améliorer la solution et répondre mieux à votre besoin' },
             'feedback_handler.type.request.tooltip.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Tout autre message adressé aux équipes techniques, relatif à une page / un fonctionnement de l\'application' },
             'feedback_handler.type.not_set.tooltip.___LABEL___'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Nécessite au moins une capture écran.' },
             'FeedbackHandlerComponent.needs_at_least_one_screenshot.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Message ou titre obligatoire.' },
             'FeedbackHandlerComponent.needs_message_or_title.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Message et titre obligatoires.' },
             'FeedbackHandlerComponent.needs_message_and_title.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Utilisateur et email obligatoires.' },
             'FeedbackHandlerComponent.needs_user_and_email.___LABEL___'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Fichiers' },
             'feedback_handler.attachments.label.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Captures écran' },
             'feedback_handler.captures.label.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Vider' },
             'feedback_handler.clear.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'E-mail' },
             'feedback_handler.email.label.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Faites-nous part de vos suggestions, informez-nous d\'un incident ou d\'un bug, ou laissez-nous simplement un message' },
             'feedback_handler.header.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Message' },
             'feedback_handler.message.label.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Téléphone' },
             'feedback_handler.phone.label.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Envoyer' },
             'feedback_handler.submit.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Titre' },
             'feedback_handler.title.label.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Bug' },
             'feedback_handler.type.bug.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Incident' },
             'feedback_handler.type.incident.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Type de message' },
             'feedback_handler.type.label.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Autre' },
             'feedback_handler.type.not_set.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Demande d\'évolution ou proposition d\'amélioration' },
             'feedback_handler.type.request.___LABEL___'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Utilisateur' },
             'feedback_handler.user.label.___LABEL___'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Demande d\'évolution' },
             'feedback.FEEDBACK_TYPE.ENHANCEMENT_REQUEST'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Bug' },
             'feedback.FEEDBACK_TYPE.BUG'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Incident technique' },
             'feedback.FEEDBACK_TYPE.INCIDENT'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Autre' },
             'feedback.FEEDBACK_TYPE.NOT_SET'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Votre retour d\'expérience a bien été transmis. Merci.' },
             'feedback.feedback.success'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Erreur lors de la transmission. Merci de contacter l\'équipe projet pour les en informer.' },
             'feedback.feedback.error'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: '[FEEDBACK:%%VAR%%FEEDBACK_ID%%] Confirmation de réception de votre retour d\'expérience' },
             'mails.feedback.confirmation.subject'));
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Nous avons bien reçu votre retour d\'expérience intitulé "%%VAR%%FEEDBACK_TITLE%%" et allons le traiter rapidement. Nous vous tiendrons informé de son évolution. A des fins de suivi, votre retour d\'expérience porte le numéro %%VAR%%FEEDBACK_ID%%. Toute l\'équipe vous remercie de faire progresser notre solution.' },
             'mails.feedback.confirmation.html'));
 
-        await DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
             { fr: 'Une erreur est survenue. Veuillez contacter l\'équipe technique par mail pour faire votre commentaire.' },
             'error_sending_feedback.___LABEL___'));
     }
@@ -357,7 +357,8 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
                     break;
             }
 
-            let url = FileHandler.getInstance().get_full_url(api_log.url);
+            let BASE_URL: string = ConfigurationService.getInstance().getNodeConfiguration().BASE_URL;
+            let url = FileHandler.getInstance().get_full_url(BASE_URL, api_log.url);
             apis_log_message += '1. [' + type + ' - ' + api_log.url + '](' + url + ')';
         }
 

@@ -8,6 +8,7 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import SetParamParamVO from './vos/apis/SetParamParamVO';
 import ParamVO from './vos/ParamVO';
+import { Moment } from 'moment';
 
 export default class ModuleParams extends Module {
 
@@ -75,6 +76,18 @@ export default class ModuleParams extends Module {
 
     public async getParamValue(param_name: string): Promise<string> {
         return await ModuleAPI.getInstance().handleAPI<StringParamVO, string>(ModuleParams.APINAME_getParamValue, param_name);
+    }
+
+    public async getParamValueAsInt(param_name: string): Promise<number> {
+        let res = await this.getParamValue(param_name);
+
+        return res ? parseInt(res) : null;
+    }
+
+    public async getParamValueAsFloat(param_name: string): Promise<number> {
+        let res = await this.getParamValue(param_name);
+
+        return res ? parseFloat(res) : null;
     }
 
     public async setParamValue(param_name: string, param_value: string): Promise<void> {

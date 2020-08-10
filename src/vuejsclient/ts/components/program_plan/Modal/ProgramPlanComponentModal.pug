@@ -5,7 +5,7 @@
             ul.nav.nav-pills.nav-fill(role="tablist")
                 li(:class="{'active': active_view == 'rdv_target_infos'}")
                     a#rdv_target_infos_pill.nav-item.nav-link.active(@click="set_active_view('rdv_target_infos')") {{ label('programplan.rdv_modal.pills.target_infos') }}
-                li(:class="{'active': active_view == 'rdv_prep'}")
+                li(:class="{'active': active_view == 'rdv_prep'}" v-if='has_prep')
                     a#rdv_prep_pill.nav-item.nav-link(@click="set_active_view('rdv_prep')") {{ label('programplan.rdv_modal.pills.prep') }}
                 li(:class="{'active': active_view == 'rdv_cr'}")
                     a#rdv_cr_pill.nav-item.nav-link(@click="set_active_view('rdv_cr')") {{ label('programplan.rdv_modal.pills.cr') }}
@@ -14,13 +14,25 @@
                 
             .tab-content
                 #rdv_target_infos(v-show="active_view == 'rdv_target_infos'")
-                    Programplancomponentmodaltargetinfos
+                    Programplancomponentmodaltargetinfos(
+                        :program_plan_shared_module='program_plan_shared_module'
+                        :program_plan_controller='program_plan_controller' 
+                    )
                 #rdv_prep(v-show="active_view == 'rdv_prep'")
-                    Programplancomponentmodalprep(:selected_rdv='selected_rdv')
+                    Programplancomponentmodalprep(
+                        :program_plan_shared_module='program_plan_shared_module'
+                        :program_plan_controller='program_plan_controller' 
+                        :selected_rdv='selected_rdv')
                 #rdv_cr(v-show="active_view == 'rdv_cr'")
-                    Programplancomponentmodalcr(:selected_rdv='selected_rdv')
+                    Programplancomponentmodalcr(
+                        :program_plan_shared_module='program_plan_shared_module'
+                        :program_plan_controller='program_plan_controller' 
+                        :selected_rdv='selected_rdv')
                 #rdv_historic(v-show="active_view == 'rdv_historic'")
-                    Programplancomponentmodalhistoric
+                    Programplancomponentmodalhistoric(
+                        :program_plan_shared_module='program_plan_shared_module'
+                        :program_plan_controller='program_plan_controller' 
+                    )
 
         template(v-else)
             .admin_task_modal_content {{ label('programplan.rdv_modal.admin_task_modal_content') }}

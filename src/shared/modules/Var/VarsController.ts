@@ -1998,6 +1998,16 @@ export default class VarsController {
 
     private async solveDeps() {
 
+        /**
+         * BUG : on arrive des fois ici avec plus de noeuds markés que de noeuds dans l'arbre ....
+         *  c'est un bug, mais dont au fond on se fout... donc on clean les marked et on continue
+         */
+        if (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
+            (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length > this.varDAG.nodes_names.length)) {
+            this.clean_marked_nodes_names();
+            ConsoleHandler.getInstance().error('BUG : on arrive des fois ici avec plus de noeuds markés que de noeuds dans l\'arbre ....');
+        }
+
         let all_ok: boolean = (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED] &&
             (this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DEPS_LOADED].length == this.varDAG.nodes_names.length)) &&
             ((!this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING]) ||
@@ -2087,10 +2097,32 @@ export default class VarsController {
                         this.varDAG.nodes[node_name_to_preload].addMarker(VarDAG.VARDAG_MARKER_PREDEPS_DATASOURCE_LOADED, this.varDAG);
                     }
                 } else {
+
                     // Sinon on a pas tout ok, mais on sait pas résoudre, on indique une erreur
                     ConsoleHandler.getInstance().error('echec solveDeps:des deps restent, mais impossible de les charger');
                     return;
                 }
+            }
+        }
+    }
+
+    private clean_marked_nodes_names() {
+
+        for (let marker in this.varDAG.marked_nodes_names) {
+            let nodes_names = this.varDAG.marked_nodes_names[marker];
+
+            if (nodes_names.length > this.varDAG.nodes_names.length) {
+                let new_marked_nodes: string[] = [];
+
+                for (let i in nodes_names) {
+                    let node_name = nodes_names[i];
+
+                    if (!this.varDAG.nodes_names[node_name]) {
+                        continue;
+                    }
+                    new_marked_nodes.push(node_name);
+                }
+                this.varDAG.marked_nodes_names[marker] = new_marked_nodes;
             }
         }
     }
@@ -2325,7 +2357,7 @@ export default class VarsController {
         return this.getVarControllerById(param.var_id).varDataParamController.getIndex(param);
     }
 
-    private async  updateDatasWrapper() {
+    private async updateDatasWrapper() {
         // Il faut stocker une info de type sémaphore pour refuser de lancer l'update pendant qu'il est en cours
         // Mais du coup quand l'update est terminé, il est important de vérifier si de nouvelles demandes de mise à jour ont eues lieues.
         //  et si oui relancer une mise à jour.

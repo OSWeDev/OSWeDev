@@ -1,0 +1,5 @@
+.resizable_img
+    template(v-if='!!formatted_img')
+        img(ref='img_handler' :src='formatted_img.formatted_src' :width="width + 'px'" :height="height + 'px'")
+    template(v-else)
+        .place-holder(:style="{ width: width + 'px', height: height + 'px' }")

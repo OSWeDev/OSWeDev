@@ -5,6 +5,7 @@ import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleDataExport from '../../../shared/modules/DataExport/ModuleDataExport';
+import ExportDataToMultiSheetsXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToMultiSheetsXLSXParamVO';
 import ExportDataToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
 import ExportLogVO from '../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import ExportHistoricVO from '../../../shared/modules/DataExport/vos/ExportHistoricVO';
@@ -14,6 +15,7 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
@@ -43,6 +45,10 @@ export default class ModuleDataExportServer extends ModuleServerBase {
         preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this.handleTriggerExportHistoricVOCreate.bind(this));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Exports'
+        }, 'fields.labels.ref.module_data_export_export_log.___LABEL____user_id'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Fichier exporté : %%VAR%%EXPORT_TYPE_ID%%'
         }, 'export.default_mail.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -67,10 +73,14 @@ export default class ModuleDataExportServer extends ModuleServerBase {
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVO, this.exportDataToXLSX.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile, this.exportDataToXLSXFile.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO, this.exportDataToMultiSheetsXLSX.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile, this.exportDataToMultiSheetsXLSXFile.bind(this));
     }
 
     public async exportDataToXLSX(params: ExportDataToXLSXParamVO): Promise<string> {
-        return await this.exportDataToXLSX_base(params);
+        let filepath: string = await this.exportDataToXLSX_base(params);
+        await this.getFileVo(filepath, params.is_secured, params.file_access_policy_name);
+        return filepath;
     }
 
     public async exportDataToXLSXFile(params: ExportDataToXLSXParamVO): Promise<FileVO> {
@@ -148,6 +158,97 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         return filepath;
     }
+
+
+    private async exportDataToMultiSheetsXLSX(params: ExportDataToMultiSheetsXLSXParamVO): Promise<string> {
+        let filepath: string = await this.exportDataToMultiSheetsXLSX_base(params);
+        await this.getFileVo(filepath, params.is_secured, params.file_access_policy_name);
+        return filepath;
+    }
+
+    private async exportDataToMultiSheetsXLSXFile(params: ExportDataToMultiSheetsXLSXParamVO): Promise<FileVO> {
+
+        let filepath: string = await this.exportDataToMultiSheetsXLSX_base(params);
+
+        return await this.getFileVo(filepath, params.is_secured, params.file_access_policy_name);
+    }
+
+    private async getFileVo(filepath: string, is_secured: boolean, file_access_policy_name: string): Promise<FileVO> {
+        let file: FileVO = new FileVO();
+        file.path = filepath;
+        file.file_access_policy_name = file_access_policy_name;
+        file.is_secured = is_secured;
+        let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(file);
+        if ((!res) || (!res.id)) {
+            ConsoleHandler.getInstance().error('Erreur lors de l\'enregistrement du fichier en base:' + filepath);
+            return null;
+        }
+        file.id = parseInt(res.id.toString());
+
+        return file;
+    }
+
+    private async exportDataToMultiSheetsXLSX_base(params: ExportDataToMultiSheetsXLSXParamVO): Promise<string> {
+
+        if ((!params) || (!params.filename) || (!params.sheets) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(params.sheets))) {
+            return null;
+        }
+
+        ConsoleHandler.getInstance().log('EXPORT : ' + params.filename);
+        let workbook: WorkBook = XLSX.utils.book_new();
+
+        for (let sheeti in params.sheets) {
+            let sheet = params.sheets[sheeti];
+
+            let worksheetColumns = [];
+            for (let i in sheet.ordered_column_list) {
+                worksheetColumns.push({ wch: 25 });
+            }
+
+            let ws_data = [];
+            let ws_row = [];
+            for (let i in sheet.ordered_column_list) {
+                let data_field_name: string = sheet.ordered_column_list[i];
+                let title: string = sheet.column_labels[data_field_name];
+
+                ws_row.push(title);
+            }
+            ws_data.push(ws_row);
+
+            for (let r in sheet.datas) {
+                let row_data = sheet.datas[r];
+                ws_row = [];
+
+                for (let i in sheet.ordered_column_list) {
+                    let data_field_name: string = sheet.ordered_column_list[i];
+                    let data = row_data[data_field_name];
+
+                    ws_row.push(data);
+                }
+                ws_data.push(ws_row);
+            }
+
+            let ws = XLSX.utils.aoa_to_sheet(ws_data);
+            XLSX.utils.book_append_sheet(workbook, ws, sheet.sheet_name);
+        }
+
+        let filepath: string = (params.is_secured ? ModuleFile.SECURED_FILES_ROOT : ModuleFile.FILES_ROOT) + params.filename;
+        XLSX.writeFile(workbook, filepath);
+
+        let user_log_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+
+        // On log l'export
+        if (!!user_log_id) {
+            await ModuleDAO.getInstance().insertOrUpdateVO(ExportLogVO.createNew(
+                params.api_type_id,
+                moment().utc(true),
+                user_log_id
+            ));
+        }
+
+        return filepath;
+    }
+
 
     private async handleTriggerExportHistoricVOCreate(exhi: ExportHistoricVO): Promise<boolean> {
 

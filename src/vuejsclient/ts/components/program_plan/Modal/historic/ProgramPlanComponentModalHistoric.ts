@@ -5,9 +5,11 @@ import IPlanManager from '../../../../../../shared/modules/ProgramPlan/interface
 import IPlanRDV from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDV';
 import IPlanRDVCR from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanRDVCR';
 import IPlanTarget from '../../../../../../shared/modules/ProgramPlan/interfaces/IPlanTarget';
+import ModuleProgramPlanBase from '../../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueFieldComponent from '../../../field/field';
 import VueComponentBase from '../../../VueComponentBase';
 import ProgramPlanControllerBase from '../../ProgramPlanControllerBase';
+import ProgramPlanTools from '../../ProgramPlanTools';
 import { ModuleProgramPlanGetter } from '../../store/ProgramPlanStore';
 import ProgramPlanComponentModalCR from '../cr/ProgramPlanComponentModalCR';
 import ProgramPlanComponentModalPrep from '../prep/ProgramPlanComponentModalPrep';
@@ -47,9 +49,19 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
     @ModuleProgramPlanGetter
     public getPrepsByIds: { [id: number]: IPlanRDVCR };
 
+    @Prop({ default: null })
+    private program_plan_shared_module: ModuleProgramPlanBase;
+
+    @Prop({ default: null })
+    private program_plan_controller: ProgramPlanControllerBase;
+
 
     @Prop()
     private can_edit: boolean;
+
+    get has_prep() {
+        return !!this.program_plan_shared_module.rdv_prep_type_id;
+    }
 
     private facilitatorAndManagerName(rdv_historic: IPlanRDV): string {
         return this.facilitatorName(rdv_historic) + (this.managerName(rdv_historic) ? " / " + this.managerName(rdv_historic) : "");
@@ -65,7 +77,7 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
             return null;
         }
 
-        return ProgramPlanControllerBase.getInstance().getResourceName(facilitator.firstname, facilitator.lastname);
+        return ProgramPlanTools.getResourceName(facilitator.firstname, facilitator.lastname);
     }
 
     private managerName(rdv_historic: IPlanRDV): string {
@@ -83,6 +95,6 @@ export default class ProgramPlanComponentModalHistoric extends VueComponentBase 
             return null;
         }
 
-        return ProgramPlanControllerBase.getInstance().getResourceName(manager.firstname, manager.lastname);
+        return ProgramPlanTools.getResourceName(manager.firstname, manager.lastname);
     }
 }

@@ -39,6 +39,16 @@ export default class ModuleCronServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: '{worker_uid}'
         }, 'cron.run_cron_individuel.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tâche manuelle en cours'
+        }, 'CronComponent.info.executeWorkerManually.started.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Lancement manuel'
+        }, 'cron.execute_manually_indiv.start'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tâche manuelle terminée'
+        }, 'cron.execute_manually_indiv.success'));
     }
 
     /**

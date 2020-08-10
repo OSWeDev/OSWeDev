@@ -1,18 +1,19 @@
-import ModuleRequest from '../Request/ModuleRequest';
-import ModuleDAO from '../DAO/ModuleDAO';
-import SendInBlueMailVO from './vos/SendInBlueMailVO';
-import SendInBlueVO from './vos/SendInBlueVO';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
+import SendInBlueMailVO from '../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
+import SendInBlueVO from '../../../shared/modules/SendInBlue/vos/SendInBlueVO';
 
-export default class ModuleSendInBlueController {
 
-    public static getInstance(): ModuleSendInBlueController {
-        if (!ModuleSendInBlueController.instance) {
-            ModuleSendInBlueController.instance = new ModuleSendInBlueController();
+export default class SendInBlueServerController {
+
+    public static getInstance(): SendInBlueServerController {
+        if (!SendInBlueServerController.instance) {
+            SendInBlueServerController.instance = new SendInBlueServerController();
         }
-        return ModuleSendInBlueController.instance;
+        return SendInBlueServerController.instance;
     }
 
-    private static instance: ModuleSendInBlueController = null;
+    private static instance: SendInBlueServerController = null;
     private static VERSION_API: string = '/v3/';
 
     /**
@@ -41,7 +42,7 @@ export default class ModuleSendInBlueController {
         return ModuleRequest.getInstance().sendRequestFromApp(
             method,
             this.param.host,
-            ModuleSendInBlueController.VERSION_API + path,
+            SendInBlueServerController.VERSION_API + path,
             posts,
             await this.getHeadersRequest(),
             true
