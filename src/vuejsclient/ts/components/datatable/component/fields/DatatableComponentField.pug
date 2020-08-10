@@ -37,7 +37,7 @@
                     router-link.btn.btn-sm.btn-info( :to="getCRUDUpdateLink(field.targetModuleTable.vo_type, vo[field.datatable_field_uid + '___id___'])" target='_blank') {{ field_value }}
                 template(v-else)
                     span {{ field_value }}
-        template(v-else-if="(field.type == 'ManyToMany') || (field.type == 'OneToMany')")
+        template(v-else-if="(field.type == 'ManyToMany') || (field.type == 'OneToMany') || (field.type == 'RefRanges')")
             template(v-if="field_value")
                 template(v-for="e in field_value")
                     template(v-if="routeExists(getCRUDUpdateLink(field.targetModuleTable.vo_type, e.id))")
