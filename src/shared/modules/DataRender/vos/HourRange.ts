@@ -47,11 +47,11 @@ export default class HourRange implements IRange<Duration> {
     public static getSegmentedMin(min: Duration, min_inclusiv: boolean, max: Duration, max_inclusiv: boolean, segment_type: number): Duration {
 
 
-        if ((min == null) || (typeof min == 'undefined')) {
+        if ((min === null) || (typeof min == 'undefined')) {
             return null;
         }
 
-        if ((max == null) || (typeof max == 'undefined')) {
+        if ((max === null) || (typeof max == 'undefined')) {
             return null;
         }
 
@@ -79,11 +79,11 @@ export default class HourRange implements IRange<Duration> {
      */
     public static getSegmentedMax(min: Duration, min_inclusiv: boolean, max: Duration, max_inclusiv: boolean, segment_type: number): Duration {
 
-        if ((min == null) || (typeof min == 'undefined')) {
+        if ((min === null) || (typeof min == 'undefined')) {
             return null;
         }
 
-        if ((max == null) || (typeof max == 'undefined')) {
+        if ((max === null) || (typeof max == 'undefined')) {
             return null;
         }
 

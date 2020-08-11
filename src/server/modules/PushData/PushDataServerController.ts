@@ -383,7 +383,7 @@ export default class PushDataServerController {
 
     private async notifySimple(user_id: number, msg_type: number, code_text: string, auto_read_if_connected: boolean) {
 
-        if ((!user_id) || (msg_type == null) || (typeof msg_type == 'undefined') || (!code_text)) {
+        if ((!user_id) || (msg_type === null) || (typeof msg_type == 'undefined') || (!code_text)) {
             return;
         }
 

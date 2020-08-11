@@ -36,22 +36,21 @@ export default class VarDAGDefineNodeDeps {
             node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED, varDag);
         }
 
-        // On demande les datasources predeps : Si on en a, il faut indiquer qu'on attend une info avant de pouvoir load les deps
-        if (!node.hasMarker(VarDAG.VARDAG_MARKER_PREDEPS_DATASOURCE_LOADED)) {
-
-            let ds_predeps: Array<IDataSourceController<any, any>> = controller.getDataSourcesPredepsDependencies();
-            if ((!!ds_predeps) && (!!ds_predeps.length)) {
-                node.addMarker(VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING, varDag);
-                return;
-            }
-        }
-
-        // On demande les deps de vars
-
-        // Si on peut pas calculer, on peut pas avoir des deps
+        // Si on peut pas calculer, inutile de regarder les deps et donc les ds predeps sont inutiles aussi
         let ne_peut_pas_calculer = ((!controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) || ((!controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide));
         if (!ne_peut_pas_calculer) {
 
+            // On demande les datasources predeps : Si on en a, il faut indiquer qu'on attend une info avant de pouvoir load les deps
+            if (!node.hasMarker(VarDAG.VARDAG_MARKER_PREDEPS_DATASOURCE_LOADED)) {
+
+                let ds_predeps: Array<IDataSourceController<any, any>> = controller.getDataSourcesPredepsDependencies();
+                if ((!!ds_predeps) && (!!ds_predeps.length)) {
+                    node.addMarker(VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING, varDag);
+                    return;
+                }
+            }
+
+            // On demande les deps de vars
             let deps: IVarDataParamVOBase[] = controller.getSegmentedParamDependencies(node, varDag);
             VarDAGDefineNodeDeps.add_node_deps(node, varDag, deps, new_nodes);
         }

@@ -32,7 +32,7 @@ export default class HourSegmentHandler {
      */
     public getAllSegments(start: moment.Duration, end: moment.Duration, time_segment_type: number, exclude_end: boolean = false): HourSegment[] {
 
-        if ((!start) || (!end) || (time_segment_type == null) || (typeof time_segment_type === 'undefined')) {
+        if ((!start) || (!end) || (time_segment_type === null) || (typeof time_segment_type === 'undefined')) {
             return null;
         }
 
@@ -274,7 +274,7 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        type = ((type == null) || (typeof type === "undefined")) ? hourSegment.type : type;
+        type = ((type === null) || (typeof type === "undefined")) ? hourSegment.type : type;
         this.decMoment(hourSegment.index, type, offset);
     }
 
@@ -289,7 +289,7 @@ export default class HourSegmentHandler {
             return null;
         }
 
-        type = ((type == null) || (typeof type === "undefined")) ? hourSegment.type : type;
+        type = ((type === null) || (typeof type === "undefined")) ? hourSegment.type : type;
         this.incElt(hourSegment.index, type, offset);
     }
 
@@ -304,7 +304,7 @@ export default class HourSegmentHandler {
 
     public getCorrespondingHourSegment(time: moment.Duration, type: number, offset: number = 0): HourSegment {
 
-        if ((type == null) || (typeof type === 'undefined')) {
+        if ((type === null) || (typeof type === 'undefined')) {
             type = HourSegment.TYPE_MS;
         }
 
@@ -339,7 +339,7 @@ export default class HourSegmentHandler {
             return false;
         }
 
-        if ((type == null) || (typeof type === "undefined")) {
+        if ((type === null) || (typeof type === "undefined")) {
             type = Math.min(ts1.type, ts2.type);
         }
 

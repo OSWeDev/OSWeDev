@@ -165,7 +165,7 @@ export default class ImportTypeXLSXHandler {
 
                     let misses_mandatory_columns: boolean = false;
                     for (let i in dataImportColumns) {
-                        if ((dataImportColumns[i].column_index == null) && (dataImportColumns[i].mandatory)) {
+                        if ((dataImportColumns[i].column_index === null) && (dataImportColumns[i].mandatory)) {
 
                             // On est dans un cas bien particulier, a priori on aura pas 50 types d'imports par nom de colonnes sur un type de fichier
                             //  donc on doit remonter l'info des colonnes obligatoires que l'on ne trouve pas
@@ -480,7 +480,7 @@ export default class ImportTypeXLSXHandler {
         }
 
         try {
-            if ((dataImportFormat.encoding == null) || (typeof dataImportFormat.encoding == 'undefined') || (dataImportFormat.encoding == DataImportFormatVO.TYPE_WINDOWS1252)) {
+            if ((dataImportFormat.encoding === null) || (typeof dataImportFormat.encoding == 'undefined') || (dataImportFormat.encoding == DataImportFormatVO.TYPE_WINDOWS1252)) {
                 workbook = XLSX.readFile(fileVO.path);
             } else {
                 // On tente d'ouvrir en UTF-8

@@ -1,3 +1,4 @@
+import { Duration, Moment } from 'moment';
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
@@ -8,20 +9,26 @@ import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParam
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
+import DataSourceMatroidControllerBase from '../../../shared/modules/DataSource/DataSourceMatroidControllerBase';
+import DataSourcesController from '../../../shared/modules/DataSource/DataSourcesController';
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
+import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
 import SimpleVarDataValueRes from '../../../shared/modules/Var/simple_vars/SimpleVarDataValueRes';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import RangeHandler from '../../../shared/tools/RangeHandler';
 import ServerBase from '../../ServerBase';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
@@ -32,9 +39,8 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import VarCronWorkersHandler from './VarCronWorkersHandler';
 import VarServerController from './VarServerController';
-import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
-const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -85,6 +91,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({ fr: 'Dépendances' }, 'var.desc_mode.var_deps.___LABEL___'));
 
         let postCTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let preUTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         let postUTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
         let preDTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
@@ -175,6 +182,130 @@ export default class ModuleVarServer extends ModuleServerBase {
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
+
+        ModuleServiceBase.getInstance().post_modules_installation_hooks.push(() => {
+            /**
+             * Ajout des triggers d'invalidation des données de cache en BDD
+             *  - on part de la liste des vars qui ont un cache et des datasources
+             */
+            for (let api_type_id in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id) {
+
+                postCTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+                preUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+                postUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+                preDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo.bind(this));
+            }
+        });
+    }
+
+    public async invalidate_var_cache_from_vo(vo: IDistantVOBase): Promise<boolean> {
+
+        try {
+
+            for (let ds_name in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type]) {
+
+                // Pour chaque DS on doit demander les intercepteurs, en filtrant les var_ids qui nous intéressent
+
+                // Pour l'instant on ne sait faire ça que sur des DS matroids
+                let ds: DataSourceMatroidControllerBase<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name] as DataSourceMatroidControllerBase<any, any>;
+                let interceptors_by_var_ids: { [var_id: number]: IVarMatroidDataParamVO[]; } = ds.get_param_intersectors_from_vo_update_by_var_id(vo, VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type][ds_name]);
+
+                for (let var_id_s in interceptors_by_var_ids) {
+                    let var_id: number = parseInt(var_id_s.toString());
+                    let interceptors = interceptors_by_var_ids[var_id_s];
+                    let moduletable_vardata: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[VarsController.getInstance().getVarConfById(var_id).var_data_vo_type];
+
+                    if (interceptors === null) {
+
+                        // On veut tout invalider
+                        await this.invalider_tout(moduletable_vardata);
+                        continue;
+                    }
+
+                    for (let i in interceptors) {
+                        let interceptor: IVarMatroidDataParamVO = interceptors[i];
+
+                        let moduletable_interceptor: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[interceptor._type];
+
+                        let needs_mapping: boolean = moduletable_vardata.vo_type != moduletable_interceptor.vo_type;
+                        let mappings: { [field_id_a: string]: string } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
+
+                        if (needs_mapping && (typeof mappings === 'undefined')) {
+                            throw new Error('Mapping missing:from:' + interceptor._type + ":to:" + moduletable_vardata.vo_type + ":");
+                        }
+
+                        //En mettant null on dit qu'on veut pas mapper, donc on veut tout invalider
+                        //  par exemple en cas de modif(undefined pas de mapping, null mapping impossible donc dans le doute on invalide tout)
+                        if (needs_mapping && !mappings) {
+
+                            await this.invalider_tout(moduletable_vardata);
+
+                        } else {
+
+                            if (moduletable_vardata.is_segmented) {
+
+                                // Si segmenté, on cherche le segment et on fait une requête par segment
+                                let moduletable_vardata_segment_field_name: string = moduletable_vardata.table_segmented_field.field_id;
+
+                                // On prend l'équivalent dans le matroid
+                                let mapping_intersector_to_vardata: { [field_id_a: string]: string; } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
+                                let intersector_segment_field_name: string = moduletable_vardata_segment_field_name;
+                                for (let field_a in mapping_intersector_to_vardata) {
+                                    let field_b = mapping_intersector_to_vardata[field_a];
+
+                                    if (field_b == moduletable_vardata_segment_field_name) {
+                                        intersector_segment_field_name = field_a;
+                                    }
+                                }
+
+                                // et on foreach sur le champ de l'intersector qui est segmenté
+                                await RangeHandler.getInstance().foreach_ranges(interceptor[intersector_segment_field_name], async (segment: number | Duration | Moment) => {
+
+                                    // On enlève le filtrage sur le champ segmenté, inutile
+                                    let segment_interceptor = Object.assign({}, interceptor);
+                                    delete segment_interceptor[intersector_segment_field_name];
+
+                                    let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value_ts=null where ' +
+                                        ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(
+                                            moduletable_vardata.vo_type,
+                                            interceptor,
+                                            mappings
+                                        ) + ';';
+                                    await ModuleServiceBase.getInstance().db.query(request);
+                                }, moduletable_vardata.table_segmented_field_segment_type);
+                            } else {
+                                let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null where ' +
+                                    ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(
+                                        moduletable_vardata.vo_type,
+                                        interceptor,
+                                        mappings
+                                    ) + ';';
+                                await ModuleServiceBase.getInstance().db.query(request);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + vo + ':' + error);
+        }
+        return true;
+    }
+
+    public async invalider_tout(moduletable_vardata: ModuleTable<IVarDataVOBase>) {
+        if (moduletable_vardata.is_segmented) {
+
+            let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+
+            await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
+                let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value_ts=null;';
+                await ModuleServiceBase.getInstance().db.query(request);
+            }, moduletable_vardata.table_segmented_field_segment_type);
+
+        } else {
+            let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null;';
+            await ModuleServiceBase.getInstance().db.query(request);
+        }
     }
 
     public registerServerApiHandlers() {
@@ -184,6 +315,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_configureVarCache, this.configureVarCache.bind(this));
 
+    }
+
+    public registerCrons(): void {
+        VarCronWorkersHandler.getInstance();
     }
 
     /**
@@ -449,7 +584,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 } catch (error) {
                 }
 
-                if ((!local_res) || (!local_res[0]) || (local_res[0]['res'] == null) || (typeof local_res[0]['res'] == 'undefined')) {
+                if ((!local_res) || (!local_res[0]) || (local_res[0]['res'] === null) || (typeof local_res[0]['res'] == 'undefined')) {
                     local_res = null;
                 } else {
                     local_res = local_res[0]['res'];
@@ -479,7 +614,7 @@ export default class ModuleVarServer extends ModuleServerBase {
             } catch (error) {
             }
 
-            if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
+            if ((!res) || (!res[0]) || (res[0]['res'] === null) || (typeof res[0]['res'] == 'undefined')) {
                 return null;
             }
 

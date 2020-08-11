@@ -17,7 +17,7 @@ export let hourFilter = new FilterObj(
         formatted,
         arrondiMinutes
     ) {
-        if (value == null || typeof value == "undefined") {
+        if (value === null || typeof value == "undefined") {
             return value;
         }
 
@@ -76,7 +76,7 @@ export let hourFilter = new FilterObj(
     },
     (value) => {
 
-        if ((value == null) || (typeof value === "undefined")) {
+        if ((value === null) || (typeof value === "undefined")) {
             return null;
         }
 
@@ -129,7 +129,7 @@ export let alerteCheckFilter = new FilterObj(
 export let amountFilter = new FilterObj(
     function (value, fractionalDigits, k) {
 
-        if ((value == null) || (typeof value === "undefined")) {
+        if ((value === null) || (typeof value === "undefined")) {
             return null;
         }
 
@@ -167,7 +167,7 @@ export let amountFilter = new FilterObj(
     },
     function (value) {
 
-        if ((value == null) || (typeof value === "undefined")) {
+        if ((value === null) || (typeof value === "undefined")) {
             return null;
         }
 
@@ -363,7 +363,7 @@ export let bignumFilter = new FilterObj(
 export let hourAndMinutesFilter = new FilterObj(
     function (value) {
 
-        if ((value == null) || (typeof value === "undefined")) {
+        if ((value === null) || (typeof value === "undefined")) {
             return null;
         }
 
@@ -391,7 +391,7 @@ export let hourAndMinutesFilter = new FilterObj(
     },
     function (value) {
 
-        if ((value == null) || (typeof value === "undefined")) {
+        if ((value === null) || (typeof value === "undefined")) {
             return null;
         }
 

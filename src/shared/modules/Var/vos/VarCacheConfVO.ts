@@ -10,5 +10,9 @@ export default class VarCacheConfVO implements IDistantVOBase {
     public var_id: number;
 
     public consider_null_as_0_and_auto_clean_0_in_cache: boolean;
+
+    /**
+     * 0 => infini
+     */
     public cache_timeout_ms: number;
 }

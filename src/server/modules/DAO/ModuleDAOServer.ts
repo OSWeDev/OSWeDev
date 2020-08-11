@@ -53,8 +53,8 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
-import DAOTriggerHook from './triggers/DAOTriggerHook';
 import DAOServerController from './DAOServerController';
+import DAOTriggerHook from './triggers/DAOTriggerHook';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -71,6 +71,23 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleDAO.getInstance().name);
+    }
+
+    public get_all_ranges_from_segmented_table(moduleTable: ModuleTable<any>): NumRange[] {
+        let segmentations: { [table_name: string]: number } = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
+        if (!segmentations) {
+            return null;
+        }
+
+        let ranges: NumRange[] = [];
+
+        for (let i in segmentations) {
+            let segment = segmentations[i];
+
+            ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segment, moduleTable.table_segmented_field_segment_type));
+        }
+
+        return ranges;
     }
 
     /**
@@ -370,8 +387,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        // Si le mapper est null, on veut tout, donc on renvoie true
+        //  et si le mapper est undefined on veut pas remapper les champs tout simplement
+        if (fields_ids_mapper === null) {
+            return 'true';
+        }
+
         if (!fields_ids_mapper) {
-            return null;
+            fields_ids_mapper = {};
         }
 
         let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
@@ -438,6 +461,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // On veut la matrice inverse
         let fields_ids_mapper_inverted: { [datatable_field_id: string]: string } = {};
         for (let matroid_field_id in fields_ids_mapper) {
+            if (!fields_ids_mapper[matroid_field_id]) {
+                continue;
+            }
             fields_ids_mapper_inverted[fields_ids_mapper[matroid_field_id]] = matroid_field_id;
         }
 
@@ -454,6 +480,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let first = true;
         for (let field_id in matroid_fields_ranges_by_datatable_field_id) {
+
+            // Si le mapping est undefined, on prend le champ avec le mêeme nom, si lee mapping est nul, on prend rien
+            if (fields_ids_mapper_inverted[field_id] === null) {
+                continue;
+            }
 
             let matroid_field = matroid_fields_by_ids[fields_ids_mapper_inverted[field_id] ? fields_ids_mapper_inverted[field_id] : field_id];
             let field_ranges: Array<IRange<any>> = matroid_fields_ranges_by_datatable_field_id[field_id];
@@ -484,6 +515,91 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         where_clause += ')';
+
+        return where_clause;
+    }
+
+    /**
+     * TODO : A relire, c'est un copie rapide de filtervoby matroid intersection
+     */
+    public getWhereClauseForFilterByMatroidIntersection<T extends IDistantVOBase>(
+        api_type_id: string,
+        matroid: IMatroid,
+        fields_ids_mapper: { [matroid_field_id: string]: string }): string {
+
+        if (!matroid) {
+            ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
+            return null;
+        }
+
+        let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+        if (!moduleTable) {
+            return null;
+        }
+
+        let first_matroid = true;
+
+        let where_clause: string = "";
+
+        // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
+        // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
+        if (!!(matroid as IVarDataParamVOBase).var_id) {
+
+            if (!!moduleTable.getFieldFromId('var_id')) {
+                where_clause += '(var_id = ' + (matroid as IVarDataParamVOBase).var_id + ') AND ';
+            }
+        }
+
+        let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+
+        let first = true;
+        for (let i in matroid_fields) {
+            let matroid_field = matroid_fields[i];
+            let ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
+            let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
+
+            if (!field) {
+                continue;
+            }
+
+            if (moduleTable.is_segmented && (field.field_id == moduleTable.table_segmented_field.field_id)) {
+                continue;
+            }
+
+            if ((!ranges) || (!ranges.length)) {
+                ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                return null;
+            }
+
+            where_clause += first ? "(" : ") AND (";
+            let first_in_clause = true;
+
+            for (let j in ranges) {
+                let field_range: IRange<any> = ranges[j];
+
+                if (!RangeHandler.getInstance().isValid(field_range)) {
+                    ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
+                    return null;
+                }
+
+                where_clause += first_in_clause ? "" : " OR ";
+
+                first = false;
+                first_in_clause = false;
+                first_matroid = false;
+
+                where_clause += this.getClauseWhereRangeIntersectsField(field, field_range);
+            }
+        }
+        if (first) {
+            return null;
+        }
+        where_clause += ")";
+
+        if (first_matroid) {
+            return null;
+        }
 
         return where_clause;
     }
@@ -1823,83 +1939,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
-        let where_clauses: string[] = [];
-
-        let first_matroid = true;
-        for (let matroid_i in matroids) {
-            let matroid = matroids[matroid_i];
-
-            if (!matroid) {
-                ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
-                return null;
-            }
-
-            let where_clause: string = "";
-            // where_clause += first_matroid ? "(" : ") OR (";
-
-            // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
-            // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
-            if (!!(matroid as IVarDataParamVOBase).var_id) {
-
-                if (!!moduleTable.getFieldFromId('var_id')) {
-                    where_clause += '(var_id = ' + (matroid as IVarDataParamVOBase).var_id + ') AND ';
-                }
-            }
-
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
-
-            let first = true;
-            for (let i in matroid_fields) {
-                let matroid_field = matroid_fields[i];
-                let ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
-                let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
-
-                if (!field) {
-                    continue;
-                }
-
-                if (moduleTable.is_segmented && (field.field_id == moduleTable.table_segmented_field.field_id)) {
-                    continue;
-                }
-
-                if ((!ranges) || (!ranges.length)) {
-                    ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
-                    return null;
-                }
-
-                where_clause += first ? "(" : ") AND (";
-                let first_in_clause = true;
-
-                for (let j in ranges) {
-                    let field_range: IRange<any> = ranges[j];
-
-                    if (!RangeHandler.getInstance().isValid(field_range)) {
-                        ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
-                        return null;
-                    }
-
-                    where_clause += first_in_clause ? "" : " OR ";
-
-                    first = false;
-                    first_in_clause = false;
-                    first_matroid = false;
-
-                    where_clause += this.getClauseWhereRangeIntersectsField(field, field_range);
-                }
-            }
-            if (first) {
-                return null;
-            }
-            where_clause += ")";
-
-            where_clauses.push(where_clause);
-        }
-        // where_clause += ")";
-
-        if (first_matroid) {
-            return null;
-        }
-
         let vos: T[] = [];
 
         if (moduleTable.is_segmented) {
@@ -1925,7 +1964,6 @@ export default class ModuleDAOServer extends ModuleServerBase {
             let vos_by_ids: { [id: number]: T } = {};
 
             for (let i in matroids) {
-                let where_clause = where_clauses[i];
                 let matroid = matroids[i];
 
                 let segmentations: Array<IRange<any>> = matroid[segmented_matroid_field_id];
@@ -1959,7 +1997,11 @@ export default class ModuleDAOServer extends ModuleServerBase {
                     } else {
                         request += ' UNION ALL ';
                     }
-                    request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + where_clause + ' ';
+                    let clause = this.getWhereClauseForFilterByMatroidIntersection(api_type_id, matroid, fields_ids_mapper);
+                    if (!clause) {
+                        throw new Error('Where clause invalid');
+                    }
+                    request += 'select * from ' + moduleTable.database + '.' + segmentation_table + ' t where ' + clause + ' ';
                 }
 
                 /**
@@ -1980,6 +2022,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             vos = Object.values(vos_by_ids);
         } else {
+
+            let where_clauses: string[] = [];
+            for (let i in matroids) {
+                let clause = this.getWhereClauseForFilterByMatroidIntersection(api_type_id, matroids[i], fields_ids_mapper);
+                if (!clause) {
+                    throw new Error('Where clause invalid');
+                }
+                where_clauses.push(clause);
+            }
             vos = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query("SELECT t.* FROM " + moduleTable.full_name + " t WHERE " + '(' + where_clauses.join(') OR (') + ')' + ";") as T[]);
         }
 
@@ -2650,22 +2701,5 @@ export default class ModuleDAOServer extends ModuleServerBase {
         }
 
         return null;
-    }
-
-    private get_all_ranges_from_segmented_table(moduleTable: ModuleTable<any>): NumRange[] {
-        let segmentations: { [table_name: string]: number } = DAOServerController.getInstance().segmented_known_databases[moduleTable.database];
-        if (!segmentations) {
-            return null;
-        }
-
-        let ranges: NumRange[] = [];
-
-        for (let i in segmentations) {
-            let segment = segmentations[i];
-
-            ranges.push(RangeHandler.getInstance().create_single_elt_NumRange(segment, moduleTable.table_segmented_field_segment_type));
-        }
-
-        return ranges;
     }
 }

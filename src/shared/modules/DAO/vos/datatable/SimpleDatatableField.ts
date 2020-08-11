@@ -20,7 +20,7 @@ import DatatableField from './DatatableField';
 export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
     public static defaultDataToReadIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if ((field_value == null) || (typeof field_value == "undefined")) {
+        if ((field_value === null) || (typeof field_value == "undefined")) {
             return field_value;
         }
 
@@ -217,7 +217,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public static defaultDataToUpdateIHM(field_value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if ((field_value == null) || (typeof field_value == "undefined")) {
+        if ((field_value === null) || (typeof field_value == "undefined")) {
             return field_value;
         }
 
@@ -260,7 +260,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public static defaultReadIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if ((value == null) || (typeof value == "undefined")) {
+        if ((value === null) || (typeof value == "undefined")) {
             return value;
         }
 
@@ -370,7 +370,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     }
 
     public static defaultUpdateIHMToData(value: any, moduleTableField: ModuleTableField<any>, vo: IDistantVOBase): any {
-        if ((value == null) || (typeof value == "undefined")) {
+        if ((value === null) || (typeof value == "undefined")) {
             return value;
         }
 
@@ -503,7 +503,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
     public enumIdToHumanReadable: (id: number) => string = (id: number) => {
         let res: string = "";
 
-        if ((typeof id === 'undefined') || (id == null)) {
+        if ((typeof id === 'undefined') || (id === null)) {
             return null;
         }
 

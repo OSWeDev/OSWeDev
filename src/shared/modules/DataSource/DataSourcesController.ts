@@ -39,16 +39,15 @@ export default class DataSourcesController {
     }
 
     public registerDataSource(
-        dataSourcesController: IDataSourceController<any, any>,
-        vo_type_deps: string[]) {
+        dataSourcesController: IDataSourceController<any, any>) {
 
         if (!!this.registeredDataSourcesController[dataSourcesController.name]) {
             return;
         }
 
         this.registeredDataSourcesController[dataSourcesController.name] = dataSourcesController;
-        for (let i in vo_type_deps) {
-            let vo_type_dep: string = vo_type_deps[i];
+        for (let i in dataSourcesController.vo_api_type_ids) {
+            let vo_type_dep: string = dataSourcesController.vo_api_type_ids[i];
 
             if (!this.registeredDataSourcesControllerByVoTypeDep[vo_type_dep]) {
                 this.registeredDataSourcesControllerByVoTypeDep[vo_type_dep] = [];
