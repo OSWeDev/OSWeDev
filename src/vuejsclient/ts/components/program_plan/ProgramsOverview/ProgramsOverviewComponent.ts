@@ -1,4 +1,5 @@
 import Component from 'vue-class-component';
+import { Prop } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import IPlanProgram from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanProgram';
@@ -20,21 +21,26 @@ export default class ProgramsOverviewComponent extends VueComponentBase {
     @ModuleDAOAction
     public storeDatas: (infos: { API_TYPE_ID: string, vos: IDistantVOBase[] }) => void;
 
+    @Prop({ default: null })
+    public program_plan_shared_module: ModuleProgramPlanBase;
+
+    @Prop({ default: null })
+    public program_plan_client_module: ProgramPlanClientVueModule;
 
     public async mounted() {
         this.startLoading();
         this.nbLoadingSteps = 2;
 
         this.storeDatas({
-            API_TYPE_ID: ModuleProgramPlanBase.getInstance().program_category_type_id,
-            vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlanBase.getInstance().program_category_type_id)
+            API_TYPE_ID: this.program_plan_shared_module.program_category_type_id,
+            vos: await ModuleDAO.getInstance().getVos(this.program_plan_shared_module.program_category_type_id)
         });
 
         this.nextLoadingStep();
 
         this.storeDatas({
-            API_TYPE_ID: ModuleProgramPlanBase.getInstance().program_type_id,
-            vos: await ModuleDAO.getInstance().getVos(ModuleProgramPlanBase.getInstance().program_type_id)
+            API_TYPE_ID: this.program_plan_shared_module.program_type_id,
+            vos: await ModuleDAO.getInstance().getVos(this.program_plan_shared_module.program_type_id)
         });
 
         this.stopLoading();
@@ -43,8 +49,8 @@ export default class ProgramsOverviewComponent extends VueComponentBase {
     get programs_categories_ordered_by_weight(): IPlanProgramCategory[] {
         let res: IPlanProgramCategory[] = [];
 
-        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_category_type_id]) {
-            let program_category: IPlanProgramCategory = this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_category_type_id][i] as IPlanProgramCategory;
+        for (let i in this.getStoredDatas[this.program_plan_shared_module.program_category_type_id]) {
+            let program_category: IPlanProgramCategory = this.getStoredDatas[this.program_plan_shared_module.program_category_type_id][i] as IPlanProgramCategory;
 
             res.push(program_category);
         }
@@ -58,8 +64,8 @@ export default class ProgramsOverviewComponent extends VueComponentBase {
     get programs_by_category(): { [category_id: number]: IPlanProgram[] } {
         let res: { [category_id: number]: IPlanProgram[] } = {};
 
-        for (let i in this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_type_id]) {
-            let program: IPlanProgram = this.getStoredDatas[ModuleProgramPlanBase.getInstance().program_type_id][i] as IPlanProgram;
+        for (let i in this.getStoredDatas[this.program_plan_shared_module.program_type_id]) {
+            let program: IPlanProgram = this.getStoredDatas[this.program_plan_shared_module.program_type_id][i] as IPlanProgram;
 
             if ((!program.days_by_target) || (!program.nb_targets)) {
                 continue;
@@ -74,6 +80,6 @@ export default class ProgramsOverviewComponent extends VueComponentBase {
     }
 
     private open_program(program: IPlanProgram) {
-        this.$router.push(ProgramPlanClientVueModule.ROUTE_BASE_PLAN_PROGRAM + program.id);
+        this.$router.push(this.program_plan_client_module.route_base_program + program.id);
     }
 }

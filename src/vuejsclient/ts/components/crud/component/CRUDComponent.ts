@@ -29,6 +29,7 @@ import DatatableComponent from '../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -399,6 +400,9 @@ export default class CRUDComponent extends VueComponentBase {
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                     obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as ManyToOneReferenceDatatableField<any>).srcField.field_default);
                     break;
+                case DatatableField.REF_RANGES_FIELD_TYPE:
+                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as RefRangesReferenceDatatableField<any>).srcField.field_default);
+                    break;
 
                 default:
                 // obj[field.datatable_field_uid] = null;
@@ -407,6 +411,10 @@ export default class CRUDComponent extends VueComponentBase {
 
         // On passe la traduction en IHM sur les champs
         this.newVO = this.dataToIHM(obj, this.crud.createDatatable, false);
+
+        if (!!this.crud.hook_prepare_new_vo_for_creation) {
+            this.crud.hook_prepare_new_vo_for_creation(this.newVO);
+        }
 
         this.onChangeVO(this.newVO);
     }

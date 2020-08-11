@@ -4,9 +4,6 @@ import { Component, Prop } from 'vue-property-decorator';
 import ModuleProgramPlanBase from '../../../../../shared/modules/ProgramPlan/ModuleProgramPlanBase';
 import VueComponentBase from '../../VueComponentBase';
 import ProgramPlanControllerBase from '../ProgramPlanControllerBase';
-import { ModuleProgramPlanGetter } from '../store/ProgramPlanStore';
-import IPlanTaskType from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTaskType';
-import IPlanTask from '../../../../../shared/modules/ProgramPlan/interfaces/IPlanTask';
 
 @Component({
     template: require('./ProgramPlanComponentRDV.pug')
@@ -20,6 +17,12 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
     @Prop()
     private event_type: string;
 
+    @Prop({ default: null })
+    private program_plan_shared_module: ModuleProgramPlanBase;
+
+    @Prop({ default: null })
+    private program_plan_controller: ProgramPlanControllerBase;
+
     private mounted() {
 
         // store data so the calendar knows to render an event upon drop
@@ -28,9 +31,9 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
         event.title = this.event_name;
         event._type = this.event_type;
 
-        if (event._type == ModuleProgramPlanBase.getInstance().task_type_id) {
+        if (event._type == this.program_plan_shared_module.task_type_id) {
             event.task_id = this.event_id;
-        } else if (event._type == ModuleProgramPlanBase.getInstance().task_type_type_id) {
+        } else if (event._type == this.program_plan_shared_module.task_type_type_id) {
             event.task_type_id = this.event_id;
         } else {
             event.target_id = this.event_id;
@@ -43,7 +46,7 @@ export default class ProgramPlanComponentRDV extends VueComponentBase {
 
         event.stick = true; // maintain when user navigates (see docs on the renderEvent method)
 
-        ProgramPlanControllerBase.getInstance().populateDroppableItem(event, $(this.$el));
+        this.program_plan_controller.populateDroppableItem(event, $(this.$el));
 
         $(this.$el).data('event', event);
 

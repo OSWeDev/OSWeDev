@@ -51,7 +51,7 @@ export default class ModuleGeneratePDF extends Module {
         return file_path;
     }
 
-    private saveToDisk(fileURL: string, fileName: string) {
+    public saveToDisk(fileURL: string, fileName: string) {
         // for non-IE
         if (!window['ActiveXObject']) {
             var save = document.createElement('a');

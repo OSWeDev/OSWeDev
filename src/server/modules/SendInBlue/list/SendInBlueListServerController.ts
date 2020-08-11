@@ -1,26 +1,25 @@
-// import * as SibAPI from 'sib-api-v3-typescript';
-import ModuleRequest from '../../Request/ModuleRequest';
-import InsertOrDeleteQueryResult from '../../DAO/vos/InsertOrDeleteQueryResult';
-import ModuleSendInBlueController from '../ModuleSendInBlueController';
-import SendInBlueContactDetailVO from '../vos/SendInBlueContactDetailVO';
-import SendInBlueContactsVO from '../vos/SendInBlueContactsVO';
-import SendInBlueContactVO from '../vos/SendInBlueContactVO';
-import SendInBlueFolderDetailVO from '../vos/SendInBlueFolderDetailVO';
-import SendInBlueFoldersVO from '../vos/SendInBlueFolderVO';
-import SendInBlueListDetailVO from '../vos/SendInBlueListDetailVO';
-import SendInBlueListsVO from '../vos/SendInBlueListsVO';
+import ModuleRequest from '../../../../shared/modules/Request/ModuleRequest';
+import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import SendInBlueServerController from '../SendInBlueServerController';
+import SendInBlueContactDetailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueContactDetailVO';
+import SendInBlueContactsVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueContactsVO';
+import SendInBlueContactVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueContactVO';
+import SendInBlueFolderDetailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueFolderDetailVO';
+import SendInBlueFoldersVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueFolderVO';
+import SendInBlueListDetailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueListDetailVO';
+import SendInBlueListsVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueListsVO';
 
-export default class ModuleSendInBlueListController {
+export default class SendInBlueListServerController {
 
-    public static getInstance(): ModuleSendInBlueListController {
-        if (!ModuleSendInBlueListController.instance) {
-            ModuleSendInBlueListController.instance = new ModuleSendInBlueListController();
+    public static getInstance(): SendInBlueListServerController {
+        if (!SendInBlueListServerController.instance) {
+            SendInBlueListServerController.instance = new SendInBlueListServerController();
         }
 
-        return ModuleSendInBlueListController.instance;
+        return SendInBlueListServerController.instance;
     }
 
-    private static instance: ModuleSendInBlueListController = null;
+    private static instance: SendInBlueListServerController = null;
 
     private static PATH_CONTACT: string = 'contacts';
     private static PATH_LIST: string = 'contacts/lists';
@@ -31,11 +30,11 @@ export default class ModuleSendInBlueListController {
             return null;
         }
 
-        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueListDetailVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_LIST + '/' + listId);
+        return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueListDetailVO>(ModuleRequest.METHOD_GET, SendInBlueListServerController.PATH_LIST + '/' + listId);
     }
 
     public async getLists(): Promise<SendInBlueListsVO> {
-        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueListsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_LIST);
+        return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueListsVO>(ModuleRequest.METHOD_GET, SendInBlueListServerController.PATH_LIST);
     }
 
     public async createList(listName: string, folderId: number = null): Promise<SendInBlueListDetailVO> {
@@ -53,9 +52,9 @@ export default class ModuleSendInBlueListController {
             folderId = folder.id;
         }
 
-        let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
-            ModuleSendInBlueListController.PATH_LIST,
+            SendInBlueListServerController.PATH_LIST,
             { name: listName, folderId: folderId }
         );
 
@@ -69,7 +68,7 @@ export default class ModuleSendInBlueListController {
     public async getOrCreateDefaultFolder(): Promise<SendInBlueFolderDetailVO> {
         let folder: SendInBlueFolderDetailVO = null;
         let folders: SendInBlueFoldersVO = await this.getFolders();
-        let default_folder_list: string = await ModuleSendInBlueController.getInstance().getDefaultFolderList();
+        let default_folder_list: string = await SendInBlueServerController.getInstance().getDefaultFolderList();
 
         if (folders && folders.folders) {
             folder = folders.folders.find((f) => f.name == default_folder_list);
@@ -83,9 +82,9 @@ export default class ModuleSendInBlueListController {
     }
 
     public async createFolder(folderName: string): Promise<SendInBlueFolderDetailVO> {
-        let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
-            ModuleSendInBlueListController.PATH_FOLDER,
+            SendInBlueListServerController.PATH_FOLDER,
             { name: folderName }
         );
 
@@ -97,7 +96,7 @@ export default class ModuleSendInBlueListController {
     }
 
     public async getFolders(): Promise<SendInBlueFoldersVO> {
-        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueFoldersVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_FOLDER);
+        return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueFoldersVO>(ModuleRequest.METHOD_GET, SendInBlueListServerController.PATH_FOLDER);
     }
 
     public async getFolder(folderId: number): Promise<SendInBlueFolderDetailVO> {
@@ -105,11 +104,11 @@ export default class ModuleSendInBlueListController {
             return null;
         }
 
-        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueFolderDetailVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_FOLDER + '/' + folderId);
+        return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueFolderDetailVO>(ModuleRequest.METHOD_GET, SendInBlueListServerController.PATH_FOLDER + '/' + folderId);
     }
 
     public async getContacts(): Promise<SendInBlueContactsVO> {
-        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueContactsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_CONTACT);
+        return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueContactsVO>(ModuleRequest.METHOD_GET, SendInBlueListServerController.PATH_CONTACT);
     }
 
     public async getContact(email: string): Promise<SendInBlueContactDetailVO> {
@@ -117,7 +116,7 @@ export default class ModuleSendInBlueListController {
             return null;
         }
 
-        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueContactDetailVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_CONTACT + '/' + email);
+        return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueContactDetailVO>(ModuleRequest.METHOD_GET, SendInBlueListServerController.PATH_CONTACT + '/' + email);
     }
 
     public async createContact(contact: SendInBlueContactVO, listIds: number[] = null, updateEnabled: boolean = true): Promise<SendInBlueContactDetailVO> {
@@ -158,9 +157,9 @@ export default class ModuleSendInBlueListController {
             postParams.attributes.SMS = contact.sms;
         }
 
-        let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
-            ModuleSendInBlueListController.PATH_CONTACT,
+            SendInBlueListServerController.PATH_CONTACT,
             postParams
         );
 
@@ -176,7 +175,7 @@ export default class ModuleSendInBlueListController {
             return null;
         }
 
-        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueContactsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueListController.PATH_LIST + '/' + listId + '/contacts');
+        return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueContactsVO>(ModuleRequest.METHOD_GET, SendInBlueListServerController.PATH_LIST + '/' + listId + '/contacts');
     }
 
     public async createAndAddExistingContactsToList(name: string, contacts: SendInBlueContactVO[], force_create_or_update: boolean = false): Promise<SendInBlueListDetailVO> {
@@ -216,9 +215,9 @@ export default class ModuleSendInBlueListController {
             batch = emails.slice(n * 100, n * 100 + 100);
             n += 1;
 
-            await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ contacts: { success: string, failure: string, total: number } }>(
+            await SendInBlueServerController.getInstance().sendRequestFromApp<{ contacts: { success: string, failure: string, total: number } }>(
                 ModuleRequest.METHOD_POST,
-                ModuleSendInBlueListController.PATH_LIST + '/' + listId + '/contacts/add',
+                SendInBlueListServerController.PATH_LIST + '/' + listId + '/contacts/add',
                 { emails: batch }
             );
         }

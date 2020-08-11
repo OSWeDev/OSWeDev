@@ -24,7 +24,6 @@ import { RouteConfig } from 'vue-router/types/router';
 import vSelect from 'vue-select';
 import Snotify from 'vue-snotify';
 import { ClientTable } from "vue-tables-2";
-import * as vueDropzone from "vue2-dropzone";
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
 import Datepicker from 'vuejs-datepicker';
 import ModuleAjaxCache from '../shared/modules/AjaxCache/ModuleAjaxCache';
@@ -328,7 +327,8 @@ export default abstract class VueAppBase {
         Vue.component('Usernotifsmarkercomponent', UserNotifsMarkerComponent);
         Vue.component('multiselect', Multiselect);
         Vue.component('v-select', vSelect);
-        Vue.component('vue-dropzone', vueDropzone);
+        Vue.component('v-slider', async () => (await import(/* webpackChunkName: "VueSlider" */  'vue-slider-component')));
+        Vue.component('vue-dropzone', async () => (await import(/* webpackChunkName: "Vue2Dropzone" */  'vue2-dropzone')));
         Vue.component('var-data', () => import(/* webpackChunkName: "VarDataRefComponent" */ './ts/components/Var/components/dataref/VarDataRefComponent'));
         Vue.component('vars-sum', () => import(/* webpackChunkName: "VarDataSumComponent" */ './ts/components/Var/components/datasum/VarDataSumComponent'));
         Vue.component('vars-data', () => import(/* webpackChunkName: "VarDatasRefsComponent" */ './ts/components/Var/components/datasrefs/VarDatasRefsComponent'));
@@ -336,6 +336,7 @@ export default abstract class VueAppBase {
         Vue.component('var-if', () => import(/* webpackChunkName: "VarDataIfComponent" */ './ts/components/Var/components/varif/VarDataIfComponent'));
         Vue.component('var-bar-chart', () => import(/* webpackChunkName: "VarDataBarChartComponent" */ './ts/components/Var/components/databarchart/VarDataBarChartComponent'));
         Vue.component('var-pie-chart', () => import(/* webpackChunkName: "VarPieChartComponent" */ './ts/components/Var/components/piechart/VarPieChartComponent'));
+        Vue.component('Resizableimg', () => import(/* webpackChunkName: "ResizableImageComponent" */ './ts/components/resizable_img/ResizableImageComponent'));
         Vue.component('Intersect', Intersect);
         Vue.component('Crudcomponentfield', () => import(/* webpackChunkName: "CRUDComponentField" */ './ts/components/crud/component/field/CRUDComponentField'));
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);

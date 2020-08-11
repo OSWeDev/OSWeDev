@@ -610,6 +610,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
+            moduleTable.forceNumeric(segmented_vo);
+
             // On filtre les vo suivant les droits d'accès
             return await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, segmented_vo);
         }
@@ -1337,14 +1339,60 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
-        let request = " t WHERE " + moduleTable.getFieldFromId(apiDAOParamsVO.field_name).field_id;
-        if (has_null && (apiDAOParamsVO.ids.length == 1)) {
-            request += ' is null;';
-        } else if (has_null) {
-            let temp = apiDAOParamsVO.ids.filter((v) => v != null);
-            request += " is null or in (" + temp.join(',') + ");";
-        } else {
-            request += " in (" + apiDAOParamsVO.ids.join(',') + ");";
+
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(apiDAOParamsVO.API_TYPE_ID);
+        let matroid_fields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
+
+        for (let i in matroid_fields) {
+            let matroid_field = matroid_fields[i];
+
+            matroid_fields_by_ids[matroid_field.field_id] = matroid_field;
+        }
+
+        let field = moduleTable.getFieldFromId(apiDAOParamsVO.field_name);
+
+        let request = " t WHERE ";
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+                let numrange_ids: NumRange[] = [];
+
+                for (let i in apiDAOParamsVO.ids) {
+                    let id: number = apiDAOParamsVO.ids[i];
+
+                    numrange_ids.push(RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT));
+                }
+
+                let where_clause: string = '';
+
+                for (let j in numrange_ids) {
+                    let field_range: NumRange = numrange_ids[j];
+
+                    where_clause += (where_clause == '') ? "" : " OR ";
+
+                    where_clause += this.getClauseWhereRangeIntersectsField(field, field_range);
+                }
+
+                if (has_null && (apiDAOParamsVO.ids.length == 1)) {
+                    request += field.field_id + ' is null;';
+                } else if (has_null) {
+                    let temp = apiDAOParamsVO.ids.filter((v) => v != null);
+                    request += " is null OR " + where_clause;
+                } else {
+                    request += " " + where_clause;
+                }
+                break;
+            default:
+                request += field.field_id;
+                if (has_null && (apiDAOParamsVO.ids.length == 1)) {
+                    request += ' is null;';
+                } else if (has_null) {
+                    let temp = apiDAOParamsVO.ids.filter((v) => v != null);
+                    request += " is null or in (" + temp.join(',') + ");";
+                } else {
+                    request += " in (" + apiDAOParamsVO.ids.join(',') + ");";
+                }
+                break;
         }
 
         let vos: T[] = [];

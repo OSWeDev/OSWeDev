@@ -6,6 +6,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import SendInBlueServerController from './SendInBlueServerController';
 
 export default class ModuleSendInBlueServer extends ModuleServerBase {
 
@@ -38,6 +39,9 @@ export default class ModuleSendInBlueServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'PARTNER'
         }, 'sendinblue.account.partner'));
+
+
+        await SendInBlueServerController.getInstance().loadParam();
     }
 
     /**

@@ -48,7 +48,7 @@ export default class RefRangesReferenceDatatableField<Target extends IDistantVOB
     public dataToHumanReadableField(e: IDistantVOBase): any {
         let res = "";
 
-        let vos = DatatableField.VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let destvos = vos[this.targetModuleTable.vo_type];
         if (!destvos) {
             return res;
@@ -63,7 +63,7 @@ export default class RefRangesReferenceDatatableField<Target extends IDistantVOB
     public dataToReadIHM(e: number, vo: IDistantVOBase): any {
         let dest_ids: number[] = [];
 
-        let vos = DatatableField.VueAppBase.instance_.vueInstance.$store.getters['DAOStore/getStoredDatas'];
+        let vos = DatatableField.VueAppBase.vueInstance.$store.getters['DAOStore/getStoredDatas'];
         let destvos = vos[this.targetModuleTable.vo_type];
         if (!destvos) {
             return dest_ids;

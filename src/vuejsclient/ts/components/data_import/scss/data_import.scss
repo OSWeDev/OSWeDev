@@ -40,12 +40,14 @@ body.page-Manage.dih .crud-wrapper {
             background: $success_color;
         }
 
-        span.Import_interdit::before {
+        span.Import_interdit::before,
+        span.Importation_interdite::before {
             content: 'Interdit';
             background: $danger_color;
         }
 
-        span.Post-traitement__chou_::before {
+        span.Post-traitement__chou_::before,
+        span.Echec_lors_du_post-traitement::before {
             content: 'Echec';
             background: $danger_color;
         }

@@ -2,6 +2,7 @@
 
 import { IDatabase } from 'pg-promise';
 import IGeneratorWorker from '../../IGeneratorWorker';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
 export default class Patch20191008ChangeDILDateType implements IGeneratorWorker {
 
@@ -28,7 +29,7 @@ export default class Patch20191008ChangeDILDateType implements IGeneratorWorker 
         try {
             await this.change_type_column_date_to_tstz(db, 'ref.module_data_import_dil', 'date');
         } catch (error) {
-            console.error('Patch20191008ChangeDILDateType : ' + error);
+            ConsoleHandler.getInstance().log('Ignore this error if new project: ' + error);
         }
     }
 

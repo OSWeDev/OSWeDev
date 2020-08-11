@@ -1,0 +1,32 @@
+@import "skin-variables.scss";
+
+.field {
+
+    .many_to_one img,
+    .one_to_many img,
+    .many_to_many img {
+        float: left;
+        box-sizing: content-box;
+        height: 1.3em;
+        margin-right: 0.4em;
+        background: white;
+        border-radius: 3px;
+        opacity: 0.5;    
+        margin-bottom: 0.15em;
+    }
+
+    .many_to_one {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .one_to_many {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .many_to_many {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+}

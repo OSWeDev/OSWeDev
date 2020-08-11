@@ -1,22 +1,25 @@
-import ModuleRequest from '../../Request/ModuleRequest';
-import InsertOrDeleteQueryResult from '../../DAO/vos/InsertOrDeleteQueryResult';
-import ModuleSendInBlueListController from '../list/ModuleSendInBlueListController';
-import ModuleSendInBlueController from '../ModuleSendInBlueController';
-import SendInBlueContactVO from '../vos/SendInBlueContactVO';
-import SendInBlueListDetailVO from '../vos/SendInBlueListDetailVO';
-import SendInBlueMailCampaignDetailVO from '../vos/SendInBlueMailCampaignDetailVO';
-import SendInBlueMailCampaignsVO from '../vos/SendInBlueMailCampaignsVO';
+import ModuleRequest from '../../../../shared/modules/Request/ModuleRequest';
+import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import SendInBlueServerController from '../SendInBlueServerController';
+import SendInBlueContactVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueContactVO';
+import SendInBlueListDetailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueListDetailVO';
+import SendInBlueMailCampaignDetailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueMailCampaignDetailVO';
+import SendInBlueMailCampaignsVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueMailCampaignsVO';
+import SendInBlueListServerController from '../list/SendInBlueListServerController';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
+import ConfigurationService from '../../../env/ConfigurationService';
 
-export default class ModuleSendInBlueMailCampaignController {
+export default class SendInBlueMailCampaignServerController {
 
-    public static getInstance(): ModuleSendInBlueMailCampaignController {
-        if (!ModuleSendInBlueMailCampaignController.instance) {
-            ModuleSendInBlueMailCampaignController.instance = new ModuleSendInBlueMailCampaignController();
+    public static getInstance(): SendInBlueMailCampaignServerController {
+        if (!SendInBlueMailCampaignServerController.instance) {
+            SendInBlueMailCampaignServerController.instance = new SendInBlueMailCampaignServerController();
         }
-        return ModuleSendInBlueMailCampaignController.instance;
+        return SendInBlueMailCampaignServerController.instance;
     }
 
-    private static instance: ModuleSendInBlueMailCampaignController = null;
+    private static instance: SendInBlueMailCampaignServerController = null;
 
     private static PATH_CAMPAIGN: string = 'emailCampaigns';
     private static PATH_CAMPAIGN_SEND_NOW: string = 'sendNow';
@@ -27,11 +30,11 @@ export default class ModuleSendInBlueMailCampaignController {
             return null;
         }
 
-        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueMailCampaignDetailVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN + '/' + campaignId);
+        return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueMailCampaignDetailVO>(ModuleRequest.METHOD_GET, SendInBlueMailCampaignServerController.PATH_CAMPAIGN + '/' + campaignId);
     }
 
     public async getCampaigns(): Promise<SendInBlueMailCampaignsVO> {
-        return ModuleSendInBlueController.getInstance().sendRequestFromApp<SendInBlueMailCampaignsVO>(ModuleRequest.METHOD_GET, ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN);
+        return SendInBlueServerController.getInstance().sendRequestFromApp<SendInBlueMailCampaignsVO>(ModuleRequest.METHOD_GET, SendInBlueMailCampaignServerController.PATH_CAMPAIGN);
     }
 
     public async createAndSend(campaignName: string, subject: string, htmlContent: string, contacts: SendInBlueContactVO[], inlineImageActivation: boolean = false, testMail: boolean = false, contactsForTest: SendInBlueContactVO[] = null): Promise<boolean> {
@@ -49,7 +52,7 @@ export default class ModuleSendInBlueMailCampaignController {
             return null;
         }
 
-        let list: SendInBlueListDetailVO = await ModuleSendInBlueListController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
+        let list: SendInBlueListDetailVO = await SendInBlueListServerController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
 
         if (!list) {
             return null;
@@ -59,15 +62,15 @@ export default class ModuleSendInBlueMailCampaignController {
             listIds: [list.id]
         };
 
-        let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
-            ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN,
+            SendInBlueMailCampaignServerController.PATH_CAMPAIGN,
             {
-                sender: await ModuleSendInBlueController.getInstance().getSender(),
+                sender: await SendInBlueServerController.getInstance().getSender(),
                 name: campaignName,
                 htmlContent: htmlContent,
                 subject: subject,
-                replyTo: await ModuleSendInBlueController.getInstance().getReplyToEmail(),
+                replyTo: await SendInBlueServerController.getInstance().getReplyToEmail(),
                 recipients: recipientsData,
                 inlineImageActivation: inlineImageActivation,
             }
@@ -91,11 +94,19 @@ export default class ModuleSendInBlueMailCampaignController {
     }
 
     public async createWithTemplate(campaignName: string, subject: string, contacts: SendInBlueContactVO[], templateId: number, params: { [param_name: string]: any } = {}, inlineImageActivation: boolean = false): Promise<SendInBlueMailCampaignDetailVO> {
+
+        // On check que l'env permet d'envoyer des mails
+        if (ConfigurationService.getInstance().getNodeConfiguration().BLOCK_MAIL_DELIVERY) {
+
+            ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env:templateId: ' + templateId);
+            return null;
+        }
+
         if (!campaignName || !contacts || !contacts.length || !templateId || !subject) {
             return null;
         }
 
-        let list: SendInBlueListDetailVO = await ModuleSendInBlueListController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
+        let list: SendInBlueListDetailVO = await SendInBlueListServerController.getInstance().createAndAddExistingContactsToList(campaignName, contacts);
 
         if (!list) {
             return null;
@@ -106,10 +117,10 @@ export default class ModuleSendInBlueMailCampaignController {
         };
 
         let postParams: any = {
-            sender: await ModuleSendInBlueController.getInstance().getSender(),
+            sender: await SendInBlueServerController.getInstance().getSender(),
             name: campaignName,
             templateId: templateId,
-            replyTo: await ModuleSendInBlueController.getInstance().getReplyToEmail(),
+            replyTo: await SendInBlueServerController.getInstance().getReplyToEmail(),
             recipients: recipientsData,
             inlineImageActivation: inlineImageActivation,
             subject: subject,
@@ -119,9 +130,9 @@ export default class ModuleSendInBlueMailCampaignController {
             postParams.params = params;
         }
 
-        let res: InsertOrDeleteQueryResult = await ModuleSendInBlueController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
+        let res: InsertOrDeleteQueryResult = await SendInBlueServerController.getInstance().sendRequestFromApp<InsertOrDeleteQueryResult>(
             ModuleRequest.METHOD_POST,
-            ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN,
+            SendInBlueMailCampaignServerController.PATH_CAMPAIGN,
             postParams
         );
 
@@ -139,10 +150,10 @@ export default class ModuleSendInBlueMailCampaignController {
 
         let postParams: any = {};
 
-        let urlSend: string = ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN + '/' + campaignId + '/';
+        let urlSend: string = SendInBlueMailCampaignServerController.PATH_CAMPAIGN + '/' + campaignId + '/';
 
         if (testMail) {
-            urlSend += ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN_SEND_TEST;
+            urlSend += SendInBlueMailCampaignServerController.PATH_CAMPAIGN_SEND_TEST;
 
             if (!contactsForTest || !contactsForTest.length) {
                 return null;
@@ -150,10 +161,10 @@ export default class ModuleSendInBlueMailCampaignController {
 
             postParams.emailTo = contactsForTest.map((c) => c.email);
         } else {
-            urlSend += ModuleSendInBlueMailCampaignController.PATH_CAMPAIGN_SEND_NOW;
+            urlSend += SendInBlueMailCampaignServerController.PATH_CAMPAIGN_SEND_NOW;
         }
 
-        let res: { code: string, message: string } = await ModuleSendInBlueController.getInstance().sendRequestFromApp<{ code: string, message: string }>(
+        let res: { code: string, message: string } = await SendInBlueServerController.getInstance().sendRequestFromApp<{ code: string, message: string }>(
             ModuleRequest.METHOD_POST,
             urlSend,
             postParams

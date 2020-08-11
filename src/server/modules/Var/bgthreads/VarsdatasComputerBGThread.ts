@@ -85,12 +85,13 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     index_to_id[VarsController.getInstance().getIndex(var_data)] = var_data.id;
                 }
 
-                VarsController.getInstance().clean_caches_and_vardag();
+                // VarsController.getInstance().clean_caches_and_vardag();
                 let computed_datas: ISimpleNumberVarData[] = await VarsController.getInstance().registerDataParamsAndReturnVarDatas(vars_datas, true, true);
+                VarsController.getInstance().clean_caches_and_vardag();
 
-                if (!this.enabled) {
-                    return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
-                }
+                // if (!this.enabled) {
+                //     return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
+                // }
 
                 // On tente de supprimer les vars dont la value est 0 après calcul. ATTENTION aux effets de bord potentiels ...
                 let computed_datas_to_delete: ISimpleNumberVarData[] = [];
