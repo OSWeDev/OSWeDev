@@ -9,10 +9,6 @@ export default abstract class VarDataParamControllerBase<TData extends IVarDataV
 
     protected constructor() { }
 
-    // public sortParams(params: { [index: string]: IVarDataParamVOBase }) {
-    //     ObjectHandler.getInstance().sortObjectByKey(params, this.compareParams);
-    // }
-
     public abstract cloneParam(param: TDataParam): TDataParam;
 
     /**
@@ -29,14 +25,4 @@ export default abstract class VarDataParamControllerBase<TData extends IVarDataV
      * @returns Index for HashMaps. ID uniq for each possible configuration
      */
     public abstract getIndex(param: TDataParam): string;
-
-    /**
-     * La fonction inverse
-     * @param param_index
-     */
-    // public abstract getParam(param_index: string): TDataParam;
-
-    public abstract getImpactedParamsList(paramUpdated: TDataParam, paramsRegisteredByIndex: { [index: string]: IVarDataParamVOBase }): TDataParam[];
-
-    // protected abstract compareParams(paramA: TDataParam, paramB: TDataParam);
 }

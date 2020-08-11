@@ -85,7 +85,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     index_to_id[VarsController.getInstance().getIndex(var_data)] = var_data.id;
                 }
 
-                // VarsController.getInstance().clean_caches_and_vardag();
                 let computed_datas: ISimpleNumberVarData[] = await VarsController.getInstance().registerDataParamsAndReturnVarDatas(vars_datas, true, true);
                 VarsController.getInstance().clean_caches_and_vardag();
 

@@ -67,18 +67,7 @@ export default class VarsController {
         (name: string, dag: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(name, dag, param),
         this.onVarDAGNodeRemoval.bind(this));
 
-    // public registeredDatasParamsIndexes: { [paramIndex: string]: number } = {};
-    // public registeredDatasParams: { [paramIndex: string]: IVarDataParamVOBase } = {};
-
-    // public dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
-    // public impacts_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
-
     public datasource_deps_by_var_id: { [var_id: number]: Array<IDataSourceController<any, any>> } = {};
-    // public BATCH_UIDs_by_var_id: { [var_id: number]: number } = {};
-
-    public steps_names: { [step_number: number]: string } = {
-        1: ''
-    };
 
     public step_number: number = 1;
     public is_stepping: boolean = false;
@@ -102,13 +91,8 @@ export default class VarsController {
     public cached_var_by_var_id: { [var_id: number]: VarControllerBase<any, any> } = {};
     public parent_vars_by_var_id: { [var_id: number]: { [parent_var_id: number]: VarControllerBase<any, any> } } = {};
 
-    // private last_batch_dependencies_by_param: { [paramIndex: string]: IVarDataParamVOBase[] } = {};
-    // private last_batch_param_by_index: { [paramIndex: string]: IVarDataParamVOBase } = {};
-
-    // private setVarData_: (varData: IVarDataVOBase) => void = null;
     private setVarsData_: (varDatas: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) => void = null;
 
-    // private removeVarData: (varDataParam: IVarDataParamVOBase) => void = null;
     private setStepNumber: (step_number: number) => void = null;
     private setIsStepping: (is_stepping: boolean) => void = null;
 
@@ -127,8 +111,6 @@ export default class VarsController {
 
     private loaded_imported_datas_of_vars_ids: { [index: string]: boolean } = {};
 
-    // private waitingForUpdate: { [paramIndex: string]: IVarDataParamVOBase } = {};
-
     private updateSemaphore: boolean = false;
     private updateSemaphore_needs_reload: boolean = false;
 
@@ -139,18 +121,7 @@ export default class VarsController {
     private datasource_deps_defined: boolean = false;
 
     private actions_waiting_for_release_of_update_semaphore: Array<() => Promise<void>> = [];
-
-    // Imporssible de stocker dans le var_param qui est souvent copié avcec object.assign.... ou alors faut blocker et passer par une factory (mais en js on peut ps bloquer en fait object.assign ...)
-    private checked_var_indexes: { [index: string]: boolean } = {};
-
     private debounced_updatedatas_wrapper = debounce(this.updateDatasWrapper, this.var_debouncer);
-
-    // private debounced_removeVarData = debounce(this.removeVarsDatas_, 30000);
-
-    private get_cardinal_time: number = 0;
-    private intesect_time: number = 0;
-
-
 
     protected constructor() {
     }
@@ -171,23 +142,6 @@ export default class VarsController {
         return res;
     }
 
-    // /**
-    //  * pour UnitTest TestUnit uniquement
-    //  */
-    // get varDatasStaticCache_(): { [index: string]: IVarDataVOBase } {
-    //     return this.varDatasStaticCache;
-    // }
-
-    // /**
-    //  * pour UnitTest TestUnit uniquement
-    //  */
-    // get waitingForUpdate_(): { [paramIndex: string]: IVarDataParamVOBase } {
-    //     return this.waitingForUpdate;
-    // }
-
-    /**
-     * pour UnitTest TestUnit uniquement
-     */
     get updateSemaphore_(): boolean {
         return this.updateSemaphore;
     }
@@ -400,38 +354,6 @@ export default class VarsController {
         }
     }
 
-    // public stageUpdateData<TDataParam extends IVarDataParamVOBase>(param: TDataParam) {
-    //     if (!this.waitingForUpdate) {
-    //         this.waitingForUpdate = {};
-    //     }
-
-    //     if ((!param) || (!this.getVarControllerById(param.var_id)) || (!this.getVarControllerById(param.var_id).varDataParamController) ||
-    //         (!this.getVarControllerById(param.var_id).varDataParamController.getIndex)) {
-    //         return;
-    //     }
-
-    //     let param_controller: VarDataParamControllerBase<TDataParam> = this.getVarControllerById(param.var_id).varDataParamController;
-    //     let param_index: string = param_controller.getIndex(param);
-    //     if (!this.waitingForUpdate[param_index]) {
-    //         this.waitingForUpdate[param_index] = param;
-    //     }
-
-    //     // On demande au controller si on doit invalider d'autres params (par exemple un solde recalculé au 02/01 remet en cause celui du 03/01 et 05/01, ...)
-    //     let params_needing_update: TDataParam[] = param_controller.getImpactedParamsList(param, this.registeredDatasParams as { [index: string]: TDataParam });
-    //     if (params_needing_update && params_needing_update.length) {
-    //         for (let i in params_needing_update) {
-    //             let param_needing_update: TDataParam = params_needing_update[i];
-
-    //             param_index = param_controller.getIndex(param_needing_update);
-    //             if (!this.waitingForUpdate[param_index]) {
-    //                 this.waitingForUpdate[param_index] = param_needing_update;
-    //             }
-    //         }
-    //     }
-
-    //     this.debouncedUpdateDatas();
-    // }
-
     public setNewValueOutsideNormalUpdate<TData extends IVarDataVOBase>(value: TData) {
 
         this.setVarData(value, false);
@@ -567,7 +489,6 @@ export default class VarsController {
             return;
         }
         VarsController.getInstance().varDAG.clearDAG();
-        this.checked_var_indexes = {};
         this.loaded_imported_datas_of_vars_ids = {};
     }
 
@@ -719,31 +640,6 @@ export default class VarsController {
 
         return this._getIndex(param);
     }
-
-    // public getParam<TDataParam extends IVarDataParamVOBase>(param_index: string): TDataParam {
-
-    //     if (!param_index) {
-    //         return null;
-    //     }
-
-    //     let regexp = /^([0-9]+)_.*$/;
-    //     if (!regexp.test(param_index)) {
-    //         return null;
-    //     }
-
-    //     let res = regexp.exec(param_index);
-    //     try {
-
-    //         let var_id: number = res && res.length ? parseInt(res[0]) : null;
-    //         if (var_id == null) {
-    //             return null;
-    //         }
-
-    //         return this.getVarControllerById(var_id).varDataParamController.getParam(param_index);
-    //     } catch (error) {
-    //     }
-    //     return null;
-    // }
 
     /**
      * FIXME TODO ASAP VARS TU
@@ -1460,22 +1356,6 @@ export default class VarsController {
         }
     }
 
-    private populateListVarIds(current_var_id: number, var_id_list: number[]) {
-
-        let controller: VarControllerBase<any, any> = this.getVarControllerById(current_var_id);
-
-        let deps_ids: number[] = controller.getVarsIdsDependencies();
-
-        for (let i in deps_ids) {
-            let dep_id = deps_ids[i];
-
-            if (var_id_list.indexOf(dep_id) < 0) {
-                var_id_list.push(dep_id);
-                this.populateListVarIds(dep_id, var_id_list);
-            }
-        }
-    }
-
     private markNoeudsAGererImportMatroids(marker_todo: string, marker_ok: string) {
         for (let marker_name in this.varDAG.marked_nodes_names) {
             if (!marker_name.startsWith(VarDAG.VARDAG_MARKER_VAR_ID)) {
@@ -1686,9 +1566,7 @@ export default class VarsController {
 
                 matroids_inscrits.sort((a: ISimpleNumberVarMatroidData, b: ISimpleNumberVarMatroidData) =>
                     cardinaux[b.id] - cardinaux[a.id]);
-                // this.get_cardinal_time += moment().diff(before);
 
-                // before = moment();
                 for (let j in matroids_inscrits) {
                     let matroid_inscrit = matroids_inscrits[j];
 
@@ -1697,10 +1575,6 @@ export default class VarsController {
                     }
                     matroids_list.push(matroid_inscrit);
                 }
-                // this.intesect_time += moment().diff(before);
-
-                // ConsoleHandler.getInstance().log('CARD:' + this.get_cardinal_time + ':INTERS:' + this.intesect_time + ':');
-                // await ThreadHandler.getInstance().sleep(50);
 
                 // On veut en tirer 2 choses :
                 //  La somme des valeurs précompilées sur la matroids_list, comme base de calcul
