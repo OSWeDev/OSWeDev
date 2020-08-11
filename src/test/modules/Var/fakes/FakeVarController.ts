@@ -50,19 +50,6 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
         ];
     }
 
-
-    /**
-     * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
-     * @param BATCH_UID
-     * @param param
-     */
-    public getParamDependencies(
-        varDAGNode: VarDAGNode,
-        varDAG: VarDAG): IVarDataParamVOBase[] {
-        return null;
-    }
-
-
     /**
      * Fonction qui prépare la mise à jour d'une data
      */
@@ -77,5 +64,17 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
         }, param);
 
         return res;
+    }
+
+
+    /**
+     * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
+     * @param BATCH_UID
+     * @param param
+     */
+    public getParamDependencies(
+        varDAGNode: VarDAGNode,
+        varDAG: VarDAG): IVarDataParamVOBase[] {
+        return null;
     }
 }

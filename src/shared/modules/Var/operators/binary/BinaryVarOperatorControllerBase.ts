@@ -48,16 +48,6 @@ export default abstract class BinaryVarOperatorControllerBase<
         return [this.left_var.varConf.id, this.right_var.varConf.id];
     }
 
-    /**
-     * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
-     */
-    public getParamDependencies(
-        varDAGNode: VarDAGNode,
-        varDAG: VarDAG): IVarDataParamVOBase[] {
-
-        return [this.get_left_param(varDAGNode, varDAG), this.get_right_param(varDAGNode, varDAG)];
-    }
-
     public updateData(varDAGNode: VarDAGNode, varDAG: VarDAG): TData {
 
         let param: TDataParam = varDAGNode.param as TDataParam;
@@ -70,6 +60,16 @@ export default abstract class BinaryVarOperatorControllerBase<
 
         res.value = this.calc_value(data_left, data_right);
         return res;
+    }
+
+    /**
+     * Returns the dataparam needed to updateData of the given param. Example : Week sum of worked hours needs worked hours of each day of the given week
+     */
+    public getParamDependencies(
+        varDAGNode: VarDAGNode,
+        varDAG: VarDAG): IVarDataParamVOBase[] {
+
+        return [this.get_left_param(varDAGNode, varDAG), this.get_right_param(varDAGNode, varDAG)];
     }
 
     protected abstract calc_value(left_data: TDataLeft, right_data: TDataRight): number;

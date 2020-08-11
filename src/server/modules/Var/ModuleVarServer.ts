@@ -41,6 +41,8 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
 import VarServerController from './VarServerController';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -202,86 +204,134 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
 
+            let to_check_interceptors_by_var_ids: { [var_id: number]: { [index: string]: IVarMatroidDataParamVO } } = {};
             for (let ds_name in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type]) {
 
-                // Pour chaque DS on doit demander les intercepteurs, en filtrant les var_ids qui nous intéressent
+                // Pour chaque DS on doit demander les intercepteurs, sans filtre
+                //  ensuite on va remonter les deps parents sur chaque var_id des intersecteurs, et on remonte jusqu'en haut des deps
+                //  quand on a tout checké, on peut invalider en base les var_id qui sont effectivement en cache, les autres osef c'est côté client qu'il faut les invalider
 
                 // Pour l'instant on ne sait faire ça que sur des DS matroids
                 let ds: DataSourceMatroidControllerBase<any, any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name] as DataSourceMatroidControllerBase<any, any>;
-                let interceptors_by_var_ids: { [var_id: number]: IVarMatroidDataParamVO[]; } = ds.get_param_intersectors_from_vo_update_by_var_id(vo, VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type][ds_name]);
+                let interceptors_by_var_ids: { [var_id: number]: { [index: string]: IVarMatroidDataParamVO } } = ds.get_param_intersectors_from_vo_update_by_var_id(vo);
 
-                for (let var_id_s in interceptors_by_var_ids) {
-                    let var_id: number = parseInt(var_id_s.toString());
-                    let interceptors = interceptors_by_var_ids[var_id_s];
-                    let moduletable_vardata: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[VarsController.getInstance().getVarConfById(var_id).var_data_vo_type];
+                for (let interceptors_by_var_idi in interceptors_by_var_ids) {
+                    let interceptors = interceptors_by_var_ids[interceptors_by_var_idi];
 
-                    if (interceptors === null) {
+                    for (let interceptori in interceptors) {
+                        let interceptor = interceptors[interceptori];
 
-                        // On veut tout invalider
-                        await this.invalider_tout(moduletable_vardata);
-                        continue;
+                        if (!to_check_interceptors_by_var_ids[interceptor.var_id]) {
+                            to_check_interceptors_by_var_ids[interceptor.var_id] = {};
+                        }
+                        to_check_interceptors_by_var_ids[interceptor.var_id][interceptor.index] = interceptor;
+                    }
+                }
+            }
+
+            let checked_interceptors_by_var_ids: { [var_id: number]: { [index: string]: IVarMatroidDataParamVO } } = {};
+
+            while (ObjectHandler.getInstance().hasAtLeastOneAttribute(to_check_interceptors_by_var_ids)) {
+                let var_id: number = parseInt(ObjectHandler.getInstance().getFirstAttributeName(to_check_interceptors_by_var_ids));
+                let interceptors: { [index: string]: IVarMatroidDataParamVO } = to_check_interceptors_by_var_ids[var_id];
+                let controller = VarsController.getInstance().getVarControllerById(var_id);
+
+                while (ObjectHandler.getInstance().hasAtLeastOneAttribute(interceptors)) {
+                    let index: string = ObjectHandler.getInstance().getFirstAttributeName(interceptors);
+                    let interceptor = interceptors[index];
+
+                    // On récupère les deps parents, qu'on ajoute à check
+                    let deps_parents: IVarDataParamVOBase[] = controller.getParamDependents(interceptor);
+
+                    for (let deps_parenti in deps_parents) {
+                        let dep_parent = deps_parents[deps_parenti];
+
+                        if (!to_check_interceptors_by_var_ids[dep_parent.var_id]) {
+                            to_check_interceptors_by_var_ids[dep_parent.var_id] = {};
+                        }
+                        to_check_interceptors_by_var_ids[dep_parent.var_id][dep_parent.index] = dep_parent;
                     }
 
-                    for (let i in interceptors) {
-                        let interceptor: IVarMatroidDataParamVO = interceptors[i];
+                    // On supprime ce param des params à check
+                    delete to_check_interceptors_by_var_ids[var_id][index];
 
-                        let moduletable_interceptor: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[interceptor._type];
+                    // On ajout ce param dans les params checked
+                    if (!checked_interceptors_by_var_ids[var_id]) {
+                        checked_interceptors_by_var_ids[var_id] = {};
+                    }
+                    checked_interceptors_by_var_ids[var_id][index] = interceptor;
+                }
+            }
 
-                        let needs_mapping: boolean = moduletable_vardata.vo_type != moduletable_interceptor.vo_type;
-                        let mappings: { [field_id_a: string]: string } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
+            // on a tous les intercepteurs on doit s'intéresser à ceux qui sont en base et aller invalider
+            for (let cached_var_by_var_idi in VarsController.getInstance().cached_var_by_var_id) {
+                let cached_var = VarsController.getInstance().cached_var_by_var_id[cached_var_by_var_idi];
+                let moduletable_vardata: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[cached_var.varConf.var_data_vo_type];
 
-                        if (needs_mapping && (typeof mappings === 'undefined')) {
-                            throw new Error('Mapping missing:from:' + interceptor._type + ":to:" + moduletable_vardata.vo_type + ":");
-                        }
+                if (!checked_interceptors_by_var_ids[cached_var_by_var_idi]) {
+                    continue;
+                }
 
-                        //En mettant null on dit qu'on veut pas mapper, donc on veut tout invalider
-                        //  par exemple en cas de modif(undefined pas de mapping, null mapping impossible donc dans le doute on invalide tout)
-                        if (needs_mapping && !mappings) {
+                let checked_interceptors = checked_interceptors_by_var_ids[cached_var_by_var_idi];
+                for (let checked_interceptori in checked_interceptors) {
+                    let checked_interceptor = checked_interceptors[checked_interceptori];
 
-                            await this.invalider_tout(moduletable_vardata);
+                    let moduletable_interceptor: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[checked_interceptor._type];
 
-                        } else {
+                    let needs_mapping: boolean = moduletable_vardata.vo_type != moduletable_interceptor.vo_type;
+                    let mappings: { [field_id_a: string]: string } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
 
-                            if (moduletable_vardata.is_segmented) {
+                    if (needs_mapping && (typeof mappings === 'undefined')) {
+                        throw new Error('Mapping missing:from:' + checked_interceptor._type + ":to:" + moduletable_vardata.vo_type + ":");
+                    }
 
-                                // Si segmenté, on cherche le segment et on fait une requête par segment
-                                let moduletable_vardata_segment_field_name: string = moduletable_vardata.table_segmented_field.field_id;
+                    //En mettant null on dit qu'on veut pas mapper, donc on veut tout invalider
+                    //  par exemple en cas de modif(undefined pas de mapping, null mapping impossible donc dans le doute on invalide tout)
+                    if (needs_mapping && !mappings) {
 
-                                // On prend l'équivalent dans le matroid
-                                let mapping_intersector_to_vardata: { [field_id_a: string]: string; } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
-                                let intersector_segment_field_name: string = moduletable_vardata_segment_field_name;
-                                for (let field_a in mapping_intersector_to_vardata) {
-                                    let field_b = mapping_intersector_to_vardata[field_a];
+                        await this.invalider_tout(moduletable_vardata);
 
-                                    if (field_b == moduletable_vardata_segment_field_name) {
-                                        intersector_segment_field_name = field_a;
-                                    }
+                    } else {
+
+                        if (moduletable_vardata.is_segmented) {
+
+                            // Si segmenté, on cherche le segment et on fait une requête par segment
+                            let moduletable_vardata_segment_field_name: string = moduletable_vardata.table_segmented_field.field_id;
+
+                            // On prend l'équivalent dans le matroid
+                            let mapping_intersector_to_vardata: { [field_id_a: string]: string; } = moduletable_interceptor.mapping_by_api_type_ids[moduletable_vardata.vo_type];
+                            let intersector_segment_field_name: string = moduletable_vardata_segment_field_name;
+                            for (let field_a in mapping_intersector_to_vardata) {
+                                let field_b = mapping_intersector_to_vardata[field_a];
+
+                                if (field_b == moduletable_vardata_segment_field_name) {
+                                    intersector_segment_field_name = field_a;
                                 }
+                            }
 
-                                // et on foreach sur le champ de l'intersector qui est segmenté
-                                await RangeHandler.getInstance().foreach_ranges(interceptor[intersector_segment_field_name], async (segment: number | Duration | Moment) => {
+                            // et on foreach sur le champ de l'intersector qui est segmenté
+                            await RangeHandler.getInstance().foreach_ranges(checked_interceptor[intersector_segment_field_name], async (segment: number | Duration | Moment) => {
 
-                                    // On enlève le filtrage sur le champ segmenté, inutile
-                                    let segment_interceptor = Object.assign({}, interceptor);
-                                    delete segment_interceptor[intersector_segment_field_name];
+                                // On enlève le filtrage sur le champ segmenté, inutile
+                                let segment_interceptor = Object.assign({}, checked_interceptor);
+                                delete segment_interceptor[intersector_segment_field_name];
 
-                                    let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value_ts=null where ' +
-                                        ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(
-                                            moduletable_vardata.vo_type,
-                                            interceptor,
-                                            mappings
-                                        ) + ';';
-                                    await ModuleServiceBase.getInstance().db.query(request);
-                                }, moduletable_vardata.table_segmented_field_segment_type);
-                            } else {
-                                let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null where ' +
+                                let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value_ts=null where ' +
                                     ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(
                                         moduletable_vardata.vo_type,
-                                        interceptor,
+                                        checked_interceptor,
                                         mappings
                                     ) + ';';
                                 await ModuleServiceBase.getInstance().db.query(request);
-                            }
+                            }, moduletable_vardata.table_segmented_field_segment_type);
+                        } else {
+                            let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null where ' +
+                                ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(
+                                    moduletable_vardata.vo_type,
+                                    checked_interceptor,
+                                    mappings
+                                ) + ';';
+                            await ModuleServiceBase.getInstance().db.query(request);
                         }
                     }
                 }

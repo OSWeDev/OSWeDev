@@ -12,6 +12,7 @@ import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfVOBase from './vos/VarConfVOBase';
+import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
 const moment = require('moment');
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
@@ -41,7 +42,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
      * Permet d'indiquer au système de calcul optimisé des imports entre autre les champs qui sont déclarés par combinaison
      *  (et donc sur lesquels on fait une recherche exacte et pas par inclusion comme pour les champs atomiques)
      * On stocke le segment_type. Cela signifie que le champs est obligatoirement normalisé, et qu'on a un découpage suivant le segment_type
-     *  en ordre croissant en base. Très important par ce que [a,b] c'est différent de [b,a] pour la base. Même si ça couvre les mêmes ensembles
+     *  en ordre croissant en base. Très important par ce que ARRAY(a,b) c'est différent de ARRAY(b,a) pour la base. Même si ça couvre les mêmes ensembles
      */
     public datas_fields_type_combinatory: { [matroid_field_id: string]: number } = {};
 
@@ -57,6 +58,8 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
     /**
      * Déclarer une var comme pouvant utiliser des datas precompilées ou importées côté client
+     * ATTENTION si on utilise du cache ou un calcul côté serveur de manière générale, il faut autoriser à envoyer la requête donc c'est true client, false ou true server side
+     * O ne met false aux 2 que pour empêcher tout import et tout cache, donc forcer le calcul côté client.
      */
     public can_load_precompiled_or_imported_datas_client_side: boolean = true;
 
@@ -95,6 +98,13 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
      */
     public abstract getVarsIdsDependencies(): number[];
 
+    /**
+     * ATTENTION : on ne compute que sur un matroid. Sous entendu si on a un import qui scinde en 2 le param, on doit pouvoir calculer
+     *  en faisant import + calculA + calculB sinon on doit absolument interdire les imports sur cette variable => ça veut dire aussi pas de cache partiel,
+     *  on doit avoir un cache exact.
+     * @param varDAGNode 
+     * @param varDAG 
+     */
     public computeValue(varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
         let res: TData = null;
@@ -133,33 +143,17 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
         VarsController.getInstance().setVarData(res, true);
     }
 
-    public getSegmentedParamDependencies(
-        varDAGNode: VarDAGNode,
-        varDAG: VarDAG): IVarDataParamVOBase[] {
-
-        let res: IVarDataParamVOBase[] = this.getParamDependencies(varDAGNode, varDAG);
-        let res_: IVarDataParamVOBase[] = [];
-
-        for (let i in res) {
-
-            let param = res[i];
-
-            // TODO FIXME ASAP VARS : On intègre ici et dans le Varscontroller la gestion du reset des compteurs,
-            //  puisque [0, 50] sur un reset à 30 ça équivaut strictement à [30,50]
-
-            let check_res: boolean = VarsController.getInstance().check_tsrange_on_resetable_var(param);
-            if (!check_res) {
-                continue;
-            }
-
-            res_.push(param);
-        }
-
-        return res_;
-    }
+    /**
+     * Get params that intersect with any potential parent params depending on the one in arg
+     * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
+     * @param param
+     */
+    public abstract getParamDependents(param: IVarDataParamVOBase): IVarDataParamVOBase[];
 
     /**
-     * NEEDS to go protected
+     * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
+     * @param varDAGNode
+     * @param varDAG
      */
     public abstract getParamDependencies(
         varDAGNode: VarDAGNode,

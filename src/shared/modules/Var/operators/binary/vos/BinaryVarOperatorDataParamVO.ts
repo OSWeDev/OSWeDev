@@ -8,6 +8,7 @@ export default class BinaryVarOperatorDataParamVO implements IVarDataParamVOBase
     public _type: string = BinaryVarOperatorDataParamVO.API_TYPE_ID;
 
     public var_id: number;
+    public index: string;
 
     public left_var_param_index: string;
     public right_var_param_index: string;

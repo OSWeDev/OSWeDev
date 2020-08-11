@@ -8,4 +8,5 @@ export default class NumberDatasourceFieldDataParamVO implements IVarDataParamVO
     public _type: string = NumberDatasourceFieldDataParamVO.API_TYPE_ID;
 
     public var_id: number;
+    public index: string;
 }

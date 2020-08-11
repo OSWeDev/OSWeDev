@@ -1,15 +1,17 @@
+import RangeHandler from '../../tools/RangeHandler';
 import IDistantVOBase from '../IDistantVOBase';
 import MatroidController from '../Matroid/MatroidController';
 import ModuleTable from '../ModuleTable';
+import ModuleTableField from '../ModuleTableField';
 import VarDAG from '../Var/graph/var/VarDAG';
 import IVarDataParamVOBase from '../Var/interfaces/IVarDataParamVOBase';
 import IVarMatroidDataParamVO from '../Var/interfaces/IVarMatroidDataParamVO';
 import IVarMatroidDataVO from '../Var/interfaces/IVarMatroidDataVO';
+import VarControllerBase from '../Var/VarControllerBase';
 import VarsController from '../Var/VarsController';
 import VOsTypesManager from '../VOsTypesManager';
 import DataSourcesController from './DataSourcesController';
 import IDataSourceController from './interfaces/IDataSourceController';
-import VarControllerBase from '../Var/VarControllerBase';
 
 export default abstract class DataSourceMatroidControllerBase<TData extends IVarMatroidDataVO & TDataParam, TDataParam extends IVarMatroidDataParamVO> implements IDataSourceController<TData, TDataParam> {
 
@@ -57,7 +59,7 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
     public get_updated_params_from_vo_update(vo: IDistantVOBase, filtered_var_ids: { [var_id: number]: VarControllerBase<any, any> } = null): { [index: string]: IVarDataParamVOBase } {
         let res: { [index: string]: IVarDataParamVOBase } = {};
 
-        let intersectors: { [var_id: number]: TDataParam[] } = this.get_param_intersectors_from_vo_update_by_var_id(vo, filtered_var_ids);
+        let intersectors: { [var_id: number]: { [index: string]: TDataParam } } = this.get_param_intersectors_from_vo_update_by_var_id(vo, filtered_var_ids);
 
         if (!intersectors) {
             return null;
@@ -151,10 +153,10 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
      * On filtre par une map de var_ids au besoin pour limiter les résultats en sortie. Sinon on prend tous les intercepteurs
      * @param vo
      */
-    public abstract get_param_intersectors_from_vo_update_by_var_id(vo: IDistantVOBase, filtered_var_ids?: { [var_id: number]: VarControllerBase<any, any> }): { [var_id: number]: TDataParam[] };
+    public abstract get_param_intersectors_from_vo_update_by_var_id(vo: IDistantVOBase, filtered_var_ids?: { [var_id: number]: VarControllerBase<any, any> }): { [var_id: number]: { [index: string]: TDataParam } };
 
     /**
-     * Base renvoyant des intersecteurs initialisés pour tous les var_id et au plus large (on envoie null => pas de filtrage donc tout invalider)
+     * Base renvoyant des intersecteurs initialisés pour tous les var_id et au plus large => max ranges
      * @param vo
      */
     protected get_global_param_intersectors_by_var_id(filtered_var_ids: { [var_id: number]: VarControllerBase<any, any> } = null): { [var_id: number]: TDataParam[] } {
@@ -166,7 +168,29 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
             if ((!!filtered_var_ids) && (!filtered_var_ids[controller.varConf.id])) {
                 continue;
             }
-            res[controller.varConf.id] = null;
+
+            let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
+            let intersector: TDataParam = moduletable.voConstructor();
+
+            intersector.var_id = controller.varConf.id;
+
+            let fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(controller.varConf.var_data_vo_type);
+            for (let fields_i in fields) {
+                let field = fields[fields_i];
+
+                switch (field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        intersector[field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        intersector[field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                        intersector[field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                        intersector[field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
+                    default:
+                }
+            }
+            res[controller.varConf.id] = [intersector];
         }
 
         return res;
