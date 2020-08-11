@@ -102,6 +102,9 @@ export default class TextHandler {
     }
 
     public capitalize(s: string) {
+        if (!s) {
+            return null;
+        }
         if (typeof s !== 'string') {
             return '';
         }

@@ -18,10 +18,12 @@ export default class HourHandler {
     }
 
     public formatHourForIHM(hour: moment.Duration, segment_type: number): string {
+        if (segment_type < 0 || segment_type > 3 || segment_type == null) {
+            return null;
+        }
         if ((hour == null) || (typeof hour == 'undefined')) {
             return '';
         }
-
         switch (segment_type) {
             case HourSegment.TYPE_HOUR:
                 return this.force2DigitMin(hour.hours()) + 'h';

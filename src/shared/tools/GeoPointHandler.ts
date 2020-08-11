@@ -33,6 +33,10 @@ export default class GeoPointHandler {
         let regexpGeopoint = /(\()(.*),(.*)(\))/i;
         let res: string[] = point.match(regexpGeopoint);
 
+        if (!res) {
+            return null;
+        }
+
         if (res[2] === null || res[2] == '') {
             return null;
         }

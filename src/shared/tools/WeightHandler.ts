@@ -36,6 +36,9 @@ export default class WeightHandler {
      * @param weight
      */
     public findNextHeavierItemByWeight<T extends IWeightedItem>(sortedItemsByWeight: T[], weight: number): T {
+        if (!sortedItemsByWeight || !weight) {
+            return null;
+        }
         for (let i in sortedItemsByWeight) {
             if (sortedItemsByWeight[i].weight > weight) {
                 return sortedItemsByWeight[i];

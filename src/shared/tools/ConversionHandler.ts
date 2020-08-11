@@ -16,6 +16,9 @@ export default class ConversionHandler {
 
     public forceNumber(e: string | number): number {
         try {
+            if (isNaN(parseFloat(e.toString()))) {
+                return null;
+            }
             return ((e == 0) ? 0 : (e ? parseFloat(e.toString()) : null));
         } catch (e) {
             ConsoleHandler.getInstance().error(e);
@@ -32,6 +35,9 @@ export default class ConversionHandler {
         try {
             for (let i in es) {
                 let e = es[i];
+                if (isNaN(parseFloat(e.toString()))) {
+                    return null;
+                }
                 res.push(parseFloat(e.toString()));
             }
         } catch (e) {

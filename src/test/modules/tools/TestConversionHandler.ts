@@ -12,11 +12,12 @@ describe('ConversionHandler', () => {
     it('test forceNumbers', () => {
         expect(ConversionHandler.getInstance().forceNumbers(null)).to.equal(null);
         expect(ConversionHandler.getInstance().forceNumbers([])).to.equal(null);
-        expect(ConversionHandler.getInstance().forceNumbers(['1', '2', '3'])).to.equal([1, 2, 3]);
+        expect(ConversionHandler.getInstance().forceNumbers(['1', '2', '3'])).to.deep.equal([1, 2, 3]);
         expect(ConversionHandler.getInstance().forceNumbers(["notANumber"])).to.equal(null);
         expect(ConversionHandler.getInstance().forceNumbers(["notANumber", 3])).to.equal(null);
-        expect(ConversionHandler.getInstance().forceNumbers([1, "2"])).to.equal([1, 2]);
+        expect(ConversionHandler.getInstance().forceNumbers([1, "2"])).to.deep.equal([1, 2]);
     });
+
 });
 
 
