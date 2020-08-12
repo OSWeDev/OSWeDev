@@ -1,8 +1,8 @@
-import BinaryVarOperatorDataParamVO from './BinaryVarOperatorDataParamVO';
-import ISimpleNumberVarData from '../../../interfaces/ISimpleNumberVarData';
 import { Moment } from 'moment';
+import IVarDataVOBase from '../../../interfaces/IVarDataVOBase';
+import BinaryVarOperatorDataParamVO from './BinaryVarOperatorDataParamVO';
 
-export default class BinaryVarOperatorDataVO extends BinaryVarOperatorDataParamVO implements ISimpleNumberVarData {
+export default class BinaryVarOperatorDataVO extends BinaryVarOperatorDataParamVO implements IVarDataVOBase {
 
     public static API_TYPE_ID: string = "binary_var_operator_data";
 

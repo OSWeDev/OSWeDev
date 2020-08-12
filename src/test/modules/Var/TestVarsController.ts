@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import 'mocha';
+import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import VarDataBaseVO from '../../../shared/modules/Var/params/VarDataBaseVO';
 import SimpleVarConfVO from '../../../shared/modules/Var/simple_vars/SimpleVarConfVO';
 import VarsController from '../../../shared/modules/Var/VarsController';
-import FakeVarController from './fakes/FakeVarController';
-import FakeDataParamVO from './fakes/vos/FakeDataParamVO';
-import FakeDataVO from './fakes/vos/FakeDataVO';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
+import FakeVarController from './fakes/FakeVarController';
+import FakeDataVO from './fakes/vos/FakeDataVO';
 import moment = require('moment');
 
 
@@ -61,34 +61,18 @@ describe('VarsController', () => {
         let index2: string = "1_2019-01-02_1_1";
         let index3: string = "1_2019-01-03_1_1";
 
-        let param1: FakeDataParamVO = {
-            _type: 'fake_type',
-            var_id: 1,
-            id: undefined,
-            ts_ranges: [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-01").utc(true), TimeSegment.TYPE_DAY)],
-        };
-        let param2: FakeDataParamVO = {
-            _type: 'fake_type',
-            var_id: 1,
-            id: undefined,
-            ts_ranges: [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-02").utc(true), TimeSegment.TYPE_DAY)],
-        };
-        let param3: FakeDataParamVO = {
-            _type: 'fake_type',
-            var_id: 1,
-            id: undefined,
-            ts_ranges: [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-03").utc(true), TimeSegment.TYPE_DAY)],
-        };
+        let param1: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-01").utc(true), TimeSegment.TYPE_DAY)]);
+        let param2: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-02").utc(true), TimeSegment.TYPE_DAY)]);
+        let param3: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-03").utc(true), TimeSegment.TYPE_DAY)]);
 
         VarsController.getInstance().unregisterVar(varConf);
 
-        expect(VarsController.getInstance().getIndex(null)).to.equal(null);
-        expect(VarsController.getInstance().getIndex(param1)).to.equal(null);
+        expect(param1.index).to.equal(null);
 
         VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
-        expect(VarsController.getInstance().getIndex(param1)).to.equal(index1);
-        expect(VarsController.getInstance().getIndex(param2)).to.equal(index2);
-        expect(VarsController.getInstance().getIndex(param3)).to.equal(index3);
+        expect(param1.index).to.equal(index1);
+        expect(param2.index).to.equal(index2);
+        expect(param3.index).to.equal(index3);
         VarsController.getInstance().unregisterVar(varConf);
     });
 
@@ -105,8 +89,8 @@ describe('VarsController', () => {
     //     expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({});
     //     expect(VarsController.getInstance().registeredDatasParams).to.deep.equal({});
 
-    //     let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
-    //     let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
+    //     let fakeDataParam: FakeDataVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
+    //     let fakeDataParamIndex: string = fakeDataParam.index;
 
     //     VarsController.getInstance().registerDataParam(fakeDataParam);
     //     expect(VarsController.getInstance().registeredDatasParamsIndexes).to.deep.equal({ [fakeDataParamIndex]: 1 });
@@ -138,8 +122,8 @@ describe('VarsController', () => {
 
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
-    //     let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
-    //     let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
+    //     let fakeDataParam: FakeDataVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
+    //     let fakeDataParamIndex: string = fakeDataParam.index;
 
     //     expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
     //     VarsController.getInstance().registerDataParam(fakeDataParam);
@@ -168,8 +152,8 @@ describe('VarsController', () => {
     //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
 
 
-    //     let fakeDataParam2: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 15, '2019-05-21');
-    //     let fakeDataParamIndex2: string = VarsController.getInstance().getIndex(fakeDataParam);
+    //     let fakeDataParam2: FakeDataVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 15, '2019-05-21');
+    //     let fakeDataParamIndex2: string = fakeDataParam.index;
 
     //     expect(VarsController.getInstance().updateSemaphore_).to.equal(false);
     //     expect(VarsController.getInstance().waitingForUpdate_).to.deep.equal({});
@@ -201,8 +185,8 @@ describe('VarsController', () => {
 
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
-    //     let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
-    //     let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
+    //     let fakeDataParam: FakeDataVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
+    //     let fakeDataParamIndex: string = fakeDataParam.index;
 
     //     PerfMonController.PERFMON_RUN = true;
     //     expect(VarsController.getInstance().addDepsToBatch({ [fakeDataParamIndex]: fakeDataParam })).to.deep.equal({
@@ -233,8 +217,8 @@ describe('VarsController', () => {
 
     //     VarsController.getInstance().registerVar(varConf, FakeVarController.getInstance());
 
-    //     let fakeDataParam: FakeDataParamVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
-    //     let fakeDataParamIndex: string = VarsController.getInstance().getIndex(fakeDataParam);
+    //     let fakeDataParam: FakeDataVO = FakeDataParamController.getInstance().getParamFromCompteurName(var_name, 5, '2019-01-01');
+    //     let fakeDataParamIndex: string = fakeDataParam.index;
 
     //     PerfMonController.PERFMON_RUN = true;
 

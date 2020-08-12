@@ -1,9 +1,9 @@
+import VarControllerBase from '../../../../shared/modules/Var/VarControllerBase';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import ICronWorker from '../../Cron/interfaces/ICronWorker';
-import VarControllerBase from '../../../../shared/modules/Var/VarControllerBase';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ICronWorker from '../../Cron/interfaces/ICronWorker';
 
 export default class CachedinfoCronWorker implements ICronWorker {
 
@@ -97,7 +97,7 @@ export default class CachedinfoCronWorker implements ICronWorker {
             refuse = false;
             while ((!refuse) && parents_ids && ObjectHandler.getInstance().hasAtLeastOneAttribute(parents_ids)) {
 
-                let new_parents_ids: { [parent_id: number]: VarControllerBase<any, any> } = {};
+                let new_parents_ids: { [parent_id: number]: VarControllerBase<any> } = {};
 
                 for (let j in parents_ids) {
                     let dep = parents_ids[j];

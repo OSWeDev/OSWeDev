@@ -1,5 +1,5 @@
 import IDistantVOBase from '../IDistantVOBase';
-import IVarDataParamVOBase from '../Var/interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../Var/interfaces/IVarDataVOBase';
 import IDataSourceController from './interfaces/IDataSourceController';
 
 export default class DataSourcesController {
@@ -27,8 +27,8 @@ export default class DataSourcesController {
      */
     public can_use_client_side: boolean = true;
 
-    public registeredDataSourcesController: { [name: string]: IDataSourceController<any, any> } = {};
-    public registeredDataSourcesControllerByVoTypeDep: { [vo_type: string]: Array<IDataSourceController<any, any>> } = {};
+    public registeredDataSourcesController: { [name: string]: IDataSourceController<any> } = {};
+    public registeredDataSourcesControllerByVoTypeDep: { [vo_type: string]: Array<IDataSourceController<any>> } = {};
     /**
      * ----- Local thread cache
      */
@@ -39,7 +39,7 @@ export default class DataSourcesController {
     }
 
     public registerDataSource(
-        dataSourcesController: IDataSourceController<any, any>) {
+        dataSourcesController: IDataSourceController<any>) {
 
         if (!!this.registeredDataSourcesController[dataSourcesController.name]) {
             return;
@@ -56,26 +56,26 @@ export default class DataSourcesController {
         }
     }
 
-    public getUpdatedParamsFromVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase): { [index: string]: IVarDataParamVOBase } {
+    public getUpdatedParamsFromVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase): { [index: string]: IVarDataVOBase } {
 
-        let res_before: { [index: string]: IVarDataParamVOBase } = this.getUpdatedParamsFromVo(vo_before_update);
-        let res_after: { [index: string]: IVarDataParamVOBase } = this.getUpdatedParamsFromVo(vo_after_update);
+        let res_before: { [index: string]: IVarDataVOBase } = this.getUpdatedParamsFromVo(vo_before_update);
+        let res_after: { [index: string]: IVarDataVOBase } = this.getUpdatedParamsFromVo(vo_after_update);
 
         return Object.assign(res_before, res_after);
     }
 
-    private getUpdatedParamsFromVo(vo: IDistantVOBase): { [index: string]: IVarDataParamVOBase } {
+    private getUpdatedParamsFromVo(vo: IDistantVOBase): { [index: string]: IVarDataVOBase } {
 
         if ((!vo) || (!vo._type) || (!this.registeredDataSourcesControllerByVoTypeDep[vo._type])) {
             return {};
         }
 
-        let res: { [index: string]: IVarDataParamVOBase } = {};
+        let res: { [index: string]: IVarDataVOBase } = {};
 
         for (let i in this.registeredDataSourcesControllerByVoTypeDep[vo._type]) {
-            let dataSourceController: IDataSourceController<any, any> = this.registeredDataSourcesControllerByVoTypeDep[vo._type][i];
+            let dataSourceController: IDataSourceController<any> = this.registeredDataSourcesControllerByVoTypeDep[vo._type][i];
 
-            let temps: { [index: string]: IVarDataParamVOBase } = dataSourceController.get_updated_params_from_vo_update(vo);
+            let temps: { [index: string]: IVarDataVOBase } = dataSourceController.get_updated_params_from_vo_update(vo);
 
             for (let index in temps) {
 

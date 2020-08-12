@@ -1,5 +1,4 @@
 import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
-import VarsController from '../../../shared/modules/Var/VarsController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 
@@ -53,7 +52,7 @@ export default class VarServerController {
 
         for (let i in var_datas) {
             let var_data: IVarDataVOBase = var_datas[i];
-            let var_index: string = VarsController.getInstance().getIndex(var_data);
+            let var_index: string = var_data.index;
 
             if (this.uid_waiting_for_indexes[var_index]) {
                 for (let uid_i in this.uid_waiting_for_indexes[var_index]) {

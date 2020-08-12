@@ -1,6 +1,6 @@
-import IVarDataParamVOBase from '../../../interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../../../interfaces/IVarDataVOBase';
 
-export default class BinaryVarOperatorDataParamVO implements IVarDataParamVOBase {
+export default class BinaryVarOperatorDataParamVO implements IVarDataVOBase {
 
     public static API_TYPE_ID: string = "binary_var_operator_param";
 

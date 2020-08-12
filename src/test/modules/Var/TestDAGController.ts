@@ -2,12 +2,13 @@ import { expect } from 'chai';
 import 'mocha';
 import VarDAG from '../../../shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/var/VarDAGNode';
-import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import SimpleVarConfVO from '../../../shared/modules/Var/simple_vars/SimpleVarConfVO';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import FakeVarController from './fakes/FakeVarController';
 import FakeVarDAGVisitorEmpty from './fakes/FakeVarDAGVisitorEmpty';
 import FakeDataVO from './fakes/vos/FakeDataVO';
+import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarDataBaseVO from '../../../shared/modules/Var/params/VarDataBaseVO';
 
 let varConf: SimpleVarConfVO = new SimpleVarConfVO();
 varConf.id = 1;
@@ -20,34 +21,14 @@ let index3: string = "1_20190103_1_1";
 let index4: string = "1_20190104_1_1";
 let index5: string = "1_20190105_1_1";
 
-let node_param1: IVarDataParamVOBase = {
-    _type: 'fake_type',
-    var_id: 1,
-    id: undefined
-};
-let node_param2: IVarDataParamVOBase = {
-    _type: 'fake_type',
-    var_id: 1,
-    id: undefined
-};
-let node_param3: IVarDataParamVOBase = {
-    _type: 'fake_type',
-    var_id: 1,
-    id: undefined
-};
-let node_param4: IVarDataParamVOBase = {
-    _type: 'fake_type',
-    var_id: 1,
-    id: undefined
-};
-let node_param5: IVarDataParamVOBase = {
-    _type: 'fake_type',
-    var_id: 1,
-    id: undefined
-};
+let node_param1: IVarDataVOBase = VarDataBaseVO.createNew('fake_type', 1);
+let node_param2: IVarDataVOBase = VarDataBaseVO.createNew('fake_type', 1);
+let node_param3: IVarDataVOBase = VarDataBaseVO.createNew('fake_type', 1);
+let node_param4: IVarDataVOBase = VarDataBaseVO.createNew('fake_type', 1);
+let node_param5: IVarDataVOBase = VarDataBaseVO.createNew('fake_type', 1);
 
 function getTestDag_simple_linear(marker: string, index_root: string = null): VarDAG {
-    let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(name, d, param), null);
+    let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataVOBase) => new VarDAGNode(name, d, param), null);
     let node1 = dag.add(index1, node_param1);
     if ((!index_root) || (index_root == index1)) {
         node1.addMarker(marker, dag);
@@ -71,7 +52,7 @@ function getTestDag_simple_linear(marker: string, index_root: string = null): Va
 
 
 function getTestDag_simple_branches(marker: string, index_root: string = null): VarDAG {
-    let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(name, d, param), null);
+    let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataVOBase) => new VarDAGNode(name, d, param), null);
     let node1 = dag.add(index1, node_param1);
     if ((!index_root) || (index_root == index1)) {
         node1.addMarker(marker, dag);

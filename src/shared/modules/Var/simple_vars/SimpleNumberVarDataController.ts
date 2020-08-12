@@ -1,5 +1,4 @@
-import ISimpleNumberVarData from '../interfaces/ISimpleNumberVarData';
-
+import IVarDataVOBase from '../interfaces/IVarDataVOBase';
 
 export default class SimpleNumberVarDataController {
 
@@ -15,7 +14,7 @@ export default class SimpleNumberVarDataController {
     protected constructor() {
     }
 
-    public getValueOrDefault(var_data: ISimpleNumberVarData, default_val: number = 0): number {
+    public getValueOrDefault(var_data: IVarDataVOBase, default_val: number = 0): number {
         return (var_data && (var_data.value != null) && (typeof var_data.value != 'undefined')) ? var_data.value : default_val;
     }
 }

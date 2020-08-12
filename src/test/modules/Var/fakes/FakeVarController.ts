@@ -1,17 +1,15 @@
+import * as moment from 'moment';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDataSourceController from '../../../../shared/modules/DataSource/interfaces/IDataSourceController';
 import VarDAG from '../../../../shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../../shared/modules/Var/graph/var/VarDAGNode';
-import IVarDataParamVOBase from '../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import SimpleVarConfVO from '../../../../shared/modules/Var/simple_vars/SimpleVarConfVO';
 import VarControllerBase from '../../../../shared/modules/Var/VarControllerBase';
 import VarsController from '../../../../shared/modules/Var/VarsController';
-import FakeDataParamController from './FakeDataParamController';
-import FakeDataParamVO from './vos/FakeDataParamVO';
 import FakeDataVO from './vos/FakeDataVO';
-import * as moment from 'moment';
 
-export default class FakeVarController extends VarControllerBase<FakeDataVO, FakeDataParamVO> {
+export default class FakeVarController extends VarControllerBase<FakeDataVO> {
 
     public static VAR_NAME: string = 'FakeVarController';
 
@@ -26,15 +24,14 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
 
     public segment_type: number = TimeSegment.TYPE_DAY;
 
-    protected constructor(conf: SimpleVarConfVO = null, controller: FakeDataParamController = null) {
+    protected constructor(conf: SimpleVarConfVO = null) {
         super(
             conf ? conf : {
                 _type: SimpleVarConfVO.API_TYPE_ID,
                 id: 1,
                 var_data_vo_type: FakeDataVO.API_TYPE_ID,
                 name: FakeVarController.VAR_NAME,
-            } as SimpleVarConfVO,
-            controller ? controller : FakeDataParamController.getInstance());
+            } as SimpleVarConfVO);
     }
 
     public getVarsIdsDependencies(): number[] {
@@ -45,7 +42,7 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
     /**
      * Returns the datasources this var depends on
      */
-    public getDataSourcesDependencies(): Array<IDataSourceController<any, any>> {
+    public getDataSourcesDependencies(): Array<IDataSourceController<any>> {
         return [
         ];
     }
@@ -55,7 +52,7 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
      */
     public updateData(varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
-        let param: FakeDataParamVO = varDAGNode.param as FakeDataParamVO;
+        let param: FakeDataVO = varDAGNode.param as FakeDataVO;
         let res: FakeDataVO = Object.assign({
             value: 42,
             value_type: VarsController.VALUE_TYPE_COMPUTED,
@@ -74,7 +71,11 @@ export default class FakeVarController extends VarControllerBase<FakeDataVO, Fak
      */
     public getParamDependencies(
         varDAGNode: VarDAGNode,
-        varDAG: VarDAG): IVarDataParamVOBase[] {
+        varDAG: VarDAG): IVarDataVOBase[] {
+        return null;
+    }
+
+    public getParamDependents(param: FakeDataVO): IVarDataVOBase[] {
         return null;
     }
 }

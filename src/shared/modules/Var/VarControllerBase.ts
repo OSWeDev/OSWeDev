@@ -4,18 +4,15 @@ import IDataSourceController from '../DataSource/interfaces/IDataSourceControlle
 import IMatroid from '../Matroid/interfaces/IMatroid';
 import VarDAG from './graph/var/VarDAG';
 import VarDAGNode from './graph/var/VarDAGNode';
-import ISimpleNumberVarMatroidData from './interfaces/ISimpleNumberVarMatroidData';
-import IVarDataParamVOBase from './interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import ModuleVar from './ModuleVar';
-import VarDataParamControllerBase from './VarDataParamControllerBase';
 import VarsController from './VarsController';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfVOBase from './vos/VarConfVOBase';
-import IVarMatroidDataVO from './interfaces/IVarMatroidDataVO';
+import VarDataBaseVO from './params/VarDataBaseVO';
 const moment = require('moment');
 
-export default abstract class VarControllerBase<TData extends IVarDataVOBase & TDataParam, TDataParam extends IVarDataParamVOBase> {
+export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
 
     /**
      * Used for every segmented data, defaults to day segmentation. Used for cumuls, and refining use of the param.date_index
@@ -65,9 +62,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
     public var_cache_conf: VarCacheConfVO = null;
 
-    protected constructor(
-        public varConf: VarConfVOBase,
-        public varDataParamController: VarDataParamControllerBase<TData, TDataParam>) {
+    protected constructor(public varConf: VarConfVOBase) {
     }
 
     public async initialize() {
@@ -84,12 +79,12 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
     /**
      * Returns the datasources this var depends on
      */
-    public abstract getDataSourcesDependencies(): Array<IDataSourceController<any, any>>;
+    public abstract getDataSourcesDependencies(): Array<IDataSourceController<any>>;
 
     /**
      * Returns the datasources this var depends on predeps
      */
-    public getDataSourcesPredepsDependencies(): Array<IDataSourceController<any, any>> {
+    public getDataSourcesPredepsDependencies(): Array<IDataSourceController<any>> {
         return null;
     }
 
@@ -102,8 +97,8 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
      * ATTENTION : on ne compute que sur un matroid. Sous entendu si on a un import qui scinde en 2 le param, on doit pouvoir calculer
      *  en faisant import + calculA + calculB sinon on doit absolument interdire les imports sur cette variable => ça veut dire aussi pas de cache partiel,
      *  on doit avoir un cache exact.
-     * @param varDAGNode 
-     * @param varDAG 
+     * @param varDAGNode
+     * @param varDAG
      */
     public computeValue(varDAGNode: VarDAGNode, varDAG: VarDAG) {
 
@@ -113,14 +108,14 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
 
             // Si on est sur des matroids, on doit créer la réponse nous mêmes
             //  en additionnant les imports/précalculs + les res de calcul des computed matroids
-            let res_matroid: ISimpleNumberVarMatroidData = Object.assign({}, varDAGNode.param as TDataParam) as any;
+            let res_matroid: IVarDataVOBase = VarDataBaseVO.cloneFrom(varDAGNode.param);
 
             res_matroid.value = varDAGNode.loaded_datas_matroids_sum_value;
 
             for (let i in varDAGNode.computed_datas_matroids) {
                 let data_matroid_to_compute = varDAGNode.computed_datas_matroids[i];
 
-                let computed_datas_matroid_res: ISimpleNumberVarMatroidData = this.updateData(varDAGNode, varDAG, data_matroid_to_compute) as any;
+                let computed_datas_matroid_res: IVarDataVOBase = this.updateData(varDAGNode, varDAG, data_matroid_to_compute) as any;
 
                 if ((res_matroid.value === null) || (typeof res_matroid.value === 'undefined')) {
                     res_matroid.value = computed_datas_matroid_res.value;
@@ -146,9 +141,31 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
     /**
      * Get params that intersect with any potential parent params depending on the one in arg
      * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
+     * This is the default behaviour, using all refering vars defined in the varscontroller, and cloning the param to match that of the parent
      * @param param
      */
-    public abstract getParamDependents(param: IVarDataParamVOBase): IVarDataParamVOBase[];
+    public getParamDependents(param: TData): IVarDataVOBase[] {
+        let res: IVarDataVOBase[] = [];
+
+        if (!param) {
+            return res;
+        }
+
+        // On fait le tour des vars qui dépendent de ce param
+        let parent_controllers: { [parent_var_id: number]: VarControllerBase<any> } = VarsController.getInstance().parent_vars_by_var_id[param.var_id];
+
+        for (let parent_controlleri in parent_controllers) {
+            let parent_controller = parent_controllers[parent_controlleri];
+
+            // On clone le param et au besoin en traduisant vers le type de param cible
+            let parent_param: IVarDataVOBase;
+            let parent_var_data_vo_type = parent_controller.varConf.var_data_vo_type;
+            parent_param = VarDataBaseVO.cloneFieldsFrom(parent_var_data_vo_type, parent_controller.varConf.id, param);
+            res.push(parent_param);
+        }
+
+        return res;
+    }
 
     /**
      * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
@@ -157,7 +174,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase & T
      */
     public abstract getParamDependencies(
         varDAGNode: VarDAGNode,
-        varDAG: VarDAG): IVarDataParamVOBase[];
+        varDAG: VarDAG): IVarDataVOBase[];
 
     protected abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG, matroid_to_compute?: IMatroid): TData;
 }

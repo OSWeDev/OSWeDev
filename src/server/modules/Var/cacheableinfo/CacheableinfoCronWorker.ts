@@ -92,7 +92,7 @@ export default class CacheableinfoCronWorker implements ICronWorker {
             refuse = false;
             while ((!refuse) && parents_ids && ObjectHandler.getInstance().hasAtLeastOneAttribute(parents_ids)) {
 
-                let new_parents_ids: { [parent_id: number]: VarControllerBase<any, any> } = {};
+                let new_parents_ids: { [parent_id: number]: VarControllerBase<any> } = {};
 
                 for (let j in parents_ids) {
                     let dep = parents_ids[j];

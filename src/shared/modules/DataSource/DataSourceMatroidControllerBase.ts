@@ -4,16 +4,14 @@ import MatroidController from '../Matroid/MatroidController';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VarDAG from '../Var/graph/var/VarDAG';
-import IVarDataParamVOBase from '../Var/interfaces/IVarDataParamVOBase';
-import IVarMatroidDataParamVO from '../Var/interfaces/IVarMatroidDataParamVO';
-import IVarMatroidDataVO from '../Var/interfaces/IVarMatroidDataVO';
+import IVarDataVOBase from '../Var/interfaces/IVarDataVOBase';
 import VarControllerBase from '../Var/VarControllerBase';
 import VarsController from '../Var/VarsController';
 import VOsTypesManager from '../VOsTypesManager';
 import DataSourcesController from './DataSourcesController';
 import IDataSourceController from './interfaces/IDataSourceController';
 
-export default abstract class DataSourceMatroidControllerBase<TData extends IVarMatroidDataVO & TDataParam, TDataParam extends IVarMatroidDataParamVO> implements IDataSourceController<TData, TDataParam> {
+export default abstract class DataSourceMatroidControllerBase<TData extends IVarDataVOBase> implements IDataSourceController<TData> {
 
     protected constructor(
         /**
@@ -35,20 +33,20 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
         public can_use_client_side: boolean,
 
         // /**
-        //  * Les mappings de fields de TDataParam => les fields de chaque api_type_id
+        //  * Les mappings de fields de TData => les fields de chaque api_type_id
         //  */
         // public mapping_by_api_type_ids: { [api_type_id: string]: { [matroid_field_id: string]: string } } = {},
 
         // /**
-        //  * Les mappings de fields de TDataParam => les fields de chaque param potentiellement impacté api_type_id
+        //  * Les mappings de fields de TData => les fields de chaque param potentiellement impacté api_type_id
         //  *  dans le cache
         //  */
         // public matroids_mapping_by_api_type_ids: { [matroid_b_api_type_id: string]: { [matroid_a_field_id: string]: string } } = {}
     ) { }
 
-    public abstract load_for_batch(vars_params: { [index: string]: TDataParam }): Promise<void>;
+    public abstract load_for_batch(vars_params: { [index: string]: TData }): Promise<void>;
 
-    public abstract get_data(param: TDataParam): any;
+    public abstract get_data(param: TData): any;
 
     /**
      * Pour les matroids, on définit directement un comportement global pour le cache et pour
@@ -56,10 +54,10 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
      * En amont, on a vérifié évidemment qu'on demande que sur un VO de la liste des api_type_ids du datasource
      * @param vo
      */
-    public get_updated_params_from_vo_update(vo: IDistantVOBase, filtered_var_ids: { [var_id: number]: VarControllerBase<any, any> } = null): { [index: string]: IVarDataParamVOBase } {
-        let res: { [index: string]: IVarDataParamVOBase } = {};
+    public get_updated_params_from_vo_update(vo: IDistantVOBase, filtered_var_ids: { [var_id: number]: VarControllerBase<any> } = null): { [index: string]: IVarDataVOBase } {
+        let res: { [index: string]: IVarDataVOBase } = {};
 
-        let intersectors: { [var_id: number]: { [index: string]: TDataParam } } = this.get_param_intersectors_from_vo_update_by_var_id(vo, filtered_var_ids);
+        let intersectors: { [var_id: number]: { [index: string]: TData } } = this.get_param_intersectors_from_vo_update_by_var_id(vo, filtered_var_ids);
 
         if (!intersectors) {
             return null;
@@ -68,7 +66,7 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
         //  On charge simplement tous les registered_vars des var_id concernés:
         for (let i in VarsController.getInstance().varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DATASOURCE_NAME + this.name]) {
             let index: string = VarsController.getInstance().varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DATASOURCE_NAME + this.name][i];
-            let param: IVarDataParamVOBase = VarsController.getInstance().varDAG.nodes[index].param;
+            let param: IVarDataVOBase = VarsController.getInstance().varDAG.nodes[index].param;
 
             // Si on a filtré des var_id, on ignore ceux qui ne sont pas filtrés
             if ((!!filtered_var_ids) && (!filtered_var_ids[param.var_id])) {
@@ -95,7 +93,7 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
                      *  c'est bien pertinent et où on peut stocker les mappings de params. Sachant que chaque Datasource/Var peut décider
                      *  d'utiliser un param différemment...
                      */
-                    let moduletable: ModuleTable<TDataParam> = VOsTypesManager.getInstance().moduleTables_by_voType[intersector._type];
+                    let moduletable: ModuleTable<TData> = VOsTypesManager.getInstance().moduleTables_by_voType[intersector._type];
 
                     // Si le mapping est null, on veut invalider dans tous les cas
                     if ((moduletable.mapping_by_api_type_ids[param._type] === null) ||
@@ -119,48 +117,18 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
         DataSourcesController.getInstance().registerDataSource(this);
     }
 
-    // /**
-    //  * Dans le cas des matroids, on propose une nouvelle implémentation, qui s'adapte au cache côté serveur et à
-    //  *  l'arbre côté client (ou serveur)
-    //  * Dans ce cas on renvoie un intersecteur de même type que le paramètre du Datasource, qui viendra intersecter la bdd ou l'arbre
-    //  * @param vo
-    //  */
-    // protected get_param_intersectors_from_vo_update(vo: IDistantVOBase): TDataParam[] {
-
-    //     let moduletable: ModuleTable<TDataParam> = VOsTypesManager.getInstance().moduleTables_by_voType[this.param_api_type_id];
-    //     let res: TDataParam[] = [];
-
-    //     let param_intersector: TDataParam = moduletable.voConstructor();
-
-    //     let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(this.param_api_type_id);
-
-    //     for (let i in matroid_fields) {
-    //         let matroid_field: ModuleTableField<any> = matroid_fields[i];
-
-    //         param_intersector[matroid_field.field_id] = moduletable.
-    //     }
-    //     param_intersector[]
-
-    //     // Pour chaque var_id utilisant ce DS, on doit dupliquer et intersecter sur le var_id
-
-    //     for (;
-
-    //     // On dé
-    //     res.var_id =
-    // }
-
     /**
      * On filtre par une map de var_ids au besoin pour limiter les résultats en sortie. Sinon on prend tous les intercepteurs
      * @param vo
      */
-    public abstract get_param_intersectors_from_vo_update_by_var_id(vo: IDistantVOBase, filtered_var_ids?: { [var_id: number]: VarControllerBase<any, any> }): { [var_id: number]: { [index: string]: TDataParam } };
+    public abstract get_param_intersectors_from_vo_update_by_var_id(vo: IDistantVOBase, filtered_var_ids?: { [var_id: number]: VarControllerBase<any> }): { [var_id: number]: { [index: string]: TData } };
 
     /**
      * Base renvoyant des intersecteurs initialisés pour tous les var_id et au plus large => max ranges
      * @param vo
      */
-    protected get_global_param_intersectors_by_var_id(filtered_var_ids: { [var_id: number]: VarControllerBase<any, any> } = null): { [var_id: number]: TDataParam[] } {
-        let res: { [var_id: number]: TDataParam[] } = {};
+    protected get_global_param_intersectors_by_var_id(filtered_var_ids: { [var_id: number]: VarControllerBase<any> } = null): { [var_id: number]: TData[] } {
+        let res: { [var_id: number]: TData[] } = {};
 
         for (let i in VarsController.getInstance().registered_vars_by_datasource[this.name]) {
             let controller = VarsController.getInstance().registered_vars_by_datasource[this.name][i];
@@ -170,7 +138,7 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
             }
 
             let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
-            let intersector: TDataParam = moduletable.voConstructor();
+            let intersector: TData = moduletable.voConstructor();
 
             intersector.var_id = controller.varConf.id;
 

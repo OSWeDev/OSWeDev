@@ -1,28 +1,21 @@
 import ConsoleHandler from '../../../../../tools/ConsoleHandler';
-import ISimpleNumberVarData from '../../../interfaces/ISimpleNumberVarData';
-import IVarDataParamVOBase from '../../../interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../../../interfaces/IVarDataVOBase';
 import VarControllerBase from '../../../VarControllerBase';
-import VarDataParamControllerBase from '../../../VarDataParamControllerBase';
 import BinaryVarOperatorControllerBase from '../BinaryVarOperatorControllerBase';
 
 export default class MinVarController<
-    TDataLeft extends ISimpleNumberVarData & TDataParamLeft,
-    TDataParamLeft extends IVarDataParamVOBase,
-    TDataRight extends ISimpleNumberVarData & TDataParamRight,
-    TDataParamRight extends IVarDataParamVOBase,
-    TData extends ISimpleNumberVarData & TDataParam,
-    TDataParam extends IVarDataParamVOBase
-    > extends BinaryVarOperatorControllerBase<TDataLeft, TDataParamLeft, TDataRight, TDataParamRight, TData, TDataParam> {
+    TDataLeft extends IVarDataVOBase,
+    TDataRight extends IVarDataVOBase,
+    TData extends IVarDataVOBase> extends BinaryVarOperatorControllerBase<TDataLeft, TDataRight, TData> {
 
     public static OPERATOR_NAME: string = "min";
 
     public constructor(
-        protected left_var: VarControllerBase<TDataLeft, any>,
-        protected right_var: VarControllerBase<TDataRight, any>,
+        protected left_var: VarControllerBase<TDataLeft>,
+        protected right_var: VarControllerBase<TDataRight>,
         var_data_api_type_id: string,
-        protected varDataConstructor: () => TData,
-        data_param_controller: VarDataParamControllerBase<TData, TDataParam>) {
-        super(left_var, MinVarController.OPERATOR_NAME, right_var, var_data_api_type_id, varDataConstructor, data_param_controller);
+        protected varDataConstructor: () => TData) {
+        super(left_var, MinVarController.OPERATOR_NAME, right_var, var_data_api_type_id, varDataConstructor);
     }
 
     protected calc_value(left_data: TDataLeft, right_data: TDataRight): number {

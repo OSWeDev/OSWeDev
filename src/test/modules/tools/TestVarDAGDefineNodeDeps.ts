@@ -4,12 +4,12 @@ import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import VarDAG from '../../../shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/var/VarDAGNode';
 import VarDAGDefineNodeDeps from '../../../shared/modules/Var/graph/var/visitors/VarDAGDefineNodeDeps';
-import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarDataBaseVO from '../../../shared/modules/Var/params/VarDataBaseVO';
 import SimpleVarConfVO from '../../../shared/modules/Var/simple_vars/SimpleVarConfVO';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import FakeVarController from '../Var/fakes/FakeVarController';
-import FakeDataParamVO from '../Var/fakes/vos/FakeDataParamVO';
 import FakeDataVO from '../Var/fakes/vos/FakeDataVO';
 import moment = require('moment');
 
@@ -30,23 +30,11 @@ describe('VarDAGDefineNodeDeps', () => {
         let index2: string = "1_20190102_1_1";
         let index3: string = "1_20190103_1_1";
 
-        let node_param1: IVarDataParamVOBase = {
-            _type: 'fake_type',
-            var_id: 1,
-            id: undefined
-        };
-        let node_param2: IVarDataParamVOBase = {
-            _type: 'fake_type',
-            var_id: 1,
-            id: undefined
-        };
-        let node_param3: IVarDataParamVOBase = {
-            _type: 'fake_type',
-            var_id: 1,
-            id: undefined
-        };
+        let node_param1: IVarDataVOBase = VarDataBaseVO.createNew('fake_type', 1);
+        let node_param2: IVarDataVOBase = VarDataBaseVO.createNew('fake_type', 1);
+        let node_param3: IVarDataVOBase = VarDataBaseVO.createNew('fake_type', 1);
 
-        let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(name, d, param), null);
+        let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataVOBase) => new VarDAGNode(name, d, param), null);
         let node = dag.add(index1, node_param1);
 
         /**
@@ -194,26 +182,11 @@ describe('VarDAGDefineNodeDeps', () => {
 
         VarDAGDefineNodeDeps.add_node_deps(null, null, null, null);
 
-        let param1: FakeDataParamVO = {
-            _type: 'fake_type',
-            var_id: 1,
-            id: undefined,
-            ts_ranges: [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-01").utc(true), TimeSegment.TYPE_DAY)]
-        };
-        let param2: FakeDataParamVO = {
-            _type: 'fake_type',
-            var_id: 1,
-            id: undefined,
-            ts_ranges: [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-02").utc(true), TimeSegment.TYPE_DAY)]
-        };
-        let param3: FakeDataParamVO = {
-            _type: 'fake_type',
-            var_id: 1,
-            id: undefined,
-            ts_ranges: [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-03").utc(true), TimeSegment.TYPE_DAY)]
-        };
+        let param1: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-01").utc(true), TimeSegment.TYPE_DAY)]);
+        let param2: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-02").utc(true), TimeSegment.TYPE_DAY)]);
+        let param3: FakeDataVO = VarDataBaseVO.createNew('fake_type', 1, true, [RangeHandler.getInstance().create_single_elt_TSRange(moment("2019-01-03").utc(true), TimeSegment.TYPE_DAY)]);
 
-        let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataParamVOBase) => new VarDAGNode(name, d, param), null);
+        let dag = new VarDAG((name: string, d: VarDAG, param: IVarDataVOBase) => new VarDAGNode(name, d, param), null);
 
         // let node1 = dag.add(index1, node_param1);
         // let node2 = dag.add(index2, node_param2);

@@ -1,17 +1,15 @@
 import LocaleManager from '../../../../tools/LocaleManager';
-import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
+import ModulesManager from '../../../ModulesManager';
 import IVarDataVOBase from '../../interfaces/IVarDataVOBase';
-import IVarMatroidDataVO from '../../interfaces/IVarMatroidDataVO';
 import VarsController from '../../VarsController';
 import DAGNode from '../dag/DAGNode';
 import VarDAG from './VarDAG';
-import ModulesManager from '../../../ModulesManager';
 
 export default class VarDAGNode extends DAGNode {
 
     // New version : with matroids
-    public loaded_datas_matroids: IVarMatroidDataVO[] = null;
-    public computed_datas_matroids: IVarMatroidDataVO[] = null;
+    public loaded_datas_matroids: IVarDataVOBase[] = null;
+    public computed_datas_matroids: IVarDataVOBase[] = null;
     public loaded_datas_matroids_sum_value: number = null;
 
     public ignore_unvalidated_datas: boolean = false;
@@ -43,7 +41,7 @@ export default class VarDAGNode extends DAGNode {
     public outgoingNames: string[] = [];
 
 
-    public constructor(name: string, dag: VarDAG, public param: IVarDataParamVOBase) {
+    public constructor(name: string, dag: VarDAG, public param: IVarDataVOBase) {
         super(name, dag);
 
         this.addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, dag);

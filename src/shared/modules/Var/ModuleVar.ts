@@ -12,14 +12,13 @@ import ModulesManager from '../ModulesManager';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
-import ISimpleNumberVarData from './interfaces/ISimpleNumberVarData';
-import IVarMatroidDataParamVO from './interfaces/IVarMatroidDataParamVO';
 import ConfigureVarCacheParamVO from './params/ConfigureVarCacheParamVO';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import SimpleVarDataValueRes from './simple_vars/SimpleVarDataValueRes';
 import VarsController from './VarsController';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfVOBase from './vos/VarConfVOBase';
+import IVarDataVOBase from './interfaces/IVarDataVOBase';
 const moment = require('moment');
 
 export default class ModuleVar extends Module {
@@ -79,16 +78,6 @@ export default class ModuleVar extends Module {
             (param: APISimpleVOParamVO) => ((param && param.vo) ? [param.vo._type] : null),
             APISimpleVOParamVO.translateCheckAccessParams
         ));
-
-        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
-        //     ModuleVar.APINAME_INVALIDATE_MATROID,
-        //     (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
-        // ));
-
-        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVarMatroidDataParamVO, void>(
-        //     ModuleVar.APINAME_register_matroid_for_precalc,
-        //     (param: IVarMatroidDataParamVO) => [VOsTypesManager.getInstance().moduleTables_by_voType[param._type].vo_type]
-        // ));
     }
 
     public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
@@ -110,29 +99,13 @@ export default class ModuleVar extends Module {
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, API_TYPE_ID, matroids, fields_ids_mapper);
     }
 
-    public async getSimpleVarDataCachedValueFromParam<T extends IVarMatroidDataParamVO>(param: T): Promise<SimpleVarDataValueRes> {
+    public async getSimpleVarDataCachedValueFromParam<T extends IVarDataVOBase>(param: T): Promise<SimpleVarDataValueRes> {
         if (!param) {
             return null;
         }
 
         return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, SimpleVarDataValueRes>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
     }
-
-    // public async invalidate_matroid(matroid_param: IVarMatroidDataParamVO): Promise<void> {
-    //     if ((!matroid_param) || (!matroid_param._type)) {
-    //         return null;
-    //     }
-
-    //     return ModuleAPI.getInstance().handleAPI<APIDAORangesParamsVO, void>(ModuleVar.APINAME_INVALIDATE_MATROID, matroid_param);
-    // }
-
-    // public async register_matroid_for_precalc(matroid_param: IVarMatroidDataParamVO): Promise<void> {
-    //     if ((!matroid_param) || (!matroid_param._type)) {
-    //         return null;
-    //     }
-
-    //     return ModuleAPI.getInstance().handleAPI<APIDAORangesParamsVO, void>(ModuleVar.APINAME_register_matroid_for_precalc, matroid_param);
-    // }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {
         await VarsController.getInstance().initialize();
@@ -144,23 +117,22 @@ export default class ModuleVar extends Module {
         return true;
     }
 
-    public register_simple_number_var_data(
+    public register_var_data(
         api_type_id: string,
         param_api_type_id: string,
-        constructor: () => ISimpleNumberVarData,
+        constructor: () => IVarDataVOBase,
         var_fields: Array<ModuleTableField<any>>, is_matroid: boolean = false): ModuleTable<any> {
         let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
 
         var_fields.unshift(var_id);
         var_fields = var_fields.concat([
             new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur'),
-            new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarsController.VALUE_TYPE_IMPORT).setEnumValues({
+            new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarsController.VALUE_TYPE_COMPUTED).setEnumValues({
                 [VarsController.VALUE_TYPE_IMPORT]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_IMPORT],
                 [VarsController.VALUE_TYPE_COMPUTED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_COMPUTED],
                 [VarsController.VALUE_TYPE_MIXED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_MIXED]
             }),
-            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour', false).set_segmentation_type(TimeSegment.TYPE_SECOND),
-            new ModuleTableField('missing_datas_infos', ModuleTableField.FIELD_TYPE_string_array, 'Datas manquantes', false),
+            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
         ]);
 
         let datatable = new ModuleTable(this, api_type_id, constructor, var_fields, null);

@@ -1,10 +1,9 @@
 import ConsoleHandler from '../../../../tools/ConsoleHandler';
 import ObjectHandler from '../../../../tools/ObjectHandler';
-import IVarDataParamVOBase from '../../interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../../interfaces/IVarDataVOBase';
 import VarsController from '../../VarsController';
 import DAG from '../dag/DAG';
 import VarDAGNode from './VarDAGNode';
-import ModulesManager from '../../../ModulesManager';
 
 export default class VarDAG extends DAG<VarDAGNode> {
 
@@ -57,10 +56,10 @@ export default class VarDAG extends DAG<VarDAGNode> {
         }
     }
 
-    public registerParams(params: IVarDataParamVOBase[], reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false) {
+    public registerParams(params: IVarDataVOBase[], reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false) {
         for (let i in params) {
-            let param: IVarDataParamVOBase = params[i];
-            let index: string = VarsController.getInstance().getIndex(param);
+            let param: IVarDataVOBase = params[i];
+            let index: string = param.index;
 
             if (!index) {
                 ConsoleHandler.getInstance().error('Une var est probablement mal instantiée');

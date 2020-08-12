@@ -1,12 +1,12 @@
 import VarDataSetDescriptor from './VarDataSetDescriptor';
-import IVarDataParamVOBase from '../interfaces/IVarDataParamVOBase';
+import IVarDataVOBase from '../interfaces/IVarDataVOBase';
 
 export default class VarBarDataSetDescriptor extends VarDataSetDescriptor {
 
     public bg_color: string = null;
     public type: string = null;
-    public var_param_transformer: (param: IVarDataParamVOBase) => IVarDataParamVOBase = null;
-    public var_value_filter: (param: IVarDataParamVOBase, value: number) => boolean = null;
+    public var_param_transformer: (param: IVarDataVOBase) => IVarDataVOBase = null;
+    public var_value_filter: (param: IVarDataVOBase, value: number) => boolean = null;
 
     public constructor(
         public var_id: number,
@@ -31,12 +31,12 @@ export default class VarBarDataSetDescriptor extends VarDataSetDescriptor {
         return this;
     }
 
-    public set_var_value_filter(var_value_filter: (param: IVarDataParamVOBase, value: number) => boolean): VarBarDataSetDescriptor {
+    public set_var_value_filter(var_value_filter: (param: IVarDataVOBase, value: number) => boolean): VarBarDataSetDescriptor {
         this.var_value_filter = var_value_filter;
         return this;
     }
 
-    public set_var_param_transformer(var_param_transformer: (param: IVarDataParamVOBase) => IVarDataParamVOBase): VarBarDataSetDescriptor {
+    public set_var_param_transformer(var_param_transformer: (param: IVarDataVOBase) => IVarDataVOBase): VarBarDataSetDescriptor {
         this.var_param_transformer = var_param_transformer;
         return this;
     }
