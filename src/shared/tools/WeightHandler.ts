@@ -25,6 +25,9 @@ export default class WeightHandler {
      * @param items array to sort
      */
     public sortByWeight(items: IWeightedItem[]) {
+        if (!items) {
+            return null;
+        }
         items.sort((a: IWeightedItem, b: IWeightedItem) => {
             return a.weight - b.weight;
         });
@@ -36,9 +39,16 @@ export default class WeightHandler {
      * @param weight
      */
     public findNextHeavierItemByWeight<T extends IWeightedItem>(sortedItemsByWeight: T[], weight: number): T {
-        if (!sortedItemsByWeight || !weight) {
+        if (sortedItemsByWeight == null || weight == null) {
             return null;
         }
+
+        var Tbis = Array.from(sortedItemsByWeight);  //case where the input array isn't sorted
+        this.sortByWeight(Tbis);
+        if (JSON.stringify(Tbis) != JSON.stringify(sortedItemsByWeight)) {
+            return null;
+        }
+
         for (let i in sortedItemsByWeight) {
             if (sortedItemsByWeight[i].weight > weight) {
                 return sortedItemsByWeight[i];

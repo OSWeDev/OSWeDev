@@ -37,11 +37,11 @@ export default class GeoPointHandler {
             return null;
         }
 
-        if (res[2] === null || res[2] == '') {
+        if (res[2] === null || res[2] == '' || isNaN(parseInt(res[2]))) {
             return null;
         }
 
-        if (res[3] === null || res[3] == '') {
+        if (res[3] === null || res[3] == '' || isNaN(parseInt(res[3]))) {
             return null;
         }
 

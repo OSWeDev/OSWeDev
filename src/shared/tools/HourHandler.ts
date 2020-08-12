@@ -37,21 +37,38 @@ export default class HourHandler {
     }
 
     public formatHourFromIHM(hour: string, segment_type: number): moment.Duration {
-        if ((hour == null) || (typeof hour == 'undefined')) {
+        if ((hour == null) || (typeof hour == 'undefined' || segment_type == null || (typeof segment_type == 'undefined'))) {
             return null;
         }
 
         try {
 
-            let splitted: string[] = hour.split(/[:h.]/);
+            var regex = RegExp(/[:h.]/); //test if the input has the required shape (aahbb:cc:dddd)
+            if (!regex.test(hour)) {
+                return null;
+            }
+
+            var splitted: string[] = hour.split(/[:h.]/);
+
+            for (let i: number = 0; i < splitted.length; i++) { //test if the duration is written with numbers
+                if (isNaN(parseInt(splitted[i]))) {
+                    return null;
+                }
+            }
 
             let duration_ms: number = 0;
             switch (segment_type) {
                 case HourSegment.TYPE_MS:
                     duration_ms += parseInt(splitted[3]);
                 case HourSegment.TYPE_SECOND:
+                    if (parseInt(splitted[2]) > 59) { // it's impossible to have more than 59 seconds in a duration
+                        return null;
+                    }
                     duration_ms += parseInt(splitted[2]) * 1000;
                 case HourSegment.TYPE_MINUTE:
+                    if (parseInt(splitted[1]) > 59) { // it's impossible to have more than 59 minutes in a duration
+                        return null;
+                    }
                     duration_ms += parseInt(splitted[1]) * 60 * 1000;
                 case HourSegment.TYPE_HOUR:
                     duration_ms += parseInt(splitted[0]) * 60 * 60 * 1000;
