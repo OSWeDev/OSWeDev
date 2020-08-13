@@ -43,12 +43,6 @@ export default class WeightHandler {
             return null;
         }
 
-        var Tbis = Array.from(sortedItemsByWeight);  //case where the input array isn't sorted
-        this.sortByWeight(Tbis);
-        if (JSON.stringify(Tbis) != JSON.stringify(sortedItemsByWeight)) {
-            return null;
-        }
-
         for (let i in sortedItemsByWeight) {
             if (sortedItemsByWeight[i].weight > weight) {
                 return sortedItemsByWeight[i];

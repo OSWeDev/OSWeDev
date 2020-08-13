@@ -17,14 +17,14 @@ export default class HourSegmentHandler {
     private constructor() { }
 
     public getBiggestHourSegmentationType(segment_type_a: number, segment_type_b: number): number {
-        if (segment_type_a == null || segment_type_b == null || segment_type_b > 3 || segment_type_b < 0 || segment_type_a > 3 || segment_type_a < 0) {
+        if (segment_type_a == null || segment_type_b == null) {
             return null;
         }
         return Math.min(segment_type_a, segment_type_b);
     }
 
     public getSmallestHourSegmentationType(segment_type_a: number, segment_type_b: number): number {
-        if (segment_type_a == null || segment_type_b == null || segment_type_b > 3 || segment_type_b < 0 || segment_type_a > 3 || segment_type_a < 0) {
+        if (segment_type_a == null || segment_type_b == null) {
             return null;
         }
         return Math.max(segment_type_a, segment_type_b);

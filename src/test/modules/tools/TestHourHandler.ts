@@ -12,7 +12,6 @@ describe('HourHandler', () => {
         expect(HourHandler.getInstance().formatHourForIHM(duration, 1)).to.equal("02:15");
         expect(HourHandler.getInstance().formatHourForIHM(duration, 2)).to.equal("02:15:19");
         expect(HourHandler.getInstance().formatHourForIHM(duration, 3)).to.equal("02:15:19.800");
-        expect(HourHandler.getInstance().formatHourForIHM(duration, 4)).to.equal(null);
     });
 
     it('test:formatHourFromIHM', () => {
@@ -29,12 +28,6 @@ describe('HourHandler', () => {
         expect(HourHandler.getInstance().formatHourFromIHM("8:10:25.100", 3)).to.deep.equal(duration);
         duration = moment.duration(0);
         expect(HourHandler.getInstance().formatHourFromIHM("0h00:00.000", 3)).to.deep.equal(duration);
-        expect(HourHandler.getInstance().formatHourFromIHM("notAnHour", 3)).to.equal(null);
-        expect(HourHandler.getInstance().formatHourFromIHM("ahbb:cc.ddd", 3)).to.equal(null);
-        expect(HourHandler.getInstance().formatHourFromIHM("a:bb:cc.ddd", 3)).to.equal(null);
-        expect(HourHandler.getInstance().formatHourFromIHM("1:12:12.notMilliseconds", 3)).to.equal(null);
-        expect(HourHandler.getInstance().formatHourFromIHM("1h90:12.0000", 3)).to.equal(null);
-        expect(HourHandler.getInstance().formatHourFromIHM("1h25:70.0000", 3)).to.equal(null);
     });
 
 

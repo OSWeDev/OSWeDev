@@ -19,6 +19,10 @@ describe('GeoPointHandler', () => {
         expect(GeoPointHandler.getInstance().split(null)).to.equal(null);
         var geoPointVOTest = GeoPointVO.createNew(1, 1);
         expect(GeoPointHandler.getInstance().split("(1, 1)")).to.deep.equal(geoPointVOTest);
+        var geoPointVOTest = GeoPointVO.createNew(9.5, 14.3);
+        expect(GeoPointHandler.getInstance().split("(9.5, 14.3)")).to.deep.equal(geoPointVOTest);
+        var geoPointVOTest = GeoPointVO.createNew(0, 0);
+        expect(GeoPointHandler.getInstance().split("(0, 0)")).to.deep.equal(geoPointVOTest);
         expect(GeoPointHandler.getInstance().split("(a, b)")).to.equal(null);
         expect(GeoPointHandler.getInstance().split("notAPosition")).to.equal(null);
     });

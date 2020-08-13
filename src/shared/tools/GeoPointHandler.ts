@@ -37,17 +37,19 @@ export default class GeoPointHandler {
             return null;
         }
 
-        if (res[2] === null || res[2] == '' || isNaN(parseInt(res[2]))) {
+        var x: number = parseFloat(res[2]);
+        if (res[2] === null || res[2] == '' || isNaN(x)) {
             return null;
         }
 
-        if (res[3] === null || res[3] == '' || isNaN(parseInt(res[3]))) {
+        var y: number = parseFloat(res[3]);
+        if (res[3] === null || res[3] == '' || isNaN(y)) {
             return null;
         }
 
         return GeoPointVO.createNew(
-            parseFloat(res[2]),
-            parseFloat(res[3])
+            x,
+            y
         );
     }
 

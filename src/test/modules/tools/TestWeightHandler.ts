@@ -44,8 +44,6 @@ describe('WeightHandler', () => {
         expect(WeightHandler.getInstance().findNextHeavierItemByWeight([a, b, c], 1000)).to.equal(null);
         expect(WeightHandler.getInstance().findNextHeavierItemByWeight([b, b, b], 2)).to.equal(null);
         expect(WeightHandler.getInstance().findNextHeavierItemByWeight([c, c, c], 2)).to.equal(c);
-        expect(WeightHandler.getInstance().findNextHeavierItemByWeight([c, a, b], 2)).to.equal(null); //cas où le tableau n'est pas classé
-        expect(WeightHandler.getInstance().findNextHeavierItemByWeight([a, c, b], 2)).to.equal(null);
-        expect(WeightHandler.getInstance().findNextHeavierItemByWeight([c, b, a], 2)).to.equal(null);
+
     });
 });
