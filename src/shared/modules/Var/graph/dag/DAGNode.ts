@@ -7,7 +7,10 @@ export default class DAGNode {
     public incomingNames: string[] = [];
 
     public outgoing: { [node_name: string]: DAGNode } = {};
+    // On stocke les indexs ordonnés par date de declaration
     public outgoingNames: string[] = [];
+    // On stocke les ids des deps dans le même ordre que les indexs
+    public outgoingDepIds: string[] = [];
 
     public value = null;
 
@@ -108,6 +111,7 @@ export default class DAGNode {
             let indexof = this.outgoingNames.indexOf(node_name);
             if (indexof >= 0) {
                 this.outgoingNames.splice(indexof, 1);
+                this.outgoingDepIds.splice(indexof, 1);
             }
         }
 

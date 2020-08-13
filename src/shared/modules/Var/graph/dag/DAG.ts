@@ -35,7 +35,7 @@ export default class DAG<TNode extends DAGNode> {
         return node;
     }
 
-    public addEdge(fromName: string, toName: string) {
+    public addEdge(fromName: string, toName: string, depId: string) {
         if (!fromName || !toName || fromName === toName) {
             return;
         }
@@ -62,6 +62,7 @@ export default class DAG<TNode extends DAGNode> {
 
         from.outgoing[toName] = to;
         from.outgoingNames.push(toName);
+        from.outgoingDepIds.push(depId);
 
         to.incoming[fromName] = from;
         to.incomingNames.push(fromName);

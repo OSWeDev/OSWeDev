@@ -436,7 +436,7 @@ export default class MatroidController {
         let matroid_to_cut_bases: Array<MatroidBase<any>> = this.getMatroidBases(matroid_to_cut);
 
         // Le matroid chopped est unique par définition et reprend simplement les bases chopped
-        let chopped_matroid = this.cloneFrom(matroid_to_cut);
+        let chopped_matroid = this.cloneFrom<T, T>(matroid_to_cut);
 
         // On coupe sur chaque base, si elle a une intersection
         for (let i in matroid_to_cut_bases) {
@@ -466,7 +466,7 @@ export default class MatroidController {
             if (!!cut_result.remaining_items) {
 
                 // Le but est de créer le matroid lié à la coupe sur cette dimension
-                let this_base_remaining_matroid = this.cloneFrom(chopped_matroid);
+                let this_base_remaining_matroid = this.cloneFrom<T, T>(chopped_matroid);
 
                 this_base_remaining_matroid[matroid_to_cut_base.field_id] = cloneDeep(cut_result.remaining_items.ranges);
 
@@ -515,27 +515,61 @@ export default class MatroidController {
      * Clones all but id
      * @param from
      */
-    public cloneFrom<T extends IMatroid>(from: T): T {
+    public cloneFrom<T extends IMatroid, U extends IMatroid>(from: T, to_type: string = null, clone_fields: boolean = true): U {
 
         if (!from) {
             return null;
         }
 
-        let moduleTable = VOsTypesManager.getInstance().moduleTables_by_voType[from._type];
+        let _type: string = to_type ? to_type : from._type;
+        let moduletable_from = VOsTypesManager.getInstance().moduleTables_by_voType[from._type];
+        let moduletable_to = VOsTypesManager.getInstance().moduleTables_by_voType[_type];
 
-        // On copie uniquement le matroid et le var_id si présent pour compatibilité avec les vars
-        let res: T = Object.assign({
-            _type: from._type,
-            id: undefined,
-            var_id: from['var_id']
-        } as any, moduleTable.matroid_cloner(from));
+        let res: U = moduletable_to.voConstructor();
+        res._type = _type;
 
-        let matroid_fields: Array<ModuleTableField<any>> = this.getMatroidFields(from._type);
+        // Compatibilité avec les vars
+        res['var_id'] = from['var_id'];
+        res['value'] = from['value'];
+        res['value_type'] = from['value_type'];
+        res['value_ts'] = from['value_ts'] ? from['value_ts'].clone() : from['value_ts'];
 
-        for (let i in matroid_fields) {
-            let matroid_field = matroid_fields[i];
+        let needs_mapping: boolean = moduletable_from != moduletable_to;
+        let mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids[_type];
 
-            res[matroid_field.field_id] = cloneDeep(from[matroid_field.field_id]);
+        if (needs_mapping && (typeof mappings === 'undefined')) {
+            throw new Error('Mapping missing:from:' + from._type + ":to:" + _type + ":");
+        }
+
+        let to_fields = MatroidController.getInstance().getMatroidFields(_type);
+        for (let to_fieldi in to_fields) {
+            let to_field = to_fields[to_fieldi];
+
+            let from_field_id = to_field.field_id;
+            if (needs_mapping) {
+                for (let mappingi in mappings) {
+
+                    if (mappings[mappingi] == to_field.field_id) {
+                        from_field_id = mappingi;
+                    }
+                }
+            }
+
+            if (!!from_field_id) {
+                res[to_field.field_id] = clone_fields ? RangeHandler.getInstance().cloneArrayFrom(from[from_field_id]) : from[from_field_id];
+            } else {
+                switch (to_field.field_type) {
+                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
+                    case ModuleTableField.FIELD_TYPE_refrange_array:
+                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                    case ModuleTableField.FIELD_TYPE_numrange_array:
+                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
+                    case ModuleTableField.FIELD_TYPE_hourrange_array:
+                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
+                    default:
+                }
+            }
         }
 
         return res;

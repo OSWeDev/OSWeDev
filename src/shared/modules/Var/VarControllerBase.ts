@@ -1,15 +1,13 @@
 import cloneDeep = require('lodash/cloneDeep');
 import ConsoleHandler from '../../tools/ConsoleHandler';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
-import IMatroid from '../Matroid/interfaces/IMatroid';
-import VarDAG from './graph/var/VarDAG';
 import VarDAGNode from './graph/var/VarDAGNode';
 import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import ModuleVar from './ModuleVar';
+import VarDataBaseVO from './params/VarDataBaseVO';
 import VarsController from './VarsController';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfVOBase from './vos/VarConfVOBase';
-import VarDataBaseVO from './params/VarDataBaseVO';
 const moment = require('moment');
 
 export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
@@ -97,10 +95,11 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
      * ATTENTION : on ne compute que sur un matroid. Sous entendu si on a un import qui scinde en 2 le param, on doit pouvoir calculer
      *  en faisant import + calculA + calculB sinon on doit absolument interdire les imports sur cette variable => ça veut dire aussi pas de cache partiel,
      *  on doit avoir un cache exact.
+     * Du coup dans ce cas précis si on demande de faire le calcul sur calculA et calculB on peut utiliser la somme des deps de A et B, et 
      * @param varDAGNode
      * @param varDAG
      */
-    public computeValue(varDAGNode: VarDAGNode, varDAG: VarDAG) {
+    public computeValue(varDAGNode: VarDAGNode) {
 
         let res: TData = null;
 
@@ -115,7 +114,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
             for (let i in varDAGNode.computed_datas_matroids) {
                 let data_matroid_to_compute = varDAGNode.computed_datas_matroids[i];
 
-                let computed_datas_matroid_res: IVarDataVOBase = this.updateData(varDAGNode, varDAG, data_matroid_to_compute) as any;
+                let computed_datas_matroid_res: IVarDataVOBase = this.updateData(data_matroid_to_compute, this.get_ordered_deps_values(varDAGNode),) as any;
 
                 if ((res_matroid.value === null) || (typeof res_matroid.value === 'undefined')) {
                     res_matroid.value = computed_datas_matroid_res.value;
@@ -126,7 +125,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
 
             res = res_matroid as any;
         } else {
-            res = this.updateData(varDAGNode, varDAG);
+            res = this.updateData(varDAGNode);
         }
 
         if (!res) {
@@ -172,9 +171,30 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
      * @param varDAGNode
      * @param varDAG
      */
-    public abstract getParamDependencies(
-        varDAGNode: VarDAGNode,
-        varDAG: VarDAG): IVarDataVOBase[];
+    public abstract getParamDependencies(param: TData, predeps_datasources: { [ds_name: string]: any }): { [dep_id: string]: IVarDataVOBase };
 
-    protected abstract updateData(varDAGNode: VarDAGNode, varDAG: VarDAG, matroid_to_compute?: IMatroid): TData;
+    protected abstract updateData(param: TData, ordered_deps_values: { [dep_id: string]: number }, datasources: { [ds_name: string]: any }): number;
+
+    /**
+     * Attention les deps sont peut-être découpées par les imports donc on peut avoir plusieurs deps par dep_id (mais pas par outgoingName)
+     * @param varDAGNode
+     */
+    private get_ordered_deps_values(varDAGNode: VarDAGNode): { [dep_id: string]: number } {
+        let res: { [dep_id: string]: number } = {};
+
+        for (let i in varDAGNode.outgoingNames) {
+            let outgoingName = varDAGNode.outgoingNames[i];
+            let dep_id = varDAGNode.outgoingDepIds[i];
+
+            // Si on a pas de value encore on prend la valeur de la dep actuelle
+            //  sinon si on peut additionner on le fait
+            if (res[dep_id] == null) {
+                res[dep_id] = varDAGNode.outgoing[outgoingName].value;
+            } else {
+                res[dep_id] = varDAGNode.outgoing[outgoingName].value ? res[dep_id] + varDAGNode.outgoing[outgoingName].value : res[dep_id];
+            }
+        }
+
+        return res;
+    }
 }

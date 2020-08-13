@@ -1655,7 +1655,7 @@ export default class VarsController {
                 let computed_datas_matroid = node.computed_datas_matroids[j];
 
                 let fake_vardagnode = new VarDAGNode(computed_datas_matroid.index, null, computed_datas_matroid);
-                let deps: IVarDataVOBase[] = node_controller.getParamDependencies(fake_vardagnode, this.varDAG);
+                let deps: { [dep_id: string]: IVarDataVOBase } = node_controller.getParamDependencies(fake_vardagnode, this.varDAG);
 
                 VarDAGDefineNodeDeps.add_node_deps(node, this.varDAG, deps, {});
 

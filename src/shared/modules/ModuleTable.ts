@@ -116,8 +116,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public voConstructor: () => T = null;
 
-    public matroid_cloner: (src: T) => T = ((src: T) => { }) as any;
-
     /**
      * Mappings de traduction d'un Vo de ce type vers un Vo du type b
      *  Par défaut il faut lever une erreur si on cherche un mapping undefined
@@ -421,11 +419,6 @@ export default class ModuleTable<T extends IDistantVOBase> {
      */
     public set_mapping_by_api_type_ids(mapping_by_api_type_ids: { [api_type_id_b: string]: { [field_id_a: string]: string } }): ModuleTable<any> {
         this.mapping_by_api_type_ids = mapping_by_api_type_ids;
-        return this;
-    }
-
-    public set_matroid_cloner(matroid_cloner: (src: T) => T): ModuleTable<any> {
-        this.matroid_cloner = matroid_cloner;
         return this;
     }
 

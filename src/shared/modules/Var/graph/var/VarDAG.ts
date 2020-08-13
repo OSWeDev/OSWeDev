@@ -210,8 +210,8 @@ export default class VarDAG extends DAG<VarDAGNode> {
         VarsController.getInstance().set_dependencies_heatmap_version(this.dependencies_heatmap_version);
     }
 
-    public addEdge(fromName: string, toName: string) {
-        super.addEdge(fromName, toName);
+    public addEdge(fromName: string, toName: string, depId: string) {
+        super.addEdge(fromName, toName, depId);
 
         // On ajoute l'info de nécessité de loading de datas ou pas pour simplifier à mort les chargements de datas des matroids
         // Si le noeud from nécessite un chargement, on nécessite un chargement

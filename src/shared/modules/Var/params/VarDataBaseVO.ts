@@ -2,7 +2,6 @@ import { Moment } from 'moment';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
 import MatroidController from '../../Matroid/MatroidController';
-import ModuleTableField from '../../ModuleTableField';
 import VOsTypesManager from '../../VOsTypesManager';
 import IVarDataVOBase from '../interfaces/IVarDataVOBase';
 
@@ -57,55 +56,11 @@ export default class VarDataBaseVO implements IVarDataVOBase {
      */
     public static cloneFieldsFrom<T extends IVarDataVOBase>(_type: string, var_id: number, param_to_clone: T, clone_fields: boolean = true): T {
 
-        if (!param_to_clone) {
+        let res: T = MatroidController.getInstance().cloneFrom(param_to_clone, _type, clone_fields);
+        if (!res) {
             return null;
         }
-
-        let moduletable_from = VOsTypesManager.getInstance().moduleTables_by_voType[param_to_clone._type];
-        let moduletable_to = VOsTypesManager.getInstance().moduleTables_by_voType[_type];
-
-        let res: T = moduletable_to.voConstructor();
-        res._type = _type;
-        res.var_id = param_to_clone.var_id;
-
-        let needs_mapping: boolean = moduletable_from != moduletable_to;
-        let mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids[_type];
-
-        if (needs_mapping && (typeof mappings === 'undefined')) {
-            throw new Error('Mapping missing:from:' + param_to_clone._type + ":to:" + _type + ":");
-        }
-
-        let to_fields = MatroidController.getInstance().getMatroidFields(_type);
-        for (let to_fieldi in to_fields) {
-            let to_field = to_fields[to_fieldi];
-
-            let from_field_id = to_field.field_id;
-            if (needs_mapping) {
-                for (let mappingi in mappings) {
-
-                    if (mappings[mappingi] == to_field.field_id) {
-                        from_field_id = mappingi;
-                    }
-                }
-            }
-
-            if (!!from_field_id) {
-                res[to_field.field_id] = clone_fields ? RangeHandler.getInstance().cloneArrayFrom(param_to_clone[from_field_id]) : param_to_clone[from_field_id];
-            } else {
-                switch (to_field.field_type) {
-                    case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
-                    case ModuleTableField.FIELD_TYPE_refrange_array:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
-                    case ModuleTableField.FIELD_TYPE_numrange_array:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
-                    case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
-                    default:
-                }
-            }
-        }
-
+        res.var_id = var_id;
         return res;
     }
 

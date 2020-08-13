@@ -81,7 +81,7 @@ export default class VarDAGDefineNodeDeps {
         }
     }
 
-    public static add_node_deps(node: VarDAGNode, dag: VarDAG, deps: IVarDataVOBase[], new_nodes: { [index: string]: VarDAGNode }) {
+    public static add_node_deps(node: VarDAGNode, dag: VarDAG, deps: { [dep_id: string]: IVarDataVOBase }, new_nodes: { [index: string]: VarDAGNode }) {
         for (let i in deps) {
             let dep: IVarDataVOBase = deps[i];
             let dep_index: string = dep.index;
@@ -91,7 +91,7 @@ export default class VarDAGDefineNodeDeps {
                 new_nodes[dep_index] = dag.add(dep_index, dep);
             }
 
-            dag.addEdge(node.name, dep_index);
+            dag.addEdge(node.name, dep_index, i);
         }
     }
 }

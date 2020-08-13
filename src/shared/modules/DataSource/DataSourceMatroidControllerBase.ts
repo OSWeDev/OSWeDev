@@ -96,6 +96,7 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
                     let moduletable: ModuleTable<TData> = VOsTypesManager.getInstance().moduleTables_by_voType[intersector._type];
 
                     // Si le mapping est null, on veut invalider dans tous les cas
+                    // TODO FIXME BUG? : pourquoi on voudrait tout invalider si rien n'est cohérent ? on intersecte rien a priori du coup, donc pourquoi on invalide ?
                     if ((moduletable.mapping_by_api_type_ids[param._type] === null) ||
                         (MatroidController.getInstance().matroid_intersects_matroid(intersector, param, moduletable.mapping_by_api_type_ids[param._type]))) {
                         res[index] = param;
@@ -127,8 +128,8 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
      * Base renvoyant des intersecteurs initialisés pour tous les var_id et au plus large => max ranges
      * @param vo
      */
-    protected get_global_param_intersectors_by_var_id(filtered_var_ids: { [var_id: number]: VarControllerBase<any> } = null): { [var_id: number]: TData[] } {
-        let res: { [var_id: number]: TData[] } = {};
+    protected get_global_param_intersectors_by_var_id(filtered_var_ids: { [var_id: number]: VarControllerBase<any> } = null): { [var_id: number]: { [index: string]: TData } } {
+        let res: { [var_id: number]: { [index: string]: TData } } = {};
 
         for (let i in VarsController.getInstance().registered_vars_by_datasource[this.name]) {
             let controller = VarsController.getInstance().registered_vars_by_datasource[this.name][i];
@@ -157,6 +158,10 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
                         intersector[field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
                     default:
                 }
+            }
+
+            if (!res[controller.varConf.id]) {
+                res[controller.varConf.id] = {};
             }
             res[controller.varConf.id] = [intersector];
         }
