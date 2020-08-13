@@ -24,7 +24,7 @@ export default class HourSegmentHandler {
     }
 
     public getSmallestHourSegmentationType(segment_type_a: number, segment_type_b: number): number {
-        if (segment_type_a == null || segment_type_b == null) {
+        if (segment_type_a == null || segment_type_b == null || segment_type_b > 3 || segment_type_b < 0 || segment_type_a > 3 || segment_type_a < 0) {
             return null;
         }
         return Math.max(segment_type_a, segment_type_b);
