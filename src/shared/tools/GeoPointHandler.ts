@@ -30,7 +30,7 @@ export default class GeoPointHandler {
             return null;
         }
 
-        let regexpGeopoint = /(\()(.*),(.*)(\))/i;
+        let regexpGeopoint = /(\()(.+),(.+)(\))/i;
         let res: string[] = point.match(regexpGeopoint);
 
         if (!res) {

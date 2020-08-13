@@ -24,6 +24,7 @@ describe('GeoPointHandler', () => {
         var geoPointVOTest = GeoPointVO.createNew(0, 0);
         expect(GeoPointHandler.getInstance().split("(0, 0)")).to.deep.equal(geoPointVOTest);
         expect(GeoPointHandler.getInstance().split("(a, b)")).to.equal(null);
+        expect(GeoPointHandler.getInstance().split("(, )")).to.equal(null);
         expect(GeoPointHandler.getInstance().split("notAPosition")).to.equal(null);
     });
     it('test: geopoint', () => {
