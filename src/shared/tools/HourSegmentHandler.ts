@@ -165,7 +165,7 @@ export default class HourSegmentHandler {
      */
     public getStartHour(time: moment.Duration, segment_type: number): moment.Duration {
 
-        if (!time) {
+        if (!time || segment_type == null) {
             return null;
         }
 
@@ -363,6 +363,7 @@ export default class HourSegmentHandler {
     }
 
     public segmentsAreEquivalent(ts1: HourSegment, ts2: HourSegment): boolean {
+
 
         if ((!ts1) && ts2) {
             return false;

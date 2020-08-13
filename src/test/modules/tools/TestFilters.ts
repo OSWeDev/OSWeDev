@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import { amountFilter, hourAndMinutesFilter, hourFilter, percentFilter, toFixedFilter } from '../../../shared/tools/Filters';
+import { amountFilter, hourAndMinutesFilter, hourFilter, percentFilter, toFixedFilter, planningCheckFilter, alerteCheckFilter, hideZeroFilter, booleanFilter, truncateFilter } from '../../../shared/tools/Filters';
 
 
 describe('TestFilters', () => {
@@ -187,4 +187,102 @@ describe('TestFilters', () => {
         expect(hourFilter.write("10h30")).to.equal(10.5);
         expect(hourFilter.write("25h60")).to.equal(26);
     });
+
+    it('test hourFilter write', () => {
+
+        ModuleFormatDatesNombres.getInstance().actif = true;
+
+        expect(hourFilter.write(null)).to.equal(null);
+        expect(hourFilter.write("0")).to.equal(0);
+        expect(hourFilter.write("00h00")).to.equal(0);
+        expect(hourFilter.write(0)).to.equal(0);
+        expect(hourFilter.write(10)).to.equal(10);
+        expect(hourFilter.write("10.5")).to.equal(10.5);
+        expect(hourFilter.write("10.25")).to.equal(10.25);
+        expect(hourFilter.write("10")).to.equal(10);
+        expect(hourFilter.write("10h")).to.equal(10);
+        expect(hourFilter.write("10:30")).to.equal(10.5);
+        expect(hourFilter.write("10H30")).to.equal(10.5);
+        expect(hourFilter.write("10h30")).to.equal(10.5);
+        expect(hourFilter.write("25h60")).to.equal(26);
+    });
+
+    it('test: planningCheckFilter read', () => {
+        expect(planningCheckFilter.read(null)).to.equal(null);
+        expect(planningCheckFilter.read(1)).to.equal("OUI");
+        expect(planningCheckFilter.read(-1)).to.equal("NON");
+    });
+
+    it('test: planningCheckFilter write', () => {
+        expect(planningCheckFilter.write(null)).to.equal(null);
+        expect(planningCheckFilter.write("OUI")).to.equal(1);
+        expect(planningCheckFilter.write("NON")).to.equal(-1);
+    });
+
+    it('test: alerteCheckFilter read', () => {
+        expect(alerteCheckFilter.read(null)).to.equal(null);
+        expect(alerteCheckFilter.read(1)).to.equal("ALERTE");
+        expect(alerteCheckFilter.read(-1)).to.equal("");
+    });
+
+    it('test: alerteCheckFilter write', () => {
+        expect(alerteCheckFilter.write(null)).to.equal(null);
+        expect(alerteCheckFilter.write("ALERTE")).to.equal(1);
+        expect(alerteCheckFilter.write("")).to.equal(-1);
+    });
+
+    it('test: hideToZeroFilter read', () => {
+        expect(hideZeroFilter.read(null)).to.equal(null);
+        expect(hideZeroFilter.read(0)).to.equal("");
+        expect(hideZeroFilter.read(45)).to.equal(45);
+    });
+
+    it('test: hideToZeroFilter write', () => {
+        expect(hideZeroFilter.write(null)).to.equal(null);
+        expect(hideZeroFilter.write("")).to.equal(0);
+        expect(hideZeroFilter.write(78)).to.equal(78);
+    });
+
+    it('test: BooleanFilter read', () => {
+        expect(booleanFilter.read(null)).to.equal(null);
+        expect(booleanFilter.read(true)).to.equal("OUI");
+        expect(booleanFilter.read(false)).to.equal("");
+    });
+
+    it('test: BooleanFilter write', () => {
+        expect(booleanFilter.write(null)).to.equal(null);
+        expect(booleanFilter.write("OUI")).to.equal(true);
+        expect(booleanFilter.write("")).to.equal(false);
+    });
+
+    it('test: truncateFilter read', () => {
+        expect(truncateFilter.read(null, null)).to.equal(null);
+        expect(truncateFilter.read(null, 10)).to.equal(null);
+        expect(truncateFilter.read("test", null)).to.equal(null);
+        expect(truncateFilter.read("test", 1)).to.equal("t");
+        expect(truncateFilter.read("test", 0)).to.equal("");
+        expect(truncateFilter.read("test", 10)).to.equal("test");
+    });
+
+    it('test: truncateFilter write', () => {
+        expect(truncateFilter.write(null)).to.equal(null);
+        expect(truncateFilter.write("test")).to.equal("test");
+    });
+
+    it('test: hourAndMinutesFilter read', () => {
+        expect(hourAndMinutesFilter.read(null)).to.equal(null);
+        expect(hourAndMinutesFilter.read(0)).to.equal("0:00");
+        expect(hourAndMinutesFilter.read(2.5)).to.equal("2:30");
+        expect(hourAndMinutesFilter.read(2.2111)).to.equal("2:13");
+        expect(hourAndMinutesFilter.read(-1)).to.equal("-1:00");
+    });
+
+    it('test: hourAndMinutesFilter write', () => {
+        expect(hourAndMinutesFilter.write(null)).to.equal(null);
+        expect(hourAndMinutesFilter.write("0:00")).to.equal(0);
+        expect(hourAndMinutesFilter.write("2:30")).to.equal(2.5);
+        expect(hourAndMinutesFilter.write("2:75")).to.equal(3.25);
+    });
+
+
 });
