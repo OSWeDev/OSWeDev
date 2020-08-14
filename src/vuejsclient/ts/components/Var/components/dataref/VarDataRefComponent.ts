@@ -6,7 +6,6 @@ import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
 import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
 import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
@@ -28,11 +27,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     public setDescSelectedIndex: (desc_selected_index: string) => void;
     @ModuleVarGetter
     public isDescMode: boolean;
-    @ModuleVarGetter
-    public getUpdatingParamsByVarsIds: { [index: string]: boolean };
 
     @Prop()
-    public var_param: IVarDataParamVOBase;
+    public var_param: IVarDataVOBase;
 
     @Prop({ default: null })
     public var_value_callback: (var_value: IVarDataVOBase, component: VarDataRefComponent) => any;
@@ -79,8 +76,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return true;
         }
 
-        return (!!this.getUpdatingParamsByVarsIds) && (!!this.var_param) &&
-            (!!this.getUpdatingParamsByVarsIds[VarsController.getInstance().getIndex(this.var_param)]);
+        return typeof this.var_data.value === 'undefined';
     }
 
     get filtered_value() {
@@ -431,7 +427,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.unregister();
     }
 
-    private register(var_param: IVarDataParamVOBase = null) {
+    private register(var_param: IVarDataVOBase = null) {
         if (!this.entered_once) {
             return;
         }
@@ -439,7 +435,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         VarsController.getInstance().registerDataParam(var_param ? var_param : this.var_param, this.reload_on_mount);
     }
 
-    private unregister(var_param: IVarDataParamVOBase = null) {
+    private unregister(var_param: IVarDataVOBase = null) {
         if (!this.entered_once) {
             return;
         }
@@ -448,7 +444,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     @Watch('var_param')
-    private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+    private onChangeVarParam(new_var_param: IVarDataVOBase, old_var_param: IVarDataVOBase) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {

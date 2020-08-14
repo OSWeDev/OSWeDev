@@ -10,8 +10,7 @@
             i.fa.fa-2x.fa-clock-o.fa-fw(aria-hidden="true" @click='setDescFuncStatsOpened(!isDescFuncStatsOpened)')
             
                     
-        i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true" v-if='isUpdating' :class="{'fa-2x': isDescMode}")
-        i.fa.fa-check-circle.fa-fw(aria-hidden="true" v-else :class="{'fa-2x': isDescMode}" @click='switchDescMode')
+        i.fa.fa-check-circle.fa-fw(aria-hidden="true" :class="{'fa-2x': isDescMode}" @click='switchDescMode')
 
     .desc_window(v-show='isDescMode && isDescOpened')
         template(v-show='!!getDescSelectedIndex')

@@ -21,18 +21,12 @@ export default class VarDAGDefineNodeDeps {
 
         let controller = VarsController.getInstance().getVarControllerById(node.param.var_id);
 
-        if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.hasMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING))) {
+        if (node.hasMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED) || (!node.needs_deps_loading)) {
             return;
         }
 
         // On demande les deps de datasources
         if (!node.hasMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED)) {
-            let deps_ds: Array<IDataSourceController<any>> = controller.getDataSourcesDependencies();
-            for (let i in deps_ds) {
-                let dep_ds = deps_ds[i];
-
-                node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCE_NAME + dep_ds.name, varDag);
-            }
             node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED, varDag);
         }
 
@@ -55,7 +49,7 @@ export default class VarDAGDefineNodeDeps {
             VarDAGDefineNodeDeps.add_node_deps(node, varDag, deps, new_nodes);
         }
 
-        node.removeMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, varDag, true);
+        node.needs_deps_loading = false;
         node.addMarker(VarDAG.VARDAG_MARKER_DEPS_LOADED, varDag);
     }
 

@@ -2,7 +2,6 @@ import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
-import IVarDataParamVOBase from '../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../shared/modules/Var/VarsController';
 import IStoreModule from '../../../store/IStoreModule';
@@ -14,13 +13,11 @@ export interface IVarState {
     is_waiting: boolean;
     is_stepping: boolean;
     step_number: number;
-    is_updating: boolean;
     desc_mode: boolean;
     desc_selected_index: string;
     desc_opened: boolean;
     desc_deps_opened: boolean;
     desc_registrations_opened: boolean;
-    updating_params_by_vars_ids: { [index: string]: boolean };
     desc_funcstats_opened: boolean;
     dependencies_heatmap_version: number;
 }
@@ -51,7 +48,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
         this.state = {
             varDatas: {},
-            is_updating: false,
             is_stepping: false,
             step_number: 1,
             is_waiting: false,
@@ -61,7 +57,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             desc_deps_opened: false,
             desc_registrations_opened: false,
             desc_funcstats_opened: false,
-            updating_params_by_vars_ids: {},
             dependencies_heatmap_version: 0
         };
 
@@ -94,25 +89,15 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             isDescFuncStatsOpened(state: IVarState): boolean {
                 return state.desc_funcstats_opened;
             },
-            isUpdating(state: IVarState): boolean {
-                return state.is_updating;
-            },
             isDescMode(state: IVarState): boolean {
                 return state.desc_mode;
             },
             getDescSelectedIndex(state: IVarState): string {
                 return state.desc_selected_index;
             },
-            getUpdatingParamsByVarsIds(state: IVarState): { [index: string]: boolean } {
-                return state.updating_params_by_vars_ids;
-            },
         };
 
         this.mutations = {
-
-            setIsUpdating(state: IVarState, is_updating: boolean) {
-                state.is_updating = is_updating;
-            },
 
             setStepNumber(state: IVarState, step_number: number) {
                 state.step_number = step_number;
@@ -164,9 +149,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     return;
                 }
 
-                let index: string = VarsController.getInstance().getIndex(varData);
-
-                Vue.set(state.varDatas as any, index, varData);
+                Vue.set(state.varDatas as any, varData.index, varData);
             },
 
             setVarsData(state: IVarState, varsData: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) {
@@ -178,41 +161,30 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
                     let varData = varsData[i];
 
-                    let index: string = VarsController.getInstance().getIndex(varData);
-
-                    Vue.set(state.varDatas as any, index, varData);
+                    Vue.set(state.varDatas as any, varData.index, varData);
                 }
             },
 
-            removeVarData(state: IVarState, varDataParam: IVarDataParamVOBase) {
+            removeVarData(state: IVarState, varData: IVarDataVOBase) {
 
-                if ((!varDataParam) ||
+                if ((!varData) ||
                     (!state.varDatas)) {
                     return;
                 }
 
-                let index: string = VarsController.getInstance().getIndex(varDataParam);
-
                 try {
-                    if (!!state.varDatas[index]) {
-                        Vue.delete(state.varDatas, index);
+                    if (!!state.varDatas[varData.index]) {
+                        Vue.delete(state.varDatas, varData.index);
                     }
                 } catch (error) {
 
                 }
-            },
-
-            setUpdatingParamsByVarsIds(state: IVarState, updating_params_by_vars_ids: { [index: string]: boolean }) {
-                state.updating_params_by_vars_ids = updating_params_by_vars_ids;
             },
         };
 
 
 
         this.actions = {
-            setIsUpdating(context: VarContext, is_updating: boolean) {
-                commitSetIsUpdating(context, is_updating);
-            },
             setIsWaiting(context: VarContext, is_waiting: boolean) {
                 commitSetIsWaiting(context, is_waiting);
             },
@@ -251,11 +223,8 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setVarsData(context: VarContext, varsData: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) {
                 commitSetVarsData(context, varsData);
             },
-            removeVarData(context: VarContext, varDataParam: IVarDataParamVOBase) {
+            removeVarData(context: VarContext, varDataParam: IVarDataVOBase) {
                 commitRemoveVarData(context, varDataParam);
-            },
-            setUpdatingParamsByVarsIds(context: VarContext, updating_params_by_vars_ids: { [index: string]: boolean }) {
-                commitSetUpdatingParamsByVarsIds(context, updating_params_by_vars_ids);
             },
         };
     }
@@ -269,13 +238,11 @@ export const ModuleVarAction = namespace('VarStore', Action);
 export const commitSetVarData = commit(VarStore.getInstance().mutations.setVarData);
 export const commitSetVarsData = commit(VarStore.getInstance().mutations.setVarsData);
 export const commitRemoveVarData = commit(VarStore.getInstance().mutations.removeVarData);
-export const commitSetIsUpdating = commit(VarStore.getInstance().mutations.setIsUpdating);
 export const commitSetDescMode = commit(VarStore.getInstance().mutations.setDescMode);
 export const commitSetDescOpened = commit(VarStore.getInstance().mutations.setDescOpened);
 export const commitSetDescRegistrationsOpened = commit(VarStore.getInstance().mutations.setDescRegistrationsOpened);
 export const commitsetDescFuncStatsOpened = commit(VarStore.getInstance().mutations.setDescFuncStatsOpened);
 export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
-export const commitSetUpdatingParamsByVarsIds = commit(VarStore.getInstance().mutations.setUpdatingParamsByVarsIds);
 export const commitSetDescSelectedIndex = commit(VarStore.getInstance().mutations.setDescSelectedIndex);
 export const commitSetIsWaiting = commit(VarStore.getInstance().mutations.setIsWaiting);
 export const commitSetIsStepping = commit(VarStore.getInstance().mutations.setIsStepping);

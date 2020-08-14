@@ -11,9 +11,6 @@ export default class VarDAG extends DAG<VarDAGNode> {
 
     public static VARDAG_MARKER_IMPORTED_DATA: string = 'IMPORTED_DATA';
 
-    public static VARDAG_MARKER_VAR_ID: string = 'VAR_ID_';
-    public static VARDAG_MARKER_DATASOURCE_NAME: string = 'DATASOURCE_NAME_';
-
     public static VARDAG_MARKER_loadImportedOrPrecompiledDatas_todo: string = "loadImportedOrPrecompiledDatas_todo";
     public static VARDAG_MARKER_loadImportedOrPrecompiledDatas_ok: string = "loadImportedOrPrecompiledDatas_ok";
 
@@ -107,7 +104,7 @@ export default class VarDAG extends DAG<VarDAGNode> {
                 node.loaded_datas_matroids_sum_value = null;
                 node.removeMarkers(this);
                 node.initializeNode(this);
-                node.addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, this);
+                node.needs_deps_loading = true;
             }
 
             node.addMarker(VarDAG.VARDAG_MARKER_REGISTERED, this);

@@ -64,18 +64,28 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
         }
 
         //  On charge simplement tous les registered_vars des var_id concernés:
-        for (let i in VarsController.getInstance().varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DATASOURCE_NAME + this.name]) {
-            let index: string = VarsController.getInstance().varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_DATASOURCE_NAME + this.name][i];
-            let param: IVarDataVOBase = VarsController.getInstance().varDAG.nodes[index].param;
+        let var_ids: { [id: number]: boolean } = {};
+        for (let i in VarsController.getInstance().registered_vars_by_datasource[this.name]) {
+            let var_controller: VarControllerBase<any> = VarsController.getInstance().registered_vars_by_datasource[this.name][i];
 
             // Si on a filtré des var_id, on ignore ceux qui ne sont pas filtrés
-            if ((!!filtered_var_ids) && (!filtered_var_ids[param.var_id])) {
+            if ((!!filtered_var_ids) && (!filtered_var_ids[var_controller.varConf.id])) {
+                continue;
+            }
+
+            var_ids[var_controller.varConf.id] = true;
+        }
+
+        for (let i in VarsController.getInstance().varDAG.nodes) {
+            let param: IVarDataVOBase = VarsController.getInstance().varDAG.nodes[i].param;
+
+            if (!var_ids[param.id]) {
                 continue;
             }
 
             if (!intersectors[param.var_id]) {
                 // Si on n'a rien défini ou null, on invalide tout
-                res[index] = param;
+                res[param.index] = param;
                 continue;
             }
 
@@ -99,18 +109,19 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
                     // TODO FIXME BUG? : pourquoi on voudrait tout invalider si rien n'est cohérent ? on intersecte rien a priori du coup, donc pourquoi on invalide ?
                     if ((moduletable.mapping_by_api_type_ids[param._type] === null) ||
                         (MatroidController.getInstance().matroid_intersects_matroid(intersector, param, moduletable.mapping_by_api_type_ids[param._type]))) {
-                        res[index] = param;
+                        res[param.index] = param;
                         break;
                     }
                     continue;
                 }
 
                 if (MatroidController.getInstance().matroid_intersects_matroid(intersector, param)) {
-                    res[index] = param;
+                    res[param.index] = param;
                     break;
                 }
             }
         }
+
         return res;
     }
 

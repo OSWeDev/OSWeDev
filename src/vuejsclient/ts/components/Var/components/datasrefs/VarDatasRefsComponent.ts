@@ -20,8 +20,6 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     public setDescSelectedIndex: (desc_selected_index: string) => void;
     @ModuleVarGetter
     public isDescMode: boolean;
-    @ModuleVarGetter
-    public getUpdatingParamsByVarsIds: { [index: string]: boolean };
 
     @Prop()
     public var_params: IVarDataParamVOBase[];
@@ -62,11 +60,10 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return true;
         }
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
+        for (let i in this.var_datas) {
+            let var_data = this.var_datas[i];
 
-            if ((!!this.getUpdatingParamsByVarsIds) && (!!var_param) &&
-                (!!this.getUpdatingParamsByVarsIds[VarsController.getInstance().getIndex(var_param)])) {
+            if (typeof var_data.value === 'undefined') {
                 return true;
             }
         }

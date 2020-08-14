@@ -36,7 +36,7 @@
                     hr
 
             .row
-                .col-md-12(v-if='(!is_stepping) && (!isUpdating)')
+                .col-md-12(v-if='(!is_stepping)')
                     button.btn.btn-sm.btn-secondary.pull-right(@click="switch_stepper")
                         i.fa.fa-pause.fa-lg.btn_icon(aria-hidden="true")
                         | {{ label('var_desc.pause') + ' (' + getStepNumber + ')' }}

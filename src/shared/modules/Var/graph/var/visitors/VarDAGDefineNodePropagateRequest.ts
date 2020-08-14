@@ -31,9 +31,9 @@ export default class VarDAGDefineNodePropagateRequest {
                     continue;
                 }
 
-                incoming.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, dag);
-                if (incoming.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE)) {
-                    incoming.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, dag, true);
+                incoming.marked_for_update = true;
+                if (incoming.marked_for_next_update) {
+                    incoming.marked_for_next_update = false;
                 }
                 nodes_names.push(incoming.name);
             }
@@ -60,9 +60,9 @@ export default class VarDAGDefineNodePropagateRequest {
                 continue;
             }
 
-            incoming.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, dag);
-            if (incoming.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE)) {
-                incoming.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, dag, true);
+            incoming.marked_for_update = true;
+            if (incoming.marked_for_next_update) {
+                incoming.marked_for_next_update = false;
             }
         }
 
@@ -82,9 +82,9 @@ export default class VarDAGDefineNodePropagateRequest {
                 continue;
             }
 
-            outgoing.addMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, dag);
-            if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE)) {
-                outgoing.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_NEXT_UPDATE, dag, true);
+            outgoing.marked_for_update = true;
+            if (outgoing.marked_for_next_update) {
+                outgoing.marked_for_next_update = false;
             }
         }
 

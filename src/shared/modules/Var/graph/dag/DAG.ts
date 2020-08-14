@@ -12,8 +12,6 @@ export default class DAG<TNode extends DAGNode> {
     public roots: { [name: string]: TNode } = {};
     public leafs: { [name: string]: TNode } = {};
 
-    public marked_nodes_names: { [marker: string]: string[] } = {};
-
     public constructor(
         protected node_constructor: (name: string, dag: DAG<TNode>, ...params) => TNode,
         protected on_node_removal: (dagNode: TNode, ...params) => void = null) { }

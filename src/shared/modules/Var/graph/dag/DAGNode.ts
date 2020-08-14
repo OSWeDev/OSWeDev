@@ -14,8 +14,6 @@ export default class DAGNode {
 
     public value = null;
 
-    public markers: { [marker_id: string]: number } = {};
-
     public constructor(public name: string, public dag: DAG<any>) { }
 
     public initializeNode(dag: DAG<any>) {

@@ -1,12 +1,12 @@
 import { Component } from 'vue-property-decorator';
 import 'vue-tables-2';
-import VueComponentBase from '../../../../VueComponentBase';
-import { ModuleVarAction, ModuleVarGetter } from '../../../store/VarStore';
-import './VarDescRegistrationsComponent.scss';
-import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDAG from '../../../../../../../shared/modules/Var/graph/var/VarDAG';
 import VarDAGNode from '../../../../../../../shared/modules/Var/graph/var/VarDAGNode';
 import IVarDataParamVOBase from '../../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
+import VarsController from '../../../../../../../shared/modules/Var/VarsController';
+import VueComponentBase from '../../../../VueComponentBase';
+import { ModuleVarAction, ModuleVarGetter } from '../../../store/VarStore';
+import './VarDescRegistrationsComponent.scss';
 
 @Component({
     template: require('./VarDescRegistrationsComponent.pug')
@@ -20,8 +20,6 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
 
     @ModuleVarGetter
     public isWaiting: boolean;
-    @ModuleVarGetter
-    public isUpdating: boolean;
     @ModuleVarGetter
     public isStepping: boolean;
 
@@ -223,23 +221,21 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
         this.vardag_size = VarsController.getInstance().varDAG.nodes_names.length;
         this.vardag_registered_prct = this.formatNumber_2decimal((this.vardag_size ? VarsController.getInstance().varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_REGISTERED].length / this.vardag_size : 0) * 100);
 
-        let vardags_registered_prct_by_var_id: { [var_id: number]: number } = {};
+        let vardags_registered_n_by_var_id: { [var_id: number]: number } = {};
+        this.vardags_registered_prct_by_var_id = {};
 
-        for (let marker_name in VarsController.getInstance().varDAG.marked_nodes_names) {
-            let marked_nodes_names: string[] = VarsController.getInstance().varDAG.marked_nodes_names[marker_name];
+        for (let i in VarsController.getInstance().varDAG.nodes) {
+            let node = VarsController.getInstance().varDAG.nodes[i];
 
-            if (!marker_name.startsWith(VarDAG.VARDAG_MARKER_VAR_ID)) {
-                continue;
+            if (!vardags_registered_n_by_var_id[node.param.var_id]) {
+                vardags_registered_n_by_var_id[node.param.var_id] = 1;
+            } else {
+                vardags_registered_n_by_var_id[node.param.var_id]++;
             }
-
-            let var_id: number = parseInt(marker_name.replace(VarDAG.VARDAG_MARKER_VAR_ID, ""));
-
-            vardags_registered_prct_by_var_id[var_id] = marked_nodes_names.length / this.vardag_size;
         }
 
-        this.vardags_registered_prct_by_var_id = {};
-        for (let i in vardags_registered_prct_by_var_id) {
-            this.vardags_registered_prct_by_var_id[i] = this.formatNumber_2decimal(vardags_registered_prct_by_var_id[i] * 100);
+        for (let i in vardags_registered_n_by_var_id) {
+            this.vardags_registered_prct_by_var_id[i] = this.formatNumber_2decimal((vardags_registered_n_by_var_id[i] / this.vardag_size) * 100);
         }
     }
 

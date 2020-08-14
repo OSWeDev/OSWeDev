@@ -17,15 +17,23 @@ export default class VarDAGNode extends DAGNode {
     public needs_to_load_precompiled_or_imported_data: boolean = true;
     public needs_parent_to_load_precompiled_or_imported_data: boolean = false;
 
+    // Markers
+    public marked_for_next_update: boolean = false;
+    public marked_for_update: boolean = false;
+    public needs_deps_loading: boolean = true;
+
     // Used for the deps heatmap
     public dependencies_count: number = null;
     public dependencies_list: string[] = null;
     public dependencies_tree_prct: number = null;
 
+    // inheritance types pb forces redeclaration
+    public incoming: { [node_name: string]: VarDAGNode } = {};
+    public outgoing: { [node_name: string]: VarDAGNode } = {};
+
+
     public constructor(name: string, dag: VarDAG, public param: IVarDataVOBase) {
         super(name, dag);
-
-        this.addMarker(VarDAG.VARDAG_MARKER_NEEDS_DEPS_LOADING, dag);
 
         // On en profite pour afficher l'info de la nécessité ou non de chargement de data pour les matroids
         let var_controller = VarsController.getInstance().getVarControllerById(param.var_id);
@@ -38,12 +46,6 @@ export default class VarDAGNode extends DAGNode {
 
         // Par défaut on a pas de parent donc...
         this.needs_parent_to_load_precompiled_or_imported_data = false;
-    }
-
-    public initializeNode(dag: VarDAG) {
-        super.initializeNode(dag);
-        this.addMarker(VarDAG.VARDAG_MARKER_VAR_ID + this.param.var_id, dag);
-
     }
 
     public getD3NodeDefinition(use_var_name_as_label: boolean = false): any {
