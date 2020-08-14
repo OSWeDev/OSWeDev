@@ -25,11 +25,6 @@ export default class VarDAGDefineNodeDeps {
             return;
         }
 
-        // On demande les deps de datasources
-        if (!node.hasMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED)) {
-            node.addMarker(VarDAG.VARDAG_MARKER_DATASOURCES_LIST_LOADED, varDag);
-        }
-
         // Si on peut pas calculer, inutile de regarder les deps et donc les ds predeps sont inutiles aussi
         let ne_peut_pas_calculer = ((!controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) || ((!controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide));
         if (!ne_peut_pas_calculer) {

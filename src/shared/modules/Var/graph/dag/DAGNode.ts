@@ -1,4 +1,3 @@
-import ObjectHandler from '../../../../tools/ObjectHandler';
 import DAG from './DAG';
 
 export default class DAGNode {
@@ -15,74 +14,6 @@ export default class DAGNode {
     public value = null;
 
     public constructor(public name: string, public dag: DAG<any>) { }
-
-    public initializeNode(dag: DAG<any>) {
-    }
-    public prepare_for_deletion(dag: DAG<any>) {
-
-        while (ObjectHandler.getInstance().hasAtLeastOneAttribute(this.markers)) {
-            let marker = ObjectHandler.getInstance().getFirstAttributeName(this.markers);
-
-            this.removeMarker(marker, dag, true);
-        }
-    }
-
-    public hasMarker(marker: string): boolean {
-        return (!!this.markers[marker]);
-    }
-
-    /**
-     * Si un marker existe déjà, on l'incrémente
-     */
-    public addMarker(marker: string, dag: DAG<any>) {
-
-        if (!dag) {
-            return;
-        }
-
-        if (!this.markers[marker]) {
-            this.markers[marker] = 0;
-
-            if (!dag.marked_nodes_names[marker]) {
-                dag.marked_nodes_names[marker] = [];
-            }
-            dag.marked_nodes_names[marker].push(this.name);
-        }
-        this.markers[marker]++;
-    }
-
-    public removeMarkers(dag: DAG<any>) {
-        for (let i in this.markers) {
-            this.removeMarker(i, this.dag, true);
-        }
-    }
-
-    /**
-     * Si un marker atteint 0 on le supprime
-     */
-    public removeMarker(marker: string, dag: DAG<any>, force_deletion: boolean = false) {
-        if (!this.markers[marker]) {
-            // ConsoleHandler.getInstance().error('Incohérence de DAG :' + this.name + ':removeMarker:' + marker + ':inexistant');
-            return;
-        }
-
-        if (force_deletion) {
-
-            this.markers[marker] = 0;
-        } else {
-
-            this.markers[marker]--;
-        }
-
-        if (this.markers[marker] <= 0) {
-            delete this.markers[marker];
-
-            let indexof = dag.marked_nodes_names[marker].indexOf(this.name);
-            if (indexof >= 0) {
-                dag.marked_nodes_names[marker].splice(indexof, 1);
-            }
-        }
-    }
 
     /**
      * Permet de savoir si le vertex a des deps

@@ -17,10 +17,21 @@ export default class VarDAGNode extends DAGNode {
     public needs_to_load_precompiled_or_imported_data: boolean = true;
     public needs_parent_to_load_precompiled_or_imported_data: boolean = false;
 
+    // -------
     // Markers
+    // -------
     public marked_for_next_update: boolean = false;
     public marked_for_update: boolean = false;
+    public ongoing_update: boolean = false;
+
+    public imported_or_precomputed_data_loaded: boolean = false;
+
     public needs_deps_loading: boolean = true;
+    public deps_loaded: boolean = false;
+
+    public computed: boolean = false;
+    public computed_at_least_once: boolean = false;
+    // -------
 
     // Used for the deps heatmap
     public dependencies_count: number = null;

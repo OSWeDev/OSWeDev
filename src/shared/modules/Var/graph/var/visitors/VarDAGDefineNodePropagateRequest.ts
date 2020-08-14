@@ -7,44 +7,11 @@ import VarDAGNode from '../VarDAGNode';
  */
 export default class VarDAGDefineNodePropagateRequest {
 
-
-    /**
-     * On rajoute une remontée du tag de demande d'update dans l'arbre
-     */
-    public static varDAGPropagateInvalidationToParents(dag: VarDAG) {
-
-        let nodes_names: string[] = Array.from(dag.marked_nodes_names[VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE]);
-
-        while (nodes_names && (nodes_names.length > 0)) {
-            let nodes_name = nodes_names.shift();
-            let node = dag.nodes[nodes_name];
-
-            // On impact => vers tous les incomings
-            for (let j in node.incoming) {
-                let incoming: VarDAGNode = node.incoming[j] as VarDAGNode;
-
-                if (incoming.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) {
-                    continue;
-                }
-
-                if (incoming.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE)) {
-                    continue;
-                }
-
-                incoming.marked_for_update = true;
-                if (incoming.marked_for_next_update) {
-                    incoming.marked_for_next_update = false;
-                }
-                nodes_names.push(incoming.name);
-            }
-        }
-    }
-
     public varDAGVisitorDefineNodePropagateRequest(node: VarDAGNode, dag: VarDAG): boolean {
 
-        if (node.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE) || (!node.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE))) {
+        if (node.ongoing_update || (!node.marked_for_update)) {
 
-            node.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, dag, true);
+            node.marked_for_update = false;
             return false;
         }
 
@@ -52,11 +19,11 @@ export default class VarDAGDefineNodePropagateRequest {
         for (let i in node.incoming) {
             let incoming: VarDAGNode = node.incoming[i] as VarDAGNode;
 
-            if (incoming.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) {
+            if (incoming.ongoing_update) {
                 continue;
             }
 
-            if (incoming.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE)) {
+            if (incoming.marked_for_update) {
                 continue;
             }
 
@@ -74,11 +41,11 @@ export default class VarDAGDefineNodePropagateRequest {
                 continue;
             }
 
-            if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE)) {
+            if (outgoing.ongoing_update) {
                 continue;
             }
 
-            if (outgoing.hasMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE)) {
+            if (outgoing.marked_for_update) {
                 continue;
             }
 
@@ -88,8 +55,8 @@ export default class VarDAGDefineNodePropagateRequest {
             }
         }
 
-        node.removeMarker(VarDAG.VARDAG_MARKER_MARKED_FOR_UPDATE, dag, true);
-        node.addMarker(VarDAG.VARDAG_MARKER_ONGOING_UPDATE, dag);
+        node.marked_for_update = false;
+        node.ongoing_update = true;
         return false;
     }
 }
