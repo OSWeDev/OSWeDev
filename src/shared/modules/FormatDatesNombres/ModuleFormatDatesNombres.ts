@@ -197,7 +197,7 @@ export default class ModuleFormatDatesNombres extends Module {
     //     return NaN;
     // }
 
-    public formatNumber_n_decimals(numberToFormat: number, n_decimals: number): string {
+    public formatNumber_n_decimals(numberToFormat: number, n_decimals: number, arrondi_type: number = ARRONDI_TYPE_ROUND): string {
 
         let number = null;
 

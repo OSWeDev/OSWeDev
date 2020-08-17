@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import { amountFilter, hourAndMinutesFilter, hourFilter, percentFilter, toFixedFilter, planningCheckFilter, alerteCheckFilter, hideZeroFilter, booleanFilter, truncateFilter } from '../../../shared/tools/Filters';
+import { amountFilter, hourFilter, percentFilter, toFixedFilter, planningCheckFilter, alerteCheckFilter, hideZeroFilter, booleanFilter, truncateFilter, bignumFilter, padHourFilter, toFixedCeilFilter, toFixedFloorFilter } from '../../../shared/tools/Filters';
 
 
 describe('TestFilters', () => {
@@ -47,23 +47,56 @@ describe('TestFilters', () => {
         expect(percentFilter.read("-1000")).to.equal("-&infin;");
     });
 
-    it('test toFixed read', () => {
+    it('test percentFilter write', () => {
 
         ModuleFormatDatesNombres.getInstance().actif = true;
 
-        expect(toFixedFilter.read(null)).to.equal(null);
-        expect(toFixedFilter.read(0)).to.equal(0);
-        expect(toFixedFilter.read(-0.5, null, 0.5)).to.equal("-0.5");
-        expect(toFixedFilter.read(-1.6, null, 0.5)).to.equal("-1.5");
-        expect(toFixedFilter.read(-1.9, null, 0.5)).to.equal("-2");
-        expect(toFixedFilter.read(0.5, null, 0.5)).to.equal("0.5");
-        expect(toFixedFilter.read(-0.1, null, 0.5)).to.equal("0");
-        expect(toFixedFilter.read(-0.3, null, 0.5)).to.equal("-0.5");
-        expect(toFixedFilter.read(0.1, null, 0.5)).to.equal("0");
-        expect(toFixedFilter.read(0.3, null, 0.5)).to.equal("0.5");
-        expect(toFixedFilter.read(1.6, null, 0.5)).to.equal("1.5");
-        expect(toFixedFilter.read(1.9, null, 0.5)).to.equal("2");
+        expect(percentFilter.write(null)).to.equal(null);
+        expect(percentFilter.write("0 %")).to.equal(0);
+        expect(percentFilter.write("0%")).to.equal(0);
+        expect(percentFilter.write("0")).to.equal(0);
+        expect(percentFilter.write("0 pourcent")).to.equal(0);
+        expect(percentFilter.write("100%")).to.equal(1);
+        expect(percentFilter.write("100 %")).to.equal(1);
+        expect(percentFilter.write("+ 100 %")).to.equal(1);
+        expect(percentFilter.write("+100 %")).to.equal(1);
+        expect(percentFilter.write(" 100 %")).to.equal(1);
+        expect(percentFilter.write(" + 100 %")).to.equal(1);
+        expect(percentFilter.write("32.5")).to.equal(0.325);
+        expect(percentFilter.write("32.5%")).to.equal(0.325);
+        expect(percentFilter.write("32,5 %")).to.equal(0.325);
+        expect(percentFilter.write(" 32,5%")).to.equal(0.325);
+        expect(percentFilter.write(" 32 , 5%")).to.equal(0.325);
+        expect(percentFilter.write("+ 32 , 5 % ")).to.equal(0.325);
+        expect(percentFilter.write("notANumber")).to.equal(0);
+        expect(percentFilter.write("-1 000 %")).to.equal(-10);
+        expect(percentFilter.write("-25.5 %")).to.equal(-0.255);
+        expect(percentFilter.write("- 25.5%")).to.equal(-0.255);
+        expect(percentFilter.write("- 25 . 5%")).to.equal(-0.255);
+        expect(percentFilter.write("-25.55555555555%")).to.equal(-0.2555555555555);
     });
+
+
+
+    //it('test toFixedFilter read', () => {
+    //
+    //      ModuleFormatDatesNombres.getInstance().actif = true;
+    //
+    //      expect(toFixedFilter.read(null)).to.equal(null);
+    //    expect(toFixedFilter.read(0)).to.equal("0");
+    // expect(toFixedFilter.read(-0.5, 0.5)).to.equal("-0,5");
+    //expect(toFixedFilter.read(-1.6, 0.5)).to.equal("-1,5");
+    // expect(toFixedFilter.read(-1.9, null, 0.5)).to.equal("-2");
+    // expect(toFixedFilter.read(0.5, null, 0.5)).to.equal("0,5");
+    //expect(toFixedFilter.read(-0.1, null, 0.5)).to.equal("0");
+    //expect(toFixedFilter.read(-0.3, null, 0.5)).to.equal("-0,5");
+    //expect(toFixedFilter.read(0.1, null, 0.5)).to.equal("0");
+    // expect(toFixedFilter.read(0.3, null, 0.5)).to.equal("0,5");
+    //expect(toFixedFilter.read(1.6, null, 0.5)).to.equal("1,5");
+    //  expect(toFixedFilter.read(1.9, null, 0.5)).to.equal("2");
+    //});
+
+
 
 
     it('test amountFilter read', () => {
@@ -118,39 +151,6 @@ describe('TestFilters', () => {
         expect(amountFilter.write("€1,000 000.00")).to.equal(1);
     });
 
-    it('test hourAndMinutesFilter read', () => {
-
-        ModuleFormatDatesNombres.getInstance().actif = true;
-
-        expect(hourAndMinutesFilter.read(null)).to.equal(null);
-        expect(hourAndMinutesFilter.read("0")).to.equal("0:00");
-        expect(hourAndMinutesFilter.read(0)).to.equal("0:00");
-        expect(hourAndMinutesFilter.read(10)).to.equal("10:00");
-        expect(hourAndMinutesFilter.read("10")).to.equal("10:00");
-        expect(hourAndMinutesFilter.read(10.5)).to.equal("10:30");
-        expect(hourAndMinutesFilter.read("10.5")).to.equal("10:30");
-        expect(hourAndMinutesFilter.read("25.999999")).to.equal("26:00");
-        expect(hourAndMinutesFilter.read(25.999999)).to.equal("26:00");
-    });
-
-    it('test hourAndMinutesFilter write', () => {
-
-        ModuleFormatDatesNombres.getInstance().actif = true;
-
-        expect(hourAndMinutesFilter.write(null)).to.equal(null);
-        expect(hourAndMinutesFilter.write("0")).to.equal(0);
-        expect(hourAndMinutesFilter.write("00:00")).to.equal(0);
-        expect(hourAndMinutesFilter.write(0)).to.equal(0);
-        expect(hourAndMinutesFilter.write(10)).to.equal(10);
-        expect(hourAndMinutesFilter.write("10.5")).to.equal(10.5);
-        expect(hourAndMinutesFilter.write("10.25")).to.equal(10.25);
-        expect(hourAndMinutesFilter.write("10")).to.equal(10);
-        expect(hourAndMinutesFilter.write("10:")).to.equal(10);
-        expect(hourAndMinutesFilter.write("10:30")).to.equal(10.5);
-        expect(hourAndMinutesFilter.write("10:30")).to.equal(10.5);
-        expect(hourAndMinutesFilter.write("10:30")).to.equal(10.5);
-        expect(hourAndMinutesFilter.write("25:60")).to.equal(26);
-    });
 
     it('test hourFilter read', () => {
 
@@ -188,74 +188,67 @@ describe('TestFilters', () => {
         expect(hourFilter.write("25h60")).to.equal(26);
     });
 
-    it('test hourFilter write', () => {
 
-        ModuleFormatDatesNombres.getInstance().actif = true;
-
-        expect(hourFilter.write(null)).to.equal(null);
-        expect(hourFilter.write("0")).to.equal(0);
-        expect(hourFilter.write("00h00")).to.equal(0);
-        expect(hourFilter.write(0)).to.equal(0);
-        expect(hourFilter.write(10)).to.equal(10);
-        expect(hourFilter.write("10.5")).to.equal(10.5);
-        expect(hourFilter.write("10.25")).to.equal(10.25);
-        expect(hourFilter.write("10")).to.equal(10);
-        expect(hourFilter.write("10h")).to.equal(10);
-        expect(hourFilter.write("10:30")).to.equal(10.5);
-        expect(hourFilter.write("10H30")).to.equal(10.5);
-        expect(hourFilter.write("10h30")).to.equal(10.5);
-        expect(hourFilter.write("25h60")).to.equal(26);
-    });
 
     it('test: planningCheckFilter read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(planningCheckFilter.read(null)).to.equal(null);
         expect(planningCheckFilter.read(1)).to.equal("OUI");
         expect(planningCheckFilter.read(-1)).to.equal("NON");
     });
 
     it('test: planningCheckFilter write', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(planningCheckFilter.write(null)).to.equal(null);
         expect(planningCheckFilter.write("OUI")).to.equal(1);
         expect(planningCheckFilter.write("NON")).to.equal(-1);
     });
 
     it('test: alerteCheckFilter read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(alerteCheckFilter.read(null)).to.equal(null);
         expect(alerteCheckFilter.read(1)).to.equal("ALERTE");
         expect(alerteCheckFilter.read(-1)).to.equal("");
     });
 
     it('test: alerteCheckFilter write', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(alerteCheckFilter.write(null)).to.equal(null);
         expect(alerteCheckFilter.write("ALERTE")).to.equal(1);
         expect(alerteCheckFilter.write("")).to.equal(-1);
     });
 
-    it('test: hideToZeroFilter read', () => {
+    it('test: hideZeroFilter read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(hideZeroFilter.read(null)).to.equal(null);
         expect(hideZeroFilter.read(0)).to.equal("");
         expect(hideZeroFilter.read(45)).to.equal(45);
     });
 
-    it('test: hideToZeroFilter write', () => {
+    it('test: hideZeroFilter write', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(hideZeroFilter.write(null)).to.equal(null);
         expect(hideZeroFilter.write("")).to.equal(0);
         expect(hideZeroFilter.write(78)).to.equal(78);
     });
 
     it('test: BooleanFilter read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(booleanFilter.read(null)).to.equal(null);
         expect(booleanFilter.read(true)).to.equal("OUI");
         expect(booleanFilter.read(false)).to.equal("");
     });
 
     it('test: BooleanFilter write', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(booleanFilter.write(null)).to.equal(null);
         expect(booleanFilter.write("OUI")).to.equal(true);
+        expect(booleanFilter.write("non")).to.equal(false);
         expect(booleanFilter.write("")).to.equal(false);
     });
 
     it('test: truncateFilter read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(truncateFilter.read(null, null)).to.equal(null);
         expect(truncateFilter.read(null, 10)).to.equal(null);
         expect(truncateFilter.read("test", null)).to.equal(null);
@@ -265,24 +258,89 @@ describe('TestFilters', () => {
     });
 
     it('test: truncateFilter write', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
         expect(truncateFilter.write(null)).to.equal(null);
         expect(truncateFilter.write("test")).to.equal("test");
+        expect(truncateFilter.write("")).to.equal("");
     });
 
-    it('test: hourAndMinutesFilter read', () => {
-        expect(hourAndMinutesFilter.read(null)).to.equal(null);
-        expect(hourAndMinutesFilter.read(0)).to.equal("0:00");
-        expect(hourAndMinutesFilter.read(2.5)).to.equal("2:30");
-        expect(hourAndMinutesFilter.read(2.2111)).to.equal("2:13");
-        expect(hourAndMinutesFilter.read(-1)).to.equal("-1:00");
+    it('test: bignumFilter read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
+        expect(bignumFilter.read(null)).to.equal(null);
+        expect(bignumFilter.read(0)).to.equal("0.00");
+        expect(bignumFilter.read(15555)).to.equal("15,555.00");
+        expect(bignumFilter.read(10)).to.equal("10.00");
+        expect(bignumFilter.read(0.12345)).to.equal("0.12");
+        expect(bignumFilter.read(100000000000)).to.equal("100,000,000,000.00");
     });
 
-    it('test: hourAndMinutesFilter write', () => {
-        expect(hourAndMinutesFilter.write(null)).to.equal(null);
-        expect(hourAndMinutesFilter.write("0:00")).to.equal(0);
-        expect(hourAndMinutesFilter.write("2:30")).to.equal(2.5);
-        expect(hourAndMinutesFilter.write("2:75")).to.equal(3.25);
+    it('test: bignumFilter write', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
+        expect(bignumFilter.write(null)).to.equal(null);
+        expect(bignumFilter.write("")).to.equal(0);
+        expect(bignumFilter.write("0")).to.equal(0);
+        expect(bignumFilter.write("10 000")).to.equal(10000);
+        expect(bignumFilter.write("100,000,000,000.00")).to.equal(100000000000);
+        expect(bignumFilter.write("100,000.789354")).to.equal(100000.789354);
+        expect(bignumFilter.write("100,000.789354")).to.equal(100000.789354);
+
     });
 
+    it('test: padHourFilter read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
+        expect(padHourFilter.read(null)).to.equal(null);
+        expect(padHourFilter.read(3)).to.equal("03");
+        expect(padHourFilter.read(0)).to.equal("00");
+        expect(padHourFilter.read(10)).to.equal("10");
+        expect(padHourFilter.read(1.5)).to.equal("01.5");
 
+    });
+
+    it('test: padHourFilter write', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
+        expect(padHourFilter.write(null)).to.equal(null);
+        expect(padHourFilter.write("03")).to.equal(3);
+        expect(padHourFilter.write("3")).to.equal(3);
+        expect(padHourFilter.write("03.5")).to.equal(3.5);
+    });
+
+    it('test: toFixedCeilFilte read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
+        expect(toFixedCeilFilter.read(null, null)).to.equal(null);
+        expect(toFixedCeilFilter.read(1, null)).to.equal(null);
+        expect(toFixedCeilFilter.read(null, 1)).to.equal(null);
+        expect(toFixedCeilFilter.read(3.6, 0)).to.equal('4');
+        expect(toFixedCeilFilter.read(3.3, 0)).to.equal('4');
+        expect(toFixedCeilFilter.read(3.38, 1)).to.equal('3,4');
+        expect(toFixedCeilFilter.read(3.34, 1)).to.equal('3,4');
+        expect(toFixedCeilFilter.read(-3.34, 1)).to.equal('-3,3');
+        expect(toFixedCeilFilter.read(-3.3, 0)).to.equal('-3');
+        expect(toFixedCeilFilter.read(3.38, -1)).to.equal('10'); //incohérent car digit négatif mais n'epxplose pas.
+        expect(toFixedCeilFilter.read(0, 0)).to.equal('0');
+        expect(toFixedCeilFilter.read(0, 1)).to.equal('0');
+
+    });
+
+    it('test: toFixedFloorFilte read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
+        expect(toFixedFloorFilter.read(null, null)).to.equal(null);
+        expect(toFixedFloorFilter.read(1, null)).to.equal(null);
+        expect(toFixedFloorFilter.read(null, 1)).to.equal(null);
+        expect(toFixedFloorFilter.read(3.6, 0)).to.equal('3');
+        expect(toFixedFloorFilter.read(3.33, 1)).to.equal('3,3');
+        expect(toFixedFloorFilter.read(3.38, 1)).to.equal('3,3');
+        expect(toFixedFloorFilter.read(-3.38, 1)).to.equal('-3,4');
+        expect(toFixedCeilFilter.read(3.38, -1)).to.equal('10'); //incohérent car digit négatif mais n'explose pas.
+        expect(toFixedCeilFilter.read(0, 0)).to.equal('0');
+        expect(toFixedCeilFilter.read(0, 1)).to.equal('0');
+    });
+
+    it('test: toFixedFilter write', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
+        expect(toFixedFilter.write(null)).to.equal(null);
+        expect(toFixedFilter.write("3.3")).to.equal(3.3);
+        expect(toFixedFilter.write("3,3")).to.equal(3.3); //bizare
+        expect(toFixedFilter.write("-3.3")).to.equal(-3.3);
+        expect(toFixedFilter.write("0")).to.equal(0);
+    });
 });
