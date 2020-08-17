@@ -274,14 +274,14 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return false;
 
                 case ModuleTableField.FIELD_TYPE_prct:
-                    return parseFloat(percentFilter.write(value));
+                    return percentFilter.write(value);
 
                 case ModuleTableField.FIELD_TYPE_amount:
-                    return parseFloat(amountFilter.write(value));
+                    return amountFilter.write(value);
 
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    return parseFloat(hourFilter.write(value));
+                    return hourFilter.write(value);
 
                 case ModuleTableField.FIELD_TYPE_float:
                     return parseFloat(value);

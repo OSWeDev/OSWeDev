@@ -173,29 +173,7 @@ export default class ModuleFormatDatesNombres extends Module {
         return this.formatNumber_sign(numberToFormat) + res;
     }
 
-    // // Formatter un nombre : 1 décimale
-    // public formatNumber_1decimal(numberToFormat) {
 
-    //     let number = null;
-
-    //     try {
-    //         number = Math.abs(parseFloat(numberToFormat));
-
-    //         // On sépare les décimals du reste
-    //         let entier = Math.floor(number);
-    //         let decimals = number - entier;
-    //         decimals = Math.round(decimals * 10);
-    //         if (decimals >= 10) {
-    //             decimals -= 10;
-    //             entier++;
-    //         }
-    //         return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + decimals;
-    //     } catch (e) {
-
-    //     }
-
-    //     return NaN;
-    // }
 
     public formatNumber_n_decimals(numberToFormat: number, n_decimals: number, arrondi_type: number = ARRONDI_TYPE_ROUND): string {
 
@@ -236,29 +214,7 @@ export default class ModuleFormatDatesNombres extends Module {
         return "NaN";
     }
 
-    // // Formatter un nombre : 2 décimales
-    // public formatNumber_2decimal(numberToFormat) {
 
-    //     let number = null;
-
-    //     try {
-    //         number = Math.abs(parseFloat(numberToFormat));
-
-    //         // On sépare les décimals du reste
-    //         let entier = Math.floor(number);
-    //         let decimals = number - entier;
-    //         decimals = Math.round(decimals * 100);
-    //         if (decimals >= 100) {
-    //             decimals -= 100;
-    //             entier++;
-    //         }
-    //         return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + (decimals < 10 ? "0" + decimals : decimals);
-    //     } catch (e) {
-
-    //     }
-
-    //     return NaN;
-    // }
 
     /**
      *
@@ -288,13 +244,6 @@ export default class ModuleFormatDatesNombres extends Module {
 
         let res = entier + decimale;
         return '' + res;
-
-        // let res: string = "";
-        // res += this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier);
-        // if (decimale > 0) {
-        //     res += this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + decimale.toString().replace("0.", "");
-        // }
-        // return res;
     }
 
     public initialize() {

@@ -1,16 +1,39 @@
 import * as moment from 'moment';
 import ModuleFormatDatesNombres from '../modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import TypesHandler from './TypesHandler';
+import { stringify } from 'querystring';
 
-// FILTERS MIXIN
-function FilterObj(read, write) {
-    this.read = read;
-    this.write = write;
+export default class FilterObj<T, U> {
+    public static createNew<T, U>(
+        read: T,
+        write: U
+    ): FilterObj<T, U> {
+        let res: FilterObj<T, U> = new FilterObj<T, U>();
+
+        res.read = read;
+        res.write = write;
+
+        return res;
+    }
+
+    public read: T;
+    public write: U;
 }
+// // FILTERS MIXIN
+// function FilterObj<T>(read: T, write) {
+//     this.read = read;
+//     this.write = write;
+// }
 
-let readToHourFilter = (value, arrondi: boolean, negativeValue, positiveSign, formatted, arrondiMinutes) => {
+let readToHourFilter = (
+    value: number | string,
+    arrondi: boolean = false,
+    negativeValue: boolean = false,
+    positiveSign: boolean = false,
+    formatted: boolean = false,
+    arrondiMinutes: boolean | number = null): string => {
     if (value == null || typeof value == "undefined") {
-        return value;
+        return null;
     }
 
     value = parseFloat(value.toString());
@@ -67,7 +90,7 @@ let readToHourFilter = (value, arrondi: boolean, negativeValue, positiveSign, fo
     );
 };
 
-let writeToHourFilter = (value) => {
+let writeToHourFilter = (value: string | number): number => {
 
     if ((value == null) || (typeof value === "undefined")) {
         return null;
@@ -92,7 +115,7 @@ let writeToHourFilter = (value) => {
     return parseFloat(parts[0]) + ((parseFloat(minutes) + 0.0) / 60);
 };
 
-export let hourFilter = new FilterObj(
+export let hourFilter = FilterObj.createNew(
     readToHourFilter,
     writeToHourFilter
 );
@@ -111,7 +134,7 @@ let writeToPlanningCheckFilter = (value: string): number => {
     return value == "OUI" ? 1 : -1;
 };
 
-export let planningCheckFilter = new FilterObj(
+export let planningCheckFilter = FilterObj.createNew(
     readToPlanningCheckFilter,
     writeToPlanningCheckFilter
 );
@@ -131,18 +154,18 @@ let writeToAlerteCheckFilter = (value: string): number => {
     return value == "ALERTE" ? 1 : -1;
 };
 
-export let alerteCheckFilter = new FilterObj(
+export let alerteCheckFilter = FilterObj.createNew(
     readToAlerteCheckFilter,
     writeToAlerteCheckFilter
 );
 
-let readToAmountFilter = function (value, fractionalDigits, k): string {
+let readToAmountFilter = (value: number | string, fractionalDigits: number = 0, k: boolean = false): string => {
 
     if ((value == null) || (typeof value === "undefined")) {
         return null;
     }
 
-    value = parseFloat(value);
+    value = parseFloat(value.toString());
     if (!isFinite(value) || (!value && value !== 0)) {
         return null;
     }
@@ -153,12 +176,12 @@ let readToAmountFilter = function (value, fractionalDigits, k): string {
     // On récupère le séparateur en fonction de la langue
     let currency = "€";
 
-    if (typeof k !== "undefined") {
+    if (k) {
         currency = "k€";
         value = value / 1000;
     }
 
-    if (typeof fractionalDigits !== "undefined") {
+    if (fractionalDigits !== null) {
         decalageComa = fractionalDigits ? -(fractionalDigits + 1) : 0;
         stringified = Math.abs(value).toFixed(fractionalDigits);
     } else {
@@ -175,14 +198,14 @@ let readToAmountFilter = function (value, fractionalDigits, k): string {
     return currency + ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits);
 };
 
-let writeToAmountFilter = function (value: string): number {
+let writeToAmountFilter = (value: string | number): number => {
 
     if ((value == null) || (typeof value === "undefined")) {
         return null;
     }
 
     let currency = "€";
-    let result = ("" + value)
+    let result = value.toString()
         .replace(currency, "")
         .replace(/,/g, ".")
         .replace(/[^-0-9.]/g, "");
@@ -194,7 +217,7 @@ let writeToAmountFilter = function (value: string): number {
     return res;
 };
 
-export let amountFilter = new FilterObj(
+export let amountFilter = FilterObj.createNew(
 
     readToAmountFilter,
     writeToAmountFilter
@@ -205,31 +228,38 @@ export let amountFilter = new FilterObj(
  * @param explicit_sign Renvoie +2,2% au lieu de 2,2% pour indiquer le signe de façon explicit même quand il est positif
  */
 
-let readToPercentFilter = (value: number, fractionalDigits: number, pts: boolean = false, explicit_sign: boolean = false, evol_from_prct: boolean = false, treat_999_as_infinite: boolean = true) => {
+let readToPercentFilter = (
+    value: number | string,
+    fractionalDigits: number = 0,
+    pts: boolean = false,
+    explicit_sign: boolean = false,
+    evol_from_prct: boolean = false,
+    treat_999_as_infinite: boolean = true): string => {
+
     if (value == undefined) {
-        return value;
+        return null;
     }
 
-    if (!isFinite(value) || isNaN(value)) {
+    let number_value: number = parseFloat(value.toString());
+
+    if (!isFinite(number_value) || isNaN(number_value)) {
         return null;
     }
 
     let returns_infinity: boolean = (treat_999_as_infinite && value >= 999) || (treat_999_as_infinite && value <= -999);
 
     if ((!!evol_from_prct) && (!returns_infinity)) {
-        value -= 1;
+        number_value -= 1;
     }
 
-    value *= 100;
-    let pourcentage;
+    number_value *= 100;
+    let pourcentage: string = "%";
 
     if (typeof pts != "undefined" && pts == true) {
         pourcentage = "pts";
-    } else {
-        pourcentage = "%";
     }
 
-    let res = returns_infinity ? ((value < 0) ? '-&infin;' : '&infin;') : ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits) + " " + pourcentage;
+    let res: string = returns_infinity ? ((value < 0) ? '-&infin;' : '&infin;') : ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(number_value, fractionalDigits) + " " + pourcentage;
 
     if (explicit_sign) {
         if (value > 0) {
@@ -240,15 +270,14 @@ let readToPercentFilter = (value: number, fractionalDigits: number, pts: boolean
     return res;
 };
 
-let writeToPercentFilter = function (value): number {
+let writeToPercentFilter = (value: string): number => {
     if (value == null) {
         return (null);
     }
-    let result = value
+    let result: number = parseFloat(value
         .replace("%", "")
         .replace(",", ".")
-        .replace(/[^-0-9.]/g, "");
-    result = parseFloat(result);
+        .replace(/[^-0-9.]/g, ""));
 
     if (isNaN(result)) {
         return 0;
@@ -256,7 +285,7 @@ let writeToPercentFilter = function (value): number {
     return result / 100.0;
 };
 
-export let percentFilter = new FilterObj(
+export let percentFilter = FilterObj.createNew(
     readToPercentFilter,
     writeToPercentFilter
 );
@@ -265,64 +294,8 @@ export let ARRONDI_TYPE_CEIL: number = 0;
 export let ARRONDI_TYPE_FLOOR: number = 1;
 export let ARRONDI_TYPE_ROUND: number = 2;
 
-let readToFixedBase = (value, fractionalDigits, arrondi = false, arrondi_type: number = ARRONDI_TYPE_ROUND): string => {
-    if (!value && value !== 0) {
-        return value;
-    }
 
-    if (value == null) {
-        return null;
-    }
-
-    if (value == 0) {
-        return "0";
-    }
-
-    let floorPositiveCeilNegative = (valeur): number => {
-        valeur = String(valeur * (10 ** fractionalDigits));
-        valeur = parseInt(valeur.substring(0, valeur.length - 1));
-        valeur = valeur / (10 ** fractionalDigits);
-        return valeur;
-    };
-
-    let ceilPositiveFloorNegative = (valeur): number => {
-
-        valeur = String(valeur * (10 ** fractionalDigits));
-        valeur = parseInt(valeur.substring(0, valeur.length - 1)) + 1;
-        valeur = valeur / (10 ** fractionalDigits);
-        return valeur;
-    };
-
-    if (arrondi) {
-        if (arrondi_type == ARRONDI_TYPE_FLOOR) {
-            if (value > 0) {
-                value = floorPositiveCeilNegative(value);
-            } else {
-                value = value * (-1);
-                value = ceilPositiveFloorNegative(value);
-                value = value * (-1);
-            }
-        }
-
-        if (arrondi_type == ARRONDI_TYPE_CEIL) {
-            if (value > 0) {
-                value = ceilPositiveFloorNegative(value);
-            } else {
-                value = value * (-1);
-                value = floorPositiveCeilNegative(value);
-                value = value * (-1);
-            }
-        }
-    }
-
-    if (TypesHandler.getInstance().isNumber(fractionalDigits) && fractionalDigits >= 0) {
-        value = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(value, fractionalDigits, arrondi_type);
-    }
-
-    return String(value).replace(".", ",");
-};
-
-let writeToFixed = (value) => {
+let writeToFixed = (value: string): number => {
     if (TypesHandler.getInstance().isNull(value)) {
         return null;
     }
@@ -330,61 +303,146 @@ let writeToFixed = (value) => {
     return value && value.length ? parseFloat(value) : 0;
 };
 
-let readToFixed = (value, fractionalDigits, arrondi = false): string => {
-    return String(ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(value, false, ARRONDI_TYPE_ROUND));
+let readToFixed = (
+    value: number | string,
+    fractionalDigits: number = 0,
+    arrondi: boolean | number = false,
+    arrondi_type: number = ARRONDI_TYPE_ROUND): string => {
+    let result: string = null;
+
+    if (!value) {
+        return value == 0 ? value.toString() : null;
+    }
+
+    result = value.toString();
+
+    if (arrondi) {
+        result = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(value,
+            arrondi, arrondi_type);
+    }
+
+    if (TypesHandler.getInstance().isNumber(fractionalDigits) && fractionalDigits >= 0) {
+        result = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(parseFloat(result), fractionalDigits);
+    }
+
+    return result.replace(".", ",");
 };
 
-export let toFixedFilter = new FilterObj(
+export let toFixedFilter = FilterObj.createNew(
     readToFixed,
     writeToFixed
 );
 
-let readToFixedCeilFilter = (value, fractionalDigits, arrondi = true): string => {
-    return readToFixedBase(value, fractionalDigits, true, ARRONDI_TYPE_CEIL);
+let readToFixedCeilAndFloor = (value: number | string, fractionalDigits: number = 0, arrondi_type: number = null): string => {
+    if (!value && value !== 0) {
+        return null;
+    }
+
+    if (value == null || fractionalDigits == null) {
+        return null;
+    }
+
+    if (value == 0) {
+        return "0";
+    }
+
+    if (fractionalDigits < 0) {
+        return String(value);
+    }
+
+    let floorPositiveCeilNegative = (valeur: number): number => {
+        let valeurString: string;
+        valeurString = String(valeur * (10 ** fractionalDigits));
+        let res: number = parseInt(valeurString.substring(0, valeurString.length - 1));
+        res = res / (10 ** fractionalDigits);
+        return res;
+    };
+
+    let ceilPositiveFloorNegative = (valeur: number): number => {
+
+        let valeurString: string;
+        valeurString = String(valeur * (10 ** fractionalDigits));
+        let res: number = parseInt(valeurString.substring(0, valeurString.length - 1)) + 1;
+        res = res / (10 ** fractionalDigits);
+        return res;
+    };
+
+    let value_number: number = parseFloat(value.toString());
+
+    if (arrondi_type == ARRONDI_TYPE_FLOOR) {
+        if (value > 0) {
+            value = floorPositiveCeilNegative(value_number);
+        } else {
+            value = value_number * (-1);
+            value = ceilPositiveFloorNegative(value);
+            value = value * (-1);
+        }
+    }
+
+    if (arrondi_type == ARRONDI_TYPE_CEIL) {
+        if (value > 0) {
+            value = ceilPositiveFloorNegative(value_number);
+        } else {
+            value = value_number * (-1);
+            value = floorPositiveCeilNegative(value);
+            value = value * (-1);
+        }
+    }
+
+    return String(value).replace(".", ",");
 };
 
-export let toFixedCeilFilter = new FilterObj(
+
+let readToFixedCeilFilter = (value: number, fractionalDigits: number): string => {
+    return readToFixedCeilAndFloor(value, fractionalDigits, ARRONDI_TYPE_CEIL);
+};
+
+export let toFixedCeilFilter = FilterObj.createNew(
     readToFixedCeilFilter,
     writeToFixed
 );
 
-let readToFixedFloorFilter = function (value, fractionalDigits, arrondi = true): string {
-    return readToFixedBase(value, fractionalDigits, true, ARRONDI_TYPE_FLOOR);
+let readToFixedFloorFilter = (value: number, fractionalDigits: number): string => {
+    return readToFixedCeilAndFloor(value, fractionalDigits, ARRONDI_TYPE_FLOOR);
 };
 
-export let toFixedFloorFilter = new FilterObj(
+export let toFixedFloorFilter = FilterObj.createNew(
     readToFixedFloorFilter,
     writeToFixed
 );
 
-let readToHideZeroFilter = (value: number) => {
-    return value == 0 ? "" : value;
+let readToHideZeroFilter = (value: number): string => {
+    return !value ? "" : String(value);
 };
 
-let writeToHideZeroFilter = (value: string) => {
-    return value == "" ? 0 : value;
+let writeToHideZeroFilter = (value: string | number): number => {
+    if (value == null) {
+        return null;
+    }
+
+    return (value == "") ? 0 : parseFloat(value.toString());
 };
 
-export let hideZeroFilter = new FilterObj(
+export let hideZeroFilter = FilterObj.createNew(
     readToHideZeroFilter,
     writeToHideZeroFilter
 );
 
-let readToBooleanFilter = function (value: boolean): string {
+let readToBooleanFilter = (value: boolean): string => {
     if (value == null) {
         return null;
     }
     return value ? "OUI" : "";
 };
 
-let writeToBooleanFilter = function (value: string): boolean {
+let writeToBooleanFilter = (value: string): boolean => {
     if (value == null) {
         return null;
     }
     return value == "OUI";
 
 };
-export let booleanFilter = new FilterObj(
+export let booleanFilter = FilterObj.createNew(
     readToBooleanFilter,
     writeToBooleanFilter
 );
@@ -401,10 +459,10 @@ let writeToPadHour = (value: string): number => {
     if (value == null) {
         return null;
     }
-    return value && value.length ? parseFloat(value) : 0;
+    return value && value.length ? parseFloat(value.replace(",", ".")) : 0;
 };
 
-export let padHourFilter = new FilterObj(
+export let padHourFilter = FilterObj.createNew(
     readToPadHour,
     writeToPadHour
 );
@@ -420,18 +478,18 @@ let writeToTruncateFilter = (value: string): string => {
     return value;
 };
 
-export let truncateFilter = new FilterObj(
+export let truncateFilter = FilterObj.createNew(
     readToTruncateFilter,
     writeToTruncateFilter
 );
 
 let digitsRE = /(\d{3})(?=\d)/g;
 
-let readToBignumFilter = (value): string => {
-    value = parseFloat(value);
-    if (!isFinite(value) || (!value && value !== 0)) {
+let readToBignumFilter = (value: number | string): string => {
+    if ((!value && value !== 0) || !isFinite(parseFloat(value.toString()))) {
         return null;
     }
+    value = parseFloat(value.toString());
     let stringified = Math.abs(value).toFixed(2);
     let _int = stringified.slice(0, -3);
     let i = _int.length % 3;
@@ -451,7 +509,7 @@ let writeToBignumFilter = (value: string): number => {
     return value && value.length ? parseFloat(result) : 0;
 };
 
-export let bignumFilter = new FilterObj(
+export let bignumFilter = FilterObj.createNew(
     readToBignumFilter,
     writeToBignumFilter
 );

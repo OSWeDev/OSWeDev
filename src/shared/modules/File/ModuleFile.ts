@@ -6,7 +6,6 @@ import FileVO from './vos/FileVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import ModuleAPI from '../API/ModuleAPI';
 import NumberParamVO from '../API/vos/apis/NumberParamVO';
-import { booleanFilter } from '../../tools/Filters';
 
 export default class ModuleFile extends Module {
 
