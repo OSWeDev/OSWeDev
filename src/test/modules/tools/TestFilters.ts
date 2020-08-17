@@ -78,23 +78,23 @@ describe('TestFilters', () => {
 
 
 
-    //it('test toFixedFilter read', () => {
-    //
-    //      ModuleFormatDatesNombres.getInstance().actif = true;
-    //
-    //      expect(toFixedFilter.read(null)).to.equal(null);
-    //    expect(toFixedFilter.read(0)).to.equal("0");
-    // expect(toFixedFilter.read(-0.5, 0.5)).to.equal("-0,5");
-    //expect(toFixedFilter.read(-1.6, 0.5)).to.equal("-1,5");
-    // expect(toFixedFilter.read(-1.9, null, 0.5)).to.equal("-2");
-    // expect(toFixedFilter.read(0.5, null, 0.5)).to.equal("0,5");
-    //expect(toFixedFilter.read(-0.1, null, 0.5)).to.equal("0");
-    //expect(toFixedFilter.read(-0.3, null, 0.5)).to.equal("-0,5");
-    //expect(toFixedFilter.read(0.1, null, 0.5)).to.equal("0");
-    // expect(toFixedFilter.read(0.3, null, 0.5)).to.equal("0,5");
-    //expect(toFixedFilter.read(1.6, null, 0.5)).to.equal("1,5");
-    //  expect(toFixedFilter.read(1.9, null, 0.5)).to.equal("2");
-    //});
+    it('test toFixedFilter read', () => {
+
+        ModuleFormatDatesNombres.getInstance().actif = true;
+
+        //expect(toFixedFilter.read(null)).to.equal(null);
+        //expect(toFixedFilter.read(0)).to.equal("0");
+        //expect(toFixedFilter.read(-0.5, null, 0.5)).to.equal("-0,5");
+        //expect(toFixedFilter.read(-1.6, null, 0.5)).to.equal("-1,5");
+        //expect(toFixedFilter.read(-1.9, null, 0.5)).to.equal("-2");
+        //expect(toFixedFilter.read(0.5, null, 0.5)).to.equal("0,5");
+        //expect(toFixedFilter.read(-0.1, null, 0.5)).to.equal("0");
+        //expect(toFixedFilter.read(-0.3, null, 0.5)).to.equal("-0,5");
+        //expect(toFixedFilter.read(0.1, null, 0.5)).to.equal("0");
+        //expect(toFixedFilter.read(0.3, null, 0.5)).to.equal("0,5");
+        //expect(toFixedFilter.read(1.6, null, 0.5)).to.equal("1,5");
+        //expect(toFixedFilter.read(1.9, null, 0.5)).to.equal("2");
+    });
 
 
 

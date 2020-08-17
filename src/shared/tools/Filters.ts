@@ -331,7 +331,7 @@ let writeToFixed = (value) => {
 };
 
 let readToFixed = (value, fractionalDigits, arrondi = false): string => {
-    return readToFixedBase(value, fractionalDigits, arrondi, ARRONDI_TYPE_ROUND);
+    return String(ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(value, false, ARRONDI_TYPE_ROUND));
 };
 
 export let toFixedFilter = new FilterObj(
