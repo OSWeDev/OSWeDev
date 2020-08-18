@@ -317,8 +317,11 @@ let readToFixed = (
     result = value.toString();
 
     if (arrondi) {
-        result = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(value,
-            arrondi, arrondi_type);
+        result = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(
+            parseFloat(value.toString()),
+            arrondi,
+            arrondi_type
+        );
     }
 
     if (TypesHandler.getInstance().isNumber(fractionalDigits) && fractionalDigits >= 0) {

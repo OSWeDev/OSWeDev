@@ -47,9 +47,9 @@ describe('DateHandler', () => {
         expect(DateHandler.getInstance().getDateFromApiDay('2020-02-02')).to.deep.equal(moment('2020-02-02').startOf('day').utc(true));
     });
     it('test getDateFromSQLDay', () => {
-        expect(DateHandler.getInstance().getDateFromApiDay(null)).to.equal(null);
-        expect(DateHandler.getInstance().getDateFromApiDay('2020-02-01')).to.deep.equal(moment('2020-02-01').startOf('day').utc(true));
-        expect(DateHandler.getInstance().getDateFromApiDay('2020-02-02')).to.deep.equal(moment('2020-02-02').startOf('day').utc(true));
+        expect(DateHandler.getInstance().getDateFromSQLDay(null)).to.equal(null);
+        expect(DateHandler.getInstance().getDateFromSQLDay('2020-02-01')).to.deep.equal(moment('2020-02-01').startOf('day').utc(true));
+        expect(DateHandler.getInstance().getDateFromSQLDay('2020-02-02')).to.deep.equal(moment('2020-02-02').startOf('day').utc(true));
     });
     it('test getUnixForBDD', () => {
         expect(DateHandler.getInstance().getUnixForBDD(null)).to.equal(null);
