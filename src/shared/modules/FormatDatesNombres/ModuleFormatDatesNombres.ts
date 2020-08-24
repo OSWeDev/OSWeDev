@@ -134,7 +134,7 @@ export default class ModuleFormatDatesNombres extends Module {
         return momentToFormat.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date));
     }
 
-    public getMomentFromFormatted_FullyearMonthDay(dateToFormat: string): moment.Moment {
+    public getMomentFromFormatted_FullyearMonthDay(dateToFormat: moment.Moment | string): moment.Moment {
         if (dateToFormat == null) {
             return null;
         }
