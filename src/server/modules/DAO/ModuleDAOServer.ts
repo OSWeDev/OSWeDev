@@ -53,8 +53,8 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
-import DAOTriggerHook from './triggers/DAOTriggerHook';
 import DAOServerController from './DAOServerController';
+import DAOTriggerHook from './triggers/DAOTriggerHook';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -1082,12 +1082,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             const setters = [];
             for (const f in moduleTable.get_fields()) {
+                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
 
-                if (typeof vo[moduleTable.get_fields()[f].field_id] == "undefined") {
-                    continue;
+                if (typeof vo[field.field_id] == "undefined") {
+                    if (!field.has_default || typeof field.field_default == 'undefined') {
+                        continue;
+                    }
+
+                    vo[field.field_id] = field.field_default;
                 }
 
-                setters.push(moduleTable.get_fields()[f].field_id + ' = ${' + moduleTable.get_fields()[f].field_id + '}');
+                setters.push(field.field_id + ' = ${' + field.field_id + '}');
             }
 
             let full_name = null;
@@ -1113,12 +1118,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
             const tableFields = [];
             const placeHolders = [];
             for (const f in moduleTable.get_fields()) {
-                if (typeof vo[moduleTable.get_fields()[f].field_id] == "undefined") {
-                    continue;
+                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+
+                if (typeof vo[field.field_id] == "undefined") {
+                    if (!field.has_default || typeof field.field_default == 'undefined') {
+                        continue;
+                    }
+
+                    vo[field.field_id] = field.field_default;
                 }
 
-                tableFields.push(moduleTable.get_fields()[f].field_id);
-                placeHolders.push('${' + moduleTable.get_fields()[f].field_id + '}');
+                tableFields.push(field.field_id);
+                placeHolders.push('${' + field.field_id + '}');
             }
 
             let full_name = null;
