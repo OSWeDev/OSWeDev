@@ -36,6 +36,7 @@ export default class ModuleTableField<T> {
     public static FIELD_TYPE_float: string = 'float';
     public static FIELD_TYPE_amount: string = 'amount';
     public static FIELD_TYPE_foreign_key: string = 'fkey';
+    public static FIELD_TYPE_numrange: string = 'numrange';
     public static FIELD_TYPE_numrange_array: string = 'numrange[]';
     public static FIELD_TYPE_refrange_array: string = 'refrange[]';
     public static FIELD_TYPE_isoweekdays: string = 'isoweekdays';
@@ -415,6 +416,7 @@ export default class ModuleTableField<T> {
                 return (db_type == "numrange[]") || (db_type == "ARRAY");
 
             case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_numrange:
                 return db_type == "numrange";
 
             case ModuleTableField.FIELD_TYPE_hour:
@@ -512,6 +514,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                 return "numrange[]";
 
+            case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return "numrange";
 
@@ -592,6 +595,7 @@ export default class ModuleTableField<T> {
             case ModuleTableField.FIELD_TYPE_daterange:
             case ModuleTableField.FIELD_TYPE_refrange_array:
             case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_isoweekdays:
             // case ModuleTableField.FIELD_TYPE_daterange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:

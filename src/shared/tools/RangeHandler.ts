@@ -1,5 +1,5 @@
 import cloneDeep = require('lodash/cloneDeep');
-import { Moment, Duration, duration } from 'moment';
+import { Duration, duration, Moment } from 'moment';
 import IRange from '../modules/DataRender/interfaces/IRange';
 import ISegment from '../modules/DataRender/interfaces/ISegment';
 import HourRange from '../modules/DataRender/vos/HourRange';
@@ -1317,7 +1317,9 @@ export default class RangeHandler {
     }
 
     public translate_range_to_bdd(range: IRange<any>): string {
-
+        if (!range) {
+            return '';
+        }
         let res = (range.min_inclusiv ? '[' : '(');
 
         switch (range.range_type) {
@@ -1357,7 +1359,8 @@ export default class RangeHandler {
         let res: U[] = [];
         try {
 
-            // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis TODO FIXME comprendre la source du pb
+            // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis 
+            // TODO FIXME comprendre la source du pb
             if (!ranges) {
                 return null;
             }
