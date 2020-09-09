@@ -16,9 +16,9 @@ describe('ModuleFormatDatesNombres', () => {
     });
 
     it('formatYYYYMMDD_HHmmss_to_Moment', () => {
-        expect(ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(null)).to.equal(null);
-        expect(ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(moment('08/30/ 2013 23: 00: 00'))).to.equal('30/08/2013 23:00:00');
-        expect(ModuleFormatDatesNombres.getInstance().formatMoment_to_YYYYMMDD_HHmmss(moment("0"))).to.equal("01/01/2000 00:00:00");
+        expect(ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment(null)).to.equal(null);
+        expect(ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment('08/02/2013 23:00:00').format('YYYY-MM-DD')).to.deep.equal(moment("2013-02-08 23:00:00").format('YYYY-MM-DD'));
+        expect(ModuleFormatDatesNombres.getInstance().formatYYYYMMDD_HHmmss_to_Moment('01/01/2000 00:00:00').format('YYYY-MM-DD')).to.equal(moment("0").format('YYYY-MM-DD'));
 
     });
 
@@ -75,6 +75,17 @@ describe('ModuleFormatDatesNombres', () => {
         expect(ModuleFormatDatesNombres.getInstance().formatDate_YearMonth("12/01/1995")).to.equal("12/95");
         expect(ModuleFormatDatesNombres.getInstance().formatDate_YearMonth("12-01-1995")).to.equal("12/95");
         expect(ModuleFormatDatesNombres.getInstance().formatDate_YearMonth('December 17, 1995 03:24:00')).to.equal("12/95");
+    });
+
+    it('test: formatDate_FullyearMonthDay', () => {
+        expect(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(null)).to.equal(null);
+        let dateTest = moment('1995-12-17');
+        expect(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay(dateTest)).to.equal("17/12/1995");
+        expect(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay("12/01/1995")).to.equal("01/12/1995");
+        expect(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay("12-01-1995")).to.equal("01/12/1995");
+        expect(ModuleFormatDatesNombres.getInstance().formatDate_FullyearMonthDay('December 17, 1995 03:24:00')).to.equal("17/12/1995");
+
+
     });
 
     it('test: getMomentFromFormatted_FullyearMonthDay', () => {
