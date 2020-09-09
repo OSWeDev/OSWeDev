@@ -1,0 +1,51 @@
+body.page-Manage.sup_pdv_last_imp .crud-wrapper {
+
+    .field[field_name="state"]{
+        span {
+            font-size: 0;
+        	cursor:pointer;
+        }
+
+        span::before {
+            font-size: 13px;
+            color: white;
+            padding: 4px;
+            border-radius: 3px;
+        }
+
+        span.supervision_STATE_ERROR::before {
+            content: 'ERROR';
+            background-color: red;
+        }
+
+        span.supervision_STATE_ERROR_READ::before {
+            content: 'ERROR - READ';
+            background-color: orangered;
+        }
+
+        span.supervision_STATE_WARN::before {
+            content: 'WARN';
+            background-color: orange;
+        }
+
+        span.supervision_STATE_WARN_READ::before {
+            content: 'WARN - READ';
+            background-color: yellow;
+        }
+
+        span.supervision_STATE_OK::before {
+            content: 'OK';
+            background-color: green;
+        }
+
+        span.supervision_STATE_PAUSED::before {
+            content: 'PAUSED';
+            background-color: blue;
+        }
+
+        span.supervision_STATE_UNKOWN::before {
+            content: 'N/A';
+            background-color: grey;
+        }
+    }
+}

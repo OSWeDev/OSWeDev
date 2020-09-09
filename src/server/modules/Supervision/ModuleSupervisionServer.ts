@@ -3,6 +3,7 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleSupervision from '../../../shared/modules/Supervision/ModuleSupervision';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -25,6 +26,33 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     public async configure() {
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supervision'
+        }, 'menu.menuelements.SupervisionAdminVueModule.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supervision'
+        }, 'menu.menuelements.SupervisionDashboard.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'ERROR'
+        }, 'supervision.STATE_ERROR'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'ERROR - READ'
+        }, 'supervision.STATE_ERROR_READ'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'OK'
+        }, 'supervision.STATE_OK'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'PAUSED'
+        }, 'supervision.STATE_PAUSED'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'UNKNOWN'
+        }, 'supervision.STATE_UNKOWN'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'WARN'
+        }, 'supervision.STATE_WARN'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'WARN - READ'
+        }, 'supervision.STATE_WARN_READ'));
     }
 
     /**

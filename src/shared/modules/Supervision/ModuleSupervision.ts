@@ -20,5 +20,6 @@ export default class ModuleSupervision extends Module {
     private constructor() {
 
         super("supervision", ModuleSupervision.MODULE_NAME);
+        this.forceActivationOnInstallation();
     }
 }
