@@ -276,6 +276,7 @@ export default class CRUD<T extends IDistantVOBase> {
      * La fonction doit retourner le code_text du label d'erreur ou null. Si erreur, l'update n'aura pas lieu
      */
     public preUpdate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>;
+    public preCreate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>;
 
     public isReadOnlyData: (dataVO: IDistantVOBase) => boolean;
 
@@ -300,6 +301,7 @@ export default class CRUD<T extends IDistantVOBase> {
         this.createDatatable = this.createDatatable ? this.createDatatable : (this.updateDatatable ? this.updateDatatable : this.readDatatable);
         this.updateDatatable = this.updateDatatable ? this.updateDatatable : (this.createDatatable ? this.createDatatable : this.readDatatable);
         this.preUpdate = null;
+        this.preCreate = null;
         this.api_type_id = this.readDatatable.API_TYPE_ID;
     }
 
@@ -328,6 +330,12 @@ export default class CRUD<T extends IDistantVOBase> {
      */
     public setPreUpdate(preUpdate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>): CRUD<T> {
         this.preUpdate = preUpdate;
+
+        return this;
+    }
+
+    public setPreCreate(preCreate: (dataVO: IDistantVOBase, ihmVO: IDistantVOBase) => Promise<string>): CRUD<T> {
+        this.preCreate = preCreate;
 
         return this;
     }

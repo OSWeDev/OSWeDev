@@ -39,6 +39,7 @@ import MultiInputComponent from '../../../multiinput/MultiInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
+import NumRangeInputComponent from '../../../numrange/NumRangeInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
 let debounce = require('lodash/debounce');
@@ -54,6 +55,7 @@ let debounce = require('lodash/debounce');
         Isoweekdaysinputcomponent: IsoWeekDaysInputComponent,
         Tsrangeinputcomponent: TSRangeInputComponent,
         Tstzinputcomponent: TSTZInputComponent,
+        Numrangeinputcomponent: NumRangeInputComponent,
     }
 })
 export default class CRUDComponentField extends VueComponentBase
