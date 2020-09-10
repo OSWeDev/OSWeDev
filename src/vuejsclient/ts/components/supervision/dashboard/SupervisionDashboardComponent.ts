@@ -3,6 +3,7 @@ import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 import SupervisionDashboardItemComponent from './item/SupervisionDashboardItemComponent';
 import './SupervisionDashboardComponent.scss';
 import { ModuleSupervisionGetter } from './SupervisionDashboardStore';
@@ -72,6 +73,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         for (let api_type_id in SupervisionController.getInstance().registered_api_types) {
 
+            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
             promises.push((async () => {
                 let items = await ModuleDAO.getInstance().getVos<ISupervisedItem>(api_type_id);
 

@@ -1,20 +1,13 @@
-import { Bar, Line } from 'vue-chartjs';
+import { debounce } from 'lodash';
+import * as moment from 'moment';
+import { Line } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
+import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
 import ISupervisedItem from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemGraphSegmentation from '../../../../../../shared/modules/Supervision/interfaces/ISupervisedItemGraphSegmentation';
-import VarBarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarBarDataSetDescriptor';
-import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
-import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../../../../shared/tools/RangeHandler';
 import TimeSegmentHandler from '../../../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../../../VueComponentBase';
-import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
-import SupervisionController from '../../../../../../shared/modules/Supervision/SupervisionController';
-import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
-import * as moment from 'moment';
 
 
 @Component({
@@ -38,36 +31,25 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
     private date_format: string;
 
     @Prop({ default: null })
-    private supervised_item_name: string;
-
-    @Prop({ default: null })
-    private supervised_item_vo_type: string;
-
-    @Prop({ default: null })
     private label_translatable_code: string;
 
     @Prop({ default: null })
     private historiques: ISupervisedItem[];
 
-    private all_data_loaded: boolean = false;
+    private debounced_rerender = debounce(this.rerender, 500);
 
-    // @Prop({ default: null })
-    // public getlabel: (var_param: IVarDataParamVOBase) => string;
+    private mounted() {
+        this.debounced_rerender();
+    }
 
-    // @Prop({ default: null })
-    // public var_dataset_descriptors: VarBarDataSetDescriptor[];
+    @Watch('graph_segmentation')
+    @Watch('historiques')
+    private onchanges() {
+        this.debounced_rerender();
+    }
 
-
-    // @Prop({ default: false })
-    // public reload_on_mount: boolean;
-
-    private labels: string[] = [];
-    private values: number[] = [];
-
-    private rendered = false;
-
-    public mounted() {
-
+    private rerender() {
+        this['renderChart'](this.chartData, this.chartOptions);
     }
 
     get chartData() {
@@ -75,24 +57,18 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
             labels: this.labels,
             datasets: [{
                 data: this.values,
-                yAxisID: 'Valeurs de la sonde',
                 label: this.label(this.label_translatable_code),
             }]
         };
     }
 
-    get chartOptions() {
-        return Object.assign({}, this.options);
+    private getRandomInt() {
+        return Math.floor(Math.random() * (50 - 5 + 1)) + 5;
     }
 
-    // private get_var_param(var_param: IVarDataParamVOBase, var_dataset_descriptor: VarBarDataSetDescriptor): IVarDataParamVOBase {
-    //     let res: IVarDataParamVOBase = Object.assign({}, var_param);
-    //     res.var_id = var_dataset_descriptor.var_id;
-    //     if (var_dataset_descriptor.var_param_transformer) {
-    //         res = var_dataset_descriptor.var_param_transformer(res);
-    //     }
-    //     return res;
-    // }
+    get chartOptions() {
+        return Object.assign({}, this.options ? this.options : {});
+    }
 
     private get_filtered_value(last_value: number) {
 
@@ -114,32 +90,27 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
         return this.filter.apply(null, params);
     }
 
-    private render_chart_js() {
+    get labels(): string[] {
+        let res: string[] = [];
 
-        if (!!this.rendered) {
-            // Issu de Line
-            this.$data._chart.destroy();
+        /**
+         * On part de la segmentation
+         */
+        let current = RangeHandler.getInstance().getSegmentedMin(this.graph_segmentation.range);
+        let max = RangeHandler.getInstance().getSegmentedMax(this.graph_segmentation.range);
+
+        while (current.isSameOrBefore(max)) {
+
+            res.push(current.format(this.date_format));
+
+            TimeSegmentHandler.getInstance().incMoment(current, this.graph_segmentation.range.segment_type, 1);
         }
-        this.rendered = true;
 
-        try {
-
-            // Issu de Line
-            (this as any).renderChart(
-                this.chartData,
-                this.chartOptions
-            );
-        } catch (error) {
-            ConsoleHandler.getInstance().warn('PB:render Line Chart probablement trop tôt:' + error);
-            this.rendered = false;
-            setTimeout(this.render_chart_js, 500);
-        }
+        return res;
     }
 
-    private set_labels_and_values(): void {
-        this.all_data_loaded = false;
-        this.labels = [];
-        this.values = [];
+    get values(): number[] {
+        let res: number[] = [];
 
         /**
          * On part de la segmentation
@@ -150,13 +121,11 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
         let index_historique: number = 0;
         let last_historique_value: number = 0;
 
-        while (this.historiques[index_historique].last_update.isBefore(current)) {
+        while (this.historiques[index_historique] && this.historiques[index_historique].last_update.isBefore(current)) {
             index_historique++;
         }
 
         while (current.isSameOrBefore(max)) {
-
-            this.labels.push(current.format(this.date_format));
 
             /**
              * La valeur se défini par la moyenne des valeurs compatible, ou la valeur la plus proche
@@ -164,7 +133,8 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
             let current_range: TSRange = RangeHandler.getInstance().create_single_elt_TSRange(moment(current), this.graph_segmentation.range.segment_type);
             let somme_historique: number = null;
             let nb_historique: number = 0;
-            while (RangeHandler.getInstance().elt_intersects_range(this.historiques[index_historique].last_update, current_range)) {
+            while (this.historiques[index_historique] && RangeHandler.getInstance().elt_intersects_range(this.historiques[index_historique].last_update, current_range)) {
+                last_historique_value = this.historiques[index_historique].last_value;
                 if (somme_historique == null) {
                     somme_historique = this.historiques[index_historique].last_value;
                 } else {
@@ -175,14 +145,14 @@ export default class SupervisedItemHistChartComponent extends VueComponentBase {
             }
 
             if (!nb_historique) {
-                this.values.push(this.get_filtered_value(last_historique_value));
+                res.push(this.get_filtered_value(last_historique_value));
             } else {
-                this.values.push(this.get_filtered_value(somme_historique / nb_historique));
+                res.push(this.get_filtered_value(somme_historique / nb_historique));
             }
 
             TimeSegmentHandler.getInstance().incMoment(current, this.graph_segmentation.range.segment_type, 1);
         }
 
-        this.all_data_loaded = true;
+        return res;
     }
 }

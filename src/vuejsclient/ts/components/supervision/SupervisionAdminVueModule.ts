@@ -52,11 +52,9 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
                 this.routes);
         }
 
-        let url: string = "/supervision/dashboard";
         let main_route_name: string = 'SupervisionDashboard';
-
         this.routes.push({
-            path: url,
+            path: "/supervision/dashboard",
             name: main_route_name,
             component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './dashboard/SupervisionDashboardComponent')
         });
@@ -66,5 +64,15 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
         );
         menuPointer.leaf.target = new MenuLeafRouteTarget(main_route_name);
         menuPointer.addToMenu();
+
+        this.routes.push({
+            path: "/supervision/item/:vo_type/:id",
+            name: 'SupervisedItem',
+            component: () => import(/* webpackChunkName: "SupervisionDashboardComponent" */ './item/SupervisedItemComponent'),
+            props: (route) => ({
+                supervised_item_id: parseInt(route.params.id),
+                supervised_item_vo_type: route.params.vo_type
+            }),
+        });
     }
 }

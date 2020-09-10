@@ -1,0 +1,63 @@
+.supervised_item
+    template(v-if='!!supervised_item')
+        .row
+            .col-md-12.supervised_item_header
+                Supervisiondashboarditemcomponent(:item='supervised_item' :switch_paused='switch_paused')
+
+        .row
+            .col-md-4.supervised_item_graph
+                Superviseditemhistchartcomponent(
+                    :filter='supervised_item_controller.get_graph_filter(supervised_item)'
+                    :filter_additional_params='supervised_item_controller.get_graph_filter_additional_params(supervised_item)'
+                    :options='supervised_item_controller.get_graph_options(supervised_item)'
+                    :graph_segmentation='active_graph_segmentation'
+                    :date_format='supervised_item_controller.get_graph_date_format(supervised_item)'
+                    :label_translatable_code='supervised_item_controller.get_graph_label_translatable_code(supervised_item)'
+                    :historiques='historiques'
+                )
+
+            .col-md-8
+                .row
+                    .col-md-8
+                        .row
+                            .col-md-8.supervised_item_graph_segmentations
+                                .btn-group.d-print-none
+                                    template(v-for='graph_segmentation in supervised_item_controller.get_graph_segmentation(supervised_item)')
+                                        template(v-if='active_graph_segmentation && (active_graph_segmentation.segmentation_name == graph_segmentation.segmentation_name)')
+                                            button.btn.btn-sm.btn-info.m-1(:disabled="true") {{ graph_segmentation.segmentation_name }}
+                                        template(v-else)
+                                            button.btn.btn-sm.btn-primary.m-1(@click="activate_segmentation(graph_segmentation)") {{ graph_segmentation.segmentation_name }}
+
+                            .col-md-4.supervised_item_controls
+                                .btn-group.d-print-none
+
+                                    template(v-if='is_paused')
+                                        button.btn.btn-sm.btn-primary.m-1(@click="switch_paused")
+                                            i.fa.fa-play
+                                    template(v-else)
+                                        button.btn.btn-sm.btn-primary.m-1(@click="switch_paused")
+                                            i.fa.fa-pause
+
+                                    template(v-if='!can_not_switch_read')
+                                        template(v-if='is_read')
+                                            button.btn.btn-sm.btn-primary.m-1(@click="switch_read")
+                                                i.fa.fa-envelope-open
+                                        template(v-if='!is_read')
+                                            button.btn.btn-sm.btn-primary.m-1(@click="switch_read")
+                                                i.fa.fa-envelope
+                                    template(v-else)
+                                        button.btn.btn-sm.btn-default.m-1(@click="switch_read" :disabled="true")
+                                            i.fa.fa-envelope-open
+
+                        template(v-if='supervised_item_controller')
+
+                            .row
+                                .col-md-12.supervised_item_description {{ supervised_item_controller && supervised_item_controller.get_description(supervised_item) }}
+
+                    .col-md-4
+ 
+                        template(v-if='supervised_item_controller')
+                            template(v-for='supervised_item_url in supervised_item_urls')
+                                .row
+                                    .col-md-12.supervised_item_url
+                                        button.btn.btn-primary(@click="open_url(supervised_item_url.url)") {{ supervised_item_url.label }}

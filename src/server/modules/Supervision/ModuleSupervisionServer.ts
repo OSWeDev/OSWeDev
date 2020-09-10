@@ -162,12 +162,14 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             for (let i in moduletablefields) {
                 let moduletablefield = moduletablefields[i];
 
-                historique[moduletablefield.field_id] = supervised_item[moduletablefield.field_id];
+                historique[moduletablefield.field_id] = old[moduletablefield.field_id];
             }
             historique._type = SupervisionController.getInstance().getSupHistVoType(supervised_item._type);
 
             await ModuleDAO.getInstance().insertOrUpdateVO(historique);
         }
+
+        return true;
     }
 
     private async onpreC_SUP_ITEM(sup_pdv_lid: ISupervisedItem): Promise<boolean> {

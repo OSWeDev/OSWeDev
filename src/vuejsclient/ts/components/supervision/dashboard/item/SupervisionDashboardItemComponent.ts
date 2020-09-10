@@ -15,9 +15,6 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
     @Prop()
     private item: ISupervisedItem;
 
-    @Prop()
-    private switch_paused: (item: ISupervisedItem) => Promise<void>;
-
     get state_classname(): string {
         if (!this.item) {
             return "STATE_UNKNOWN";
@@ -80,5 +77,13 @@ export default class SupervisionDashboardItemComponent extends VueComponentBase 
             return null;
         }
         return this.item.last_value == null ? "-" : this.item.last_value.toLocaleString();
+    }
+
+    private open_item() {
+        if (!this.item) {
+            return;
+        }
+
+        this.$router.push("/supervision/item/" + this.item._type + "/" + this.item.id);
     }
 }
