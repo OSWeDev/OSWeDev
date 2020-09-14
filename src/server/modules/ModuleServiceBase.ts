@@ -35,6 +35,7 @@ import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurato
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
 import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
+import ModuleTeamsAPI from '../../shared/modules/TeamsAPI/ModuleTeamsAPI';
 import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslation';
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
@@ -76,6 +77,7 @@ import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
 import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
+import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
 import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
 import ModuleVarServer from './Var/ModuleVarServer';
@@ -417,7 +419,8 @@ export default abstract class ModuleServiceBase {
             ModuleDocument.getInstance(),
             ModuleFork.getInstance(),
             ModuleImageFormat.getInstance(),
-            ModuleSupervision.getInstance()
+            ModuleSupervision.getInstance(),
+            ModuleTeamsAPI.getInstance()
         ];
     }
 
@@ -458,7 +461,8 @@ export default abstract class ModuleServiceBase {
             ModuleDocumentServer.getInstance(),
             ModuleForkServer.getInstance(),
             ModuleImageFormatServer.getInstance(),
-            ModuleSupervisionServer.getInstance()
+            ModuleSupervisionServer.getInstance(),
+            ModuleTeamsAPIServer.getInstance()
         ];
     }
 }

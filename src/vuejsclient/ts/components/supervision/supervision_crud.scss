@@ -30,7 +30,7 @@ body.page-Manage.sup_pdv_last_imp .crud-wrapper {
 
         span.supervision_STATE_WARN_READ::before {
             content: 'WARN - READ';
-            background-color: yellow;
+            background-color: #ffd400;
         }
 
         span.supervision_STATE_OK::before {

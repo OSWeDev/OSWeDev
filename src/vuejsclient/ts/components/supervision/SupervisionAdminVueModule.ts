@@ -40,7 +40,7 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
             return;
         }
 
-        let registered_api_types = SupervisionController.getInstance().registered_api_types;
+        let registered_api_types = SupervisionController.getInstance().registered_controllers;
         for (let registered_api_type in registered_api_types) {
 
             CRUDComponentManager.getInstance().registerCRUD(

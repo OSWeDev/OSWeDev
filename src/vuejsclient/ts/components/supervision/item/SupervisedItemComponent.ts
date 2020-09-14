@@ -1,20 +1,19 @@
+import { debounce } from 'lodash';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import ISupervisedItemClientController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemClientController';
+import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import ISupervisedItemGraphSegmentation from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemGraphSegmentation';
+import ISupervisedItemURL from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemURL';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
+import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
+import SupervisionDashboardItemComponent from '../dashboard/item/SupervisionDashboardItemComponent';
 import SupervisionClientController from '../SupervisionClientController';
 import SupervisedItemHistChartComponent from './hist_chart/SupervisedItemHistChartComponent';
-import SupervisionDashboardItemComponent from '../dashboard/item/SupervisionDashboardItemComponent';
 import './SupervisedItemComponent.scss';
-import { debounce } from 'lodash';
-import ISupervisedItemURL from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemURL';
-import ModuleAPI from '../../../../../shared/modules/API/ModuleAPI';
-import ClientAPIController from '../../../modules/API/ClientAPIController';
-import AjaxCacheClientController from '../../../modules/AjaxCache/AjaxCacheClientController';
 
 @Component({
     template: require('./SupervisedItemComponent.pug'),
@@ -37,8 +36,12 @@ export default class SupervisedItemComponent extends VueComponentBase {
     private historiques: ISupervisedItem[] = [];
     private active_graph_segmentation: ISupervisedItemGraphSegmentation = null;
 
-    get supervised_item_controller(): ISupervisedItemClientController<any> {
+    get supervised_item_client_controller(): ISupervisedItemClientController<any> {
         return SupervisionClientController.getInstance().registered_client_controllers[this.supervised_item_vo_type];
+    }
+
+    get supervised_item_controller(): ISupervisedItemController<any> {
+        return SupervisionController.getInstance().registered_controllers[this.supervised_item_vo_type];
     }
 
     get supervised_item_urls(): ISupervisedItemURL[] {
@@ -67,11 +70,11 @@ export default class SupervisedItemComponent extends VueComponentBase {
     }
 
     get default_graph_segmentation() {
-        if ((!this.supervised_item) || (!this.supervised_item_controller)) {
+        if ((!this.supervised_item) || (!this.supervised_item_client_controller)) {
             return null;
         }
 
-        let segms = this.supervised_item_controller.get_graph_segmentation(this.supervised_item);
+        let segms = this.supervised_item_client_controller.get_graph_segmentation(this.supervised_item);
         if (!segms) {
             return null;
         }
@@ -119,7 +122,7 @@ export default class SupervisedItemComponent extends VueComponentBase {
 
     private async switch_paused() {
         if (this.supervised_item.state == SupervisionController.STATE_PAUSED) {
-            this.supervised_item.state = SupervisionController.STATE_UNKOWN;
+            this.supervised_item.state = this.supervised_item.state_before_pause;
         } else {
             this.supervised_item.state = SupervisionController.STATE_PAUSED;
         }

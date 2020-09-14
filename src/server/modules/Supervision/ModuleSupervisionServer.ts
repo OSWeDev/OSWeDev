@@ -4,20 +4,32 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
+import ISupervisedItemURL from '../../../shared/modules/Supervision/interfaces/ISupervisedItemURL';
 import ModuleSupervision from '../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../shared/modules/Supervision/SupervisionController';
+import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
+import TeamsWebhookContentActionCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardVO';
+import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
+import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
+import ModuleTeamsAPIServer from '../TeamsAPI/ModuleTeamsAPIServer';
+import SupervisionCronWorkersHandler from './SupervisionCronWorkersHandler';
 
 export default class ModuleSupervisionServer extends ModuleServerBase {
+
+    public static ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME: string = 'Supervision.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK';
+    public static ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME: string = 'Supervision.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK';
 
     public static getInstance() {
         if (!ModuleSupervisionServer.instance) {
@@ -30,6 +42,10 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleSupervision.getInstance().name);
+    }
+
+    public registerCrons() {
+        SupervisionCronWorkersHandler.getInstance();
     }
 
     public async configure() {
@@ -68,10 +84,9 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
         let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
-        for (let i in SupervisionController.getInstance().registered_api_types) {
-            let registered_api_type = SupervisionController.getInstance().registered_api_types[i];
-            preUpdateTrigger.registerHandler(registered_api_type.vo_type, this.onPreU_SUP_ITEM_HISTORIZE.bind(this));
-            preCreateTrigger.registerHandler(registered_api_type.vo_type, this.onpreC_SUP_ITEM.bind(this));
+        for (let vo_type in SupervisionController.getInstance().registered_controllers) {
+            preUpdateTrigger.registerHandler(vo_type, this.onPreU_SUP_ITEM_HISTORIZE.bind(this));
+            preCreateTrigger.registerHandler(vo_type, this.onpreC_SUP_ITEM.bind(this));
         }
     }
 
@@ -112,6 +127,11 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
          */
         let old = await ModuleDAO.getInstance().getVoById<ISupervisedItem>(supervised_item._type, supervised_item.id);
 
+        // Si on passe pas en pause, on stocke tout de suite en statut pre pause
+        if (supervised_item && (supervised_item.state != SupervisionController.STATE_PAUSED)) {
+            supervised_item.state_before_pause = supervised_item.state;
+        }
+
         let has_new_value: boolean = true;
         if (old.last_value === supervised_item.last_value) {
 
@@ -137,6 +157,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                         case "creation_date":
                         case "first_update":
                         case "state":
+                        case "state_before_pause":
                             break;
                         default:
                             if (old[moduletablefield.field_id] != supervised_item[moduletablefield.field_id]) {
@@ -148,6 +169,19 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         if (has_new_value) {
+
+            /**
+             * Si on identifie une nouvelle valeur, et qu'il s'agit d'une erreur non lue, on envoie le script, de même que si la nouvelle valeur est ok et l'ancienne
+             *  une erreur (lue ou non lue)
+             */
+            if (supervised_item.state == SupervisionController.STATE_ERROR) {
+                await this.on_new_unread_error(supervised_item);
+            }
+            if ((supervised_item.state == SupervisionController.STATE_OK) && (
+                (old.state == SupervisionController.STATE_ERROR_READ) || (old.state == SupervisionController.STATE_ERROR))) {
+                await this.on_back_to_normal(supervised_item);
+            }
+
             if (!supervised_item.first_update) {
                 supervised_item.first_update = moment().utc(true);
             }
@@ -172,17 +206,89 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         return true;
     }
 
-    private async onpreC_SUP_ITEM(sup_pdv_lid: ISupervisedItem): Promise<boolean> {
-        sup_pdv_lid.creation_date = moment().utc(true);
-        if (sup_pdv_lid.state == null) {
-            sup_pdv_lid.state = SupervisionController.STATE_UNKOWN;
+    private async onpreC_SUP_ITEM(supervised_item: ISupervisedItem): Promise<boolean> {
+        supervised_item.creation_date = moment().utc(true);
+        if (supervised_item.state == null) {
+            supervised_item.state = SupervisionController.STATE_UNKOWN;
         }
 
-        if (sup_pdv_lid.state != SupervisionController.STATE_UNKOWN) {
-            sup_pdv_lid.first_update = moment().utc(true);
-            sup_pdv_lid.last_update = moment().utc(true);
+        if (supervised_item.state != SupervisionController.STATE_UNKOWN) {
+            supervised_item.first_update = moment().utc(true);
+            supervised_item.last_update = moment().utc(true);
+
+            if (supervised_item.state == SupervisionController.STATE_ERROR) {
+                await this.on_new_unread_error(supervised_item);
+            }
         }
 
         return true;
+    }
+
+    private async on_new_unread_error(supervised_item: ISupervisedItem) {
+        let webhook: string = await ModuleParams.getInstance().getParamValue(ModuleSupervisionServer.ON_NEW_UNREAD_ERROR_TEAMS_WEBHOOK_PARAM_NAME);
+
+        if (!webhook) {
+            return;
+        }
+
+        if (ConfigurationService.getInstance().getNodeConfiguration().BLOCK_MAIL_DELIVERY) {
+            return;
+        }
+
+        let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+        message.title = 'Supervision - Nouvelle ERREUR';
+        message.summary = 'ERREUR : ' + supervised_item.name;
+        message.sections.push(
+            new TeamsWebhookContentSectionVO().set_text('<blockquote>ERREUR : <a href=\"' + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
+                .set_activityImage(ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + "vuejsclient/public/img/error.png"));
+
+        // protection contre le cas très spécifique de la création d'une sonde en erreur (qui ne devrait jamais arriver)
+        if (!!supervised_item.id) {
+            message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
+                new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
+                    ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/item/' + supervised_item._type + '/' + supervised_item.id)]));
+        }
+
+        let urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
+        for (let i in urls) {
+            let url = urls[i];
+
+            message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name(url.label).set_targets([
+                new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(url.url)]));
+        }
+
+        await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(webhook, message);
+    }
+
+    private async on_back_to_normal(supervised_item: ISupervisedItem) {
+        let webhook: string = await ModuleParams.getInstance().getParamValue(ModuleSupervisionServer.ON_BACK_TO_NORMAL_TEAMS_WEBHOOK_PARAM_NAME);
+
+        if (!webhook) {
+            return;
+        }
+
+        if (ConfigurationService.getInstance().getNodeConfiguration().BLOCK_MAIL_DELIVERY) {
+            return;
+        }
+
+        let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
+        message.title = 'Supervision - Retour a la normale';
+        message.summary = 'OK : ' + supervised_item.name;
+        message.sections.push(
+            new TeamsWebhookContentSectionVO().set_text('<blockquote>Retour a la normale : <a href=\"' + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/item/' + supervised_item._type + '/' + supervised_item.id + '\">' + supervised_item.name + '</a></blockquote>')
+                .set_activityImage(ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + "vuejsclient/public/img/ok.png"));
+        message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name('Consulter').set_targets([
+            new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(
+                ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + 'admin/#/supervision/item/' + supervised_item._type + '/' + supervised_item.id)]));
+
+        let urls: ISupervisedItemURL[] = SupervisionController.getInstance().registered_controllers[supervised_item._type].get_urls(supervised_item);
+        for (let i in urls) {
+            let url = urls[i];
+
+            message.potentialAction.push(new TeamsWebhookContentActionCardVO().set_type("OpenUri").set_name(url.label).set_targets([
+                new TeamsWebhookContentActionCardOpenURITargetVO().set_os('default').set_uri(url.url)]));
+        }
+
+        await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(webhook, message);
     }
 }

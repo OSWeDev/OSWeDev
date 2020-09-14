@@ -36,16 +36,6 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
     private supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
     private continue_reloading: boolean = true;
 
-    private async switch_paused(item: ISupervisedItem) {
-        if (item.state == SupervisionController.STATE_PAUSED) {
-            item.state = SupervisionController.STATE_UNKOWN;
-        } else {
-            item.state = SupervisionController.STATE_PAUSED;
-        }
-        await ModuleDAO.getInstance().insertOrUpdateVO(item);
-        await this.load_supervised_items();
-    }
-
     private async mounted() {
 
         this.continue_reloading = true;
@@ -71,7 +61,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         let new_supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
         let promises = [];
 
-        for (let api_type_id in SupervisionController.getInstance().registered_api_types) {
+        for (let api_type_id in SupervisionController.getInstance().registered_controllers) {
 
             AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
             promises.push((async () => {

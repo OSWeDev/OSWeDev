@@ -1,5 +1,6 @@
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
+import ISupervisedItemController from './interfaces/ISupervisedItemController';
 
 export default class SupervisionController {
 
@@ -24,11 +25,11 @@ export default class SupervisionController {
 
     private static instance: SupervisionController = null;
 
-    private registered_api_type_by_ids: { [api_type_id: string]: ModuleTable<any> } = {};
+    private registered_api_type_by_ids: { [api_type_id: string]: ISupervisedItemController<any> } = {};
 
     private constructor() { }
 
-    get registered_api_types(): { [api_type_id: string]: ModuleTable<any> } {
+    get registered_controllers(): { [api_type_id: string]: ISupervisedItemController<any> } {
         return this.registered_api_type_by_ids;
     }
 
@@ -36,9 +37,9 @@ export default class SupervisionController {
         return SupervisionController.SUP_HIST_TABLE_PREFIX + api_type_id;
     }
 
-    public registerModuleTable(moduleTable: ModuleTable<any>) {
+    public registerModuleTable(moduleTable: ModuleTable<any>, controller: ISupervisedItemController<any>) {
 
-        this.registered_api_type_by_ids[moduleTable.vo_type] = moduleTable;
+        this.registered_api_type_by_ids[moduleTable.vo_type] = controller;
 
         let name = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true);
         moduleTable.push_field(name.setModuleTable(moduleTable));
@@ -47,6 +48,7 @@ export default class SupervisionController {
         moduleTable.push_field((new ModuleTableField('creation_date', ModuleTableField.FIELD_TYPE_tstz, 'Date de création', true)).setModuleTable(moduleTable));
         moduleTable.push_field((new ModuleTableField('first_update', ModuleTableField.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false)).setModuleTable(moduleTable));
         moduleTable.push_field((new ModuleTableField('state', ModuleTableField.FIELD_TYPE_tstz, 'Etat', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField('state_before_pause', ModuleTableField.FIELD_TYPE_tstz, 'Etat - avant pause', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS)).setModuleTable(moduleTable));
         moduleTable.default_label_field = name;
 
         // On copie les champs, pour la table à créer automatiquement :

@@ -48,6 +48,12 @@ export default class ModuleRequestServer extends ModuleServerBase {
                 method: method,
                 headers: headers,
             };
+
+            // Pour plus de compatibilité (avec Teams notamment)
+            if ((method.toLowerCase() == 'post') && ((!headers) || (!headers['Content-Length'])) && !!posts) {
+                headers['Content-Length'] = JSON.stringify(posts).length;
+            }
+
             function callback(res) {
                 let result: Buffer[] = [];
 
