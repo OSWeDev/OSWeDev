@@ -398,6 +398,47 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
+    get show_mandatory_star(): boolean {
+        return this.field.is_required && (this.field_type != 'boolean');
+    }
+
+    get hide_inline_controls(): boolean {
+        return this.field.is_required && (this.field_type == 'boolean');
+    }
+
+    private validateToggle() {
+
+        this.field_value = !this.field_value;
+
+        if (this.inline_input_mode) {
+            return;
+        }
+
+        if (!this.field.validate) {
+            return;
+        }
+
+        let error: string = this.field.validate(this.field_value);
+        let msg;
+
+        if ((!error) || (error == "")) {
+            msg = "";
+        } else {
+            msg = this.t(error);
+        }
+
+        if (this.auto_update_field_value) {
+            this.changeValue(this.vo, this.field, this.field_value, this.datatable);
+        }
+
+        if (this.field.onChange) {
+            this.field.onChange(this.vo);
+            this.datatable.refresh();
+        }
+
+        this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
+    }
+
     private validateMultiInput(values: any[]) {
         if (this.inline_input_mode) {
             return;

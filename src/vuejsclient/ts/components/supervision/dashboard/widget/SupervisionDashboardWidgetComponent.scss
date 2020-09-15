@@ -1,0 +1,45 @@
+.supervision_dashboard_widget {
+
+    border-radius: 4px;
+    font-size: larger;
+    text-align: center;
+    color: white;
+    margin: 0.2em;
+    opacity: 1;
+    cursor: pointer;
+    padding: 0.3em 0.2em;
+    max-width: 4em;
+    
+    &.not_selected{
+        opacity: 0.5;
+    }
+
+    &.STATE_ERROR{
+        background-color: red;
+    }
+
+    &.STATE_ERROR_READ{
+        background-color: orangered;
+    }
+
+    &.STATE_WARN{
+        background-color: orange;
+    }
+
+    &.STATE_WARN_READ{
+        background-color: #ffd400;
+    }
+
+    &.STATE_OK{
+        background-color: green;
+    }
+
+    &.STATE_PAUSED{
+        background-color: blue;
+    }
+
+    &.STATE_UNKOWN{
+        background-color: grey;
+    }
+
+}

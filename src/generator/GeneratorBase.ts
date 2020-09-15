@@ -25,6 +25,7 @@ import Patch20200312ChangeResetPWDMailContent from './patchs/postmodules/Patch20
 import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
 import Patch20200731MailParamsInit from './patchs/postmodules/Patch20200731MailParamsInit';
 import Patch20200806InitBaseImageFormats from './patchs/postmodules/Patch20200806InitBaseImageFormats';
+import Patch20200914InitTeamsWebhookForDailyReports from './patchs/postmodules/Patch20200914InitTeamsWebhookForDailyReports';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -86,7 +87,8 @@ export default abstract class GeneratorBase {
             Patch20200312ChangeResetPWDMailContent.getInstance(),
             Patch20200325PresetExistingLangsChangeRights.getInstance(),
             Patch20200731MailParamsInit.getInstance(),
-            Patch20200806InitBaseImageFormats.getInstance()
+            Patch20200806InitBaseImageFormats.getInstance(),
+            Patch20200914InitTeamsWebhookForDailyReports.getInstance()
         ];
     }
 
