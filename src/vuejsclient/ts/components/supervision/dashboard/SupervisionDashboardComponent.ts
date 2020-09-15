@@ -52,7 +52,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         }
 
         await this.load_supervised_items();
-        setTimeout(this.load_supervised_items_and_continue.bind(this), (60000));
+        setTimeout(this.load_supervised_items_and_continue.bind(this), (20000));
 
     }
 
@@ -63,7 +63,6 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         for (let api_type_id in SupervisionController.getInstance().registered_controllers) {
 
-            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([api_type_id]);
             promises.push((async () => {
                 let items = await ModuleDAO.getInstance().getVos<ISupervisedItem>(api_type_id);
 
