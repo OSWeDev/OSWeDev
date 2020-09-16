@@ -171,10 +171,10 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         if (has_new_value) {
 
             /**
-             * Si on identifie une nouvelle valeur, et qu'il s'agit d'une erreur non lue, on envoie le script, de même que si la nouvelle valeur est ok et l'ancienne
+             * Si on identifie une nouvelle valeur => et différente, et qu'il s'agit d'une erreur non lue, on envoie le script, de même que si la nouvelle valeur est ok et l'ancienne
              *  une erreur (lue ou non lue)
              */
-            if (supervised_item.state == SupervisionController.STATE_ERROR) {
+            if ((supervised_item.state != old.state) && (supervised_item.state == SupervisionController.STATE_ERROR)) {
                 await this.on_new_unread_error(supervised_item);
             }
             if ((supervised_item.state == SupervisionController.STATE_OK) && (
