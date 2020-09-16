@@ -17,10 +17,16 @@ export default class HourSegmentHandler {
     private constructor() { }
 
     public getBiggestHourSegmentationType(segment_type_a: number, segment_type_b: number): number {
+        if (segment_type_a == null || segment_type_b == null) {
+            return null;
+        }
         return Math.min(segment_type_a, segment_type_b);
     }
 
     public getSmallestHourSegmentationType(segment_type_a: number, segment_type_b: number): number {
+        if (segment_type_a == null || segment_type_b == null) {
+            return null;
+        }
         return Math.max(segment_type_a, segment_type_b);
     }
 
@@ -64,6 +70,10 @@ export default class HourSegmentHandler {
      * @returns Corresponding CumulHourSegment
      */
     public getParentHourSegment(hourSegment: HourSegment): HourSegment {
+
+        if (hourSegment == null || typeof hourSegment == "undefined") {
+            return null;
+        }
         let type: number = null;
         let ms: number = null;
 
@@ -155,7 +165,7 @@ export default class HourSegmentHandler {
      */
     public getStartHour(time: moment.Duration, segment_type: number): moment.Duration {
 
-        if (!time) {
+        if (!time || segment_type == null) {
             return null;
         }
 
@@ -353,6 +363,7 @@ export default class HourSegmentHandler {
     }
 
     public segmentsAreEquivalent(ts1: HourSegment, ts2: HourSegment): boolean {
+
 
         if ((!ts1) && ts2) {
             return false;

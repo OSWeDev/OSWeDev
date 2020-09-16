@@ -14,12 +14,29 @@
     #updateData,
     #createData {
         .form-group {
+
+            label.vue-js-switch{
+                margin-left: 1em;
+            }
+
+            .vue-js-switch .v-switch-label.v-left {
+                left: 20px;
+            }
+
             input[type=checkbox] {
                 width: 20px;
                 height: 20px;
                 display: inline-block;
                 vertical-align: middle;
                 margin-left: 10px;
+            }
+
+            input[type=checkbox].v-switch-input{
+                display: none;
+            }
+
+            .v-switch-core {
+                margin-left: 1em;
             }
 
             label {

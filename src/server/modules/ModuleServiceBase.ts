@@ -24,6 +24,7 @@ import ModuleFork from '../../shared/modules/Fork/ModuleFork';
 import ModuleFormatDatesNombres from '../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import ModuleGeneratePDF from '../../shared/modules/GeneratePDF/ModuleGeneratePDF';
 import ModuleImage from '../../shared/modules/Image/ModuleImage';
+import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageFormat';
 import ModuleMailer from '../../shared/modules/Mailer/ModuleMailer';
 import ModuleMaintenance from '../../shared/modules/Maintenance/ModuleMaintenance';
 import Module from '../../shared/modules/Module';
@@ -32,7 +33,9 @@ import ModulePushData from '../../shared/modules/PushData/ModulePushData';
 import ModuleRequest from '../../shared/modules/Request/ModuleRequest';
 import ModuleSASSSkinConfigurator from '../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import ModuleSendInBlue from '../../shared/modules/SendInBlue/ModuleSendInBlue';
+import ModuleSupervision from '../../shared/modules/Supervision/ModuleSupervision';
 import ModuleTableFieldTypes from '../../shared/modules/TableFieldTypes/ModuleTableFieldTypes';
+import ModuleTeamsAPI from '../../shared/modules/TeamsAPI/ModuleTeamsAPI';
 import ModuleTranslationsImport from '../../shared/modules/Translation/import/ModuleTranslationsImport';
 import ModuleTranslation from '../../shared/modules/Translation/ModuleTranslation';
 import ModuleTrigger from '../../shared/modules/Trigger/ModuleTrigger';
@@ -62,6 +65,7 @@ import ModuleFileServer from './File/ModuleFileServer';
 import ModuleForkServer from './Fork/ModuleForkServer';
 import ModuleGeneratePDFServer from './GeneratePDF/ModuleGeneratePDFServer';
 import ModuleImageServer from './Image/ModuleImageServer';
+import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
 import ModuleMailerServer from './Mailer/ModuleMailerServer';
 import ModuleMaintenanceServer from './Maintenance/ModuleMaintenanceServer';
 import ModuleDBService from './ModuleDBService';
@@ -72,13 +76,13 @@ import ModulePushDataServer from './PushData/ModulePushDataServer';
 import ModuleRequestServer from './Request/ModuleRequestServer';
 import ModuleSASSSkinConfiguratorServer from './SASSSkinConfigurator/ModuleSASSSkinConfiguratorServer';
 import ModuleSendInBlueServer from './SendInBlue/ModuleSendInBlueServer';
+import ModuleSupervisionServer from './Supervision/ModuleSupervisionServer';
+import ModuleTeamsAPIServer from './TeamsAPI/ModuleTeamsAPIServer';
 import ModuleTranslationsImportServer from './Translation/import/ModuleTranslationsImportServer';
 import ModuleTranslationServer from './Translation/ModuleTranslationServer';
 import ModuleVarServer from './Var/ModuleVarServer';
 import ModuleVersionedServer from './Versioned/ModuleVersionedServer';
 import ModuleVocusServer from './Vocus/ModuleVocusServer';
-import ModuleImageFormat from '../../shared/modules/ImageFormat/ModuleImageFormat';
-import ModuleImageFormatServer from './ImageFormat/ModuleImageFormatServer';
 
 export default abstract class ModuleServiceBase {
 
@@ -425,7 +429,9 @@ export default abstract class ModuleServiceBase {
             ModuleRequest.getInstance(),
             ModuleDocument.getInstance(),
             ModuleFork.getInstance(),
-            ModuleImageFormat.getInstance()
+            ModuleImageFormat.getInstance(),
+            ModuleSupervision.getInstance(),
+            ModuleTeamsAPI.getInstance()
         ];
     }
 
@@ -465,7 +471,9 @@ export default abstract class ModuleServiceBase {
             ModuleRequestServer.getInstance(),
             ModuleDocumentServer.getInstance(),
             ModuleForkServer.getInstance(),
-            ModuleImageFormatServer.getInstance()
+            ModuleImageFormatServer.getInstance(),
+            ModuleSupervisionServer.getInstance(),
+            ModuleTeamsAPIServer.getInstance()
         ];
     }
 }

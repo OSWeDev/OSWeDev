@@ -30,20 +30,26 @@ export default class GeoPointHandler {
             return null;
         }
 
-        let regexpGeopoint = /(\()(.*),(.*)(\))/i;
+        let regexpGeopoint = /(\()(.+),(.+)(\))/i;
         let res: string[] = point.match(regexpGeopoint);
 
-        if (res[2] === null || res[2] == '') {
+        if (!res) {
             return null;
         }
 
-        if (res[3] === null || res[3] == '') {
+        var x: number = parseFloat(res[2]);
+        if (res[2] === null || res[2] == '' || isNaN(x)) {
+            return null;
+        }
+
+        var y: number = parseFloat(res[3]);
+        if (res[3] === null || res[3] == '' || isNaN(y)) {
             return null;
         }
 
         return GeoPointVO.createNew(
-            parseFloat(res[2]),
-            parseFloat(res[3])
+            x,
+            y
         );
     }
 

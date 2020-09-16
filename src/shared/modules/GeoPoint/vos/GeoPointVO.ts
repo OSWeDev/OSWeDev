@@ -2,6 +2,9 @@
 export default class GeoPointVO {
 
     public static createNew(x: number, y: number): GeoPointVO {
+        if (!x || !y) {
+            return null;
+        }
         let geopoint: GeoPointVO = new GeoPointVO();
 
         geopoint.x = x;

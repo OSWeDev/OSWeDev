@@ -1,0 +1,51 @@
+body.page-Manage .crud-wrapper {
+
+    .field[field_name~="state"], .field[field_name~="state_before_pause"]{
+        span {
+            font-size: 0;
+        	cursor:pointer;
+        }
+
+        span::before {
+            font-size: 13px;
+            color: white;
+            padding: 4px;
+            border-radius: 3px;
+        }
+
+        span.ERROR::before {
+            content: 'ERROR';
+            background-color: red;
+        }
+
+        span.ERROR_READ::before {
+            content: 'ERROR - READ';
+            background-color: orangered;
+        }
+
+        span.WARN::before {
+            content: 'WARN';
+            background-color: orange;
+        }
+
+        span.WARN_READ::before {
+            content: 'WARN - READ';
+            background-color: #ffd400;
+        }
+
+        span.OK::before {
+            content: 'OK';
+            background-color: green;
+        }
+
+        span.PAUSED::before {
+            content: 'PAUSED';
+            background-color: blue;
+        }
+
+        span.UNKOWN::before {
+            content: 'N/A';
+            background-color: grey;
+        }
+    }
+}

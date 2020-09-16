@@ -118,6 +118,7 @@ export default abstract class ServerBase {
         await this.createMandatoryFolders();
 
         this.envParam = ConfigurationService.getInstance().getNodeConfiguration();
+        EnvHandler.getInstance().BASE_URL = this.envParam.BASE_URL;
         EnvHandler.getInstance().NODE_VERBOSE = !!this.envParam.NODE_VERBOSE;
         EnvHandler.getInstance().IS_DEV = !!this.envParam.ISDEV;
         EnvHandler.getInstance().MSGPCK = !!this.envParam.MSGPCK;

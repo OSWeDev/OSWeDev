@@ -14,7 +14,7 @@ import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBas
 import VarsController from '../../../shared/modules/Var/VarsController';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
-import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourAndMinutesFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter } from '../../../shared/tools/Filters';
+import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter } from '../../../shared/tools/Filters';
 import LocaleManager from "../../../shared/tools/LocaleManager";
 import VocusHandler from '../../../shared/tools/VocusHandler';
 import VueAppController from "../../VueAppController";
@@ -196,9 +196,6 @@ export function FiltersHandler() {
         if (this.filter_alerteCheck) {
             value = alerteCheckFilter.write(value);
         }
-        if (this.filter_hourAndMinutesFilter) {
-            value = hourAndMinutesFilter.write(value);
-        }
         return value;
     };
 
@@ -233,7 +230,7 @@ export function FiltersHandler() {
             value = booleanFilter.read(value);
         }
         if (this.filter_padHour) {
-            value = padHourFilter.read(value, this.filter_padHour_n);
+            value = padHourFilter.read(value);
         }
         if (this.filter_truncate) {
             value = truncateFilter.read(value, this.filter_truncate_n);
@@ -257,9 +254,6 @@ export function FiltersHandler() {
         if (this.filter_alerteCheck) {
             value = alerteCheckFilter.read(value);
         }
-        if (this.filter_hourAndMinutesFilter) {
-            value = hourAndMinutesFilter.read(value);
-        }
         return value;
     };
 }
@@ -281,7 +275,6 @@ export default class VueComponentBase extends Vue
         hour: hourFilter,
         planningCheck: planningCheckFilter,
         alerteCheck: alerteCheckFilter,
-        hourAndMinutes: hourAndMinutesFilter
     };
 
     public $snotify: any;
@@ -309,7 +302,6 @@ export default class VueComponentBase extends Vue
         hour: hourFilter,
         planningCheck: planningCheckFilter,
         alerteCheck: alerteCheckFilter,
-        hourAndMinutes: hourAndMinutesFilter
     };
 
 

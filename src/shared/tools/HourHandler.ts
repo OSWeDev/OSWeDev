@@ -18,10 +18,12 @@ export default class HourHandler {
     }
 
     public formatHourForIHM(hour: moment.Duration, segment_type: number): string {
-        if ((hour === null) || (typeof hour == 'undefined')) {
+        if (segment_type == null) {
+            return null;
+        }
+        if ((hour == null) || (typeof hour == 'undefined')) {
             return '';
         }
-
         switch (segment_type) {
             case HourSegment.TYPE_HOUR:
                 return this.force2DigitMin(hour.hours()) + 'h';
@@ -35,13 +37,13 @@ export default class HourHandler {
     }
 
     public formatHourFromIHM(hour: string, segment_type: number): moment.Duration {
-        if ((hour === null) || (typeof hour == 'undefined')) {
+        if (hour == null || typeof hour == 'undefined' || segment_type == null) {
             return null;
         }
 
         try {
 
-            let splitted: string[] = hour.split(/[:h.]/);
+            var splitted: string[] = hour.split(/[:h.]/);
 
             let duration_ms: number = 0;
             switch (segment_type) {

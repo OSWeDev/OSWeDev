@@ -138,7 +138,7 @@ export default class DAOStore implements IStoreModule<IDAOState, DAOContext> {
 
             removeData(state: IDAOState, infos: { API_TYPE_ID: string, id: number }) {
 
-                if (!infos.API_TYPE_ID) {
+                if (!infos.API_TYPE_ID || !state.storedDatasArray[infos.API_TYPE_ID]) {
                     return;
                 }
 

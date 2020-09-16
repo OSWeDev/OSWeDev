@@ -10,6 +10,7 @@ import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO
 import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
@@ -399,6 +400,9 @@ export default class CRUDComponent extends VueComponentBase {
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
                     obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as ManyToOneReferenceDatatableField<any>).srcField.field_default);
                     break;
+                case DatatableField.REF_RANGES_FIELD_TYPE:
+                    obj[field.datatable_field_uid] = ((obj[field.datatable_field_uid]) ? obj[field.datatable_field_uid] : (field as RefRangesReferenceDatatableField<any>).srcField.field_default);
+                    break;
 
                 default:
                 // obj[field.datatable_field_uid] = null;
@@ -615,6 +619,16 @@ export default class CRUDComponent extends VueComponentBase {
 
             // On passe la traduction depuis IHM sur les champs
             let apiokVo = this.IHMToData(this.newVO, this.crud.createDatatable, false);
+
+            // On utilise le trigger si il est présent sur le crud
+            if (this.crud.preCreate) {
+                let errorMsg = await this.crud.preCreate(apiokVo, this.newVO);
+                if (errorMsg) {
+                    this.snotify.error(this.label(errorMsg));
+                    this.updating_vo = false;
+                    return;
+                }
+            }
 
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
             if ((!res) || (!res.id)) {

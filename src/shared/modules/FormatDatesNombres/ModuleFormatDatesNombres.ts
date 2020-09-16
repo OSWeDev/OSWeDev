@@ -29,12 +29,15 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     // On peut avoir des Dates ou des strings en entrée des fonctions, on crée un traducteur assez flexible qui renvoie une date
-    public getMomentFromDate(dateToConvert) {
+    public getMomentFromDate(dateToConvert: moment.Moment | string): moment.Moment {
 
         return moment(dateToConvert).utc(true);
     }
 
     public formatMoment_to_YYYYMMDD_HHmmss(date: moment.Moment): string {
+        if (date == null) {
+            return null;
+        }
 
         return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss");
     }
@@ -54,13 +57,20 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     // Formatter un moment en HoursAndMinutes pour la BDD
-    public formatDuration_to_HoursAndMinutes(durationToFormat) {
+    public formatDuration_to_HoursAndMinutes(durationToFormat: moment.Duration): number {
+        if (durationToFormat == null) {
+            return null;
+        }
 
         return durationToFormat.get('hours') + (durationToFormat.get('minutes') / 60);
     }
 
     // Formatter un HoursAndMinutes en moment depuis la BDD
-    public formatHoursAndMinutes_to_Duration(hoursAndMinutesToFormat) {
+    public formatHoursAndMinutes_to_Duration(hoursAndMinutesToFormat: number): moment.Duration {
+
+        if (hoursAndMinutesToFormat == null) {
+            return null;
+        }
 
         let hours = Math.floor(hoursAndMinutesToFormat);
         let minutes = Math.round((hoursAndMinutesToFormat % 1) * 60);
@@ -77,7 +87,10 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     // Formatter une date de type 31/01
-    public formatDate_MonthDay(dateToFormat) {
+    public formatDate_MonthDay(dateToFormat: moment.Moment | string): string {
+        if (dateToFormat == null) {
+            return null;
+        }
 
         let momentToFormat = this.getMomentFromDate(dateToFormat);
 
@@ -85,15 +98,23 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     // Formatter une date de type 01/2017
-    public formatDate_FullyearMonth(dateToFormat) {
+    public formatDate_FullyearMonth(dateToFormat: moment.Moment | string): string {
+
+        if (dateToFormat == null) {
+            return null;
+        }
 
         let momentToFormat = this.getMomentFromDate(dateToFormat);
 
         return momentToFormat.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_date));
     }
 
-    // Formatter une date de type 01/2017
-    public formatDate_YearMonth(dateToFormat) {
+    // Formatter une date de type 01/17
+    public formatDate_YearMonth(dateToFormat: moment.Moment | string): string {
+
+        if (dateToFormat == null) {
+            return null;
+        }
 
         let momentToFormat = this.getMomentFromDate(dateToFormat);
 
@@ -106,24 +127,33 @@ export default class ModuleFormatDatesNombres extends Module {
     }
 
     // Formatter une date de type 31/01/2017
-    public formatDate_FullyearMonthDay(dateToFormat) {
+    public formatDate_FullyearMonthDay(dateToFormat: moment.Moment | string): string {
+
+        if (dateToFormat == null) {
+            return null;
+        }
 
         let momentToFormat = this.getMomentFromDate(dateToFormat);
-
         return momentToFormat.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date));
     }
 
-    public getMomentFromFormatted_FullyearMonthDay(dateToFormat) {
+    public getMomentFromFormatted_FullyearMonthDay(dateToFormat: moment.Moment | string): moment.Moment {
+        if (dateToFormat == null) {
+            return null;
+        }
 
         return moment(dateToFormat, this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date)).utc(true);
     }
 
-    public formatNumber_sign(numberToFormat) {
+    public formatNumber_sign(numberToFormat: number): string {
+        if (numberToFormat == null) {
+            return (null);
+        }
 
         let number = null;
 
         try {
-            number = parseFloat(numberToFormat);
+            number = parseFloat(numberToFormat.toString());
 
             if (number < 0) {
                 return "-";
@@ -137,6 +167,10 @@ export default class ModuleFormatDatesNombres extends Module {
 
     // Formatter un nombre
     public formatNumber_nodecimal(numberToFormat: number): string {
+
+        if (numberToFormat == null) {
+            return null;
+        }
 
         let number = null;
         let res = "";
@@ -173,34 +207,15 @@ export default class ModuleFormatDatesNombres extends Module {
         return this.formatNumber_sign(numberToFormat) + res;
     }
 
-    // // Formatter un nombre : 1 décimale
-    // public formatNumber_1decimal(numberToFormat) {
 
-    //     let number = null;
-
-    //     try {
-    //         number = Math.abs(parseFloat(numberToFormat));
-
-    //         // On sépare les décimals du reste
-    //         let entier = Math.floor(number);
-    //         let decimals = number - entier;
-    //         decimals = Math.round(decimals * 10);
-    //         if (decimals >= 10) {
-    //             decimals -= 10;
-    //             entier++;
-    //         }
-    //         return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + decimals;
-    //     } catch (e) {
-
-    //     }
-
-    //     return NaN;
-    // }
 
     public formatNumber_n_decimals(numberToFormat: number, n_decimals: number): string {
 
         let number = null;
 
+        if (numberToFormat == null || n_decimals == null) {
+            return null;
+        }
         if ((!n_decimals) || (n_decimals < 0)) {
             return this.formatNumber_nodecimal(numberToFormat);
         }
@@ -236,50 +251,40 @@ export default class ModuleFormatDatesNombres extends Module {
         return "NaN";
     }
 
-    // // Formatter un nombre : 2 décimales
-    // public formatNumber_2decimal(numberToFormat) {
 
-    //     let number = null;
-
-    //     try {
-    //         number = Math.abs(parseFloat(numberToFormat));
-
-    //         // On sépare les décimals du reste
-    //         let entier = Math.floor(number);
-    //         let decimals = number - entier;
-    //         decimals = Math.round(decimals * 100);
-    //         if (decimals >= 100) {
-    //             decimals -= 100;
-    //             entier++;
-    //         }
-    //         return this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier) + this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + (decimals < 10 ? "0" + decimals : decimals);
-    //     } catch (e) {
-
-    //     }
-
-    //     return NaN;
-    // }
 
     /**
      *
      * @param numberToFormat
      * @param arrondi
      */
-    public formatNumber_arrondi(numberToFormat, arrondi, arrondi_type: number): string {
+    public formatNumber_arrondi(numberToFormat: number, arrondi: number | boolean, arrondi_type: number): string {
+
+        if (numberToFormat == null || arrondi == null || arrondi_type == null) {
+            return null;
+        }
+
+        let arrondiNumber: number = null;
+
         if (arrondi === true) {
-            arrondi = 0.5;
+            arrondiNumber = 0.5;
+        } else if (typeof arrondi == "number") {
+            arrondiNumber = arrondi;
+        }
+        if (arrondi == 0) {
+            return numberToFormat.toString();
         }
         let numberRound = 0;
 
         switch (arrondi_type) {
             case ARRONDI_TYPE_CEIL:
-                numberRound = Math.ceil(numberToFormat / arrondi) * arrondi;
+                numberRound = Math.ceil(numberToFormat / arrondiNumber) * arrondiNumber;
                 break;
             case ARRONDI_TYPE_FLOOR:
-                numberRound = Math.floor(numberToFormat / arrondi) * arrondi;
+                numberRound = Math.floor(numberToFormat / arrondiNumber) * arrondiNumber;
                 break;
             case ARRONDI_TYPE_ROUND:
-                numberRound = Math.round(numberToFormat / arrondi) * arrondi;
+                numberRound = Math.round(numberToFormat / arrondiNumber) * arrondiNumber;
                 break;
         }
 
@@ -288,13 +293,6 @@ export default class ModuleFormatDatesNombres extends Module {
 
         let res = entier + decimale;
         return '' + res;
-
-        // let res: string = "";
-        // res += this.formatNumber_sign(numberToFormat) + this.formatNumber_nodecimal(entier);
-        // if (decimale > 0) {
-        //     res += this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_nombre_separateur_decimal) + decimale.toString().replace("0.", "");
-        // }
-        // return res;
     }
 
     public initialize() {

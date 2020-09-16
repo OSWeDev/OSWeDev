@@ -23,18 +23,30 @@ export default class TypesHandler {
     }
 
     public isBoolean(e: any): boolean {
+        if (e === null) {
+            return (null);
+        }
         return typeof e === 'boolean';
     }
 
     public isString(e: any): boolean {
+        if (e === null) {
+            return (null);
+        }
         return typeof e === 'string';
     }
 
     public isNumber(e: any): boolean {
+        if (e === null) {
+            return (null);
+        }
         return typeof e === 'number';
     }
 
     public isArray(e: any): boolean {
+        if (e === null) {
+            return (null);
+        }
         return Array.isArray(e);
     }
 

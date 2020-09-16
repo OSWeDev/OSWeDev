@@ -848,6 +848,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(intersector_range.min) + "," + DateHandler.getInstance().getUnixForBDD(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
 
+            case ModuleTableField.FIELD_TYPE_numrange:
+                return field.field_id + " && '" + (intersector_range.min_inclusiv ? "[" : "(") + intersector_range.min + "," + intersector_range.max + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange";
+
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
                 return "'" + (intersector_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(intersector_range.min) + "," + DateHandler.getInstance().getUnixForBDD(intersector_range.max) + (intersector_range.max_inclusiv ? "]" : ")") + "'::numrange && ANY (" + field.field_id + "::numrange[])";
 
@@ -1198,12 +1201,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             const setters = [];
             for (const f in moduleTable.get_fields()) {
+                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
 
-                if (typeof vo[moduleTable.get_fields()[f].field_id] == "undefined") {
-                    continue;
+                if (typeof vo[field.field_id] == "undefined") {
+                    if (!field.has_default || typeof field.field_default == 'undefined') {
+                        continue;
+                    }
+
+                    vo[field.field_id] = field.field_default;
                 }
 
-                setters.push(moduleTable.get_fields()[f].field_id + ' = ${' + moduleTable.get_fields()[f].field_id + '}');
+                setters.push(field.field_id + ' = ${' + field.field_id + '}');
             }
 
             let full_name = null;
@@ -1229,12 +1237,18 @@ export default class ModuleDAOServer extends ModuleServerBase {
             const tableFields = [];
             const placeHolders = [];
             for (const f in moduleTable.get_fields()) {
-                if (typeof vo[moduleTable.get_fields()[f].field_id] == "undefined") {
-                    continue;
+                let field: ModuleTableField<any> = moduleTable.get_fields()[f];
+
+                if (typeof vo[field.field_id] == "undefined") {
+                    if (!field.has_default || typeof field.field_default == 'undefined') {
+                        continue;
+                    }
+
+                    vo[field.field_id] = field.field_default;
                 }
 
-                tableFields.push(moduleTable.get_fields()[f].field_id);
-                placeHolders.push('${' + moduleTable.get_fields()[f].field_id + '}');
+                tableFields.push(field.field_id);
+                placeHolders.push('${' + field.field_id + '}');
             }
 
             let full_name = null;
@@ -1455,14 +1469,60 @@ export default class ModuleDAOServer extends ModuleServerBase {
             }
         }
 
-        let request = " t WHERE " + moduleTable.getFieldFromId(apiDAOParamsVO.field_name).field_id;
-        if (has_null && (apiDAOParamsVO.ids.length == 1)) {
-            request += ' is null;';
-        } else if (has_null) {
-            let temp = apiDAOParamsVO.ids.filter((v) => v != null);
-            request += " is null or in (" + temp.join(',') + ");";
-        } else {
-            request += " in (" + apiDAOParamsVO.ids.join(',') + ");";
+
+        let matroid_fields: Array<ModuleTableField<any>> = MatroidController.getInstance().getMatroidFields(apiDAOParamsVO.API_TYPE_ID);
+        let matroid_fields_by_ids: { [field_id: string]: ModuleTableField<any> } = {};
+
+        for (let i in matroid_fields) {
+            let matroid_field = matroid_fields[i];
+
+            matroid_fields_by_ids[matroid_field.field_id] = matroid_field;
+        }
+
+        let field = moduleTable.getFieldFromId(apiDAOParamsVO.field_name);
+
+        let request = " t WHERE ";
+
+        switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+                let numrange_ids: NumRange[] = [];
+
+                for (let i in apiDAOParamsVO.ids) {
+                    let id: number = apiDAOParamsVO.ids[i];
+
+                    numrange_ids.push(RangeHandler.getInstance().create_single_elt_NumRange(id, NumSegment.TYPE_INT));
+                }
+
+                let where_clause: string = '';
+
+                for (let j in numrange_ids) {
+                    let field_range: NumRange = numrange_ids[j];
+
+                    where_clause += (where_clause == '') ? "" : " OR ";
+
+                    where_clause += this.getClauseWhereRangeIntersectsField(field, field_range);
+                }
+
+                if (has_null && (apiDAOParamsVO.ids.length == 1)) {
+                    request += field.field_id + ' is null;';
+                } else if (has_null) {
+                    let temp = apiDAOParamsVO.ids.filter((v) => v != null);
+                    request += " is null OR " + where_clause;
+                } else {
+                    request += " " + where_clause;
+                }
+                break;
+            default:
+                request += field.field_id;
+                if (has_null && (apiDAOParamsVO.ids.length == 1)) {
+                    request += ' is null;';
+                } else if (has_null) {
+                    let temp = apiDAOParamsVO.ids.filter((v) => v != null);
+                    request += " is null or in (" + temp.join(',') + ");";
+                } else {
+                    request += " in (" + apiDAOParamsVO.ids.join(',') + ");";
+                }
+                break;
         }
 
         let vos: T[] = [];
@@ -2295,6 +2355,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 // TODO
                 break;
             case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_daterange: // TODO FIXME
             case ModuleTableField.FIELD_TYPE_hourrange:
                 res += table_name + '.' + field.field_id + " <@ " + ranges_query;
@@ -2348,6 +2409,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_tsrange:
+            case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_hourrange:
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             default:
@@ -2401,6 +2463,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_numrange_array:
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
             case ModuleTableField.FIELD_TYPE_tsrange: // vraiment ?
+            case ModuleTableField.FIELD_TYPE_numrange: // vraiment ?
             case ModuleTableField.FIELD_TYPE_hourrange: // vraiment ?
             case ModuleTableField.FIELD_TYPE_hourrange_array:
             default:
@@ -2511,6 +2574,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             case ModuleTableField.FIELD_TYPE_month:
                 res += table_name + '.' + field.field_id + "::date <@ " + ranges_query;
                 break;
+            case ModuleTableField.FIELD_TYPE_numrange:
             case ModuleTableField.FIELD_TYPE_tsrange:
             case ModuleTableField.FIELD_TYPE_hourrange:
             case ModuleTableField.FIELD_TYPE_daterange:
@@ -2634,6 +2698,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().formatDayForIndex(range.min) + "," + DateHandler.getInstance().formatDayForIndex(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::daterange';
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return '\'' + (range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(range.min) + "," + DateHandler.getInstance().getUnixForBDD(range.max) + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
+            case ModuleTableField.FIELD_TYPE_numrange:
+                return '\'' + (range.min_inclusiv ? "[" : "(") + range.min.toString() + "," + range.max.toString() + (range.max_inclusiv ? "]" : ")") + '\'' + '::numrange';
 
             case ModuleTableField.FIELD_TYPE_geopoint:
                 // TODO
@@ -2694,6 +2760,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return DateHandler.getInstance().formatDayForIndex(segmented_value);
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return DateHandler.getInstance().getUnixForBDD(segmented_value).toString();
+            case ModuleTableField.FIELD_TYPE_numrange:
+                return segmented_value.toString();
 
             case ModuleTableField.FIELD_TYPE_geopoint:
                 // TODO

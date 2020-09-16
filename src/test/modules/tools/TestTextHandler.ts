@@ -14,4 +14,15 @@ describe('TextHandler', () => {
         expect(TextHandler.getInstance().standardize_for_comparaison('a bc')).to.equal('a bc');
         expect(TextHandler.getInstance().standardize_for_comparaison('téléphone')).to.equal('telephone');
     });
+    it('TextHandler: capitalize', () => {
+        expect(TextHandler.getInstance().capitalize(null)).to.equal(null);
+        expect(TextHandler.getInstance().capitalize("test")).to.equal("Test");
+        expect(TextHandler.getInstance().capitalize("233")).to.equal("233");
+    });
+    it('TextHandler: formatTextToID', () => {
+        expect(TextHandler.getInstance().formatTextToID(null)).to.equal(null);
+        expect(TextHandler.getInstance().formatTextToID("@")).to.equal("_");
+        expect(TextHandler.getInstance().formatTextToID("A")).to.equal("a");
+        expect(TextHandler.getInstance().formatTextToID("this is a test")).to.equal("this_is_a_test");
+    });
 });

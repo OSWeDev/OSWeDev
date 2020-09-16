@@ -175,6 +175,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                     return res_numranges;
 
+                case ModuleTableField.FIELD_TYPE_numrange:
                 case ModuleTableField.FIELD_TYPE_tsrange:
                 case ModuleTableField.FIELD_TYPE_int_array:
                 case ModuleTableField.FIELD_TYPE_string_array:
@@ -244,6 +245,7 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
 
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
                 case ModuleTableField.FIELD_TYPE_hourrange:
+                case ModuleTableField.FIELD_TYPE_numrange:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
@@ -274,14 +276,14 @@ export default class SimpleDatatableField<T, U> extends DatatableField<T, U> {
                     return false;
 
                 case ModuleTableField.FIELD_TYPE_prct:
-                    return parseFloat(percentFilter.write(value));
+                    return percentFilter.write(value);
 
                 case ModuleTableField.FIELD_TYPE_amount:
-                    return parseFloat(amountFilter.write(value));
+                    return amountFilter.write(value);
 
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes:
                 case ModuleTableField.FIELD_TYPE_hours_and_minutes_sans_limite:
-                    return parseFloat(hourFilter.write(value));
+                    return hourFilter.write(value);
 
                 case ModuleTableField.FIELD_TYPE_float:
                     return parseFloat(value);
