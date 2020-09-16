@@ -23,6 +23,6 @@ export default class Patch20200914InitTeamsWebhookForDailyReports implements IGe
     private constructor() { }
 
     public async work(db: IDatabase<any>) {
-        await ModuleParams.getInstance().setParamValue(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME, 'https://outlook.office.com/');
+        await ModuleParams.getInstance().setParamValue(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME, 'outlook.office.com');
     }
 }
