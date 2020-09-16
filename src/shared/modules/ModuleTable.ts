@@ -639,7 +639,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 case ModuleTableField.FIELD_TYPE_tstz:
                     let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
-                    res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
+                    res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : field_as_moment;
                     break;
 
                 default:
@@ -714,12 +714,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hour:
-                    res[field.field_id] = e[old_id] ? moment.duration(parseInt(e[old_id])) : null;
+                    res[field.field_id] = e[old_id] ? moment.duration(parseInt(e[old_id])) : e[old_id];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
                     // Pourquoi ça marche avec un *1000 ici ????
-                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : null;
+                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : e[old_id];
                     break;
 
                 default:
