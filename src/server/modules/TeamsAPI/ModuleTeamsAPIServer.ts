@@ -2,6 +2,7 @@ import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ModuleRequest from '../../../shared/modules/Request/ModuleRequest';
 import ModuleTeamsAPI from '../../../shared/modules/TeamsAPI/ModuleTeamsAPI';
 import TeamsWebhookContentVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
+import TextHandler from '../../../shared/tools/TextHandler';
 import ModuleServerBase from '../ModuleServerBase';
 
 export default class ModuleTeamsAPIServer extends ModuleServerBase {
@@ -32,7 +33,7 @@ export default class ModuleTeamsAPIServer extends ModuleServerBase {
             ModuleRequest.METHOD_POST,
             TEAMS_HOST,
             webhook,
-            message,
+            TextHandler.getInstance().sanityze_object(message),
             {},
             true
         );
