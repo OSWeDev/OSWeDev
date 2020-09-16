@@ -618,6 +618,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
              */
             if (!!field.custom_translate_to_api) {
                 res[new_id] = field.custom_translate_to_api(e[field.field_id]);
+                /**
+                 * Compatibilité MSGPACK : il traduit les undefind en null
+                 */
+                if (typeof res[new_id] === 'undefined') {
+                    delete res[new_id];
+                }
                 continue;
             }
 
@@ -644,6 +650,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
                 default:
                     res[new_id] = e[field.field_id];
+            }
+
+            /**
+             * Compatibilité MSGPACK : il traduit les undefind en null
+             */
+            if (typeof res[new_id] === 'undefined') {
+                delete res[new_id];
             }
         }
 
