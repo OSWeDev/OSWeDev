@@ -52,7 +52,7 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
         }
 
         await this.load_supervised_items();
-        setTimeout(this.load_supervised_items_and_continue.bind(this), (20000));
+        setTimeout(this.load_supervised_items_and_continue.bind(this), 20000);
 
     }
 
