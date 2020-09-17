@@ -12,23 +12,19 @@ export default class DAG<TNode extends DAGNode> {
     public roots: { [name: string]: TNode } = {};
     public leafs: { [name: string]: TNode } = {};
 
-    public constructor(
-        protected node_constructor: (name: string, dag: DAG<TNode>, ...params) => TNode,
-        protected on_node_removal: (dagNode: TNode, ...params) => void = null) { }
+    public constructor() { }
 
-    public add(name: string, ...params): TNode {
-        if (!name) { return; }
-        if (this.nodes.hasOwnProperty(name)) {
-            return this.nodes[name];
+    public add(node: TNode): TNode {
+        if ((!node) || (!node.name)) { return null; }
+        if (this.nodes.hasOwnProperty(node.name)) {
+            return this.nodes[node.name];
         }
-        var node: TNode = this.node_constructor.apply(this, [name, this].concat(params));
-        node.initializeNode(this);
 
-        this.nodes[name] = node;
-        this.nodes_names.push(name);
+        this.nodes[node.name] = node;
+        this.nodes_names.push(node.name);
 
-        this.leafs[name] = node;
-        this.roots[name] = node;
+        this.leafs[node.name] = node;
+        this.roots[node.name] = node;
 
         return node;
     }
@@ -76,12 +72,12 @@ export default class DAG<TNode extends DAGNode> {
     /**
      * Supprime tous les noeuds portants un marker spécifique
      */
-    public deleteMarkedNodes(marker: string) {
+    public deleteMarkedNodes() {
         let nodes_names: string[] = this.nodes_names.slice();
         for (let i in nodes_names) {
             let node_name: string = nodes_names[i];
 
-            if (this.nodes[node_name] && this.nodes[node_name].hasMarker(marker)) {
+            if (this.nodes[node_name] && this.nodes[node_name].marked_for_deletion) {
 
                 this.deletedNode(node_name, null);
             }
@@ -134,10 +130,6 @@ export default class DAG<TNode extends DAGNode> {
         // FIXME TODO Qu'est-ce qu'il se passe quand un noeud n'a plus de outgoing alors qu'il en avait ?
         // Est-ce que c'est possible dans notre cas ? Est-ce que c'est possible dans d'autres cas ? Est-ce qu'il faut le gérer ?
 
-        if (!!this.on_node_removal) {
-            this.on_node_removal(this.nodes[node_name]);
-        }
-        this.nodes[node_name].prepare_for_deletion(this);
         delete this.nodes[node_name];
 
         if (!!this.leafs[node_name]) {

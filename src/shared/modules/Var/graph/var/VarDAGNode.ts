@@ -7,6 +7,18 @@ import VarDAG from './VarDAG';
 
 export default class VarDAGNode extends DAGNode {
 
+    /**
+     * Factory de noeuds en fonction du nom
+     */
+    public static getInstance(name: string, dag: VarDAG, param: IVarDataVOBase): VarDAGNode {
+        if (!!dag.nodes[name]) {
+            return dag.nodes[name];
+        }
+
+        return new VarDAGNode(name, dag, param).connect_to_DAG() as VarDAGNode;
+    }
+
+
     // New version : with matroids
     public loaded_datas_matroids: IVarDataVOBase[] = null;
     public computed_datas_matroids: IVarDataVOBase[] = null;
@@ -43,7 +55,10 @@ export default class VarDAGNode extends DAGNode {
     public outgoing: { [node_name: string]: VarDAGNode } = {};
 
 
-    public constructor(name: string, dag: VarDAG, public param: IVarDataVOBase) {
+    /**
+     * Use the factory
+     */
+    private constructor(name: string, dag: VarDAG, public param: IVarDataVOBase) {
         super(name, dag);
 
         // On en profite pour afficher l'info de la nécessité ou non de chargement de data pour les matroids
@@ -71,10 +86,6 @@ export default class VarDAGNode extends DAGNode {
         }
         if (!this.hasOutgoing) {
             d3node['class'] = ((!!d3node['class']) ? d3node['class'] : "") + " type_leaf";
-        }
-
-        for (let marker in this.markers) {
-            d3node['class'] = ((!!d3node['class']) ? d3node['class'] : "") + " marker_" + marker;
         }
 
         return d3node;

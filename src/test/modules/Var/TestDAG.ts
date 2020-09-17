@@ -1,7 +1,196 @@
-// import { expect } from 'chai';
-// import 'mocha';
-// import VarDAG from '../../../shared/modules/Var/graph/var/VarDAG';
-// import VarDAGNode from '../../../shared/modules/Var/graph/var/VarDAGNode';
+import { expect } from 'chai';
+import 'mocha';
+import DAG from '../../../shared/modules/Var/graph/dag/DAG';
+import DAGNode from '../../../shared/modules/Var/graph/dag/DAGNode';
+
+describe('DAG', () => {
+
+    it('test add nodes', async () => {
+
+        let dag: DAG<DAGNode> = new DAG();
+
+        let dagnodeA: DAGNode = DAGNode.getInstance("A", dag);
+
+        expect(dagnodeA.name).to.equal("A");
+        expect(dagnodeA.hasIncoming).to.equal(false);
+        expect(dagnodeA.hasOutgoing).to.equal(false);
+        expect(dagnodeA.incoming).to.deep.equal({});
+        expect(dagnodeA.outgoing).to.deep.equal({});
+        expect(dagnodeA.incomingNames).to.deep.equal([]);
+        expect(dagnodeA.dag).to.deep.equal(dag);
+        expect(dagnodeA.outgoingNames).to.deep.equal([]);
+        expect(dagnodeA.marked_for_deletion).to.equal(false);
+        expect(dagnodeA.outgoingDepIds).to.deep.equal([]);
+        expect(dagnodeA.value).to.equal(null);
+
+        expect(dag.nodes_names.length).to.equal(1);
+        expect(dag.nodes).to.deep.equal({ A: dagnodeA });
+        expect(dag.leafs).to.deep.equal({ A: dagnodeA });
+        expect(dag.roots).to.deep.equal({ A: dagnodeA });
+
+        let dagnodeB: DAGNode = DAGNode.getInstance("B", dag);
+
+        expect(dagnodeB.name).to.equal("B");
+        expect(dagnodeB.hasIncoming).to.equal(false);
+        expect(dagnodeB.hasOutgoing).to.equal(false);
+        expect(dagnodeB.incoming).to.deep.equal({});
+        expect(dagnodeB.outgoing).to.deep.equal({});
+        expect(dagnodeB.incomingNames).to.deep.equal([]);
+        expect(dagnodeB.dag).to.deep.equal(dag);
+        expect(dagnodeB.outgoingNames).to.deep.equal([]);
+        expect(dagnodeB.marked_for_deletion).to.equal(false);
+        expect(dagnodeB.outgoingDepIds).to.deep.equal([]);
+        expect(dagnodeB.value).to.equal(null);
+
+        expect(dag.nodes_names.length).to.equal(2);
+        expect(dag.nodes).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+        expect(dag.leafs).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+        expect(dag.roots).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+
+        let dagnodeA_bis: DAGNode = DAGNode.getInstance("A", dag);
+
+        expect(dagnodeA_bis).to.equal(dagnodeA);
+
+        expect(dag.nodes_names.length).to.equal(2);
+        expect(dag.nodes).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+        expect(dag.leafs).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+        expect(dag.roots).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+    });
+
+    it('test add edges', async () => {
+        let dag: DAG<DAGNode> = new DAG();
+
+        let dagnodeA: DAGNode = DAGNode.getInstance("A", dag);
+        let dagnodeB: DAGNode = DAGNode.getInstance("B", dag);
+
+        expect(dag.nodes_names.length).to.equal(2);
+        expect(dag.nodes).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+        expect(dag.leafs).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+        expect(dag.roots).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+
+        expect(dagnodeB.hasIncoming).to.equal(false);
+        expect(dagnodeB.hasOutgoing).to.equal(false);
+        expect(dagnodeB.incoming).to.deep.equal({});
+        expect(dagnodeB.outgoing).to.deep.equal({});
+        expect(dagnodeB.incomingNames).to.deep.equal([]);
+        expect(dagnodeB.outgoingNames).to.deep.equal([]);
+        expect(dagnodeB.outgoingDepIds).to.deep.equal([]);
+
+        expect(dagnodeA.hasIncoming).to.equal(false);
+        expect(dagnodeA.hasOutgoing).to.equal(false);
+        expect(dagnodeA.incoming).to.deep.equal({});
+        expect(dagnodeA.outgoing).to.deep.equal({});
+        expect(dagnodeA.incomingNames).to.deep.equal([]);
+        expect(dagnodeA.outgoingNames).to.deep.equal([]);
+        expect(dagnodeA.outgoingDepIds).to.deep.equal([]);
+
+        dag.addEdge("A", "B", "AB");
+
+        expect(dag.nodes_names.length).to.equal(2);
+        expect(dag.nodes).to.deep.equal({ A: dagnodeA, B: dagnodeB });
+        expect(dag.leafs).to.deep.equal({ B: dagnodeB });
+        expect(dag.roots).to.deep.equal({ A: dagnodeA });
+
+        expect(dagnodeB.hasIncoming).to.equal(true);
+        expect(dagnodeB.hasOutgoing).to.equal(false);
+        expect(dagnodeB.incoming).to.deep.equal({ A: dagnodeA });
+        expect(dagnodeB.outgoing).to.deep.equal({});
+        expect(dagnodeB.incomingNames).to.deep.equal(["A"]);
+        expect(dagnodeB.outgoingNames).to.deep.equal([]);
+        expect(dagnodeB.outgoingDepIds).to.deep.equal([]);
+
+        expect(dagnodeA.hasIncoming).to.equal(false);
+        expect(dagnodeA.hasOutgoing).to.equal(true);
+        expect(dagnodeA.incoming).to.deep.equal({});
+        expect(dagnodeA.outgoing).to.deep.equal({ B: dagnodeB });
+        expect(dagnodeA.incomingNames).to.deep.equal([]);
+        expect(dagnodeA.outgoingNames).to.deep.equal(["B"]);
+        expect(dagnodeA.outgoingDepIds).to.deep.equal([AB: dagnodeB]);
+    });
+
+    it('test remove nodes', async () => { });
+
+    it('test visit bottom->up to node', async () => {
+        /**
+         * exemple :
+         *                           A
+         *                          / \
+         *                         B   C
+         *                        / \ / \
+         *                       E  F G  H
+         *
+         * bottom->up to node B => [E, F, B]
+         */
+    });
+
+    it('test visit top->bottom from node', async () => {
+        /**
+         * exemple :
+         *                           A
+         *                          / \
+         *                         B   C
+         *                        / \ / \
+         *                       E  F G  H
+         *
+         * top->bottom from node B => [B, E, F]
+         */
+    });
+
+    it('test visit bottom->up from node', async () => {
+        /**
+         * exemple :
+         *                           A
+         *                          / \
+         *                         B   C
+         *                        / \ / \
+         *                       E  F G  H
+         *
+         * bottom->up from node B => [B, A]
+         */
+    });
+
+    it('test visit top->bottom to node', async () => {
+        /**
+         * exemple :
+         *                           A
+         *                          / \
+         *                         B   C
+         *                        / \ / \
+         *                       E  F G  H
+         *
+         * top->bottom to node B => [A, B]
+         */
+
+    });
+
+    it('test visit bottom->up throught node', async () => {
+        /**
+         * exemple :
+         *                           A
+         *                          / \
+         *                         B   C
+         *                        / \ / \
+         *                       E  F G  H
+         *
+         * bottom->up throught node B => [E, F, B, A]
+         */
+    });
+
+    it('test visit top->bottom throught node', async () => {
+        /**
+         * exemple :
+         *                           A
+         *                          / \
+         *                         B   C
+         *                        / \ / \
+         *                       E  F G  H
+         *
+         * top->bottom throught node B => [A, B, E, F]
+         */
+
+    });
+});
+
 // import SimpleVarConfVO from '../../../shared/modules/Var/simple_vars/SimpleVarConfVO';
 // import VarsController from '../../../shared/modules/Var/VarsController';
 // import FakeVarController from './fakes/FakeVarController';

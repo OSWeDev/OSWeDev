@@ -1,26 +1,13 @@
 import DAG from './DAG';
+import DAGNode from './DAGNode';
 
-export default class DAGNode {
+export default class DAGNodeEdge {
 
-    /**
-     * Factory de noeuds en fonction du nom
-     */
-    public static getInstance(name: string, dag: DAG<DAGNode>): DAGNode {
-        if (!!dag.nodes[name]) {
-            return dag.nodes[name];
-        }
+    public incoming_node: DAGNode = null;
+    public outgoing_node: DAGNode = null;
 
-        return new DAGNode(name, dag).connect_to_DAG();
-    }
-
-    public incoming: { [node_name: string]: DAGNode } = {};
-    public incomingNames: string[] = [];
-
-    public outgoing: { [node_name: string]: DAGNode } = {};
-    // On stocke les indexs ordonnés par date de declaration
-    public outgoingNames: string[] = [];
-    // On stocke les ids des deps dans le même ordre que les indexs
-    public outgoingDepIds: string[] = [];
+    // label qui permet d'identifier la liaison indépendemment des
+    public edge_name: string = null;
 
     /**
      * Use this to postpone the deletion to a batch deletion
@@ -32,7 +19,7 @@ export default class DAGNode {
     /**
      * Use the factory
      */
-    protected constructor(public name: string, public dag: DAG<DAGNode>) { }
+    protected constructor(public name: string, public dag: DAG<DAGNodeOutgoing>) { }
 
     /**
      * Permet de savoir si le vertex a des deps
@@ -91,7 +78,7 @@ export default class DAGNode {
         }
     }
 
-    protected connect_to_DAG(): DAGNode {
+    protected connect_to_DAG(): DAGNodeOutgoing {
         this.dag.add(this);
         return this;
     }
