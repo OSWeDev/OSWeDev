@@ -685,6 +685,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return await AccessPolicyServerController.getInstance().registerPolicyDependency(dependency);
     }
 
+    public async checkUserStatus(uid: number): Promise<boolean> {
+
+        try {
+
+            let res = await ModuleDAOServer.getInstance().query('select invalidated from ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : true;
+            return !invalidated;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return false;
+    }
+
     public getLoggedUserId(): number {
 
         try {

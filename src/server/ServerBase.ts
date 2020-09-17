@@ -416,7 +416,7 @@ export default abstract class ServerBase {
         this.app.use(async (req, res, next) => {
 
             let session: IServerUserSession = null;
-            if (req && req.session) {
+            if (req && !!req.session) {
                 session = req.session;
 
                 if (!session.returning) {
@@ -424,7 +424,13 @@ export default abstract class ServerBase {
                     session.returning = true;
                     session.creation_date_unix = moment().utc(true).unix();
                 } else {
-                    // old session
+                    // old session - on check qu'on doit pas invalider
+                    if (!this.check_session_validity(session)) {
+                        session.destroy(() => {
+                            this.redirect_login_or_home(req, res);
+                        });
+                        return;
+                    }
                 }
             }
 
@@ -432,6 +438,13 @@ export default abstract class ServerBase {
             httpContext.set('REFERER', req.headers.referer);
 
             if (session && session.uid) {
+
+                if (!await ModuleAccessPolicyServer.getInstance().checkUserStatus(session.uid)) {
+                    session.destroy(() => {
+                        this.redirect_login_or_home(req, res);
+                    });
+                    return;
+                }
 
                 httpContext.set('UID', session.uid);
                 httpContext.set('SESSION', session);
@@ -831,7 +844,7 @@ export default abstract class ServerBase {
         await ModuleFileServer.getInstance().makeSureThisFolderExists('./logs');
     }
 
-    private redirect_login_or_home(req: Request, res: Response, url: string = null) {
+    protected redirect_login_or_home(req: Request, res: Response, url: string = null) {
         if (!ModuleAccessPolicy.getInstance().getLoggedUserId()) {
             let fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
             res.redirect('/login#?redirect_to=' + encodeURIComponent(fullUrl));
@@ -839,5 +852,9 @@ export default abstract class ServerBase {
         }
         res.redirect(url ? url : '/login');
         return;
+    }
+
+    protected check_session_validity(session: IServerUserSession): boolean {
+        return true;
     }
 }
