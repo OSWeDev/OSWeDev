@@ -69,6 +69,11 @@ export default class VarDataBaseVO implements IVarDataVOBase {
 
     public var_id: number;
 
+    /**
+     * La valeur calculée du noeud :
+     *  - undefined indique une valeur non calculée
+     *  - null indique une valeur calculée, dont le résultat est : null
+     */
     public value: number;
     public value_type: number;
     public value_ts: Moment;
