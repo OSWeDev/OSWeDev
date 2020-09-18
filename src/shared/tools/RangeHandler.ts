@@ -675,6 +675,7 @@ export default class RangeHandler {
             res += (res == '[' ? '' : ',');
             res += range_index;
         }
+        res += ']';
 
         return res;
     }

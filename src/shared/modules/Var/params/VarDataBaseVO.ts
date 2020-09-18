@@ -3,9 +3,8 @@ import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
 import MatroidController from '../../Matroid/MatroidController';
 import VOsTypesManager from '../../VOsTypesManager';
-import IVarDataVOBase from '../interfaces/IVarDataVOBase';
 
-export default class VarDataBaseVO implements IVarDataVOBase {
+export default class VarDataBaseVO {
 
     /**
      * Méthode pour créer un nouveau paramètre de var, quelque soit le type
@@ -14,7 +13,7 @@ export default class VarDataBaseVO implements IVarDataVOBase {
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      * @param fields_ordered_as_in_moduletable_definition Les ranges du matroid ordonnés dans le même ordre que dans la définition du moduletable
      */
-    public static createNew<T extends IVarDataVOBase>(_type: string, var_id: number, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: Array<Array<IRange<any>>>): T {
+    public static createNew<T extends VarDataBaseVO>(_type: string, var_id: number, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: Array<Array<IRange<any>>>): T {
 
         let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[_type];
 
@@ -39,7 +38,7 @@ export default class VarDataBaseVO implements IVarDataVOBase {
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFrom<T extends IVarDataVOBase>(param_to_clone: T, clone_fields: boolean = true): T {
+    public static cloneFrom<T extends VarDataBaseVO>(param_to_clone: T, clone_fields: boolean = true): T {
 
         if (!param_to_clone) {
             return null;
@@ -54,7 +53,7 @@ export default class VarDataBaseVO implements IVarDataVOBase {
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFrom<T extends IVarDataVOBase>(_type: string, var_id: number, param_to_clone: T, clone_fields: boolean = true): T {
+    public static cloneFieldsFrom<T extends VarDataBaseVO>(_type: string, var_id: number, param_to_clone: T, clone_fields: boolean = true): T {
 
         let res: T = MatroidController.getInstance().cloneFrom(param_to_clone, _type, clone_fields);
         if (!res) {
@@ -95,7 +94,7 @@ export default class VarDataBaseVO implements IVarDataVOBase {
                 let field = fields[i];
 
                 this._index += '_';
-                this._index = RangeHandler.getInstance().getIndexRanges(field.field_value);
+                this._index += RangeHandler.getInstance().getIndexRanges(this[field.field_id]);
             }
         }
 

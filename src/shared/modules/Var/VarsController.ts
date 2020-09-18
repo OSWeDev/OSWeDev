@@ -22,8 +22,8 @@ import VarDAGDefineNodeDeps from './graph/var/visitors/VarDAGDefineNodeDeps';
 import VarDAGDefineNodePropagateRequest from './graph/var/visitors/VarDAGDefineNodePropagateRequest';
 import VarDAGMarkForDeletion from './graph/var/visitors/VarDAGMarkForDeletion';
 import ITSRangesSimpleNumberVarData from './interfaces/ITSRangesSimpleNumberVarData';
-import IVarDataVOBase from './interfaces/IVarDataVOBase';
 import ModuleVar from './ModuleVar';
+import VarDataBaseVO from './params/VarDataBaseVO';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
 import SimpleVarDataValueRes from './simple_vars/SimpleVarDataValueRes';
 import VarControllerBase from './VarControllerBase';
@@ -59,7 +59,7 @@ export default class VarsController {
     private static instance: VarsController = null;
 
     public varDAG: VarDAG = new VarDAG(
-        (name: string, dag: VarDAG, param: IVarDataVOBase) => new VarDAGNode(name, dag, param),
+        (name: string, dag: VarDAG, param: VarDataBaseVO) => new VarDAGNode(name, dag, param),
         this.onVarDAGNodeRemoval.bind(this));
 
     public datasource_deps_by_var_id: { [var_id: number]: Array<IDataSourceController<any>> } = {};
@@ -78,15 +78,15 @@ export default class VarsController {
 
     public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void = null;
 
-    public varDatasStaticCache: { [index: string]: IVarDataVOBase } = {};
-    public varDatas: { [paramIndex: string]: IVarDataVOBase } = null;
-    public varDatasBATCHCache: { [index: string]: IVarDataVOBase } = {};
+    public varDatasStaticCache: { [index: string]: VarDataBaseVO } = {};
+    public varDatas: { [paramIndex: string]: VarDataBaseVO } = null;
+    public varDatasBATCHCache: { [index: string]: VarDataBaseVO } = {};
 
     public cached_var_id_by_datasource_by_api_type_id: { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarControllerBase<any> } } } = {};
     public cached_var_by_var_id: { [var_id: number]: VarControllerBase<any> } = {};
     public parent_vars_by_var_id: { [var_id: number]: { [parent_var_id: number]: VarControllerBase<any> } } = {};
 
-    private setVarsData_: (varDatas: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) => void = null;
+    private setVarsData_: (varDatas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }) => void = null;
 
     private setStepNumber: (step_number: number) => void = null;
     private setIsStepping: (is_stepping: boolean) => void = null;
@@ -115,11 +115,23 @@ export default class VarsController {
     protected constructor() {
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
     get registered_vars_controller(): { [name: string]: VarControllerBase<any> } {
         return this.registered_vars_controller_;
     }
 
-    public vardatas_by_index_from_array<T extends IVarDataVOBase>(vardatas: T[]): { [index: string]: T } {
+    public vardatas_by_index_from_array<T extends VarDataBaseVO>(vardatas: T[]): { [index: string]: T } {
         let res: { [index: string]: T } = {};
 
         for (let i in vardatas) {
@@ -192,7 +204,7 @@ export default class VarsController {
         }
 
         for (let index in this.varDatasBATCHCache) {
-            let varData: IVarDataVOBase = this.varDatasBATCHCache[index];
+            let varData: VarDataBaseVO = this.varDatasBATCHCache[index];
 
             // Set the data finally
             this.setVarData(varData);
@@ -201,7 +213,7 @@ export default class VarsController {
         this.varDatasBATCHCache = {};
     }
 
-    public setVarData<T extends IVarDataVOBase>(varData: T, set_in_batch_cache: boolean = false) {
+    public setVarData<T extends VarDataBaseVO>(varData: T, set_in_batch_cache: boolean = false) {
 
         if (!varData) {
             return;
@@ -221,11 +233,11 @@ export default class VarsController {
         }
     }
 
-    public getVarData<T extends IVarDataVOBase>(param: IVarDataVOBase, search_in_batch_cache: boolean = false): T {
+    public getVarData<T extends VarDataBaseVO>(param: VarDataBaseVO, search_in_batch_cache: boolean = false): T {
         return this.getVarDataByIndex(param.index, search_in_batch_cache);
     }
 
-    public getVarDataByIndex<T extends IVarDataVOBase>(index: string, search_in_batch_cache: boolean = false): T {
+    public getVarDataByIndex<T extends VarDataBaseVO>(index: string, search_in_batch_cache: boolean = false): T {
 
         if (!index) {
             return null;
@@ -266,9 +278,9 @@ export default class VarsController {
         return varData;
     }
 
-    public registerStoreHandlers<TData extends IVarDataVOBase>(
+    public registerStoreHandlers<TData extends VarDataBaseVO>(
         getVarData: { [paramIndex: string]: TData },
-        setVarsData: (varDatas: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) => void,
+        setVarsData: (varDatas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }) => void,
         setIsStepping: (is_stepping: boolean) => void,
         setIsWaiting: (isWaiting: boolean) => void,
         setStepNumber: (step_number: number) => void,
@@ -308,7 +320,7 @@ export default class VarsController {
 
         this.define_datasource_deps();
 
-        let res: { [index: string]: IVarDataVOBase } = DataSourcesController.getInstance().getUpdatedParamsFromVoUpdate(vo_before_update, vo_after_update);
+        let res: { [index: string]: VarDataBaseVO } = DataSourcesController.getInstance().getUpdatedParamsFromVoUpdate(vo_before_update, vo_after_update);
 
         if (!res) {
             return;
@@ -319,7 +331,7 @@ export default class VarsController {
         }
     }
 
-    public setNewValueOutsideNormalUpdate<TData extends IVarDataVOBase>(value: TData) {
+    public setNewValueOutsideNormalUpdate<TData extends VarDataBaseVO>(value: TData) {
 
         this.setVarData(value, false);
 
@@ -354,7 +366,7 @@ export default class VarsController {
         }
     }
 
-    public stageUpdateData<TDataParam extends IVarDataVOBase>(param: TDataParam, force_reload_if_updating: boolean = false) {
+    public stageUpdateData<TDataParam extends VarDataBaseVO>(param: TDataParam, force_reload_if_updating: boolean = false) {
 
         let index: string = param.index;
         if ((!index) || (!this.varDAG.nodes[index])) {
@@ -381,7 +393,7 @@ export default class VarsController {
         }
     }
 
-    public stageUpdateDataAndReloadImports<TDataParam extends IVarDataVOBase>(param: TDataParam, remove_import: boolean = false) {
+    public stageUpdateDataAndReloadImports<TDataParam extends VarDataBaseVO>(param: TDataParam, remove_import: boolean = false) {
 
         let index: string = param.index;
         if ((!index) || (!this.varDAG.nodes[index])) {
@@ -398,7 +410,7 @@ export default class VarsController {
         this.stageUpdateData(param, true);
     }
 
-    public registerDataParam<TDataParam extends IVarDataVOBase>(
+    public registerDataParam<TDataParam extends VarDataBaseVO>(
         param: TDataParam,
         reload_on_register: boolean = false,
         var_callbacks: VarUpdateCallback[] = null,
@@ -457,7 +469,7 @@ export default class VarsController {
         this.loaded_imported_datas_of_vars_ids = {};
     }
 
-    public unregisterCallbacks<TDataParam extends IVarDataVOBase>(param: TDataParam, var_callbacks_uids: number[]) {
+    public unregisterCallbacks<TDataParam extends VarDataBaseVO>(param: TDataParam, var_callbacks_uids: number[]) {
 
         if (!param) {
             return false;
@@ -477,8 +489,8 @@ export default class VarsController {
         this.registered_var_callbacks[param_index] = remaining_callbacks;
     }
 
-    public async registerDataParamAndReturnVarData<TDataParam extends IVarDataVOBase>(
-        param: TDataParam, reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false): Promise<IVarDataVOBase> {
+    public async registerDataParamAndReturnVarData<TDataParam extends VarDataBaseVO>(
+        param: TDataParam, reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false): Promise<VarDataBaseVO> {
 
         this.changeTsRanges(param);
 
@@ -486,11 +498,11 @@ export default class VarsController {
         this.check_tsrange_on_resetable_var(param);
 
         let self = this;
-        return new Promise<IVarDataVOBase>((accept, reject) => {
+        return new Promise<VarDataBaseVO>((accept, reject) => {
 
             try {
 
-                let var_callback_once = VarUpdateCallback.newCallbackOnce(param.index, (varData: IVarDataVOBase) => {
+                let var_callback_once = VarUpdateCallback.newCallbackOnce(param.index, (varData: VarDataBaseVO) => {
                     self.unregisterDataParam(param);
                     accept(varData);
                 });
@@ -503,7 +515,7 @@ export default class VarsController {
         });
     }
 
-    public async registerDataParamsAndReturnVarDatas<TDataParam extends IVarDataVOBase, TData extends TDataParam & IVarDataVOBase>(
+    public async registerDataParamsAndReturnVarDatas<TDataParam extends VarDataBaseVO, TData extends TDataParam & VarDataBaseVO>(
         params: TDataParam[], reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false): Promise<TData[]> {
 
         let res: TData[] = [];
@@ -555,7 +567,7 @@ export default class VarsController {
         }
     }
 
-    public unregisterDataParam<TDataParam extends IVarDataVOBase>(param: TDataParam) {
+    public unregisterDataParam<TDataParam extends VarDataBaseVO>(param: TDataParam) {
 
         let index: string = param.index;
         if (!index) {
@@ -573,7 +585,7 @@ export default class VarsController {
         this.varDAG.unregisterIndexes([index]);
     }
 
-    public getImportedVarsDatasByIndexFromArray<TImportedData extends IVarDataVOBase>(
+    public getImportedVarsDatasByIndexFromArray<TImportedData extends VarDataBaseVO>(
         compteursValeursImportees: TImportedData[]): { [var_id: number]: { [param_index: string]: TImportedData } } {
         let res: { [var_id: number]: { [param_index: string]: TImportedData } } = {};
 
@@ -644,7 +656,7 @@ export default class VarsController {
         );
     }
 
-    public changeTsRanges(param: IVarDataVOBase): void {
+    public changeTsRanges(param: VarDataBaseVO): void {
         if (!param) {
             return;
         }
@@ -697,7 +709,7 @@ export default class VarsController {
      *  ça permet d'avoir des ranges uniformes pour parler toujours des mêmes choses
      *  pour l'instant on fait pour année 2019 : (2019, 2019, true, true) et pas (2019, 2020, true, false) a voir si c'est pertinent. au moins c'est cohérent avec les autres fonctions atuellement
      */
-    public check_tsrange_on_resetable_var(param: IVarDataVOBase): boolean {
+    public check_tsrange_on_resetable_var(param: VarDataBaseVO): boolean {
         if (!param) {
             return false;
         }
@@ -836,7 +848,7 @@ export default class VarsController {
      * @param p1
      * @param p2
      */
-    public isSameParam(p1: IVarDataVOBase, p2: IVarDataVOBase): boolean {
+    public isSameParam(p1: VarDataBaseVO, p2: VarDataBaseVO): boolean {
         return p1.index == p2.index;
     }
 
@@ -845,7 +857,7 @@ export default class VarsController {
      * @param ps1
      * @param ps2
      */
-    public isSameParamArray(ps1: IVarDataVOBase[], ps2: IVarDataVOBase[]): boolean {
+    public isSameParamArray(ps1: VarDataBaseVO[], ps2: VarDataBaseVO[]): boolean {
         ps1 = (!!ps1) ? ps1 : [];
         ps2 = (!!ps2) ? ps2 : [];
 
@@ -854,8 +866,8 @@ export default class VarsController {
         }
 
         for (let i in ps1) {
-            let p1: IVarDataVOBase = ps1[i];
-            let p2: IVarDataVOBase = ps2[i];
+            let p1: VarDataBaseVO = ps1[i];
+            let p2: VarDataBaseVO = ps2[i];
 
             if (p1.index != p2.index) {
                 return false;
@@ -1277,12 +1289,12 @@ export default class VarsController {
 
                 if (var_controller.can_use_optimized_imports_calculation && ne_peut_pas_calculer) {
 
-                    let value: number = await ModuleVar.getInstance().getSimpleVarDataValueSumFilterByMatroids<IVarDataVOBase, IVarDataVOBase>(this.getVarConfById(node.param.var_id).var_data_vo_type, [node.param], {});
+                    let value: number = await ModuleVar.getInstance().getSimpleVarDataValueSumFilterByMatroids<VarDataBaseVO, VarDataBaseVO>(this.getVarConfById(node.param.var_id).var_data_vo_type, [node.param], {});
                     node.loaded_datas_matroids = [];
                     node.computed_datas_matroids = [];
                     node.loaded_datas_matroids_sum_value = value;
 
-                    let var_value: IVarDataVOBase = MatroidController.getInstance().cloneFrom(node.param as IVarDataVOBase);
+                    let var_value: VarDataBaseVO = MatroidController.getInstance().cloneFrom(node.param as VarDataBaseVO);
                     var_value.value = value;
                     var_value.value_type = VarsController.VALUE_TYPE_IMPORT;
                     node.value = var_value;
@@ -1311,7 +1323,7 @@ export default class VarsController {
 
                     if (value && value.has_value) {
 
-                        let var_value: IVarDataVOBase = MatroidController.getInstance().cloneFrom(node.param as IVarDataVOBase);
+                        let var_value: VarDataBaseVO = MatroidController.getInstance().cloneFrom(node.param as VarDataBaseVO);
                         var_value.value = value.value;
                         var_value.value_type = VarsController.VALUE_TYPE_IMPORT;
                         node.value = var_value;
@@ -1333,7 +1345,7 @@ export default class VarsController {
                     return;
                 }
 
-                let matroids_inscrits: IVarDataVOBase[] = await ModuleDAO.getInstance().filterVosByMatroids<IVarDataVOBase, IVarDataVOBase>(this.getVarConfById(node.param.var_id).var_data_vo_type, [node.param], {});
+                let matroids_inscrits: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroids<VarDataBaseVO, VarDataBaseVO>(this.getVarConfById(node.param.var_id).var_data_vo_type, [node.param], {});
 
                 if (!matroids_inscrits) {
                     return;
@@ -1354,8 +1366,8 @@ export default class VarsController {
                 //  qui se pose sur 6 semaines, dont 4,5 sont couverts par un mois en datarendered, on a un cardinal élevé, on couvre 4 semaines probablement, mais on pourra probablement
                 //  plus tenter de couvrire les semaines restantes avec des calculs semaine.Alors que si on prend les 6 semaines en calculé, on couvre la totalité et on recalcule rien.
                 //  L'approximation est-elle suffisante, à voir dans le temps.
-                let matroids_list: IVarDataVOBase[] = [];
-                let tmp_matroids_list: IVarDataVOBase[] = [];
+                let matroids_list: VarDataBaseVO[] = [];
+                let tmp_matroids_list: VarDataBaseVO[] = [];
 
                 let cardinaux: { [id: number]: number } = {};
 
@@ -1377,7 +1389,7 @@ export default class VarsController {
                     return;
                 }
 
-                matroids_inscrits.sort((a: IVarDataVOBase, b: IVarDataVOBase) =>
+                matroids_inscrits.sort((a: VarDataBaseVO, b: VarDataBaseVO) =>
                     cardinaux[b.id] - cardinaux[a.id]);
 
                 for (let j in matroids_inscrits) {
@@ -1426,16 +1438,16 @@ export default class VarsController {
                     continue;
                 }
 
-                node.computed_datas_matroids = [MatroidController.getInstance().cloneFrom(node.param as IVarDataVOBase)] as IVarDataVOBase[];
+                node.computed_datas_matroids = [MatroidController.getInstance().cloneFrom(node.param as VarDataBaseVO)] as VarDataBaseVO[];
                 continue;
             }
 
-            let matroids_list: IVarDataVOBase[] = node.loaded_datas_matroids as IVarDataVOBase[];
+            let matroids_list: VarDataBaseVO[] = node.loaded_datas_matroids as VarDataBaseVO[];
 
             let remaining_matroids = [];
             if (!(((!var_controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
                 ((!var_controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide)))) {
-                remaining_matroids = [MatroidController.getInstance().cloneFrom(node.param as IVarDataVOBase)];
+                remaining_matroids = [MatroidController.getInstance().cloneFrom(node.param as VarDataBaseVO)];
             }
 
             for (let j in matroids_list) {
@@ -1456,14 +1468,14 @@ export default class VarsController {
                     continue;
                 }
 
-                let cut_results: Array<MatroidCutResult<IVarDataVOBase>> = MatroidController.getInstance().cut_matroids(matroid, remaining_matroids);
+                let cut_results: Array<MatroidCutResult<VarDataBaseVO>> = MatroidController.getInstance().cut_matroids(matroid, remaining_matroids);
                 remaining_matroids = [];
                 for (let k in cut_results) {
                     remaining_matroids = remaining_matroids.concat(cut_results[k].remaining_items);
                 }
             }
 
-            node.computed_datas_matroids = remaining_matroids as IVarDataVOBase[];
+            node.computed_datas_matroids = remaining_matroids as VarDataBaseVO[];
         }
     }
 
@@ -1490,7 +1502,7 @@ export default class VarsController {
                 let computed_datas_matroid = node.computed_datas_matroids[j];
 
                 let fake_vardagnode = new VarDAGNode(computed_datas_matroid.index, null, computed_datas_matroid);
-                let deps: { [dep_id: string]: IVarDataVOBase } = node_controller.getParamDependencies(fake_vardagnode, this.varDAG);
+                let deps: { [dep_id: string]: VarDataBaseVO } = node_controller.getParamDependencies(fake_vardagnode, this.varDAG);
 
                 VarDAGDefineNodeDeps.add_node_deps(node, this.varDAG, deps, {});
 
@@ -1623,8 +1635,8 @@ export default class VarsController {
                     // On doit récupérer les noeuds concernés et demander le chargement des datasources predeps
                     let nodes_names_to_preload: string[] = this.varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_NEEDS_PREDEPS_DATASOURCE_LOADING];
 
-                    let datasources_batches: { [datasource_name: string]: { [index: string]: IVarDataVOBase } } = {};
-                    let params: { [index: string]: IVarDataVOBase } = {};
+                    let datasources_batches: { [datasource_name: string]: { [index: string]: VarDataBaseVO } } = {};
+                    let params: { [index: string]: VarDataBaseVO } = {};
 
                     for (let i in nodes_names_to_preload) {
                         let node_name_to_preload: string = nodes_names_to_preload[i];
@@ -1697,7 +1709,7 @@ export default class VarsController {
         }
     }
 
-    private run_callbacks(param: IVarDataVOBase, param_index: string) {
+    private run_callbacks(param: VarDataBaseVO, param_index: string) {
         let remaining_callbacks: VarUpdateCallback[] = [];
 
         for (let i in this.registered_var_callbacks[param_index]) {
@@ -1750,7 +1762,7 @@ export default class VarsController {
 
         // On doit charger toutes les datas dont dépendent les ongoing_update
         let source_deps_by_node_names: { [node_name: string]: string[] } = {};
-        let var_params_by_source_deps: { [ds_name: string]: IVarDataVOBase[] } = {};
+        let var_params_by_source_deps: { [ds_name: string]: VarDataBaseVO[] } = {};
 
         for (let i in this.varDAG.nodes) {
             let node: VarDAGNode = this.varDAG.nodes[i];

@@ -135,9 +135,9 @@ export default class MatroidController {
         }
 
         let matroid_fields: Array<ModuleTableField<any>> = [];
-        for (let i in moduleTable.get_fields()) {
-
-            let field = moduleTable.get_fields()[i];
+        let mt_fields = moduleTable.get_fields();
+        for (let i in mt_fields) {
+            let field = mt_fields[i];
 
             switch (field.field_type) {
                 // case ModuleTableField.FIELD_TYPE_daterange_array:
