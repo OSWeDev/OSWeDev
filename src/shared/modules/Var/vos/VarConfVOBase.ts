@@ -1,15 +1,13 @@
 import INamedVO from '../../../interfaces/INamedVO';
 
-export default abstract class VarConfVOBase implements INamedVO {
+export default class VarConfVOBase implements INamedVO {
+
+    public static API_TYPE_ID: string = "simple_var_conf";
 
     public id: number;
-    public abstract _type: string;
 
+    public _type: string = VarConfVOBase.API_TYPE_ID;
     public name: string;
 
     public var_data_vo_type: string;
-
-    public has_yearly_reset: boolean;
-    public yearly_reset_day_in_month: number;
-    public yearly_reset_month: number;
 }

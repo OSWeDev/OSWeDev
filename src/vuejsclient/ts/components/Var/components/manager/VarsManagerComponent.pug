@@ -13,8 +13,8 @@
         i.fa.fa-check-circle.fa-fw(aria-hidden="true" :class="{'fa-2x': isDescMode}" @click='switchDescMode')
 
     .desc_window(v-show='isDescMode && isDescOpened')
-        template(v-show='!!getDescSelectedIndex')
-            var-desc(:var_param='selected_param')
+        template(v-show='!!getDescSelectedVarParam')
+            var-desc(:var_param='getDescSelectedVarParam')
 
     .desc_window(v-show='isDescMode && isDescRegistrationsOpened')
         var-desc-registrations

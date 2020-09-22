@@ -29,10 +29,6 @@
                 li(v-for='(datasource_value, datasource_name) in var_datasources')
                     b {{ datasource_name + ' : ' }}
                     | {{ datasource_value }}
-            h5.card-title {{ label('var.desc_mode.var_missing_datas') }}
-            i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_missing_datas')
-            ul
-                li(v-for='missing_data in var_missing_datas') {{ label(missing_data) }}
             template(v-if='!!var_dependencies_count')
                 h5.card-title {{ label('var.desc_mode.dependencies_number') }}
                 p.card-text {{ var_dependencies_count }}

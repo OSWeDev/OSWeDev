@@ -1,10 +1,8 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
-import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
-import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataSumComponent.scss';
@@ -14,16 +12,16 @@ import './VarDataSumComponent.scss';
 })
 export default class VarDataSumComponent extends VueComponentBase {
     @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
+    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
-    public getDescSelectedIndex: string;
+    public getDescSelectedVarParam: VarDataBaseVO;
     @ModuleVarAction
-    public setDescSelectedIndex: (desc_selected_index: string) => void;
+    public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
     @ModuleVarGetter
     public isDescMode: boolean;
 
     @Prop()
-    public var_params: IVarDataParamVOBase[];
+    public var_params: VarDataBaseVO[];
 
     @Prop({ default: null })
     public filter: () => any;
@@ -93,122 +91,122 @@ export default class VarDataSumComponent extends VueComponentBase {
 
         for (let i in this.var_datas) {
             let var_data = this.var_datas[i];
-            res += (var_data as ISimpleNumberVarData).value;
+            res += var_data.value;
         }
 
         return res;
     }
 
     get is_selected_var(): boolean {
-        if (!this.isDescMode) {
+        if ((!this.isDescMode) || (!this.getDescSelectedVarParam)) {
             return false;
         }
 
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
 
-            if (this.getDescSelectedIndex == VarsController.getInstance().getIndex(var_param)) {
+            if (this.getDescSelectedVarParam.index == var_param.index) {
                 return true;
             }
         }
         return false;
     }
 
-    get is_selected_var_dependency(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    // get is_selected_var_dependency(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
 
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
+    //     let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedVarParam];
 
-        if (!selectedNode) {
-            return false;
-        }
+    //     if (!selectedNode) {
+    //         return false;
+    //     }
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
+    //     for (let i in this.var_params) {
+    //         let var_param = this.var_params[i];
 
-            if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], false)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    //         if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], false)) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
-    public is_selected_var_dependency_rec(selectedNode: VarDAGNode, test_node: VarDAGNode, test_incoming: boolean): boolean {
-        // On traverse les deps de même var_id en considérant que c'est à plat. Ca permet de voir une
-        //  dep de type cumul au complet et pas juste le jour de demande du cumul
-        if ((!test_node) || (!selectedNode)) {
-            return false;
-        }
-        if (!!test_incoming) {
+    // public is_selected_var_dependency_rec(selectedNode: VarDAGNode, test_node: VarDAGNode, test_incoming: boolean): boolean {
+    //     // On traverse les deps de même var_id en considérant que c'est à plat. Ca permet de voir une
+    //     //  dep de type cumul au complet et pas juste le jour de demande du cumul
+    //     if ((!test_node) || (!selectedNode)) {
+    //         return false;
+    //     }
+    //     if (!!test_incoming) {
 
-            if ((!!test_node.incomingNames) && (test_node.incomingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-                return true;
-            }
+    //         if ((!!test_node.incomingNames) && (test_node.incomingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
+    //             return true;
+    //         }
 
-            for (let i in test_node.incoming) {
-                let incoming: VarDAGNode = test_node.incoming[i] as VarDAGNode;
-
-
-                if (incoming.param.var_id == selectedNode.param.var_id) {
-                    if (this.is_selected_var_dependency_rec(selectedNode, incoming, test_incoming)) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-
-            if ((!!test_node.outgoingNames) && (test_node.outgoingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-                return true;
-            }
-
-            for (let i in test_node.outgoing) {
-                let outgoing: VarDAGNode = test_node.outgoing[i] as VarDAGNode;
+    //         for (let i in test_node.incoming) {
+    //             let incoming: VarDAGNode = test_node.incoming[i] as VarDAGNode;
 
 
-                if (outgoing.param.var_id == selectedNode.param.var_id) {
-                    if (this.is_selected_var_dependency_rec(selectedNode, outgoing, test_incoming)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+    //             if (incoming.param.var_id == selectedNode.param.var_id) {
+    //                 if (this.is_selected_var_dependency_rec(selectedNode, incoming, test_incoming)) {
+    //                     return true;
+    //                 }
+    //             }
+    //         }
+    //     } else {
 
-    get is_selected_var_dependent(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    //         if ((!!test_node.outgoingNames) && (test_node.outgoingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
+    //             return true;
+    //         }
 
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
+    //         for (let i in test_node.outgoing) {
+    //             let outgoing: VarDAGNode = test_node.outgoing[i] as VarDAGNode;
 
-        if ((!selectedNode) || (!selectedNode.outgoingNames)) {
-            return false;
-        }
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
+    //             if (outgoing.param.var_id == selectedNode.param.var_id) {
+    //                 if (this.is_selected_var_dependency_rec(selectedNode, outgoing, test_incoming)) {
+    //                     return true;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return false;
+    // }
 
-            if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], true)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    // get is_selected_var_dependent(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
 
-    get var_datas(): IVarDataVOBase[] {
+    //     let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedVarParam];
+
+    //     if ((!selectedNode) || (!selectedNode.outgoingNames)) {
+    //         return false;
+    //     }
+
+    //     for (let i in this.var_params) {
+    //         let var_param = this.var_params[i];
+
+    //         if (this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(var_param)], true)) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
+
+    get var_datas(): VarDataValueResVO[] {
 
         if ((!this.getVarDatas) || (!this.var_params) || (!this.var_params.length)) {
             return null;
         }
 
-        let res: IVarDataVOBase[] = [];
+        let res: VarDataValueResVO[] = [];
 
         for (let i in this.var_params) {
             let var_param = this.var_params[i];
-            let var_data = this.getVarDatas[VarsController.getInstance().getIndex(var_param)];
+            let var_data = this.getVarDatas[var_param.index];
 
             if (!!var_data) {
 
@@ -247,17 +245,17 @@ export default class VarDataSumComponent extends VueComponentBase {
         }
     }
 
-    private register(var_param: IVarDataParamVOBase) {
+    private register(var_param: VarDataBaseVO) {
         VarsController.getInstance().registerDataParam(var_param, this.reload_on_mount);
     }
 
-    private unregister(var_param: IVarDataParamVOBase) {
+    private unregister(var_param: VarDataBaseVO) {
         VarsController.getInstance().unregisterDataParam(var_param);
     }
 
 
     @Watch('var_params')
-    private onChangeVarParam(new_var_params: IVarDataParamVOBase[], old_var_params: IVarDataParamVOBase[]) {
+    private onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         if ((!new_var_params) && (!old_var_params)) {
             return;

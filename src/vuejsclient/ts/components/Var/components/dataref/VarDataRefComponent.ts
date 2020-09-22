@@ -1,14 +1,8 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
-import TimeSegment from '../../../../../../shared/modules/DataRender/vos/TimeSegment';
-import TSRange from '../../../../../../shared/modules/DataRender/vos/TSRange';
-import ModuleTableField from '../../../../../../shared/modules/ModuleTableField';
-import VarDAGNode from '../../../../../../shared/modules/Var/graph/var/VarDAGNode';
-import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import './VarDataRefComponent.scss';
@@ -18,21 +12,21 @@ import './VarDataRefComponent.scss';
 })
 export default class VarDataRefComponent extends VueComponentBase {
     @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
+    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
-    public getDescSelectedIndex: string;
+    public getDescSelectedVarParam: VarDataBaseVO;
     @ModuleVarGetter
     public get_dependencies_heatmap_version: number;
     @ModuleVarAction
-    public setDescSelectedIndex: (desc_selected_index: string) => void;
+    public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
     @ModuleVarGetter
     public isDescMode: boolean;
 
     @Prop()
-    public var_param: IVarDataVOBase;
+    public var_param: VarDataBaseVO;
 
     @Prop({ default: null })
-    public var_value_callback: (var_value: IVarDataVOBase, component: VarDataRefComponent) => any;
+    public var_value_callback: (var_value: VarDataValueResVO, component: VarDataRefComponent) => any;
 
     @Prop({ default: null })
     public filter: () => any;
@@ -71,7 +65,6 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     get is_being_updated(): boolean {
 
-        // Si la var data est null on considère qu'elle est en cours de chargement. C'est certainement faux, souvent, mais ça peut aider beaucoup pour afficher au plus tôt le fait que la var est en attente de calcul
         if (!this.var_data) {
             return true;
         }
@@ -104,298 +97,298 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
 
         if (!this.var_value_callback) {
-            return (this.var_data as ISimpleNumberVarData).value;
+            return this.var_data.value;
         }
 
         return this.var_value_callback(this.var_data, this);
     }
 
     get is_selected_var(): boolean {
-        if (!this.isDescMode) {
+        if ((!this.isDescMode) || (!this.getDescSelectedVarParam)) {
             return false;
         }
-        return this.getDescSelectedIndex == VarsController.getInstance().getIndex(this.var_param);
+        return this.getDescSelectedVarParam.index == this.var_param.index;
     }
 
-    get is_selected_var_dependency(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    // get is_selected_var_dependency(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
 
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
+    //     let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedvarparam];
 
-        if (!selectedNode) {
-            return false;
-        }
+    //     if (!selectedNode) {
+    //         return false;
+    //     }
 
-        return this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)], false);
-    }
+    //     return this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[this.var_param.index], false);
+    // }
 
-    public is_selected_var_dependency_rec(selectedNode: VarDAGNode, test_node: VarDAGNode, test_incoming: boolean): boolean {
-        // On traverse les deps de même var_id en considérant que c'est à plat. Ca permet de voir une
-        //  dep de type cumul au complet et pas juste le jour de demande du cumul
-        if ((!test_node) || (!selectedNode)) {
-            return false;
-        }
-        if (!!test_incoming) {
+    // public is_selected_var_dependency_rec(selectedNode: VarDAGNode, test_node: VarDAGNode, test_incoming: boolean): boolean {
+    //     // On traverse les deps de même var_id en considérant que c'est à plat. Ca permet de voir une
+    //     //  dep de type cumul au complet et pas juste le jour de demande du cumul
+    //     if ((!test_node) || (!selectedNode)) {
+    //         return false;
+    //     }
+    //     if (!!test_incoming) {
 
-            if ((!!test_node.incomingNames) && (test_node.incomingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-                return true;
-            }
+    //         if ((!!test_node.incomingNames) && (test_node.incomingNames.indexOf(selectedNode.param.index) >= 0)) {
+    //             return true;
+    //         }
 
-            for (let i in test_node.incoming) {
-                let incoming: VarDAGNode = test_node.incoming[i] as VarDAGNode;
-
-
-                if (incoming.param.var_id == selectedNode.param.var_id) {
-                    if (this.is_selected_var_dependency_rec(selectedNode, incoming, test_incoming)) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-
-            if ((!!test_node.outgoingNames) && (test_node.outgoingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
-                return true;
-            }
-
-            for (let i in test_node.outgoing) {
-                let outgoing: VarDAGNode = test_node.outgoing[i] as VarDAGNode;
+    //         for (let i in test_node.incoming) {
+    //             let incoming: VarDAGNode = test_node.incoming[i] as VarDAGNode;
 
 
-                if (outgoing.param.var_id == selectedNode.param.var_id) {
-                    if (this.is_selected_var_dependency_rec(selectedNode, outgoing, test_incoming)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+    //             if (incoming.param.var_id == selectedNode.param.var_id) {
+    //                 if (this.is_selected_var_dependency_rec(selectedNode, incoming, test_incoming)) {
+    //                     return true;
+    //                 }
+    //             }
+    //         }
+    //     } else {
 
-    public get_values_of_selected_fields(matroid, add_infos: string[]): string {
-        if ((!this.var_param) || (!matroid)) {
-            return null;
-        }
+    //         if ((!!test_node.outgoingNames) && (test_node.outgoingNames.indexOf(VarsController.getInstance().getIndex(selectedNode.param)) >= 0)) {
+    //             return true;
+    //         }
 
-        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+    //         for (let i in test_node.outgoing) {
+    //             let outgoing: VarDAGNode = test_node.outgoing[i] as VarDAGNode;
 
-        if (!controller) {
-            return null;
-        }
 
-        let res: string = "";
-        let nb_fields: number = 0;
-        // let param: any = {};
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
+    //             if (outgoing.param.var_id == selectedNode.param.var_id) {
+    //                 if (this.is_selected_var_dependency_rec(selectedNode, outgoing, test_incoming)) {
+    //                     return true;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return false;
+    // }
 
-        for (let i in moduletable.get_fields()) {
-            let field = moduletable.get_fields()[i];
+    // public get_values_of_selected_fields(matroid, add_infos: string[]): string {
+    //     if ((!this.var_param) || (!matroid)) {
+    //         return null;
+    //     }
 
-            // les champs que l'on souhaite afficher doivent être dans add_infos, sinon on les passe
-            if ((add_infos.length > 0) && (add_infos.indexOf(field.field_id) < 0)) {
-                continue;
-            }
-            let pos: number = add_infos.indexOf(field.field_id);
-            res += (nb_fields > 0) ? ' : ' : '';
+    //     let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
 
-            // est-ce qu'on doit afficher le nom du champ
-            res += (this.add_infos_additional_params[pos][0]) ? field.field_id : '';
+    //     if (!controller) {
+    //         return null;
+    //     }
 
-            // comment affiche t'on le tsrange (min, max, ou complet)
-            if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (controller.segment_type == TimeSegment.TYPE_DAY)) {
-                let tstzrange: TSRange = matroid[field.field_id][0] as TSRange;
-                switch (this.add_infos_additional_params[pos][1]) {
-                    case 'min':
-                        res += (tstzrange.min_inclusiv) ? tstzrange.min.format('DD/MM/Y') : tstzrange.min.clone().add(1, 'day').format('DD/MM/Y');
-                        break;
-                    case 'max':
-                        res += (tstzrange.max_inclusiv) ? tstzrange.max.format('DD/MM/Y') : tstzrange.max.clone().add(-1, 'day').format('DD/MM/Y');
-                        break;
-                    default:
-                        res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
-                }
-            } else {
-                res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
-            }
-            nb_fields++;
-        }
+    //     let res: string = "";
+    //     let nb_fields: number = 0;
+    //     // let param: any = {};
+    //     let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
 
-        return res;
-    }
+    //     for (let i in moduletable.get_fields()) {
+    //         let field = moduletable.get_fields()[i];
 
-    get is_dependencies_heatmap_lvl_0(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    //         // les champs que l'on souhaite afficher doivent être dans add_infos, sinon on les passe
+    //         if ((add_infos.length > 0) && (add_infos.indexOf(field.field_id) < 0)) {
+    //             continue;
+    //         }
+    //         let pos: number = add_infos.indexOf(field.field_id);
+    //         res += (nb_fields > 0) ? ' : ' : '';
 
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return true;
-        }
+    //         // est-ce qu'on doit afficher le nom du champ
+    //         res += (this.add_infos_additional_params[pos][0]) ? field.field_id : '';
 
-        if (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) {
-            return true;
-        }
+    //         // comment affiche t'on le tsrange (min, max, ou complet)
+    //         if ((field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (controller.segment_type == TimeSegment.TYPE_DAY)) {
+    //             let tstzrange: TSRange = matroid[field.field_id][0] as TSRange;
+    //             switch (this.add_infos_additional_params[pos][1]) {
+    //                 case 'min':
+    //                     res += (tstzrange.min_inclusiv) ? tstzrange.min.format('DD/MM/Y') : tstzrange.min.clone().add(1, 'day').format('DD/MM/Y');
+    //                     break;
+    //                 case 'max':
+    //                     res += (tstzrange.max_inclusiv) ? tstzrange.max.format('DD/MM/Y') : tstzrange.max.clone().add(-1, 'day').format('DD/MM/Y');
+    //                     break;
+    //                 default:
+    //                     res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+    //             }
+    //         } else {
+    //             res += SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+    //         }
+    //         nb_fields++;
+    //     }
 
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+    //     return res;
+    // }
 
-        if (!vardagnode) {
-            return false;
-        }
+    // get is_dependencies_heatmap_lvl_0(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
 
-        return vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1;
-    }
+    //     if (this.get_dependencies_heatmap_version <= 0) {
+    //         return true;
+    //     }
 
-    get is_dependencies_heatmap_lvl_1(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    //     if (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) {
+    //         return true;
+    //     }
 
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
+    //     let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
 
-        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2)) {
-            return false;
-        }
+    //     if (!vardagnode) {
+    //         return false;
+    //     }
 
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+    //     return vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1;
+    // }
 
-        if (!vardagnode) {
-            return false;
-        }
+    // get is_dependencies_heatmap_lvl_1(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
 
-        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) &&
-            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2);
-    }
+    //     if (this.get_dependencies_heatmap_version <= 0) {
+    //         return false;
+    //     }
 
-    get is_dependencies_heatmap_lvl_2(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    //     if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2)) {
+    //         return false;
+    //     }
 
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
+    //     let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
 
-        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3)) {
-            return false;
-        }
+    //     if (!vardagnode) {
+    //         return false;
+    //     }
 
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+    //     return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_1) &&
+    //         (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2);
+    // }
 
-        if (!vardagnode) {
-            return false;
-        }
+    // get is_dependencies_heatmap_lvl_2(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
 
-        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2) &&
-            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3);
-    }
+    //     if (this.get_dependencies_heatmap_version <= 0) {
+    //         return false;
+    //     }
 
-    get is_dependencies_heatmap_lvl_3(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    //     if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3)) {
+    //         return false;
+    //     }
 
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
+    //     let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
 
-        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4)) {
-            return false;
-        }
+    //     if (!vardagnode) {
+    //         return false;
+    //     }
 
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+    //     return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_2) &&
+    //         (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3);
+    // }
 
-        if (!vardagnode) {
-            return false;
-        }
+    // get is_dependencies_heatmap_lvl_3(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
 
-        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3) &&
-            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4);
-    }
+    //     if (this.get_dependencies_heatmap_version <= 0) {
+    //         return false;
+    //     }
 
-    get is_dependencies_heatmap_lvl_4(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    //     if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4)) {
+    //         return false;
+    //     }
 
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
+    //     let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
 
-        if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5)) {
-            return false;
-        }
+    //     if (!vardagnode) {
+    //         return false;
+    //     }
 
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+    //     return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_3) &&
+    //         (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4);
+    // }
 
-        if (!vardagnode) {
-            return false;
-        }
+    // get is_dependencies_heatmap_lvl_4(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
 
-        return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4) &&
-            (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5);
-    }
+    //     if (this.get_dependencies_heatmap_version <= 0) {
+    //         return false;
+    //     }
 
-    get is_dependencies_heatmap_lvl_5(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    //     if ((!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4) || (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5)) {
+    //         return false;
+    //     }
 
-        if (this.get_dependencies_heatmap_version <= 0) {
-            return false;
-        }
+    //     let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
 
-        if (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5) {
-            return false;
-        }
+    //     if (!vardagnode) {
+    //         return false;
+    //     }
 
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+    //     return (vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_4) &&
+    //         (vardagnode.dependencies_count < VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5);
+    // }
 
-        if (!vardagnode) {
-            return false;
-        }
+    // get is_dependencies_heatmap_lvl_5(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
 
-        return vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5;
-    }
+    //     if (this.get_dependencies_heatmap_version <= 0) {
+    //         return false;
+    //     }
 
-    get is_selected_var_dependent(): boolean {
-        if (!this.isDescMode) {
-            return false;
-        }
+    //     if (!VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5) {
+    //         return false;
+    //     }
 
-        let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
+    //     let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
 
-        if ((!selectedNode) || (!selectedNode.outgoingNames)) {
-            return false;
-        }
+    //     if (!vardagnode) {
+    //         return false;
+    //     }
 
-        return this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)], true);
-    }
+    //     return vardagnode.dependencies_count >= VarsController.getInstance().varDAG.dependencies_heatmap_lvl_5;
+    // }
+
+    // get is_selected_var_dependent(): boolean {
+    //     if (!this.isDescMode) {
+    //         return false;
+    //     }
+
+    //     let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedvarparam];
+
+    //     if ((!selectedNode) || (!selectedNode.outgoingNames)) {
+    //         return false;
+    //     }
+
+    //     return this.is_selected_var_dependency_rec(selectedNode, VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)], true);
+    // }
 
     get var_index(): string {
         if (!this.var_param) {
             return null;
         }
 
-        return VarsController.getInstance().getIndex(this.var_param);
+        return this.var_param.index;
     }
 
-    get has_loaded_data(): boolean {
-        if (!this.add_infos || this.add_infos.length == 0) {
-            return false;
-        }
-        let node = VarsController.getInstance().varDAG.nodes[this.var_index];
+    // get has_loaded_data(): boolean {
+    //     if (!this.add_infos || this.add_infos.length == 0) {
+    //         return false;
+    //     }
+    //     let node = VarsController.getInstance().varDAG.nodes[this.var_index];
 
-        if ((!node) || (!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
-            return false;
-        }
+    //     if ((!node) || (!node.loaded_datas_matroids) || (!node.loaded_datas_matroids.length)) {
+    //         return false;
+    //     }
 
-        return true;
-    }
+    //     return true;
+    // }
 
-    get var_data(): IVarDataVOBase {
+    get var_data(): VarDataValueResVO {
 
         if (!this.entered_once) {
             return null;
@@ -405,7 +398,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return null;
         }
 
-        return this.getVarDatas[VarsController.getInstance().getIndex(this.var_param)];
+        return this.getVarDatas[this.var_param.index];
     }
 
     public mounted() {
@@ -427,7 +420,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.unregister();
     }
 
-    private register(var_param: IVarDataVOBase = null) {
+    private register(var_param: VarDataBaseVO = null) {
         if (!this.entered_once) {
             return;
         }
@@ -435,7 +428,7 @@ export default class VarDataRefComponent extends VueComponentBase {
         VarsController.getInstance().registerDataParam(var_param ? var_param : this.var_param, this.reload_on_mount);
     }
 
-    private unregister(var_param: IVarDataVOBase = null) {
+    private unregister(var_param: VarDataBaseVO = null) {
         if (!this.entered_once) {
             return;
         }
@@ -444,7 +437,7 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     @Watch('var_param')
-    private onChangeVarParam(new_var_param: IVarDataVOBase, old_var_param: IVarDataVOBase) {
+    private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
@@ -460,20 +453,20 @@ export default class VarDataRefComponent extends VueComponentBase {
         }
     }
 
-    get loadedData() {
-        if (!this.has_loaded_data || !this.add_infos) {
-            return;
-        }
-        let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
+    // get loadedData() {
+    //     if (!this.has_loaded_data || !this.add_infos) {
+    //         return;
+    //     }
+    //     let vardagnode = VarsController.getInstance().varDAG.nodes[VarsController.getInstance().getIndex(this.var_param)];
 
-        let res: string = "";
-        for (let i in vardagnode.loaded_datas_matroids) {
-            let matroid = vardagnode.loaded_datas_matroids[i];
+    //     let res: string = "";
+    //     for (let i in vardagnode.loaded_datas_matroids) {
+    //         let matroid = vardagnode.loaded_datas_matroids[i];
 
-            res += ((res == "") ? "" : ";") + this.get_values_of_selected_fields(matroid, this.add_infos);
-        }
-        return (res);
-    }
+    //         res += ((res == "") ? "" : ";") + this.get_values_of_selected_fields(matroid, this.add_infos);
+    //     }
+    //     return (res);
+    // }
 
 
     private selectVar() {
@@ -481,6 +474,6 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-        this.setDescSelectedIndex(VarsController.getInstance().getIndex(this.var_param));
+        this.setDescSelectedVarParam(this.var_param);
     }
 }

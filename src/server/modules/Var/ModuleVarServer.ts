@@ -20,7 +20,7 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
-import SimpleVarDataValueRes from '../../../shared/modules/Var/simple_vars/SimpleVarDataValueRes';
+import VarDataValueRes from '../../../shared/modules/Var/simple_vars/VarDataValueRes';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
@@ -119,9 +119,6 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Datasources'
         }, 'var.desc_mode.var_datasources.___LABEL___'));
-        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Datas manquantes'
-        }, 'var.desc_mode.var_missing_datas.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Vider l\'arbre'
         }, 'var_desc.clearDag.___LABEL___'));
@@ -422,14 +419,14 @@ export default class ModuleVarServer extends ModuleServerBase {
         access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     }
 
-    private async getSimpleVarDataCachedValueFromParam(param: APISimpleVOParamVO): Promise<SimpleVarDataValueRes> {
+    private async getSimpleVarDataCachedValueFromParam(param: APISimpleVOParamVO): Promise<VarDataValueRes> {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, param)) {
             return;
         }
 
         if ((!param) || (!param.vo)) {
-            return new SimpleVarDataValueRes();
+            return new VarDataValueRes();
         }
 
         VarsdatasComputerBGThread.getInstance().disable();
@@ -453,7 +450,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if ((!res) || (!res.id)) {
                     disabled = false;
                     VarsdatasComputerBGThread.getInstance().enable();
-                    return new SimpleVarDataValueRes();
+                    return new VarDataValueRes();
                 }
 
                 vardata.id = parseInt(res.id.toString());
@@ -462,7 +459,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if (!!vardata.value_ts) {
                     disabled = false;
                     VarsdatasComputerBGThread.getInstance().enable();
-                    return new SimpleVarDataValueRes(true, vardata.value);
+                    return new VarDataValueRes(true, vardata.value);
                 }
             }
 
@@ -514,7 +511,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         // ConsoleHandler.getInstance().warn('TIMEOUT on var data request:' + JSON.stringify(vo) + ':');
-        return new SimpleVarDataValueRes();
+        return new VarDataValueRes();
     }
 
     private async getSimpleVarDataValueSumFilterByMatroids<T extends IVarDataVOBase>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<number> {

@@ -1,29 +1,25 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
+import { ModuleVarGetter } from '../../store/VarStore';
 
 @Component({
     template: require('./VarDataIfComponent.pug')
 })
 export default class VarDataIfComponent extends VueComponentBase {
     @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
-    @ModuleVarGetter
-    public getDescSelectedIndex: string;
-    @ModuleVarAction
-    public setDescSelectedIndex: (desc_selected_index: string) => void;
+    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
     public isDescMode: boolean;
 
     @Prop()
-    public var_param: IVarDataParamVOBase;
+    public var_param: VarDataBaseVO;
 
     @Prop({ default: null })
-    public condition: (value: IVarDataVOBase) => boolean;
+    public condition: (value: VarDataValueResVO) => boolean;
 
     @Prop({ default: false })
     public reload_on_mount: boolean;
@@ -31,13 +27,13 @@ export default class VarDataIfComponent extends VueComponentBase {
     @Prop({ default: false })
     public preload_content: boolean;
 
-    get var_data(): IVarDataVOBase {
+    get var_data(): VarDataValueResVO {
 
         if ((!this.getVarDatas) || (!this.var_param)) {
             return null;
         }
 
-        return this.getVarDatas[VarsController.getInstance().getIndex(this.var_param)];
+        return this.getVarDatas[this.var_param.index];
     }
 
     public destroyed() {
@@ -46,7 +42,7 @@ export default class VarDataIfComponent extends VueComponentBase {
     }
 
     @Watch('var_param', { immediate: true })
-    private onChangeVarParam(new_var_param: IVarDataParamVOBase, old_var_param: IVarDataParamVOBase) {
+    private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {

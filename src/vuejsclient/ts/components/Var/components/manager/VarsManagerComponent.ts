@@ -1,9 +1,10 @@
 import { Component } from 'vue-property-decorator';
 import 'vue-tables-2';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarDescRegistrationsComponent from '../desc/registrations/VarDescRegistrationsComponent';
@@ -18,61 +19,50 @@ import './VarsManagerComponent.scss';
 })
 export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
+    private getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
-    public isWaiting: boolean;
+    private isWaiting: boolean;
     @ModuleVarGetter
-    public isStepping: boolean;
+    private isStepping: boolean;
     @ModuleVarGetter
-    public isDescMode: boolean;
+    private isDescMode: boolean;
     @ModuleVarGetter
-    public isDescOpened: boolean;
+    private isDescOpened: boolean;
     @ModuleVarGetter
-    public isDescRegistrationsOpened: boolean;
+    private isDescRegistrationsOpened: boolean;
     @ModuleVarGetter
-    public isDescFuncStatsOpened: boolean;
-    @ModuleVarGetter
-    public getDescSelectedIndex: string;
+    private isDescFuncStatsOpened: boolean;
 
     @ModuleVarAction
-    public setVarData: (varData: IVarDataVOBase) => void;
+    private setVarData: (varData: VarDataBaseVO) => void;
     @ModuleVarAction
-    public setVarsData: (varsData: IVarDataVOBase[]) => void;
+    private setVarsData: (varsData: VarDataBaseVO[]) => void;
     @ModuleVarAction
-    public removeVarData: (varDataParam: IVarDataVOBase) => void;
+    private removeVarData: (varDataParam: VarDataBaseVO) => void;
     @ModuleVarAction
-    public setIsStepping: (is_stepping: boolean) => void;
+    private setIsStepping: (is_stepping: boolean) => void;
     @ModuleVarAction
-    public setIsWaiting: (is_waiting: boolean) => void;
+    private setIsWaiting: (is_waiting: boolean) => void;
     @ModuleVarAction
-    public setDescMode: (desc_mode: boolean) => void;
-    @ModuleVarAction
-    public setDescOpened: (desc_opened: boolean) => void;
-    @ModuleVarAction
-    public setDescRegistrationsOpened: (desc_registrations_opened: boolean) => void;
-    @ModuleVarAction
-    public setDescFuncStatsOpened: (desc_funcstats_opened: boolean) => void;
-    @ModuleVarAction
-    public setStepNumber: (step_number: number) => void;
+    private setStepNumber: (step_number: number) => void;
 
     @ModuleVarAction
-    public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void;
+    private set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void;
 
 
-    public mounted() {
-        VarsController.getInstance().registerStoreHandlers(
-            this.getVarDatas, this.setVarsData, this.setIsStepping, this.setIsWaiting, this.setStepNumber, this.set_dependencies_heatmap_version);
-    }
 
-    /**
-     * ATTENTION FIXME DIRTY ne marche que si on a soit une var registered sélectionnée, soit une var qui a une data (et qui est donc registered a priori)
-     */
-    get selected_param(): IVarDataVOBase {
-        return (!!this.getDescSelectedIndex) ?
-            ((!!VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex]) ?
-                VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex].param :
-                VarsController.getInstance().getVarData[this.getDescSelectedIndex]) : null;
-    }
+    @ModuleVarGetter
+    private getDescSelectedVarParam: VarDataBaseVO;
+    @ModuleVarAction
+    private setDescFuncStatsOpened: (desc_funcstats_opened: boolean) => void;
+    @ModuleVarAction
+    private setDescOpened: (desc_opened: boolean) => void;
+    @ModuleVarAction
+    private setDescMode: (desc_mode: boolean) => void;
+    @ModuleVarAction
+    private setDescRegistrationsOpened: (desc_registrations_opened: boolean) => void;
+
+    public mounted() { }
 
     private async switchDescMode() {
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_DESC_MODE_ACCESS)) {

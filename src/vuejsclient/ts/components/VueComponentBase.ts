@@ -9,9 +9,7 @@ import Module from "../../../shared/modules/Module";
 import ModulesManager from "../../../shared/modules/ModulesManager";
 import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataParamVOBase from '../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
 import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
-import VarsController from '../../../shared/modules/Var/VarsController';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter } from '../../../shared/tools/Filters';
@@ -806,10 +804,6 @@ export default class VueComponentBase extends Vue
         if ((!!simple_value) && (simple_value > 1)) {
             this.addClassName('text-success', el);
         }
-    }
-
-    protected varparam_index(varparam: IVarDataParamVOBase) {
-        return VarsController.getInstance().getIndex(varparam);
     }
 
     protected activateEdition() {

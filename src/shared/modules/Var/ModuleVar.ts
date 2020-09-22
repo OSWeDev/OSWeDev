@@ -13,12 +13,11 @@ import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import ConfigureVarCacheParamVO from './params/ConfigureVarCacheParamVO';
-import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
-import SimpleVarDataValueRes from './simple_vars/SimpleVarDataValueRes';
 import VarsController from './VarsController';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfVOBase from './vos/VarConfVOBase';
-import IVarDataVOBase from './interfaces/IVarDataVOBase';
+import VarDataBaseVO from './vos/VarDataBaseVO';
+import VarDataValueResVO from './vos/VarDataValueResVO';
 const moment = require('moment');
 
 export default class ModuleVar extends Module {
@@ -57,6 +56,7 @@ export default class ModuleVar extends Module {
 
         this.initializeSimpleVarConf();
         this.initializeVarCacheConfVO();
+        this.initializeVarDataValueResVO();
     }
 
     public registerApis() {
@@ -73,7 +73,7 @@ export default class ModuleVar extends Module {
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, SimpleVarDataValueRes>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, VarDataValueResVO>(
             ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam,
             (param: APISimpleVOParamVO) => ((param && param.vo) ? [param.vo._type] : null),
             APISimpleVOParamVO.translateCheckAccessParams
@@ -99,12 +99,12 @@ export default class ModuleVar extends Module {
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, API_TYPE_ID, matroids, fields_ids_mapper);
     }
 
-    public async getSimpleVarDataCachedValueFromParam<T extends IVarDataVOBase>(param: T): Promise<SimpleVarDataValueRes> {
+    public async getSimpleVarDataCachedValueFromParam<T extends VarDataBaseVO>(param: T): Promise<VarDataValueResVO> {
         if (!param) {
             return null;
         }
 
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, SimpleVarDataValueRes>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, VarDataValueResVO>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
     }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {
@@ -120,7 +120,7 @@ export default class ModuleVar extends Module {
     public register_var_data(
         api_type_id: string,
         param_api_type_id: string,
-        constructor: () => IVarDataVOBase,
+        constructor: () => VarDataBaseVO,
         var_fields: Array<ModuleTableField<any>>, is_matroid: boolean = false): ModuleTable<any> {
         let var_id = new ModuleTableField('var_id', ModuleTableField.FIELD_TYPE_foreign_key, 'Var conf');
 
@@ -140,7 +140,7 @@ export default class ModuleVar extends Module {
             datatable.defineAsMatroid();
         }
         datatable.addAlias(param_api_type_id);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[SimpleVarConfVO.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVOBase.API_TYPE_ID]);
         this.datatables.push(datatable);
         return datatable;
     }
@@ -163,7 +163,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('yearly_reset_month', ModuleTableField.FIELD_TYPE_int, 'Mois du reset (0-11)', false, true, 0),
         ];
 
-        let datatable = new ModuleTable(this, SimpleVarConfVO.API_TYPE_ID, () => new SimpleVarConfVO(), datatable_fields, labelField);
+        let datatable = new ModuleTable(this, VarConfVOBase.API_TYPE_ID, () => new VarConfVOBase(), datatable_fields, labelField);
         this.datatables.push(datatable);
     }
 
@@ -179,6 +179,19 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarCacheConfVO.API_TYPE_ID, () => new VarCacheConfVO(), datatable_fields, null);
         this.datatables.push(datatable);
+        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVOBase.API_TYPE_ID]);
     }
 
+    private initializeVarDataValueResVO() {
+
+        let datatable_fields = [
+            new ModuleTableField('index', ModuleTableField.FIELD_TYPE_string, 'Index', true),
+            new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', false),
+            new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_int, 'Type', true),
+            new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date', false),
+        ];
+
+        let datatable = new ModuleTable(this, VarDataValueResVO.API_TYPE_ID, () => new VarDataValueResVO(), datatable_fields, null);
+        this.datatables.push(datatable);
+    }
 }

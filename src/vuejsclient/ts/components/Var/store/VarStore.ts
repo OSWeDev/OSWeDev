@@ -2,19 +2,20 @@ import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
-import IVarDataVOBase from '../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import IStoreModule from '../../../store/IStoreModule';
 
 export type VarContext = ActionContext<IVarState, any>;
 
 export interface IVarState {
-    varDatas: { [index: string]: IVarDataVOBase };
+    varDatas: { [index: string]: VarDataValueResVO };
     is_waiting: boolean;
     is_stepping: boolean;
     step_number: number;
     desc_mode: boolean;
-    desc_selected_index: string;
+    desc_selected_var_param: VarDataBaseVO;
     desc_opened: boolean;
     desc_deps_opened: boolean;
     desc_registrations_opened: boolean;
@@ -62,7 +63,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
 
         this.getters = {
-            getVarDatas(state: IVarState): { [index: string]: IVarDataVOBase } {
+            getVarDatas(state: IVarState): { [index: string]: VarDataValueResVO } {
                 return state.varDatas;
             },
             isStepping(state: IVarState): boolean {
@@ -92,8 +93,8 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             isDescMode(state: IVarState): boolean {
                 return state.desc_mode;
             },
-            getDescSelectedIndex(state: IVarState): string {
-                return state.desc_selected_index;
+            getDescSelectedVarParam(state: IVarState): VarDataBaseVO {
+                return state.desc_selected_var_param;
             },
         };
 
@@ -138,13 +139,13 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 state.desc_mode = desc_mode;
             },
 
-            setDescSelectedIndex(state: IVarState, desc_selected_index: string) {
-                state.desc_selected_index = desc_selected_index;
+            setDescSelectedVarParam(state: IVarState, desc_selected_var_param: VarDataBaseVO) {
+                state.desc_selected_var_param = desc_selected_var_param;
                 state.desc_opened = true;
                 state.desc_deps_opened = false;
             },
 
-            setVarData(state: IVarState, varData: IVarDataVOBase) {
+            setVarData(state: IVarState, varData: VarDataValueResVO) {
                 if (!varData) {
                     return;
                 }
@@ -152,7 +153,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 Vue.set(state.varDatas as any, varData.index, varData);
             },
 
-            setVarsData(state: IVarState, varsData: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) {
+            setVarsData(state: IVarState, varsData: VarDataValueResVO[] | { [index: string]: VarDataValueResVO }) {
                 if (!varsData) {
                     return;
                 }
@@ -165,7 +166,7 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 }
             },
 
-            removeVarData(state: IVarState, varData: IVarDataVOBase) {
+            removeVarData(state: IVarState, varData: VarDataValueResVO) {
 
                 if ((!varData) ||
                     (!state.varDatas)) {
@@ -214,16 +215,16 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             setDescFuncStatsOpened(context: VarContext, desc_funcstats_opened: boolean) {
                 commitsetDescFuncStatsOpened(context, desc_funcstats_opened);
             },
-            setDescSelectedIndex(context: VarContext, desc_selected_index: string) {
-                commitSetDescSelectedIndex(context, desc_selected_index);
+            setDescSelectedVarParam(context: VarContext, desc_selected_var_param: string) {
+                commitSetDescSelectedVarParam(context, desc_selected_var_param);
             },
             setVarData(context: VarContext, varData) {
                 commitSetVarData(context, varData);
             },
-            setVarsData(context: VarContext, varsData: IVarDataVOBase[] | { [index: string]: IVarDataVOBase }) {
+            setVarsData(context: VarContext, varsData: VarDataValueResVO[] | { [index: string]: VarDataValueResVO }) {
                 commitSetVarsData(context, varsData);
             },
-            removeVarData(context: VarContext, varDataParam: IVarDataVOBase) {
+            removeVarData(context: VarContext, varDataParam: VarDataValueResVO) {
                 commitRemoveVarData(context, varDataParam);
             },
         };
@@ -243,7 +244,7 @@ export const commitSetDescOpened = commit(VarStore.getInstance().mutations.setDe
 export const commitSetDescRegistrationsOpened = commit(VarStore.getInstance().mutations.setDescRegistrationsOpened);
 export const commitsetDescFuncStatsOpened = commit(VarStore.getInstance().mutations.setDescFuncStatsOpened);
 export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
-export const commitSetDescSelectedIndex = commit(VarStore.getInstance().mutations.setDescSelectedIndex);
+export const commitSetDescSelectedVarParam = commit(VarStore.getInstance().mutations.setDescSelectedVarParam);
 export const commitSetIsWaiting = commit(VarStore.getInstance().mutations.setIsWaiting);
 export const commitSetIsStepping = commit(VarStore.getInstance().mutations.setIsStepping);
 export const commitSetStepNumber = commit(VarStore.getInstance().mutations.setStepNumber);

@@ -2,22 +2,19 @@ import { Pie } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
 import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
-import ISimpleNumberVarData from '../../../../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataParamVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import IVarDataVOBase from '../../../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
+import { ModuleVarGetter } from '../../store/VarStore';
 
 @Component({
     extends: Pie
 })
 export default class VarPieChartComponent extends VueComponentBase {
     @ModuleVarGetter
-    public getVarDatas: { [paramIndex: string]: IVarDataVOBase };
-    @ModuleVarAction
-    public setDescSelectedIndex: (desc_selected_index: string) => void;
+    public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
     public isDescMode: boolean;
 
@@ -25,10 +22,10 @@ export default class VarPieChartComponent extends VueComponentBase {
      * TODO FIXME DIRTY : cas particulier des vars_params où l'on ne veut pas trimballer le var_id, on veut juste identifier les segments sur axis
      */
     @Prop({ default: null })
-    public var_params: IVarDataParamVOBase[];
+    public var_params: VarDataBaseVO[];
 
     @Prop({ default: null })
-    public getlabel: (var_param: IVarDataParamVOBase) => string;
+    public getlabel: (var_param: VarDataBaseVO) => string;
 
     @Prop({ default: null })
     public var_dataset_descriptor: VarPieDataSetDescriptor;
@@ -59,7 +56,7 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         for (let i in this.var_params) {
 
-            let var_param: IVarDataParamVOBase = Object.assign({}, this.var_params[i]);
+            let var_param: VarDataBaseVO = Object.assign({}, this.var_params[i]);
 
             VarsController.getInstance().unregisterDataParam(var_param);
         }
@@ -73,18 +70,14 @@ export default class VarPieChartComponent extends VueComponentBase {
 
         for (let i in this.var_params) {
 
-            let var_param: IVarDataParamVOBase = Object.assign({}, this.var_params[i]);
-
-            let param_index: string = VarsController.getInstance().getIndex(var_param);
-
-            if ((!this.getVarDatas) || (!this.getVarDatas[param_index])) {
+            if ((!this.getVarDatas) || (!this.getVarDatas[this.var_params[i].index])) {
                 return false;
             }
         }
         return true;
     }
 
-    private get_filtered_value(var_data: ISimpleNumberVarData) {
+    private get_filtered_value(var_data: VarDataValueResVO) {
 
         if (!var_data) {
             return 0;
@@ -109,7 +102,7 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     @Watch('var_params', { immediate: true })
-    private onChangeVarParam(new_var_params: IVarDataParamVOBase[], old_var_params: IVarDataParamVOBase[]) {
+    private onChangeVarParam(new_var_params: VarDataBaseVO[], old_var_params: VarDataBaseVO[]) {
 
         // On doit vérifier qu'ils sont bien différents
         if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
@@ -119,8 +112,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         if (old_var_params) {
             for (let i in old_var_params) {
 
-                let var_param: IVarDataParamVOBase = Object.assign({}, old_var_params[i]);
-
+                let var_param: VarDataBaseVO = Object.assign({}, old_var_params[i]);
                 VarsController.getInstance().unregisterDataParam(var_param);
             }
         }
@@ -128,7 +120,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         if (new_var_params) {
             for (let i in new_var_params) {
 
-                let var_param: IVarDataParamVOBase = Object.assign({}, new_var_params[i]);
+                let var_param: VarDataBaseVO = Object.assign({}, new_var_params[i]);
                 VarsController.getInstance().registerDataParam(var_param);
             }
         }
@@ -158,11 +150,11 @@ export default class VarPieChartComponent extends VueComponentBase {
 
             // sur chaque dimension
             if (!!old_var_dataset_descriptor) {
-                let var_param: IVarDataParamVOBase = Object.assign({}, this.var_params[i]);
+                let var_param: VarDataBaseVO = Object.assign({}, this.var_params[i]);
                 VarsController.getInstance().unregisterDataParam(var_param);
             }
             if (!!new_var_dataset_descriptor) {
-                let var_param: IVarDataParamVOBase = Object.assign({}, this.var_params[i]);
+                let var_param: VarDataBaseVO = Object.assign({}, this.var_params[i]);
                 VarsController.getInstance().registerDataParam(var_param);
             }
         }
@@ -206,9 +198,9 @@ export default class VarPieChartComponent extends VueComponentBase {
         let dataset_datas: number[] = [];
         let backgrounds: string[] = [];
         for (let j in this.var_params) {
-            let var_param: IVarDataParamVOBase = this.var_params[j];
+            let var_param: VarDataBaseVO = this.var_params[j];
 
-            dataset_datas.push(this.get_filtered_value(this.getVarDatas[VarsController.getInstance().getIndex(var_param)] as ISimpleNumberVarData));
+            dataset_datas.push(this.get_filtered_value(this.getVarDatas[var_param.index] as VarDataValueResVO));
             if (this.var_dataset_descriptor && this.var_dataset_descriptor.backgrounds[j]) {
                 backgrounds.push(this.var_dataset_descriptor.backgrounds[j]);
             } else {

@@ -1,9 +1,6 @@
 import { Component } from 'vue-property-decorator';
 import 'vue-tables-2';
-import VarDAG from '../../../../../../../shared/modules/Var/graph/var/VarDAG';
-import VarDAGNode from '../../../../../../../shared/modules/Var/graph/var/VarDAGNode';
-import IVarDataParamVOBase from '../../../../../../../shared/modules/Var/interfaces/IVarDataParamVOBase';
-import VarsController from '../../../../../../../shared/modules/Var/VarsController';
+import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../../store/VarStore';
 import './VarDescRegistrationsComponent.scss';
@@ -14,9 +11,9 @@ import './VarDescRegistrationsComponent.scss';
 export default class VarDescRegistrationsComponent extends VueComponentBase {
 
     @ModuleVarGetter
-    public getDescSelectedIndex: string;
+    public getDescSelectedVarParam: VarDataBaseVO;
     @ModuleVarAction
-    public setDescSelectedIndex: (desc_selected_index: string) => void;
+    public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
 
     @ModuleVarGetter
     public isWaiting: boolean;
@@ -29,39 +26,10 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
     private graph_params: string = null;
     private hover_desc: string = null;
 
-    private vardag_size: number = null;
-    private vardag_registered_prct: string = null;
+    // private vardag_size: number = null;
+    // private vardag_registered_prct: string = null;
 
-    private vardags_registered_prct_by_var_id: { [var_id: number]: string } = {};
-
-    get descSelectedParam(): IVarDataParamVOBase {
-        if (!!this.getDescSelectedIndex) {
-            let selectedNode: VarDAGNode = VarsController.getInstance().varDAG.nodes[this.getDescSelectedIndex];
-
-            if (!selectedNode) {
-                return null;
-            }
-
-            return selectedNode.param;
-        }
-        return null;
-    }
-
-    get is_stepping() {
-        return this.isStepping;
-    }
-
-    get is_waiting() {
-        return this.isWaiting;
-    }
-
-    public switch_stepper() {
-        VarsController.getInstance().switch_stepper();
-    }
-
-    public continue_stepper() {
-        VarsController.getInstance().next_step();
-    }
+    // private vardags_registered_prct_by_var_id: { [var_id: number]: string } = {};
 
     public createGraph() {
 
@@ -201,7 +169,7 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
         // svgGroup.selectAll("g.node")
         //     .each(function (v) {
         //         $(this).mousedown(() => {
-        //             self.setDescSelectedIndex(v);
+        //             self.setDescSelectedVarParam(v); //TODO FIXME on set le param maintenant pas la string, à revoir
         //             // self.hover_desc = descriptions[v];
         //         });
         //     });
@@ -215,33 +183,33 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
         // // svg.attr("height", g.graph().height + 40);
     }
 
-    private refreshDependenciesHeatmap() {
-        VarsController.getInstance().varDAG.refreshDependenciesHeatmap();
+    // private refreshDependenciesHeatmap() {
+    //     VarsController.getInstance().varDAG.refreshDependenciesHeatmap();
 
-        this.vardag_size = VarsController.getInstance().varDAG.nodes_names.length;
-        this.vardag_registered_prct = this.formatNumber_2decimal((this.vardag_size ? VarsController.getInstance().varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_REGISTERED].length / this.vardag_size : 0) * 100);
+    //     this.vardag_size = VarsController.getInstance().varDAG.nodes_names.length;
+    //     this.vardag_registered_prct = this.formatNumber_2decimal((this.vardag_size ? VarsController.getInstance().varDAG.marked_nodes_names[VarDAG.VARDAG_MARKER_REGISTERED].length / this.vardag_size : 0) * 100);
 
-        let vardags_registered_n_by_var_id: { [var_id: number]: number } = {};
-        this.vardags_registered_prct_by_var_id = {};
+    //     let vardags_registered_n_by_var_id: { [var_id: number]: number } = {};
+    //     this.vardags_registered_prct_by_var_id = {};
 
-        for (let i in VarsController.getInstance().varDAG.nodes) {
-            let node = VarsController.getInstance().varDAG.nodes[i];
+    //     for (let i in VarsController.getInstance().varDAG.nodes) {
+    //         let node = VarsController.getInstance().varDAG.nodes[i];
 
-            if (!vardags_registered_n_by_var_id[node.param.var_id]) {
-                vardags_registered_n_by_var_id[node.param.var_id] = 1;
-            } else {
-                vardags_registered_n_by_var_id[node.param.var_id]++;
-            }
-        }
+    //         if (!vardags_registered_n_by_var_id[node.param.var_id]) {
+    //             vardags_registered_n_by_var_id[node.param.var_id] = 1;
+    //         } else {
+    //             vardags_registered_n_by_var_id[node.param.var_id]++;
+    //         }
+    //     }
 
-        for (let i in vardags_registered_n_by_var_id) {
-            this.vardags_registered_prct_by_var_id[i] = this.formatNumber_2decimal((vardags_registered_n_by_var_id[i] / this.vardag_size) * 100);
-        }
-    }
+    //     for (let i in vardags_registered_n_by_var_id) {
+    //         this.vardags_registered_prct_by_var_id[i] = this.formatNumber_2decimal((vardags_registered_n_by_var_id[i] / this.vardag_size) * 100);
+    //     }
+    // }
 
-    private clearDag() {
-        VarsController.getInstance().varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE);
-        this.vardags_registered_prct_by_var_id = null;
-        //  FIXME TODO ASAP should work ... VarsController.getInstance().varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_REGISTERED);
-    }
+    // private clearDag() {
+    //     VarsController.getInstance().varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_COMPUTED_AT_LEAST_ONCE);
+    //     this.vardags_registered_prct_by_var_id = null;
+    //     //  FIXME TODO ASAP should work ... VarsController.getInstance().varDAG.deleteMarkedNodes(VarDAG.VARDAG_MARKER_REGISTERED);
+    // }
 }
