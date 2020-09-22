@@ -3,15 +3,13 @@ import IDistantVOBase from '../IDistantVOBase';
 import MatroidController from '../Matroid/MatroidController';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VarDAG from '../Var/graph/var/VarDAG';
-import IVarDataVOBase from '../Var/interfaces/IVarDataVOBase';
+import VarDataBaseVO from '../Var/params/VarDataBaseVO';
 import VarControllerBase from '../Var/VarControllerBase';
 import VarsController from '../Var/VarsController';
 import VOsTypesManager from '../VOsTypesManager';
 import DataSourcesController from './DataSourcesController';
-import IDataSourceController from './interfaces/IDataSourceController';
 
-export default abstract class DataSourceMatroidControllerBase<TData extends IVarDataVOBase> implements IDataSourceController<TData> {
+export default abstract class DataSourceControllerBase<TData extends VarDataBaseVO> {
 
     protected constructor(
         /**
@@ -28,9 +26,6 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
          * Les api_type_ids qui engendrent un refresh potentiel du cache
          */
         public vo_api_type_ids: string[],
-
-        public can_use_server_side: boolean,
-        public can_use_client_side: boolean,
 
         // /**
         //  * Les mappings de fields de TData => les fields de chaque api_type_id
@@ -54,8 +49,8 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
      * En amont, on a vérifié évidemment qu'on demande que sur un VO de la liste des api_type_ids du datasource
      * @param vo
      */
-    public get_updated_params_from_vo_update(vo: IDistantVOBase, filtered_var_ids: { [var_id: number]: VarControllerBase<any> } = null): { [index: string]: IVarDataVOBase } {
-        let res: { [index: string]: IVarDataVOBase } = {};
+    public get_updated_params_from_vo_update(vo: IDistantVOBase, filtered_var_ids: { [var_id: number]: VarControllerBase<any> } = null): { [index: string]: VarDataBaseVO } {
+        let res: { [index: string]: VarDataBaseVO } = {};
 
         let intersectors: { [var_id: number]: { [index: string]: TData } } = this.get_param_intersectors_from_vo_update_by_var_id(vo, filtered_var_ids);
 
@@ -77,7 +72,7 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
         }
 
         for (let i in VarsController.getInstance().varDAG.nodes) {
-            let param: IVarDataVOBase = VarsController.getInstance().varDAG.nodes[i].param;
+            let param: VarDataBaseVO = VarsController.getInstance().varDAG.nodes[i].var_data;
 
             if (!var_ids[param.id]) {
                 continue;
@@ -174,7 +169,7 @@ export default abstract class DataSourceMatroidControllerBase<TData extends IVar
             if (!res[controller.varConf.id]) {
                 res[controller.varConf.id] = {};
             }
-            res[controller.varConf.id] = [intersector];
+            res[controller.varConf.id] = { [intersector.index]: intersector };
         }
 
         return res;

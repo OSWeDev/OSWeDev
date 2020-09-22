@@ -15,13 +15,11 @@ import MatroidCutResult from '../Matroid/vos/MatroidCutResult';
 import ModulesManager from '../ModulesManager';
 import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
-import CumulativVarController from './CumulativVarController';
-import VarDAG from './graph/var/VarDAG';
-import VarDAGNode from './graph/var/VarDAGNode';
 import VarDAGDefineNodeDeps from './graph/var/visitors/VarDAGDefineNodeDeps';
 import VarDAGDefineNodePropagateRequest from './graph/var/visitors/VarDAGDefineNodePropagateRequest';
 import VarDAGMarkForDeletion from './graph/var/visitors/VarDAGMarkForDeletion';
-import ITSRangesSimpleNumberVarData from './interfaces/ITSRangesSimpleNumberVarData';
+import VarDAG from './graph/VarDAG';
+import VarDAGNode from './graph/VarDAGNode';
 import ModuleVar from './ModuleVar';
 import VarDataBaseVO from './params/VarDataBaseVO';
 import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
@@ -58,9 +56,7 @@ export default class VarsController {
 
     private static instance: VarsController = null;
 
-    public varDAG: VarDAG = new VarDAG(
-        (name: string, dag: VarDAG, param: VarDataBaseVO) => new VarDAGNode(name, dag, param),
-        this.onVarDAGNodeRemoval.bind(this));
+    public varDAG: VarDAG = new VarDAG();
 
     public datasource_deps_by_var_id: { [var_id: number]: Array<IDataSourceController<any>> } = {};
 
@@ -213,71 +209,6 @@ export default class VarsController {
         this.varDatasBATCHCache = {};
     }
 
-    public setVarData<T extends VarDataBaseVO>(varData: T, set_in_batch_cache: boolean = false) {
-
-        if (!varData) {
-            return;
-        }
-        let index: string = varData.index;
-
-        // WARNING : Might be strange some day when the static cache is updated by a BATCH since it should only
-        //  be updated after the end of the batch, but the batch sometimes uses methods that need data that
-        //  are being created by the batch itself.... if some funny datas are being calculated, you might want to check that thing
-        this.varDatasStaticCache[index] = varData;
-
-        if (set_in_batch_cache) {
-
-            this.varDatasBATCHCache[index] = varData;
-
-            return;
-        }
-    }
-
-    public getVarData<T extends VarDataBaseVO>(param: VarDataBaseVO, search_in_batch_cache: boolean = false): T {
-        return this.getVarDataByIndex(param.index, search_in_batch_cache);
-    }
-
-    public getVarDataByIndex<T extends VarDataBaseVO>(index: string, search_in_batch_cache: boolean = false): T {
-
-        if (!index) {
-            return null;
-        }
-
-        if (search_in_batch_cache) {
-            // // On sait qu'on doit chercher dans les datas des batchs actuels, mais en fait l'id du batch est intimement lié
-            // //  au type de contenu demandé
-            // let BATCH_UID: number = this.BATCH_UIDs_by_var_id[param.var_id];
-
-            // if ((BATCH_UID != null) && (typeof BATCH_UID != 'undefined') && this.varDatasBATCHCache &&
-            //     this.varDatasBATCHCache[BATCH_UID] && this.varDatasBATCHCache[BATCH_UID][index]) {
-            if (!!this.varDatasBATCHCache[index]) {
-                return this.varDatasBATCHCache[index] as T;
-            }
-            // }
-        }
-
-        // Si on doit l'afficher il faut que ce soit synchro dans le store, sinon on utilise le cache static
-        let varData: T = null;
-        if (index && (!!this.varDAG.nodes[index]) && this.varDatas) {
-
-            if (!this.varDatas[index]) {
-                return null;
-            }
-
-            varData = this.varDatas[index] as T;
-        } else {
-            if (!(index && this.varDatasStaticCache && this.varDatasStaticCache[index])) {
-                return null;
-            }
-
-            varData = this.varDatasStaticCache[index] as T;
-        }
-        if (!varData) {
-            return null;
-        }
-        return varData;
-    }
-
     public registerStoreHandlers<TData extends VarDataBaseVO>(
         getVarData: { [paramIndex: string]: TData },
         setVarsData: (varDatas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }) => void,
@@ -410,6 +341,15 @@ export default class VarsController {
         this.stageUpdateData(param, true);
     }
 
+    /**
+     * TODO FIXME POUR LA REFONTE : INFO : on doit checker parmi les encours de traitement et les à venir (donc les registered au global en fait)
+     * si on est pas registered on register, et si on est déjà registered on attend le résultat comme les autres
+     * @param param 
+     * @param reload_on_register 
+     * @param var_callbacks 
+     * @param ignore_unvalidated_datas 
+     * @param already_register 
+     */
     public registerDataParam<TDataParam extends VarDataBaseVO>(
         param: TDataParam,
         reload_on_register: boolean = false,
@@ -420,9 +360,6 @@ export default class VarsController {
         if (!param) {
             return false;
         }
-
-        // Idem pour les compteurs matroids
-        this.check_tsrange_on_resetable_var(param);
 
         if (this.updateSemaphore) {
             let self = this;
@@ -449,13 +386,13 @@ export default class VarsController {
             }
         }
 
-        let actual_value = this.getVarData(param);
-        if (reload_on_register || (!actual_value)) {
+        let actual_value = this.varDAG.nodes[param.index].var_data.value;
+        if (reload_on_register || (typeof actual_value === "undefined")) {
             this.stageUpdateData(param);
         }
 
         // Si la var est déjà calculée, on doit lancer le callback directement
-        if ((!reload_on_register) && (!!actual_value)) {
+        if ((!reload_on_register) && (typeof actual_value !== "undefined")) {
             this.run_callbacks(param, param.index);
         }
     }
@@ -492,11 +429,6 @@ export default class VarsController {
     public async registerDataParamAndReturnVarData<TDataParam extends VarDataBaseVO>(
         param: TDataParam, reload_on_register: boolean = false, ignore_unvalidated_datas: boolean = false): Promise<VarDataBaseVO> {
 
-        this.changeTsRanges(param);
-
-        // Idem pour les compteurs matroids
-        this.check_tsrange_on_resetable_var(param);
-
         let self = this;
         return new Promise<VarDataBaseVO>((accept, reject) => {
 
@@ -531,7 +463,7 @@ export default class VarsController {
             for (let i in params) {
                 let param = params[i];
 
-                let data: TData = this.getVarData(param, true);
+                let data: TData = this.varDAG.nodes[param.index].var_data;
 
                 if (!!data) {
                     res.push(data);
@@ -640,7 +572,7 @@ export default class VarsController {
         min_inclusiv = true;
         max_inclusiv = false;
 
-        let closest_earlier_reset_date: Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
+        let closest_earlier_reset_date: Moment = ResetDateHelper.getInstance().getClosestPreviousResetDate(
             target, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month);
         return TSRange.createNew(closest_earlier_reset_date, target, min_inclusiv, max_inclusiv, segment_type);
     }
@@ -654,125 +586,6 @@ export default class VarsController {
             max_inclusiv,
             segment_type
         );
-    }
-
-    public changeTsRanges(param: VarDataBaseVO): void {
-        if (!param) {
-            return;
-        }
-
-        let controller = VarsController.getInstance().getVarControllerById(param.var_id);
-
-        if (!controller) {
-            return;
-        }
-
-        let conf = controller.varConf;
-
-        if (!conf) {
-            return;
-        }
-
-        let tsranged_param = param as ITSRangesSimpleNumberVarData;
-        if (!tsranged_param.ts_ranges) {
-            return;
-        }
-
-        for (let i in tsranged_param.ts_ranges) {
-            let ts_range = tsranged_param.ts_ranges[i];
-
-            let end_range = RangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
-            let start_range = RangeHandler.getInstance().getSegmentedMin(ts_range, controller.segment_type);
-
-            if ((start_range == null) || (end_range == null)) {
-                return null;
-            }
-
-            TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
-            TimeSegmentHandler.getInstance().forceStartSegment(end_range, controller.segment_type);
-
-            if ((!ts_range.min_inclusiv) || (ts_range.max_inclusiv) ||
-                (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {
-                ts_range.min = start_range;
-                ts_range.max = end_range;
-                ts_range.min_inclusiv = true;
-                ts_range.max_inclusiv = false;
-            }
-        }
-    }
-
-    /**
-     * FIXME TODO ASAP VARS TU
-     * Fonction qui permet de vérifier que le range de date n'inclut pas un reset de compteur, auquel cas on enlève la partie qui dépasse
-     * La fonction vérifie qu'on est bien sur un matroid avec un reset
-     * On ajoute les notions de tests sur les segmentations (jour / mois / semaine / année) pour agrandir les ranges en conséquence si nécessaire
-     *  ça permet d'avoir des ranges uniformes pour parler toujours des mêmes choses
-     *  pour l'instant on fait pour année 2019 : (2019, 2019, true, true) et pas (2019, 2020, true, false) a voir si c'est pertinent. au moins c'est cohérent avec les autres fonctions atuellement
-     */
-    public check_tsrange_on_resetable_var(param: VarDataBaseVO): boolean {
-        if (!param) {
-            return false;
-        }
-
-        let controller = VarsController.getInstance().getVarControllerById(param.var_id);
-
-        if (!controller) {
-            return false;
-        }
-
-        let conf = controller.varConf;
-
-        if (!conf) {
-            return false;
-        }
-
-        let tsranged_param = param as ITSRangesSimpleNumberVarData;
-        if (!tsranged_param.ts_ranges) {
-            return true;
-        }
-
-        if (!!conf.has_yearly_reset) {
-            for (let i in tsranged_param.ts_ranges) {
-                let ts_range = tsranged_param.ts_ranges[i];
-
-                let end_range = RangeHandler.getInstance().getSegmentedMax(ts_range, controller.segment_type);
-                // TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
-                let closest_earlier_reset_date: Moment = CumulativVarController.getInstance().getClosestPreviousCompteurResetDate(
-                    end_range, false, conf.has_yearly_reset, conf.yearly_reset_day_in_month, conf.yearly_reset_month).utc(true);
-
-                if (RangeHandler.getInstance().elt_intersects_range(closest_earlier_reset_date, ts_range)) {
-                    ts_range.min = closest_earlier_reset_date;
-                    ts_range.min_inclusiv = true;
-                }
-            }
-        }
-
-        let ts_ranges_: TSRange[] = [];
-        for (let i in tsranged_param.ts_ranges) {
-            let ts_range = tsranged_param.ts_ranges[i];
-
-            // A REGARDER
-            // // TODO JNE - A CHECKER
-            // if (ts_range.max_inclusiv) {
-            //     TimeSegmentHandler.getInstance().incMoment(end_range, controller.segment_type, 1);
-            // }
-
-            // // if ((!ts_range.min_inclusiv) || (!ts_range.max_inclusiv) ||
-            // //     (!ts_range.min.isSame(start_range)) || (!ts_range.max.isSame(end_range))) {
-            // ts_range.min = start_range;
-            // ts_range.max = end_range;
-            // ts_range.min_inclusiv = true;
-            // ts_range.max_inclusiv = false;
-            // }
-
-            ts_ranges_.push(ts_range);
-        }
-
-        if (!ts_ranges_.length) {
-            return false;
-        }
-        tsranged_param.ts_ranges = ts_ranges_;
-        return true;
     }
 
     public getVarConf(var_name: string): VarConfVOBase {
@@ -1866,7 +1679,7 @@ export default class VarsController {
                 let callback = this.registered_var_callbacks[node.name][i];
 
                 if (!!callback.callback) {
-                    callback.callback(this.getVarData(node.param, true));
+                    callback.callback(node.var_data);
                 }
 
                 if (callback.type == VarUpdateCallback.TYPE_EVERY) {

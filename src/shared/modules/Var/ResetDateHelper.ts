@@ -1,25 +1,29 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
 
-export default class CumulativVarController {
+export default class ResetDateHelper {
 
     public static getInstance() {
-        if (!CumulativVarController.instance) {
-            CumulativVarController.instance = new CumulativVarController();
+        if (!ResetDateHelper.instance) {
+            ResetDateHelper.instance = new ResetDateHelper();
         }
 
-        return CumulativVarController.instance;
+        return ResetDateHelper.instance;
     }
 
-    private static instance: CumulativVarController = null;
+    private static instance: ResetDateHelper = null;
 
     private constructor() { }
 
     /**
-     * FIXME TODO ASAP VARS TU
      * Renvoie la date de reset du compteur la plus proche possible, dans le passé (<=), de la date passée en paramètre
+     * @param date La date à partir de laquelle on cherche la date de reset la plus proche
+     * @param inclusive True indique que si la date passée en paramètre est une date de reset, on la renvoie directement, sinon on renvoie la date précédente (dont A-1)
+     * @param has_yearly_reset false indique qu'on a rien à faire ici ...
+     * @param yearly_reset_day_in_month 1-31
+     * @param yearly_reset_month 0-11
      */
-    public getClosestPreviousCompteurResetDate(date: Moment, inclusive: boolean, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): Moment {
+    public getClosestPreviousResetDate(date: Moment, inclusive: boolean, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): Moment {
 
         if (!has_yearly_reset) {
             return null;
@@ -38,10 +42,13 @@ export default class CumulativVarController {
     }
 
     /**
-     * FIXME TODO ASAP VARS TU
      * Renvoie la date de reset du compteur la plus proche possible, dans le futur (>=), de la date passée en paramètre
+     * @param date La date à partir de laquelle on cherche la date de reset la plus proche
+     * @param has_yearly_reset false indique qu'on a rien à faire ici ...
+     * @param yearly_reset_day_in_month 1-31
+     * @param yearly_reset_month 0-11
      */
-    public getClosestNextCompteurResetDate(date: Moment, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): Moment {
+    public getClosestNextResetDate(date: Moment, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): Moment {
 
         if (!has_yearly_reset) {
             return null;
@@ -57,10 +64,12 @@ export default class CumulativVarController {
         return date_reset;
     }
 
-
     /**
-     * FIXME TODO ASAP VARS TU
      * @returns true if reset date
+     * @param date La date à tester
+     * @param has_yearly_reset false indique qu'on a rien à faire ici ...
+     * @param yearly_reset_day_in_month 1-31
+     * @param yearly_reset_month 0-11
      */
     public isResetDate(date: Moment, has_yearly_reset: boolean, yearly_reset_day_in_month: number, yearly_reset_month: number): boolean {
 

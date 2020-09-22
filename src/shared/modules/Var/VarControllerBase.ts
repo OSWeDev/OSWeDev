@@ -1,8 +1,8 @@
 import cloneDeep = require('lodash/cloneDeep');
-import ConsoleHandler from '../../tools/ConsoleHandler';
 import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
-import VarDAGNode from './graph/var/VarDAGNode';
-import IVarDataVOBase from './interfaces/IVarDataVOBase';
+import VarDAG from './graph/VarDAG';
+import VarDAGNode from './graph/VarDAGNode';
+import MainAggregateOperatorsHandlers from './MainAggregateOperatorsHandlers';
 import ModuleVar from './ModuleVar';
 import VarDataBaseVO from './params/VarDataBaseVO';
 import VarsController from './VarsController';
@@ -10,7 +10,7 @@ import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfVOBase from './vos/VarConfVOBase';
 const moment = require('moment');
 
-export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
+export default abstract class VarControllerBase<TData extends VarDataBaseVO> {
 
     /**
      * Used for every segmented data, defaults to day segmentation. Used for cumuls, and refining use of the param.date_index
@@ -59,6 +59,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
     public can_load_precompiled_or_imported_datas_client_side: boolean = true;
 
     public var_cache_conf: VarCacheConfVO = null;
+    protected aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;
 
     protected constructor(public varConf: VarConfVOBase) {
     }
@@ -92,49 +93,31 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
     public abstract getVarsIdsDependencies(): number[];
 
     /**
-     * ATTENTION : on ne compute que sur un matroid. Sous entendu si on a un import qui scinde en 2 le param, on doit pouvoir calculer
-     *  en faisant import + calculA + calculB sinon on doit absolument interdire les imports sur cette variable => ça veut dire aussi pas de cache partiel,
-     *  on doit avoir un cache exact.
-     * Du coup dans ce cas précis si on demande de faire le calcul sur calculA et calculB on peut utiliser la somme des deps de A et B, et 
+     * Fonction de calcul de la valeur pour ce param et stockage dans le var_data du noeud
+     *  Si on est sur un noeud aggrégé, on calcul via la fonction d'aggrégat, sinon on calcul par la fonction getValue
      * @param varDAGNode
-     * @param varDAG
      */
     public computeValue(varDAGNode: VarDAGNode) {
 
-        let res: TData = null;
+        let value: number;
+        if (varDAGNode.is_aggregator) {
 
-        if ((!!varDAGNode.computed_datas_matroids) && (!!varDAGNode.loaded_datas_matroids)) {
+            let values: number[] = [];
 
-            // Si on est sur des matroids, on doit créer la réponse nous mêmes
-            //  en additionnant les imports/précalculs + les res de calcul des computed matroids
-            let res_matroid: IVarDataVOBase = VarDataBaseVO.cloneFrom(varDAGNode.param);
+            for (let i in varDAGNode.outgoing_deps) {
+                let outgoing_dep = varDAGNode.outgoing_deps[i];
 
-            res_matroid.value = varDAGNode.loaded_datas_matroids_sum_value;
-
-            for (let i in varDAGNode.computed_datas_matroids) {
-                let data_matroid_to_compute = varDAGNode.computed_datas_matroids[i];
-
-                let computed_datas_matroid_res: IVarDataVOBase = this.updateData(data_matroid_to_compute, this.get_ordered_deps_values(varDAGNode),) as any;
-
-                if ((res_matroid.value === null) || (typeof res_matroid.value === 'undefined')) {
-                    res_matroid.value = computed_datas_matroid_res.value;
-                } else {
-                    res_matroid.value += computed_datas_matroid_res.value;
-                }
+                values.push(outgoing_dep.outgoing_node.var_data.value);
             }
-
-            res = res_matroid as any;
+            value = this.aggregateValues(values);
         } else {
-            res = this.updateData(varDAGNode);
+
+            value = this.getValue(varDAGNode);
         }
 
-        if (!res) {
-            ConsoleHandler.getInstance().error('updateData should return res anyway');
-            res = cloneDeep(varDAGNode.param) as TData;
-            res.value_type = VarsController.VALUE_TYPE_COMPUTED;
-        }
-
-        VarsController.getInstance().setVarData(res, true);
+        varDAGNode.var_data.value = value;
+        varDAGNode.var_data.value_type = VarsController.VALUE_TYPE_COMPUTED;
+        varDAGNode.var_data.value_ts = moment().utc(true);
     }
 
     /**
@@ -143,8 +126,8 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
      * This is the default behaviour, using all refering vars defined in the varscontroller, and cloning the param to match that of the parent
      * @param param
      */
-    public getParamDependents(param: TData): IVarDataVOBase[] {
-        let res: IVarDataVOBase[] = [];
+    public getParamDependents(param: TData): VarDataBaseVO[] {
+        let res: VarDataBaseVO[] = [];
 
         if (!param) {
             return res;
@@ -157,7 +140,7 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
             let parent_controller = parent_controllers[parent_controlleri];
 
             // On clone le param et au besoin en traduisant vers le type de param cible
-            let parent_param: IVarDataVOBase;
+            let parent_param: VarDataBaseVO;
             let parent_var_data_vo_type = parent_controller.varConf.var_data_vo_type;
             parent_param = VarDataBaseVO.cloneFieldsFrom(parent_var_data_vo_type, parent_controller.varConf.id, param);
             res.push(parent_param);
@@ -171,30 +154,56 @@ export default abstract class VarControllerBase<TData extends IVarDataVOBase> {
      * @param varDAGNode
      * @param varDAG
      */
-    public abstract getParamDependencies(param: TData, predeps_datasources: { [ds_name: string]: any }): { [dep_id: string]: IVarDataVOBase };
-
-    protected abstract updateData(param: TData, ordered_deps_values: { [dep_id: string]: number }, datasources: { [ds_name: string]: any }): number;
+    public abstract getParamDependencies(varDAGNode: VarDAGNode);
 
     /**
-     * Attention les deps sont peut-être découpées par les imports donc on peut avoir plusieurs deps par dep_id (mais pas par outgoingName)
-     * @param varDAGNode
+     * Fonction spécifique aux tests unitaires qui permet de tester la fonction getParamDependencies plus facilement
+     *  On fabrique un faux arbre pour appeler ensuite la fonction getParamDependencies
+     * @param param le var data / matroid qui sert à paramétrer le calcul
+     * @param datasources les datas de chaque datasource, par nom du datasource
+     * @param deps_values les valeurs des deps, par id de dep
      */
-    private get_ordered_deps_values(varDAGNode: VarDAGNode): { [dep_id: string]: number } {
-        let res: { [dep_id: string]: number } = {};
+    public UT__getParamDependencies(param: TData, datasources: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): number {
+        return this.getParamDependencies(this.UT__getTestVarDAGNode(param, datasources, deps_values));
+    }
 
-        for (let i in varDAGNode.outgoingNames) {
-            let outgoingName = varDAGNode.outgoingNames[i];
-            let dep_id = varDAGNode.outgoingDepIds[i];
+    /**
+     * Fonction spécifique aux tests unitaires qui permet de tester la fonction getValue plus facilement
+     *  On fabrique un faux arbre pour appeler ensuite la fonction getValue
+     * @param param le var data / matroid qui sert à paramétrer le calcul
+     * @param datasources les datas de chaque datasource, par nom du datasource
+     * @param deps_values les valeurs des deps, par id de dep
+     */
+    public UT__getValue(param: TData, datasources: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): number {
+        return this.getValue(this.UT__getTestVarDAGNode(param, datasources, deps_values));
+    }
 
-            // Si on a pas de value encore on prend la valeur de la dep actuelle
-            //  sinon si on peut additionner on le fait
-            if (res[dep_id] == null) {
-                res[dep_id] = varDAGNode.outgoing[outgoingName].value;
-            } else {
-                res[dep_id] = varDAGNode.outgoing[outgoingName].value ? res[dep_id] + varDAGNode.outgoing[outgoingName].value : res[dep_id];
-            }
+    /**
+     * La fonction de calcul, qui doit utiliser directement les datasources préchargés disponibles dans le noeud (.datasources)
+     *  et les outgoing_deps.var_data.value pour récupérer les valeurs des deps
+     * @param varDAGNode Le noeud à calculer
+     */
+    protected abstract getValue(varDAGNode: VarDAGNode): number;
+
+    /**
+     * Fonction spécifique aux tests unitaires qui permet de créer un faux arbre pour avec les paramètres du test pour appeler 
+     *  la fonction à tester beaucoup plus facilement
+     * @param param le var data / matroid qui sert à paramétrer le calcul
+     * @param datasources les datas de chaque datasource, par nom du datasource
+     * @param deps_values les valeurs des deps, par id de dep
+     */
+    private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): VarDAGNode {
+        let dag: VarDAG = new VarDAG();
+        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
+
+        for (let i in deps_values) {
+            let dep_value = deps_values[i];
+
+            varDAGNode.addOutgoingDep(i, VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value })));
         }
 
-        return res;
+        varDAGNode.datasources = datasources;
+
+        return varDAGNode;
     }
 }

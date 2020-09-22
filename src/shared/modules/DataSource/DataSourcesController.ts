@@ -17,16 +17,6 @@ export default class DataSourcesController {
 
     private static instance: DataSourcesController = null;
 
-    /**
-     * Déclarer un datasource utilisable côté serveur
-     */
-    public can_use_server_side: boolean = true;
-
-    /**
-     * Déclarer une datasource utilisable côté client
-     */
-    public can_use_client_side: boolean = true;
-
     public registeredDataSourcesController: { [name: string]: IDataSourceController<any> } = {};
     public registeredDataSourcesControllerByVoTypeDep: { [vo_type: string]: Array<IDataSourceController<any>> } = {};
     /**

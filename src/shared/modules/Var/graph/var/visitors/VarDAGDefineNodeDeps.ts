@@ -1,9 +1,6 @@
 import IDataSourceController from '../../../../DataSource/interfaces/IDataSourceController';
 import ModulesManager from '../../../../ModulesManager';
-import IVarDataVOBase from '../../../interfaces/IVarDataVOBase';
 import VarsController from '../../../VarsController';
-import VarDAG from '../VarDAG';
-import VarDAGNode from '../VarDAGNode';
 
 /**
  * Visiteur qui doit charger les deps de voisinage et down pour les ajouter / relier dans l'arbre.

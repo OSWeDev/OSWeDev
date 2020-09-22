@@ -43,6 +43,11 @@ export default class VarDAGNode {
     public aggregated_nodes: { [var_data_index: string]: VarDAGNode };
 
     /**
+     * Toutes les données chargées pour ce noeud sont disponibles directement ici, classées par datasource
+     */
+    public datasources: { [ds_name: string]: any };
+
+    /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
     private constructor(public dag: VarDAG, public var_data: VarDataBaseVO) { }

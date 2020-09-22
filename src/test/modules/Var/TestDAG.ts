@@ -5,6 +5,7 @@ import 'mocha';
 import * as moment from 'moment';
 import TimeSegment from '../../../shared/modules/DataRender/vos/TimeSegment';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
+import VarDAGController from '../../../shared/modules/Var/graph/VarDAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDAGNodeDep from '../../../shared/modules/Var/graph/VarDAGNodeDep';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -18,12 +19,7 @@ describe('DAG', () => {
         FakeDataHandler.initializeDayDataRangesVO();
         let dag: VarDAG = new VarDAG();
 
-        let var_data_A: FakeDataVO = new FakeDataVO();
-        var_data_A.var_id = 1;
-        var_data_A.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
-        ];
-
+        let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
         let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A);
 
         expect(dagnodeA.var_data.index).to.equal("1_[[1577836800000,1577923200000)]");
@@ -41,12 +37,7 @@ describe('DAG', () => {
         expect(dag.leafs).to.deep.equal({ "1_[[1577836800000,1577923200000)]": dagnodeA });
         expect(dag.roots).to.deep.equal({ "1_[[1577836800000,1577923200000)]": dagnodeA });
 
-        let var_data_B: FakeDataVO = new FakeDataVO();
-        var_data_B.var_id = 2;
-        var_data_B.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
-        ];
-
+        let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
         let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B);
 
         expect(dagnodeB.var_data.index).to.equal("2_[[1580515200000,1583020800000)]");
@@ -79,19 +70,11 @@ describe('DAG', () => {
         FakeDataHandler.initializeDayDataRangesVO();
         let dag: VarDAG = new VarDAG();
 
-        let var_data_A: FakeDataVO = new FakeDataVO();
-        var_data_A.var_id = 1;
-        var_data_A.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
-        ];
+        let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
 
         let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A);
 
-        let var_data_B: FakeDataVO = new FakeDataVO();
-        var_data_B.var_id = 2;
-        var_data_B.ts_ranges = [
-            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-02-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
-        ];
+        let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
 
         let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B);
 
@@ -155,6 +138,18 @@ describe('DAG', () => {
          *
          * bottom->up to node B => [E, F, B]
          */
+
+        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+
+        let visit_res: string = null;
+        VarDAGController.getInstance().visit_bottom_up_to_node(node_b, (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+
+        expect(visit_res).to.equal(
+            FakeDataHandler.get_expected_var_data_E_index() + ',' +
+            FakeDataHandler.get_expected_var_data_F_index() + ',' +
+            FakeDataHandler.get_expected_var_data_B_index()
+        );
     });
 
     it('test visit top->bottom from node', async () => {
@@ -168,6 +163,18 @@ describe('DAG', () => {
          *
          * top->bottom from node B => [B, E, F]
          */
+
+        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+
+        let visit_res: string = null;
+        VarDAGController.getInstance().visit_top_bottom_from_node(node_b, (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+
+        expect(visit_res).to.equal(
+            FakeDataHandler.get_expected_var_data_B_index() + ',' +
+            FakeDataHandler.get_expected_var_data_E_index() + ',' +
+            FakeDataHandler.get_expected_var_data_F_index()
+        );
     });
 
     it('test visit bottom->up from node', async () => {
@@ -181,6 +188,17 @@ describe('DAG', () => {
          *
          * bottom->up from node B => [B, A]
          */
+
+        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+
+        let visit_res: string = null;
+        VarDAGController.getInstance().visit_bottom_up_from_node(node_b, (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+
+        expect(visit_res).to.equal(
+            FakeDataHandler.get_expected_var_data_B_index() + ',' +
+            FakeDataHandler.get_expected_var_data_A_index()
+        );
     });
 
     it('test visit top->bottom to node', async () => {
@@ -195,9 +213,19 @@ describe('DAG', () => {
          * top->bottom to node B => [A, B]
          */
 
+        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+
+        let visit_res: string = null;
+        VarDAGController.getInstance().visit_top_bottom_to_node(node_b, (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+
+        expect(visit_res).to.equal(
+            FakeDataHandler.get_expected_var_data_A_index() + ',' +
+            FakeDataHandler.get_expected_var_data_B_index()
+        );
     });
 
-    it('test visit bottom->up throught node', async () => {
+    it('test visit bottom->up through node', async () => {
         /**
          * exemple :
          *                           A
@@ -206,11 +234,24 @@ describe('DAG', () => {
          *                        / \ / \
          *                       E  F G  H
          *
-         * bottom->up throught node B => [E, F, B, A]
+         * bottom->up through node B => [E, F, B, A]
          */
+
+        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+
+        let visit_res: string = null;
+        VarDAGController.getInstance().visit_bottom_up_through_node(node_b, (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+
+        expect(visit_res).to.equal(
+            FakeDataHandler.get_expected_var_data_E_index() + ',' +
+            FakeDataHandler.get_expected_var_data_F_index() + ',' +
+            FakeDataHandler.get_expected_var_data_B_index() + ',' +
+            FakeDataHandler.get_expected_var_data_A_index()
+        );
     });
 
-    it('test visit top->bottom throught node', async () => {
+    it('test visit top->bottom through node', async () => {
         /**
          * exemple :
          *                           A
@@ -219,8 +260,20 @@ describe('DAG', () => {
          *                        / \ / \
          *                       E  F G  H
          *
-         * top->bottom throught node B => [A, B, E, F]
+         * top->bottom through node B => [A, B, E, F]
          */
 
+        let dag: VarDAG = FakeDataHandler.get_fake_triangular_dag();
+        let node_b = dag.nodes[FakeDataHandler.get_expected_var_data_B_index()];
+
+        let visit_res: string = null;
+        VarDAGController.getInstance().visit_top_bottom_through_node(node_b, (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index));
+
+        expect(visit_res).to.equal(
+            FakeDataHandler.get_expected_var_data_A_index() + ',' +
+            FakeDataHandler.get_expected_var_data_B_index() + ',' +
+            FakeDataHandler.get_expected_var_data_E_index() + ',' +
+            FakeDataHandler.get_expected_var_data_F_index()
+        );
     });
 });
