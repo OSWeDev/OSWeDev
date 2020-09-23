@@ -644,8 +644,13 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
-                    res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : field_as_moment;
+
+                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
+                        res[new_id] = e[field.field_id];
+                    } else {
+                        let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
+                        res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
+                    }
                     break;
 
                 default:
