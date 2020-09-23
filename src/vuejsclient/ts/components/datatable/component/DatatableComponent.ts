@@ -144,7 +144,7 @@ export default class DatatableComponent extends VueComponentBase {
 
     private handle_filters_preload() {
 
-        // this.custom_filters_values = {};
+        this.custom_filters_values = {};
         this.preload_custom_filters = [];
 
         // En fait, on parcourt le type et pour chaque champ, si il existe en param un 'FILTER__' + field_id
