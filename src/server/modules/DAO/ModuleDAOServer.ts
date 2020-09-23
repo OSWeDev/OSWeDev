@@ -1545,20 +1545,45 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let request: string = "SELECT t.* FROM " + moduleTable.full_name + " t WHERE ";
         let first: boolean = true;
+        let request_params = [];
         if (apiDAOParamsVO.field_name1 && ((!!apiDAOParamsVO.ids1) && (apiDAOParamsVO.ids1.length > 0))) {
-            request += moduleTable.getFieldFromId(apiDAOParamsVO.field_name1).field_id + " in (" + apiDAOParamsVO.ids1 + ")";
+            request += moduleTable.getFieldFromId(apiDAOParamsVO.field_name1).field_id + " in (";
+            let first_param: boolean = true;
+            for (let i in apiDAOParamsVO.ids1) {
+                let id1 = apiDAOParamsVO.ids1[i];
+                request_params.push(id1);
+                request += (first_param ? '' : ',') + "$" + request_params.length;
+                first_param = false;
+            }
+            request += ")";
             first = false;
         }
         if (apiDAOParamsVO.field_name2 && ((!!apiDAOParamsVO.values2) && (apiDAOParamsVO.values2.length > 0))) {
-            request += ((!first) ? " AND " : "") + moduleTable.getFieldFromId(apiDAOParamsVO.field_name2).field_id + " in ('" + apiDAOParamsVO.values2.join("','") + "')";
+            request += ((!first) ? " AND " : "") + moduleTable.getFieldFromId(apiDAOParamsVO.field_name2).field_id + " in (";
+            let first_param: boolean = true;
+            for (let i in apiDAOParamsVO.values2) {
+                let value2 = apiDAOParamsVO.values2[i];
+                request_params.push(value2);
+                request += (first_param ? '' : ',') + "$" + request_params.length;
+                first_param = false;
+            }
+            request += ")";
             first = false;
         }
         if (apiDAOParamsVO.field_name3 && ((!!apiDAOParamsVO.values3) && (apiDAOParamsVO.values3.length > 0))) {
-            request += ((!first) ? " AND " : "") + moduleTable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in ('" + apiDAOParamsVO.values3.join("','") + "')";
+            request += ((!first) ? " AND " : "") + moduleTable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in (";
+            let first_param: boolean = true;
+            for (let i in apiDAOParamsVO.values3) {
+                let value3 = apiDAOParamsVO.values3[i];
+                request_params.push(value3);
+                request += (first_param ? '' : ',') + "$" + request_params.length;
+                first_param = false;
+            }
+            request += ")";
             first = false;
         }
 
-        let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";") as T[]);
+        let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";", request_params) as T[]);
 
         // On filtre suivant les droits d'accès
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);
