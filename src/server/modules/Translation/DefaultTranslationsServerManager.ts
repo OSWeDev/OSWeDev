@@ -96,13 +96,15 @@ export default class DefaultTranslationsServerManager {
             let translation_str: string = default_translation.default_translations[lang.code_lang];
 
             if (!translation_str) {
-                // On en crée artificiellement une à partir de la langue par défaut
-                if ((default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == null) || (typeof default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
-                    ConsoleHandler.getInstance().error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(default_translation));
-                    continue;
-                }
+                // Si pas de trad, on passe au suivant pour ne pas créer de trad par defaut sur les autres langues
 
-                translation_str = default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
+                // if ((default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == null) || (typeof default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION] == 'undefined')) {
+                //     ConsoleHandler.getInstance().error("Impossible de trouver la traduction dans la langue par défaut:" + JSON.stringify(default_translation));
+                //     continue;
+                // }
+
+                // translation_str = default_translation.default_translations[DefaultTranslation.DEFAULT_LANG_DEFAULT_TRANSLATION];
+                continue;
             }
 
             let translation: TranslationVO = await ModuleDAOServer.getInstance().selectOne<TranslationVO>(TranslationVO.API_TYPE_ID, "where lang_id=$1 and text_id=$2", [lang.id, translatable.id]);
