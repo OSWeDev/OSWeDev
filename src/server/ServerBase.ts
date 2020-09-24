@@ -427,6 +427,7 @@ export default abstract class ServerBase {
                     // old session - on check qu'on doit pas invalider
                     if (!this.check_session_validity(session)) {
                         session.destroy(() => {
+                            PushDataServerController.getInstance().unregisterSession(session);
                             this.redirect_login_or_home(req, res);
                         });
                         return;
@@ -439,12 +440,7 @@ export default abstract class ServerBase {
 
             if (session && session.uid) {
 
-                if (!await ModuleAccessPolicyServer.getInstance().checkUserStatus(session.uid)) {
-                    session.destroy(() => {
-                        this.redirect_login_or_home(req, res);
-                    });
-                    return;
-                }
+                PushDataServerController.getInstance().registerSession(session);
 
                 httpContext.set('UID', session.uid);
                 httpContext.set('SESSION', session);
@@ -569,6 +565,8 @@ export default abstract class ServerBase {
             if (session && session.uid) {
                 let uid: number = session.uid;
 
+                PushDataServerController.getInstance().registerSession(session);
+
                 // On stocke le log de connexion en base
                 let user_log: UserLogVO = new UserLogVO();
                 user_log.user_id = uid;
@@ -617,6 +615,8 @@ export default abstract class ServerBase {
              * Gestion du impersonate => on restaure la session précédente
              */
             if (req.session && !!req.session.impersonated_from) {
+                PushDataServerController.getInstance().unregisterSession(req.session);
+
                 req.session = Object.assign(req.session, req.session.impersonated_from);
                 delete req.session.impersonated_from;
 
@@ -634,6 +634,8 @@ export default abstract class ServerBase {
             } else {
 
                 req.session.destroy((err) => {
+                    PushDataServerController.getInstance().unregisterSession(req.session);
+
                     if (err) {
                         ConsoleHandler.getInstance().log(err);
                     } else {
@@ -779,7 +781,7 @@ export default abstract class ServerBase {
                         return;
                     }
 
-                    PushDataServerController.getInstance().registerSocket(session.uid ? session.uid : null, session.id, socket);
+                    PushDataServerController.getInstance().registerSocket(session, socket);
                 }.bind(ServerBase.getInstance()));
 
                 io.on('error', function (err) {

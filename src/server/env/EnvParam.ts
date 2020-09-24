@@ -3,6 +3,7 @@
 import IEnvParam from './IEnvParam';
 
 export default class EnvParam implements IEnvParam {
+    public APP_TITLE: string;
     public CONNECTION_STRING: string;
     public PORT: string;
     public ISDEV: boolean;

@@ -659,7 +659,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async selectOneUserForRecovery(login: string): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
-        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1)", [login]) as UserVO;
+        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) and blocked = false", [login]) as UserVO;
         datatable.forceNumeric(vo);
         return vo;
     }
@@ -670,7 +670,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async selectOneUserForRecoveryUID(uid: number): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
-        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1", [uid]) as UserVO;
+        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1 and blocked = false", [uid]) as UserVO;
         datatable.forceNumeric(vo);
         return vo;
     }

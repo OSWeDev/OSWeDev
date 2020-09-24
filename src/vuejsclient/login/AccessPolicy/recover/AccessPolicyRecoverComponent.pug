@@ -5,6 +5,7 @@
             h1.text-center(v-if='!logo_url') {{ label('login.recover.title') }}
             h2.text-center {{ label('login.recover.sub_title') }}
             p.server-answer(v-if='message') {{ message }}
+
             div(v-if='!message')
                 p.login-box-msg {{ label('login.recover.desc') }}
                 form(v-on:submit.prevent="")
@@ -14,3 +15,5 @@
 
                     .center
                         button.btn.btn-primary.btn-block.btn-flat(@click="recover") {{ label('login.recover.submit') }}
+                    .center
+                        button.btn.btn-light.btn-block.btn-flat(@click="recoversms") {{ label('login.recover.sms') }}

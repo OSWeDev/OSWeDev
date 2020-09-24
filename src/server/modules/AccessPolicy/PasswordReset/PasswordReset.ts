@@ -29,6 +29,10 @@ export default class PasswordReset {
             return false;
         }
 
+        if (user.blocked) {
+            return false;
+        }
+
         return await this.resetPwdUser(user, challenge, new_pwd1);
     }
 
@@ -37,6 +41,10 @@ export default class PasswordReset {
         let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         if (!user) {
+            return false;
+        }
+
+        if (user.blocked) {
             return false;
         }
 
@@ -52,6 +60,10 @@ export default class PasswordReset {
             return false;
         }
 
+        if (user.blocked) {
+            return false;
+        }
+
         return await this.checkCodeUser(user, challenge);
     }
 
@@ -60,6 +72,10 @@ export default class PasswordReset {
         let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         if (!user) {
+            return false;
+        }
+
+        if (user.blocked) {
             return false;
         }
 
@@ -72,11 +88,15 @@ export default class PasswordReset {
             return false;
         }
 
+        if (user.blocked) {
+            return false;
+        }
+
         if (user.recovery_challenge != challenge) {
             return false;
         }
 
-        if (moment(user.recovery_expiration).utc(true).isBefore(moment().utc(true))) {
+        if (user.recovery_expiration.isBefore(moment().utc(true))) {
             return false;
         }
 
@@ -89,11 +109,15 @@ export default class PasswordReset {
             return false;
         }
 
+        if (user.blocked) {
+            return false;
+        }
+
         if (user.recovery_challenge != challenge) {
             return false;
         }
 
-        if (moment(user.recovery_expiration).utc(true).isBefore(moment().utc(true))) {
+        if (user.recovery_expiration.isBefore(moment().utc(true))) {
             return false;
         }
 

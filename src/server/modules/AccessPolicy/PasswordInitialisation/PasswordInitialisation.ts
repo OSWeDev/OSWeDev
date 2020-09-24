@@ -37,6 +37,10 @@ export default class PasswordInitialisation {
             return false;
         }
 
+        if (user.blocked) {
+            return false;
+        }
+
         return await this.begininitpwd_user(user);
     }
 
@@ -45,6 +49,10 @@ export default class PasswordInitialisation {
         let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecoveryUID(uid);
 
         if (!user) {
+            return false;
+        }
+
+        if (user.blocked) {
             return false;
         }
 

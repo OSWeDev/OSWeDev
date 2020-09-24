@@ -46,6 +46,8 @@ import PasswordReset from './PasswordReset/PasswordReset';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
+    public static TASK_NAME_onBlockOrInvalidateUserDeleteSessions = 'ModuleAccessPolicyServer.onBlockOrInvalidateUserDeleteSessions';
+
     public static getInstance() {
         if (!ModuleAccessPolicyServer.instance) {
             ModuleAccessPolicyServer.instance = new ModuleAccessPolicyServer();
@@ -236,10 +238,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // On ajoute un trigger pour la création du compte
         let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOCreate.bind(this));
+        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUser.bind(this));
 
         // On ajoute un trigger pour la modification du mot de passe
         let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOUpdate.bind(this));
+        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUser.bind(this));
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
@@ -380,8 +384,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Login'
         }, 'login.email_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Valider'
+            fr: 'Envoyer le mail'
         }, 'login.recover.submit.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Envoyer le SMS'
+        }, 'login.recover.sms.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Vous devriez recevoir un SMS d\'ici quelques minutes (si celui-ci est bien configuré dans votre compte) pour réinitialiser votre compte. Si vous n\'avez reçu aucun SMS, vérifiez que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par Mail.'
+        }, 'login.recover.answersms.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Récupération...'
         }, 'recover.start.___LABEL___'));
@@ -392,7 +403,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Consultez vos mails'
         }, 'recover.ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Consultez votre boîte mail.'
+            fr: 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par SMS.'
         }, 'login.recover.answer.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Réinitialisation de votre mot de passe'
@@ -462,6 +473,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Récupération du mot de passe'
         }, 'mails.pwd.recovery.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+        }, 'mails.pwd.recovery.sms'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'
         }, 'mails.pwd.recovery.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -491,6 +505,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Votre mot de passe expire dans 3 jours. Vous pouvez le modifier dans l\'administration, ou vous pouvez utiliser la procédure de réinitialisation du mot de passe, accessible en cliquant sur le lien ci- dessous.'
         }, 'mails.pwd.reminder2.html'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Connexion impossible. Vérifiez le mot de passe. Si votre mot de passe a été invalidé, vous devriez recevoir un mail vous invitant à le renouveler. Vous pouvez également utiliser la procédure d\'oubli du mot de passe en cliquant sur "Mot de passe oublié".'
+        }, 'login.failed.message.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'LogAs'
@@ -549,6 +567,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_MY_ROLES, this.getMyRoles.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER, this.addRoleToUser.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, this.beginRecover.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS, this.beginRecoverSMS.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWDUID, this.resetPwdUID.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_checkCode, this.checkCode.bind(this));
@@ -633,7 +652,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
         console.debug("challenge:" + user.email + ':' + challenge + ':');
-        user.recovery_expiration = moment().utc(true).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours').valueOf();
+        user.recovery_expiration = moment().utc(true).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours');
         await ModuleDAO.getInstance().insertOrUpdateVO(user);
     }
 
@@ -685,17 +704,57 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return await AccessPolicyServerController.getInstance().registerPolicyDependency(dependency);
     }
 
+    /**
+     * @returns true si le compte est valide, false si il est expiré ou blocké
+     */
     public async checkUserStatus(uid: number): Promise<boolean> {
 
         try {
 
-            let res = await ModuleDAOServer.getInstance().query('select invalidated from ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            let res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
             let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : true;
             return !invalidated;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
         }
         return false;
+    }
+
+    /**
+     * Fonction qui détruit les sessions de l'utilisateur que l'on est en train de bloquer - exécutée sur le main process
+     * @param uid
+     */
+    public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
+
+        ForkedTasksController.getInstance().register_task(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, this.onBlockOrInvalidateUserDeleteSessions.bind(this));
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, uid)) {
+            return;
+        }
+
+        try {
+
+            let sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getInstance().getUserSessions(uid);
+            for (let i in sessions) {
+                let session: IServerUserSession = sessions[i];
+
+                if (!session) {
+                    continue;
+                }
+
+                try {
+                    session.destroy(() => {
+                        PushDataServerController.getInstance().unregisterSession(session);
+                    });
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                }
+                break;
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return;
     }
 
     public getLoggedUserId(): number {
@@ -1030,6 +1089,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return PasswordRecovery.getInstance().beginRecovery(param.text);
     }
 
+    private async beginRecoverSMS(param: StringParamVO): Promise<boolean> {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!param.text)) {
+            return false;
+        }
+
+        return PasswordRecovery.getInstance().beginRecoverySMS(param.text);
+    }
+
     private async checkCode(params: ResetPwdParamVO): Promise<boolean> {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
@@ -1257,7 +1325,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
+            if (user.blocked) {
+                return null;
+            }
+
+            if (user.invalidated) {
+
+                // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
+                if (user.recovery_expiration.isSameOrBefore(moment().utc(true))) {
+                    await PasswordRecovery.getInstance().beginRecovery(user.email);
+                }
+                return null;
+            }
+
             session.uid = user.id;
+
+            PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
@@ -1307,6 +1390,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             session.impersonated_from = Object.assign({}, session);
             session.uid = user.id;
+
+            PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
@@ -1395,6 +1480,27 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         if ((!access_matrix[policy_id]) || (!access_matrix[policy_id][role_id])) {
             await ModuleAccessPolicy.getInstance().togglePolicy(policy_id, role_id);
+        }
+    }
+
+    private async checkBlockingOrInvalidatingUser(user: UserVO) {
+        let old_user: UserVO = null;
+        if (!!user.id) {
+            old_user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user.id);
+        }
+
+        if (user.blocked && !old_user) {
+            // On a pas de sessions à supprimer en cas de création
+        } else if (user.blocked && !old_user.blocked) {
+            await this.onBlockOrInvalidateUserDeleteSessions(user.id);
+            return;
+        }
+
+        if (user.invalidated && !old_user) {
+            // On a pas de sessions à supprimer en cas de création
+        } else if (user.invalidated && !old_user.invalidated) {
+            await this.onBlockOrInvalidateUserDeleteSessions(user.id);
+            return;
         }
     }
 }
