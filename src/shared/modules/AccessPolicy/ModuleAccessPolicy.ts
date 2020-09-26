@@ -70,6 +70,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_getMyLang = "getMyLang";
     public static APINAME_begininitpwd = "begininitpwd";
     public static APINAME_begininitpwd_uid = "begininitpwd_uid";
+    public static APINAME_getSelfUser = "getSelfUser";
     public static APINAME_checkCode = "checkCode";
     public static APINAME_checkCodeUID = "checkCodeUID";
 
@@ -107,6 +108,11 @@ export default class ModuleAccessPolicy extends Module {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
             ModuleAccessPolicy.APINAME_IS_ADMIN,
             [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]
+        ));
+
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, UserVO>(
+            ModuleAccessPolicy.APINAME_getSelfUser,
+            [UserVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
@@ -233,6 +239,10 @@ export default class ModuleAccessPolicy extends Module {
 
     public async begininitpwd_uid(uid: number): Promise<void> {
         return await ModuleAPI.getInstance().handleAPI<NumberParamVO, void>(ModuleAccessPolicy.APINAME_begininitpwd_uid, uid);
+    }
+
+    public async getSelfUser(): Promise<UserVO> {
+        return await ModuleAPI.getInstance().handleAPI<void, UserVO>(ModuleAccessPolicy.APINAME_getSelfUser);
     }
 
     public async getMyLang(): Promise<LangVO> {

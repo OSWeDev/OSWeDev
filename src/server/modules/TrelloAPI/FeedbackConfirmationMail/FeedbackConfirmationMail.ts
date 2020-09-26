@@ -5,6 +5,7 @@ import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTran
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
 import ServerBase from '../../../ServerBase';
+import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
 import FeedbackConfirmationMail_html_template from './FeedbackConfirmationMail_html_template.html';
 
@@ -32,11 +33,13 @@ export default class FeedbackConfirmationMail {
         httpContext.set('IS_CLIENT', false);
 
         // Si on est en impersonate, on envoie pas le mail au compte client mais au compte admin
-        let user = null;
-        if (feedback.is_impersonated) {
-            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, feedback.impersonated_from_user_id);
+        let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let target_user_id: number = feedback.is_impersonated ? feedback.impersonated_from_user_id : feedback.user_id;
+        let user: UserVO = null;
+        if (user_id == target_user_id) {
+            user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
         } else {
-            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, feedback.user_id);
+            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, target_user_id);
         }
 
         // Send mail

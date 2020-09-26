@@ -7,6 +7,8 @@ import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolic
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import RolePolicyVO from '../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import DAOServerController from '../../../server/modules/DAO/DAOServerController';
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 
 describe('AccessPolicyServer', () => {
 
@@ -1245,7 +1247,7 @@ describe('AccessPolicyServer', () => {
         )).to.equal(true);
     });
 
-    it('test check access - policy multiple dependencies', () => {
+    it('test check access - policy multiple dependencies defaults GRANTED', () => {
 
         AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
         AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
@@ -1315,6 +1317,308 @@ describe('AccessPolicyServer', () => {
         dependencyCA.src_pol_id = policyC.id;
         dependencyCA.depends_on_pol_id = policyA.id;
         dependencyCA.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+        let dependencyCB: PolicyDependencyVO = new PolicyDependencyVO();
+        dependencyCB.id = 2;
+        dependencyCB.src_pol_id = policyC.id;
+        dependencyCB.depends_on_pol_id = policyB.id;
+        dependencyCB.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+        let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+            [policyC.id]: [dependencyCA, dependencyCB],
+        };
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(true);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(true);
+
+        role_policyB.granted = false;
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(true);
+
+        role_policyA.granted = false;
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(false);
+
+        role_policyB.granted = true;
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(true);
+
+        role_policyA.granted = true;
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(true);
+    });
+
+    it('test check access - policy multiple dependencies defaults DENIED', () => {
+
+        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
+        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
+        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+
+        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
+        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        AccessPolicyServerController.getInstance().role_logged.id = 2;
+        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+
+        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
+        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        AccessPolicyServerController.getInstance().role_admin.id = 3;
+        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+
+        let all_roles: { [role_id: number]: RoleVO } = {
+            1: AccessPolicyServerController.getInstance().role_anonymous,
+            2: AccessPolicyServerController.getInstance().role_logged,
+            3: AccessPolicyServerController.getInstance().role_admin
+        };
+
+
+
+        let policyA: AccessPolicyVO = new AccessPolicyVO();
+        policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policyA.translatable_name = 'testA';
+        policyA.id = 1;
+
+        let policyB: AccessPolicyVO = new AccessPolicyVO();
+        policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policyB.translatable_name = 'testB';
+        policyB.id = 2;
+
+        let policyC: AccessPolicyVO = new AccessPolicyVO();
+        policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policyB.translatable_name = 'testC';
+        policyB.id = 3;
+
+        let policies: { [policy_id: number]: AccessPolicyVO } = {
+            [policyA.id]: policyA,
+            [policyB.id]: policyB,
+            [policyC.id]: policyC
+        };
+
+        let role_policyA: RolePolicyVO = new RolePolicyVO();
+        role_policyA.id = 1;
+        role_policyA.accpol_id = policyA.id;
+        role_policyA.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyA.granted = true;
+
+        let role_policyB: RolePolicyVO = new RolePolicyVO();
+        role_policyB.id = 2;
+        role_policyB.accpol_id = policyB.id;
+        role_policyB.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyB.granted = true;
+
+        let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+            [AccessPolicyServerController.getInstance().role_logged.id]: {
+                [policyA.id]: role_policyA,
+                [policyB.id]: role_policyB
+            }
+        };
+
+        let dependencyCA: PolicyDependencyVO = new PolicyDependencyVO();
+        dependencyCA.id = 1;
+        dependencyCA.src_pol_id = policyC.id;
+        dependencyCA.depends_on_pol_id = policyA.id;
+        dependencyCA.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        let dependencyCB: PolicyDependencyVO = new PolicyDependencyVO();
+        dependencyCB.id = 2;
+        dependencyCB.src_pol_id = policyC.id;
+        dependencyCB.depends_on_pol_id = policyB.id;
+        dependencyCB.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+            [policyC.id]: [dependencyCA, dependencyCB],
+        };
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_admin.id]: AccessPolicyServerController.getInstance().role_admin },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(true);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(false);
+
+        role_policyB.granted = false;
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(false);
+
+        role_policyA.granted = false;
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(false);
+
+        role_policyB.granted = true;
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(false);
+
+        role_policyA.granted = true;
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyC,
+            { [AccessPolicyServerController.getInstance().role_logged.id]: AccessPolicyServerController.getInstance().role_logged },
+            all_roles,
+            role_policies,
+            policies,
+            policies_dependencies
+        )).to.equal(false);
+    });
+
+    it('test check access - policy multiple dependencies different defaults', () => {
+
+        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
+        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
+        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+
+        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
+        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        AccessPolicyServerController.getInstance().role_logged.id = 2;
+        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+
+        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
+        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        AccessPolicyServerController.getInstance().role_admin.id = 3;
+        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+
+        let all_roles: { [role_id: number]: RoleVO } = {
+            1: AccessPolicyServerController.getInstance().role_anonymous,
+            2: AccessPolicyServerController.getInstance().role_logged,
+            3: AccessPolicyServerController.getInstance().role_admin
+        };
+
+
+
+        let policyA: AccessPolicyVO = new AccessPolicyVO();
+        policyA.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policyA.translatable_name = 'testA';
+        policyA.id = 1;
+
+        let policyB: AccessPolicyVO = new AccessPolicyVO();
+        policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policyB.translatable_name = 'testB';
+        policyB.id = 2;
+
+        let policyC: AccessPolicyVO = new AccessPolicyVO();
+        policyB.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policyB.translatable_name = 'testC';
+        policyB.id = 3;
+
+        let policies: { [policy_id: number]: AccessPolicyVO } = {
+            [policyA.id]: policyA,
+            [policyB.id]: policyB,
+            [policyC.id]: policyC
+        };
+
+        let role_policyA: RolePolicyVO = new RolePolicyVO();
+        role_policyA.id = 1;
+        role_policyA.accpol_id = policyA.id;
+        role_policyA.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyA.granted = true;
+
+        let role_policyB: RolePolicyVO = new RolePolicyVO();
+        role_policyB.id = 2;
+        role_policyB.accpol_id = policyB.id;
+        role_policyB.role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        role_policyB.granted = true;
+
+        let role_policies: { [role_id: number]: { [pol_id: number]: RolePolicyVO } } = {
+            [AccessPolicyServerController.getInstance().role_logged.id]: {
+                [policyA.id]: role_policyA,
+                [policyB.id]: role_policyB
+            }
+        };
+
+        let dependencyCA: PolicyDependencyVO = new PolicyDependencyVO();
+        dependencyCA.id = 1;
+        dependencyCA.src_pol_id = policyC.id;
+        dependencyCA.depends_on_pol_id = policyA.id;
+        dependencyCA.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
         let dependencyCB: PolicyDependencyVO = new PolicyDependencyVO();
         dependencyCB.id = 2;
         dependencyCB.src_pol_id = policyC.id;
@@ -1625,6 +1929,656 @@ describe('AccessPolicyServer', () => {
             role_policies,
             policies,
             policies_dependencies
+        )).to.equal(false);
+    });
+
+
+    it('test dao access - isAccessConfVoType && inherited', () => {
+        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
+        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
+        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+
+        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
+        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        AccessPolicyServerController.getInstance().role_logged.id = 2;
+        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+
+        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
+        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        AccessPolicyServerController.getInstance().role_admin.id = 3;
+        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+
+        let all_roles: { [role_id: number]: RoleVO } = {
+            1: AccessPolicyServerController.getInstance().role_anonymous,
+            2: AccessPolicyServerController.getInstance().role_logged,
+            3: AccessPolicyServerController.getInstance().role_admin
+        };
+
+        let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
+        policy_global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policy_global_access.translatable_name = 'policy_global_access';
+        policy_global_access.id = 100;
+
+
+        let pg_inherited: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        pg_inherited.translatable_name = 'pg_inherited';
+        pg_inherited.id = 2;
+
+        let policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_inherited.LIST_LABELS',
+            pg_inherited,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policy_inherited_LIST_LABELS.id = 11;
+
+        let policy_inherited_READ: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_inherited_READ',
+            pg_inherited,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policy_inherited_READ.id = 12;
+
+        let policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_inherited_INSERT_OR_UPDATE',
+            pg_inherited,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policy_inherited_INSERT_OR_UPDATE.id = 13;
+
+        let policy_inherited_DELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_inherited_DELETE',
+            pg_inherited,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policy_inherited_DELETE.id = 14;
+
+
+
+        let pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        pg.translatable_name = 'pg';
+        pg.id = 1;
+
+        let policyLIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_LIST_LABELS',
+            pg,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policyLIST_LABELS.id = 1;
+
+        let policyREAD: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_READ',
+            pg,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policyREAD.id = 2;
+
+        let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_INSERT_OR_UPDATE',
+            pg,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policyINSERT_OR_UPDATE.id = 3;
+
+        let policyDELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_DELETE',
+            pg,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policyDELETE.id = 4;
+
+
+        let policies: { [policy_id: number]: AccessPolicyVO } = {
+            1: policyLIST_LABELS,
+            2: policyREAD,
+            3: policyINSERT_OR_UPDATE,
+            4: policyDELETE,
+
+            11: policy_inherited_LIST_LABELS,
+            12: policy_inherited_READ,
+            13: policy_inherited_INSERT_OR_UPDATE,
+            14: policy_inherited_DELETE
+        };
+
+
+        let dependencyREAD = DAOServerController.getInstance().get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+        let dependencyINSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+        let dependencyDELETE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyDELETE, policyREAD);
+
+        let global_access_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyLIST_LABELS,
+            policy_global_access);
+        let global_access_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyREAD,
+            policy_global_access);
+        let global_access_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyINSERT_OR_UPDATE,
+            policy_global_access);
+        let global_access_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyDELETE,
+            policy_global_access);
+
+        let inherited_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyLIST_LABELS,
+            policy_inherited_LIST_LABELS);
+        let inherited_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyREAD,
+            policy_inherited_READ);
+        let inherited_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyINSERT_OR_UPDATE,
+            policy_inherited_INSERT_OR_UPDATE);
+        let inherited_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyDELETE,
+            policy_inherited_DELETE);
+
+        let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+
+            [policyLIST_LABELS.id]: [global_access_LIST_LABELS, inherited_LIST_LABELS],
+            [policyREAD.id]: [dependencyREAD, global_access_READ, inherited_READ],
+            [policyINSERT_OR_UPDATE.id]: [dependencyINSERT_OR_UPDATE, global_access_INSERT_OR_UPDATE, inherited_INSERT_OR_UPDATE],
+            [policyDELETE.id]: [dependencyDELETE, global_access_DELETE, inherited_DELETE],
+        };
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyLIST_LABELS,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(true);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyREAD,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(true);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyINSERT_OR_UPDATE,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyDELETE,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+    });
+
+
+
+    it('test dao access - isAccessConfVoType', () => {
+        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
+        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
+        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+
+        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
+        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        AccessPolicyServerController.getInstance().role_logged.id = 2;
+        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+
+        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
+        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        AccessPolicyServerController.getInstance().role_admin.id = 3;
+        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+
+        let all_roles: { [role_id: number]: RoleVO } = {
+            1: AccessPolicyServerController.getInstance().role_anonymous,
+            2: AccessPolicyServerController.getInstance().role_logged,
+            3: AccessPolicyServerController.getInstance().role_admin
+        };
+
+        let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
+        policy_global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policy_global_access.translatable_name = 'policy_global_access';
+        policy_global_access.id = 100;
+
+
+        let pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        pg.translatable_name = 'pg';
+        pg.id = 1;
+
+        let policyLIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_LIST_LABELS',
+            pg,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policyLIST_LABELS.id = 1;
+
+        let policyREAD: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_READ',
+            pg,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policyREAD.id = 2;
+
+        let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_INSERT_OR_UPDATE',
+            pg,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policyINSERT_OR_UPDATE.id = 3;
+
+        let policyDELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_DELETE',
+            pg,
+            true,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policyDELETE.id = 4;
+
+
+        let policies: { [policy_id: number]: AccessPolicyVO } = {
+            1: policyLIST_LABELS,
+            2: policyREAD,
+            3: policyINSERT_OR_UPDATE,
+            4: policyDELETE
+        };
+
+
+        let dependencyREAD = DAOServerController.getInstance().get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+        let dependencyINSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+        let dependencyDELETE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyDELETE, policyREAD);
+
+        let global_access_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyLIST_LABELS,
+            policy_global_access);
+        let global_access_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyREAD,
+            policy_global_access);
+        let global_access_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyINSERT_OR_UPDATE,
+            policy_global_access);
+        let global_access_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyDELETE,
+            policy_global_access);
+
+        let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+
+            [policyLIST_LABELS.id]: [global_access_LIST_LABELS],
+            [policyREAD.id]: [dependencyREAD, global_access_READ],
+            [policyINSERT_OR_UPDATE.id]: [dependencyINSERT_OR_UPDATE, global_access_INSERT_OR_UPDATE],
+            [policyDELETE.id]: [dependencyDELETE, global_access_DELETE],
+        };
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyLIST_LABELS,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(true);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyREAD,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(true);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyINSERT_OR_UPDATE,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyDELETE,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+    });
+
+
+    it('test dao access - !isAccessConfVoType && inherited', () => {
+        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
+        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
+        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+
+        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
+        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        AccessPolicyServerController.getInstance().role_logged.id = 2;
+        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+
+        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
+        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        AccessPolicyServerController.getInstance().role_admin.id = 3;
+        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+
+        let all_roles: { [role_id: number]: RoleVO } = {
+            1: AccessPolicyServerController.getInstance().role_anonymous,
+            2: AccessPolicyServerController.getInstance().role_logged,
+            3: AccessPolicyServerController.getInstance().role_admin
+        };
+
+        let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
+        policy_global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policy_global_access.translatable_name = 'policy_global_access';
+        policy_global_access.id = 100;
+
+
+        let pg_inherited: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        pg_inherited.translatable_name = 'pg_inherited';
+        pg_inherited.id = 2;
+
+        let policy_inherited_LIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_inherited.LIST_LABELS',
+            pg_inherited,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policy_inherited_LIST_LABELS.id = 11;
+
+        let policy_inherited_READ: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_inherited_READ',
+            pg_inherited,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policy_inherited_READ.id = 12;
+
+        let policy_inherited_INSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_inherited_INSERT_OR_UPDATE',
+            pg_inherited,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policy_inherited_INSERT_OR_UPDATE.id = 13;
+
+        let policy_inherited_DELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_inherited_DELETE',
+            pg_inherited,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policy_inherited_DELETE.id = 14;
+
+
+
+        let pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        pg.translatable_name = 'pg';
+        pg.id = 1;
+
+        let policyLIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_LIST_LABELS',
+            pg,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policyLIST_LABELS.id = 1;
+
+        let policyREAD: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_READ',
+            pg,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policyREAD.id = 2;
+
+        let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_INSERT_OR_UPDATE',
+            pg,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policyINSERT_OR_UPDATE.id = 3;
+
+        let policyDELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_DELETE',
+            pg,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policyDELETE.id = 4;
+
+
+        let policies: { [policy_id: number]: AccessPolicyVO } = {
+            1: policyLIST_LABELS,
+            2: policyREAD,
+            3: policyINSERT_OR_UPDATE,
+            4: policyDELETE,
+
+            11: policy_inherited_LIST_LABELS,
+            12: policy_inherited_READ,
+            13: policy_inherited_INSERT_OR_UPDATE,
+            14: policy_inherited_DELETE
+        };
+
+
+        let dependencyREAD = DAOServerController.getInstance().get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+        let dependencyINSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+        let dependencyDELETE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyDELETE, policyREAD);
+
+        let global_access_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyLIST_LABELS,
+            policy_global_access);
+        let global_access_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyREAD,
+            policy_global_access);
+        let global_access_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyINSERT_OR_UPDATE,
+            policy_global_access);
+        let global_access_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyDELETE,
+            policy_global_access);
+
+        let inherited_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyLIST_LABELS,
+            policy_inherited_LIST_LABELS);
+        let inherited_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyREAD,
+            policy_inherited_READ);
+        let inherited_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyINSERT_OR_UPDATE,
+            policy_inherited_INSERT_OR_UPDATE);
+        let inherited_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyDELETE,
+            policy_inherited_DELETE);
+
+        let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+
+            [policyLIST_LABELS.id]: [global_access_LIST_LABELS, inherited_LIST_LABELS],
+            [policyREAD.id]: [dependencyREAD, global_access_READ, inherited_READ],
+            [policyINSERT_OR_UPDATE.id]: [dependencyINSERT_OR_UPDATE, global_access_INSERT_OR_UPDATE, inherited_INSERT_OR_UPDATE],
+            [policyDELETE.id]: [dependencyDELETE, global_access_DELETE, inherited_DELETE],
+        };
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyLIST_LABELS,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyREAD,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyINSERT_OR_UPDATE,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyDELETE,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+    });
+
+
+
+    it('test dao access - !isAccessConfVoType', () => {
+        AccessPolicyServerController.getInstance().role_anonymous = new RoleVO();
+        AccessPolicyServerController.getInstance().role_anonymous.parent_role_id = null;
+        AccessPolicyServerController.getInstance().role_anonymous.id = 1;
+        AccessPolicyServerController.getInstance().role_anonymous.translatable_name = 'role_anonymous';
+
+        AccessPolicyServerController.getInstance().role_logged = new RoleVO();
+        AccessPolicyServerController.getInstance().role_logged.parent_role_id = AccessPolicyServerController.getInstance().role_anonymous.id;
+        AccessPolicyServerController.getInstance().role_logged.id = 2;
+        AccessPolicyServerController.getInstance().role_logged.translatable_name = 'role_logged';
+
+        AccessPolicyServerController.getInstance().role_admin = new RoleVO();
+        AccessPolicyServerController.getInstance().role_admin.parent_role_id = AccessPolicyServerController.getInstance().role_logged.id;
+        AccessPolicyServerController.getInstance().role_admin.id = 3;
+        AccessPolicyServerController.getInstance().role_admin.translatable_name = 'role_admin';
+
+        let all_roles: { [role_id: number]: RoleVO } = {
+            1: AccessPolicyServerController.getInstance().role_anonymous,
+            2: AccessPolicyServerController.getInstance().role_logged,
+            3: AccessPolicyServerController.getInstance().role_admin
+        };
+
+        let policy_global_access: AccessPolicyVO = new AccessPolicyVO();
+        policy_global_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        policy_global_access.translatable_name = 'policy_global_access';
+        policy_global_access.id = 100;
+
+
+        let pg: AccessPolicyGroupVO = new AccessPolicyGroupVO();
+        pg.translatable_name = 'pg';
+        pg.id = 1;
+
+        let policyLIST_LABELS: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_LIST_LABELS',
+            pg,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policyLIST_LABELS.id = 1;
+
+        let policyREAD: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_READ',
+            pg,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
+        policyREAD.id = 2;
+
+        let policyINSERT_OR_UPDATE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_INSERT_OR_UPDATE',
+            pg,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policyINSERT_OR_UPDATE.id = 3;
+
+        let policyDELETE: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+            'isAccessConfVoType_DELETE',
+            pg,
+            false,
+            AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
+        policyDELETE.id = 4;
+
+
+        let policies: { [policy_id: number]: AccessPolicyVO } = {
+            1: policyLIST_LABELS,
+            2: policyREAD,
+            3: policyINSERT_OR_UPDATE,
+            4: policyDELETE
+        };
+
+
+        let dependencyREAD = DAOServerController.getInstance().get_dao_dependency_default_denied(policyREAD, policyLIST_LABELS);
+        let dependencyINSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyINSERT_OR_UPDATE, policyREAD);
+        let dependencyDELETE = DAOServerController.getInstance().get_dao_dependency_default_denied(policyDELETE, policyREAD);
+
+        let global_access_LIST_LABELS = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyLIST_LABELS,
+            policy_global_access);
+        let global_access_READ = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyREAD,
+            policy_global_access);
+        let global_access_INSERT_OR_UPDATE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyINSERT_OR_UPDATE,
+            policy_global_access);
+        let global_access_DELETE = DAOServerController.getInstance().get_dao_dependency_default_granted(
+            policyDELETE,
+            policy_global_access);
+
+        let policies_dependencies: { [src_pol_id: number]: PolicyDependencyVO[] } = {
+
+            [policyLIST_LABELS.id]: [global_access_LIST_LABELS],
+            [policyREAD.id]: [dependencyREAD, global_access_READ],
+            [policyINSERT_OR_UPDATE.id]: [dependencyINSERT_OR_UPDATE, global_access_INSERT_OR_UPDATE],
+            [policyDELETE.id]: [dependencyDELETE, global_access_DELETE],
+        };
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyLIST_LABELS,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyREAD,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyINSERT_OR_UPDATE,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
+        )).to.equal(false);
+
+        expect(AccessPolicyServerController.getInstance().checkAccessTo(
+            policyDELETE,
+            { [AccessPolicyServerController.getInstance().role_anonymous.id]: AccessPolicyServerController.getInstance().role_anonymous },
+            all_roles,
+            null,
+            policies,
+            policies_dependencies,
+            AccessPolicyServerController.getInstance().role_anonymous
         )).to.equal(false);
     });
 });

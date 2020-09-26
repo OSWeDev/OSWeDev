@@ -23,6 +23,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
@@ -527,6 +528,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'lang_selector.lang_suffix.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Consultez vos SMS'
+        }, 'recover.oksms.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Langue'
         }, 'lang_selector.label.___LABEL___'));
 
@@ -582,6 +587,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd, this.begininitpwd.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
     }
 
     public async begininitpwd(param: StringParamVO): Promise<void> {
@@ -632,17 +638,29 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    public async getMyLang(): Promise<LangVO> {
-
+    public async getSelfUser(): Promise<UserVO> {
+        /**
+         * on doit pouvoir charger son propre user
+         */
         let user_id: number = this.getLoggedUserId();
-
         if (!user_id) {
             return null;
         }
 
-        // On a besoin d'une version à jour
+        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
+        let IS_CLIENT = httpContext.get('IS_CLIENT');
+        httpContext.set('IS_CLIENT', false);
+
         let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user_id);
 
+        httpContext.set('IS_CLIENT', IS_CLIENT);
+
+        return user;
+    }
+
+    public async getMyLang(): Promise<LangVO> {
+
+        let user: UserVO = await this.getSelfUser();
         return await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
     }
 
@@ -652,7 +670,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
         console.debug("challenge:" + user.email + ':' + challenge + ':');
-        user.recovery_expiration = moment().utc(true).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours');
+        user.recovery_expiration = moment().utc(true).add(await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours');
         await ModuleDAO.getInstance().insertOrUpdateVO(user);
     }
 
@@ -776,19 +794,8 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public async getLoggedUserName(): Promise<string> {
 
-        try {
-
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
-
-            if (session && session.uid) {
-                return (await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid)).name;
-            }
-            return null;
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            return null;
-        }
+        let user: UserVO = await this.getSelfUser();
+        return user ? user.name : null;
     }
 
     public isLogedAs(): boolean {
@@ -1141,7 +1148,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, vo.id);
+        let user_id: number = this.getLoggedUserId();
+        let user: UserVO = null;
+        if (user_id == vo.id) {
+            user = await this.getSelfUser();
+        } else {
+            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, vo.id);
+        }
 
         if ((!user) || (user.password == vo.password)) {
             return true;
@@ -1388,6 +1401,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
+            if (user.blocked || user.invalidated) {
+                ConsoleHandler.getInstance().error("impersonate login:" + param.email + ":blocked or invalidated");
+                await PushDataServerController.getInstance().notifySimpleERROR(session.uid, 'Impossible de se connecter avec un compte bloqué ou invalidé', true);
+                return null;
+            }
+
             session.impersonated_from = Object.assign({}, session);
             session.uid = user.id;
 
@@ -1493,14 +1512,16 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             // On a pas de sessions à supprimer en cas de création
         } else if (user.blocked && !old_user.blocked) {
             await this.onBlockOrInvalidateUserDeleteSessions(user.id);
-            return;
+            return true;
         }
 
         if (user.invalidated && !old_user) {
             // On a pas de sessions à supprimer en cas de création
         } else if (user.invalidated && !old_user.invalidated) {
             await this.onBlockOrInvalidateUserDeleteSessions(user.id);
-            return;
+            return true;
         }
+
+        return true;
     }
 }

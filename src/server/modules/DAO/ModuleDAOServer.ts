@@ -140,110 +140,98 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 isAccessConfVoType = true;
             }
 
-            let does_inherit_rights_from_vo_type: boolean = (!!moduleTable.inherit_rights_from_vo_type) ? true : false;
-
             let group = moduleTable.isModuleParamTable ? group_modules_conf : group_datas;
 
             // On déclare les 4 policies et leurs dépendances
-            let vo_list: AccessPolicyVO = new AccessPolicyVO();
-            vo_list.group_id = group.id;
-            vo_list.default_behaviour = does_inherit_rights_from_vo_type ? (isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
-            vo_list.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, vo_type);
+
+            /**
+             * LIST
+             */
+            let vo_list: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, vo_type),
+                group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
             vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_list,
                 (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Lister les données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
-            let global_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-            global_access_dependency.src_pol_id = vo_list.id;
-            global_access_dependency.depends_on_pol_id = global_access.id;
-            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
-            if (does_inherit_rights_from_vo_type) {
-                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_list.id;
-                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, moduleTable.inherit_rights_from_vo_type)).id;
-                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
-            }
 
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(vo_list, global_access));
 
-            let vo_read: AccessPolicyVO = new AccessPolicyVO();
-            vo_read.group_id = group.id;
-            vo_read.default_behaviour = does_inherit_rights_from_vo_type ? (isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
-            vo_read.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, vo_type);
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(
+                    vo_list,
+                    DAOServerController.getInstance().get_inherited_right(
+                        ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, moduleTable.inherit_rights_from_vo_type)));
+
+            /**
+             * READ
+             */
+            let vo_read: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, vo_type),
+                group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
             vo_read = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_read,
                 (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Consulter les données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
-            let dependency: PolicyDependencyVO = new PolicyDependencyVO();
-            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-            dependency.src_pol_id = vo_read.id;
-            dependency.depends_on_pol_id = vo_list.id;
-            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
-            global_access_dependency = new PolicyDependencyVO();
-            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-            global_access_dependency.src_pol_id = vo_read.id;
-            global_access_dependency.depends_on_pol_id = global_access.id;
-            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
-            if (does_inherit_rights_from_vo_type) {
-                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_read.id;
-                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, moduleTable.inherit_rights_from_vo_type)).id;
-                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
-            }
 
-            let vo_insert_or_update: AccessPolicyVO = new AccessPolicyVO();
-            vo_insert_or_update.group_id = group.id;
-            vo_insert_or_update.default_behaviour = does_inherit_rights_from_vo_type ? (AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
-            vo_insert_or_update.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type);
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_denied(vo_read, vo_list));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(vo_read, global_access));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(
+                    vo_read,
+                    DAOServerController.getInstance().get_inherited_right(
+                        ModuleDAO.DAO_ACCESS_TYPE_READ, moduleTable.inherit_rights_from_vo_type)));
+
+            /**
+             * INSERT OR UPDATE
+             */
+            let vo_insert_or_update: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type),
+                group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
             vo_insert_or_update = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_insert_or_update,
                 (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Ajouter ou modifier des données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
-            dependency = new PolicyDependencyVO();
-            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-            dependency.src_pol_id = vo_insert_or_update.id;
-            dependency.depends_on_pol_id = vo_read.id;
-            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
-            global_access_dependency = new PolicyDependencyVO();
-            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-            global_access_dependency.src_pol_id = vo_insert_or_update.id;
-            global_access_dependency.depends_on_pol_id = global_access.id;
-            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
-            if (does_inherit_rights_from_vo_type) {
-                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_insert_or_update.id;
-                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, moduleTable.inherit_rights_from_vo_type)).id;
-                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
-            }
 
-            let vo_delete: AccessPolicyVO = new AccessPolicyVO();
-            vo_delete.group_id = group.id;
-            vo_delete.default_behaviour = does_inherit_rights_from_vo_type ? (AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
-            vo_delete.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, vo_type);
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_denied(vo_insert_or_update, vo_read));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(vo_insert_or_update, global_access));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(
+                    vo_insert_or_update,
+                    DAOServerController.getInstance().get_inherited_right(
+                        ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, moduleTable.inherit_rights_from_vo_type)));
+
+            /**
+             * DELETE
+             */
+            let vo_delete: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, vo_type),
+                group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
             vo_delete = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_delete,
                 (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Supprimer des données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
-            dependency = new PolicyDependencyVO();
-            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-            dependency.src_pol_id = vo_delete.id;
-            dependency.depends_on_pol_id = vo_read.id;
-            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
-            global_access_dependency = new PolicyDependencyVO();
-            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-            global_access_dependency.src_pol_id = vo_delete.id;
-            global_access_dependency.depends_on_pol_id = global_access.id;
-            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
-            if (does_inherit_rights_from_vo_type) {
-                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_delete.id;
-                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, moduleTable.inherit_rights_from_vo_type)).id;
-                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
-            }
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_denied(vo_delete, vo_read));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(vo_delete, global_access));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(
+                    vo_delete,
+                    DAOServerController.getInstance().get_inherited_right(
+                        ModuleDAO.DAO_ACCESS_TYPE_DELETE, moduleTable.inherit_rights_from_vo_type)));
         }
     }
 

@@ -10,6 +10,7 @@ import FeedbackConfirmationMail_html_template from './FeedbackConfirmationMail_h
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
 import SendInBlueMailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
+import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
 
 
 export default class FeedbackConfirmationMail {
@@ -36,11 +37,13 @@ export default class FeedbackConfirmationMail {
         httpContext.set('IS_CLIENT', false);
 
         // Si on est en impersonate, on envoie pas le mail au compte client mais au compte admin
-        let user = null;
-        if (feedback.is_impersonated) {
-            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, feedback.impersonated_from_user_id);
+        let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let target_user_id: number = feedback.is_impersonated ? feedback.impersonated_from_user_id : feedback.user_id;
+        let user: UserVO = null;
+        if (user_id == target_user_id) {
+            user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
         } else {
-            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, feedback.user_id);
+            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, target_user_id);
         }
 
         let FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(FeedbackConfirmationMail.PARAM_NAME_FeedbackConfirmationMail_SEND_IN_BLUE_TEMPLATE_ID);

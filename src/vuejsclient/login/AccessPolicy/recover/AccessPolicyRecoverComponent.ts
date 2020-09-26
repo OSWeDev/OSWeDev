@@ -55,7 +55,7 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
         this.snotify.info(this.label('recover.start'));
 
         if (await ModuleAccessPolicy.getInstance().beginRecoverSMS(this.email)) {
-            this.snotify.success(this.label('recover.ok'));
+            this.snotify.success(this.label('recover.oksms'));
             this.message = this.label('login.recover.answersms');
         } else {
             this.snotify.error(this.label('recover.failed'));

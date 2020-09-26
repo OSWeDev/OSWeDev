@@ -168,7 +168,8 @@ export default class ModuleTranslation extends Module {
         let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true);
         let datatable_fields = [
             label_field,
-            new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false)
+            new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false),
+            new ModuleTableField('code_phone', ModuleTableField.FIELD_TYPE_string, 'Indicatif (+33)', false),
         ];
         let datatable_lang = new ModuleTable(this, LangVO.API_TYPE_ID, () => new LangVO(), datatable_fields, label_field, "Langues");
         this.datatables.push(datatable_lang);

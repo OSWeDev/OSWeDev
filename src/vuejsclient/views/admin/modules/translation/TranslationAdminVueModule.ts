@@ -101,6 +101,7 @@ export default class TranslationAdminVueModule extends VueModuleBase {
 
         crud.readDatatable.pushField(new SimpleDatatableField("code_lang"));
         crud.readDatatable.pushField(new SimpleDatatableField("code_flag"));
+        crud.readDatatable.pushField(new SimpleDatatableField("code_phone"));
 
         return crud;
     }

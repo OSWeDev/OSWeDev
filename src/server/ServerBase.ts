@@ -412,7 +412,6 @@ export default abstract class ServerBase {
         this.app.use(httpContext.middleware);
 
 
-        // Example authorization middleware
         this.app.use(async (req, res, next) => {
 
             let session: IServerUserSession = null;
@@ -669,7 +668,7 @@ export default abstract class ServerBase {
             res.json(JSON.stringify(
                 {
                     data_version: ServerBase.getInstance().version,
-                    data_user: (!!session.uid) ? await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid) : null,
+                    data_user: (!!session.uid) ? await ModuleAccessPolicyServer.getInstance().getSelfUser() : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     // data_base_api_url: "",
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
@@ -685,7 +684,7 @@ export default abstract class ServerBase {
                     data_version: ServerBase.getInstance().version,
                     data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
                     data_node_env: process.env.NODE_ENV,
-                    data_user: (!!session.uid) ? await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid) : null,
+                    data_user: (!!session.uid) ? await ModuleAccessPolicyServer.getInstance().getSelfUser() : null,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
                 }

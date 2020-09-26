@@ -27,6 +27,7 @@ import Patch20200731MailParamsInit from './patchs/postmodules/Patch20200731MailP
 import Patch20200806InitBaseImageFormats from './patchs/postmodules/Patch20200806InitBaseImageFormats';
 import Patch20200914InitTeamsWebhookForDailyReports from './patchs/postmodules/Patch20200914InitTeamsWebhookForDailyReports';
 import Patch20200924UpgradeUserVOPost from './patchs/postmodules/Patch20200924UpgradeUserVOPost';
+import Patch20200926InitPoliciesINSERTORUPDATEUserLogs from './patchs/postmodules/Patch20200926InitPoliciesINSERTORUPDATEUserLogs';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -92,7 +93,8 @@ export default abstract class GeneratorBase {
             Patch20200731MailParamsInit.getInstance(),
             Patch20200806InitBaseImageFormats.getInstance(),
             Patch20200914InitTeamsWebhookForDailyReports.getInstance(),
-            Patch20200924UpgradeUserVOPost.getInstance()
+            Patch20200924UpgradeUserVOPost.getInstance(),
+            Patch20200926InitPoliciesINSERTORUPDATEUserLogs.getInstance()
         ];
     }
 

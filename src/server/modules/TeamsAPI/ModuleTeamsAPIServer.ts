@@ -28,13 +28,16 @@ export default class ModuleTeamsAPIServer extends ModuleServerBase {
     public async send_to_teams_webhook(webhook: string, message: TeamsWebhookContentVO) {
 
         let TEAMS_HOST: string = await ModuleParams.getInstance().getParamValue(ModuleTeamsAPIServer.TEAMS_HOST_PARAM_NAME);
+        let msg = TextHandler.getInstance().sanityze_object(message);
 
         await ModuleRequest.getInstance().sendRequestFromApp(
             ModuleRequest.METHOD_POST,
             TEAMS_HOST,
             webhook,
-            TextHandler.getInstance().sanityze_object(message),
-            {},
+            msg,
+            {
+                'Content-Length': JSON.stringify(msg).length,
+            },
             true
         );
     }

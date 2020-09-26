@@ -21,7 +21,6 @@ export default class PasswordRecovery {
     public static CODE_TEXT_MAIL_SUBJECT_RECOVERY: string = 'mails.pwd.recovery.subject';
     public static CODE_TEXT_SMS_RECOVERY: string = 'mails.pwd.recovery.sms';
     public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID: string = 'SEND_IN_BLUE_TEMPLATE_ID.PasswordRecovery';
-    public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID_SMS: string = 'SEND_IN_BLUE_TEMPLATE_ID.PasswordRecoverySMS';
 
     public static getInstance() {
         if (!PasswordRecovery.instance) {
@@ -115,20 +114,14 @@ export default class PasswordRecovery {
 
         await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        let SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(PasswordRecovery.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID_SMS);
-
-        // Send SMS
-        if (!!SEND_IN_BLUE_TEMPLATE_ID) {
-
-            // Using SendInBlue
-            await SendInBlueSmsServerController.getInstance().send(
-                SendInBlueSmsFormatVO.createNew(phone, lang.code_lang),
-                await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
-                    EMAIL: user.email,
-                    UID: user.id.toString(),
-                    CODE_CHALLENGE: user.recovery_challenge
-                }),
-                'PasswordRecovery');
-        }
+        // Using SendInBlue
+        await SendInBlueSmsServerController.getInstance().send(
+            SendInBlueSmsFormatVO.createNew(phone, lang.code_phone),
+            await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
+                EMAIL: user.email,
+                UID: user.id.toString(),
+                CODE_CHALLENGE: user.recovery_challenge
+            }),
+            'PasswordRecovery');
     }
 }
