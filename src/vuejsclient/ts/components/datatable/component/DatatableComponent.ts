@@ -642,10 +642,10 @@ export default class DatatableComponent extends VueComponentBase {
         AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.get_export_params_for_xlsx);
     }
 
-    @Watch('embed_filter', { deep: true })
+    @Watch('embed_filter', { immediate: true, deep: true })
     private onFilterChange() {
         if (!!this.embed_filter) {
-            this.update_datatable_data();
+            this.debounced_update_datatable_data();
         }
     }
 
