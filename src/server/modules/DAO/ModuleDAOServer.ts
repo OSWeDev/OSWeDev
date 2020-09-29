@@ -45,6 +45,7 @@ import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
+import StackContext from '../../../shared/tools/StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
@@ -1156,14 +1157,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         let hook = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+            if (!StackContext.getInstance().get('IS_CLIENT')) {
                 // Server
                 return vos;
             }
 
-            let uid: number = httpContext ? httpContext.get('UID') : null;
-            let user_data = httpContext ? await ServerBase.getInstance().getUserData(uid) : null;
+            let uid: number = StackContext.getInstance().get('UID');
+            let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
             vos = await hook(datatable, vos, uid, user_data) as T[];
         }
 
@@ -1203,15 +1203,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         let hook = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
 
-            if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+            if (!StackContext.getInstance().get('IS_CLIENT')) {
                 // Server
                 return vo;
             }
 
-            let uid: number = httpContext ? httpContext.get('UID') : null;
-            let user_data = httpContext ? await ServerBase.getInstance().getUserData(uid) : null;
+            let uid: number = StackContext.getInstance().get('UID');
+            let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
             let filtered: T[] = await hook(datatable, (((typeof vo != 'undefined') && (vo != null)) ? [vo] : null), uid, user_data) as T[];
 
             if ((!filtered) || (!filtered.length)) {

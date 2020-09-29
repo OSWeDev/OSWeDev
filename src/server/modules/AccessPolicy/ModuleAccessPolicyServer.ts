@@ -30,6 +30,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import StackContext from '../../../shared/tools/StackContext';
 import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
 import ServerBase from '../../ServerBase';
@@ -647,13 +648,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return null;
         }
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let IS_CLIENT = httpContext.get('IS_CLIENT');
-        httpContext.set('IS_CLIENT', false);
-
-        let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user_id);
-
-        httpContext.set('IS_CLIENT', IS_CLIENT);
+        let user: UserVO = await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => await ModuleDAO.getInstance().getVoById(UserVO.API_TYPE_ID, user_id)) as UserVO;
 
         return user;
     }
@@ -661,6 +656,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async getMyLang(): Promise<LangVO> {
 
         let user: UserVO = await this.getSelfUser();
+        if (!user) {
+            return null;
+        }
         return await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
     }
 
@@ -729,8 +727,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
+            if (!uid) {
+                return true;
+            }
+
             let res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
-            let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : true;
+            let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
             return !invalidated;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
@@ -779,8 +781,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             if (session && session.uid) {
                 return session.uid;
@@ -802,8 +803,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             if (session && !!session.impersonated_from) {
                 return true;
@@ -822,8 +822,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
 
@@ -844,8 +843,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             return (session && session.impersonated_from) ? session.impersonated_from as IServerUserSession : null;
         } catch (error) {
@@ -858,8 +856,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            return httpContext ? httpContext.get('SESSION') as IServerUserSession : null;
+            return StackContext.getInstance().get('SESSION') as IServerUserSession;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             return null;
@@ -872,12 +869,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = httpContext.get('UID');
+        let uid: number = StackContext.getInstance().get('UID');
         if (!uid) {
             return role_ids.indexOf(AccessPolicyServerController.getInstance().role_anonymous.id) >= 0;
         }
@@ -941,13 +937,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
 
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
             return null;
         }
 
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         if (!uid) {
             return null;
@@ -965,12 +960,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @deprecated Why use this function, seems like a bad idea, just checkAccess directly there shall be no need for this one. Delete ASAP
      */
     private async isRole(param: StringParamVO): Promise<boolean> {
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (StackContext.getInstance().get('IS_CLIENT')) {
             return false;
         }
 
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         if (!uid) {
             return false;
@@ -991,12 +985,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async isAdmin(): Promise<boolean> {
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
             return false;
         }
 
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         if (!uid) {
             return false;
@@ -1038,8 +1031,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         //     return true;
         // }
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
             // this.consoledebug("CHECKACCESS:" + policy_name + ":TRUE:IS_SERVER");
             return true;
         }
@@ -1050,7 +1042,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let uid: number = httpContext.get('UID');
+        let uid: number = StackContext.getInstance().get('UID');
         if (!uid) {
             // profil anonyme
             return AccessPolicyServerController.getInstance().checkAccessTo(
@@ -1319,8 +1311,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async loginAndRedirect(param: LoginParamVO): Promise<number> {
 
         try {
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             if (session && session.uid) {
                 return session.uid;
@@ -1360,7 +1351,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.user_id = user.id;
             user_log.log_time = moment().utc(true);
             user_log.impersonated = false;
-            user_log.referer = httpContext.get('REFERER');
+            user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             // On await pas ici on se fiche du résultat
@@ -1380,8 +1371,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async impersonateLogin(param: LoginParamVO): Promise<number> {
 
         try {
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             if ((!session) || (!session.uid)) {
                 return null;
@@ -1417,7 +1407,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             user_log.user_id = user.id;
             user_log.log_time = moment().utc(true);
             user_log.impersonated = true;
-            user_log.referer = httpContext.get('REFERER');
+            user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
             user_log.comment = 'Impersonated from user_id [' + session.impersonated_from.uid + ']';
 
@@ -1456,8 +1446,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async sendErrorMsg(msg_translatable_code: string) {
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         PushDataServerController.getInstance().notifySimpleERROR(uid, msg_translatable_code);
     }

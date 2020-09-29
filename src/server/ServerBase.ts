@@ -50,6 +50,7 @@ import FileVO from '../shared/modules/File/vos/FileVO';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import FileLoggerHandler from './FileLoggerHandler';
 import ThreadHandler from '../shared/tools/ThreadHandler';
+import StackContext from '../shared/tools/StackContext';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -104,8 +105,6 @@ export default abstract class ServerBase {
         ModulesManager.getInstance().isServerSide = true;
         this.csrfProtection = csrf({ cookie: true });
     }
-
-    public abstract getHttpContext();
 
     /* istanbul ignore next: nothing to test here */
     public async getUserData(uid: number) {
@@ -199,7 +198,6 @@ export default abstract class ServerBase {
         // );
 
         this.app = express();
-        let httpContext = ServerBase.getInstance().getHttpContext();
 
         this.app.use(cookieParser());
 
@@ -409,8 +407,7 @@ export default abstract class ServerBase {
         this.app.use(express.json({ limit: '150mb' }));
         this.app.use(express.urlencoded({ extended: true, limit: '150mb' }));
 
-        this.app.use(httpContext.middleware);
-
+        // this.app.use(StackContext.getInstance().middleware);
 
         this.app.use(async (req, res, next) => {
 
@@ -434,26 +431,20 @@ export default abstract class ServerBase {
                 }
             }
 
-            httpContext.set('IS_CLIENT', true);
-            httpContext.set('REFERER', req.headers.referer);
-
             if (session && session.uid) {
 
                 PushDataServerController.getInstance().registerSession(session);
 
-                httpContext.set('UID', session.uid);
-                httpContext.set('SESSION', session);
-
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
-                    MaintenanceServerController.getInstance().inform_user_on_request(session.uid);
+
+                    await StackContext.getInstance().runPromise(
+                        { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                        async () => await MaintenanceServerController.getInstance().inform_user_on_request(session.uid));
                 }
 
                 if (!!EnvHandler.getInstance().NODE_VERBOSE) {
                     ConsoleHandler.getInstance().log('REQUETE: ' + req.url + ' | USER ID: ' + session.uid + ' | BODY: ' + JSON.stringify(req.body));
                 }
-            } else {
-                httpContext.set('UID', null);
-                httpContext.set('SESSION', session);
             }
 
             next();
@@ -490,9 +481,18 @@ export default abstract class ServerBase {
                 return;
             }
 
-            let file: FileVO = await ModuleDAOServer.getInstance().selectOne<FileVO>(FileVO.API_TYPE_ID, " where is_secured and path = $1;", [ModuleFile.SECURED_FILES_ROOT + folders + file_name]);
+            let session: IServerUserSession = req.session as IServerUserSession;
+            let file: FileVO = null;
+            let has_access: boolean = false;
 
-            if ((!file) || (!file.file_access_policy_name) || (!await ModuleAccessPolicy.getInstance().checkAccess(file.file_access_policy_name))) {
+            await StackContext.getInstance().runPromise(
+                { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                async () => {
+                    file = await ModuleDAOServer.getInstance().selectOne<FileVO>(FileVO.API_TYPE_ID, " where is_secured and path = $1;", [ModuleFile.SECURED_FILES_ROOT + folders + file_name]);
+                    has_access = (file && file.file_access_policy_name) ? await ModuleAccessPolicy.getInstance().checkAccess(file.file_access_policy_name) : false;
+                });
+
+            if (!has_access) {
 
                 ServerBase.getInstance().redirect_login_or_home(req, res);
                 return;
@@ -514,16 +514,29 @@ export default abstract class ServerBase {
 
         this.app.get('/', async (req: Request, res: Response) => {
 
-            if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS)) {
+            let session: IServerUserSession = req.session as IServerUserSession;
+
+            let has_access: boolean = await StackContext.getInstance().runPromise(
+                { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                async () => await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS));
+
+            if (!has_access) {
                 ServerBase.getInstance().redirect_login_or_home(req, res);
                 return;
             }
+
             res.sendFile(path.resolve('./dist/client/public/generated/index.html'));
         });
 
         this.app.get('/admin', async (req: Request, res) => {
 
-            if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS)) {
+            let session: IServerUserSession = req.session as IServerUserSession;
+
+            let has_access: boolean = await StackContext.getInstance().runPromise(
+                { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                async () => await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS));
+
+            if (!has_access) {
 
                 ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
@@ -536,9 +549,18 @@ export default abstract class ServerBase {
 
             let file_name = req.params.file_name;
 
-            if ((!file_name)
-                || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS))
-                || (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS))) {
+            let session: IServerUserSession = req.session as IServerUserSession;
+            let has_access: boolean = false;
+
+            if (file_name) {
+                await StackContext.getInstance().runPromise(
+                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                    async () => {
+                        has_access = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
+                    });
+            }
+
+            if (!has_access) {
 
                 ServerBase.getInstance().redirect_login_or_home(req, res, '/');
                 return;
@@ -549,7 +571,7 @@ export default abstract class ServerBase {
         // this.app.set('views', 'src/client/views');
 
         // Send CSRF token for session
-        this.app.get('/api/getcsrftoken', ServerBase.getInstance().csrfProtection, function (req, res) {
+        this.app.get('/api/getcsrftoken', ServerBase.getInstance().csrfProtection, async (req, res) => {
 
             /**
              * On stocke dans la session l'info de la date de chargement de l'application
@@ -584,7 +606,9 @@ export default abstract class ServerBase {
                     user_log.comment = 'Impersonated from user_id [' + imp_uid + ']';
                 }
 
-                ModuleDAO.getInstance().insertOrUpdateVO(user_log);
+                await StackContext.getInstance().runPromise(
+                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                    async () => await ModuleDAO.getInstance().insertOrUpdateVO(user_log));
             }
 
             return res.json({ csrfToken: req.csrfToken() });
@@ -608,6 +632,10 @@ export default abstract class ServerBase {
                 user_log.log_time = moment().utc(true);
                 user_log.referer = req.headers.referer;
                 user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
+
+                await StackContext.getInstance().runPromise(
+                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                    async () => await ModuleDAO.getInstance().insertOrUpdateVO(user_log));
             }
 
             /**
@@ -642,12 +670,6 @@ export default abstract class ServerBase {
                     }
                 });
             }
-
-            if (!!user_log) {
-
-                // On await pas ici on se fiche du résultat
-                ModuleDAO.getInstance().insertOrUpdateVO(user_log);
-            }
         });
 
         this.app.use('/js', express.static('client/js'));
@@ -665,10 +687,14 @@ export default abstract class ServerBase {
         this.app.get('/api/clientappcontrollerinit', async (req, res) => {
             const session = req.session;
 
+            let user: UserVO = await StackContext.getInstance().runPromise(
+                { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
+
             res.json(JSON.stringify(
                 {
                     data_version: ServerBase.getInstance().version,
-                    data_user: (!!session.uid) ? await ModuleAccessPolicyServer.getInstance().getSelfUser() : null,
+                    data_user: user,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     // data_base_api_url: "",
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE
@@ -679,24 +705,28 @@ export default abstract class ServerBase {
         this.app.get('/api/adminappcontrollerinit', async (req, res) => {
             const session = req.session;
 
+            let user: UserVO = await StackContext.getInstance().runPromise(
+                { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
+
             res.json(JSON.stringify(
                 {
                     data_version: ServerBase.getInstance().version,
                     data_code_pays: ServerBase.getInstance().envParam.CODE_PAYS,
                     data_node_env: process.env.NODE_ENV,
-                    data_user: (!!session.uid) ? await ModuleAccessPolicyServer.getInstance().getSelfUser() : null,
+                    data_user: user,
                     data_ui_debug: ServerBase.getInstance().uiDebug,
                     data_default_locale: ServerBase.getInstance().envParam.DEFAULT_LOCALE,
                 }
             ));
         });
 
-        // L'API qui renvoie les infos pour générer l'interface NGA pour les modules (activation / désactivation des modules et les paramètres de chaque module)
-        this.app.get('/api/modules_nga_fields_infos/:env', (req, res) => {
+        // // L'API qui renvoie les infos pour générer l'interface NGA pour les modules (activation / désactivation des modules et les paramètres de chaque module)
+        // this.app.get('/api/modules_nga_fields_infos/:env', (req, res) => {
 
-            // On envoie en fait un fichier JS... Pour avoir un chargement des modules synchrone côté client en intégrant juste un fichier js.
-            res.send('GM_Modules = ' + JSON.stringify(GM.get_modules_infos(req.params.env)) + ';');
-        });
+        //     // On envoie en fait un fichier JS... Pour avoir un chargement des modules synchrone côté client en intégrant juste un fichier js.
+        //     res.send('GM_Modules = ' + JSON.stringify(GM.get_modules_infos(req.params.env)) + ';');
+        // });
 
         // // JNE : Savoir si on est en DEV depuis la Vue.js client
         // this.app.get('/api/isdev', (req, res) => {
@@ -706,8 +736,6 @@ export default abstract class ServerBase {
 
         // Déclenchement du cron
         this.app.get('/cron', async (req: Request, res) => {
-            // Sinon la gestion des droits intervient et empêche de retrouver le compte et les trads ...
-            httpContext.set('IS_CLIENT', false);
 
             /**
              * Cas particulier du cron qui est appelé directement par les taches planifiées et qui doit
@@ -724,9 +752,14 @@ export default abstract class ServerBase {
                 res.send();
             } else {
 
-                return ServerBase.getInstance().handleError(CronServerController.getInstance().executeWorkers().then(() => {
+                try {
+
+                    await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => await CronServerController.getInstance().executeWorkers());
                     res.json();
-                }), res);
+                } catch (err) {
+                    ConsoleHandler.getInstance().error("error: " + (err.message || err));
+                    return res.status(500).send(err.message || err);
+                }
             }
         });
 

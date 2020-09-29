@@ -7,6 +7,7 @@ import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO'
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import StackContext from '../../../shared/tools/StackContext';
 import ServerBase from '../../ServerBase';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
@@ -131,8 +132,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let session = httpContext ? httpContext.get('SESSION') : null;
+        let session = StackContext.getInstance().get('SESSION');
 
         if (session && !session.uid) {
             return;
@@ -160,8 +160,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return;
         }
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let session = httpContext ? httpContext.get('SESSION') : null;
+        let session = StackContext.getInstance().get('SESSION');
 
         planned_maintenance.maintenance_over = true;
         planned_maintenance.end_ts = moment().utc(true);
@@ -181,8 +180,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
 
         let maintenance: MaintenanceVO = new MaintenanceVO();
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let session = httpContext ? httpContext.get('SESSION') : null;
+        let session = StackContext.getInstance().get('SESSION');
 
         if (session && !!session.uid) {
             maintenance.author_id = session.uid;
@@ -222,8 +220,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
             return false;
         }
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let session = httpContext ? httpContext.get('SESSION') : null;
+        let session = StackContext.getInstance().get('SESSION');
 
         if (session && session.uid) {
             return false;

@@ -4,6 +4,7 @@ import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import StackContext from '../../../../shared/tools/StackContext';
 import ServerBase from '../../../ServerBase';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 
@@ -134,11 +135,12 @@ export default class PasswordReset {
         }
 
         // On doit se comporter comme un server à ce stade
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        httpContext.set('IS_CLIENT', false);
+        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
 
-        AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
-        await ModuleDAO.getInstance().insertOrUpdateVO(user);
+            AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(user, new_pwd1);
+            await ModuleDAO.getInstance().insertOrUpdateVO(user);
+        });
+
         return true;
     }
 }

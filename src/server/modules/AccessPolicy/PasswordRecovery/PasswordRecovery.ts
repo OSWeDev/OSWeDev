@@ -7,6 +7,7 @@ import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTran
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
+import StackContext from '../../../../shared/tools/StackContext';
 import ServerBase from '../../../ServerBase';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
@@ -47,41 +48,41 @@ export default class PasswordRecovery {
         }
 
         // On doit se comporter comme un server à ce stade
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        httpContext.set('IS_CLIENT', false);
+        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
 
-        await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
+            await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        let SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(PasswordRecovery.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
-
-        // Send mail
-        if (!!SEND_IN_BLUE_TEMPLATE_ID) {
-
-            // Using SendInBlue
-            await SendInBlueMailServerController.getInstance().sendWithTemplate(
-                SendInBlueMailVO.createNew(user.name, user.email),
-                SEND_IN_BLUE_TEMPLATE_ID,
-                ['PasswordRecovery'],
-                {
-                    EMAIL: user.email,
-                    UID: user.id.toString(),
-                    CODE_CHALLENGE: user.recovery_challenge
-                });
-        } else {
+            let SEND_IN_BLUE_TEMPLATE_ID: number = await ModuleParams.getInstance().getParamValueAsInt(PasswordRecovery.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
 
             // Send mail
-            let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordRecovery.CODE_TEXT_MAIL_SUBJECT_RECOVERY);
-            let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
-            await ModuleMailerServer.getInstance().sendMail({
-                to: user.email,
-                subject: translated_mail_subject.translated,
-                html: await ModuleMailerServer.getInstance().prepareHTML(recovery_mail_html_template, user.lang_id, {
-                    EMAIL: user.email,
-                    UID: user.id.toString(),
-                    CODE_CHALLENGE: user.recovery_challenge
-                })
-            });
-        }
+            if (!!SEND_IN_BLUE_TEMPLATE_ID) {
+
+                // Using SendInBlue
+                await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                    SendInBlueMailVO.createNew(user.name, user.email),
+                    SEND_IN_BLUE_TEMPLATE_ID,
+                    ['PasswordRecovery'],
+                    {
+                        EMAIL: user.email,
+                        UID: user.id.toString(),
+                        CODE_CHALLENGE: user.recovery_challenge
+                    });
+            } else {
+
+                // Send mail
+                let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordRecovery.CODE_TEXT_MAIL_SUBJECT_RECOVERY);
+                let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
+                await ModuleMailerServer.getInstance().sendMail({
+                    to: user.email,
+                    subject: translated_mail_subject.translated,
+                    html: await ModuleMailerServer.getInstance().prepareHTML(recovery_mail_html_template, user.lang_id, {
+                        EMAIL: user.email,
+                        UID: user.id.toString(),
+                        CODE_CHALLENGE: user.recovery_challenge
+                    })
+                });
+            }
+        });
     }
 
     public async beginRecoverySMS(email: string): Promise<boolean> {
@@ -109,19 +110,19 @@ export default class PasswordRecovery {
         let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
 
         // On doit se comporter comme un server à ce stade
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        httpContext.set('IS_CLIENT', false);
+        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
 
-        await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
+            await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        // Using SendInBlue
-        await SendInBlueSmsServerController.getInstance().send(
-            SendInBlueSmsFormatVO.createNew(phone, lang.code_phone),
-            await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
-                EMAIL: user.email,
-                UID: user.id.toString(),
-                CODE_CHALLENGE: user.recovery_challenge
-            }),
-            'PasswordRecovery');
+            // Using SendInBlue
+            await SendInBlueSmsServerController.getInstance().send(
+                SendInBlueSmsFormatVO.createNew(phone, lang.code_phone),
+                await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
+                    EMAIL: user.email,
+                    UID: user.id.toString(),
+                    CODE_CHALLENGE: user.recovery_challenge
+                }),
+                'PasswordRecovery');
+        });
     }
 }
