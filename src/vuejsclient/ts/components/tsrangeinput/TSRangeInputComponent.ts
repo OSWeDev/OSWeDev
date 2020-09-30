@@ -11,6 +11,7 @@ import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../VueComponentBase';
 import * as moment from 'moment';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import VueAppController from '../../../VueAppController';
 
 @Component({
     template: require('./TSRangeInputComponent.pug'),
@@ -49,8 +50,9 @@ export default class TSRangeInputComponent extends VueComponentBase {
     private format_datepicker_day: string = 'dd/MM/yyyy';
     private format_time: string = 'HH:mm';
 
-    private language = "fr";
+    private language = VueAppController.getInstance().data_user_lang ? VueAppController.getInstance().data_user_lang.code_lang : null;
     private languages = lang;
+
 
     private segmentation_type_: number = null;
 
