@@ -1,14 +1,18 @@
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
+import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import SendInBlueMailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
+import SendInBlueSmsFormatVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueSmsFormatVO';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
+import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
 import StackContext from '../../../../shared/tools/StackContext';
-import ServerBase from '../../../ServerBase';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
+import SendInBlueSmsServerController from '../../SendInBlue/sms/SendInBlueSmsServerController';
 import ModuleAccessPolicyServer from '../ModuleAccessPolicyServer';
 import initpwd_mail_html_template from './initpwd_mail_html_template.html';
 
@@ -17,6 +21,7 @@ export default class PasswordInitialisation {
 
     public static CODE_TEXT_MAIL_SUBJECT_initpwd: string = 'mails.pwd.initpwd.subject';
     public static PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID: string = 'SEND_IN_BLUE_TEMPLATE_ID.PasswordInitialisation';
+    public static CODE_TEXT_SMS_initpwd: string = 'sms.pwd.initpwd';
 
     public static getInstance() {
         if (!PasswordInitialisation.instance) {
@@ -100,5 +105,50 @@ export default class PasswordInitialisation {
             }
         });
         return true;
+    }
+
+    public async beginRecoverySMS(email: string): Promise<boolean> {
+
+        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+            return;
+        }
+
+        let user: UserVO = await ModuleDAOServer.getInstance().selectOneUserForRecovery(email);
+
+        if (!user) {
+            return false;
+        }
+
+        if (user.blocked) {
+            return false;
+        }
+
+        if (!user.phone) {
+            return false;
+        }
+
+        let phone = user.phone;
+
+        phone = phone.replace(' ', '');
+
+        let lang = await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
+        let translatable_text = await ModuleTranslation.getInstance().getTranslatableText(PasswordInitialisation.CODE_TEXT_SMS_initpwd);
+        let translation = await ModuleTranslation.getInstance().getTranslation(lang.id, translatable_text.id);
+
+        // On doit se comporter comme un server à ce stade
+        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
+
+            await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
+
+            // Using SendInBlue
+            await SendInBlueSmsServerController.getInstance().send(
+                SendInBlueSmsFormatVO.createNew(phone, lang.code_phone),
+                await ModuleMailerServer.getInstance().prepareHTML(translation.translated, user.lang_id, {
+                    EMAIL: user.email,
+                    UID: user.id.toString(),
+                    CODE_CHALLENGE: user.recovery_challenge
+                }),
+                'PasswordRecovery');
+        });
     }
 }

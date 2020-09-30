@@ -69,6 +69,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_RESET_PWDUID = "RESET_PWDUID";
     public static APINAME_getMyLang = "getMyLang";
     public static APINAME_begininitpwd = "begininitpwd";
+    public static APINAME_begininitpwdsms = "begininitpwdsms";
     public static APINAME_begininitpwd_uid = "begininitpwd_uid";
     public static APINAME_getSelfUser = "getSelfUser";
     public static APINAME_checkCode = "checkCode";
@@ -160,6 +161,12 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleAccessPolicy.APINAME_begininitpwdsms,
+            [UserVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
             ModuleAccessPolicy.APINAME_begininitpwd,
             [UserVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams
@@ -235,6 +242,10 @@ export default class ModuleAccessPolicy extends Module {
 
     public async begininitpwd(email: string): Promise<void> {
         return await ModuleAPI.getInstance().handleAPI<StringParamVO, void>(ModuleAccessPolicy.APINAME_begininitpwd, email);
+    }
+
+    public async begininitpwdsms(email: string): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, void>(ModuleAccessPolicy.APINAME_begininitpwdsms, email);
     }
 
     public async begininitpwd_uid(uid: number): Promise<void> {

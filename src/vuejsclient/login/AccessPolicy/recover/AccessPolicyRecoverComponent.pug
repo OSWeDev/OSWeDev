@@ -15,5 +15,5 @@
 
                 .center
                     button.btn.btn-primary.btn-block.btn-flat(@click="recover") {{ label('login.recover.submit') }}
-                .center
+                .center(v-if='has_sms_activation')
                     button.btn.btn-light.btn-block.btn-flat(@click="recoversms") {{ label('login.recover.sms') }}

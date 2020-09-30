@@ -126,6 +126,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("name"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
+        crud.readDatatable.pushField(new SimpleDatatableField<any, any>("phone"));
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
             crud.readDatatable.pushField(new ComponentDatatableField(

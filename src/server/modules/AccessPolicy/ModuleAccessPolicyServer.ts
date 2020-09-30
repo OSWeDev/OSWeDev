@@ -24,6 +24,7 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
+import ModuleSendInBlue from '../../../shared/modules/SendInBlue/ModuleSendInBlue';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
@@ -406,6 +407,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'recover.ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par SMS.'
+        }, 'login.recover.answercansms.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez.'
         }, 'login.recover.answer.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Réinitialisation de votre mot de passe'
@@ -478,6 +482,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
         }, 'mails.pwd.recovery.sms'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '%%ENV%%APP_TITLE%%: Pour initialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+        }, 'sms.pwd.initpwd'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'
         }, 'mails.pwd.recovery.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -543,6 +550,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Mail d\'initialisation du mot de passe envoyé'
         }, 'sendinitpwd.ok.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'SMS d\'initialisation du mot de passe envoyé'
+        }, 'sendinitpwd.oksms.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Mail init mdp'
@@ -587,6 +597,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_change_lang, this.change_lang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd, this.begininitpwd.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwdsms, this.begininitpwdsms.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
     }
@@ -601,6 +612,22 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
 
         await PasswordInitialisation.getInstance().begininitpwd(param.text);
+    }
+
+    public async begininitpwdsms(param: StringParamVO): Promise<void> {
+        if ((!param) || (!param.text)) {
+            return;
+        }
+
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_SENDINITPWD)) {
+            return;
+        }
+
+        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+            return;
+        }
+
+        await PasswordInitialisation.getInstance().beginRecoverySMS(param.text);
     }
 
     public async begininitpwd_uid(param: NumberParamVO): Promise<void> {
@@ -1094,6 +1121,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
+        if (!await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION)) {
+            return;
+        }
+
         return PasswordRecovery.getInstance().beginRecoverySMS(param.text);
     }
 
@@ -1336,7 +1367,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             if (user.invalidated) {
 
                 // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
-                if (user.recovery_expiration.isSameOrBefore(moment().utc(true))) {
+                if ((!user.recovery_expiration) || user.recovery_expiration.isSameOrBefore(moment().utc(true))) {
                     await PasswordRecovery.getInstance().beginRecovery(user.email);
                 }
                 return null;

@@ -1,9 +1,10 @@
-import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import { Component } from "vue-property-decorator";
-import './AccessPolicyRecoverComponent.scss';
-import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
-import VueComponentBase from '../../../ts/components/VueComponentBase';
+import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
+import ModuleSendInBlue from '../../../../shared/modules/SendInBlue/ModuleSendInBlue';
+import VueComponentBase from '../../../ts/components/VueComponentBase';
+import './AccessPolicyRecoverComponent.scss';
 
 @Component({
     template: require('./AccessPolicyRecoverComponent.pug')
@@ -15,10 +16,10 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
 
     private logo_url: string = null;
 
-    private can_recover_by_sms: boolean = false;
-
+    private has_sms_activation: boolean = false;
 
     private async mounted() {
+
         this.load_logo_url();
 
         for (let j in this.$route.query) {
@@ -29,11 +30,13 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
             }
         }
 
-        this.can_recover_by_sms = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAccessPolicy.PARAM_NAME_CAN_RECOVER_PWD_BY_SMS);
+        this.has_sms_activation =
+            await ModuleParams.getInstance().getParamValueAsBoolean(ModuleSendInBlue.PARAM_NAME_SMS_ACTIVATION) &&
+            await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAccessPolicy.PARAM_NAME_CAN_RECOVER_PWD_BY_SMS);
     }
 
     private async load_logo_url() {
-        this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES + '.logo_url');
+        this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
         if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
             return;
         }
@@ -45,7 +48,13 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
 
         if (await ModuleAccessPolicy.getInstance().beginRecover(this.email)) {
             this.snotify.success(this.label('recover.ok'));
-            this.message = this.label('login.recover.answer');
+
+            if (this.has_sms_activation) {
+                this.message = this.label('login.recover.answercansms');
+            } else {
+                this.message = this.label('login.recover.answer');
+            }
+
         } else {
             this.snotify.error(this.label('recover.failed'));
         }

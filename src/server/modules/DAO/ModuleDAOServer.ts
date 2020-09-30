@@ -32,6 +32,7 @@ import MatroidController from '../../../shared/modules/Matroid/MatroidController
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
 import ModuleVO from '../../../shared/modules/ModuleVO';
+import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -48,7 +49,6 @@ import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../../shared/tools/StackContext';
 import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
@@ -135,6 +135,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if ((vo_type == AccessPolicyVO.API_TYPE_ID) ||
                 (vo_type == RolePolicyVO.API_TYPE_ID) ||
                 (vo_type == RoleVO.API_TYPE_ID) ||
+                (vo_type == ParamVO.API_TYPE_ID) ||
                 (vo_type == PolicyDependencyVO.API_TYPE_ID) ||
                 (vo_type == AccessPolicyGroupVO.API_TYPE_ID) ||
                 (vo_type == UserRoleVO.API_TYPE_ID)) {

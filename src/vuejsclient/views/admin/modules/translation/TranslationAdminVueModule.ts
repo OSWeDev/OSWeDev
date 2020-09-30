@@ -38,37 +38,36 @@ export default class TranslationAdminVueModule extends VueModuleBase {
         if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_BO_TRANSLATIONS_ACCESS)) {
             return;
         }
-        if (await ModuleAccessPolicy.getInstance().isRole('access.roles.names.admin')) {
-            let translationMenuBranch: MenuBranch = new MenuBranch("TranslationAdminVueModule", MenuElementBase.PRIORITY_MEDIUM - 1, "fa-language", []);
 
-            CRUDComponentManager.getInstance().registerCRUD(
-                TranslationVO.API_TYPE_ID,
-                this.getTranslationCRUD(),
-                new MenuPointer(
-                    new MenuLeaf("TranslationVOTranslationAdminVueModule", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-language"),
-                    translationMenuBranch),
-                this.routes);
+        let translationMenuBranch: MenuBranch = new MenuBranch("TranslationAdminVueModule", MenuElementBase.PRIORITY_MEDIUM - 1, "fa-language", []);
 
-            if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_BO_OTHERS_ACCESS)) {
-                return;
-            }
+        CRUDComponentManager.getInstance().registerCRUD(
+            TranslationVO.API_TYPE_ID,
+            this.getTranslationCRUD(),
+            new MenuPointer(
+                new MenuLeaf("TranslationVOTranslationAdminVueModule", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-language"),
+                translationMenuBranch),
+            this.routes);
 
-            CRUDComponentManager.getInstance().registerCRUD(
-                LangVO.API_TYPE_ID,
-                this.getLangCRUD(),
-                new MenuPointer(
-                    new MenuLeaf("LangVOTranslationAdminVueModule", MenuElementBase.PRIORITY_ULTRALOW, "fa-language"),
-                    translationMenuBranch),
-                this.routes);
-
-            CRUDComponentManager.getInstance().registerCRUD(
-                TranslatableTextVO.API_TYPE_ID,
-                null,
-                new MenuPointer(
-                    new MenuLeaf("TranslatableTextVOTranslationAdminVueModule", MenuElementBase.PRIORITY_MEDIUM, "fa-language"),
-                    translationMenuBranch),
-                this.routes);
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleTranslation.POLICY_BO_OTHERS_ACCESS)) {
+            return;
         }
+
+        CRUDComponentManager.getInstance().registerCRUD(
+            LangVO.API_TYPE_ID,
+            this.getLangCRUD(),
+            new MenuPointer(
+                new MenuLeaf("LangVOTranslationAdminVueModule", MenuElementBase.PRIORITY_ULTRALOW, "fa-language"),
+                translationMenuBranch),
+            this.routes);
+
+        CRUDComponentManager.getInstance().registerCRUD(
+            TranslatableTextVO.API_TYPE_ID,
+            null,
+            new MenuPointer(
+                new MenuLeaf("TranslatableTextVOTranslationAdminVueModule", MenuElementBase.PRIORITY_MEDIUM, "fa-language"),
+                translationMenuBranch),
+            this.routes);
     }
 
     protected getTranslationCRUD(): CRUD<TranslationVO> {

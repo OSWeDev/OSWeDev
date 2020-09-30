@@ -1,3 +1,6 @@
 .sendinitpwd_component
-    button.btn.btn-sm.btn-primary.m-1(@click='sendinitpwd')
-        i.fa.fa-envelope.fa-lg.btn_icon(aria-hidden="true")
+    .btn-group.d-print-none
+        button.btn.btn-sm.btn-primary.m-1(@click='sendinitpwd')
+            i.fa.fa-envelope.fa-fw.fa-lg.btn_icon(aria-hidden="true")
+        button.btn.btn-sm.btn-secondary.m-1(v-if='has_sms_activation' @click='sendinitpwdsms')
+            i.fa.fa-mobile.fa-fw.fa-lg.btn_icon(aria-hidden="true")

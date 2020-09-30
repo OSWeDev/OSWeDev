@@ -35,7 +35,7 @@ export default class Patch20200924UpgradeUserVOPost implements IGeneratorWorker 
         /**
          * Changement trad par défaut sur user pour la récupération du mdp
          */
-        await this.update_trad('login.recover.answer.___LABEL___', 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par SMS.');
+        await this.update_trad('login.recover.answer.___LABEL___', 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez.');
 
         await this.update_trad('login.recover.submit.___LABEL___', 'Envoyer le mail');
     }
