@@ -3,6 +3,7 @@ import APIController from '../../../shared/modules/API/APIController';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import StackContext from '../../../shared/tools/StackContext';
 import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
 
@@ -50,7 +51,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
             let param: T = null;
             if (api.PARAM_TRANSLATE_FROM_REQ) {
                 try {
-                    param = await api.PARAM_TRANSLATE_FROM_REQ(req);
+                    param = await StackContext.getInstance().runPromise(
+                        { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                        async () => await api.PARAM_TRANSLATE_FROM_REQ(req));
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
                     switch (api.api_return_type) {
@@ -73,7 +76,9 @@ export default class ModuleAPIServer extends ModuleServerBase {
 
             let returnvalue = null;
             try {
-                returnvalue = await api.SERVER_HANDLER(param);
+                returnvalue = await StackContext.getInstance().runPromise(
+                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                    async () => await api.SERVER_HANDLER(param));
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);
                 switch (api.api_return_type) {

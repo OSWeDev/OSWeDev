@@ -4,6 +4,7 @@ import SendInBlueMailVO from '../../../../shared/modules/SendInBlue/vos/SendInBl
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
+import StackContext from '../../../../shared/tools/StackContext';
 import ServerBase from '../../../ServerBase';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
@@ -37,6 +38,10 @@ export default class PasswordInitialisation {
             return false;
         }
 
+        if (user.blocked) {
+            return false;
+        }
+
         return await this.begininitpwd_user(user);
     }
 
@@ -48,48 +53,52 @@ export default class PasswordInitialisation {
             return false;
         }
 
+        if (user.blocked) {
+            return false;
+        }
+
         return await this.begininitpwd_user(user);
     }
 
     public async begininitpwd_user(user: UserVO): Promise<boolean> {
 
         // On doit se comporter comme un server à ce stade
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        httpContext.set('IS_CLIENT', false);
+        await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => {
 
-        await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
+            await ModuleAccessPolicyServer.getInstance().generate_challenge(user);
 
-        let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(PasswordInitialisation.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
-        let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
+            let SEND_IN_BLUE_TEMPLATE_ID_s: string = await ModuleParams.getInstance().getParamValue(PasswordInitialisation.PARAM_NAME_SEND_IN_BLUE_TEMPLATE_ID);
+            let SEND_IN_BLUE_TEMPLATE_ID: number = SEND_IN_BLUE_TEMPLATE_ID_s ? parseInt(SEND_IN_BLUE_TEMPLATE_ID_s) : null;
 
-        // Send mail
-        if (!!SEND_IN_BLUE_TEMPLATE_ID) {
+            // Send mail
+            if (!!SEND_IN_BLUE_TEMPLATE_ID) {
 
-            // Using SendInBlue
-            await SendInBlueMailServerController.getInstance().sendWithTemplate(
-                SendInBlueMailVO.createNew(user.name, user.email),
-                SEND_IN_BLUE_TEMPLATE_ID,
-                ['PasswordInitialisation'],
-                {
-                    EMAIL: user.email,
-                    UID: user.id.toString(),
-                    CODE_CHALLENGE: user.recovery_challenge
+                // Using SendInBlue
+                await SendInBlueMailServerController.getInstance().sendWithTemplate(
+                    SendInBlueMailVO.createNew(user.name, user.email),
+                    SEND_IN_BLUE_TEMPLATE_ID,
+                    ['PasswordInitialisation'],
+                    {
+                        EMAIL: user.email,
+                        UID: user.id.toString(),
+                        CODE_CHALLENGE: user.recovery_challenge
+                    });
+            } else {
+
+                // Using APP
+                let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInitialisation.CODE_TEXT_MAIL_SUBJECT_initpwd);
+                let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
+                await ModuleMailerServer.getInstance().sendMail({
+                    to: user.email,
+                    subject: translated_mail_subject.translated,
+                    html: await ModuleMailerServer.getInstance().prepareHTML(initpwd_mail_html_template, user.lang_id, {
+                        EMAIL: user.email,
+                        UID: user.id.toString(),
+                        CODE_CHALLENGE: user.recovery_challenge
+                    })
                 });
-        } else {
-
-            // Using APP
-            let translatable_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(PasswordInitialisation.CODE_TEXT_MAIL_SUBJECT_initpwd);
-            let translated_mail_subject: TranslationVO = await ModuleTranslation.getInstance().getTranslation(user.lang_id, translatable_mail_subject.id);
-            await ModuleMailerServer.getInstance().sendMail({
-                to: user.email,
-                subject: translated_mail_subject.translated,
-                html: await ModuleMailerServer.getInstance().prepareHTML(initpwd_mail_html_template, user.lang_id, {
-                    EMAIL: user.email,
-                    UID: user.id.toString(),
-                    CODE_CHALLENGE: user.recovery_challenge
-                })
-            });
-        }
+            }
+        });
         return true;
     }
 }

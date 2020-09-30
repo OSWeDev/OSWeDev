@@ -29,6 +29,10 @@ export default class PasswordInvalidationController {
         for (let i in users) {
             let user: UserVO = users[i];
 
+            if (user.blocked) {
+                continue;
+            }
+
             if (user.invalidated) {
                 continue;
             }

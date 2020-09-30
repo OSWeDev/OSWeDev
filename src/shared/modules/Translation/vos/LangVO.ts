@@ -8,4 +8,5 @@ export default class LangVO implements IDistantVOBase {
 
     public code_lang: string;
     public code_flag: string;
+    public code_phone: string;
 }

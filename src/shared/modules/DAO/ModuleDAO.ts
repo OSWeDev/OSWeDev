@@ -395,6 +395,9 @@ export default class ModuleDAO extends Module {
     }
 
     public getAccessPolicyName(access_type: string, vo_type: string): string {
+        if ((!access_type) || (!vo_type)) {
+            return null;
+        }
         let isModulesParams: boolean = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].isModuleParamTable;
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }

@@ -13,6 +13,7 @@ import IExportableDatas from './interfaces/IExportableDatas';
 import IExportHandler from './interfaces/IExportHandler';
 import ModuleDataExportServer from './ModuleDataExportServer';
 import ExportDataToXLSXParamVO from '../../../shared/modules/DataExport/vos/apis/ExportDataToXLSXParamVO';
+import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 
 export default abstract class ExportHandlerBase implements IExportHandler {
 
@@ -66,7 +67,13 @@ export default abstract class ExportHandlerBase implements IExportHandler {
             let exported_file: FileVO = await ModuleDAO.getInstance().getVoById<FileVO>(FileVO.API_TYPE_ID, exhi.exported_file_id);
             let default_export_mail_subject: TranslatableTextVO = await ModuleTranslation.getInstance().getTranslatableText(ExportHandlerBase.CODE_TEXT_MAIL_SUBJECT_DEFAULT);
 
-            let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, exhi.export_to_uid);
+            let user_id: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+            let user: UserVO = null;
+            if (user_id == exhi.export_to_uid) {
+                user = await ModuleAccessPolicyServer.getInstance().getSelfUser();
+            } else {
+                user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, exhi.export_to_uid);
+            }
 
             let translated_mail_subject: string = await ModuleMailerServer.getInstance().prepareHTML(
                 (await ModuleTranslation.getInstance().getTranslation(user.lang_id, default_export_mail_subject.id)).translated,

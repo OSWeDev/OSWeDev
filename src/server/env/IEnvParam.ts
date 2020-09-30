@@ -1,6 +1,7 @@
 /* istanbul ignore file: no usefull tests to build */
 
 export default interface IEnvParam {
+    APP_TITLE: string;
     CONNECTION_STRING: string;
     PORT: string;
     ISDEV: boolean;

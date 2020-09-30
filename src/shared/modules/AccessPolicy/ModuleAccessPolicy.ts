@@ -59,6 +59,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_GET_MY_ROLES = "GET_MY_ROLES";
     public static APINAME_ADD_ROLE_TO_USER = "ADD_ROLE_TO_USER";
     public static APINAME_BEGIN_RECOVER = "BEGIN_RECOVER";
+    public static APINAME_BEGIN_RECOVER_SMS = "BEGIN_RECOVER_SMS";
     public static APINAME_RESET_PWD = "RESET_PWD";
     public static APINAME_TOGGLE_ACCESS = "TOGGLE_ACCESS";
     public static APINAME_GET_ACCESS_MATRIX = "GET_ACCESS_MATRIX";
@@ -69,6 +70,7 @@ export default class ModuleAccessPolicy extends Module {
     public static APINAME_getMyLang = "getMyLang";
     public static APINAME_begininitpwd = "begininitpwd";
     public static APINAME_begininitpwd_uid = "begininitpwd_uid";
+    public static APINAME_getSelfUser = "getSelfUser";
     public static APINAME_checkCode = "checkCode";
     public static APINAME_checkCodeUID = "checkCodeUID";
 
@@ -76,6 +78,7 @@ export default class ModuleAccessPolicy extends Module {
     public static PARAM_NAME_REMINDER_PWD2_DAYS = 'reminder_pwd2_days';
     public static PARAM_NAME_PWD_INVALIDATION_DAYS = 'pwd_invalidation_days';
     public static PARAM_NAME_RECOVERY_HOURS = 'recovery_hours';
+    public static PARAM_NAME_CAN_RECOVER_PWD_BY_SMS = 'ModuleAccessPolicy.CAN_RECOVER_PWD_BY_SMS';
 
     public static getInstance(): ModuleAccessPolicy {
         if (!ModuleAccessPolicy.instance) {
@@ -105,6 +108,11 @@ export default class ModuleAccessPolicy extends Module {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
             ModuleAccessPolicy.APINAME_IS_ADMIN,
             [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]
+        ));
+
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, UserVO>(
+            ModuleAccessPolicy.APINAME_getSelfUser,
+            [UserVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
@@ -169,6 +177,12 @@ export default class ModuleAccessPolicy extends Module {
             StringParamVO.translateCheckAccessParams
         ));
 
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+            ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS,
+            [UserVO.API_TYPE_ID],
+            StringParamVO.translateCheckAccessParams
+        ));
+
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
             ModuleAccessPolicy.APINAME_RESET_PWD,
             [UserVO.API_TYPE_ID],
@@ -227,6 +241,10 @@ export default class ModuleAccessPolicy extends Module {
         return await ModuleAPI.getInstance().handleAPI<NumberParamVO, void>(ModuleAccessPolicy.APINAME_begininitpwd_uid, uid);
     }
 
+    public async getSelfUser(): Promise<UserVO> {
+        return await ModuleAPI.getInstance().handleAPI<void, UserVO>(ModuleAccessPolicy.APINAME_getSelfUser);
+    }
+
     public async getMyLang(): Promise<LangVO> {
         return await ModuleAPI.getInstance().handleAPI<void, LangVO>(ModuleAccessPolicy.APINAME_getMyLang);
     }
@@ -268,6 +286,10 @@ export default class ModuleAccessPolicy extends Module {
 
     public async beginRecover(email: string): Promise<boolean> {
         return await ModuleAPI.getInstance().handleAPI<StringParamVO, boolean>(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, email);
+    }
+
+    public async beginRecoverSMS(email: string): Promise<boolean> {
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, boolean>(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS, email);
     }
 
     public async resetPwd(email: string, challenge: string, new_pwd1: string): Promise<boolean> {
@@ -323,14 +345,15 @@ export default class ModuleAccessPolicy extends Module {
             label_field,
             new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'E-mail' }), true),
             new ModuleTableField('phone', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Téléphone' })),
+            new ModuleTableField('blocked', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Compte blocké' }), true, true, false),
             new ModuleTableField('password', ModuleTableField.FIELD_TYPE_password, new DefaultTranslation({ fr: 'Mot de passe' }), true),
             new ModuleTableField('password_change_date', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Date de changement du mot de passe' }), false),
-            new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Premier rappel envoyé' }), false, true, false),
-            new ModuleTableField('reminded_pwd_2', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Second rappel envoyé' }), false, true, false),
-            new ModuleTableField('invalidated', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Compte désactivé' }), false, true, false),
+            new ModuleTableField('reminded_pwd_1', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Premier rappel envoyé' }), true, true, false),
+            new ModuleTableField('reminded_pwd_2', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Second rappel envoyé' }), true, true, false),
+            new ModuleTableField('invalidated', ModuleTableField.FIELD_TYPE_boolean, new DefaultTranslation({ fr: 'Mot de passe expiré' }), true, true, false),
             field_lang_id,
             new ModuleTableField('recovery_challenge', ModuleTableField.FIELD_TYPE_string, new DefaultTranslation({ fr: 'Challenge de récupération' }), false, true, ""),
-            new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_int, new DefaultTranslation({ fr: 'Expiration du challenge' }), false, true, 0),
+            new ModuleTableField('recovery_expiration', ModuleTableField.FIELD_TYPE_tstz, new DefaultTranslation({ fr: 'Expiration du challenge' }), false).set_segmentation_type(TimeSegment.TYPE_SECOND),
         ];
 
         let datatable: ModuleTable<any> = new ModuleTable(this, UserVO.API_TYPE_ID, () => new UserVO(), datatable_fields, label_field, new DefaultTranslation({ fr: "Utilisateurs" }));

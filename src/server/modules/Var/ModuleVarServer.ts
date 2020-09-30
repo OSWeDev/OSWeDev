@@ -34,6 +34,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarServerController from './VarServerController';
 import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
+import StackContext from '../../../shared/tools/StackContext';
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -356,14 +357,10 @@ export default class ModuleVarServer extends ModuleServerBase {
             // Si on a un vardata mais pas de value_ts,
             //  On stocke l'info pour le batch BG de recompilation qu'on veut renvoyer le res de ces vars datas à l'utilisateur et /ou aux
             //  utilisateurs qui sont à l'origine de la demande. Et c'est le bgthread qui gère de notifier du coup
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            if (!!httpContext) {
-
-                let uid: number = httpContext ? httpContext.get('UID') : null;
-                if (!!uid) {
-                    let var_index: string = VarsController.getInstance().getIndex(vardata);
-                    VarServerController.getInstance().add_uid_waiting_for_indexes(uid, var_index);
-                }
+            let uid: number = StackContext.getInstance().get('UID');
+            if (!!uid) {
+                let var_index: string = VarsController.getInstance().getIndex(vardata);
+                VarServerController.getInstance().add_uid_waiting_for_indexes(uid, var_index);
             }
 
             // // Si on a un vardata mais pas de value_ts, on attend qu'il se remplisse, au max 20 secondes

@@ -23,12 +23,14 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleVO from '../../../shared/modules/ModuleVO';
+import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import StackContext from '../../../shared/tools/StackContext';
 import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
 import ServerBase from '../../ServerBase';
@@ -45,6 +47,8 @@ import PasswordRecovery from './PasswordRecovery/PasswordRecovery';
 import PasswordReset from './PasswordReset/PasswordReset';
 
 export default class ModuleAccessPolicyServer extends ModuleServerBase {
+
+    public static TASK_NAME_onBlockOrInvalidateUserDeleteSessions = 'ModuleAccessPolicyServer.onBlockOrInvalidateUserDeleteSessions';
 
     public static getInstance() {
         if (!ModuleAccessPolicyServer.instance) {
@@ -236,10 +240,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         // On ajoute un trigger pour la création du compte
         let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOCreate.bind(this));
+        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUser.bind(this));
 
         // On ajoute un trigger pour la modification du mot de passe
         let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOUpdate.bind(this));
+        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUser.bind(this));
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
@@ -380,8 +386,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Login'
         }, 'login.email_placeholder.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Valider'
+            fr: 'Envoyer le mail'
         }, 'login.recover.submit.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Envoyer le SMS'
+        }, 'login.recover.sms.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Vous devriez recevoir un SMS d\'ici quelques minutes (si celui-ci est bien configuré dans votre compte) pour réinitialiser votre compte. Si vous n\'avez reçu aucun SMS, vérifiez que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par Mail.'
+        }, 'login.recover.answersms.___LABEL___'));
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Récupération...'
         }, 'recover.start.___LABEL___'));
@@ -392,7 +405,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Consultez vos mails'
         }, 'recover.ok.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
-            fr: 'Consultez votre boîte mail.'
+            fr: 'Vous devriez recevoir un mail d\'ici quelques minutes pour réinitialiser votre compte. Si vous n\'avez reçu aucun mail, vérifiez vos spams, et que le mail saisi est bien celui du compte et réessayez. Vous pouvez également tenter la récupération par SMS.'
         }, 'login.recover.answer.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Réinitialisation de votre mot de passe'
@@ -462,6 +475,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             fr: 'Récupération du mot de passe'
         }, 'mails.pwd.recovery.subject'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '%%ENV%%APP_TITLE%%: Pour réinitialiser votre compte: %%ENV%%BASE_URL%%%%ENV%%URL_RECOVERY_CHALLENGE%%/%%VAR%%UID%%/%%VAR%%CODE_CHALLENGE%%'
+        }, 'mails.pwd.recovery.sms'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Cliquez sur le lien ci-dessous pour modifier votre mot de passe.'
         }, 'mails.pwd.recovery.html'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -493,6 +509,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }, 'mails.pwd.reminder2.html'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Connexion impossible. Vérifiez le mot de passe. Si votre mot de passe a été invalidé, vous devriez recevoir un mail vous invitant à le renouveler. Vous pouvez également utiliser la procédure d\'oubli du mot de passe en cliquant sur "Mot de passe oublié".'
+        }, 'login.failed.message.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'LogAs'
         }, 'fields.labels.ref.user.__component__impersonate.___LABEL___'));
 
@@ -507,6 +527,10 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: ''
         }, 'lang_selector.lang_suffix.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Consultez vos SMS'
+        }, 'recover.oksms.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Langue'
@@ -549,6 +573,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_GET_MY_ROLES, this.getMyRoles.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER, this.addRoleToUser.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER, this.beginRecover.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS, this.beginRecoverSMS.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWD, this.resetPwd.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_RESET_PWDUID, this.resetPwdUID.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_checkCode, this.checkCode.bind(this));
@@ -563,6 +588,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getMyLang, this.getMyLang.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd, this.begininitpwd.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_begininitpwd_uid, this.begininitpwd_uid.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleAccessPolicy.APINAME_getSelfUser, this.getSelfUser.bind(this));
     }
 
     public async begininitpwd(param: StringParamVO): Promise<void> {
@@ -613,17 +639,26 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
-    public async getMyLang(): Promise<LangVO> {
-
+    public async getSelfUser(): Promise<UserVO> {
+        /**
+         * on doit pouvoir charger son propre user
+         */
         let user_id: number = this.getLoggedUserId();
-
         if (!user_id) {
             return null;
         }
 
-        // On a besoin d'une version à jour
-        let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user_id);
+        let user: UserVO = await StackContext.getInstance().runPromise({ IS_CLIENT: false }, async () => await ModuleDAO.getInstance().getVoById(UserVO.API_TYPE_ID, user_id)) as UserVO;
 
+        return user;
+    }
+
+    public async getMyLang(): Promise<LangVO> {
+
+        let user: UserVO = await this.getSelfUser();
+        if (!user) {
+            return null;
+        }
         return await ModuleDAO.getInstance().getVoById<LangVO>(LangVO.API_TYPE_ID, user.lang_id);
     }
 
@@ -633,7 +668,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         let challenge: string = TextHandler.getInstance().generateChallenge();
         user.recovery_challenge = challenge;
         console.debug("challenge:" + user.email + ':' + challenge + ':');
-        user.recovery_expiration = moment().utc(true).add(ModuleAccessPolicy.getInstance().getParamValue(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours').valueOf();
+        user.recovery_expiration = moment().utc(true).add(await ModuleParams.getInstance().getParamValueAsFloat(ModuleAccessPolicy.PARAM_NAME_RECOVERY_HOURS), 'hours');
         await ModuleDAO.getInstance().insertOrUpdateVO(user);
     }
 
@@ -685,12 +720,68 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return await AccessPolicyServerController.getInstance().registerPolicyDependency(dependency);
     }
 
+    /**
+     * @returns true si le compte est valide, false si il est expiré ou blocké
+     */
+    public async checkUserStatus(uid: number): Promise<boolean> {
+
+        try {
+
+            if (!uid) {
+                return true;
+            }
+
+            let res = await ModuleDAOServer.getInstance().query('select invalidated or blocked as invalidated from ' + VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID].full_name + ' where id=$1', [uid]);
+            let invalidated = (res && (res.length == 1) && (typeof res[0]['invalidated'] != 'undefined') && (res[0]['invalidated'] !== null)) ? res[0]['invalidated'] : false;
+            return !invalidated;
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return false;
+    }
+
+    /**
+     * Fonction qui détruit les sessions de l'utilisateur que l'on est en train de bloquer - exécutée sur le main process
+     * @param uid
+     */
+    public async onBlockOrInvalidateUserDeleteSessions(uid: number) {
+
+        ForkedTasksController.getInstance().register_task(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, this.onBlockOrInvalidateUserDeleteSessions.bind(this));
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleAccessPolicyServer.TASK_NAME_onBlockOrInvalidateUserDeleteSessions, uid)) {
+            return;
+        }
+
+        try {
+
+            let sessions: { [sessId: string]: IServerUserSession } = PushDataServerController.getInstance().getUserSessions(uid);
+            for (let i in sessions) {
+                let session: IServerUserSession = sessions[i];
+
+                if (!session) {
+                    continue;
+                }
+
+                try {
+                    session.destroy(() => {
+                        PushDataServerController.getInstance().unregisterSession(session);
+                    });
+                } catch (error) {
+                    ConsoleHandler.getInstance().error(error);
+                }
+                break;
+            }
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
+        }
+        return;
+    }
+
     public getLoggedUserId(): number {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             if (session && session.uid) {
                 return session.uid;
@@ -704,27 +795,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     public async getLoggedUserName(): Promise<string> {
 
-        try {
-
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
-
-            if (session && session.uid) {
-                return (await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, session.uid)).name;
-            }
-            return null;
-        } catch (error) {
-            ConsoleHandler.getInstance().error(error);
-            return null;
-        }
+        let user: UserVO = await this.getSelfUser();
+        return user ? user.name : null;
     }
 
     public isLogedAs(): boolean {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             if (session && !!session.impersonated_from) {
                 return true;
@@ -743,8 +822,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             let impersonated_from_session = (session && session.impersonated_from) ? session.impersonated_from : null;
 
@@ -765,8 +843,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             return (session && session.impersonated_from) ? session.impersonated_from as IServerUserSession : null;
         } catch (error) {
@@ -779,8 +856,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
 
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            return httpContext ? httpContext.get('SESSION') as IServerUserSession : null;
+            return StackContext.getInstance().get('SESSION') as IServerUserSession;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
             return null;
@@ -793,12 +869,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
             return true;
         }
 
-        let uid: number = httpContext.get('UID');
+        let uid: number = StackContext.getInstance().get('UID');
         if (!uid) {
             return role_ids.indexOf(AccessPolicyServerController.getInstance().role_anonymous.id) >= 0;
         }
@@ -862,13 +937,12 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async getMyRoles(): Promise<RoleVO[]> {
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
 
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
             return null;
         }
 
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         if (!uid) {
             return null;
@@ -886,12 +960,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @deprecated Why use this function, seems like a bad idea, just checkAccess directly there shall be no need for this one. Delete ASAP
      */
     private async isRole(param: StringParamVO): Promise<boolean> {
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (StackContext.getInstance().get('IS_CLIENT')) {
             return false;
         }
 
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         if (!uid) {
             return false;
@@ -912,12 +985,11 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async isAdmin(): Promise<boolean> {
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
             return false;
         }
 
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         if (!uid) {
             return false;
@@ -959,8 +1031,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         //     return true;
         // }
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
             // this.consoledebug("CHECKACCESS:" + policy_name + ":TRUE:IS_SERVER");
             return true;
         }
@@ -971,7 +1042,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return false;
         }
 
-        let uid: number = httpContext.get('UID');
+        let uid: number = StackContext.getInstance().get('UID');
         if (!uid) {
             // profil anonyme
             return AccessPolicyServerController.getInstance().checkAccessTo(
@@ -1017,6 +1088,15 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return PasswordRecovery.getInstance().beginRecovery(param.text);
     }
 
+    private async beginRecoverSMS(param: StringParamVO): Promise<boolean> {
+
+        if ((!ModuleAccessPolicy.getInstance().actif) || (!param.text)) {
+            return false;
+        }
+
+        return PasswordRecovery.getInstance().beginRecoverySMS(param.text);
+    }
+
     private async checkCode(params: ResetPwdParamVO): Promise<boolean> {
 
         if ((!ModuleAccessPolicy.getInstance().actif) || (!params)) {
@@ -1060,7 +1140,13 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
             return true;
         }
 
-        let user: UserVO = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, vo.id);
+        let user_id: number = this.getLoggedUserId();
+        let user: UserVO = null;
+        if (user_id == vo.id) {
+            user = await this.getSelfUser();
+        } else {
+            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, vo.id);
+        }
 
         if ((!user) || (user.password == vo.password)) {
             return true;
@@ -1225,8 +1311,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async loginAndRedirect(param: LoginParamVO): Promise<number> {
 
         try {
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             if (session && session.uid) {
                 return session.uid;
@@ -1244,14 +1329,29 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
+            if (user.blocked) {
+                return null;
+            }
+
+            if (user.invalidated) {
+
+                // Si le mot de passe est invalidé on refuse la connexion mais on envoie aussi un mail pour récupérer le mot de passe si on l'a pas déjà envoyé
+                if (user.recovery_expiration.isSameOrBefore(moment().utc(true))) {
+                    await PasswordRecovery.getInstance().beginRecovery(user.email);
+                }
+                return null;
+            }
+
             session.uid = user.id;
+
+            PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = moment().utc(true);
             user_log.impersonated = false;
-            user_log.referer = httpContext.get('REFERER');
+            user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
 
             // On await pas ici on se fiche du résultat
@@ -1271,8 +1371,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     private async impersonateLogin(param: LoginParamVO): Promise<number> {
 
         try {
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            let session = httpContext ? httpContext.get('SESSION') : null;
+            let session = StackContext.getInstance().get('SESSION');
 
             if ((!session) || (!session.uid)) {
                 return null;
@@ -1292,15 +1391,23 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
                 return null;
             }
 
+            if (user.blocked || user.invalidated) {
+                ConsoleHandler.getInstance().error("impersonate login:" + param.email + ":blocked or invalidated");
+                await PushDataServerController.getInstance().notifySimpleERROR(session.uid, 'Impossible de se connecter avec un compte bloqué ou invalidé', true);
+                return null;
+            }
+
             session.impersonated_from = Object.assign({}, session);
             session.uid = user.id;
+
+            PushDataServerController.getInstance().registerSession(session);
 
             // On stocke le log de connexion en base
             let user_log = new UserLogVO();
             user_log.user_id = user.id;
             user_log.log_time = moment().utc(true);
             user_log.impersonated = true;
-            user_log.referer = httpContext.get('REFERER');
+            user_log.referer = StackContext.getInstance().get('REFERER');
             user_log.log_type = UserLogVO.LOG_TYPE_LOGIN;
             user_log.comment = 'Impersonated from user_id [' + session.impersonated_from.uid + ']';
 
@@ -1339,8 +1446,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     }
 
     private async sendErrorMsg(msg_translatable_code: string) {
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         PushDataServerController.getInstance().notifySimpleERROR(uid, msg_translatable_code);
     }
@@ -1383,5 +1489,28 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         if ((!access_matrix[policy_id]) || (!access_matrix[policy_id][role_id])) {
             await ModuleAccessPolicy.getInstance().togglePolicy(policy_id, role_id);
         }
+    }
+
+    private async checkBlockingOrInvalidatingUser(user: UserVO) {
+        let old_user: UserVO = null;
+        if (!!user.id) {
+            old_user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user.id);
+        }
+
+        if (user.blocked && !old_user) {
+            // On a pas de sessions à supprimer en cas de création
+        } else if (user.blocked && !old_user.blocked) {
+            await this.onBlockOrInvalidateUserDeleteSessions(user.id);
+            return true;
+        }
+
+        if (user.invalidated && !old_user) {
+            // On a pas de sessions à supprimer en cas de création
+        } else if (user.invalidated && !old_user.invalidated) {
+            await this.onBlockOrInvalidateUserDeleteSessions(user.id);
+            return true;
+        }
+
+        return true;
     }
 }

@@ -15,8 +15,10 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
 
     private logo_url: string = null;
 
+    private can_recover_by_sms: boolean = false;
 
-    private mounted() {
+
+    private async mounted() {
         this.load_logo_url();
 
         for (let j in this.$route.query) {
@@ -26,6 +28,8 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
                     break;
             }
         }
+
+        this.can_recover_by_sms = await ModuleParams.getInstance().getParamValueAsBoolean(ModuleAccessPolicy.PARAM_NAME_CAN_RECOVER_PWD_BY_SMS);
     }
 
     private async load_logo_url() {
@@ -42,6 +46,17 @@ export default class AccessPolicyRecoverComponent extends VueComponentBase {
         if (await ModuleAccessPolicy.getInstance().beginRecover(this.email)) {
             this.snotify.success(this.label('recover.ok'));
             this.message = this.label('login.recover.answer');
+        } else {
+            this.snotify.error(this.label('recover.failed'));
+        }
+    }
+
+    private async recoversms() {
+        this.snotify.info(this.label('recover.start'));
+
+        if (await ModuleAccessPolicy.getInstance().beginRecoverSMS(this.email)) {
+            this.snotify.success(this.label('recover.oksms'));
+            this.message = this.label('login.recover.answersms');
         } else {
             this.snotify.error(this.label('recover.failed'));
         }

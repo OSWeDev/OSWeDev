@@ -618,6 +618,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
              */
             if (!!field.custom_translate_to_api) {
                 res[new_id] = field.custom_translate_to_api(e[field.field_id]);
+                /**
+                 * Compatibilité MSGPACK : il traduit les undefind en null
+                 */
+                if (typeof res[new_id] === 'undefined') {
+                    delete res[new_id];
+                }
                 continue;
             }
 
@@ -638,12 +644,24 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
-                    res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
+
+                    if ((e[field.field_id] === null) || (typeof e[field.field_id] === 'undefined')) {
+                        res[new_id] = e[field.field_id];
+                    } else {
+                        let field_as_moment: Moment = moment(e[field.field_id]).utc(true);
+                        res[new_id] = (field_as_moment && field_as_moment.isValid()) ? field_as_moment.unix() : null;
+                    }
                     break;
 
                 default:
                     res[new_id] = e[field.field_id];
+            }
+
+            /**
+             * Compatibilité MSGPACK : il traduit les undefind en null
+             */
+            if (typeof res[new_id] === 'undefined') {
+                delete res[new_id];
             }
         }
 
@@ -714,12 +732,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hour:
-                    res[field.field_id] = e[old_id] ? moment.duration(parseInt(e[old_id])) : null;
+                    res[field.field_id] = e[old_id] ? moment.duration(parseInt(e[old_id])) : e[old_id];
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
                     // Pourquoi ça marche avec un *1000 ici ????
-                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : null;
+                    res[field.field_id] = e[old_id] ? moment(parseInt(e[old_id]) * 1000).utc() : e[old_id];
                     break;
 
                 default:
