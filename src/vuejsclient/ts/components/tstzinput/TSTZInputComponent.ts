@@ -7,6 +7,7 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import TimeSegmentHandler from '../../../../shared/tools/TimeSegmentHandler';
 import VueComponentBase from '../VueComponentBase';
 import * as moment from 'moment';
+import VueAppController from '../../../VueAppController';
 
 @Component({
     template: require('./TSTZInputComponent.pug'),
@@ -39,7 +40,7 @@ export default class TSTZInputComponent extends VueComponentBase {
     private format_datepicker_day: string = 'dd/MM/yyyy';
     private format_time: string = 'HH:mm';
 
-    private language = "fr";
+    private language = VueAppController.getInstance().data_user_lang ? VueAppController.getInstance().data_user_lang.code_lang : null;
     private languages = lang;
 
     @Watch('value', { immediate: true })
