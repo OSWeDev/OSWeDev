@@ -3,7 +3,7 @@ import APIController from '../../../shared/modules/API/APIController';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import APIDefinition from '../../../shared/modules/API/vos/APIDefinition';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import StackContext from '../../../shared/tools/StackContext';
+import StackContext from '../../StackContext';
 import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
 

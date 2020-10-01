@@ -8,7 +8,7 @@ import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTran
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
-import StackContext from '../../../../shared/tools/StackContext';
+import StackContext from '../../../StackContext';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
 import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';

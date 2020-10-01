@@ -16,13 +16,14 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
 import SimpleVarDataValueRes from '../../../shared/modules/Var/simple_vars/SimpleVarDataValueRes';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ServerBase from '../../ServerBase';
+import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -33,8 +34,6 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarServerController from './VarServerController';
-import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
-import StackContext from '../../../shared/tools/StackContext';
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {

@@ -4,8 +4,7 @@ import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
-import StackContext from '../../../../shared/tools/StackContext';
-import ServerBase from '../../../ServerBase';
+import StackContext from '../../../StackContext';
 import ModuleDAOServer from '../../DAO/ModuleDAOServer';
 
 export default class PasswordReset {

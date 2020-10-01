@@ -1,17 +1,16 @@
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import FeedbackVO from '../../../../shared/modules/Feedback/vos/FeedbackVO';
+import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
+import SendInBlueMailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import ModuleTranslation from '../../../../shared/modules/Translation/ModuleTranslation';
 import TranslatableTextVO from '../../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../../shared/modules/Translation/vos/TranslationVO';
-import ServerBase from '../../../ServerBase';
-import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
-import FeedbackConfirmationMail_html_template from './FeedbackConfirmationMail_html_template.html';
-import ModuleParams from '../../../../shared/modules/Params/ModuleParams';
-import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
-import SendInBlueMailVO from '../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
+import StackContext from '../../../StackContext';
 import ModuleAccessPolicyServer from '../../AccessPolicy/ModuleAccessPolicyServer';
-import StackContext from '../../../../shared/tools/StackContext';
+import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
+import SendInBlueMailServerController from '../../SendInBlue/SendInBlueMailServerController';
+import FeedbackConfirmationMail_html_template from './FeedbackConfirmationMail_html_template.html';
 
 
 export default class FeedbackConfirmationMail {

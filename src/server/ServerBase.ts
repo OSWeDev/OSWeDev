@@ -50,7 +50,7 @@ import FileVO from '../shared/modules/File/vos/FileVO';
 import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import FileLoggerHandler from './FileLoggerHandler';
 import ThreadHandler from '../shared/tools/ThreadHandler';
-import StackContext from '../shared/tools/StackContext';
+import StackContext from './StackContext';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
