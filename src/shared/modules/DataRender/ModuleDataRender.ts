@@ -35,10 +35,12 @@ export default class ModuleDataRender extends Module {
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataRendererVO[]>(
+            null,
             ModuleDataRender.APINAME_GET_DATA_RENDERERS,
             [DataRendererVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataRendererVO>(
+            null,
             ModuleDataRender.APINAME_GET_DATA_RENDERER,
             [DataRendererVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
@@ -47,10 +49,12 @@ export default class ModuleDataRender extends Module {
             StringParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataRenderingLogVO[]>(
+            null,
             ModuleDataRender.APINAME_GET_DATA_RENDERING_LOGS,
             [DataRenderingLogVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, TimeSegment>(
+            null,
             ModuleDataRender.APINAME_getLatestAvailableSegment,
             [DataRendererVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,

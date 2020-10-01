@@ -13,6 +13,8 @@ import ExportLogVO from './vos/apis/ExportLogVO';
 import ExportHistoricVO from './vos/ExportHistoricVO';
 import FileVO from '../File/vos/FileVO';
 import ExportDataToMultiSheetsXLSXParamVO from './vos/apis/ExportDataToMultiSheetsXLSXParamVO';
+import ModuleDAO from '../DAO/ModuleDAO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleDataExport extends Module {
 
@@ -61,22 +63,26 @@ export default class ModuleDataExport extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, string>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToXLSXParamVO,
             [],
             null,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToXLSXParamVO, FileVO>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToXLSXParamVOFile,
             [FileVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, string>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVO,
             [],
             null,
             APIDefinition.API_RETURN_TYPE_FILE
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ExportDataToMultiSheetsXLSXParamVO, FileVO>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleDataExport.APINAME_ExportDataToMultiSheetsXLSXParamVOFile,
             [FileVO.API_TYPE_ID]
         ));

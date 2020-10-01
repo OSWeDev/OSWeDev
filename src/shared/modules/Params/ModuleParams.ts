@@ -1,8 +1,10 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import ModuleAPI from '../API/ModuleAPI';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
@@ -38,6 +40,7 @@ export default class ModuleParams extends Module {
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, string>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValue,
             [ParamVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
@@ -47,12 +50,14 @@ export default class ModuleParams extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue,
             [ParamVO.API_TYPE_ID],
             SetParamParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue_if_not_exists,
             [ParamVO.API_TYPE_ID],
             SetParamParamVO.translateCheckAccessParams

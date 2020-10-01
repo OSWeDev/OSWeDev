@@ -98,6 +98,7 @@ export default class ModuleAccessPolicy extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_CHECK_ACCESS,
             [AccessPolicyVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
@@ -107,16 +108,19 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_IS_ADMIN,
             [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, UserVO>(
+            null,
             ModuleAccessPolicy.APINAME_getSelfUser,
             [UserVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_IS_ROLE,
             [UserRoleVO.API_TYPE_ID, RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
@@ -126,6 +130,7 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<BooleanParamVO, { [policy_id: number]: { [role_id: number]: boolean } }>(
+            null,
             ModuleAccessPolicy.APINAME_GET_ACCESS_MATRIX,
             [AccessPolicyVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID, PolicyDependencyVO.API_TYPE_ID, RoleVO.API_TYPE_ID, RolePolicyVO.API_TYPE_ID],
             BooleanParamVO.translateCheckAccessParams,
@@ -135,104 +140,122 @@ export default class ModuleAccessPolicy extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, RoleVO[]>(
+            null,
             ModuleAccessPolicy.APINAME_GET_MY_ROLES,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID, UserRoleVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, number>(
+            null,
             ModuleAccessPolicy.APINAME_GET_LOGGED_USER_ID,
             [UserVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, string>(
+            null,
             ModuleAccessPolicy.APINAME_GET_LOGGED_USER_NAME,
             [UserVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, LangVO>(
+            null,
             ModuleAccessPolicy.APINAME_getMyLang,
             [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID]
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<AddRoleToUserParamVO, void>(
+            null,
             ModuleAccessPolicy.APINAME_ADD_ROLE_TO_USER,
             [RoleVO.API_TYPE_ID, UserVO.API_TYPE_ID],
             AddRoleToUserParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            null,
             ModuleAccessPolicy.APINAME_begininitpwdsms,
             [UserVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            null,
             ModuleAccessPolicy.APINAME_begininitpwd,
             [UserVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
+            null,
             ModuleAccessPolicy.APINAME_begininitpwd_uid,
             [UserVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER,
             [UserVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_BEGIN_RECOVER_SMS,
             [UserVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_RESET_PWD,
             [UserVO.API_TYPE_ID],
             ResetPwdParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_RESET_PWDUID,
             [UserVO.API_TYPE_ID],
             ResetPwdUIDParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdParamVO, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_checkCode,
             [UserVO.API_TYPE_ID],
             ResetPwdParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ResetPwdUIDParamVO, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_checkCodeUID,
             [UserVO.API_TYPE_ID],
             ResetPwdUIDParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ToggleAccessParamVO, boolean>(
+            null,
             ModuleAccessPolicy.APINAME_TOGGLE_ACCESS,
             [RolePolicyVO.API_TYPE_ID],
             ToggleAccessParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
+            null,
             ModuleAccessPolicy.APINAME_LOGIN_AND_REDIRECT,
             [UserVO.API_TYPE_ID],
             LoginParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LoginParamVO, number>(
+            null,
             ModuleAccessPolicy.APINAME_impersonateLogin,
             [UserVO.API_TYPE_ID],
             LoginParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, UserVO>(
+            null,
             ModuleAccessPolicy.APINAME_change_lang,
             [UserVO.API_TYPE_ID, LangVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams
