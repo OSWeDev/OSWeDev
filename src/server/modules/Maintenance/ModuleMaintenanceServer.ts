@@ -7,8 +7,7 @@ import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO'
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import StackContext from '../../../shared/tools/StackContext';
-import ServerBase from '../../ServerBase';
+import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
