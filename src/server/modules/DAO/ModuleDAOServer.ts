@@ -26,6 +26,7 @@ import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
+import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
@@ -136,6 +137,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if ((vo_type == AccessPolicyVO.API_TYPE_ID) ||
                 (vo_type == RolePolicyVO.API_TYPE_ID) ||
                 (vo_type == RoleVO.API_TYPE_ID) ||
+                (vo_type == FeedbackVO.API_TYPE_ID) ||
                 (vo_type == ParamVO.API_TYPE_ID) ||
                 (vo_type == MaintenanceVO.API_TYPE_ID) ||
                 (vo_type == PolicyDependencyVO.API_TYPE_ID) ||
