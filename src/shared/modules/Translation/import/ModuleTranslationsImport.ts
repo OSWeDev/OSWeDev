@@ -42,7 +42,7 @@ export default class ModuleTranslationsImport extends Module {
             new ModuleTableField('translated', ModuleTableField.FIELD_TYPE_string, 'translated', false)
         ];
 
-        let datatable = new ModuleTable(this, ImportTranslation.API_TYPE_ID, () => new ImportTranslation(), datatable_fields, null, "DCSNet");
+        let datatable = new ModuleTable(this, ImportTranslation.API_TYPE_ID, () => new ImportTranslation(), datatable_fields, null, "Import des traductions");
         ModuleDataImport.getInstance().registerImportableModuleTable(datatable);
         this.datatables.push(datatable);
     }
