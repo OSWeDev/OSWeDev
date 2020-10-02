@@ -98,6 +98,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
             fr: 'Paramètres des modules'
         }));
 
+        // On déclare un droit permettant de faire appel à la fonction query du module dao server
+        let query_access: AccessPolicyVO = new AccessPolicyVO();
+        query_access.group_id = group_overall.id;
+        query_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        query_access.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL + '.' + ModuleDAO.DAO_ACCESS_QUERY;
+        query_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(query_access, new DefaultTranslation({
+            fr: 'Utiliser la fonction QUERY'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
         // On déclare un droit global d'accès qui déclenche tous les autres
         let global_access: AccessPolicyVO = new AccessPolicyVO();
         global_access.group_id = group_overall.id;
@@ -624,7 +633,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async query(query: string = null, values: any = null): Promise<any> {
 
         // On vérifie qu'on peut faire des modifs de table modules
-        if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDAO.DAO_ACCESS_QUERY)) {
             return null;
         }
 

@@ -67,6 +67,8 @@ export default class ModuleDAO extends Module {
     // inherit DAO_ACCESS_TYPE_READ
     public static DAO_ACCESS_TYPE_DELETE: string = "DELETE";
 
+    public static DAO_ACCESS_QUERY: string = "QUERY";
+
     public static getInstance() {
         if (!ModuleDAO.instance) {
             ModuleDAO.instance = new ModuleDAO();
