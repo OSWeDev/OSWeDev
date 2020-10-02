@@ -33,7 +33,6 @@ import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import ModuleVO from '../../../shared/modules/ModuleVO';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
@@ -148,6 +147,9 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 (vo_type == RoleVO.API_TYPE_ID) ||
                 (vo_type == FeedbackVO.API_TYPE_ID) ||
                 (vo_type == ParamVO.API_TYPE_ID) ||
+                (vo_type == TranslationVO.API_TYPE_ID) ||
+                (vo_type == TranslatableTextVO.API_TYPE_ID) ||
+                (vo_type == LangVO.API_TYPE_ID) ||
                 (vo_type == MaintenanceVO.API_TYPE_ID) ||
                 (vo_type == PolicyDependencyVO.API_TYPE_ID) ||
                 (vo_type == AccessPolicyGroupVO.API_TYPE_ID) ||
