@@ -102,7 +102,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let query_access: AccessPolicyVO = new AccessPolicyVO();
         query_access.group_id = group_overall.id;
         query_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
-        query_access.translatable_name = ModuleDAO.POLICY_GROUP_OVERALL + '.' + ModuleDAO.DAO_ACCESS_QUERY;
+        query_access.translatable_name = ModuleDAO.DAO_ACCESS_QUERY;
         query_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(query_access, new DefaultTranslation({
             fr: 'Utiliser la fonction QUERY'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
