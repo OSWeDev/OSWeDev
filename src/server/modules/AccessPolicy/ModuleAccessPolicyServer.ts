@@ -987,7 +987,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
      * @deprecated Why use this function, seems like a bad idea, just checkAccess directly there shall be no need for this one. Delete ASAP
      */
     private async isRole(param: StringParamVO): Promise<boolean> {
-        if (StackContext.getInstance().get('IS_CLIENT')) {
+        if (!StackContext.getInstance().get('IS_CLIENT')) {
             return false;
         }
 
