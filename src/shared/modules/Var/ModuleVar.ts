@@ -62,18 +62,21 @@ export default class ModuleVar extends Module {
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ConfigureVarCacheParamVO, VarCacheConfVO>(
+            ModuleVar.POLICY_BO_VARCONF_ACCESS,
             ModuleVar.APINAME_configureVarCache,
             [VarCacheConfVO.API_TYPE_ID],
             ConfigureVarCacheParamVO.translateCheckAccessParams,
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
+            null,
             ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, VarDataValueResVO>(
+            null,
             ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam,
             (param: APISimpleVOParamVO) => ((param && param.vo) ? [param.vo._type] : null),
             APISimpleVOParamVO.translateCheckAccessParams

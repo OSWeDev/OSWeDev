@@ -28,6 +28,7 @@ export default class ModuleClient extends Module {
     }
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, InformationsVO>(
+            null,
             ModuleClient.APINAME_getInformationsClientUser,
             [InformationsVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
@@ -37,6 +38,7 @@ export default class ModuleClient extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, ClientVO[]>(
+            null,
             ModuleClient.APINAME_getClientsByUserId,
             [ClientVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,

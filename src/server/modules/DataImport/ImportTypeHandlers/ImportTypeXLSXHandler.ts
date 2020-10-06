@@ -430,7 +430,7 @@ export default class ImportTypeXLSXHandler {
                                 }
 
                                 if (rowData[dataImportColumn.vo_field_name] && rowData[dataImportColumn.vo_field_name] != '') {
-                                    rowData[dataImportColumn.vo_field_name] = parseFloat(rowData[dataImportColumn.vo_field_name]).toString();
+                                    rowData[dataImportColumn.vo_field_name] = parseFloat(rowData[dataImportColumn.vo_field_name].replace(" ", "")).toString();
                                 }
                                 break;
                             case DataImportColumnVO.TYPE_NUMBER_COMA_DECIMAL_CSV:
@@ -443,7 +443,7 @@ export default class ImportTypeXLSXHandler {
                                 }
 
                                 if (rowData[dataImportColumn.vo_field_name] && rowData[dataImportColumn.vo_field_name] != '') {
-                                    rowData[dataImportColumn.vo_field_name] = parseFloat(rowData[dataImportColumn.vo_field_name]).toString();
+                                    rowData[dataImportColumn.vo_field_name] = parseFloat(rowData[dataImportColumn.vo_field_name].replace(" ", "")).toString();
                                 }
                                 break;
                             case DataImportColumnVO.TYPE_STRING:

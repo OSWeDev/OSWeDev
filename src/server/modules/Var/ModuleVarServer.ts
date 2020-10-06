@@ -9,7 +9,7 @@ import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParam
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
-import DataSourceMatroidControllerBase from '../../../shared/modules/DataSource/DataSourceMatroidControllerBase';
+import DataSourceControllerBase from '../../../shared/modules/DataSource/DataSourceControllerBase';
 import DataSourcesController from '../../../shared/modules/DataSource/DataSourcesController';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
@@ -17,18 +17,18 @@ import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
-import VarDataValueRes from '../../../shared/modules/Var/simple_vars/VarDataValueRes';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
-import ServerBase from '../../ServerBase';
+import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -40,6 +40,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
 import VarServerController from './VarServerController';
+const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
 
@@ -198,7 +199,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
 
-            let to_check_interceptors_by_var_ids: { [var_id: number]: { [index: string]: IVarDataVOBase } } = {};
+            let to_check_interceptors_by_var_ids: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
             for (let ds_name in VarsController.getInstance().cached_var_id_by_datasource_by_api_type_id[vo._type]) {
 
                 // Pour chaque DS on doit demander les intercepteurs, sans filtre
@@ -206,8 +207,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 //  quand on a tout checké, on peut invalider en base les var_id qui sont effectivement en cache, les autres osef c'est côté client qu'il faut les invalider
 
                 // Pour l'instant on ne sait faire ça que sur des DS matroids
-                let ds: DataSourceMatroidControllerBase<any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name] as DataSourceMatroidControllerBase<any>;
-                let interceptors_by_var_ids: { [var_id: number]: { [index: string]: IVarDataVOBase } } = ds.get_param_intersectors_from_vo_update_by_var_id(vo);
+                let ds: DataSourceControllerBase<any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name] as DataSourceControllerBase<any>;
+                let interceptors_by_var_ids: { [var_id: number]: { [index: string]: VarDataBaseVO } } = ds.get_param_intersectors_from_vo_update_by_var_id(vo);
 
                 for (let interceptors_by_var_idi in interceptors_by_var_ids) {
                     let interceptors = interceptors_by_var_ids[interceptors_by_var_idi];
@@ -223,11 +224,11 @@ export default class ModuleVarServer extends ModuleServerBase {
                 }
             }
 
-            let checked_interceptors_by_var_ids: { [var_id: number]: { [index: string]: IVarDataVOBase } } = {};
+            let checked_interceptors_by_var_ids: { [var_id: number]: { [index: string]: VarDataBaseVO } } = {};
 
             while (ObjectHandler.getInstance().hasAtLeastOneAttribute(to_check_interceptors_by_var_ids)) {
                 let var_id: number = parseInt(ObjectHandler.getInstance().getFirstAttributeName(to_check_interceptors_by_var_ids));
-                let interceptors: { [index: string]: IVarDataVOBase } = to_check_interceptors_by_var_ids[var_id];
+                let interceptors: { [index: string]: VarDataBaseVO } = to_check_interceptors_by_var_ids[var_id];
                 let controller = VarsController.getInstance().getVarControllerById(var_id);
 
                 while (ObjectHandler.getInstance().hasAtLeastOneAttribute(interceptors)) {
@@ -235,7 +236,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                     let interceptor = interceptors[index];
 
                     // On récupère les deps parents, qu'on ajoute à check
-                    let deps_parents: IVarDataVOBase[] = controller.getParamDependents(interceptor);
+                    let deps_parents: VarDataBaseVO[] = controller.getParamDependents(interceptor);
 
                     for (let deps_parenti in deps_parents) {
                         let dep_parent = deps_parents[deps_parenti];
@@ -336,7 +337,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         return true;
     }
 
-    public async invalider_tout(moduletable_vardata: ModuleTable<IVarDataVOBase>) {
+    public async invalider_tout(moduletable_vardata: ModuleTable<VarDataBaseVO>) {
         if (moduletable_vardata.is_segmented) {
 
             let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
@@ -419,24 +420,24 @@ export default class ModuleVarServer extends ModuleServerBase {
         access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     }
 
-    private async getSimpleVarDataCachedValueFromParam(param: APISimpleVOParamVO): Promise<VarDataValueRes> {
+    private async getSimpleVarDataCachedValueFromParam(param: APISimpleVOParamVO): Promise<VarDataValueResVO> {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, param)) {
             return;
         }
 
         if ((!param) || (!param.vo)) {
-            return new VarDataValueRes();
+            return new VarDataValueResVO();
         }
 
         VarsdatasComputerBGThread.getInstance().disable();
         let disabled: boolean = true;
 
         try {
-            let vo: IVarDataVOBase = param ? param.vo as IVarDataVOBase : null;
-            let varsdata: IVarDataVOBase[] = await ModuleDAO.getInstance().getVosByExactMatroids<IVarDataVOBase, IVarDataVOBase>(vo._type, [vo as any], {});
+            let vo: VarDataBaseVO = param ? param.vo as VarDataBaseVO : null;
+            let varsdata: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(vo._type, [vo as any], {});
 
-            let vardata: IVarDataVOBase = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
+            let vardata: VarDataBaseVO = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
 
             if (!vardata) {
 
@@ -450,7 +451,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if ((!res) || (!res.id)) {
                     disabled = false;
                     VarsdatasComputerBGThread.getInstance().enable();
-                    return new VarDataValueRes();
+                    return new VarDataValueResVO();
                 }
 
                 vardata.id = parseInt(res.id.toString());
@@ -459,21 +460,17 @@ export default class ModuleVarServer extends ModuleServerBase {
                 if (!!vardata.value_ts) {
                     disabled = false;
                     VarsdatasComputerBGThread.getInstance().enable();
-                    return new VarDataValueRes(true, vardata.value);
+                    return new VarDataValueResVO().set_from_vardata(vardata);
                 }
             }
 
             // Si on a un vardata mais pas de value_ts,
             //  On stocke l'info pour le batch BG de recompilation qu'on veut renvoyer le res de ces vars datas à l'utilisateur et /ou aux
             //  utilisateurs qui sont à l'origine de la demande. Et c'est le bgthread qui gère de notifier du coup
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            if (!!httpContext) {
-
-                let uid: number = httpContext ? httpContext.get('UID') : null;
-                if (!!uid) {
-                    let var_index: string = vardata.index;
-                    VarServerController.getInstance().add_uid_waiting_for_indexes(uid, var_index);
-                }
+            let uid: number = StackContext.getInstance().get('UID');
+            if (!!uid) {
+                let var_index: string = vardata.index;
+                VarServerController.getInstance().add_uid_waiting_for_indexes(uid, var_index);
             }
 
             // // Si on a un vardata mais pas de value_ts, on attend qu'il se remplisse, au max 20 secondes
@@ -511,10 +508,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         // ConsoleHandler.getInstance().warn('TIMEOUT on var data request:' + JSON.stringify(vo) + ':');
-        return new VarDataValueRes();
+        return new VarDataValueResVO();
     }
 
-    private async getSimpleVarDataValueSumFilterByMatroids<T extends IVarDataVOBase>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<number> {
+    private async getSimpleVarDataValueSumFilterByMatroids<T extends VarDataBaseVO>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<number> {
 
         let matroids: IMatroid[] = param ? param.matroids as IMatroid[] : null;
         let api_type_id: string = param ? param.API_TYPE_ID : null;
@@ -537,7 +534,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         let res: number = 0;
         for (let matroid_i in matroids) {
-            let matroid: IVarDataVOBase = matroids[matroid_i] as IVarDataVOBase;
+            let matroid: VarDataBaseVO = matroids[matroid_i] as VarDataBaseVO;
 
             if (!matroid) {
                 ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
@@ -550,7 +547,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         return res;
     }
 
-    private async getSimpleVarDataValueSumFilterByMatroid<T extends IVarDataVOBase>(api_type_id: string, matroid: IVarDataVOBase, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
+    private async getSimpleVarDataValueSumFilterByMatroid<T extends VarDataBaseVO>(api_type_id: string, matroid: VarDataBaseVO, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
 
         if (!matroid) {
             return null;

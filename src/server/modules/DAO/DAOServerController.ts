@@ -1,6 +1,10 @@
+import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
+import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
+import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import { IHookFilterVos } from '../../../shared/modules/DAO/interface/IHookFilterVos';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import DAOTriggerHook from './triggers/DAOTriggerHook';
 
@@ -67,5 +71,42 @@ export default class DAOServerController {
             this.segmented_known_databases[database_name] = {};
         }
         this.segmented_known_databases[database_name][table_name] = segmented_value;
+    }
+
+    public get_dao_policy(translatable_name: string, group: AccessPolicyGroupVO, isAccessConfVoType: boolean, accessConfVoType_DEFAULT_BEHAVIOUR: number): AccessPolicyVO {
+        let vo_read: AccessPolicyVO = new AccessPolicyVO();
+        vo_read.group_id = group.id;
+        vo_read.default_behaviour = isAccessConfVoType ? accessConfVoType_DEFAULT_BEHAVIOUR : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        vo_read.translatable_name = translatable_name;
+        return vo_read;
+    }
+
+    public get_dao_dependency_default_granted(from: AccessPolicyVO, to: AccessPolicyVO): PolicyDependencyVO {
+        if ((!from) || (!to)) {
+            return null;
+        }
+
+        let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
+        dependency.src_pol_id = from.id;
+        dependency.depends_on_pol_id = to.id;
+        return dependency;
+    }
+
+    public get_inherited_right(DAO_ACCESS_TYPE: string, inherit_rights_from_vo_type: string): AccessPolicyVO {
+        return AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(DAO_ACCESS_TYPE, inherit_rights_from_vo_type));
+    }
+
+    public get_dao_dependency_default_denied(from: AccessPolicyVO, to: AccessPolicyVO): PolicyDependencyVO {
+        if ((!from) || (!to)) {
+            return null;
+        }
+
+        let dependency: PolicyDependencyVO = new PolicyDependencyVO();
+        dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
+        dependency.src_pol_id = from.id;
+        dependency.depends_on_pol_id = to.id;
+
+        return dependency;
     }
 }

@@ -115,7 +115,8 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public static addManyToManyFields<T extends IDistantVOBase>(
         crud: CRUD<T>,
-        moduleTable: ModuleTable<any>) {
+        moduleTable: ModuleTable<any>,
+        except_table_names: string[] = null) {
 
         //  On fait le tour des tables manyToMany pour identifier les fields qui font référence à cette table
         let manyToManyModuleTables: Array<ModuleTable<any>> = VOsTypesManager.getInstance().get_manyToManyModuleTables();
@@ -157,6 +158,10 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
+                if (except_table_names && (except_table_names.indexOf(field.module_table.name) >= 0)) {
+                    continue;
+                }
+
                 let otherField: ModuleTableField<any> = VOsTypesManager.getInstance().getManyToManyOtherField(field.module_table, field);
 
                 if ((!otherField) || (!otherField.manyToOne_target_moduletable)) {
@@ -193,7 +198,8 @@ export default class CRUD<T extends IDistantVOBase> {
 
     public static addOneToManyFields<T extends IDistantVOBase>(
         crud: CRUD<T>,
-        moduleTable: ModuleTable<any>) {
+        moduleTable: ModuleTable<any>,
+        except_table_names: string[] = null) {
 
         //  On fait le tour des autres tables existantes pour identifier les manyToOne qui font référence à cette table (hors manytomany)
         for (let i in VOsTypesManager.getInstance().moduleTables_by_voType) {
@@ -238,6 +244,9 @@ export default class CRUD<T extends IDistantVOBase> {
                     continue;
                 }
 
+                if (except_table_names && (except_table_names.indexOf(field.module_table.name) >= 0)) {
+                    continue;
+                }
 
                 if (field.module_table.default_label_field) {
                     crud.readDatatable.pushField(new OneToManyReferenceDatatableField<any>(

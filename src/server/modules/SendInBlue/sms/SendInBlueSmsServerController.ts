@@ -4,6 +4,7 @@ import SendInBlueSmsVO from '../../../../shared/modules/SendInBlue/vos/SendInBlu
 import SendInBlueServerController from '../SendInBlueServerController';
 import ConfigurationService from '../../../env/ConfigurationService';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import ModuleMailerServer from '../../Mailer/ModuleMailerServer';
 
 export default class SendInBlueSmsServerController {
 
@@ -23,8 +24,13 @@ export default class SendInBlueSmsServerController {
         // On check que l'env permet d'envoyer des mails
         if (ConfigurationService.getInstance().getNodeConfiguration().BLOCK_MAIL_DELIVERY) {
 
-            ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env:templateId: ' + content);
-            return null;
+            if (ModuleMailerServer.getInstance().check_mail_whitelist(recipient.tel, [], [])) {
+                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env mais adresses whitelistées:' + recipient.tel);
+
+            } else {
+                ConsoleHandler.getInstance().warn('Envoi de mails interdit sur cet env: ' + recipient.tel + ':' + content);
+                return;
+            }
         }
 
         if (!recipient || !SendInBlueSmsFormatVO.formate(recipient.tel, recipient.code_pays)) {

@@ -142,6 +142,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
     public registerApis() {
         let self = this;
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDV[]>(
+            null,
             self.APINAME_GET_RDVS_OF_PROGRAM_SEGMENT,
             () => [self.rdv_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
@@ -151,6 +152,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVCR[]>(
+            null,
             self.APINAME_GET_CRS_OF_PROGRAM_SEGMENT,
             () => [self.rdv_type_id, self.rdv_cr_type_id],
             ProgramSegmentParamVO.translateCheckAccessParams,
@@ -161,6 +163,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
 
         if (!!this.rdv_prep_type_id) {
             ModuleAPI.getInstance().registerApi(new GetAPIDefinition<ProgramSegmentParamVO, IPlanRDVPrep[]>(
+                null,
                 self.APINAME_GET_PREPS_OF_PROGRAM_SEGMENT,
                 () => [self.rdv_type_id, self.rdv_prep_type_id],
                 ProgramSegmentParamVO.translateCheckAccessParams,

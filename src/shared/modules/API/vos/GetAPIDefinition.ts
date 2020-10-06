@@ -12,6 +12,7 @@ export default class GetAPIDefinition<T, U> extends APIDefinition<T, U> {
      * @param SERVER_HANDLER NE REMPLIR QUE SI ON REGISTER COTE SERVEUR.
      */
     public constructor(
+        public access_policy_name: string,
         public api_name: string,
         public API_TYPES_IDS_involved: (string[]) | ((value: T) => string[]),
 
@@ -21,6 +22,6 @@ export default class GetAPIDefinition<T, U> extends APIDefinition<T, U> {
         public PARAM_TRANSLATE_TO_URL: (value: T) => Promise<string> = null,
         public PARAM_TRANSLATE_FROM_REQ: (req: any) => Promise<T> = null,
         public api_return_type: number = 0) {
-        super(APIDefinition.API_TYPE_GET, api_name, API_TYPES_IDS_involved, PARAM_TRANSLATOR, PARAM_TRANSLATE_TO_URL, PARAM_GET_URL, PARAM_TRANSLATE_FROM_REQ, api_return_type);
+        super(access_policy_name, APIDefinition.API_TYPE_GET, api_name, API_TYPES_IDS_involved, PARAM_TRANSLATOR, PARAM_TRANSLATE_TO_URL, PARAM_GET_URL, PARAM_TRANSLATE_FROM_REQ, api_return_type);
     }
 }

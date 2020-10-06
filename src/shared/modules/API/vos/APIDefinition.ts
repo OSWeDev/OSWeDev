@@ -14,13 +14,15 @@ export default abstract class APIDefinition<T, U> {
     // public is_autonomous_res_handler: boolean = false;
 
     /**
-     *
+     * @param access_policy_name Par défaut utiliser null pour indiquer pas de vérification, cas typique des apis de récupération des vos dont les droits 
+     *  sont gérés dans le dao directement
      * @param api_name UID de l'api attention à l'unicité intermodules
      * @param API_TYPES_IDS_involved Le tableau des API_TYPE_IDs concernés par l'API
      * @param PARAM_TRANSLATOR La fonction qui passe d'une liste de params à un param de type T unique (si besoin)
      * @param SERVER_HANDLER NE REMPLIR QUE SI ON REGISTER COTE SERVEUR.
      */
     public constructor(
+        public access_policy_name: string,
         public api_type: number,
         public api_name: string,
         public API_TYPES_IDS_involved: (string[]) | ((value: T) => string[]),

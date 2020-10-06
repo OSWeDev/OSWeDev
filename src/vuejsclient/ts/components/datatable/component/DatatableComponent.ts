@@ -144,7 +144,7 @@ export default class DatatableComponent extends VueComponentBase {
 
     private handle_filters_preload() {
 
-        // this.custom_filters_values = {};
+        this.custom_filters_values = {};
         this.preload_custom_filters = [];
 
         // En fait, on parcourt le type et pour chaque champ, si il existe en param un 'FILTER__' + field_id
@@ -642,10 +642,10 @@ export default class DatatableComponent extends VueComponentBase {
         AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.get_export_params_for_xlsx);
     }
 
-    @Watch('embed_filter', { deep: true })
+    @Watch('embed_filter', { immediate: true, deep: true })
     private onFilterChange() {
         if (!!this.embed_filter) {
-            this.update_datatable_data();
+            this.debounced_update_datatable_data();
         }
     }
 

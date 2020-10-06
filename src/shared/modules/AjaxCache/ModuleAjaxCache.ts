@@ -73,6 +73,7 @@ export default class ModuleAjaxCache extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<LightWeightSendableRequestVO[], LightWeightSendableRequestVO>(
+            null,
             ModuleAjaxCache.APINAME_REQUESTS_WRAPPER,
             []
         ));

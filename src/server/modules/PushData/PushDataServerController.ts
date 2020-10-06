@@ -14,6 +14,7 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
 import APIController from '../../../shared/modules/API/APIController';
+import IServerUserSession from '../../IServerUserSession';
 
 export default class PushDataServerController {
 
@@ -45,6 +46,7 @@ export default class PushDataServerController {
      * Global application cache - Handled by Main process -----
      */
     private registeredSockets: { [userId: number]: { [sessId: string]: SocketWrapper[] } } = {};
+    private registeredSessions: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
     /**
      * ----- Global application cache - Handled by Main process
      */
@@ -67,26 +69,75 @@ export default class PushDataServerController {
 
     /**
      * WARN : Only on main thread (express).
-     * @param userId
-     * @param sessId
+     * @param session
      * @param socket
      */
-    public registerSocket(userId: number, sessId: string, socket: socketIO.Socket) {
+    public registerSocket(session: IServerUserSession, socket: socketIO.Socket) {
 
         ForkedTasksController.getInstance().assert_is_main_process();
 
         // No user or session, don't save this socket
-        if ((!userId) || (!sessId)) {
+        if ((!session) || (!session.id) || (!session.uid)) {
             return;
         }
 
-        if (!this.registeredSockets[userId]) {
-            this.registeredSockets[userId] = {};
+        if (!this.registeredSockets[session.uid]) {
+            this.registeredSockets[session.uid] = {};
         }
-        if (!this.registeredSockets[userId][sessId]) {
-            this.registeredSockets[userId][sessId] = [];
+        if (!this.registeredSockets[session.uid][session.id]) {
+            this.registeredSockets[session.uid][session.id] = [];
         }
-        this.registeredSockets[userId][sessId].push(new SocketWrapper(userId, sessId, socket));
+        this.registeredSockets[session.uid][session.id].push(new SocketWrapper(session.uid, session.id, socket));
+
+        if (!this.registeredSessions[session.uid]) {
+            this.registeredSessions[session.uid] = {};
+        }
+        if (!this.registeredSessions[session.uid][session.id]) {
+            this.registeredSessions[session.uid][session.id] = session;
+        }
+    }
+
+    /**
+     * WARN : Only on main thread (express).
+     * @param session
+     */
+    public registerSession(session: IServerUserSession) {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
+
+        // No user or session, don't save this socket
+        if ((!session) || (!session.id) || (!session.uid)) {
+            return;
+        }
+
+        if (!this.registeredSessions[session.uid]) {
+            this.registeredSessions[session.uid] = {};
+        }
+        if (!this.registeredSessions[session.uid][session.id]) {
+            this.registeredSessions[session.uid][session.id] = session;
+        }
+    }
+
+    /**
+     * WARN : Only on main thread (express).
+     * @param session
+     */
+    public unregisterSession(session: IServerUserSession) {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
+
+        // No user or session, don't save this socket
+        if ((!session) || (!session.id) || (!session.uid)) {
+            return;
+        }
+
+        if (!this.registeredSessions[session.uid]) {
+            return;
+        }
+        if (!this.registeredSessions[session.uid][session.id]) {
+            return;
+        }
+        delete this.registeredSessions[session.uid][session.id];
     }
 
     /**
@@ -118,6 +169,17 @@ export default class PushDataServerController {
 
         this.registeredSockets[userId] = newUserSockets;
         return res;
+    }
+
+    /**
+     * WARN : Only on main thread (express).
+     * @param userId
+     */
+    public getUserSessions(userId: number): { [sessId: string]: IServerUserSession } {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
+
+        return this.registeredSessions[userId];
     }
 
     /**

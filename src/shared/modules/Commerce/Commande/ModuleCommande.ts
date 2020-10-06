@@ -42,6 +42,7 @@ export default class ModuleCommande extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, CommandeVO[]>(
+            null,
             ModuleCommande.APINAME_getCommandesUser,
             [CommandeVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
@@ -51,6 +52,7 @@ export default class ModuleCommande extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, LigneCommandeVO[]>(
+            null,
             ModuleCommande.APINAME_getLignesCommandeByCommandeId,
             [LigneCommandeVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
@@ -60,12 +62,14 @@ export default class ModuleCommande extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ProduitsParamLignesParamVO, CommandeVO>(
+            null,
             ModuleCommande.APINAME_ajouterAuPanier,
             [CommandeVO.API_TYPE_ID],
             ProduitsParamLignesParamVO.translateCheckAccessParams,
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberAndStringParamVO, ParamLigneCommandeVO>(
+            null,
             ModuleCommande.APINAME_getParamLigneCommandeById,
             [],
             NumberAndStringParamVO.translateCheckAccessParams,
@@ -75,6 +79,7 @@ export default class ModuleCommande extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<null, CommandeVO>(
+            null,
             ModuleCommande.APINAME_creationPanier,
             [CommandeVO.API_TYPE_ID],
         ));

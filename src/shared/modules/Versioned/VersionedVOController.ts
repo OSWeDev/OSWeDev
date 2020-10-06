@@ -104,8 +104,14 @@ export default class VersionedVOController implements IVOController {
                 }
 
                 // Cas spécifique du lien parent_id, dans le vo trashed_versioned, qui doit pointer sur trashed du coup et pas sur ref
+                // et le parent_id du trashed qui pointe sur rien. D'ailleurs dans le trashed et dans le versioned en fait on ne veut pas garder les liens puisque sinon la version peut disparaitre.
+                // on doit garder les versions coute que coute et décider au moment de la restauration si oui ou non on peut restaurer (si j'ai un id qui existe plus, soit il existe en trashed de l'autre
+                //  type et je propose de restaurer soit il existe pas et pas mandatory donc je mets null soit il existe pas et mandatory et je refuse la restauration (ou on propose de remplacer la liaison))
                 if ((vofield.field_id == 'parent_id') && (database == VersionedVOController.VERSIONED_TRASHED_DATABASE)) {
                     importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(TRASHED_DATABASE);
+                } else if ((vofield.field_id == 'parent_id') && (database == VersionedVOController.VERSIONED_DATABASE)) {
+                    importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(moduleTable);
+                } else if ((database == VersionedVOController.VERSIONED_DATABASE) || (database == VersionedVOController.VERSIONED_TRASHED_DATABASE) || (database == VersionedVOController.TRASHED_DATABASE)) {
                 } else {
                     importTable.getFieldFromId(vofield.field_id).addManyToOneRelation(vofield.manyToOne_target_moduletable);
                 }

@@ -35,6 +35,7 @@ export default class ModuleRequest extends Module {
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SendRequestParamVO, any>(
+            null,
             ModuleRequest.APINAME_sendRequestFromApp,
             [],
             SendRequestParamVO.translateCheckAccessParams

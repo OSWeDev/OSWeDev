@@ -6,6 +6,7 @@ import FileVO from './vos/FileVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import ModuleAPI from '../API/ModuleAPI';
 import NumberParamVO from '../API/vos/apis/NumberParamVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleFile extends Module {
 
@@ -53,6 +54,7 @@ export default class ModuleFile extends Module {
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleFile.APINAME_TEST_FILE_EXISTENZ,
             [FileVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,

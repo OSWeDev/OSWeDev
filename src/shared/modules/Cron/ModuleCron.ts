@@ -34,10 +34,12 @@ export default class ModuleCron extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
+            ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_executeWorkersManually,
             [CronWorkerPlanification.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleCron.POLICY_BO_ACCESS,
             ModuleCron.APINAME_executeWorkerManually,
             [CronWorkerPlanification.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams

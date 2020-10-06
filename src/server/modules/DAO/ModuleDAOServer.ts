@@ -26,12 +26,14 @@ import IRange from '../../../shared/modules/DataRender/interfaces/IRange';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import NumSegment from '../../../shared/modules/DataRender/vos/NumSegment';
 import TSRange from '../../../shared/modules/DataRender/vos/TSRange';
+import FeedbackVO from '../../../shared/modules/Feedback/vos/FeedbackVO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import MaintenanceVO from '../../../shared/modules/Maintenance/vos/MaintenanceVO';
 import IMatroid from '../../../shared/modules/Matroid/interfaces/IMatroid';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import ModuleTableField from '../../../shared/modules/ModuleTableField';
-import ModuleVO from '../../../shared/modules/ModuleVO';
+import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import ModuleTranslation from '../../../shared/modules/Translation/ModuleTranslation';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
@@ -47,7 +49,7 @@ import DateHandler from '../../../shared/tools/DateHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import ConfigurationService from '../../env/ConfigurationService';
 import ServerBase from '../../ServerBase';
-import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
+import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
@@ -112,6 +114,15 @@ export default class ModuleDAOServer extends ModuleServerBase {
             fr: 'Paramètres des modules'
         }));
 
+        // On déclare un droit permettant de faire appel à la fonction query du module dao server
+        let query_access: AccessPolicyVO = new AccessPolicyVO();
+        query_access.group_id = group_overall.id;
+        query_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
+        query_access.translatable_name = ModuleDAO.DAO_ACCESS_QUERY;
+        query_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(query_access, new DefaultTranslation({
+            fr: 'Utiliser la fonction QUERY'
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+
         // On déclare un droit global d'accès qui déclenche tous les autres
         let global_access: AccessPolicyVO = new AccessPolicyVO();
         global_access.group_id = group_overall.id;
@@ -151,116 +162,110 @@ export default class ModuleDAOServer extends ModuleServerBase {
             if ((vo_type == AccessPolicyVO.API_TYPE_ID) ||
                 (vo_type == RolePolicyVO.API_TYPE_ID) ||
                 (vo_type == RoleVO.API_TYPE_ID) ||
+                (vo_type == FeedbackVO.API_TYPE_ID) ||
+                (vo_type == ParamVO.API_TYPE_ID) ||
+                (vo_type == TranslationVO.API_TYPE_ID) ||
+                (vo_type == TranslatableTextVO.API_TYPE_ID) ||
+                (vo_type == LangVO.API_TYPE_ID) ||
+                (vo_type == MaintenanceVO.API_TYPE_ID) ||
                 (vo_type == PolicyDependencyVO.API_TYPE_ID) ||
                 (vo_type == AccessPolicyGroupVO.API_TYPE_ID) ||
                 (vo_type == UserRoleVO.API_TYPE_ID)) {
                 isAccessConfVoType = true;
             }
 
-            let does_inherit_rights_from_vo_type: boolean = (!!moduleTable.inherit_rights_from_vo_type) ? true : false;
-
             let group = moduleTable.isModuleParamTable ? group_modules_conf : group_datas;
 
             // On déclare les 4 policies et leurs dépendances
-            let vo_list: AccessPolicyVO = new AccessPolicyVO();
-            vo_list.group_id = group.id;
-            vo_list.default_behaviour = does_inherit_rights_from_vo_type ? (isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
-            vo_list.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, vo_type);
+
+            /**
+             * LIST
+             */
+            let vo_list: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, vo_type),
+                group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
             vo_list = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_list,
                 (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Lister les données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
-            let global_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-            global_access_dependency.src_pol_id = vo_list.id;
-            global_access_dependency.depends_on_pol_id = global_access.id;
-            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
-            if (does_inherit_rights_from_vo_type) {
-                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_list.id;
-                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, moduleTable.inherit_rights_from_vo_type)).id;
-                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
-            }
 
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(vo_list, global_access));
 
-            let vo_read: AccessPolicyVO = new AccessPolicyVO();
-            vo_read.group_id = group.id;
-            vo_read.default_behaviour = does_inherit_rights_from_vo_type ? (isAccessConfVoType ? AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
-            vo_read.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, vo_type);
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(
+                    vo_list,
+                    DAOServerController.getInstance().get_inherited_right(
+                        ModuleDAO.DAO_ACCESS_TYPE_LIST_LABELS, moduleTable.inherit_rights_from_vo_type)));
+
+            /**
+             * READ
+             */
+            let vo_read: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, vo_type),
+                group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE);
             vo_read = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_read,
                 (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Consulter les données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
-            let dependency: PolicyDependencyVO = new PolicyDependencyVO();
-            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-            dependency.src_pol_id = vo_read.id;
-            dependency.depends_on_pol_id = vo_list.id;
-            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
-            global_access_dependency = new PolicyDependencyVO();
-            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-            global_access_dependency.src_pol_id = vo_read.id;
-            global_access_dependency.depends_on_pol_id = global_access.id;
-            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
-            if (does_inherit_rights_from_vo_type) {
-                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_read.id;
-                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, moduleTable.inherit_rights_from_vo_type)).id;
-                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
-            }
 
-            let vo_insert_or_update: AccessPolicyVO = new AccessPolicyVO();
-            vo_insert_or_update.group_id = group.id;
-            vo_insert_or_update.default_behaviour = does_inherit_rights_from_vo_type ? (AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
-            vo_insert_or_update.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type);
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_denied(vo_read, vo_list));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(vo_read, global_access));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(
+                    vo_read,
+                    DAOServerController.getInstance().get_inherited_right(
+                        ModuleDAO.DAO_ACCESS_TYPE_READ, moduleTable.inherit_rights_from_vo_type)));
+
+            /**
+             * INSERT OR UPDATE
+             */
+            let vo_insert_or_update: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, vo_type),
+                group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
             vo_insert_or_update = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_insert_or_update,
                 (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Ajouter ou modifier des données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
-            dependency = new PolicyDependencyVO();
-            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-            dependency.src_pol_id = vo_insert_or_update.id;
-            dependency.depends_on_pol_id = vo_read.id;
-            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
-            global_access_dependency = new PolicyDependencyVO();
-            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-            global_access_dependency.src_pol_id = vo_insert_or_update.id;
-            global_access_dependency.depends_on_pol_id = global_access.id;
-            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
-            if (does_inherit_rights_from_vo_type) {
-                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_insert_or_update.id;
-                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, moduleTable.inherit_rights_from_vo_type)).id;
-                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
-            }
 
-            let vo_delete: AccessPolicyVO = new AccessPolicyVO();
-            vo_delete.group_id = group.id;
-            vo_delete.default_behaviour = does_inherit_rights_from_vo_type ? (AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN) : AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED_TO_ANYONE;
-            vo_delete.translatable_name = ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, vo_type);
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_denied(vo_insert_or_update, vo_read));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(vo_insert_or_update, global_access));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(
+                    vo_insert_or_update,
+                    DAOServerController.getInstance().get_inherited_right(
+                        ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, moduleTable.inherit_rights_from_vo_type)));
+
+            /**
+             * DELETE
+             */
+            let vo_delete: AccessPolicyVO = DAOServerController.getInstance().get_dao_policy(
+                ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, vo_type),
+                group, isAccessConfVoType, AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN);
             vo_delete = await ModuleAccessPolicyServer.getInstance().registerPolicy(
                 vo_delete,
                 (vo_translation && (vo_translation != "")) ? new DefaultTranslation({ fr: 'Supprimer des données de type "' + vo_translation + '"' }) : null,
                 await ModulesManagerServer.getInstance().getModuleVOByName(moduleTable.module ? moduleTable.module.name : null));
-            dependency = new PolicyDependencyVO();
-            dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
-            dependency.src_pol_id = vo_delete.id;
-            dependency.depends_on_pol_id = vo_read.id;
-            dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(dependency);
-            global_access_dependency = new PolicyDependencyVO();
-            global_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-            global_access_dependency.src_pol_id = vo_delete.id;
-            global_access_dependency.depends_on_pol_id = global_access.id;
-            global_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(global_access_dependency);
-            if (does_inherit_rights_from_vo_type) {
-                let inherit_rights_from_vo_type_access_dependency: PolicyDependencyVO = new PolicyDependencyVO();
-                inherit_rights_from_vo_type_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED;
-                inherit_rights_from_vo_type_access_dependency.src_pol_id = vo_delete.id;
-                inherit_rights_from_vo_type_access_dependency.depends_on_pol_id = AccessPolicyServerController.getInstance().get_registered_policy(ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_DELETE, moduleTable.inherit_rights_from_vo_type)).id;
-                inherit_rights_from_vo_type_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(inherit_rights_from_vo_type_access_dependency);
-            }
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_denied(vo_delete, vo_read));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(vo_delete, global_access));
+
+            await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(
+                DAOServerController.getInstance().get_dao_dependency_default_granted(
+                    vo_delete,
+                    DAOServerController.getInstance().get_inherited_right(
+                        ModuleDAO.DAO_ACCESS_TYPE_DELETE, moduleTable.inherit_rights_from_vo_type)));
         }
     }
 
@@ -746,7 +751,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async query(query: string = null, values: any = null): Promise<any> {
 
         // On vérifie qu'on peut faire des modifs de table modules
-        if (!await this.checkAccess(VOsTypesManager.getInstance().moduleTables_by_voType[ModuleVO.API_TYPE_ID], ModuleDAO.DAO_ACCESS_TYPE_DELETE)) {
+        if (!await ModuleAccessPolicy.getInstance().checkAccess(ModuleDAO.DAO_ACCESS_QUERY)) {
             return null;
         }
 
@@ -775,7 +780,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async selectOneUserForRecovery(login: string): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
-        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1)", [login]) as UserVO;
+        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) and blocked = false", [login]) as UserVO;
         datatable.forceNumeric(vo);
         return vo;
     }
@@ -786,7 +791,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public async selectOneUserForRecoveryUID(uid: number): Promise<UserVO> {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
-        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1", [uid]) as UserVO;
+        let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1 and blocked = false", [uid]) as UserVO;
         datatable.forceNumeric(vo);
         return vo;
     }
@@ -1284,14 +1289,13 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         let hook = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+            if (!StackContext.getInstance().get('IS_CLIENT')) {
                 // Server
                 return vos;
             }
 
-            let uid: number = httpContext ? httpContext.get('UID') : null;
-            let user_data = httpContext ? await ServerBase.getInstance().getUserData(uid) : null;
+            let uid: number = StackContext.getInstance().get('UID');
+            let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
             vos = await hook(datatable, vos, uid, user_data) as T[];
         }
 
@@ -1331,15 +1335,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // Suivant le type de contenu et le type d'accès, on peut avoir un hook enregistré sur le ModuleDAO pour filtrer les vos
         let hook = DAOServerController.getInstance().access_hooks[datatable.vo_type] && DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] ? DAOServerController.getInstance().access_hooks[datatable.vo_type][access_type] : null;
         if (hook) {
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
 
-            if ((!httpContext) || (!httpContext.get('IS_CLIENT'))) {
+            if (!StackContext.getInstance().get('IS_CLIENT')) {
                 // Server
                 return vo;
             }
 
-            let uid: number = httpContext ? httpContext.get('UID') : null;
-            let user_data = httpContext ? await ServerBase.getInstance().getUserData(uid) : null;
+            let uid: number = StackContext.getInstance().get('UID');
+            let user_data = uid ? await ServerBase.getInstance().getUserData(uid) : null;
             let filtered: T[] = await hook(datatable, (((typeof vo != 'undefined') && (vo != null)) ? [vo] : null), uid, user_data) as T[];
 
             if ((!filtered) || (!filtered.length)) {
@@ -1661,20 +1664,45 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         let request: string = "SELECT t.* FROM " + moduleTable.full_name + " t WHERE ";
         let first: boolean = true;
+        let request_params = [];
         if (apiDAOParamsVO.field_name1 && ((!!apiDAOParamsVO.ids1) && (apiDAOParamsVO.ids1.length > 0))) {
-            request += moduleTable.getFieldFromId(apiDAOParamsVO.field_name1).field_id + " in (" + apiDAOParamsVO.ids1 + ")";
+            request += moduleTable.getFieldFromId(apiDAOParamsVO.field_name1).field_id + " in (";
+            let first_param: boolean = true;
+            for (let i in apiDAOParamsVO.ids1) {
+                let id1 = apiDAOParamsVO.ids1[i];
+                request_params.push(id1);
+                request += (first_param ? '' : ',') + "$" + request_params.length;
+                first_param = false;
+            }
+            request += ")";
             first = false;
         }
         if (apiDAOParamsVO.field_name2 && ((!!apiDAOParamsVO.values2) && (apiDAOParamsVO.values2.length > 0))) {
-            request += ((!first) ? " AND " : "") + moduleTable.getFieldFromId(apiDAOParamsVO.field_name2).field_id + " in ('" + apiDAOParamsVO.values2.join("','") + "')";
+            request += ((!first) ? " AND " : "") + moduleTable.getFieldFromId(apiDAOParamsVO.field_name2).field_id + " in (";
+            let first_param: boolean = true;
+            for (let i in apiDAOParamsVO.values2) {
+                let value2 = apiDAOParamsVO.values2[i];
+                request_params.push(value2);
+                request += (first_param ? '' : ',') + "$" + request_params.length;
+                first_param = false;
+            }
+            request += ")";
             first = false;
         }
         if (apiDAOParamsVO.field_name3 && ((!!apiDAOParamsVO.values3) && (apiDAOParamsVO.values3.length > 0))) {
-            request += ((!first) ? " AND " : "") + moduleTable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in ('" + apiDAOParamsVO.values3.join("','") + "')";
+            request += ((!first) ? " AND " : "") + moduleTable.getFieldFromId(apiDAOParamsVO.field_name3).field_id + " in (";
+            let first_param: boolean = true;
+            for (let i in apiDAOParamsVO.values3) {
+                let value3 = apiDAOParamsVO.values3[i];
+                request_params.push(value3);
+                request += (first_param ? '' : ',') + "$" + request_params.length;
+                first_param = false;
+            }
+            request += ")";
             first = false;
         }
 
-        let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";") as T[]);
+        let vos: T[] = moduleTable.forceNumerics(await ModuleServiceBase.getInstance().db.query(request + ";", request_params) as T[]);
 
         // On filtre suivant les droits d'accès
         return await this.filterVOsAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vos);

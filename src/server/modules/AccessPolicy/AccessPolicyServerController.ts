@@ -185,6 +185,9 @@ export default class AccessPolicyServerController {
     }
 
     public get_registered_policy(policy_name: string): AccessPolicyVO {
+        if (!policy_name) {
+            return null;
+        }
         return this.registered_policies[policy_name ? policy_name.toLowerCase() : policy_name];
     }
 
@@ -840,6 +843,7 @@ export default class AccessPolicyServerController {
          *      - Cas 3 : Sinon : Je peux tester les dépendances de droit sur ce droit
          *          - Si ces dépendances existent, et que l'un au moins est en "par défaut en Access granted",
          *              je peux retester sur les dépendances (et donc si checkAccess de tous les droits, alors return true)
+         *              il faut que toutes les deps en default denied soient ok et au moins une en default granted
          *          - Sinon, je n'ai pas accès à ce droit.
          */
 
@@ -911,22 +915,16 @@ export default class AccessPolicyServerController {
             // Cas 3
             if (policies_dependencies && policies_dependencies[target_policy.id] && policies_dependencies[target_policy.id].length) {
 
-                let accessGranted: boolean = false;
                 for (let j in policies_dependencies[target_policy.id]) {
                     let dependency: PolicyDependencyVO = policies_dependencies[target_policy.id][j];
 
-                    if (dependency.default_behaviour == PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED) {
-                        accessGranted = true;
+                    if (dependency.default_behaviour != PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_GRANTED) {
+                        continue;
                     }
 
-                    if (!this.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies)) {
-                        accessGranted = false;
-                        break;
+                    if (this.checkAccessTo(policies[dependency.depends_on_pol_id], user_roles, all_roles, role_policies, policies, policies_dependencies)) {
+                        return true;
                     }
-                }
-
-                if (accessGranted) {
-                    return true;
                 }
             }
         }

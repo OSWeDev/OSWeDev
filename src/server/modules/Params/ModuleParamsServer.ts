@@ -9,12 +9,12 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import SetParamParamVO from '../../../shared/modules/Params/vos/apis/SetParamParamVO';
 import ParamVO from '../../../shared/modules/Params/vos/ParamVO';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
-import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 
 export default class ModuleParamsServer extends ModuleServerBase {
 
@@ -75,7 +75,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
             param = new ParamVO();
             param.name = set_param.param_name;
         }
-        param.value = set_param.param_value;
+        param.value = set_param.param_value as string;
         param.last_up_date = moment().utc(true);
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }
@@ -89,7 +89,7 @@ export default class ModuleParamsServer extends ModuleServerBase {
 
         param = new ParamVO();
         param.name = set_param.param_name;
-        param.value = set_param.param_value;
+        param.value = set_param.param_value as string;
         param.last_up_date = moment().utc(true);
         await ModuleDAO.getInstance().insertOrUpdateVO(param);
     }

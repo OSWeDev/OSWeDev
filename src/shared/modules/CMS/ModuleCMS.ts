@@ -57,6 +57,7 @@ export default class ModuleCMS extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, boolean>(
+            null,
             ModuleCMS.APINAME_getPageComponents,
             (param: NumberParamVO) => {
                 // On se base sur les templates enregistrés pour définir les types dont dépend cette api
@@ -75,6 +76,7 @@ export default class ModuleCMS extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<TemplateComponentVO, TemplateComponentVO>(
+            null,
             ModuleCMS.APINAME_registerTemplateComponent,
             [TemplateComponentVO.API_TYPE_ID]
         ));

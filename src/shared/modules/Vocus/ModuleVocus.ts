@@ -33,6 +33,7 @@ export default class ModuleVocus extends Module {
     public registerApis() {
         // cas particulier d'une interface qui dépend de tous les types potentiellement
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamVO, VocusInfoVO[]>(
+            ModuleVocus.POLICY_BO_ACCESS,
             ModuleVocus.APINAME_getVosRefsById,
             Object.keys(VOsTypesManager.getInstance().moduleTables_by_voType),
             APIDAOParamVO.translateCheckAccessParams

@@ -82,7 +82,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         bo_full_menu_access.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         bo_full_menu_access.translatable_name = ModuleDataImport.POLICY_BO_FULL_MENU_ACCESS;
         bo_full_menu_access = await ModuleAccessPolicyServer.getInstance().registerPolicy(bo_full_menu_access, new DefaultTranslation({
-            fr: 'Accès aux logs des imports'
+            fr: 'Accès complet aux imports - ADMIN'
         }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
         admin_access_dependency = new PolicyDependencyVO();
         admin_access_dependency.default_behaviour = PolicyDependencyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED;
