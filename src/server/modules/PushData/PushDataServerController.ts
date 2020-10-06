@@ -3,18 +3,17 @@ import * as socketIO from 'socket.io';
 import RoleVO from '../../../shared/modules/AccessPolicy/vos/RoleVO';
 import UserRoleVO from '../../../shared/modules/AccessPolicy/vos/UserRoleVO';
 import UserVO from '../../../shared/modules/AccessPolicy/vos/UserVO';
-import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import APIController from '../../../shared/modules/API/APIController';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
-import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
+import IServerUserSession from '../../IServerUserSession';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import SocketWrapper from './vos/SocketWrapper';
-import APIController from '../../../shared/modules/API/APIController';
-import IServerUserSession from '../../IServerUserSession';
 
 export default class PushDataServerController {
 
@@ -22,6 +21,7 @@ export default class PushDataServerController {
 
     public static TASK_NAME_notifyVarData: string = 'PushDataServerController' + '.notifyVarData';
     public static TASK_NAME_notifyVarsDatas: string = 'PushDataServerController' + '.notifyVarsDatas';
+    public static TASK_NAME_notifyVarsDatasBySocket: string = 'PushDataServerController' + '.notifyVarsDatasBySocket';
     public static TASK_NAME_notifyDAOGetVoById: string = 'PushDataServerController' + '.notifyDAOGetVoById';
     public static TASK_NAME_notifyDAORemoveId: string = 'PushDataServerController' + '.notifyDAORemoveId';
     public static TASK_NAME_notifyDAOGetVos: string = 'PushDataServerController' + '.notifyDAOGetVos';
@@ -47,6 +47,8 @@ export default class PushDataServerController {
      */
     private registeredSockets: { [userId: number]: { [sessId: string]: SocketWrapper[] } } = {};
     private registeredSessions: { [userId: number]: { [sessId: string]: IServerUserSession } } = {};
+    private registeredSockets_by_id: { [socket_id: string]: SocketWrapper } = {};
+    private registereduid_by_socketid: { [socket_id: string]: number } = {};
     /**
      * ----- Global application cache - Handled by Main process
      */
@@ -56,6 +58,7 @@ export default class PushDataServerController {
         // Conf des taches qui dépendent du thread
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarData, this.notifyVarData.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarsDatas, this.notifyVarsDatas.bind(this));
+        ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyVarsDatasBySocket, this.notifyVarsDatasBySocket.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyDAOGetVoById, this.notifyDAOGetVoById.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_notifyDAOGetVos, this.notifyDAOGetVos.bind(this));
         ForkedTasksController.getInstance().register_task(PushDataServerController.TASK_NAME_broadcastLoggedSimple, this.broadcastLoggedSimple.bind(this));
@@ -87,13 +90,72 @@ export default class PushDataServerController {
         if (!this.registeredSockets[session.uid][session.id]) {
             this.registeredSockets[session.uid][session.id] = [];
         }
-        this.registeredSockets[session.uid][session.id].push(new SocketWrapper(session.uid, session.id, socket));
+        let wrapper = new SocketWrapper(session.uid, session.id, socket.id, socket);
+        this.registeredSockets[session.uid][session.id].push(wrapper);
+        this.registeredSockets_by_id[socket.id] = wrapper;
+        this.registereduid_by_socketid[socket.id] = session.uid;
 
         if (!this.registeredSessions[session.uid]) {
             this.registeredSessions[session.uid] = {};
         }
         if (!this.registeredSessions[session.uid][session.id]) {
             this.registeredSessions[session.uid][session.id] = session;
+        }
+    }
+
+    /**
+     * WARN : Only on main thread (express).
+     * @param session
+     * @param socket
+     */
+    public unregisterSocket(session: IServerUserSession, socket: socketIO.Socket) {
+
+        ForkedTasksController.getInstance().assert_is_main_process();
+
+        if (!socket) {
+            return;
+        }
+
+        try {
+
+            delete this.registeredSockets_by_id[socket.id];
+            delete this.registereduid_by_socketid[socket.id];
+
+            // No user or session, need to search for the socket by id
+            if ((!session) || (!session.id) || (!session.uid)) {
+
+                let found: boolean = false;
+                for (let uid in this.registeredSockets) {
+                    let registeredSockets_ = this.registeredSockets[uid];
+
+                    for (let sid in registeredSockets_) {
+                        let registeredSockets__ = registeredSockets_[sid];
+
+                        for (let k = 0; k < registeredSockets__.length; k++) {
+                            let registeredSocket = registeredSockets__[k];
+
+                            if (registeredSocket && registeredSocket.socketId == socket.id) {
+                                this.registeredSockets[uid][sid].splice(k, 1);
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (found) {
+                            break;
+                        }
+                    }
+
+                    if (found) {
+                        break;
+                    }
+                }
+                return;
+            }
+
+            delete this.registeredSockets[session.uid][session.id][socket.id];
+        } catch (error) {
+            ConsoleHandler.getInstance().error(error);
         }
     }
 
@@ -220,14 +282,14 @@ export default class PushDataServerController {
     }
 
 
-    public async notifyVarData(user_id: number, vo: IVarDataVOBase) {
+    public async notifyVarData(user_id: number, vo: VarDataValueResVO) {
 
         // Permet d'assurer un lancement uniquement sur le main process
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarData, user_id, vo)) {
             return;
         }
 
-        let notification: NotificationVO = this.getVarDataNotif(user_id, vo ? [vo] : null);
+        let notification: NotificationVO = this.getVarDataNotif(user_id, null, vo ? [vo] : null);
         if (!notification) {
             return;
         }
@@ -236,13 +298,28 @@ export default class PushDataServerController {
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
-    public async notifyVarsDatas(user_id: number, vos: IVarDataVOBase[]) {
+    public async notifyVarsDatas(user_id: number, vos: VarDataValueResVO[]) {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarsDatas, user_id, vos)) {
             return;
         }
 
-        let notification: NotificationVO = this.getVarDataNotif(user_id, vos);
+        let notification: NotificationVO = this.getVarDataNotif(user_id, null, vos);
+        if (!notification) {
+            return;
+        }
+
+        await this.notify(notification);
+        await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
+    }
+
+    public async notifyVarsDatasBySocket(socket_id: string, vos: VarDataValueResVO[]) {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(PushDataServerController.TASK_NAME_notifyVarsDatas, socket_id, vos)) {
+            return;
+        }
+
+        let notification: NotificationVO = this.getVarDataNotif(this.registereduid_by_socketid[socket_id], socket_id, vos);
         if (!notification) {
             return;
         }
@@ -461,16 +538,28 @@ export default class PushDataServerController {
         await ThreadHandler.getInstance().sleep(PushDataServerController.NOTIF_INTERVAL_MS);
     }
 
+
+    /**
+     * TODO REFONTE DES VARS et DES SOCKETS il faut envoyer autant que possible les notifications à un seul socket, en tout cas pour les mises à jour de vars
+     *  qui sont très bien ciblables par socket en théorie
+     * @param notification
+     */
     private async notify(notification: NotificationVO) {
 
         try {
 
-            if (!notification.user_id) {
+            if ((!notification.user_id) && (!notification.socket_id)) {
                 return;
             }
 
             // Broadcast to user's sessions or save in DB if no session available
-            let socketWrappers: SocketWrapper[] = this.getUserSockets(notification.user_id);
+
+            let socketWrappers: SocketWrapper[] = null;
+            if (!notification.socket_id) {
+                socketWrappers = this.getUserSockets(notification.user_id);
+            } else {
+                socketWrappers = [this.registeredSockets_by_id[notification.socket_id]];
+            }
             notification.read = false;
 
             if (socketWrappers && socketWrappers.length) {
@@ -506,7 +595,7 @@ export default class PushDataServerController {
         }
     }
 
-    private getVarDataNotif(user_id: number, vos: IVarDataVOBase[]): NotificationVO {
+    private getVarDataNotif(user_id: number, socket_id: string, vos: VarDataValueResVO[]): NotificationVO {
 
         if ((!user_id) || (!vos) || (!vos.length)) {
             return null;
@@ -517,6 +606,7 @@ export default class PushDataServerController {
         notification.api_type_id = null;
         notification.notification_type = NotificationVO.TYPE_NOTIF_VARDATA;
         notification.read = false;
+        notification.socket_id = socket_id;
         notification.user_id = user_id;
         notification.auto_read_if_connected = true;
         notification.vos = JSON.stringify(APIController.getInstance().try_translate_vos_to_api(vos));

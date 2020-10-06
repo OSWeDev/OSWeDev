@@ -1,4 +1,3 @@
-import ModuleAPI from '../../API/ModuleAPI';
 import IDistantVOBase from '../../IDistantVOBase';
 
 export default class APISimpleVOParamVO {
@@ -9,7 +8,5 @@ export default class APISimpleVOParamVO {
     }
 
     public constructor(
-        public vo: IDistantVOBase) {
-        // this.vo = APIController.getInstance().try_translate_vo_to_api(vo);
-    }
+        public vo: IDistantVOBase) { }
 }

@@ -816,6 +816,12 @@ export default abstract class ServerBase {
                     PushDataServerController.getInstance().registerSocket(session, socket);
                 }.bind(ServerBase.getInstance()));
 
+                io.on('disconnect', function (socket: socketIO.Socket) {
+                    let session: IServerUserSession = socket.handshake['session'];
+
+                    PushDataServerController.getInstance().unregisterSocket(session, socket);
+                });
+
                 io.on('error', function (err) {
                     ConsoleHandler.getInstance().error("IO nearly failed: " + err.stack);
                 });

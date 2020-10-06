@@ -1,16 +1,15 @@
 import cloneDeep = require('lodash/cloneDeep');
-import DataSourceControllerBase from '../DataSource/DataSourceControllerBase';
-import VarDAG from './graph/VarDAG';
-import VarDAGNode from './graph/VarDAGNode';
-import MainAggregateOperatorsHandlers from './MainAggregateOperatorsHandlers';
-import ModuleVar from './ModuleVar';
-import VarsController from './VarsController';
-import VarCacheConfVO from './vos/VarCacheConfVO';
-import VarConfVOBase from './vos/VarConfVOBase';
-import VarDataBaseVO from './vos/VarDataBaseVO';
+import DataSourceControllerBase from '../../../shared/modules/DataSource/DataSourceControllerBase';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
+import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarsServerController from './VarsServerController';
 const moment = require('moment');
 
-export default abstract class VarControllerBase<TData extends VarDataBaseVO> {
+export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
 
     /**
      * Used for every segmented data, defaults to day segmentation. Used for cumuls, and refining use of the param.date_index
@@ -65,10 +64,9 @@ export default abstract class VarControllerBase<TData extends VarDataBaseVO> {
     }
 
     public async initialize() {
-        this.varConf = await VarsController.getInstance().registerVar(this.varConf, this);
-
+        this.varConf = await VarsServerController.getInstance().registerVar(this.varConf, this);
         let var_cache_conf = this.getVarCacheConf();
-        this.var_cache_conf = var_cache_conf ? await ModuleVar.getInstance().configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
+        this.var_cache_conf = var_cache_conf ? await VarsServerController.getInstance().configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
     }
 
     public getVarCacheConf(): VarCacheConfVO {
@@ -134,7 +132,7 @@ export default abstract class VarControllerBase<TData extends VarDataBaseVO> {
         }
 
         // On fait le tour des vars qui dépendent de ce param
-        let parent_controllers: { [parent_var_id: number]: VarControllerBase<any> } = VarsController.getInstance().parent_vars_by_var_id[param.var_id];
+        let parent_controllers: { [parent_var_id: number]: VarServerControllerBase<any> } = VarsServerController.getInstance().parent_vars_by_var_id[param.var_id];
 
         for (let parent_controlleri in parent_controllers) {
             let parent_controller = parent_controllers[parent_controlleri];
@@ -142,7 +140,7 @@ export default abstract class VarControllerBase<TData extends VarDataBaseVO> {
             // On clone le param et au besoin en traduisant vers le type de param cible
             let parent_param: VarDataBaseVO;
             let parent_var_data_vo_type = parent_controller.varConf.var_data_vo_type;
-            parent_param = VarDataBaseVO.cloneFieldsFrom(parent_var_data_vo_type, parent_controller.varConf.id, param);
+            parent_param = VarDataBaseVO.cloneFieldsFromId(parent_var_data_vo_type, parent_controller.varConf.id, param);
             res.push(parent_param);
         }
 

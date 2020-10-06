@@ -1,4 +1,4 @@
-import VarDataBaseVO from '../params/VarDataBaseVO';
+import VarDataBaseVO from '../vos/VarDataBaseVO';
 import VarDataSetDescriptor from './VarDataSetDescriptor';
 
 export default class VarBarDataSetDescriptor extends VarDataSetDescriptor {

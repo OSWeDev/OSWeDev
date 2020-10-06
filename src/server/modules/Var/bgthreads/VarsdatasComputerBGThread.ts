@@ -1,8 +1,8 @@
 import { Moment } from 'moment';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
-import IVarDataVOBase from '../../../../shared/modules/Var/interfaces/IVarDataVOBase';
 import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../../shared/tools/DateHandler';
@@ -36,6 +36,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     private silent: boolean = false;
 
+    private semaphore: boolean = false;
+
     private constructor() {
     }
 
@@ -53,8 +55,24 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         return "VarsdatasComputerBGThread";
     }
 
+    /**
+     * ATTENTION à n'appeler cette fonction que dans le thread dédié à ce bgthread
+     * On veut un système d'appel un peu particulier qui permette de dire si le front demande une valeur de var, on veut dépiler la demande
+     *  asap, et sans qu'on puisse avec des lancements en parralèle donc quelque chose qui puisse couper le délai entre 2 appels au bgthread
+     *  mais qui en revanche s'assure d'utiliser un sémaphore pour ne jamais lancer 2 fois le calcul
+     */
     public async work(): Promise<number> {
 
+        if (!this.semaphore) {
+            this.semaphore = true;
+            let res = await this.do_calculation_run();
+            this.semaphore = false;
+            return res;
+        }
+        return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
+    }
+
+    private async do_calculation_run(): Promise<number> {
         try {
 
             // On se donne timeout ms pour calculer des vars, après on arrête et on rend la main.
@@ -62,7 +80,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             let start: number = moment().utc(true).valueOf();
             let nb_computed: number = 0;
 
-            let vars_datas: IVarDataVOBase[] = await this.get_vars_to_compute();
+            let vars_datas: VarDataBaseVO[] = await this.get_vars_to_compute();
             if ((!vars_datas) || (!vars_datas.length)) {
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
             }
@@ -70,7 +88,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             // TODO FIXME Pour le cas de la table segmented et du limit qui s'applique en fait à chaque requete... à optimiser...
             vars_datas = vars_datas.splice(0, this.request_limit);
 
-            let vars_datas_by_ids: { [id: number]: IVarDataVOBase } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vars_datas);
+            let vars_datas_by_ids: { [id: number]: VarDataBaseVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vars_datas);
             while (vars_datas && vars_datas.length) {
 
                 if (!this.enabled) {
@@ -85,7 +103,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     index_to_id[var_data.index] = var_data.id;
                 }
 
-                let computed_datas: IVarDataVOBase[] = await VarsController.getInstance().registerDataParamsAndReturnVarDatas(vars_datas, true, true);
+                let computed_datas: VarDataBaseVO[] = await VarsController.getInstance().registerDataParamsAndReturnVarDatas(vars_datas, true, true);
                 VarsController.getInstance().clean_caches_and_vardag();
 
                 // if (!this.enabled) {
@@ -93,29 +111,30 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 // }
 
                 // On tente de supprimer les vars dont la value est 0 après calcul. ATTENTION aux effets de bord potentiels ...
-                let computed_datas_to_delete: IVarDataVOBase[] = [];
-                let computed_datas_to_update: IVarDataVOBase[] = [];
-                let datas_notif: IVarDataVOBase[] = [];
+                let computed_datas_to_delete: VarDataBaseVO[] = [];
+                let computed_datas_to_update: VarDataBaseVO[] = [];
+                let datas_notif: VarDataBaseVO[] = [];
 
                 for (let i in computed_datas) {
                     let computed_data = computed_datas[i];
                     let var_index: string = computed_data.index;
-                    let var_data: IVarDataVOBase = vars_datas_by_ids[index_to_id[var_index]];
+                    let var_data: VarDataBaseVO = vars_datas_by_ids[index_to_id[var_index]];
 
                     if (!var_data) {
                         ConsoleHandler.getInstance().error('VarsdatasComputerBGThread:Impossible de retrouver la data source...');
                         continue;
                     }
 
-                    if (ModuleVarServer.getInstance().varcacheconf_by_var_ids[computed_data.var_id] && ModuleVarServer.getInstance().varcacheconf_by_var_ids[computed_data.var_id].consider_null_as_0_and_auto_clean_0_in_cache && !computed_data.value) {
-                        computed_datas_to_delete.push(var_data);
-                    } else {
-                        var_data.value = (!computed_data.value) ? 0 : computed_data.value;
-                        computed_datas_to_update.push(var_data);
-                    }
+                    // A SUPPRIMER si suppression de consider_null_as_0_and_auto_clean_0_in_cache dans VarCacheConfVO
+                    // if (ModuleVarServer.getInstance().varcacheconf_by_var_ids[computed_data.var_id] && ModuleVarServer.getInstance().varcacheconf_by_var_ids[computed_data.var_id].consider_null_as_0_and_auto_clean_0_in_cache && !computed_data.value) {
+                    //     computed_datas_to_delete.push(var_data);
+                    // } else {
+                    var_data.value = (!computed_data.value) ? 0 : computed_data.value;
+                    computed_datas_to_update.push(var_data);
+                    // }
 
                     var_data.value_ts = moment().utc(true);
-                    var_data.value_type = VarsController.VALUE_TYPE_COMPUTED;
+                    var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
 
                     datas_notif.push(var_data);
                 }
@@ -164,8 +183,8 @@ export default class VarsdatasComputerBGThread implements IBGThread {
         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
     }
 
-    private async get_vars_to_compute(): Promise<IVarDataVOBase[]> {
-        let vars_datas: IVarDataVOBase[] = [];
+    private async get_vars_to_compute(): Promise<VarDataBaseVO[]> {
+        let vars_datas: VarDataBaseVO[] = [];
         // OPTI TODO : possible de regrouper les requetes d'une meme api_type_id, en préparant en amont les condition de la requête et en faisant pour tous les var_id en 1 fois
         for (let api_type_id in ModuleVarServer.getInstance().varcacheconf_by_api_type_ids) {
             let varcacheconf_by_var_ids = ModuleVarServer.getInstance().varcacheconf_by_api_type_ids[api_type_id];
@@ -177,12 +196,12 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 }
 
                 // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
-                let vars_datas_tmp: IVarDataVOBase[] = [];
+                let vars_datas_tmp: VarDataBaseVO[] = [];
                 if (!!varcacheconf.cache_timeout_ms) {
                     let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
-                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<IVarDataVOBase>(api_type_id, ' where var_id = ' + varcacheconf.var_id + ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') limit ' + this.request_limit + ';');
+                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where var_id = ' + varcacheconf.var_id + ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') limit ' + this.request_limit + ';');
                 } else {
-                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<IVarDataVOBase>(api_type_id, ' where value_ts is null and var_id = ' + varcacheconf.var_id + ' limit ' + this.request_limit + ';');
+                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where value_ts is null and var_id = ' + varcacheconf.var_id + ' limit ' + this.request_limit + ';');
                 }
 
                 vars_datas = ((!!vars_datas_tmp) && vars_datas_tmp.length) ? vars_datas.concat(vars_datas_tmp) : vars_datas;

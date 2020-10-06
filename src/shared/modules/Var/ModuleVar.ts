@@ -1,20 +1,16 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
+import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
-import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
-import APIDAOApiTypeAndMatroidsParamsVO from '../DAO/vos/APIDAOApiTypeAndMatroidsParamsVO';
-import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
+import APISimpleVOsParamVO from '../DAO/vos/APISimpleVOsParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
-import IDistantVOBase from '../IDistantVOBase';
-import IMatroid from '../Matroid/interfaces/IMatroid';
 import Module from '../Module';
-import ModulesManager from '../ModulesManager';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
-import ConfigureVarCacheParamVO from './params/ConfigureVarCacheParamVO';
 import VarsController from './VarsController';
 import VarCacheConfVO from './vos/VarCacheConfVO';
+import VarConfIds from './vos/VarConfIds';
 import VarConfVOBase from './vos/VarConfVOBase';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
@@ -26,6 +22,7 @@ export default class ModuleVar extends Module {
 
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleVar.MODULE_NAME;
 
+    public static POLICY_FO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.FO_ACCESS';
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_ACCESS';
     public static POLICY_BO_VARCONF_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_VARCONF_ACCESS';
     public static POLICY_BO_IMPORTED_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleVar.MODULE_NAME + '.BO_IMPORTED_ACCESS';
@@ -34,6 +31,10 @@ export default class ModuleVar extends Module {
     public static APINAME_getSimpleVarDataValueSumFilterByMatroids: string = 'getSimpleVarDataValueSumFilterByMatroids';
     public static APINAME_getSimpleVarDataCachedValueFromParam: string = 'getSimpleVarDataCachedValueFromParam';
     public static APINAME_configureVarCache: string = 'configureVarCache';
+
+    public static APINAME_get_var_id_by_names: string = 'get_var_id_by_names';
+    public static APINAME_register_params: string = 'register_params';
+    public static APINAME_unregister_params: string = 'unregister_params';
 
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
@@ -54,61 +55,94 @@ export default class ModuleVar extends Module {
         this.fields = [];
         this.datatables = [];
 
-        this.initializeSimpleVarConf();
+        this.initializeVarConfVOBase();
         this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
     }
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ConfigureVarCacheParamVO, VarCacheConfVO>(
-            ModuleVar.POLICY_BO_VARCONF_ACCESS,
-            ModuleVar.APINAME_configureVarCache,
-            [VarCacheConfVO.API_TYPE_ID],
-            ConfigureVarCacheParamVO.translateCheckAccessParams,
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
+            ModuleVar.POLICY_FO_ACCESS,
+            ModuleVar.APINAME_register_params,
+            (params: APISimpleVOsParamVO) => (params && params.vos) ? params.vos.map((param) => param._type) : null,
+            APISimpleVOsParamVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
-            null,
-            ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids,
-            (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
-            APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
+            ModuleVar.POLICY_FO_ACCESS,
+            ModuleVar.APINAME_unregister_params,
+            (params: APISimpleVOsParamVO) => (params && params.vos) ? params.vos.map((param) => param._type) : null,
+            APISimpleVOsParamVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, VarDataValueResVO>(
-            null,
-            ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam,
-            (param: APISimpleVOParamVO) => ((param && param.vo) ? [param.vo._type] : null),
-            APISimpleVOParamVO.translateCheckAccessParams
+
+        ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, VarConfIds>(
+            ModuleVar.POLICY_FO_ACCESS,
+            ModuleVar.APINAME_get_var_id_by_names,
+            [VarConfVOBase.API_TYPE_ID]
         ));
+
+        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ConfigureVarCacheParamVO, VarCacheConfVO>(
+        //     ModuleVar.POLICY_BO_VARCONF_ACCESS,
+        //     ModuleVar.APINAME_configureVarCache,
+        //     [VarCacheConfVO.API_TYPE_ID],
+        //     ConfigureVarCacheParamVO.translateCheckAccessParams,
+        // ));
+
+        // ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
+        //     null,
+        //     ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids,
+        //     (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
+        //     APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
+        // ));
+
+        // ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, VarDataValueResVO>(
+        //     null,
+        //     ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam,
+        //     (param: APISimpleVOParamVO) => ((param && param.vo) ? [param.vo._type] : null),
+        //     APISimpleVOParamVO.translateCheckAccessParams
+        // ));
     }
 
-    public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
-        let server_side: boolean = (!!ModulesManager.getInstance().isServerSide);
-        // Si on est côté client, on a pas besoin de la conf du cache
-
-        if (!server_side) {
-            return var_cache_conf;
-        }
-
-        return await ModuleAPI.getInstance().handleAPI<ConfigureVarCacheParamVO, VarCacheConfVO>(ModuleVar.APINAME_configureVarCache, var_conf, var_cache_conf);
+    public async register_params(params: VarDataBaseVO[]): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOsParamVO, void>(ModuleVar.APINAME_register_params, params);
     }
 
-    public async getSimpleVarDataValueSumFilterByMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
-        if ((!matroids) || (!matroids.length)) {
-            return null;
-        }
-
-        return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, API_TYPE_ID, matroids, fields_ids_mapper);
+    public async unregister_params(params: VarDataBaseVO[]): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOsParamVO, void>(ModuleVar.APINAME_unregister_params, params);
     }
 
-    public async getSimpleVarDataCachedValueFromParam<T extends VarDataBaseVO>(param: T): Promise<VarDataValueResVO> {
-        if (!param) {
-            return null;
-        }
-
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, VarDataValueResVO>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
+    public async get_var_id_by_names(): Promise<VarConfIds> {
+        return await ModuleAPI.getInstance().handleAPI<void, VarConfIds>(ModuleVar.APINAME_get_var_id_by_names);
     }
+
+    // public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
+    //     let server_side: boolean = (!!ModulesManager.getInstance().isServerSide);
+    //     // Si on est côté client, on a pas besoin de la conf du cache
+
+    //     if (!server_side) {
+    //         return var_cache_conf;
+    //     }
+
+    //     return await ModuleAPI.getInstance().handleAPI<ConfigureVarCacheParamVO, VarCacheConfVO>(ModuleVar.APINAME_configureVarCache, var_conf, var_cache_conf);
+    // }
+
+    // public async getSimpleVarDataValueSumFilterByMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
+    //     if ((!matroids) || (!matroids.length)) {
+    //         return null;
+    //     }
+
+    //     return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids, API_TYPE_ID, matroids, fields_ids_mapper);
+    // }
+
+    // public async getSimpleVarDataCachedValueFromParam<T extends VarDataBaseVO>(param: T): Promise<VarDataValueResVO> {
+    //     if (!param) {
+    //         return null;
+    //     }
+
+    //     return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, VarDataValueResVO>(ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam, param);
+    // }
 
     public async hook_module_async_client_admin_initialization(): Promise<any> {
         await VarsController.getInstance().initialize();
@@ -130,10 +164,9 @@ export default class ModuleVar extends Module {
         var_fields.unshift(var_id);
         var_fields = var_fields.concat([
             new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur'),
-            new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarsController.VALUE_TYPE_COMPUTED).setEnumValues({
-                [VarsController.VALUE_TYPE_IMPORT]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_IMPORT],
-                [VarsController.VALUE_TYPE_COMPUTED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_COMPUTED],
-                [VarsController.VALUE_TYPE_MIXED]: VarsController.VALUE_TYPE_LABELS[VarsController.VALUE_TYPE_MIXED]
+            new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues({
+                [VarDataBaseVO.VALUE_TYPE_IMPORT]: VarDataBaseVO.VALUE_TYPE_LABELS[VarDataBaseVO.VALUE_TYPE_IMPORT],
+                [VarDataBaseVO.VALUE_TYPE_COMPUTED]: VarDataBaseVO.VALUE_TYPE_LABELS[VarDataBaseVO.VALUE_TYPE_COMPUTED]
             }),
             new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
         ]);
@@ -148,7 +181,7 @@ export default class ModuleVar extends Module {
         return datatable;
     }
 
-    private initializeSimpleVarConf() {
+    private initializeVarConfVOBase() {
 
         let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur');
         let datatable_fields = [

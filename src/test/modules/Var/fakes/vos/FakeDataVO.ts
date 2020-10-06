@@ -1,6 +1,6 @@
 import { Moment } from 'moment';
 import TSRange from '../../../../../shared/modules/DataRender/vos/TSRange';
-import VarDataBaseVO from '../../../../../shared/modules/Var/params/VarDataBaseVO';
+import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 
 export default class FakeDataVO extends VarDataBaseVO {
 

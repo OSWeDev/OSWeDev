@@ -20,7 +20,12 @@ export default class VarsClientController {
      */
     public registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
 
-    public known_values: { [index: string]: number } = {};
+    /**
+     * La correspondance des noms de vars vers les ids, pour garder des indexs compacts
+     */
+    public var_id_by_names: { [name: string]: number } = {};
+
+    // public known_values: { [index: string]: number } = {};
 
     protected constructor() {
     }

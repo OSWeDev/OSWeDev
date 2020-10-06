@@ -41,7 +41,7 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import TranslatableTextVO from '../../../shared/modules/Translation/vos/TranslatableTextVO';
 import TranslationVO from '../../../shared/modules/Translation/vos/TranslationVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import BooleanHandler from '../../../shared/tools/BooleanHandler';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -476,10 +476,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
         // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
-        if (!!(matroid as IVarDataVOBase).var_id) {
+        if (!!(matroid as VarDataBaseVO).var_id) {
 
             if (!!moduleTable.getFieldFromId('var_id')) {
-                where_clause += '(var_id = ' + (matroid as IVarDataVOBase).var_id + ') AND ';
+                where_clause += '(var_id = ' + (matroid as VarDataBaseVO).var_id + ') AND ';
             }
         }
 
@@ -549,10 +549,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
         // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
-        if (!!(matroid as IVarDataVOBase).var_id) {
+        if (!!(matroid as VarDataBaseVO).var_id) {
 
             if (!!moduleTable.getFieldFromId('var_id')) {
-                where_clause += '(var_id = ' + (matroid as IVarDataVOBase).var_id + ') AND ';
+                where_clause += '(var_id = ' + (matroid as VarDataBaseVO).var_id + ') AND ';
             }
         }
 
@@ -2161,10 +2161,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
             // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
-            if (!!(matroid as IVarDataVOBase).var_id) {
+            if (!!(matroid as VarDataBaseVO).var_id) {
 
                 if (!!moduleTable.getFieldFromId('var_id')) {
-                    where_clause += '(var_id = ' + (matroid as IVarDataVOBase).var_id + ') AND ';
+                    where_clause += '(var_id = ' + (matroid as VarDataBaseVO).var_id + ') AND ';
                 }
             }
 

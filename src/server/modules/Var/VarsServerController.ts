@@ -1,96 +1,254 @@
 import debounce = require('lodash/debounce');
 import { Moment } from 'moment';
-import ConsoleHandler from '../../tools/ConsoleHandler';
-import ObjectHandler from '../../tools/ObjectHandler';
-import RangeHandler from '../../tools/RangeHandler';
-import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
-import ModuleDAO from '../DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../DAO/vos/InsertOrDeleteQueryResult';
-import TSRange from '../DataRender/vos/TSRange';
-import DataSourcesController from '../DataSource/DataSourcesController';
-import IDataSourceController from '../DataSource/interfaces/IDataSourceController';
-import IDistantVOBase from '../IDistantVOBase';
-import MatroidController from '../Matroid/MatroidController';
-import MatroidCutResult from '../Matroid/vos/MatroidCutResult';
-import ModulesManager from '../ModulesManager';
-import DefaultTranslation from '../Translation/vos/DefaultTranslation';
-import VOsTypesManager from '../VOsTypesManager';
-import VarDAGDefineNodeDeps from './graph/var/visitors/VarDAGDefineNodeDeps';
-import VarDAGDefineNodePropagateRequest from './graph/var/visitors/VarDAGDefineNodePropagateRequest';
-import VarDAGMarkForDeletion from './graph/var/visitors/VarDAGMarkForDeletion';
-import VarDAG from './graph/VarDAG';
-import VarDAGNode from './graph/VarDAGNode';
-import ModuleVar from './ModuleVar';
-import VarDataBaseVO from './params/VarDataBaseVO';
-import SimpleVarConfVO from './simple_vars/SimpleVarConfVO';
-import VarDataValueRes from './simple_vars/VarDataValueRes';
-import VarControllerBase from './VarControllerBase';
-import VarConfVOBase from './vos/VarConfVOBase';
-import VarUpdateCallback from './vos/VarUpdateCallback';
-const moment = require('moment');
+import * as moment from 'moment';
+import DataSourceControllerBase from '../../../shared/modules/DataSource/DataSourceControllerBase';
+import VarUpdateCallback from '../../../shared/modules/Var/vos/VarUpdateCallback';
+import VarControllerBase from '../../../shared/modules/Var/VarControllerBase';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
+import VarServerControllerBase from './VarServerControllerBase';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 
-export default class VarsController {
+export default class VarsServerController {
 
     /**
      * Multithreading notes :
-     *  - Each thread has its own VarsController and can do computation. But the goal is to use the BGthread computation
-     *  - It's not possible to force the functions to be called only on the var compute bgthread thread since that's shared code
-     *      that executes on the client to (and ForkedTasks are server)
-     *  - So we need to make sure we nearly never end up calling registering vars from shared code. should be client or server via bgthread
+     *  - There's only one bgthread doing all the computations, and separated from the other threads if the project decides to do so
+     */
+    public static getInstance(): VarsServerController {
+        if (!VarsServerController.instance) {
+            VarsServerController.instance = new VarsServerController();
+        }
+        return VarsServerController.instance;
+    }
+
+    private static instance: VarsServerController = null;
+
+    /**
+     * Global application cache - Brocasted CUD - Local R -----
      */
 
-    public static VALUE_TYPE_LABELS: string[] = ['var_data.value_type.import', 'var_data.value_type.computed'];
-    public static VALUE_TYPE_IMPORT: number = 0;
-    public static VALUE_TYPE_COMPUTED: number = 1;
-    public static VALUE_TYPE_MIXED: number = 2;
+    // NO CUD during run, just init in each thread - no multithreading special handlers needed
+    private _registered_vars: { [name: string]: VarConfVOBase } = {};
+    private _registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
+    private _registered_vars_controller_: { [name: string]: VarServerControllerBase<any> } = {};
+    private _registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
 
-    public static getInstance(): VarsController {
-        if (!VarsController.instance) {
-            VarsController.instance = new VarsController();
-        }
-        return VarsController.instance;
+    // TODO FIXME est-ce que tout n'est pas en cache à ce stade, si on demande toujours en insérant en base ?
+    private _cached_var_by_var_id: { [var_id: number]: VarServerControllerBase<any> } = {};
+    private _cached_var_id_by_datasource_by_api_type_id: { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarServerControllerBase<any> } } } = {};
+    private _parent_vars_by_var_id: { [var_id: number]: { [parent_var_id: number]: VarServerControllerBase<any> } } = {};
+
+    // CUD during run, broadcasting CUD
+    private _varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
+    private _varcacheconf_by_api_type_ids: { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } = {};
+    /**
+     * ----- Global application cache - Brocasted CUD - Local R
+     */
+
+    protected constructor() {
     }
+
+    get varcacheconf_by_api_type_ids(): { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } {
+        return this._varcacheconf_by_api_type_ids;
+    }
+
+    get varcacheconf_by_var_ids(): { [var_id: number]: VarCacheConfVO } {
+        return this._varcacheconf_by_var_ids;
+    }
+
+    get cached_var_id_by_datasource_by_api_type_id(): { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarServerControllerBase<any> } } } {
+        return this._cached_var_id_by_datasource_by_api_type_id;
+    }
+
+    get parent_vars_by_var_id(): { [var_id: number]: { [parent_var_id: number]: VarServerControllerBase<any> } } {
+        return this._parent_vars_by_var_id;
+    }
+
+    get cached_var_by_var_id(): { [var_id: number]: VarServerControllerBase<any> } {
+        return this._cached_var_by_var_id;
+    }
+
+    public getVarConf(var_name: string): VarConfVOBase {
+        return this._registered_vars ? (this._registered_vars[var_name] ? this._registered_vars[var_name] : null) : null;
+    }
+
+    public getVarConfById(var_id: number): VarConfVOBase {
+        return this._registered_vars_by_ids ? (this._registered_vars_by_ids[var_id] ? this._registered_vars_by_ids[var_id] : null) : null;
+    }
+
+    public getVarController(var_name: string): VarServerControllerBase<any> {
+        return this._registered_vars_controller_ ? (this._registered_vars_controller_[var_name] ? this._registered_vars_controller_[var_name] : null) : null;
+    }
+
+    public getVarControllerById(var_id: number): VarServerControllerBase<any> {
+        if ((!this._registered_vars_by_ids) || (!this._registered_vars_by_ids[var_id]) ||
+            (!this._registered_vars_controller_)) {
+            return null;
+        }
+
+        let res = this._registered_vars_controller_[this._registered_vars_by_ids[var_id].name];
+        return res ? res : null;
+    }
+
+    public async registerVar(varConf: VarConfVOBase, controller: VarServerControllerBase<any>): Promise<VarConfVOBase> {
+        if ((!varConf) || (!controller)) {
+            return null;
+        }
+
+        if (this._registered_vars && this._registered_vars[varConf.name]) {
+            this.setVar(this._registered_vars[varConf.name], controller);
+            return this._registered_vars[varConf.name];
+        }
+
+        // Pour les tests unitaires, on fournit l'id du varconf directement pour éviter cette étape
+        if ((varConf.id != null) && (typeof varConf.id != 'undefined')) {
+            this.setVar(varConf, controller);
+            return varConf;
+        }
+
+        let daoVarConf: VarConfVOBase = await ModuleDAO.getInstance().getNamedVoByName<VarConfVOBase>(varConf._type, varConf.name);
+
+        if (daoVarConf) {
+            this.setVar(daoVarConf, controller);
+            return daoVarConf;
+        }
+
+        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(varConf);
+        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
+            return null;
+        }
+
+        varConf.id = parseInt(insertOrDeleteQueryResult.id.toString());
+
+        this.setVar(varConf, controller);
+        return varConf;
+    }
+
+    public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
+
+        let existing_bdd_conf: VarCacheConfVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<VarCacheConfVO>(VarCacheConfVO.API_TYPE_ID, 'var_id', [var_cache_conf.var_id]);
+
+        if ((!!existing_bdd_conf) && existing_bdd_conf.length) {
+
+            if (existing_bdd_conf.length == 1) {
+                this._varcacheconf_by_var_ids[var_conf.id] = existing_bdd_conf[0];
+                if (!this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
+                    this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
+                }
+                this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = existing_bdd_conf[0];
+                return existing_bdd_conf[0];
+            }
+            return null;
+        }
+
+        let insert_or_update_result: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(var_cache_conf);
+
+        if ((!insert_or_update_result) || (!insert_or_update_result.id)) {
+            ConsoleHandler.getInstance().error('Impossible de configurer le cache de la var :' + var_conf.id + ':');
+            return null;
+        }
+
+        var_cache_conf.id = parseInt(insert_or_update_result.id.toString());
+
+        this._varcacheconf_by_var_ids[var_conf.id] = var_cache_conf;
+        if (!this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type]) {
+            this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type] = {};
+        }
+        this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = var_cache_conf;
+        return var_cache_conf;
+    }
+
+    /**
+     * TODO FIXME REFONTE A FAIRE - A VOIR si on a toujours besoin de ces logiques
+     * @param varConf
+     * @param controller
+     */
+    private setVar(varConf: VarConfVOBase, controller: VarServerControllerBase<any>) {
+        this._registered_vars[varConf.name] = varConf;
+        this._registered_vars_controller_[varConf.name] = controller;
+        this._registered_vars_by_ids[varConf.id] = varConf;
+        this.registered_var_data_api_types[varConf.var_data_vo_type] = true;
+
+        let datasource_deps: Array<DataSourceControllerBase<any>> = controller.getDataSourcesDependencies();
+        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
+        datasource_deps.forEach((datasource_dep) => {
+            datasource_dep.registerDataSource();
+        });
+
+        // On enregistre le lien entre DS et VAR
+        let dss: Array<DataSourceControllerBase<any>> = this.get_datasource_deps(controller);
+        for (let i in dss) {
+            let ds = dss[i];
+
+            if (!this._registered_vars_by_datasource[ds.name]) {
+                this._registered_vars_by_datasource[ds.name] = [];
+            }
+            this._registered_vars_by_datasource[ds.name].push(controller);
+
+            if (!!controller.getVarCacheConf()) {
+
+                this._cached_var_by_var_id[varConf.id] = controller;
+                for (let j in ds.vo_api_type_ids) {
+                    let vo_api_type_id = ds.vo_api_type_ids[j];
+
+                    if (!this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id]) {
+                        this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id] = {};
+                    }
+
+                    if (!this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name]) {
+                        this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name] = {};
+                    }
+
+                    this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][varConf.id] = controller;
+                }
+            }
+        }
+
+        let deps: number[] = controller.getVarsIdsDependencies();
+        for (let i in deps) {
+            let dep = deps[i];
+
+            if (!this._parent_vars_by_var_id[dep]) {
+                this._parent_vars_by_var_id[dep] = {};
+            }
+            this._parent_vars_by_var_id[dep][varConf.id] = controller;
+        }
+    }
+
+    /**
+     * @param controller
+     */
+    private get_datasource_deps(controller: VarServerControllerBase<any>): Array<DataSourceControllerBase<any>> {
+        let datasource_deps: Array<DataSourceControllerBase<any>> = controller.getDataSourcesDependencies();
+        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
+
+        return datasource_deps;
+    }
+
+
+
+
+
+
+
+
 
     private static VARS_DESC_TRANSLATABLE_PREFIXES: string = "var.desc.";
     private static BATCH_UID: number = 0;
 
-    private static instance: VarsController = null;
 
-    public varDAG: VarDAG = new VarDAG();
-
-    public datasource_deps_by_var_id: { [var_id: number]: Array<IDataSourceController<any>> } = {};
-
-    public step_number: number = 1;
-    public is_stepping: boolean = false;
-    public is_waiting: boolean = false;
-
-    public var_debouncer: number = 300;
-
+    public datasource_deps_by_var_id: { [var_id: number]: Array<DataSourceControllerBase<any>> } = {};
 
     public registered_var_callbacks: { [index: string]: VarUpdateCallback[] } = {};
-    public registered_vars_by_datasource: { [datasource_id: string]: Array<VarControllerBase<any>> } = {};
 
     public registered_var_data_api_types: { [api_type: string]: boolean } = {};
 
     public set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void = null;
 
-    public varDatasStaticCache: { [index: string]: VarDataBaseVO } = {};
-    public varDatas: { [paramIndex: string]: VarDataBaseVO } = null;
-    public varDatasBATCHCache: { [index: string]: VarDataBaseVO } = {};
-
-    public cached_var_id_by_datasource_by_api_type_id: { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarControllerBase<any> } } } = {};
-    public cached_var_by_var_id: { [var_id: number]: VarControllerBase<any> } = {};
-    public parent_vars_by_var_id: { [var_id: number]: { [parent_var_id: number]: VarControllerBase<any> } } = {};
-
-    private setVarsData_: (varDatas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }) => void = null;
-
-    private setStepNumber: (step_number: number) => void = null;
-    private setIsStepping: (is_stepping: boolean) => void = null;
-
-    private registered_vars: { [name: string]: VarConfVOBase } = {};
-    private registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
-
-    private registered_vars_controller_: { [name: string]: VarControllerBase<any> } = {};
 
     private setIsWaiting: (isWaiting: boolean) => void = null;
 
@@ -108,8 +266,7 @@ export default class VarsController {
     private actions_waiting_for_release_of_update_semaphore: Array<() => Promise<void>> = [];
     private debounced_updatedatas_wrapper = debounce(this.updateDatasWrapper, this.var_debouncer);
 
-    protected constructor() {
-    }
+
 
 
 
@@ -176,15 +333,15 @@ export default class VarsController {
     }
 
     public get_translatable_name_code(varConf_id: number): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + this.getVarConfById(varConf_id).name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsServerController.VARS_DESC_TRANSLATABLE_PREFIXES + this.getVarConfById(varConf_id).name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_translatable_description_code(varConf_id: number): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + this.getVarConfById(varConf_id).name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsServerController.VARS_DESC_TRANSLATABLE_PREFIXES + this.getVarConfById(varConf_id).name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_translatable_params_desc_code(varConf_id: number): string {
-        return VarsController.VARS_DESC_TRANSLATABLE_PREFIXES + this.getVarConfById(varConf_id).name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsServerController.VARS_DESC_TRANSLATABLE_PREFIXES + this.getVarConfById(varConf_id).name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     /**
@@ -232,7 +389,7 @@ export default class VarsController {
             for (let i in this.registered_vars_controller_) {
                 let registered_var_controller = this.registered_vars_controller_[i];
 
-                let datasource_deps: Array<IDataSourceController<any>> = this.get_datasource_deps(registered_var_controller);
+                let datasource_deps: Array<DataSourceControllerBase<any>> = this.get_datasource_deps(registered_var_controller);
                 datasource_deps = (!!datasource_deps) ? datasource_deps : [];
                 this.datasource_deps_by_var_id[registered_var_controller.varConf.id] = datasource_deps;
             }
@@ -240,12 +397,7 @@ export default class VarsController {
         }
     }
 
-    public get_datasource_deps(controller: VarControllerBase<any>): Array<IDataSourceController<any>> {
-        let datasource_deps: Array<IDataSourceController<any>> = controller.getDataSourcesDependencies();
-        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
 
-        return datasource_deps;
-    }
 
     public stageUpdateVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase) {
 
@@ -402,7 +554,7 @@ export default class VarsController {
         if (this.updateSemaphore) {
             return;
         }
-        VarsController.getInstance().varDAG.clearDAG();
+        VarsServerController.getInstance().varDAG.clearDAG();
         this.loaded_imported_datas_of_vars_ids = {};
     }
 
@@ -548,7 +700,7 @@ export default class VarsController {
      */
     public get_tsrange_on_resetable_var(var_id: number, target: Moment, min_inclusiv: boolean, max_inclusiv: boolean, segment_type: number): TSRange {
 
-        let controller = VarsController.getInstance().getVarControllerById(var_id);
+        let controller = VarsServerController.getInstance().getVarControllerById(var_id);
 
         if (!controller) {
             return;
@@ -588,61 +740,7 @@ export default class VarsController {
         );
     }
 
-    public getVarConf(var_name: string): VarConfVOBase {
-        return this.registered_vars ? (this.registered_vars[var_name] ? this.registered_vars[var_name] : null) : null;
-    }
 
-    public getVarConfById(var_id: number): VarConfVOBase {
-        return this.registered_vars_by_ids ? (this.registered_vars_by_ids[var_id] ? this.registered_vars_by_ids[var_id] : null) : null;
-    }
-
-    public getVarController(var_name: string): VarControllerBase<any> {
-        return this.registered_vars_controller_ ? (this.registered_vars_controller_[var_name] ? this.registered_vars_controller_[var_name] : null) : null;
-    }
-
-    public getVarControllerById(var_id: number): VarControllerBase<any> {
-        if ((!this.registered_vars_by_ids) || (!this.registered_vars_by_ids[var_id]) ||
-            (!this.registered_vars_controller_)) {
-            return null;
-        }
-
-        let res = this.registered_vars_controller_[this.registered_vars_by_ids[var_id].name];
-        return res ? res : null;
-    }
-
-    public async registerVar(varConf: VarConfVOBase, controller: VarControllerBase<any>): Promise<VarConfVOBase> {
-        if ((!varConf) || (!controller)) {
-            return null;
-        }
-
-        if (this.registered_vars && this.registered_vars[varConf.name]) {
-            this.setVar(this.registered_vars[varConf.name], controller);
-            return this.registered_vars[varConf.name];
-        }
-
-        // Pour les tests unitaires, on fournit l'id du varconf directement pour éviter cette étape
-        if ((varConf.id != null) && (typeof varConf.id != 'undefined')) {
-            this.setVar(varConf, controller);
-            return varConf;
-        }
-
-        let daoVarConf: VarConfVOBase = await ModuleDAO.getInstance().getNamedVoByName<VarConfVOBase>(varConf._type, varConf.name);
-
-        if (daoVarConf) {
-            this.setVar(daoVarConf, controller);
-            return daoVarConf;
-        }
-
-        let insertOrDeleteQueryResult: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(varConf);
-        if ((!insertOrDeleteQueryResult) || (!insertOrDeleteQueryResult.id)) {
-            return null;
-        }
-
-        varConf.id = parseInt(insertOrDeleteQueryResult.id.toString());
-
-        this.setVar(varConf, controller);
-        return varConf;
-    }
 
     /**
      * Utilisé pour les tests unitaires
@@ -689,57 +787,57 @@ export default class VarsController {
         return true;
     }
 
-    private setVar(varConf: VarConfVOBase, controller: VarControllerBase<any>) {
-        this.registered_vars[varConf.name] = varConf;
-        this.registered_vars_controller_[varConf.name] = controller;
-        this.registered_vars_by_ids[varConf.id] = varConf;
-        this.registered_var_data_api_types[varConf.var_data_vo_type] = true;
+    // private setVar(varConf: VarConfVOBase, controller: VarControllerBase<any>) {
+    //     this.registered_vars[varConf.name] = varConf;
+    //     this.registered_vars_controller_[varConf.name] = controller;
+    //     this.registered_vars_by_ids[varConf.id] = varConf;
+    //     this.registered_var_data_api_types[varConf.var_data_vo_type] = true;
 
-        let datasource_deps: Array<IDataSourceController<any>> = controller.getDataSourcesDependencies();
-        datasource_deps = (!!datasource_deps) ? datasource_deps : [];
-        datasource_deps.forEach((datasource_dep) => {
-            datasource_dep.registerDataSource();
-        });
+    //     let datasource_deps: Array<DataSourceControllerBase<any>> = controller.getDataSourcesDependencies();
+    //     datasource_deps = (!!datasource_deps) ? datasource_deps : [];
+    //     datasource_deps.forEach((datasource_dep) => {
+    //         datasource_dep.registerDataSource();
+    //     });
 
-        // On enregistre le lien entre DS et VAR
-        let dss: Array<IDataSourceController<any>> = this.get_datasource_deps(controller);
-        for (let i in dss) {
-            let ds = dss[i];
+    //     // On enregistre le lien entre DS et VAR
+    //     let dss: Array<DataSourceControllerBase<any>> = this.get_datasource_deps(controller);
+    //     for (let i in dss) {
+    //         let ds = dss[i];
 
-            if (!this.registered_vars_by_datasource[ds.name]) {
-                this.registered_vars_by_datasource[ds.name] = [];
-            }
-            this.registered_vars_by_datasource[ds.name].push(controller);
+    //         if (!this.registered_vars_by_datasource[ds.name]) {
+    //             this.registered_vars_by_datasource[ds.name] = [];
+    //         }
+    //         this.registered_vars_by_datasource[ds.name].push(controller);
 
-            if (!!controller.getVarCacheConf()) {
+    //         if (!!controller.getVarCacheConf()) {
 
-                this.cached_var_by_var_id[varConf.id] = controller;
-                for (let j in ds.vo_api_type_ids) {
-                    let vo_api_type_id = ds.vo_api_type_ids[j];
+    //             this.cached_var_by_var_id[varConf.id] = controller;
+    //             for (let j in ds.vo_api_type_ids) {
+    //                 let vo_api_type_id = ds.vo_api_type_ids[j];
 
-                    if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id]) {
-                        this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id] = {};
-                    }
+    //                 if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id]) {
+    //                     this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id] = {};
+    //                 }
 
-                    if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name]) {
-                        this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name] = {};
-                    }
+    //                 if (!this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name]) {
+    //                     this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name] = {};
+    //                 }
 
-                    this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][varConf.id] = controller;
-                }
-            }
-        }
+    //                 this.cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][varConf.id] = controller;
+    //             }
+    //         }
+    //     }
 
-        let deps: number[] = controller.getVarsIdsDependencies();
-        for (let i in deps) {
-            let dep = deps[i];
+    //     let deps: number[] = controller.getVarsIdsDependencies();
+    //     for (let i in deps) {
+    //         let dep = deps[i];
 
-            if (!this.parent_vars_by_var_id[dep]) {
-                this.parent_vars_by_var_id[dep] = {};
-            }
-            this.parent_vars_by_var_id[dep][varConf.id] = controller;
-        }
-    }
+    //         if (!this.parent_vars_by_var_id[dep]) {
+    //             this.parent_vars_by_var_id[dep] = {};
+    //         }
+    //         this.parent_vars_by_var_id[dep][varConf.id] = controller;
+    //     }
+    // }
 
     /**
      * On va chercher à dépiler toutes les demandes en attente,
@@ -1112,7 +1210,7 @@ export default class VarsController {
                     var_value.value_type = VarDataBaseVO.VALUE_TYPE_IMPORT;
                     node.value = var_value;
 
-                    VarsController.getInstance().setVarData(var_value, true);
+                    VarsServerController.getInstance().setVarData(var_value, true);
                     this.post_computeNode(node);
 
                     if (!node.deps_loaded) {
@@ -1141,7 +1239,7 @@ export default class VarsController {
                         var_value.value_type = VarDataBaseVO.VALUE_TYPE_IMPORT;
                         node.value = var_value;
 
-                        VarsController.getInstance().setVarData(var_value, true);
+                        VarsServerController.getInstance().setVarData(var_value, true);
                     }
                     this.post_computeNode(node);
 
@@ -1306,7 +1404,7 @@ export default class VarsController {
 
             // ça veut dire aussi qu'on se demande ici quels params on doit vraiment charger en deps de ce params pour pouvoir calculer
             //  et on doit modifier l'arbre en conséquence
-            let node_controller = VarsController.getInstance().getVarControllerById(node.param.var_id);
+            let node_controller = VarsServerController.getInstance().getVarControllerById(node.param.var_id);
 
             VarDAGDefineNodeDeps.clear_node_deps(node, this.varDAG);
 
@@ -1456,7 +1554,7 @@ export default class VarsController {
 
                         let varDagNode: VarDAGNode = this.varDAG.nodes[node_name_to_preload];
 
-                        let datasources_predeps: Array<IDataSourceController<any>> = VarsController.getInstance().getVarControllerById(varDagNode.param.var_id).getDataSourcesPredepsDependencies();
+                        let datasources_predeps: Array<DataSourceControllerBase<any>> = VarsServerController.getInstance().getVarControllerById(varDagNode.param.var_id).getDataSourcesPredepsDependencies();
 
                         for (let j in datasources_predeps) {
                             let datasource_predeps = datasources_predeps[j];
@@ -1474,7 +1572,7 @@ export default class VarsController {
                     for (let i in datasources_batches) {
                         let datasource_batch = datasources_batches[i];
 
-                        let datasource_controller: IDataSourceController<any> = DataSourcesController.getInstance().registeredDataSourcesController[i];
+                        let datasource_controller: DataSourceControllerBase<any> = DataSourcesController.getInstance().registeredDataSourcesController[i];
 
                         if (((!datasource_controller.can_use_client_side) && (!ModulesManager.getInstance().isServerSide)) ||
                             ((!datasource_controller.can_use_server_side) && (!!ModulesManager.getInstance().isServerSide))) {
@@ -1586,7 +1684,7 @@ export default class VarsController {
 
             let node_name: string = node.name;
             let controller: VarControllerBase<any> = this.getVarControllerById(node.param.var_id);
-            let datasource_deps: Array<IDataSourceController<any>> = controller.getDataSourcesDependencies();
+            let datasource_deps: Array<DataSourceControllerBase<any>> = controller.getDataSourcesDependencies();
 
             // Si on peut pas calculer ça sert à rien
             let ne_peut_pas_calculer = ((!controller.is_computable_client_side) && (!ModulesManager.getInstance().isServerSide)) || ((!controller.is_computable_server_side) && (!!ModulesManager.getInstance().isServerSide));
@@ -1596,7 +1694,7 @@ export default class VarsController {
 
             source_deps_by_node_names[node_name] = [];
             for (let j in datasource_deps) {
-                let datasource_dep: IDataSourceController<any> = datasource_deps[j];
+                let datasource_dep: DataSourceControllerBase<any> = datasource_deps[j];
 
                 if (!var_params_by_source_deps[datasource_dep.name]) {
                     var_params_by_source_deps[datasource_dep.name] = [];
@@ -1608,7 +1706,7 @@ export default class VarsController {
 
         let promises: Array<Promise<any>> = [];
         for (let ds_name in var_params_by_source_deps) {
-            let ds_controller: IDataSourceController<any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name];
+            let ds_controller: DataSourceControllerBase<any> = DataSourcesController.getInstance().registeredDataSourcesController[ds_name];
 
             promises.push((async () => {
                 await ds_controller.load_for_batch(var_params_by_source_deps[ds_name]);
@@ -1658,7 +1756,7 @@ export default class VarsController {
             } while (go_further);
 
             // On doit pouvoir compute à ce stade
-            VarsController.getInstance().getVarControllerById(actual_node.param.var_id).computeValue(actual_node, this.varDAG);
+            VarsServerController.getInstance().getVarControllerById(actual_node.param.var_id).computeValue(actual_node, this.varDAG);
 
             this.post_computeNode(actual_node);
 

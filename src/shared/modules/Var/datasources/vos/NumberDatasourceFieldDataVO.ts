@@ -1,5 +1,5 @@
 import { Moment } from 'moment';
-import VarDataBaseVO from '../../params/VarDataBaseVO';
+import VarDataBaseVO from '../../vos/VarDataBaseVO';
 
 export default class NumberDatasourceFieldDataVO extends VarDataBaseVO {
 

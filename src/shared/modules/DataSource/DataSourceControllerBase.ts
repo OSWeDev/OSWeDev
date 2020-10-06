@@ -3,9 +3,9 @@ import IDistantVOBase from '../IDistantVOBase';
 import MatroidController from '../Matroid/MatroidController';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import VarDataBaseVO from '../Var/params/VarDataBaseVO';
 import VarControllerBase from '../Var/VarControllerBase';
 import VarsController from '../Var/VarsController';
+import VarDataBaseVO from '../Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../VOsTypesManager';
 import DataSourcesController from './DataSourcesController';
 

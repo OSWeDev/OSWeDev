@@ -1,5 +1,5 @@
 import ObjectHandler from '../../../tools/ObjectHandler';
-import VarDataBaseVO from '../params/VarDataBaseVO';
+import VarDataBaseVO from '../vos/VarDataBaseVO';
 import VarDAG from './VarDAG';
 import VarDAGNodeDep from './VarDAGNodeDep';
 

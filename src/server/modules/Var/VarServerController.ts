@@ -1,4 +1,4 @@
-import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 
@@ -42,16 +42,16 @@ export default class VarServerController {
         this.uid_waiting_for_indexes[var_index][uid] = true;
     }
 
-    public notify_computedvardatas(var_datas: IVarDataVOBase[]): boolean {
+    public notify_computedvardatas(var_datas: VarDataBaseVO[]): boolean {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarServerController.TASK_NAME_notify_computedvardatas, var_datas)) {
             return;
         }
 
-        let datas_by_uid_for_notif: { [uid: number]: IVarDataVOBase[] } = {};
+        let datas_by_uid_for_notif: { [uid: number]: VarDataBaseVO[] } = {};
 
         for (let i in var_datas) {
-            let var_data: IVarDataVOBase = var_datas[i];
+            let var_data: VarDataBaseVO = var_datas[i];
             let var_index: string = var_data.index;
 
             if (this.uid_waiting_for_indexes[var_index]) {
