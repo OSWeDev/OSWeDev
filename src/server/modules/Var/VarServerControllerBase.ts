@@ -1,11 +1,11 @@
 import cloneDeep = require('lodash/cloneDeep');
-import DataSourceControllerBase from '../../../shared/modules/DataSource/DataSourceControllerBase';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarsServerController from './VarsServerController';
 const moment = require('moment');
 
@@ -152,28 +152,28 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param varDAGNode
      * @param varDAG
      */
-    public abstract getParamDependencies(varDAGNode: VarDAGNode);
+    public abstract getParamDependencies(varDAGNode: VarDAGNode): { [dep_id: string]: VarDataBaseVO };
 
     /**
      * Fonction spécifique aux tests unitaires qui permet de tester la fonction getParamDependencies plus facilement
      *  On fabrique un faux arbre pour appeler ensuite la fonction getParamDependencies
      * @param param le var data / matroid qui sert à paramétrer le calcul
-     * @param datasources les datas de chaque datasource, par nom du datasource
+     * @param datasources_values les datas de chaque datasource, par nom du datasource
      * @param deps_values les valeurs des deps, par id de dep
      */
-    public UT__getParamDependencies(param: TData, datasources: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): number {
-        return this.getParamDependencies(this.UT__getTestVarDAGNode(param, datasources, deps_values));
+    public UT__getParamDependencies(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): { [dep_id: string]: VarDataBaseVO } {
+        return this.getParamDependencies(this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
     }
 
     /**
      * Fonction spécifique aux tests unitaires qui permet de tester la fonction getValue plus facilement
      *  On fabrique un faux arbre pour appeler ensuite la fonction getValue
      * @param param le var data / matroid qui sert à paramétrer le calcul
-     * @param datasources les datas de chaque datasource, par nom du datasource
+     * @param datasources_values les datas de chaque datasource, par nom du datasource
      * @param deps_values les valeurs des deps, par id de dep
      */
-    public UT__getValue(param: TData, datasources: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): number {
-        return this.getValue(this.UT__getTestVarDAGNode(param, datasources, deps_values));
+    public UT__getValue(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): number {
+        return this.getValue(this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
     }
 
     /**

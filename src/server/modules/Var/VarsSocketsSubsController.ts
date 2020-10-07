@@ -63,9 +63,9 @@ export default class VarsSocketsSubsController {
 
     /**
      * Sera exécutée dans tous les cas sur le main thread (express). Objectif : notifier tous les sockets qui s'intéressent à ces vardatas
-     * @param var_datas
+     * @param var_datas Tableau ou map (sur index) des vars datas
      */
-    public notify_vardatas(var_datas: VarDataBaseVO[]): boolean {
+    public notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }): boolean {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarsSocketsSubsController.TASK_NAME_notify_vardatas, var_datas)) {
             return;

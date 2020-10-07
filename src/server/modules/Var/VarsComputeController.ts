@@ -1,16 +1,14 @@
 import debounce = require('lodash/debounce');
-import { Moment } from 'moment';
 import * as moment from 'moment';
-import DataSourceControllerBase from '../../../shared/modules/DataSource/DataSourceControllerBase';
-import VarUpdateCallback from '../../../shared/modules/Var/vos/VarUpdateCallback';
-import VarControllerBase from '../../../shared/modules/Var/VarControllerBase';
-import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
-import VarServerControllerBase from './VarServerControllerBase';
+import { Moment } from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
+import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarUpdateCallback from '../../../shared/modules/Var/vos/VarUpdateCallback';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 
 export default class VarsComputeController {
 
@@ -33,10 +31,113 @@ export default class VarsComputeController {
 
 
 
+    /**
+     * La fonction qui réalise les calculs sur un ensemble de var datas et qui met directement à jour la valeur et l'heure du calcul dans le var_data
+     */
+    public async compute(vars_datas: { [index: string]: VarDataBaseVO }): Promise<void> {
+
+        /**
+         * L'invalidation des vars est faite en amont. On a que des vars à calculer ici, et on a donc "juste" à optimiser les calculs et donc les chargements de datas principalement puisque
+         *  c'est le point le plus lourd potentiellement. Donc l'objectif ça serait d'avoir un cache très malin dans le DataSource qu'on puisse s'assurer de vider entre chaque appel au compute
+         *  donc à la limite un cache externalisé, géré directement par le compute ça peut sembler beaucoup plus intéressant qu'un cache dans le datasource...
+         */
+
+        /**
+         * Le cache des datas issues des datasources. Permet juste de s'assurer qu'on recharge pas 15 fois le cache pour un même index de donnée.
+         *  L'index de donnée est défini par le datasource pour indiquer une clé unique de classement des datas dans le cache, et donc si on veut une clé déjà connue, on a pas besoin de redemander au
+         *  datasource, on la récupère directement pour le donner à la var.
+         */
+        let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
 
 
+        TODO FIXME REFONTE VARS
+    }
 
+
+    /**
+     * Première étape du calcul, on génère l'arbre en commençant par les params:
+     *  - Si le noeud existe dans l'arbre, osef
+     *  - Sinon on déploie les deps :
+     *      - Identifier les deps
+     *      - Déployer effectivement les deps identifiées
+     */
+    private async create_tree(vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<VarDAG> {
+        let var_dag: VarDAG = new VarDAG();
+
+        for (let i in vars_datas) {
+            let var_data: VarDataBaseVO = vars_datas[i];
+
+            let node: VarDAGNode = VarDAGNode.getInstance(var_dag, var_data);
+            let deps: VarDataBaseVO
+        }
+    }
+
+    /**
+     *  - Pour chaque DEP :
+     *      - Si la dep est déjà dans la liste des vars_datas, aucun impact, on continue normalement ce cas est géré au moment de créer les noeuds pour les params
+     *      - Si le noeud existe dans l'arbre, on s'assure juste que la liaison existe vers le noeud qui a tenté de générer la dep et on fuit.
+     *      - si le noeud est nouveau on le crée, et on met le lien vers le noeud source de la dep :
+     *          - si le var_data possède une data on valide directement le point suivant
+     *          - si on a une data précompilée ou importée en cache ou en BDD, on récupère cette data et on la met dans le var_data actuel puis on arrête de propager
+     *          - sinon on doit repartir de ce noeud et propager les deps du coup
+     * Pour les noeuds initiaux (les vars_datas en param), on sait qu'on peut pas vouloir donner un import en résultat, donc inutile de faire cette recherche
+     */
+    private async deploy_dep(node: VarDAGNode, vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+        let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node, ds_cache);
+
+        for (let dep_id in deps) {
+            let dep = deps[dep_id];
+
+            if (node.dag.nodes[dep.index]) {
+                node.addOutgoingDep(dep_id, node.dag.nodes[dep.index]);
+                continue;
+            }
+
+            node.addOutgoingDep(dep_id, VarDAGNode.getInstance(node.dag, dep));
+
+            /**
+             * Si le noeud possède une data, ou si on a une data précompilée ou importée - on la charge et on met à jour le noeud qui du coup a une valeur => on propage pas
+             * Sinon on propage récursivement sur ce noeud
+             */
+            if (typeof node.var_data === 'undefined') {
+                // Premier essai, on tente de trouver des datas en base / cache en cours de mise à jour
+
+            }
+        }
+    }
+
+    /**
+     *  - Pour identifier les deps :
+     *      - Chargement des ds predeps du noeud
+     *      - Chargement des deps
+     */
+    private async get_node_deps(node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+        let predeps_dss: Array<DataSourceControllerBase<any>> = node.var_controller.getDataSourcesPredepsDependencies();
+
+        /**
+         * On charge toutes les datas predeps
+         */
+        for (let i in predeps_dss) {
+            let predeps_ds = predeps_dss[i];
+
+            if (typeof node.datasources[predeps_ds.name] !== 'undefined') {
+                continue;
+            }
+
+            let data_index: string = predeps_ds.get_data_index(node.var_data);
+            if (typeof ds_cache[data_index] !== 'undefined') {
+                node.datasources[predeps_ds.name] = ds_cache[data_index];
+            } else {
+                node.datasources[predeps_ds.name] = await predeps_ds.get_data(node.var_data);
+            }
+        }
+
+        /**
+         * On demande les deps
+         */
+        return node.var_controller.getParamDependencies(node);
+    }
 
 
 

@@ -52,6 +52,10 @@ export default class VarsServerController {
     protected constructor() {
     }
 
+    get registered_vars_by_datasource(): { [datasource_id: string]: Array<VarServerControllerBase<any>> } {
+        return this._registered_vars_by_datasource;
+    }
+
     get varcacheconf_by_api_type_ids(): { [api_type_id: string]: { [var_id: number]: VarCacheConfVO } } {
         return this._varcacheconf_by_api_type_ids;
     }

@@ -1,3 +1,5 @@
+import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
+import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import ObjectHandler from '../../../tools/ObjectHandler';
 import VarDataBaseVO from '../vos/VarDataBaseVO';
 import VarDAG from './VarDAG';
@@ -22,6 +24,11 @@ export default class VarDAGNode {
      * Les dépendances ascendantes.
      */
     public incoming_deps: { [dep_name: string]: VarDAGNodeDep };
+
+    /**
+     * Raccourci vers le contrôleur de ce noeud
+     */
+    public var_controller: VarServerControllerBase<any>;
 
     /**
      * Tous les noeuds sont déclarés / initialisés comme des noeuds de calcul. C'est uniquement en cas de split (sur un import ou précalcul partiel)
@@ -50,7 +57,9 @@ export default class VarDAGNode {
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
-    private constructor(public dag: VarDAG, public var_data: VarDataBaseVO) { }
+    private constructor(public dag: VarDAG, public var_data: VarDataBaseVO) {
+        this.var_controller = VarsServerController.getInstance().getVarControllerById(var_data.var_id);
+    }
 
     /**
      * @returns true si le noeuds à des deps descendantes, false sinon => dans ce cas on parle de noeud feuille/leaf
@@ -71,6 +80,13 @@ export default class VarDAGNode {
      * @param dep VarDAGNodeDep dont les outgoings et le name sont défini, le reste n'est pas utile à ce stade
      */
     public addOutgoingDep(dep_name: string, outgoing_node: VarDAGNode) {
+
+        /**
+         * si la dep est déjà identifiée, ignore
+         */
+        if (this.outgoing_deps && this.outgoing_deps[dep_name]) {
+            return;
+        }
 
         let dep: VarDAGNodeDep = new VarDAGNodeDep(dep_name, outgoing_node);
 

@@ -542,6 +542,7 @@ export default class PushDataServerController {
     /**
      * TODO REFONTE DES VARS et DES SOCKETS il faut envoyer autant que possible les notifications à un seul socket, en tout cas pour les mises à jour de vars
      *  qui sont très bien ciblables par socket en théorie
+     * TODO Ajouter un wrapper sur les notifs et un debounced comme pour les request wrapper de manière à regrouper au maximum les notifs sans avoir à mettre des await sur chaque notif...
      * @param notification
      */
     private async notify(notification: NotificationVO) {

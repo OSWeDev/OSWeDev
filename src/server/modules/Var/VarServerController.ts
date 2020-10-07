@@ -1,78 +1,80 @@
-import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import ForkedTasksController from '../Fork/ForkedTasksController';
-import PushDataServerController from '../PushData/PushDataServerController';
+// TODO FIXXME REFONTE VARS à supprimer remplacé par VarsSocketsSubsController
 
-export default class VarServerController {
+// import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+// import ForkedTasksController from '../Fork/ForkedTasksController';
+// import PushDataServerController from '../PushData/PushDataServerController';
 
-    public static TASK_NAME_notify_computedvardatas: string = 'VarServerController.notify_computedvardatas';
-    public static TASK_NAME_add_uid_waiting_for_indexes: string = 'VarServerController.add_uid_waiting_for_indexes';
+// export default class VarServerController {
 
-    public static getInstance() {
-        if (!VarServerController.instance) {
-            VarServerController.instance = new VarServerController();
-        }
-        return VarServerController.instance;
-    }
+//     public static TASK_NAME_notify_computedvardatas: string = 'VarServerController.notify_computedvardatas';
+//     public static TASK_NAME_add_uid_waiting_for_indexes: string = 'VarServerController.add_uid_waiting_for_indexes';
 
-    private static instance: VarServerController = null;
+//     public static getInstance() {
+//         if (!VarServerController.instance) {
+//             VarServerController.instance = new VarServerController();
+//         }
+//         return VarServerController.instance;
+//     }
 
-    /**
-     * Global application cache - Handled by Main process -----
-     *  - Exists only on main process (Express)
-     */
-    private uid_waiting_for_indexes: { [index: string]: { [uid: number]: boolean } } = {};
-    /**
-     * Global application cache - Handled by Main process -----
-     */
+//     private static instance: VarServerController = null;
 
-    private constructor() {
-        ForkedTasksController.getInstance().register_task(VarServerController.TASK_NAME_notify_computedvardatas, this.notify_computedvardatas.bind(this));
-        ForkedTasksController.getInstance().register_task(VarServerController.TASK_NAME_add_uid_waiting_for_indexes, this.add_uid_waiting_for_indexes.bind(this));
-    }
+//     /**
+//      * Global application cache - Handled by Main process -----
+//      *  - Exists only on main process (Express)
+//      */
+//     private uid_waiting_for_indexes: { [index: string]: { [uid: number]: boolean } } = {};
+//     /**
+//      * Global application cache - Handled by Main process -----
+//      */
 
-    public add_uid_waiting_for_indexes(uid: number, var_index: string) {
+//     private constructor() {
+//         ForkedTasksController.getInstance().register_task(VarServerController.TASK_NAME_notify_computedvardatas, this.notify_computedvardatas.bind(this));
+//         ForkedTasksController.getInstance().register_task(VarServerController.TASK_NAME_add_uid_waiting_for_indexes, this.add_uid_waiting_for_indexes.bind(this));
+//     }
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarServerController.TASK_NAME_add_uid_waiting_for_indexes, uid, var_index)) {
-            return;
-        }
+//     public add_uid_waiting_for_indexes(uid: number, var_index: string) {
 
-        if (!this.uid_waiting_for_indexes[var_index]) {
-            this.uid_waiting_for_indexes[var_index] = {};
-        }
-        this.uid_waiting_for_indexes[var_index][uid] = true;
-    }
+//         if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarServerController.TASK_NAME_add_uid_waiting_for_indexes, uid, var_index)) {
+//             return;
+//         }
 
-    public notify_computedvardatas(var_datas: VarDataBaseVO[]): boolean {
+//         if (!this.uid_waiting_for_indexes[var_index]) {
+//             this.uid_waiting_for_indexes[var_index] = {};
+//         }
+//         this.uid_waiting_for_indexes[var_index][uid] = true;
+//     }
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarServerController.TASK_NAME_notify_computedvardatas, var_datas)) {
-            return;
-        }
+//     public notify_computedvardatas(var_datas: VarDataBaseVO[]): boolean {
 
-        let datas_by_uid_for_notif: { [uid: number]: VarDataBaseVO[] } = {};
+//         if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarServerController.TASK_NAME_notify_computedvardatas, var_datas)) {
+//             return;
+//         }
 
-        for (let i in var_datas) {
-            let var_data: VarDataBaseVO = var_datas[i];
-            let var_index: string = var_data.index;
+//         let datas_by_uid_for_notif: { [uid: number]: VarDataBaseVO[] } = {};
 
-            if (this.uid_waiting_for_indexes[var_index]) {
-                for (let uid_i in this.uid_waiting_for_indexes[var_index]) {
+//         for (let i in var_datas) {
+//             let var_data: VarDataBaseVO = var_datas[i];
+//             let var_index: string = var_data.index;
 
-                    let uid = parseInt(uid_i.toString());
-                    if (!datas_by_uid_for_notif[uid]) {
-                        datas_by_uid_for_notif[uid] = [];
-                    }
-                    datas_by_uid_for_notif[uid].push(var_data);
-                }
-                delete this.uid_waiting_for_indexes[var_index];
-            }
-        }
+//             if (this.uid_waiting_for_indexes[var_index]) {
+//                 for (let uid_i in this.uid_waiting_for_indexes[var_index]) {
 
-        for (let uid_i in datas_by_uid_for_notif) {
+//                     let uid = parseInt(uid_i.toString());
+//                     if (!datas_by_uid_for_notif[uid]) {
+//                         datas_by_uid_for_notif[uid] = [];
+//                     }
+//                     datas_by_uid_for_notif[uid].push(var_data);
+//                 }
+//                 delete this.uid_waiting_for_indexes[var_index];
+//             }
+//         }
 
-            let uid = parseInt(uid_i.toString());
+//         for (let uid_i in datas_by_uid_for_notif) {
 
-            PushDataServerController.getInstance().notifyVarsDatas(uid, datas_by_uid_for_notif[uid_i]);
-        }
-        return true;
-    }
-}
+//             let uid = parseInt(uid_i.toString());
+
+//             PushDataServerController.getInstance().notifyVarsDatas(uid, datas_by_uid_for_notif[uid_i]);
+//         }
+//         return true;
+//     }
+// }
