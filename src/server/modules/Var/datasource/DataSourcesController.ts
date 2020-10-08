@@ -1,4 +1,5 @@
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
+import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import DataSourceControllerBase from './DataSourceControllerBase';
 
@@ -25,15 +26,21 @@ export default class DataSourcesController {
 
     private constructor() { }
 
-    public async get_data(ds: DataSourceControllerBase<any>, var_param, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<any> {
-        let data_index = ds.get_data_index(var_param);
+    public async load_node_datas(dss: Array<DataSourceControllerBase<any>>, node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<void> {
+        for (let i in dss) {
+            let ds = dss[i];
 
-        if (typeof ds_cache[data_index] === 'undefined') {
-            let data = await ds.get_data(var_param);
-            ds_cache[data_index] = ((typeof data === 'undefined') ? null : data);
+            if (typeof node.datasources[ds.name] !== 'undefined') {
+                continue;
+            }
+
+            let data_index = ds.get_data_index(node.var_data);
+            if (typeof ds_cache[data_index] === 'undefined') {
+                let data = await ds.get_data(node.var_data);
+                ds_cache[data_index] = ((typeof data === 'undefined') ? null : data);
+            }
+            node.datasources[ds.name] = ds_cache[data_index];
         }
-
-        return ds_cache[data_index];
     }
 
     public registerDataSource(

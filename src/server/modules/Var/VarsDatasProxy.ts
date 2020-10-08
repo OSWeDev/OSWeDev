@@ -1,7 +1,9 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import VarsServerController from './VarsServerController';
@@ -35,11 +37,22 @@ export default class VarsDatasProxy {
     /**
      * On a explicitement pas l'id à ce niveau donc on cherche par l'index plutôt
      */
-    public async get_exact_param_from_buffer_or_bdd(var_data: VarDataBaseVO): Promise<VarDataBaseVO> {
+    public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T): Promise<T> {
 
         if (this.vars_datas_buffer[var_data.index]) {
-            return this.vars_datas_buffer[var_data.index]
+            return this.vars_datas_buffer[var_data.index] as T;
         }
+
+        if (var_data.id) {
+            return await ModuleDAO.getInstance().getVoById<T>(var_data._type, var_data.id, VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_segmented_field_raw_value_from_vo(var_data));
+        }
+
+        let res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(var_data._type, [var_data], null);
+
+        if (res && res.length) {
+            return res[0];
+        }
+        return null;
     }
 
     /**
@@ -64,25 +77,10 @@ export default class VarsDatasProxy {
 
             let var_data = this.vars_datas_buffer[i];
 
-            if (typeof var_data.value === 'undefined') {
+            if (!var_data.has_valid_value) {
                 res[var_data.index] = var_data;
                 request_limit--;
                 continue;
-            }
-
-            let varcacheconf: VarCacheConfVO = VarsServerController.getInstance().varcacheconf_by_var_ids[var_data.var_id];
-            if (!var_data.value_ts) {
-                res[var_data.index] = var_data;
-                request_limit--;
-                continue;
-            }
-            if (varcacheconf && varcacheconf.cache_timeout_ms && (varcacheconf.cache_timeout_ms)) {
-                let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
-                if (var_data.value_ts.isBefore(timeout)) {
-                    res[var_data.index] = var_data;
-                    request_limit--;
-                    continue;
-                }
             }
         }
 
@@ -91,7 +89,7 @@ export default class VarsDatasProxy {
         }
 
         /**
-         * ATTENTION à ce stade en base on va trouver des datas qui sont pas computed mais qu'on retrouve par exemple comme computed
+         * Attention : à ce stade en base on va trouver des datas qui sont pas computed mais qu'on retrouve par exemple comme computed
          *  et valide (donc pas sélectionnées) dans le buffer d'attente de mise à jour en bdd. Donc on doit ignorer tous les ids
          *  des vars qui sont dans le buffer... (avantage ça concerne pas celles qui sont pas créées puisqu'il faut un id et la liste
          *  des ids reste relativement dense)...
@@ -126,14 +124,23 @@ export default class VarsDatasProxy {
                 let varcacheconf: VarCacheConfVO = varcacheconf_by_var_ids[var_id];
 
                 // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
+                //  Attention les données importées ne doivent pas être remises en question
                 let vars_datas_tmp: VarDataBaseVO[] = [];
                 if (!!varcacheconf.cache_timeout_ms) {
                     let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
-                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where var_id = ' + varcacheconf.var_id + ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') ' +
-                        ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') + ' limit ' + request_limit + ';', [ignore_ids_list]);
+                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
+                        ' var_id = ' + varcacheconf.var_id +
+                        ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') ' +
+                        ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') +
+                        ' and value_type != ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
+                        ' limit ' + request_limit + ';', [ignore_ids_list]);
                 } else {
-                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where value_ts is null and var_id = ' + varcacheconf.var_id +
-                        ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') + ' limit ' + request_limit + ';', [ignore_ids_list]);
+                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
+                        ' value_ts is null' +
+                        ' and var_id = ' + varcacheconf.var_id +
+                        ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') +
+                        ' and value_type != ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
+                        ' limit ' + request_limit + ';', [ignore_ids_list]);
                 }
 
                 for (let vars_datas_tmp_i in vars_datas_tmp) {

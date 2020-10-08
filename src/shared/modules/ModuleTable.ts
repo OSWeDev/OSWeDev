@@ -324,15 +324,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
 
     public get_segmented_field_value_from_vo(vo: IDistantVOBase): any {
 
-        if (!this.is_segmented) {
-            return null;
-        }
-
-        if (!vo) {
-            return null;
-        }
-
-        let field_value = vo[this.table_segmented_field.field_id];
+        let field_value = this.get_segmented_field_raw_value_from_vo(vo);
 
         if (!field_value) {
             return null;
@@ -383,6 +375,19 @@ export default class ModuleTable<T extends IDistantVOBase> {
         }
 
         return null;
+    }
+
+    public get_segmented_field_raw_value_from_vo(vo: IDistantVOBase): any {
+
+        if (!this.is_segmented) {
+            return null;
+        }
+
+        if (!vo) {
+            return null;
+        }
+
+        return vo[this.table_segmented_field.field_id];
     }
 
     public get_fields(): Array<ModuleTableField<any>> {
