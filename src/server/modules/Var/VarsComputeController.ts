@@ -158,7 +158,10 @@ export default class VarsComputeController {
 
                 /**
                  * On doit essayer de récupérer des données parcellaires
+                 *  si on a des données parcellaires par définition on doit quand même déployer les deps
                  */
+
+
                 données parcellaires
                 await this.deploy_deps(dep_node, vars_datas, ds_cache);
             }

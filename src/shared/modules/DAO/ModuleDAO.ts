@@ -55,6 +55,7 @@ export default class ModuleDAO extends Module {
     public static APINAME_GET_VOS_BY_EXACT_MATROIDS = "GET_VOS_BY_EXACT_MATROIDS";
     public static APINAME_FILTER_VOS_BY_MATROIDS = "FILTER_VOS_BY_MATROIDS";
     public static APINAME_FILTER_VOS_BY_MATROIDS_INTERSECTIONS = "FILTER_VOS_BY_MATROIDS_INTERSECTIONS";
+    public static APINAME_getVarImportsByMatroidParams = "getVarImportsByMatroidParams";
 
     // Optimisation pour les vars initialement
     public static APINAME_getColSumFilterByMatroid = "getColSumFilterByMatroid";
@@ -169,6 +170,12 @@ export default class ModuleDAO extends Module {
         //     APIDAOApiTypeAndFieldRangesParamsVO.translateCheckAccessParams
         // ));
 
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+            null,
+            ModuleDAO.APINAME_getVarImportsByMatroidParams,
+            (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
+            APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
+        ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
             null,
@@ -356,6 +363,27 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, number>(ModuleDAO.APINAME_getColSumFilterByMatroid, API_TYPE_ID, matroids, fields_ids_mapper);
     }
 
+    /**
+     * Retourne tous les matroids inclus les matroids en param
+     * IDEM filterVosByMatroids mais avec un contrôle du type de data importée
+     * @param API_TYPE_ID
+     * @param matroids
+     * @param fields_ids_mapper
+     */
+    public async getVarImportsByMatroidParams<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
+        if ((!matroids) || (!matroids.length)) {
+            return null;
+        }
+
+        return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, T[]>(ModuleDAO.APINAME_getVarImportsByMatroidParams, API_TYPE_ID, matroids, fields_ids_mapper);
+    }
+
+    /**
+     * Retourne tous les matroids inclus les matroids en param
+     * @param API_TYPE_ID
+     * @param matroids
+     * @param fields_ids_mapper
+     */
     public async filterVosByMatroids<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
         if ((!matroids) || (!matroids.length)) {
             return null;
@@ -364,6 +392,12 @@ export default class ModuleDAO extends Module {
         return await ModuleAPI.getInstance().handleAPI<APIDAOApiTypeAndMatroidsParamsVO, T[]>(ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS, API_TYPE_ID, matroids, fields_ids_mapper);
     }
 
+    /**
+     * Retourne tous les matroids intersectant les matroids en param
+     * @param API_TYPE_ID
+     * @param matroids
+     * @param fields_ids_mapper
+     */
     public async filterVosByMatroidsIntersections<T extends IDistantVOBase, U extends IMatroid>(API_TYPE_ID: string, matroids: U[], fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<T[]> {
         if ((!matroids) || (!matroids.length)) {
             return null;
