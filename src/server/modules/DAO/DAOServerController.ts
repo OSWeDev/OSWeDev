@@ -47,7 +47,7 @@ export default class DAOServerController {
     // private post_read_trigger_hook: DAOTriggerHook;
     public post_update_trigger_hook: DAOTriggerHook;
     public post_create_trigger_hook: DAOTriggerHook;
-    // private post_delete_trigger_hook: DAOTriggerHook;
+    public post_delete_trigger_hook: DAOTriggerHook;
     /**
      * Local thread cache -----
      */

@@ -12,7 +12,7 @@ export default class DAOTriggerHook extends TriggerHook<string, IDistantVOBase, 
     // public static DAO_POST_READ_TRIGGER: string = "DAO_POST_READ_TRIGGER";
     public static DAO_POST_UPDATE_TRIGGER: string = "DAO_POST_UPDATE_TRIGGER";
     public static DAO_POST_CREATE_TRIGGER: string = "DAO_POST_CREATE_TRIGGER";
-    // public static DAO_POST_DELETE_TRIGGER: string = "DAO_POST_DELETE_TRIGGER";
+    public static DAO_POST_DELETE_TRIGGER: string = "DAO_POST_DELETE_TRIGGER";
 
     constructor(public trigger_type_UID: string) {
         super(trigger_type_UID);

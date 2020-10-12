@@ -69,6 +69,19 @@ export default class DataSourcesController {
         return Object.assign(res_before, res_after);
     }
 
+    /**
+     * Fonction qui permet de renvoyer de manière précis
+     * @param vo_before_update
+     * @param vo_after_update
+     */
+    public getUpdatedParamsFromVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase): { [index: string]: VarDataBaseVO } {
+
+        let res_before: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_before_update);
+        let res_after: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_after_update);
+
+        return Object.assign(res_before, res_after);
+    }
+
     private getUpdatedParamsFromVo(vo: IDistantVOBase): { [index: string]: VarDataBaseVO } {
 
         if ((!vo) || (!vo._type) || (!this.registeredDataSourcesControllerByVoTypeDep[vo._type])) {

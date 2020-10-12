@@ -1,4 +1,5 @@
 import cloneDeep = require('lodash/cloneDeep');
+import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
@@ -25,28 +26,12 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     public optimization__has_only_atomic_imports: boolean = false;
 
     // /**
-    //  * Used for every segmented data, defaults to day segmentation. Used for cumuls, and refining use of the param.date_index
-    //  */
-    // public abstract segment_type: number;
-
-    // /**
-    //  * On declare passer par le système de calcul optimisé des imports plutôt que par le système standard.
-    //  *  ça optimise énormément les calculs mais ça nécessite des paramètrages et c'est pas toujours compatible
-    //  */
-    // public can_use_optimized_imports_calculation: boolean = false;
-
-    // /**
     //  * Permet d'indiquer au système de calcul optimisé des imports entre autre les champs qui sont déclarés par combinaison
     //  *  (et donc sur lesquels on fait une recherche exacte et pas par inclusion comme pour les champs atomiques)
     //  * On stocke le segment_type. Cela signifie que le champs est obligatoirement normalisé, et qu'on a un découpage suivant le segment_type
     //  *  en ordre croissant en base. Très important par ce que ARRAY(a,b) c'est différent de ARRAY(b,a) pour la base. Même si ça couvre les mêmes ensembles
     //  */
     // public datas_fields_type_combinatory: { [matroid_field_id: string]: number } = {};
-
-    // /**
-    //  * Déclarer qu'une var n'utilise que des imports et/ou precompiled qui sont dissociés - cardinal 1 (atomiques)
-    //  */
-    // public has_only_atomique_imports_or_precompiled_datas: boolean = false;
 
     public var_cache_conf: VarCacheConfVO = null;
     protected aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;
@@ -76,10 +61,11 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         return null;
     }
 
-    /**
-     * Returns the var_ids that we depend upon (or might depend)
-     */
-    public abstract getVarsIdsDependencies(): number[];
+    // TODO REFONTE : toujours utile ?
+    // /**
+    //  * Returns the var_ids that we depend upon (or might depend)
+    //  */
+    // public abstract getVarsIdsDependencies(): number[];
 
     /**
      * Fonction de calcul de la valeur pour ce param et stockage dans le var_data du noeud
@@ -166,6 +152,18 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     public UT__getValue(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): number {
         return this.getValue(this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
     }
+
+    /**
+     * Méthode appelée par les triggers de POST Create / POST Delete sur les vos dont cette var dépend (via les déclarations dans les Datasources)
+     * @param c_or_d_vo le vo créé ou supprimé
+     */
+    public abstract get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase);
+
+    /**
+     * Méthode appelée par les triggers de POST update sur les vos dont cette var dépend (via les déclarations dans les Datasources)
+     * @param c_or_d_vo le vo créé ou supprimé
+     */
+    public abstract get_invalid_params_intersectors_on_POST_U(pre_u_vo: IDistantVOBase, post_u_vo: IDistantVOBase);
 
     /**
      * La fonction de calcul, qui doit utiliser directement les datasources préchargés disponibles dans le noeud (.datasources)

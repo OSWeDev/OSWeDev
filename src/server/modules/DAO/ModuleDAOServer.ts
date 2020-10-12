@@ -284,8 +284,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_update_trigger_hook);
         DAOServerController.getInstance().post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_create_trigger_hook);
-        // this.post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
-        // ModuleTrigger.getInstance().registerTriggerHook(this.post_delete_trigger_hook);
+        DAOServerController.getInstance().post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
+        ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_delete_trigger_hook);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Modifier'
@@ -1055,6 +1055,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        let deleted_vos: IDistantVOBase[] = [];
+
         let results: any[] = await ModuleServiceBase.getInstance().db.tx(async (t) => {
 
             let queries: any[] = [];
@@ -1091,12 +1093,20 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 const sql = "DELETE FROM " + full_name + " where id = ${id} RETURNING id";
+                deleted_vos.push(vo);
                 queries.push(t.oneOrNone(sql, vo)/*posttrigger pas si simple : .then(async (data) => {
                     await this.post_delete_trigger_hook.trigger(vo._type, vo);
                 })*/);
             }
 
             return t.batch(queries);
+        }).then(async (value: any) => {
+
+            for (let i in deleted_vos) {
+                let deleted_vo = deleted_vos[i];
+                await DAOServerController.getInstance().post_delete_trigger_hook.trigger(deleted_vo._type, deleted_vo);
+            }
+            return value;
         });
 
         return results;
