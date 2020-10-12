@@ -5,6 +5,7 @@ import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../shared/tools/DateHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import VarsServerController from './VarsServerController';
 
@@ -32,6 +33,27 @@ export default class VarsDatasProxy {
     private vars_datas_buffer: { [index: string]: VarDataBaseVO } = {};
 
     protected constructor() {
+    }
+
+    /**
+     * On indique en param le nombre de vars qu'on accepte de gérer dans le buffer
+     *  Le dépilage se fait dans l'ordre de la déclaration, via une itération
+     *  Si un jour l'ordre diffère dans JS, on passera sur une liste en FIFO, c'est le but dans tous les cas
+     * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon
+     */
+    public async handle_buffer(limit: number): Promise<number> {
+
+        let index: string = ObjectHandler.getInstance().getFirstAttributeName(this.vars_datas_buffer);
+        while ((limit > 0) && index) {
+
+            await ModuleDAO.getInstance().insertOrUpdateVO(this.vars_datas_buffer[index]);
+            delete this.vars_datas_buffer[index];
+
+            index = ObjectHandler.getInstance().getFirstAttributeName(this.vars_datas_buffer);
+            limit--;
+        }
+
+        return limit;
     }
 
     /**

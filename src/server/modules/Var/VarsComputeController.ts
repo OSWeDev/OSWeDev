@@ -5,6 +5,7 @@ import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
 import VarsDatasProxy from './VarsDatasProxy';
+import VarsImportsHandler from './VarsImportsHandler';
 
 export default class VarsComputeController {
 
@@ -85,7 +86,7 @@ export default class VarsComputeController {
     /**
      * Première étape du calcul, on génère l'arbre en commençant par les params:
      *  - Si le noeud existe dans l'arbre, osef
-     *  - Sinon on déploie les deps :
+     *  - Sinon :
      *      - Identifier les deps
      *      - Déployer effectivement les deps identifiées
      */
@@ -102,6 +103,9 @@ export default class VarsComputeController {
     }
 
     /**
+     *  - On entame en vérifiant qu'on a testé le cas des imports parcellaires :
+     *      - Si on a des imports, on split et on relance le déploiement sur les nouveaux noeuds restants à calculer
+     *      - sinon, on continue en déployant normalement les deps de ce noeud
      *  - Pour chaque DEP :
      *      - Si la dep est déjà dans la liste des vars_datas, aucun impact, on continue normalement ce cas est géré au moment de créer les noeuds pour les params
      *      - Si le noeud existe dans l'arbre, on s'assure juste que la liaison existe vers le noeud qui a tenté de générer la dep et on fuit.
@@ -113,9 +117,32 @@ export default class VarsComputeController {
      *              - si on en trouve, on sélectionne celles qu'on veut prioriser, et on découpe le noeud qu'on transforme en aggrégateur
      *              - sur chaque nouveau noeud sans valeur / y compris si on a pas trouvé d'intersecteurs on deploy_deps
      *                  (et donc pour lesquels on sait qu'on a de valeur ni en base ni en buffer ni dans l'arbre)
-     * Pour les noeuds initiaux (les vars_datas en param), on sait qu'on peut pas vouloir donner un import en résultat, donc inutile de faire cette recherche
+     * Pour les noeuds initiaux (les vars_datas en param), on sait qu'on ne peut pas vouloir donner un import complet en résultat, donc inutile de faire cette recherche
+     *  par contre un import partiel oui
      */
     private async deploy_deps(node: VarDAGNode, vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+
+        if ((typeof node.var_data.value === 'undefined') && (!node.var_controller.optimization__has_no_imports)) {
+
+            /**
+             * On doit essayer de récupérer des données parcellaires
+             *  si on a des données parcellaires par définition on doit quand même déployer les deps
+             */
+            VarsImportsHandler.getInstance().load_imports_and_split_nodes(node, vars_datas, ds_cache);
+
+            // Si on est sur un aggrégateur, on déploie les deps des noeuds restants à calculer
+            if (node.is_aggregator) {
+                for (let i in node.aggregated_nodes) {
+                    let aggregated_node = node.aggregated_nodes[i];
+
+                    if (typeof aggregated_node.var_data.value === 'undefined') {
+                        await this.deploy_deps(aggregated_node, vars_datas, ds_cache);
+                    }
+                }
+                return;
+            }
+        }
+
         let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node, ds_cache);
 
         for (let dep_id in deps) {
@@ -156,13 +183,6 @@ export default class VarsComputeController {
 
             if (typeof dep_node.var_data.value === 'undefined') {
 
-                /**
-                 * On doit essayer de récupérer des données parcellaires
-                 *  si on a des données parcellaires par définition on doit quand même déployer les deps
-                 */
-
-
-                données parcellaires
                 await this.deploy_deps(dep_node, vars_datas, ds_cache);
             }
         }
@@ -179,7 +199,9 @@ export default class VarsComputeController {
          * On charge toutes les datas predeps
          */
         let predeps_dss: Array<DataSourceControllerBase<any>> = node.var_controller.getDataSourcesPredepsDependencies();
-        await DataSourcesController.getInstance().load_node_datas(predeps_dss, node, ds_cache);
+        if (predeps_dss && predeps_dss.length) {
+            await DataSourcesController.getInstance().load_node_datas(predeps_dss, node, ds_cache);
+        }
 
         /**
          * On demande les deps

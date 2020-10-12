@@ -12,50 +12,41 @@ const moment = require('moment');
 export default abstract class VarServerControllerBase<TData extends VarDataBaseVO> {
 
     /**
-     * Used for every segmented data, defaults to day segmentation. Used for cumuls, and refining use of the param.date_index
+     * OPTIMISATION qui permet d'éviter complètement les questions de résolution des imports
+     *  Par défaut on considère qu'on a aucun import sur les variables, et si jamais on doit en avoir on active cette option explicitement
+     *  dans le constructeur de la Var
      */
-    public abstract segment_type: number;
+    public optimization__has_no_imports: boolean = true;
 
     /**
-     * Déclarer une var comme calculable côté serveur
+     * OPTIMISATION qui indique qu'une var ne peut avoir que des imports indépendants, et donc sur lesquels il est inutile
+     *  de vérifier lors du chargement des imports qu'ils ne s'intersectent pas (par définition ils n'intersectent pas, donc on prend tous les imports)
      */
-    public is_computable_server_side: boolean = true;
+    public optimization__has_only_atomic_imports: boolean = false;
 
-    /**
-     * Déclarer une var comme calculable côté client
-     */
-    public is_computable_client_side: boolean = true;
+    // /**
+    //  * Used for every segmented data, defaults to day segmentation. Used for cumuls, and refining use of the param.date_index
+    //  */
+    // public abstract segment_type: number;
 
-    /**
-     * On declare passer par le système de calcul optimisé des imports plutôt que par le système standard.
-     *  ça optimise énormément les calculs mais ça nécessite des paramètrages et c'est pas toujours compatible
-     */
-    public can_use_optimized_imports_calculation: boolean = false;
+    // /**
+    //  * On declare passer par le système de calcul optimisé des imports plutôt que par le système standard.
+    //  *  ça optimise énormément les calculs mais ça nécessite des paramètrages et c'est pas toujours compatible
+    //  */
+    // public can_use_optimized_imports_calculation: boolean = false;
 
-    /**
-     * Permet d'indiquer au système de calcul optimisé des imports entre autre les champs qui sont déclarés par combinaison
-     *  (et donc sur lesquels on fait une recherche exacte et pas par inclusion comme pour les champs atomiques)
-     * On stocke le segment_type. Cela signifie que le champs est obligatoirement normalisé, et qu'on a un découpage suivant le segment_type
-     *  en ordre croissant en base. Très important par ce que ARRAY(a,b) c'est différent de ARRAY(b,a) pour la base. Même si ça couvre les mêmes ensembles
-     */
-    public datas_fields_type_combinatory: { [matroid_field_id: string]: number } = {};
+    // /**
+    //  * Permet d'indiquer au système de calcul optimisé des imports entre autre les champs qui sont déclarés par combinaison
+    //  *  (et donc sur lesquels on fait une recherche exacte et pas par inclusion comme pour les champs atomiques)
+    //  * On stocke le segment_type. Cela signifie que le champs est obligatoirement normalisé, et qu'on a un découpage suivant le segment_type
+    //  *  en ordre croissant en base. Très important par ce que ARRAY(a,b) c'est différent de ARRAY(b,a) pour la base. Même si ça couvre les mêmes ensembles
+    //  */
+    // public datas_fields_type_combinatory: { [matroid_field_id: string]: number } = {};
 
-    /**
-     * Déclarer qu'une var n'utilise que des imports et/ou precompiled qui sont dissociés - cardinal 1 (atomiques)
-     */
-    public has_only_atomique_imports_or_precompiled_datas: boolean = false;
-
-    /**
-     * Déclarer une var comme pouvant utiliser des datas precompilées ou importées côté serveur
-     */
-    public can_load_precompiled_or_imported_datas_server_side: boolean = true;
-
-    /**
-     * Déclarer une var comme pouvant utiliser des datas precompilées ou importées côté client
-     * ATTENTION si on utilise du cache ou un calcul côté serveur de manière générale, il faut autoriser à envoyer la requête donc c'est true client, false ou true server side
-     * O ne met false aux 2 que pour empêcher tout import et tout cache, donc forcer le calcul côté client.
-     */
-    public can_load_precompiled_or_imported_datas_client_side: boolean = true;
+    // /**
+    //  * Déclarer qu'une var n'utilise que des imports et/ou precompiled qui sont dissociés - cardinal 1 (atomiques)
+    //  */
+    // public has_only_atomique_imports_or_precompiled_datas: boolean = false;
 
     public var_cache_conf: VarCacheConfVO = null;
     protected aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;

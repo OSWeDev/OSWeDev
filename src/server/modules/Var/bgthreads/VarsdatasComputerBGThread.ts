@@ -81,8 +81,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              *  Dans tous les cas la plus grosse optimisation est certainement sur le choix des vars à grouper pour un calcul le plus efficace possible et dans la limite
              *      de temps par batch qu'on veut se donner (si le plus efficace c'est de calculer toute la base d'un coup mais que ça prend 1H on fera pas ça dans tous les cas)
              */
-            // On se donne timeout ms pour calculer des vars, après on arrête et on rend la main.
-            //  On indique le nombre de var qu'on a pu calculer en info, et si on a timeout et pas fini, on retourne true pour continuer rapidement
             let start: number;
             let end_selection: number;
             let end_computation: number;
@@ -97,6 +95,15 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
             let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(this.request_limit);
             if ((!vars_datas) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(vars_datas))) {
+
+                /**
+                 * Si on a rien à dépiler, alors là on peut prendre le temps de vider une partie du buffer avant de rendre la main.
+                 */
+                let remaining: number = await VarsDatasProxy.getInstance().handle_buffer(500);
+
+                if (!remaining) {
+                    return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
+                }
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
@@ -148,99 +155,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     moment.duration(length_notif).humanize() + '] notifying [' +
                     moment.duration(length_update).humanize() + '] updating');
             }
-
-
-            // return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
-
-
-            // let vars_datas_by_ids: { [id: number]: VarDataBaseVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(vars_datas);
-            // while (vars_datas && vars_datas.length) {
-
-            //     if (!this.enabled) {
-            //         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
-            //     }
-
-            //     // On doit stocker le lien entre index et id pour ensuite pouvoir supprimer les anciens ids potentiellement ou mettre à jour les valeurs
-            //     let index_to_id: { [index: string]: number } = {};
-            //     for (let i in vars_datas) {
-            //         let var_data = vars_datas[i];
-
-            //         index_to_id[var_data.index] = var_data.id;
-            //     }
-
-            //     let computed_datas: VarDataBaseVO[] = await VarsController.getInstance().registerDataParamsAndReturnVarDatas(vars_datas, true, true);
-            //     VarsController.getInstance().clean_caches_and_vardag();
-
-            //     // if (!this.enabled) {
-            //     //     return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
-            //     // }
-
-            //     // On tente de supprimer les vars dont la value est 0 après calcul. ATTENTION aux effets de bord potentiels ...
-            //     let computed_datas_to_delete: VarDataBaseVO[] = [];
-            //     let computed_datas_to_update: VarDataBaseVO[] = [];
-            //     let datas_notif: VarDataBaseVO[] = [];
-
-            //     for (let i in computed_datas) {
-            //         let computed_data = computed_datas[i];
-            //         let var_index: string = computed_data.index;
-            //         let var_data: VarDataBaseVO = vars_datas_by_ids[index_to_id[var_index]];
-
-            //         if (!var_data) {
-            //             ConsoleHandler.getInstance().error('VarsdatasComputerBGThread:Impossible de retrouver la data source...');
-            //             continue;
-            //         }
-
-            //         // A SUPPRIMER si suppression de consider_null_as_0_and_auto_clean_0_in_cache dans VarCacheConfVO
-            //         // if (ModuleVarServer.getInstance().varcacheconf_by_var_ids[computed_data.var_id] && ModuleVarServer.getInstance().varcacheconf_by_var_ids[computed_data.var_id].consider_null_as_0_and_auto_clean_0_in_cache && !computed_data.value) {
-            //         //     computed_datas_to_delete.push(var_data);
-            //         // } else {
-            //         var_data.value = (!computed_data.value) ? 0 : computed_data.value;
-            //         computed_datas_to_update.push(var_data);
-            //         // }
-
-            //         var_data.value_ts = moment().utc(true);
-            //         var_data.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
-
-            //         datas_notif.push(var_data);
-            //     }
-
-            //     VarServerController.getInstance().notify_computedvardatas(datas_notif);
-            //     await ModuleDAO.getInstance().insertOrUpdateVOs(computed_datas_to_update);
-            //     await ModuleDAO.getInstance().deleteVOs(computed_datas_to_delete);
-
-            //     nb_computed += computed_datas.length;
-
-            //     let now: number = moment().utc(true).valueOf();
-            //     let elapsed = now - start;
-
-            //     if (elapsed > this.timeout) {
-
-            //         if (nb_computed == this.request_limit) {
-            //             if (!this.silent) {
-            //                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + nb_computed + ': vars. To be continued...');
-            //             }
-            //             return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
-            //         } else {
-            //             if (!this.silent) {
-            //                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + nb_computed + ': vars. The End.');
-            //             }
-            //             return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
-            //         }
-            //     }
-
-            //     vars_datas = await this.get_vars_to_compute();
-            //     if ((!vars_datas) || (!vars_datas.length)) {
-            //         return ModuleBGThreadServer.TIMEOUT_COEF_SLOWER;
-            //     }
-            //     vars_datas_by_ids = VOsTypesManager.getInstance().vosArray_to_vosByIds(vars_datas);
-            // }
-
-            // if (nb_computed > 0) {
-            //     if (!this.silent) {
-            //         ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + nb_computed + ': vars. The End.');
-            //     }
-            // }
-            // return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
         } catch (error) {
             console.error(error);
         }
