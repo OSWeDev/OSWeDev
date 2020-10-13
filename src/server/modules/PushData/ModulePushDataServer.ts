@@ -1,14 +1,14 @@
 import * as moment from 'moment';
-import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModulePushData from '../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataCronWorkersHandler from './PushDataCronWorkersHandler';
-import SocketWrapper from './vos/SocketWrapper';
 
 export default class ModulePushDataServer extends ModuleServerBase {
 
@@ -34,11 +34,11 @@ export default class ModulePushDataServer extends ModuleServerBase {
     public async configure() {
 
         // Triggers pour mettre à jour les dates
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationCreation.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationCreation);
 
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate.bind(this));
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(NotificationVO.API_TYPE_ID, this.handleNotificationUpdate);
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -63,12 +63,10 @@ export default class ModulePushDataServer extends ModuleServerBase {
         return true;
     }
 
-    private async handleNotificationUpdate(notif: NotificationVO): Promise<boolean> {
+    private async handleNotificationUpdate(vo_update_handler: DAOUpdateVOHolder<NotificationVO>): Promise<boolean> {
 
-        let enbase: NotificationVO = await ModuleDAO.getInstance().getVoById<NotificationVO>(NotificationVO.API_TYPE_ID, notif.id);
-
-        if ((!enbase.read) && notif.read) {
-            notif.read_date = moment().utc(true);
+        if ((!vo_update_handler.pre_update_vo.read) && vo_update_handler.post_update_vo.read) {
+            vo_update_handler.post_update_vo.read_date = moment().utc(true);
         }
         return true;
     }

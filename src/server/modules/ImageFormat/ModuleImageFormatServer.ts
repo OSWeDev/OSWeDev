@@ -18,7 +18,8 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 
@@ -59,18 +60,18 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
     }
 
     public async configure() {
-        let postUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
 
         // Quand on change un fichier on check si on doit changer l'url d'une image formattee au passage.
-        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.force_formatted_image_path_from_file_changed.bind(this));
+        postUpdateTrigger.registerHandler(FileVO.API_TYPE_ID, this.force_formatted_image_path_from_file_changed);
     }
 
     public registerServerApiHandlers() {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleImageFormat.APINAME_get_formatted_image, this.get_formatted_image.bind(this));
     }
 
-    private async force_formatted_image_path_from_file_changed(file: FileVO) {
-        let fimgs: FormattedImageVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<FormattedImageVO>(FormattedImageVO.API_TYPE_ID, 'file_id', [file.id]);
+    private async force_formatted_image_path_from_file_changed(vo_update_handler: DAOUpdateVOHolder<FileVO>) {
+        let fimgs: FormattedImageVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<FormattedImageVO>(FormattedImageVO.API_TYPE_ID, 'file_id', [vo_update_handler.post_update_vo.id]);
 
         if ((!fimgs) || (!fimgs.length)) {
             return;
@@ -79,7 +80,7 @@ export default class ModuleImageFormatServer extends ModuleServerBase {
         for (let i in fimgs) {
             let fimg = fimgs[i];
 
-            fimg.formatted_src = file.path;
+            fimg.formatted_src = vo_update_handler.post_update_vo.path;
             await ModuleDAO.getInstance().insertOrUpdateVO(fimg);
         }
     }

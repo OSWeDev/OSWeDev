@@ -56,7 +56,13 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
 import DAOServerController from './DAOServerController';
-import DAOTriggerHook from './triggers/DAOTriggerHook';
+import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
+import DAOPostDeleteTriggerHook from './triggers/DAOPostDeleteTriggerHook';
+import DAOPostUpdateTriggerHook from './triggers/DAOPostUpdateTriggerHook';
+import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from './vos/DAOUpdateVOHolder';
 
 export default class ModuleDAOServer extends ModuleServerBase {
 
@@ -270,21 +276,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
     }
 
     public async configure() {
-        // this.pre_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_READ_TRIGGER);
-        DAOServerController.getInstance().pre_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+
+        DAOServerController.getInstance().pre_update_trigger_hook = new DAOPreUpdateTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_update_trigger_hook);
-        DAOServerController.getInstance().pre_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        DAOServerController.getInstance().pre_create_trigger_hook = new DAOPreCreateTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_create_trigger_hook);
-        DAOServerController.getInstance().pre_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        DAOServerController.getInstance().pre_delete_trigger_hook = new DAOPreDeleteTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().pre_delete_trigger_hook);
 
-        // this.post_read_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_READ_TRIGGER);
-
-        DAOServerController.getInstance().post_update_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        DAOServerController.getInstance().post_update_trigger_hook = new DAOPostUpdateTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_update_trigger_hook);
-        DAOServerController.getInstance().post_create_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
+        DAOServerController.getInstance().post_create_trigger_hook = new DAOPostCreateTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_create_trigger_hook);
-        DAOServerController.getInstance().post_delete_trigger_hook = new DAOTriggerHook(DAOTriggerHook.DAO_POST_DELETE_TRIGGER);
+        DAOServerController.getInstance().post_delete_trigger_hook = new DAOPostDeleteTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
         ModuleTrigger.getInstance().registerTriggerHook(DAOServerController.getInstance().post_delete_trigger_hook);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -885,6 +889,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return new Promise<InsertOrDeleteQueryResult[]>(async (resolve, reject) => {
 
             let isUpdates: boolean[] = [];
+            let preUpdates: IDistantVOBase[] = [];
 
             let sqls = [];
             let bdd_versions = [];
@@ -898,7 +903,19 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 }
 
                 isUpdates[i] = vo.id ? true : false;
-                let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+                preUpdates[i] = null;
+
+                /**
+                 * Si on est sur un update et si on a des triggers de mise à jour on veut récupérer le vo en base avant de l'écraser pour le passer aux triggers
+                 */
+                if (vo.id) {
+
+                    if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
+                        preUpdates[i] = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id);
+                    }
+                }
+
+                let sql: string = await this.getqueryfor_insertOrUpdateVO(vo, preUpdates[i]);
 
                 if (!sql) {
                     continue;
@@ -928,7 +945,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 for (let i in results) {
 
                     if (isUpdates[i]) {
-                        await DAOServerController.getInstance().post_update_trigger_hook.trigger(vos[i]._type, vos[i]);
+                        await DAOServerController.getInstance().post_update_trigger_hook.trigger(vos[i]._type, new DAOUpdateVOHolder(preUpdates[i], vos[i]));
                     } else {
                         vos[i].id = parseInt(results[i].id.toString());
                         await DAOServerController.getInstance().post_create_trigger_hook.trigger(vos[i]._type, vos[i]);
@@ -953,6 +970,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return new Promise<InsertOrDeleteQueryResult>(async (resolve, reject) => {
 
             let isUpdate: boolean = vo.id ? true : false;
+            let preUpdate: IDistantVOBase = null;
 
             let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
 
@@ -961,7 +979,17 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            let sql: string = await this.getqueryfor_insertOrUpdateVO(vo);
+            /**
+             * Si on est sur un update et si on a des triggers de mise à jour on veut récupérer le vo en base avant de l'écraser pour le passer aux triggers
+             */
+            if (vo.id) {
+
+                if (DAOServerController.getInstance().pre_update_trigger_hook.has_trigger(vo._type) || DAOServerController.getInstance().post_update_trigger_hook.has_trigger(vo._type)) {
+                    preUpdate = await ModuleDAO.getInstance().getVoById<any>(vo._type, vo.id);
+                }
+            }
+
+            let sql: string = await this.getqueryfor_insertOrUpdateVO(vo, preUpdate);
             let failed: boolean = false;
 
             if (!sql) {
@@ -982,7 +1010,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if (result && vo) {
                 if (isUpdate) {
-                    await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, vo);
+                    await DAOServerController.getInstance().post_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(preUpdate, vo));
                 } else {
                     vo.id = parseInt(result.id.toString());
                     await DAOServerController.getInstance().post_create_trigger_hook.trigger(vo._type, vo);
@@ -1190,7 +1218,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         // return results;
     }
 
-    private async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase): Promise<string> {
+    private async getqueryfor_insertOrUpdateVO(vo: IDistantVOBase, pre_update_vo: IDistantVOBase): Promise<string> {
 
         if (!vo._type) {
             ConsoleHandler.getInstance().error("Un VO sans _type dans le DAO ! " + JSON.stringify(vo));
@@ -1210,7 +1238,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             // Ajout des triggers, avant et après modification.
             //  Attention si un des output est false avant modification, on annule la modification
-            let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, vo);
+            let res: boolean[] = await DAOServerController.getInstance().pre_update_trigger_hook.trigger(vo._type, new DAOUpdateVOHolder(pre_update_vo, vo));
             if (!BooleanHandler.getInstance().AND(res, true)) {
                 return null;
             }

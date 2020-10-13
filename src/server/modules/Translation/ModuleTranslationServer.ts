@@ -18,7 +18,11 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import TranslationCronWorkersHandler from './TranslationCronWorkersHandler';
@@ -51,16 +55,16 @@ export default class ModuleTranslationServer extends ModuleServerBase {
     }
 
     public async configure() {
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreCreateTranslatableTextVO.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreCreateTranslatableTextVO);
 
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO.bind(this));
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(TranslatableTextVO.API_TYPE_ID, this.onPreUpdateTranslatableTextVO);
 
-        let postCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
-        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_oncreate_lang.bind(this));
-        preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_ondelete_lang.bind(this));
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        postCreateTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_oncreate_lang);
+        preDeleteTrigger.registerHandler(LangVO.API_TYPE_ID, this.trigger_ondelete_lang);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Traductions'
@@ -665,12 +669,12 @@ export default class ModuleTranslationServer extends ModuleServerBase {
 
     private async trigger_oncreate_lang(lang: LangVO) {
         let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = new AccessPolicyVO();
-        LANG_SELECTOR_PER_LANG_ACCESS.group_id = this.policy_group.id;
+        LANG_SELECTOR_PER_LANG_ACCESS.group_id = ModuleTranslationServer.getInstance().policy_group.id;
         LANG_SELECTOR_PER_LANG_ACCESS.default_behaviour = AccessPolicyVO.DEFAULT_BEHAVIOUR_ACCESS_DENIED_TO_ALL_BUT_ADMIN;
         LANG_SELECTOR_PER_LANG_ACCESS.translatable_name = ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id);
         LANG_SELECTOR_PER_LANG_ACCESS = await ModuleAccessPolicyServer.getInstance().registerPolicy(LANG_SELECTOR_PER_LANG_ACCESS, new DefaultTranslation({
             fr: 'Outil - Peut choisir la langue : ' + lang.code_lang
-        }), await ModulesManagerServer.getInstance().getModuleVOByName(this.name));
+        }), await ModulesManagerServer.getInstance().getModuleVOByName(ModuleTranslationServer.getInstance().name));
     }
 
     private async trigger_ondelete_lang(lang: LangVO) {
@@ -725,15 +729,15 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         if ((!vo) || (!vo.code_text)) {
             return false;
         }
-        return await this.isCodeOk(vo.code_text);
+        return await ModuleTranslationServer.getInstance().isCodeOk(vo.code_text);
     }
 
-    private async onPreUpdateTranslatableTextVO(vo: TranslatableTextVO): Promise<boolean> {
+    private async onPreUpdateTranslatableTextVO(vo_update_handler: DAOUpdateVOHolder<TranslatableTextVO>): Promise<boolean> {
 
-        if ((!vo) || (!vo.code_text)) {
+        if ((!vo_update_handler.post_update_vo) || (!vo_update_handler.post_update_vo.code_text)) {
             return false;
         }
-        return await this.isCodeOk(vo.code_text);
+        return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text);
     }
 
     private async isCodeOk(code_text: string) {

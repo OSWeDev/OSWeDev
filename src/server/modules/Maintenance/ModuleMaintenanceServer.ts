@@ -9,7 +9,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import StackContext from '../../StackContext';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -106,8 +106,8 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }, 'menu.menuelements.module_maintenance.___LABEL___'));
 
 
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this.handleTriggerPreC_MaintenanceVO.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(MaintenanceVO.API_TYPE_ID, this.handleTriggerPreC_MaintenanceVO);
 
         ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_handleTriggerPreC_MaintenanceVO, this.handleTriggerPreC_MaintenanceVO.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleMaintenanceServer.TASK_NAME_end_maintenance, this.end_maintenance.bind(this));
@@ -215,7 +215,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
         }
 
         // Si une maintenance est déjà en cours, on doit pas pouvoir en rajouter
-        if (!!(await this.get_planned_maintenance())) {
+        if (!!(await ModuleMaintenanceServer.getInstance().get_planned_maintenance())) {
             return false;
         }
 

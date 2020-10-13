@@ -26,7 +26,10 @@ import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerCont
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
@@ -119,14 +122,14 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         ModuleBGThreadServer.getInstance().registerBGThread(DataImportBGThread.getInstance());
 
         // Triggers pour mettre à jour les dates
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateUpdate.bind(this));
-        preCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateCreation.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateUpdate);
+        preCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.handleImportHistoricDateCreation);
 
         // Triggers pour faire avancer l'import
-        let postCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
-        postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID.bind(this));
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        postCreateTrigger.registerHandler(DataImportHistoricVO.API_TYPE_ID, this.setImportHistoricUID);
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -732,33 +735,9 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
     }
 
-    private async handleImportHistoricDateUpdate(importHistoric: DataImportHistoricVO): Promise<boolean> {
+    private async handleImportHistoricDateUpdate(vo_update_handler: DAOUpdateVOHolder<DataImportHistoricVO>): Promise<boolean> {
 
-        // Pour éviter tout risque de désordre dans la gestion des imports, on ignore le cas du réimport.
-        // Donc si on est en train de modifier pour faire un réimport, on modifie pas la date.
-        // // En fait ça casse les cou..les : On devrait aussi refuser toute modification de statut manuelle, et pas réalisée directement par le serveur.
-
-        // let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        // let session = httpContext ? httpContext.get('SESSION') : null;
-        // let bdd_import: DataImportHistoricVO = await ModuleDAO.getInstance().getVoById<DataImportHistoricVO>(DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
-
-        // if (session && !!session.uid) {
-        //     // Cas d'une modif par un utilisateur, on doit refuser le changement de statuts si c'est pas pour un réimport.
-
-        //     if ((importHistoric.state != bdd_import.state) && (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT)) {
-
-        //         // Cas particulier du changement de statuts sur un import en validation manuelle qui doit continuer de fonctionner....
-        //         if (!((bdd_import.state == ModuleDataImport.IMPORTATION_STATE_FORMATTED) && (!importHistoric.autovalidate))) {
-
-        //             let uid: number = httpContext ? httpContext.get('UID') : null;
-        //             if (!!uid) {
-        //                 ModulePushDataServer.getInstance().notifySimpleERROR(uid, 'handleImportHistoricDateUpdate.change_state.error');
-        //             }
-
-        //             return false;
-        //         }
-        //     }
-        // }
+        let importHistoric: DataImportHistoricVO = vo_update_handler.post_update_vo;
 
         if (importHistoric.state != ModuleDataImport.IMPORTATION_STATE_NEEDS_REIMPORT) {
             importHistoric.last_up_date = moment().utc(true);

@@ -8,7 +8,10 @@ import ModuleVersioned from '../../../shared/modules/Versioned/ModuleVersioned';
 import VersionedVOController from '../../../shared/modules/Versioned/VersionedVOController';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 const moment = require('moment');
 
@@ -36,14 +39,14 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         for (let i in VersionedVOController.getInstance().registeredModuleTables) {
             let registeredModuleTable = VersionedVOController.getInstance().registeredModuleTables[i];
 
-            let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-            preCreateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreCreate.bind(this));
+            let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+            preCreateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreCreate);
 
-            let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-            preUpdateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreUpdate.bind(this));
+            let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+            preUpdateTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreUpdate);
 
-            let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
-            preDeleteTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreDelete.bind(this));
+            let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
+            preDeleteTrigger.registerHandler(registeredModuleTable.vo_type, this.handleTriggerVOPreDelete);
         }
     }
 
@@ -82,28 +85,28 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         return true;
     }
 
-    private async handleTriggerVOPreUpdate(vo: IVersionedVO) {
+    private async handleTriggerVOPreUpdate(vo_update_handler: DAOUpdateVOHolder<IVersionedVO>) {
 
-        let cloned: IVersionedVO = await ModuleDAO.getInstance().getVoById<IVersionedVO>(vo._type, vo.id);
+        let cloned: IVersionedVO = vo_update_handler.pre_update_vo;
 
         cloned.id = null;
         cloned._type = VersionedVOController.getInstance().getVersionedVoType(cloned._type);
-        cloned.parent_id = vo.id;
+        cloned.parent_id = vo_update_handler.post_update_vo.id;
 
         await ModuleDAO.getInstance().insertOrUpdateVO(cloned);
 
         let uid: number = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
 
         if (!!uid) {
-            vo.version_edit_author_id = uid;
+            vo_update_handler.post_update_vo.version_edit_author_id = uid;
         } else {
             let robot_user: UserVO = await ModuleDAO.getInstance().getNamedVoByName<UserVO>(UserVO.API_TYPE_ID, 'robot');
-            vo.version_edit_author_id = robot_user ? robot_user.id : null;
+            vo_update_handler.post_update_vo.version_edit_author_id = robot_user ? robot_user.id : null;
         }
 
-        vo.version_edit_timestamp = moment().utc(true);
+        vo_update_handler.post_update_vo.version_edit_timestamp = moment().utc(true);
 
-        vo.version_num++;
+        vo_update_handler.post_update_vo.version_num++;
 
         return true;
     }

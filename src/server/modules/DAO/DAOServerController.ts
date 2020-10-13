@@ -6,7 +6,12 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ForkedTasksController from '../Fork/ForkedTasksController';
-import DAOTriggerHook from './triggers/DAOTriggerHook';
+import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
+import DAOPostDeleteTriggerHook from './triggers/DAOPostDeleteTriggerHook';
+import DAOPostUpdateTriggerHook from './triggers/DAOPostUpdateTriggerHook';
+import DAOPreCreateTriggerHook from './triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from './triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from './triggers/DAOPreUpdateTriggerHook';
 
 export default class DAOServerController {
 
@@ -39,15 +44,13 @@ export default class DAOServerController {
     // On expose des hooks pour les modules qui veulent gérer le filtrage des vos suivant l'utilisateur connecté
     public access_hooks: { [api_type_id: string]: { [access_type: string]: IHookFilterVos<IDistantVOBase> } } = {};
 
-    // private pre_read_trigger_hook: DAOTriggerHook;
-    public pre_update_trigger_hook: DAOTriggerHook;
-    public pre_create_trigger_hook: DAOTriggerHook;
-    public pre_delete_trigger_hook: DAOTriggerHook;
+    public pre_update_trigger_hook: DAOPreUpdateTriggerHook;
+    public pre_create_trigger_hook: DAOPreCreateTriggerHook;
+    public pre_delete_trigger_hook: DAOPreDeleteTriggerHook;
 
-    // private post_read_trigger_hook: DAOTriggerHook;
-    public post_update_trigger_hook: DAOTriggerHook;
-    public post_create_trigger_hook: DAOTriggerHook;
-    public post_delete_trigger_hook: DAOTriggerHook;
+    public post_update_trigger_hook: DAOPostUpdateTriggerHook;
+    public post_create_trigger_hook: DAOPostCreateTriggerHook;
+    public post_delete_trigger_hook: DAOPostDeleteTriggerHook;
     /**
      * Local thread cache -----
      */

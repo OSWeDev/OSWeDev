@@ -20,7 +20,9 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTeamsAPIServer from '../TeamsAPI/ModuleTeamsAPIServer';
@@ -81,12 +83,12 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         /**
          * On gère l'historique des valeurs
          */
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         for (let vo_type in SupervisionController.getInstance().registered_controllers) {
-            preUpdateTrigger.registerHandler(vo_type, this.onPreU_SUP_ITEM_HISTORIZE.bind(this));
-            preCreateTrigger.registerHandler(vo_type, this.onpreC_SUP_ITEM.bind(this));
+            preUpdateTrigger.registerHandler(vo_type, this.onPreU_SUP_ITEM_HISTORIZE);
+            preCreateTrigger.registerHandler(vo_type, this.onpreC_SUP_ITEM);
         }
     }
 
@@ -114,7 +116,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         admin_access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(admin_access_dependency);
     }
 
-    private async onPreU_SUP_ITEM_HISTORIZE(supervised_item: ISupervisedItem) {
+    private async onPreU_SUP_ITEM_HISTORIZE(vo_update_handler: DAOUpdateVOHolder<ISupervisedItem>): Promise<boolean> {
 
         /**
          * On veut changer la date et historiser que si on est en train de stocker une nouvelle valeur.
@@ -125,28 +127,27 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
          *      - Si un champs spécifique à ce type (pas dans les champs ISupervised) ko
          *      - Sinon ok
          */
-        let old = await ModuleDAO.getInstance().getVoById<ISupervisedItem>(supervised_item._type, supervised_item.id);
 
         // Si on passe pas en pause, on stocke tout de suite en statut pre pause
-        if (supervised_item && (supervised_item.state != SupervisionController.STATE_PAUSED)) {
-            supervised_item.state_before_pause = supervised_item.state;
+        if (vo_update_handler.post_update_vo && (vo_update_handler.post_update_vo.state != SupervisionController.STATE_PAUSED)) {
+            vo_update_handler.post_update_vo.state_before_pause = vo_update_handler.post_update_vo.state;
         }
 
         let has_new_value: boolean = true;
-        if (old.last_value === supervised_item.last_value) {
+        if (vo_update_handler.pre_update_vo.last_value === vo_update_handler.post_update_vo.last_value) {
 
-            if (old.name != supervised_item.name) {
+            if (vo_update_handler.pre_update_vo.name != vo_update_handler.post_update_vo.name) {
                 has_new_value = false;
             }
-            if ((old.state == SupervisionController.STATE_PAUSED) || (supervised_item.state == SupervisionController.STATE_PAUSED)) {
+            if ((vo_update_handler.pre_update_vo.state == SupervisionController.STATE_PAUSED) || (vo_update_handler.post_update_vo.state == SupervisionController.STATE_PAUSED)) {
                 has_new_value = false;
             }
-            if (supervised_item.state == SupervisionController.STATE_UNKOWN) {
+            if (vo_update_handler.post_update_vo.state == SupervisionController.STATE_UNKOWN) {
                 has_new_value = false;
             }
 
             if (has_new_value) {
-                let moduletablefields = VOsTypesManager.getInstance().moduleTables_by_voType[supervised_item._type].get_fields();
+                let moduletablefields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
                 for (let i in moduletablefields) {
                     let moduletablefield = moduletablefields[i];
 
@@ -160,7 +161,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
                         case "state_before_pause":
                             break;
                         default:
-                            if (old[moduletablefield.field_id] != supervised_item[moduletablefield.field_id]) {
+                            if (vo_update_handler.pre_update_vo[moduletablefield.field_id] != vo_update_handler.post_update_vo[moduletablefield.field_id]) {
                                 has_new_value = false;
                             }
                     }
@@ -174,32 +175,32 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
              * Si on identifie une nouvelle valeur => et différente, et qu'il s'agit d'une erreur non lue, on envoie le script, de même que si la nouvelle valeur est ok et l'ancienne
              *  une erreur (lue ou non lue)
              */
-            if ((supervised_item.state != old.state) && (supervised_item.state == SupervisionController.STATE_ERROR) &&
-                (old.state != SupervisionController.STATE_ERROR_READ)) {
-                await this.on_new_unread_error(supervised_item);
+            if ((vo_update_handler.post_update_vo.state != vo_update_handler.pre_update_vo.state) && (vo_update_handler.post_update_vo.state == SupervisionController.STATE_ERROR) &&
+                (vo_update_handler.pre_update_vo.state != SupervisionController.STATE_ERROR_READ)) {
+                await ModuleSupervisionServer.getInstance().on_new_unread_error(vo_update_handler.post_update_vo);
             }
-            if ((supervised_item.state == SupervisionController.STATE_OK) && (
-                (old.state == SupervisionController.STATE_ERROR_READ) || (old.state == SupervisionController.STATE_ERROR))) {
-                await this.on_back_to_normal(supervised_item);
+            if ((vo_update_handler.post_update_vo.state == SupervisionController.STATE_OK) && (
+                (vo_update_handler.pre_update_vo.state == SupervisionController.STATE_ERROR_READ) || (vo_update_handler.pre_update_vo.state == SupervisionController.STATE_ERROR))) {
+                await ModuleSupervisionServer.getInstance().on_back_to_normal(vo_update_handler.post_update_vo);
             }
 
-            if (!supervised_item.first_update) {
-                supervised_item.first_update = moment().utc(true);
+            if (!vo_update_handler.post_update_vo.first_update) {
+                vo_update_handler.post_update_vo.first_update = moment().utc(true);
             }
-            supervised_item.last_update = moment().utc(true);
+            vo_update_handler.post_update_vo.last_update = moment().utc(true);
 
             /**
              * On historise
              */
-            let historique: ISupervisedItem = VOsTypesManager.getInstance().moduleTables_by_voType[supervised_item._type].getNewVO() as ISupervisedItem;
+            let historique: ISupervisedItem = VOsTypesManager.getInstance().moduleTables_by_voType[vo_update_handler.post_update_vo._type].getNewVO() as ISupervisedItem;
 
-            let moduletablefields = VOsTypesManager.getInstance().moduleTables_by_voType[supervised_item._type].get_fields();
+            let moduletablefields = VOsTypesManager.getInstance().moduleTables_by_voType[vo_update_handler.post_update_vo._type].get_fields();
             for (let i in moduletablefields) {
                 let moduletablefield = moduletablefields[i];
 
-                historique[moduletablefield.field_id] = old[moduletablefield.field_id];
+                historique[moduletablefield.field_id] = vo_update_handler.pre_update_vo[moduletablefield.field_id];
             }
-            historique._type = SupervisionController.getInstance().getSupHistVoType(supervised_item._type);
+            historique._type = SupervisionController.getInstance().getSupHistVoType(vo_update_handler.post_update_vo._type);
 
             await ModuleDAO.getInstance().insertOrUpdateVO(historique);
         }
@@ -218,7 +219,7 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             supervised_item.last_update = moment().utc(true);
 
             if (supervised_item.state == SupervisionController.STATE_ERROR) {
-                await this.on_new_unread_error(supervised_item);
+                await ModuleSupervisionServer.getInstance().on_new_unread_error(supervised_item);
             }
         }
 

@@ -31,12 +31,16 @@ import LangVO from '../../../shared/modules/Translation/vos/LangVO';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import StackContext from '../../StackContext';
 import TextHandler from '../../../shared/tools/TextHandler';
 import IServerUserSession from '../../IServerUserSession';
-import ServerBase from '../../ServerBase';
+import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
-import DAOTriggerHook from '../DAO/triggers/DAOTriggerHook';
+import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
+import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreDeleteTriggerHook from '../DAO/triggers/DAOPreDeleteTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
@@ -239,38 +243,38 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
     public async configure() {
 
         // On ajoute un trigger pour la création du compte
-        let preCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_CREATE_TRIGGER);
-        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOCreate.bind(this));
-        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUser.bind(this));
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOCreate);
+        preCreateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUser);
 
         // On ajoute un trigger pour la modification du mot de passe
-        let preUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_UPDATE_TRIGGER);
-        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOUpdate.bind(this));
-        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUser.bind(this));
+        let preUpdateTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
+        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.handleTriggerUserVOUpdate);
+        preUpdateTrigger.registerHandler(UserVO.API_TYPE_ID, this.checkBlockingOrInvalidatingUserUpdate);
 
         // On veut aussi des triggers pour tenir à jour les datas pre loadés des droits, comme ça si une mise à jour,
         //  ajout ou suppression on en prend compte immédiatement
-        let postCreateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_CREATE_TRIGGER);
-        let postUpdateTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_POST_UPDATE_TRIGGER);
-        let preDeleteTrigger: DAOTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOTriggerHook.DAO_PRE_DELETE_TRIGGER);
+        let postCreateTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
+        let postUpdateTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
+        let preDeleteTrigger: DAOPreDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreDeleteTriggerHook.DAO_PRE_DELETE_TRIGGER);
 
-        postCreateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onCreateAccessPolicyVO.bind(this));
-        postCreateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onCreatePolicyDependencyVO.bind(this));
-        postCreateTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onCreateRolePolicyVO.bind(this));
-        postCreateTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onCreateRoleVO.bind(this));
-        postCreateTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onCreateUserRoleVO.bind(this));
+        postCreateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onCreateAccessPolicyVO);
+        postCreateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onCreatePolicyDependencyVO);
+        postCreateTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onCreateRolePolicyVO);
+        postCreateTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onCreateRoleVO);
+        postCreateTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onCreateUserRoleVO);
 
-        postUpdateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onUpdateAccessPolicyVO.bind(this));
-        postUpdateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onUpdatePolicyDependencyVO.bind(this));
-        postUpdateTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onUpdateRolePolicyVO.bind(this));
-        postUpdateTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onUpdateRoleVO.bind(this));
-        postUpdateTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onUpdateUserRoleVO.bind(this));
+        postUpdateTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onUpdateAccessPolicyVO);
+        postUpdateTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onUpdatePolicyDependencyVO);
+        postUpdateTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onUpdateRolePolicyVO);
+        postUpdateTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onUpdateRoleVO);
+        postUpdateTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onUpdateUserRoleVO);
 
-        preDeleteTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onDeleteAccessPolicyVO.bind(this));
-        preDeleteTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onDeletePolicyDependencyVO.bind(this));
-        preDeleteTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onDeleteRolePolicyVO.bind(this));
-        preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onDeleteRoleVO.bind(this));
-        preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onDeleteUserRoleVO.bind(this));
+        preDeleteTrigger.registerHandler(AccessPolicyVO.API_TYPE_ID, this.onDeleteAccessPolicyVO);
+        preDeleteTrigger.registerHandler(PolicyDependencyVO.API_TYPE_ID, this.onDeletePolicyDependencyVO);
+        preDeleteTrigger.registerHandler(RolePolicyVO.API_TYPE_ID, this.onDeleteRolePolicyVO);
+        preDeleteTrigger.registerHandler(RoleVO.API_TYPE_ID, this.onDeleteRoleVO);
+        preDeleteTrigger.registerHandler(UserRoleVO.API_TYPE_ID, this.onDeleteUserRoleVO);
 
 
 
@@ -1164,26 +1168,19 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return await PasswordReset.getInstance().resetPwdUID(params.uid, params.challenge, params.new_pwd1);
     }
 
-    private async handleTriggerUserVOUpdate(vo: UserVO): Promise<boolean> {
+    private async handleTriggerUserVOUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>): Promise<boolean> {
 
-
-        if ((!vo) || (!vo.password) || (!vo.id)) {
+        if ((!vo_update_holder.post_update_vo) || (!vo_update_holder.post_update_vo.password) || (!vo_update_holder.post_update_vo.id)) {
             return true;
         }
 
-        let user_id: number = this.getLoggedUserId();
         let user: UserVO = null;
-        if (user_id == vo.id) {
-            user = await this.getSelfUser();
-        } else {
-            user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, vo.id);
-        }
 
-        if ((!user) || (user.password == vo.password)) {
+        if ((!user) || (user.password == vo_update_holder.pre_update_vo.password)) {
             return true;
         }
 
-        AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
+        AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo_update_holder.post_update_vo, vo_update_holder.post_update_vo.password);
 
         return true;
     }
@@ -1196,7 +1193,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
         let user: UserVO = await ModuleDAOServer.getInstance().selectOne<UserVO>(UserVO.API_TYPE_ID, " where email=$1", [vo.email]);
         if (!!user) {
-            this.sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
+            ModuleAccessPolicyServer.getInstance().sendErrorMsg('accesspolicy.user-create.mail.exists' + DefaultTranslation.DEFAULT_LABEL_EXTENSION);
             return false;
         }
         AccessPolicyController.getInstance().prepareForInsertOrUpdateAfterPwdChange(vo, vo.password);
@@ -1204,94 +1201,69 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         return true;
     }
 
-    private async onCreateAccessPolicyVO(vo: AccessPolicyVO): Promise<boolean> {
+    private async onCreateAccessPolicyVO(vo: AccessPolicyVO): Promise<void> {
         if ((!vo) || (!vo.id)) {
-            return true;
+            return;
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_policy, vo);
-        return true;
+        return;
     }
 
-    private async onCreatePolicyDependencyVO(vo: PolicyDependencyVO): Promise<boolean> {
+    private async onCreatePolicyDependencyVO(vo: PolicyDependencyVO): Promise<void> {
         if ((!vo) || (!vo.id)) {
-            return true;
+            return;
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_policy_dependency, vo);
-        return true;
+        return;
     }
 
-    private async onCreateRolePolicyVO(vo: RolePolicyVO): Promise<boolean> {
+    private async onCreateRolePolicyVO(vo: RolePolicyVO): Promise<void> {
         if ((!vo) || (!vo.id)) {
-            return true;
+            return;
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_role_policy, vo);
-        return true;
+        return;
     }
 
-    private async onCreateRoleVO(vo: RoleVO): Promise<boolean> {
+    private async onCreateRoleVO(vo: RoleVO): Promise<void> {
         if ((!vo) || (!vo.id)) {
-            return true;
+            return;
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_role, vo);
-        return true;
+        return;
     }
 
-    private async onCreateUserRoleVO(vo: UserRoleVO): Promise<boolean> {
+    private async onCreateUserRoleVO(vo: UserRoleVO): Promise<void> {
         if ((!vo) || (!vo.id)) {
-            return true;
+            return;
         }
 
         await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_set_registered_user_role, vo);
-        return true;
+        return;
     }
 
-    private async onUpdateAccessPolicyVO(vo: AccessPolicyVO): Promise<boolean> {
-        if ((!vo) || (!vo.id)) {
-            return true;
-        }
-
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_registered_policy, vo);
-        return true;
+    private async onUpdateAccessPolicyVO(vo_update_holder: DAOUpdateVOHolder<AccessPolicyVO>): Promise<void> {
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_registered_policy, vo_update_holder);
     }
 
-    private async onUpdatePolicyDependencyVO(vo: PolicyDependencyVO): Promise<boolean> {
-        if ((!vo) || (!vo.id)) {
-            return true;
-        }
-
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_policy_dependency, vo);
-        return true;
+    private async onUpdatePolicyDependencyVO(vo_update_holder: DAOUpdateVOHolder<PolicyDependencyVO>): Promise<void> {
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_policy_dependency, vo_update_holder);
     }
 
-    private async onUpdateRolePolicyVO(vo: RolePolicyVO): Promise<boolean> {
-        if ((!vo) || (!vo.id)) {
-            return true;
-        }
-
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role_policy, vo);
-        return true;
+    private async onUpdateRolePolicyVO(vo_update_holder: DAOUpdateVOHolder<RolePolicyVO>): Promise<void> {
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role_policy, vo_update_holder);
     }
 
-    private async onUpdateRoleVO(vo: RoleVO): Promise<boolean> {
-        if ((!vo) || (!vo.id)) {
-            return true;
-        }
-
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role, vo);
-        return true;
+    private async onUpdateRoleVO(vo_update_holder: DAOUpdateVOHolder<RoleVO>): Promise<void> {
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_role, vo_update_holder);
     }
 
-    private async onUpdateUserRoleVO(vo: UserRoleVO): Promise<boolean> {
-        if ((!vo) || (!vo.id)) {
-            return true;
-        }
-
-        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_user_role, vo);
-        return true;
+    private async onUpdateUserRoleVO(vo_update_holder: DAOUpdateVOHolder<UserRoleVO>): Promise<void> {
+        await ForkedTasksController.getInstance().broadexec(AccessPolicyServerController.TASK_NAME_update_user_role, vo_update_holder);
     }
 
     private async onDeleteAccessPolicyVO(vo: AccessPolicyVO): Promise<boolean> {
@@ -1522,23 +1494,33 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
         }
     }
 
+    private async checkBlockingOrInvalidatingUserUpdate(vo_update_holder: DAOUpdateVOHolder<UserVO>) {
+        return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(vo_update_holder.post_update_vo, vo_update_holder.pre_update_vo);
+
+    }
+
     private async checkBlockingOrInvalidatingUser(user: UserVO) {
         let old_user: UserVO = null;
         if (!!user.id) {
             old_user = await ModuleDAO.getInstance().getVoById<UserVO>(UserVO.API_TYPE_ID, user.id);
         }
 
-        if (user.blocked && !old_user) {
+        return ModuleAccessPolicyServer.getInstance().checkBlockingOrInvalidatingUser_(user, old_user);
+    }
+
+    private async checkBlockingOrInvalidatingUser_(user: UserVO, bdd_user: UserVO) {
+
+        if (user.blocked && !bdd_user) {
             // On a pas de sessions à supprimer en cas de création
-        } else if (user.blocked && !old_user.blocked) {
-            await this.onBlockOrInvalidateUserDeleteSessions(user.id);
+        } else if (user.blocked && !bdd_user.blocked) {
+            await ModuleAccessPolicyServer.getInstance().onBlockOrInvalidateUserDeleteSessions(user.id);
             return true;
         }
 
-        if (user.invalidated && !old_user) {
+        if (user.invalidated && !bdd_user) {
             // On a pas de sessions à supprimer en cas de création
-        } else if (user.invalidated && !old_user.invalidated) {
-            await this.onBlockOrInvalidateUserDeleteSessions(user.id);
+        } else if (user.invalidated && !bdd_user.invalidated) {
+            await ModuleAccessPolicyServer.getInstance().onBlockOrInvalidateUserDeleteSessions(user.id);
             return true;
         }
 
