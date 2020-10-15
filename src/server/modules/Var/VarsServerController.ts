@@ -11,6 +11,8 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
+import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 
 export default class VarsServerController {
 
@@ -32,6 +34,9 @@ export default class VarsServerController {
      */
 
     // NO CUD during run, just init in each thread - no multithreading special handlers needed
+    private _varcontrollers_dag: DAG<VarCtrlDAGNode> = null;
+
+    // NO CUD during run, just init in each thread - no multithreading special handlers needed
     private _registered_vars: { [name: string]: VarConfVOBase } = {};
     private _registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
     private _registered_vars_controller_: { [name: string]: VarServerControllerBase<any> } = {};
@@ -50,6 +55,10 @@ export default class VarsServerController {
      */
 
     protected constructor() {
+    }
+
+    get varcontrollers_dag() {
+        return this._varcontrollers_dag;
     }
 
     get registered_vars_by_datasource(): { [datasource_id: string]: Array<VarServerControllerBase<any>> } {
@@ -74,6 +83,10 @@ export default class VarsServerController {
 
     get cached_var_by_var_id(): { [var_id: number]: VarServerControllerBase<any> } {
         return this._cached_var_by_var_id;
+    }
+
+    public init_varcontrollers_dag(varcontrollers_dag: DAG<VarCtrlDAGNode>) {
+        this._varcontrollers_dag = varcontrollers_dag;
     }
 
     public getVarConf(var_name: string): VarConfVOBase {

@@ -61,11 +61,10 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         return null;
     }
 
-    // TODO REFONTE : toujours utile ?
-    // /**
-    //  * Returns the var_ids that we depend upon (or might depend)
-    //  */
-    // public abstract getVarsIdsDependencies(): number[];
+    /**
+     * Returns the var_controller we depend upon (or might depend) by dependents name
+     */
+    public abstract getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> };
 
     /**
      * Fonction de calcul de la valeur pour ce param et stockage dans le var_data du noeud

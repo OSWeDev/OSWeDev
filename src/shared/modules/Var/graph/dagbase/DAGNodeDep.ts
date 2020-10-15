@@ -1,9 +1,9 @@
-import VarDAGNode from './VarDAGNode';
+import DAGNodeBase from './DAGNodeBase';
 
-export default class VarDAGNodeDep {
+export default class DAGNodeDep<T extends DAGNodeBase> {
 
-    public incoming_node: VarDAGNode;
-    public outgoing_node: VarDAGNode;
+    public incoming_node: T;
+    public outgoing_node: T;
 
     /**
      * Label qui permet d'identifier la liaison explicitement sur le noeud incoming pour faciliter les calculs
@@ -16,7 +16,7 @@ export default class VarDAGNodeDep {
      * @param dep_name
      * @param outgoing_node
      */
-    public constructor(dep_name: string, outgoing_node: VarDAGNode) {
+    public constructor(dep_name: string, outgoing_node: T) {
         this.dep_name = dep_name;
         this.outgoing_node = outgoing_node;
     }

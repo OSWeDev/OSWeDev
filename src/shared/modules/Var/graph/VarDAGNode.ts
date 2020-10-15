@@ -1,34 +1,23 @@
-import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
-import ObjectHandler from '../../../tools/ObjectHandler';
 import VarDataBaseVO from '../vos/VarDataBaseVO';
-import VarDAG from './VarDAG';
-import VarDAGNodeDep from './VarDAGNodeDep';
+import DAG from './dagbase/DAG';
+import DAGNodeBase from './dagbase/DAGNodeBase';
+import DAGNodeDep from './dagbase/DAGNodeDep';
 
-export default class VarDAGNode {
+export default class VarDAGNode extends DAGNodeBase {
 
     /**
      * Factory de noeuds en fonction du nom. Permet d'assurer l'unicité des params dans l'arbre
      *  La value du noeud est celle du var_data passé en param, et donc si undefined le noeud est non calculé
      *  Le nom du noeud est l'index du var_data
      */
-    public static getInstance(dag: VarDAG, var_data: VarDataBaseVO): VarDAGNode {
+    public static getInstance(dag: DAG<VarDAGNode>, var_data: VarDataBaseVO): VarDAGNode {
         if (!!dag.nodes[var_data.index]) {
             return dag.nodes[var_data.index];
         }
 
         return new VarDAGNode(dag, var_data/*, is_registered*/).linkToDAG();
     }
-
-    /**
-     * Les dépendances ascendantes.
-     */
-    public incoming_deps: { [dep_name: string]: VarDAGNodeDep };
-
-    /**
-     * Raccourci vers le contrôleur de ce noeud
-     */
-    public var_controller: VarServerControllerBase<any>;
 
     /**
      * Tous les noeuds sont déclarés / initialisés comme des noeuds de calcul. C'est uniquement en cas de split (sur un import ou précalcul partiel)
@@ -41,7 +30,6 @@ export default class VarDAGNode {
      *  - undefined indique qu'on a pas chargé les deps ou que l'on est en cas B
      *  - toutes les deps doivent donc être chargées en même temps (c'est le cas dans le fonctionnement actuel des VarsControllers)
      */
-    public outgoing_deps: { [dep_name: string]: VarDAGNodeDep };
 
     /**
      * CAS B : On a une noeud aggregateur - qui utilise la fonction aggregate du VarController : Les noeuds aggrégés :
@@ -57,27 +45,14 @@ export default class VarDAGNode {
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
      */
-    private constructor(public dag: VarDAG, public var_data: VarDataBaseVO) {
+    private constructor(public dag: DAG<VarDAGNode>, public var_data: VarDataBaseVO) {
+        super();
         this.var_controller = VarsServerController.getInstance().getVarControllerById(var_data.var_id);
     }
 
     /**
-     * @returns true si le noeuds à des deps descendantes, false sinon => dans ce cas on parle de noeud feuille/leaf
-     */
-    get hasOutgoing(): boolean {
-        return !!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.outgoing_deps);
-    }
-
-    /**
-     * @returns false si le noeuds à des deps ascendantes, false sinon => dans ce cas on parle de noeud racine/root
-     */
-    get hasIncoming(): boolean {
-        return !!ObjectHandler.getInstance().hasAtLeastOneAttribute(this.incoming_deps);
-    }
-
-    /**
      * Ajouter une dépendance descendante sur un noeud, et cabler complètement la dep dans les 2 sens
-     * @param dep VarDAGNodeDep dont les outgoings et le name sont défini, le reste n'est pas utile à ce stade
+     * @param dep DAGNodeDep dont les outgoings et le name sont défini, le reste n'est pas utile à ce stade
      */
     public addOutgoingDep(dep_name: string, outgoing_node: VarDAGNode) {
 
@@ -88,7 +63,7 @@ export default class VarDAGNode {
             return;
         }
 
-        let dep: VarDAGNodeDep = new VarDAGNodeDep(dep_name, outgoing_node);
+        let dep: DAGNodeDep<VarDAGNode> = new DAGNodeDep(dep_name, outgoing_node);
 
         dep.incoming_node = this;
 

@@ -1,15 +1,15 @@
-import VarDAGNode from './VarDAGNode';
+import DAGNodeBase from './DAGNodeBase';
 
-export default class VarDAGController {
+export default class DAGController {
 
-    public static getInstance(): VarDAGController {
-        if (!VarDAGController.instance) {
-            VarDAGController.instance = new VarDAGController();
+    public static getInstance(): DAGController {
+        if (!DAGController.instance) {
+            DAGController.instance = new DAGController();
         }
-        return VarDAGController.instance;
+        return DAGController.instance;
     }
 
-    private static instance: VarDAGController = null;
+    private static instance: DAGController = null;
 
     private constructor() { }
 
@@ -27,7 +27,7 @@ export default class VarDAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_bottom_up_to_node(target_node: VarDAGNode, callback: (node: VarDAGNode) => Promise<any>, visit_condition: (node: VarDAGNode) => boolean = null): Promise<void> {
+    public async visit_bottom_up_to_node(target_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
 
 
         for (let i in target_node.outgoing_deps) {
@@ -55,7 +55,7 @@ export default class VarDAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_top_bottom_from_node(source_node: VarDAGNode, callback: (node: VarDAGNode) => Promise<any>, visit_condition: (node: VarDAGNode) => boolean = null): Promise<void> {
+    public async visit_top_bottom_from_node(source_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
 
         await callback(source_node);
 
@@ -82,7 +82,7 @@ export default class VarDAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_bottom_up_from_node(source_node: VarDAGNode, callback: (node: VarDAGNode) => Promise<any>, visit_condition: (node: VarDAGNode) => boolean = null): Promise<void> {
+    public async visit_bottom_up_from_node(source_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
 
         await callback(source_node);
 
@@ -109,7 +109,7 @@ export default class VarDAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_top_bottom_to_node(target_node: VarDAGNode, callback: (node: VarDAGNode) => Promise<any>, visit_condition: (node: VarDAGNode) => boolean = null): Promise<void> {
+    public async visit_top_bottom_to_node(target_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
 
         for (let i in target_node.incoming_deps) {
             let incoming_dep = target_node.incoming_deps[i];
@@ -136,7 +136,7 @@ export default class VarDAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_bottom_up_through_node(through_node: VarDAGNode, callback: (node: VarDAGNode) => Promise<any>, visit_condition: (node: VarDAGNode) => boolean = null): Promise<void> {
+    public async visit_bottom_up_through_node(through_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
 
         for (let i in through_node.outgoing_deps) {
             let outgoing_dep = through_node.outgoing_deps[i];
@@ -171,7 +171,7 @@ export default class VarDAGController {
      * @param callback La fonction a appliquer au node
      * @param visit_condition La condition à remplir pour visiter le noeud, ou null pour tout visiter => la condition n'est pas testée sur le noeud de départ
      */
-    public async visit_top_bottom_through_node(through_node: VarDAGNode, callback: (node: VarDAGNode) => Promise<any>, visit_condition: (node: VarDAGNode) => boolean = null): Promise<void> {
+    public async visit_top_bottom_through_node(through_node: DAGNodeBase, callback: (node: DAGNodeBase) => Promise<any>, visit_condition: (node: DAGNodeBase) => boolean = null): Promise<void> {
 
         for (let i in through_node.incoming_deps) {
             let incoming_dep = through_node.incoming_deps[i];

@@ -7,22 +7,19 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APISimpleVOsParamVO from '../../../shared/modules/DAO/vos/APISimpleVOsParamVO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
-import DataSourceControllerBase from '../../../shared/modules/DataSource/DataSourceControllerBase';
-import DataSourcesController from '../../../shared/modules/DataSource/DataSourcesController';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
@@ -39,7 +36,9 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
+import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
+import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerController from './VarsServerController';
 import VarsSocketsSubsController from './VarsSocketsSubsController';
 const moment = require('moment');
@@ -167,7 +166,23 @@ export default class ModuleVarServer extends ModuleServerBase {
                 postDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
             }
 
-            todo create tree of var deps
+            let carcontrollers_dag: DAG<VarCtrlDAGNode> = new DAG();
+
+            for (let i in VarsServerController.getInstance().registered_vars_controller) {
+                let var_controller: VarServerControllerBase<any> = VarsServerController.getInstance().registered_vars_controller[i];
+
+                let node = VarCtrlDAGNode.getInstance(carcontrollers_dag, var_controller);
+
+                let var_dependencies: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
+
+                for (let dep_name in var_dependencies) {
+                    let var_dependency = var_dependencies[dep_name];
+
+                    let dependency = VarCtrlDAGNode.getInstance(carcontrollers_dag, var_dependency);
+
+                    node.addOutgoingDep(dep_name, dependency);
+                }
+            }
         });
     }
 
