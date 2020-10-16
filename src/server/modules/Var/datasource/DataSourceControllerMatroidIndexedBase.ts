@@ -1,35 +1,8 @@
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import DataSourceControllerBase from './DataSourceControllerBase';
 import DataSourcesController from './DataSourcesController';
 
-export default abstract class DataSourceControllerBase {
-
-    protected constructor(
-        /**
-         * Le nom [unique] du Datasource
-         */
-        public name: string,
-
-        // /**
-        //  * Les api_type_ids des params
-        //  */
-        // public param_api_type_ids: string[],
-
-        /**
-         * Les api_type_ids qui engendrent un refresh potentiel du cache
-         */
-        public vo_api_type_ids: string[],
-
-        // /**
-        //  * Les mappings de fields de TData => les fields de chaque api_type_id
-        //  */
-        // public mapping_by_api_type_ids: { [api_type_id: string]: { [matroid_field_id: string]: string } } = {},
-
-        // /**
-        //  * Les mappings de fields de TData => les fields de chaque param potentiellement impacté api_type_id
-        //  *  dans le cache
-        //  */
-        // public matroids_mapping_by_api_type_ids: { [matroid_b_api_type_id: string]: { [matroid_a_field_id: string]: string } } = {}
-    ) { }
+export default abstract class DataSourceControllerMatroidIndexedBase extends DataSourceControllerBase {
 
     /**
      * On utilise une clé unique (au sein d'un datasource) pour identifier la data liée à un var data
