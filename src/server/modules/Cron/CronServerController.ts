@@ -143,7 +143,13 @@ export default class CronServerController {
         CronServerController.getInstance().cronWorkers_semaphores[worker_uid] = false;
 
         ConsoleHandler.getInstance().log('CRON:LANCEMENT:' + worker_uid);
-        await CronServerController.getInstance().registered_cronWorkers[worker_uid].work();
+
+        try {
+            await CronServerController.getInstance().registered_cronWorkers[worker_uid].work();
+        } catch (error) {
+            ConsoleHandler.getInstance().error('run_cron:' + error);
+        }
+
         ConsoleHandler.getInstance().log('CRON:FIN:' + worker_uid);
 
         CronServerController.getInstance().cronWorkers_semaphores[worker_uid] = true;
