@@ -5,7 +5,6 @@ import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../shared/tools/DateHandler';
-import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import VarsServerController from './VarsServerController';
 
@@ -30,9 +29,35 @@ export default class VarsDatasProxy {
 
     private static instance: VarsDatasProxy = null;
 
-    private vars_datas_buffer: { [index: string]: VarDataBaseVO } = {};
+    /**
+     * Version liste pour prioriser les demandes
+     */
+    private vars_datas_buffer: VarDataBaseVO[] = [];
 
     protected constructor() {
+    }
+
+    /**
+     * A utiliser pour prioriser normalement la demande - FIFO
+     *  Cas standard
+     */
+    public append_var_datas(var_datas: VarDataBaseVO[]) {
+        if ((!var_datas) || (!var_datas.length)) {
+            return;
+        }
+        this.vars_datas_buffer = this.vars_datas_buffer.concat(var_datas);
+    }
+
+    /**
+     * A utiliser pour prioriser la demande par rapport à toutes les autres - LIFO
+     *  Principalement pour le cas d'une demande du navigateur client, on veut répondre ASAP
+     *  et si on doit ajuster le calcul on renverra l'info plus tard
+     */
+    public prepend_var_datas(var_datas: VarDataBaseVO[]) {
+        if ((!var_datas) || (!var_datas.length)) {
+            return;
+        }
+        var_datas.forEach((vd) => this.vars_datas_buffer.unshift(vd));
     }
 
     /**
@@ -43,13 +68,10 @@ export default class VarsDatasProxy {
      */
     public async handle_buffer(limit: number): Promise<number> {
 
-        let index: string = ObjectHandler.getInstance().getFirstAttributeName(this.vars_datas_buffer);
-        while ((limit > 0) && index) {
+        while ((limit > 0) && this.vars_datas_buffer.length) {
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(this.vars_datas_buffer[index]);
-            delete this.vars_datas_buffer[index];
-
-            index = ObjectHandler.getInstance().getFirstAttributeName(this.vars_datas_buffer);
+            await ModuleDAO.getInstance().insertOrUpdateVO(this.vars_datas_buffer[0]);
+            this.vars_datas_buffer.splice(0, 1);
             limit--;
         }
 
@@ -61,8 +83,9 @@ export default class VarsDatasProxy {
      */
     public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T): Promise<T> {
 
-        if (this.vars_datas_buffer[var_data.index]) {
-            return this.vars_datas_buffer[var_data.index] as T;
+        let test = this.vars_datas_buffer.filter((vd: VarDataBaseVO) => vd.index == var_data.index);
+        if (test && test.length) {
+            return test[0] as T;
         }
 
         if (var_data.id) {
@@ -116,7 +139,7 @@ export default class VarsDatasProxy {
          *  des vars qui sont dans le buffer... (avantage ça concerne pas celles qui sont pas créées puisqu'il faut un id et la liste
          *  des ids reste relativement dense)...
          */
-        let bdd_datas: { [index: string]: VarDataBaseVO } = await this.get_vars_to_compute_from_bdd(request_limit, Object.values(this.vars_datas_buffer).filter((data) => !!data.id).map((data) => data.id));
+        let bdd_datas: { [index: string]: VarDataBaseVO } = await this.get_vars_to_compute_from_bdd(request_limit, this.vars_datas_buffer.filter((data) => !!data.id).map((data) => data.id));
         for (let i in bdd_datas) {
             let bdd_data = bdd_datas[i];
 

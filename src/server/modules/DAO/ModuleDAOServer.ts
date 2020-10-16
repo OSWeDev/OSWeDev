@@ -804,6 +804,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     public getClauseWhereRangeIntersectsField(field: ModuleTableField<any>, intersector_range: IRange<any>): string {
         switch (field.field_type) {
 
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
@@ -2435,6 +2436,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let ranges_query: string = this.get_range_translated_to_bdd_queryable_range(range, field, matroid_field);
 
         switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
@@ -2493,6 +2495,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
     private is_field_type_valeur(field: ModuleTableField<any>): boolean {
         switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
@@ -2537,6 +2540,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let ranges_query: string = this.get_ranges_translated_to_bdd_queryable_ranges(field_ranges, field, matroid_field);
 
         switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
@@ -2662,6 +2666,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
          */
 
         switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
@@ -2763,6 +2768,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private get_range_translated_to_bdd_queryable_range(range: IRange<any>, field: ModuleTableField<any>, matroid_field: ModuleTableField<any>): string {
 
         switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:
@@ -2825,6 +2831,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
     private get_range_segment_value_to_bdd(range: IRange<any>, field: ModuleTableField<any>, matroid_field: ModuleTableField<any>, segmented_value: any): string {
 
         switch (field.field_type) {
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_translatable_text:
             case ModuleTableField.FIELD_TYPE_textarea:

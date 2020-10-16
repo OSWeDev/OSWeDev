@@ -1,11 +1,12 @@
 import cloneDeep = require('lodash/cloneDeep');
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
+import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarsServerController from './VarsServerController';
 const moment = require('moment');
@@ -81,7 +82,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
             for (let i in varDAGNode.outgoing_deps) {
                 let outgoing_dep = varDAGNode.outgoing_deps[i];
 
-                values.push(outgoing_dep.outgoing_node.var_data.value);
+                values.push((outgoing_dep.outgoing_node as VarDAGNode).var_data.value);
             }
             value = this.aggregateValues(values);
         } else {
@@ -94,34 +95,35 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         varDAGNode.var_data.value_ts = moment().utc(true);
     }
 
-    /**
-     * Get params that intersect with any potential parent params depending on the one in arg
-     * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
-     * This is the default behaviour, using all refering vars defined in the varscontroller, and cloning the param to match that of the parent
-     * @param param
-     */
-    public getParamDependents(param: TData): VarDataBaseVO[] {
-        let res: VarDataBaseVO[] = [];
+    // TODO FIXME PEUT etre plus utile ?
+    // /**
+    //  * Get params that intersect with any potential parent params depending on the one in arg
+    //  * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
+    //  * This is the default behaviour, using all refering vars defined in the varscontroller, and cloning the param to match that of the parent
+    //  * @param param
+    //  */
+    // public getParamDependents(param: TData): VarDataBaseVO[] {
+    //     let res: VarDataBaseVO[] = [];
 
-        if (!param) {
-            return res;
-        }
+    //     if (!param) {
+    //         return res;
+    //     }
 
-        // On fait le tour des vars qui dépendent de ce param
-        let parent_controllers: { [parent_var_id: number]: VarServerControllerBase<any> } = VarsServerController.getInstance().parent_vars_by_var_id[param.var_id];
+    //     // On fait le tour des vars qui dépendent de ce param
+    //     let parent_controllers: { [parent_var_id: number]: VarServerControllerBase<any> } = VarsServerController.getInstance().parent_vars_by_var_id[param.var_id];
 
-        for (let parent_controlleri in parent_controllers) {
-            let parent_controller = parent_controllers[parent_controlleri];
+    //     for (let parent_controlleri in parent_controllers) {
+    //         let parent_controller = parent_controllers[parent_controlleri];
 
-            // On clone le param et au besoin en traduisant vers le type de param cible
-            let parent_param: VarDataBaseVO;
-            let parent_var_data_vo_type = parent_controller.varConf.var_data_vo_type;
-            parent_param = VarDataBaseVO.cloneFieldsFromId(parent_var_data_vo_type, parent_controller.varConf.id, param);
-            res.push(parent_param);
-        }
+    //         // On clone le param et au besoin en traduisant vers le type de param cible
+    //         let parent_param: VarDataBaseVO;
+    //         let parent_var_data_vo_type = parent_controller.varConf.var_data_vo_type;
+    //         parent_param = VarDataBaseVO.cloneFieldsFromId(parent_var_data_vo_type, parent_controller.varConf.id, param);
+    //         res.push(parent_param);
+    //     }
 
-        return res;
-    }
+    //     return res;
+    // }
 
     /**
      * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
@@ -162,7 +164,13 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * Méthode appelée par les triggers de POST update sur les vos dont cette var dépend (via les déclarations dans les Datasources)
      * @param c_or_d_vo le vo créé ou supprimé
      */
-    public abstract get_invalid_params_intersectors_on_POST_U(pre_u_vo: IDistantVOBase, post_u_vo: IDistantVOBase);
+    public abstract get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>);
+
+    /**
+     * Méthode appelée par les triggers de POST update sur les vos dont cette var dépend (via les déclarations dans les Datasources)
+     * @param c_or_d_vo le vo créé ou supprimé
+     */
+    public abstract get_invalid_params_intersectors_from_dep<T extends VarDataBaseVO>(dep_id: string, intersectors: T[]): TData[];
 
     /**
      * La fonction de calcul, qui doit utiliser directement les datasources préchargés disponibles dans le noeud (.datasources)
@@ -179,7 +187,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param deps_values les valeurs des deps, par id de dep
      */
     private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): VarDAGNode {
-        let dag: VarDAG = new VarDAG();
+        let dag: DAG<VarDAGNode> = new DAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
 
         for (let i in deps_values) {

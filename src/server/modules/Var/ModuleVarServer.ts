@@ -38,6 +38,8 @@ import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
+import VarsDatasProxy from './VarsDatasProxy';
+import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerController from './VarsServerController';
 import VarsSocketsSubsController from './VarsSocketsSubsController';
@@ -189,14 +191,14 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     /**
      * Trigger qui gère l'invalidation des vars en fonction du vo passé en param
-     *  On fait appel à toutes les vars qui sont référencées comme faisant appel à ce type de vo et on leur demande
-     *      quels params peuvent être impactés par la création ou la suppression de ce VO
+     *  On doit par ailleurs utiliser un buffer des invalidations pour pas tout invalider en boucle => exemple sur un import de 100 facture 1 jour,
+     *      le CA du jour devrait être invalidé une fois
      * @param vo
      */
     public async invalidate_var_cache_from_vo_cd(vo: IDistantVOBase): Promise<void> {
 
         try {
-            TODO
+            VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
@@ -204,15 +206,14 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     /**
      * Trigger qui gère l'invalidation des vars en fonction des vos passés en param
-     *  On fait appel à toutes les vars qui sont référencées comme faisant appel à ce type de vo et on leur demande
-     *      quels params peuvent être impactés par la mise à jour de ce VO (pre et post ensembles pour pouvoir vérifier
-     *      si le champ important a changé ou non. Si aucun champ utile ne change il ne faut évidemment rien invalider)
+     *  On doit par ailleurs utiliser un buffer des invalidations pour pas tout invalider en boucle => exemple sur un import de 100 facture 1 jour,
+     *      le CA du jour devrait être invalidé une fois
      * @param vo_update_handler
      */
     public async invalidate_var_cache_from_vo_u(vo_update_handler: DAOUpdateVOHolder<IDistantVOBase>): Promise<void> {
 
         try {
-            TODO
+            VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo_update_handler);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
@@ -805,10 +806,8 @@ export default class ModuleVarServer extends ModuleServerBase {
             param.value = null;
             param.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
 
-            let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(param);
-            if ((!res) || (!res.id)) {
-                ConsoleHandler.getInstance().error('get_var_data_or_ask_to_bgthread: Failed insertOrUpdateVO(param) :' + res);
-            }
+            // On push dans le buffer de mise à jour de la BDD
+            VarsDatasProxy.getInstance().prepend_var_datas([param]);
             return null;
         } else {
 

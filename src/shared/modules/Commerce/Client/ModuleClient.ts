@@ -58,7 +58,7 @@ export default class ModuleClient extends Module {
 
     public initializeInformations(): void {
         // Création de la table Informations
-        let default_label_field: ModuleTableField<string> = new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email');
+        let default_label_field: ModuleTableField<string> = new ModuleTableField('email', ModuleTableField.FIELD_TYPE_email, 'Email');
         let datatable_fields = [
             new ModuleTableField('nom', ModuleTableField.FIELD_TYPE_string, 'Nom'),
             new ModuleTableField('prenom', ModuleTableField.FIELD_TYPE_string, 'Prenom'),

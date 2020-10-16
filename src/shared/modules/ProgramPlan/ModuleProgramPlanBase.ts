@@ -358,7 +358,7 @@ export default abstract class ModuleProgramPlanBase extends Module {
             user_id,
             new ModuleTableField('firstname', ModuleTableField.FIELD_TYPE_string, 'Prénom', false),
             label_field,
-            new ModuleTableField('mail', ModuleTableField.FIELD_TYPE_string, 'Mail', false),
+            new ModuleTableField('mail', ModuleTableField.FIELD_TYPE_email, 'Mail', false),
             new ModuleTableField('mobile', ModuleTableField.FIELD_TYPE_string, 'Portable', false),
             new ModuleTableField('infos', ModuleTableField.FIELD_TYPE_string, 'Infos', false)
         );

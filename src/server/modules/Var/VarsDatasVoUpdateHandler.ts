@@ -2,13 +2,17 @@ import * as moment from 'moment';
 import { Moment } from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
+import MatroidController from '../../../shared/modules/Matroid/MatroidController';
+import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import VarsDatasProxy from './VarsDatasProxy';
+import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerController from './VarsServerController';
 
 /**
@@ -52,30 +56,160 @@ export default class VarsDatasVoUpdateHandler {
         let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
         let vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] } = {};
 
+        let intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] } = {};
+
+        let ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = [];
+
         limit = this.prepare_updates(limit, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
+
+        this.init_leaf_intersectors(vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
+
+        /**
+         * ALGO en photo... TODO FIXME a remettre au propre
+         */
+        let markers: { [var_id: number]: number } = {};
+        this.init_markers(ctrls_to_update_1st_stage, markers);
+        this.compute_intersectors(ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+
+        /**
+         * Une fois qu'on a tous les intercepteurs à appliquer, on charge tous les var_data correspondant de la base
+         *  et on les enfilent dans le buffer de calcul / mise à jour des var_datas
+         */
+        this.find_invalid_datas_and_push_for_update(intersectors_by_var_id);
+
+        return limit;
+    }
+
+    /**
+     * Recherche en BDD par intersection des var_datas qui correspondent aux intersecteurs, et on push les invalidations dans le buffer de vars
+     * @param intersectors_by_var_id
+     */
+    private async find_invalid_datas_and_push_for_update(intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] }) {
+        for (let var_id_s in intersectors_by_var_id) {
+            let intersectors = intersectors_by_var_id[var_id_s];
+
+            if ((!intersectors) || (!intersectors.length)) {
+                continue;
+            }
+
+            let sample_inter = intersectors[0];
+
+            let var_datas: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroidsIntersections(sample_inter._type, intersectors, null);
+
+            /**
+             * Tout sauf les imports
+             */
+            var_datas = var_datas.filter((vd: VarDataBaseVO) => vd.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT);
+
+            var_datas.forEach((vd: VarDataBaseVO) => {
+                delete vd.value;
+                vd.value_ts = null;
+            });
+
+            VarsDatasProxy.getInstance().append_var_datas(var_datas);
+        }
+    }
+
+    private compute_intersectors(
+        ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> },
+        markers: { [var_id: number]: number },
+        intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] }) {
+
+        while (ObjectHandler.getInstance().hasAtLeastOneAttribute(ctrls_to_update_1st_stage)) {
+
+            for (let i in ctrls_to_update_1st_stage) {
+                let ctrl = ctrls_to_update_1st_stage[i];
+
+                if (markers[ctrl.varConf.id] != 1) {
+                    continue;
+                }
+
+                let Nx = VarCtrlDAGNode.getInstance(VarsServerController.getInstance().varcontrollers_dag, ctrl);
+
+                this.compute_deps_intersectors_and_union(Nx, intersectors_by_var_id);
+                let self = this;
+
+                DAGController.getInstance().visit_bottom_up_from_node(Nx, async (Ny: VarCtrlDAGNode) => {
+                    markers[Ny.var_controller.varConf.id]--;
+
+                    if (!markers[Ny.var_controller.varConf.id]) {
+                        self.compute_deps_intersectors_and_union(Ny, intersectors_by_var_id);
+                    }
+                });
+
+                delete ctrls_to_update_1st_stage[i];
+                break;
+            }
+        }
+    }
+
+    private compute_deps_intersectors_and_union(
+        Nx: VarCtrlDAGNode,
+        intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] }
+    ) {
+        let intersectors = intersectors_by_var_id[Nx.var_controller.varConf.id];
+        intersectors = intersectors ? intersectors : [];
+
+        for (let j in Nx.outgoing_deps) {
+            let dep = Nx.outgoing_deps[j];
+
+            intersectors = intersectors.concat(Nx.var_controller.get_invalid_params_intersectors_from_dep(dep.dep_name, intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id]));
+        }
+
+        intersectors_by_var_id[Nx.var_controller.varConf.id] = MatroidController.getInstance().union(intersectors);
+    }
+
+    private init_markers(ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }, markers: { [var_id: number]: number }) {
+        for (let i in ctrls_to_update_1st_stage) {
+            let ctrl = ctrls_to_update_1st_stage[i];
+
+            DAGController.getInstance().visit_bottom_up_from_node(
+                VarCtrlDAGNode.getInstance(VarsServerController.getInstance().varcontrollers_dag, ctrl),
+                async (node) => {
+                    if (!markers[node.var_controller.varConf.id]) {
+                        markers[node.var_controller.varConf.id] = 0;
+                    }
+                    markers[node.var_controller.varConf.id]++;
+                });
+        }
+    }
+
+    /**
+     * Pour chaque vo_type, on prend tous les varcontrollers concernés et on demande les intersecteurs en CD et en U
+     *  On combinera les intersecteurs en CD et U via une union quand on aura validé qu'on a pas une autre variable qui pourrait impacter celle-ci
+     */
+    private init_leaf_intersectors(
+        vo_types: string[],
+        intersectors_by_var_id: { [var_id: string]: VarDataBaseVO[] },
+        vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },
+        vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] },
+        ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }) {
 
         for (let i in vo_types) {
             let vo_type = vo_types[i];
 
-            /**
-             * Pour chaque vo_type, on prend tous les varcontrollers concernés et on demande les intersecteurs en CD et en U
-             *  On combine les intersecteurs en CD et U via une union
-             */
+            for (let j in VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type]) {
+                let var_controller = VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type][j];
+
+                ctrls_to_update_1st_stage[vo_type] = var_controller;
+
+                if (!intersectors_by_var_id[vo_type]) {
+                    intersectors_by_var_id[vo_type] = [];
+                }
+
+                for (let k in vos_create_or_delete_buffer[vo_type]) {
+                    let vo_create_or_delete = vos_create_or_delete_buffer[vo_type][k];
+
+                    intersectors_by_var_id[vo_type] = intersectors_by_var_id[vo_type].concat(var_controller.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete));
+                }
+
+                for (let k in vos_update_buffer[vo_type]) {
+                    let vo_update_buffer = vos_update_buffer[vo_type][k];
+
+                    intersectors_by_var_id[vo_type] = intersectors_by_var_id[vo_type].concat(var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer));
+                }
+            }
         }
-
-        /**
-         * On veut partir du bas de l'arbre des deps => on doit pouvoir calculer cet arbre dès l'init de l'application
-         *  et pour chaque var_id (en visite bottom->up + through sur chaque var_id concerné en premier niveau par ce batch)
-         * Quand on a géré une var_id on peut marquer que c'est géré, donc on ignore et continue la visite par les autres noeuds
-         *  Sachant qu'on a qu'un batch à la fois (sémaphore) on devrait pas avoir de soucis pour faire ce marquage
-         * Et donc pour chaque var_id :
-         *      - si on a des intersecteurs CD et U on les prend
-         *      - si on a des intersecteurs déduits des enfants on les prend
-         *      - on fait une union de tous les intersecteurs, et on déduit les intersecteurs de chaque var_id parents (qu'on ajoute à la liste si ils en ont déjà)
-         *      - on marque le var_id comme géré
-         */
-
-        return limit;
     }
 
     /**
@@ -114,76 +248,6 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         return limit;
-    }
-
-    /**
-     * On a explicitement pas l'id à ce niveau donc on cherche par l'index plutôt
-     */
-    public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T): Promise<T> {
-
-        if (this.vars_datas_buffer[var_data.index]) {
-            return this.vars_datas_buffer[var_data.index] as T;
-        }
-
-        if (var_data.id) {
-            return await ModuleDAO.getInstance().getVoById<T>(var_data._type, var_data.id, VOsTypesManager.getInstance().moduleTables_by_voType[var_data._type].get_segmented_field_raw_value_from_vo(var_data));
-        }
-
-        let res: T[] = await ModuleDAO.getInstance().getVosByExactMatroids<T, T>(var_data._type, [var_data], null);
-
-        if (res && res.length) {
-            return res[0];
-        }
-        return null;
-    }
-
-    /**
-     * On charge en priorité depuis le buffer, puisque si le client demande des calculs on va les mettre en priorité ici, avant de calculer puis les remettre en attente d'insertion en base
-     *  (dont en fait elles partent juste jamais)
-     * @param request_limit nombre max de vars_datas à renvoyer
-     */
-    public async get_vars_to_compute_from_buffer_or_bdd(request_limit: number): Promise<{ [index: string]: VarDataBaseVO }> {
-
-        let res: { [index: string]: VarDataBaseVO } = {};
-
-        /**
-         * On commence par collecter le max de datas depuis le buffer : Les conditions de sélection d'un var :
-         *  - est-ce que la data a une valeur undefined ? oui => sélectionnée
-         *  - est-ce que la data peut expirer et a expiré ? oui => sélectionnée
-         */
-        for (let i in this.vars_datas_buffer) {
-
-            if (request_limit <= 0) {
-                return res;
-            }
-
-            let var_data = this.vars_datas_buffer[i];
-
-            if (!var_data.has_valid_value) {
-                res[var_data.index] = var_data;
-                request_limit--;
-                continue;
-            }
-        }
-
-        if (request_limit <= 0) {
-            return res;
-        }
-
-        /**
-         * Attention : à ce stade en base on va trouver des datas qui sont pas computed mais qu'on retrouve par exemple comme computed
-         *  et valide (donc pas sélectionnées) dans le buffer d'attente de mise à jour en bdd. Donc on doit ignorer tous les ids
-         *  des vars qui sont dans le buffer... (avantage ça concerne pas celles qui sont pas créées puisqu'il faut un id et la liste
-         *  des ids reste relativement dense)...
-         */
-        let bdd_datas: { [index: string]: VarDataBaseVO } = await this.get_vars_to_compute_from_bdd(request_limit, Object.values(this.vars_datas_buffer).filter((data) => !!data.id).map((data) => data.id));
-        for (let i in bdd_datas) {
-            let bdd_data = bdd_datas[i];
-
-            res[bdd_data.index] = bdd_data;
-        }
-
-        return res;
     }
 
     /**

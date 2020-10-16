@@ -201,6 +201,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
             case ModuleTableField.FIELD_TYPE_html_array:
             case ModuleTableField.FIELD_TYPE_boolean:
             case ModuleTableField.FIELD_TYPE_password:
+            case ModuleTableField.FIELD_TYPE_email:
             case ModuleTableField.FIELD_TYPE_string:
             case ModuleTableField.FIELD_TYPE_textarea:
             case ModuleTableField.FIELD_TYPE_geopoint:
@@ -819,6 +820,12 @@ export default class ModuleTable<T extends IDistantVOBase> {
                     }
                     break;
 
+                case ModuleTableField.FIELD_TYPE_email:
+                    if (res[field.field_id] && res[field.field_id].trim) {
+                        res[field.field_id] = res[field.field_id].trim();
+                    }
+                    break;
+
                 default:
             }
         }
@@ -915,6 +922,14 @@ export default class ModuleTable<T extends IDistantVOBase> {
                         e[field.field_id] = GeoPointVO.clone(field_value);
                     }
                     break;
+
+                case ModuleTableField.FIELD_TYPE_email:
+                    if (e[field.field_id] && e[field.field_id].trim) {
+                        e[field.field_id] = e[field.field_id].trim();
+                    }
+                    break;
+
+                default:
             }
         }
 

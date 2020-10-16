@@ -25,7 +25,7 @@
         input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}
-    template(v-else-if="field_type == 'text'")
+    template(v-else-if="(field_type == 'text') || (field_type == 'email')")
         input(:class="{'form-control': !inline_input_mode}" type="text" v-model="field_value" :required="field.is_required" :disabled="is_readonly || (inline_input_mode && ((!inline_input_is_editing) || inline_input_is_busy))" @input="validateInput($event.target)" @blur="$emit('blur', $event.target.value)" :id="field.datatable_field_uid" :maxlength="maxlength")
         template(v-if="maxlength")
             .maxlength.italic.f-r {{ field_value_length }} / {{ maxlength }}

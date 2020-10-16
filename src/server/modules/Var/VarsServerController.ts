@@ -1,9 +1,7 @@
 import debounce = require('lodash/debounce');
 import { Moment } from 'moment';
 import * as moment from 'moment';
-import DataSourceControllerBase from '../../../shared/modules/DataSource/DataSourceControllerBase';
 import VarUpdateCallback from '../../../shared/modules/Var/vos/VarUpdateCallback';
-import VarControllerBase from '../../../shared/modules/Var/VarControllerBase';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import VarServerControllerBase from './VarServerControllerBase';
@@ -13,6 +11,7 @@ import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 
 export default class VarsServerController {
 
@@ -43,9 +42,10 @@ export default class VarsServerController {
     private _registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
 
     // TODO FIXME est-ce que tout n'est pas en cache à ce stade, si on demande toujours en insérant en base ?
-    private _cached_var_by_var_id: { [var_id: number]: VarServerControllerBase<any> } = {};
-    private _cached_var_id_by_datasource_by_api_type_id: { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarServerControllerBase<any> } } } = {};
-    private _parent_vars_by_var_id: { [var_id: number]: { [parent_var_id: number]: VarServerControllerBase<any> } } = {};
+    private _registered_vars_controller_by_api_type_id: { [api_type_id: string]: { [var_id: number]: VarServerControllerBase<any> } } = {};
+    // private _cached_var_by_var_id: { [var_id: number]: VarServerControllerBase<any> } = {};
+    // private _cached_var_id_by_datasource_by_api_type_id: { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarServerControllerBase<any> } } } = {};
+    // private _parent_vars_by_var_id: { [var_id: number]: { [parent_var_id: number]: VarServerControllerBase<any> } } = {};
 
     // CUD during run, broadcasting CUD
     private _varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
@@ -73,17 +73,21 @@ export default class VarsServerController {
         return this._varcacheconf_by_var_ids;
     }
 
-    get cached_var_id_by_datasource_by_api_type_id(): { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarServerControllerBase<any> } } } {
-        return this._cached_var_id_by_datasource_by_api_type_id;
+    get registered_vars_controller_by_api_type_id(): { [api_type_id: string]: { [var_id: number]: VarServerControllerBase<any> } } {
+        return this._registered_vars_controller_by_api_type_id;
     }
 
-    get parent_vars_by_var_id(): { [var_id: number]: { [parent_var_id: number]: VarServerControllerBase<any> } } {
-        return this._parent_vars_by_var_id;
-    }
+    // get cached_var_id_by_datasource_by_api_type_id(): { [api_type_id: string]: { [ds_name: string]: { [var_id: number]: VarServerControllerBase<any> } } } {
+    //     return this._cached_var_id_by_datasource_by_api_type_id;
+    // }
 
-    get cached_var_by_var_id(): { [var_id: number]: VarServerControllerBase<any> } {
-        return this._cached_var_by_var_id;
-    }
+    // get parent_vars_by_var_id(): { [var_id: number]: { [parent_var_id: number]: VarServerControllerBase<any> } } {
+    //     return this._parent_vars_by_var_id;
+    // }
+
+    // get cached_var_by_var_id(): { [var_id: number]: VarServerControllerBase<any> } {
+    //     return this._cached_var_by_var_id;
+    // }
 
     public init_varcontrollers_dag(varcontrollers_dag: DAG<VarCtrlDAGNode>) {
         this._varcontrollers_dag = varcontrollers_dag;
@@ -206,34 +210,42 @@ export default class VarsServerController {
             }
             this._registered_vars_by_datasource[ds.name].push(controller);
 
-            if (!!controller.getVarCacheConf()) {
+            for (let j in ds.vo_api_type_ids) {
+                let vo_api_type_id = ds.vo_api_type_ids[j];
 
-                this._cached_var_by_var_id[varConf.id] = controller;
-                for (let j in ds.vo_api_type_ids) {
-                    let vo_api_type_id = ds.vo_api_type_ids[j];
-
-                    if (!this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id]) {
-                        this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id] = {};
-                    }
-
-                    if (!this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name]) {
-                        this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name] = {};
-                    }
-
-                    this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][varConf.id] = controller;
+                if (!this._registered_vars_controller_by_api_type_id[vo_api_type_id]) {
+                    this._registered_vars_controller_by_api_type_id[vo_api_type_id] = {};
                 }
+                this._registered_vars_controller_by_api_type_id[vo_api_type_id][controller.varConf.id] = controller;
             }
+            // if (!!controller.getVarCacheConf()) {
+
+            //     this._cached_var_by_var_id[varConf.id] = controller;
+            //     for (let j in ds.vo_api_type_ids) {
+            //         let vo_api_type_id = ds.vo_api_type_ids[j];
+
+            //         if (!this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id]) {
+            //             this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id] = {};
+            //         }
+
+            //         if (!this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name]) {
+            //             this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name] = {};
+            //         }
+
+            //         this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][varConf.id] = controller;
+            //     }
+            // }
         }
 
-        let deps: number[] = controller.getVarsIdsDependencies();
-        for (let i in deps) {
-            let dep = deps[i];
+        // let deps: number[] = controller.getVarsIdsDependencies();
+        // for (let i in deps) {
+        //     let dep = deps[i];
 
-            if (!this._parent_vars_by_var_id[dep]) {
-                this._parent_vars_by_var_id[dep] = {};
-            }
-            this._parent_vars_by_var_id[dep][varConf.id] = controller;
-        }
+        //     if (!this._parent_vars_by_var_id[dep]) {
+        //         this._parent_vars_by_var_id[dep] = {};
+        //     }
+        //     this._parent_vars_by_var_id[dep][varConf.id] = controller;
+        // }
     }
 
     /**

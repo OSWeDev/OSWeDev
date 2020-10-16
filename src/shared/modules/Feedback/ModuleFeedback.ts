@@ -88,7 +88,7 @@ export default class ModuleFeedback extends Module {
             new ModuleTableField('trello_ref', ModuleTableField.FIELD_TYPE_string, 'trello_ref', false).hide_from_datatable(),
 
             new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom', true).hide_from_datatable(),
-            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_string, 'Email', true).hide_from_datatable(),
+            new ModuleTableField('email', ModuleTableField.FIELD_TYPE_email, 'Email', true).hide_from_datatable(),
             new ModuleTableField('phone', ModuleTableField.FIELD_TYPE_string, 'Téléphone', false).hide_from_datatable(),
             new ModuleTableField('title', ModuleTableField.FIELD_TYPE_string, 'Titre', true),
             new ModuleTableField('message', ModuleTableField.FIELD_TYPE_string, 'Message', true).hide_from_datatable(),

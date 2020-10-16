@@ -1,5 +1,5 @@
-import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
-import VarDAGController from '../../../shared/modules/Var/graph/VarDAGController';
+import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
+import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -46,7 +46,7 @@ export default class VarsComputeController {
          */
         let ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } } = {};
 
-        let dag: VarDAG = await this.create_tree(vars_datas, ds_cache);
+        let dag: DAG<VarDAGNode> = await this.create_tree(vars_datas, ds_cache);
 
         /**
          * On a l'arbre. Tous les noeuds dont le var_data !has_valid_value sont à calculer
@@ -56,7 +56,7 @@ export default class VarsComputeController {
 
             let node = dag.nodes[var_data.index];
             if (!node.var_data.has_valid_value) {
-                await VarDAGController.getInstance().visit_bottom_up_to_node(
+                await DAGController.getInstance().visit_bottom_up_to_node(
                     node,
                     async (visited_node: VarDAGNode) => await this.compute_node(visited_node, ds_cache),
                     (next_node: VarDAGNode) => !next_node.var_data.has_valid_value);
@@ -90,8 +90,8 @@ export default class VarsComputeController {
      *      - Identifier les deps
      *      - Déployer effectivement les deps identifiées
      */
-    private async create_tree(vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<VarDAG> {
-        let var_dag: VarDAG = new VarDAG();
+    private async create_tree(vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<DAG<VarDAGNode>> {
+        let var_dag: DAG<VarDAGNode> = new DAG();
 
         for (let i in vars_datas) {
             let var_data: VarDataBaseVO = vars_datas[i];
