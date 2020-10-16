@@ -1,3 +1,4 @@
+import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
@@ -11,6 +12,8 @@ export default class VarsClientController {
         }
         return VarsClientController.instance;
     }
+
+    private static VARS_DESC_TRANSLATABLE_PREFIXES: string = "var.desc.";
 
     private static instance: VarsClientController = null;
 
@@ -28,6 +31,18 @@ export default class VarsClientController {
     // public known_values: { [index: string]: number } = {};
 
     protected constructor() {
+    }
+
+    public get_translatable_name_code(var_name: string): string {
+        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public get_translatable_description_code(var_name: string): string {
+        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public get_translatable_params_desc_code(var_name: string): string {
+        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     /**

@@ -1,6 +1,6 @@
-import LocaleManager from '../../../tools/LocaleManager';
-import VarsController from '../VarsController';
-import VarDAGNode from './VarDAGNode';
+import VarDAGNode from "../../../../../../../shared/modules/Var/graph/VarDAGNode";
+import LocaleManager from "../../../../../../../shared/tools/LocaleManager";
+import VarsClientController from "../../../VarsClientController";
 
 export default class D3VarDagSVGController {
 
@@ -20,7 +20,7 @@ export default class D3VarDagSVGController {
         let label: string = node.var_data.index.split('_').splice(1, 100).join(' ');
 
         if (use_var_name_as_label) {
-            label = LocaleManager.getInstance().i18n.t(VarsController.getInstance().get_translatable_name_code(node.var_data.var_id));
+            label = LocaleManager.getInstance().i18n.t(VarsClientController.getInstance().get_translatable_name_code(node.var_controller.varConf.name));
         }
         let d3node = { label: label };
         if (!node.hasIncoming) {

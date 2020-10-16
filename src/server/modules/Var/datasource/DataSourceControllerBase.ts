@@ -56,85 +56,85 @@ export default abstract class DataSourceControllerBase<TData extends VarDataBase
      */
     public abstract get_data(param: TData): Promise<any>;
 
-    /**
-     * Pour les matroids, on définit directement un comportement global pour le cache et pour
-     *  l'update de l'arbre dans get_param_intersector_from_vo_update. Ici on retraduit pour l'arbre
-     * En amont, on a vérifié évidemment qu'on demande que sur un VO de la liste des api_type_ids du datasource
-     * @param vo
-     */
-    public get_updated_params_from_vo_update(vo: IDistantVOBase, filtered_var_ids: { [var_id: number]: VarServerControllerBase<any> } = null): { [index: string]: VarDataBaseVO } {
-        let res: { [index: string]: VarDataBaseVO } = {};
+    // /**
+    //  * Pour les matroids, on définit directement un comportement global pour le cache et pour
+    //  *  l'update de l'arbre dans get_param_intersector_from_vo_update. Ici on retraduit pour l'arbre
+    //  * En amont, on a vérifié évidemment qu'on demande que sur un VO de la liste des api_type_ids du datasource
+    //  * @param vo
+    //  */
+    // public get_updated_params_from_vo_update(vo: IDistantVOBase, filtered_var_ids: { [var_id: number]: VarServerControllerBase<any> } = null): { [index: string]: VarDataBaseVO } {
+    //     let res: { [index: string]: VarDataBaseVO } = {};
 
-        let intersectors: { [var_id: number]: { [index: string]: TData } } = this.get_param_intersectors_from_vo_update_by_var_id(vo, filtered_var_ids);
+    //     let intersectors: { [var_id: number]: { [index: string]: TData } } = this.get_param_intersectors_from_vo_update_by_var_id(vo, filtered_var_ids);
 
-        if (!intersectors) {
-            return null;
-        }
+    //     if (!intersectors) {
+    //         return null;
+    //     }
 
-        //  On charge simplement tous les registered_vars des var_id concernés:
-        let var_ids: { [id: number]: boolean } = {};
-        for (let i in VarsServerController.getInstance().registered_vars_by_datasource[this.name]) {
-            let var_controller: VarServerControllerBase<any> = VarsServerController.getInstance().registered_vars_by_datasource[this.name][i];
+    //     //  On charge simplement tous les registered_vars des var_id concernés:
+    //     let var_ids: { [id: number]: boolean } = {};
+    //     for (let i in VarsServerController.getInstance().registered_vars_by_datasource[this.name]) {
+    //         let var_controller: VarServerControllerBase<any> = VarsServerController.getInstance().registered_vars_by_datasource[this.name][i];
 
-            // Si on a filtré des var_id, on ignore ceux qui ne sont pas filtrés
-            if ((!!filtered_var_ids) && (!filtered_var_ids[var_controller.varConf.id])) {
-                continue;
-            }
+    //         // Si on a filtré des var_id, on ignore ceux qui ne sont pas filtrés
+    //         if ((!!filtered_var_ids) && (!filtered_var_ids[var_controller.varConf.id])) {
+    //             continue;
+    //         }
 
-            var_ids[var_controller.varConf.id] = true;
-        }
+    //         var_ids[var_controller.varConf.id] = true;
+    //     }
 
-        TODO FIXME REFONTE DES VARS on a plus d'arbre en mémoire faut aller chercher par les varcontroller pour savoir qui sont les matroids parents à
-        appliquer en base / en cache pré - base
+    //     TODO FIXME REFONTE DES VARS on a plus d'arbre en mémoire faut aller chercher par les varcontroller pour savoir qui sont les matroids parents à
+    //     appliquer en base / en cache pré - base
 
-        // for (let i in VarsServerController.getInstance().varDAG.nodes) {
-        //     let param: VarDataBaseVO = VarsServerController.getInstance().varDAG.nodes[i].var_data;
+    //     // for (let i in VarsServerController.getInstance().varDAG.nodes) {
+    //     //     let param: VarDataBaseVO = VarsServerController.getInstance().varDAG.nodes[i].var_data;
 
-        //     if (!var_ids[param.id]) {
-        //         continue;
-        //     }
+    //     //     if (!var_ids[param.id]) {
+    //     //         continue;
+    //     //     }
 
-        //     if (!intersectors[param.var_id]) {
-        //         // Si on n'a rien défini ou null, on invalide tout
-        //         res[param.index] = param;
-        //         continue;
-        //     }
+    //     //     if (!intersectors[param.var_id]) {
+    //     //         // Si on n'a rien défini ou null, on invalide tout
+    //     //         res[param.index] = param;
+    //     //         continue;
+    //     //     }
 
-        //     for (let j in intersectors[param.var_id]) {
-        //         let intersector = intersectors[param.var_id][j];
+    //     //     for (let j in intersectors[param.var_id]) {
+    //     //         let intersector = intersectors[param.var_id][j];
 
-        //         // on sait que le param dépend du datasource, on doit pouvoir intersecter les 2 matroids, avec au besoin un mapping de fields
-        //         if (param._type != intersector._type) {
-        //             /**
-        //              * On doit comparer en utilisant un mapping, suivant le type cible.
-        //              * A voir si ça a du sens, si c'est automatisable, ...
-        //              * Ce qu'on fait par défaut (peut-être pas une bonne idée non plus) c'est qu'on considère un mapping vide
-        //              *  mais non null donc ça intersecte en cherchant les mêmes champs, et donc si ça trouve pas, ça ne teste pas
-        //              *  l'intersection... ça peut simplifier à mort la mise en place, mais cacher des omissions donc à voir si
-        //              *  c'est bien pertinent et où on peut stocker les mappings de params. Sachant que chaque Datasource/Var peut décider
-        //              *  d'utiliser un param différemment...
-        //              */
-        //             let moduletable: ModuleTable<TData> = VOsTypesManager.getInstance().moduleTables_by_voType[intersector._type];
+    //     //         // on sait que le param dépend du datasource, on doit pouvoir intersecter les 2 matroids, avec au besoin un mapping de fields
+    //     //         if (param._type != intersector._type) {
+    //     //             /**
+    //     //              * On doit comparer en utilisant un mapping, suivant le type cible.
+    //     //              * A voir si ça a du sens, si c'est automatisable, ...
+    //     //              * Ce qu'on fait par défaut (peut-être pas une bonne idée non plus) c'est qu'on considère un mapping vide
+    //     //              *  mais non null donc ça intersecte en cherchant les mêmes champs, et donc si ça trouve pas, ça ne teste pas
+    //     //              *  l'intersection... ça peut simplifier à mort la mise en place, mais cacher des omissions donc à voir si
+    //     //              *  c'est bien pertinent et où on peut stocker les mappings de params. Sachant que chaque Datasource/Var peut décider
+    //     //              *  d'utiliser un param différemment...
+    //     //              */
+    //     //             let moduletable: ModuleTable<TData> = VOsTypesManager.getInstance().moduleTables_by_voType[intersector._type];
 
-        //             // Si le mapping est null, on veut invalider dans tous les cas
-        //             // TODO FIXME BUG? : pourquoi on voudrait tout invalider si rien n'est cohérent ? on intersecte rien a priori du coup, donc pourquoi on invalide ?
-        //             if ((moduletable.mapping_by_api_type_ids[param._type] === null) ||
-        //                 (MatroidController.getInstance().matroid_intersects_matroid(intersector, param, moduletable.mapping_by_api_type_ids[param._type]))) {
-        //                 res[param.index] = param;
-        //                 break;
-        //             }
-        //             continue;
-        //         }
+    //     //             // Si le mapping est null, on veut invalider dans tous les cas
+    //     //             // TODO FIXME BUG? : pourquoi on voudrait tout invalider si rien n'est cohérent ? on intersecte rien a priori du coup, donc pourquoi on invalide ?
+    //     //             if ((moduletable.mapping_by_api_type_ids[param._type] === null) ||
+    //     //                 (MatroidController.getInstance().matroid_intersects_matroid(intersector, param, moduletable.mapping_by_api_type_ids[param._type]))) {
+    //     //                 res[param.index] = param;
+    //     //                 break;
+    //     //             }
+    //     //             continue;
+    //     //         }
 
-        //         if (MatroidController.getInstance().matroid_intersects_matroid(intersector, param)) {
-        //             res[param.index] = param;
-        //             break;
-        //         }
-        //     }
-        // }
+    //     //         if (MatroidController.getInstance().matroid_intersects_matroid(intersector, param)) {
+    //     //             res[param.index] = param;
+    //     //             break;
+    //     //         }
+    //     //     }
+    //     // }
 
-        return res;
-    }
+    //     return res;
+    // }
 
     public registerDataSource() {
         DataSourcesController.getInstance().registerDataSource(this);

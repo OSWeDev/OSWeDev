@@ -5,7 +5,6 @@ import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyD
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import APISimpleVOsParamVO from '../../../shared/modules/DAO/vos/APISimpleVOsParamVO';
-import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import ModuleTable from '../../../shared/modules/ModuleTable';
@@ -64,7 +63,6 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private constructor() {
         super(ModuleVar.getInstance().name);
-        VarServerController.getInstance();
     }
 
     public async configure() {
@@ -157,21 +155,22 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         ModuleServiceBase.getInstance().post_modules_installation_hooks.push(() => {
 
+            let carcontrollers_dag: DAG<VarCtrlDAGNode> = new DAG();
+
             /**
              * Ajout des triggers d'invalidation des données de cache en BDD
              *  - on part de la liste des vars qui ont un cache et des datasources
              */
-            for (let api_type_id in VarsServerController.getInstance().cached_var_id_by_datasource_by_api_type_id) {
+            for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
 
                 postCTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
                 postUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_u);
                 postDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
             }
 
-            let carcontrollers_dag: DAG<VarCtrlDAGNode> = new DAG();
 
-            for (let i in VarsServerController.getInstance().registered_vars_controller) {
-                let var_controller: VarServerControllerBase<any> = VarsServerController.getInstance().registered_vars_controller[i];
+            for (let i in VarsServerController.getInstance().registered_vars_controller_) {
+                let var_controller: VarServerControllerBase<any> = VarsServerController.getInstance().registered_vars_controller_[i];
 
                 let node = VarCtrlDAGNode.getInstance(carcontrollers_dag, var_controller);
 
@@ -758,7 +757,8 @@ export default class ModuleVarServer extends ModuleServerBase {
     private async register_params(api_param: APISimpleVOsParamVO): Promise<void> {
         let params: VarDataBaseVO[] = api_param.vos as VarDataBaseVO[];
 
-        VarsSocketsSubsController.getInstance().register_sub(TODO_SOCKET, params ? params.map((param) => param.index) : []);
+        // TODO FIXME SOCKETS
+        VarsSocketsSubsController.getInstance().register_sub(/*TODO_SOCKET*/ null, params ? params.map((param) => param.index) : []);
 
         /**
          * Si on trouve des datas existantes et valides en base, on les envoie, sinon on indique qu'on attend ces valeurs
@@ -790,7 +790,8 @@ export default class ModuleVarServer extends ModuleServerBase {
      * @param api_param
      */
     private async unregister_params(api_param: APISimpleVOsParamVO): Promise<void> {
-        VarsSocketsSubsController.getInstance().unregister_sub(TODO_SOCKET, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.index) : []);
+        // TODO FIXME SOCKETS
+        VarsSocketsSubsController.getInstance().unregister_sub(/*TODO_SOCKET*/ null, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.index) : []);
     }
 
     private async get_var_data_or_ask_to_bgthread(param: VarDataBaseVO): Promise<VarDataBaseVO> {

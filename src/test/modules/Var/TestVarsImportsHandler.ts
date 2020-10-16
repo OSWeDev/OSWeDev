@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import 'mocha';
 import VarsImportsHandler from '../../../server/modules/Var/VarsImportsHandler';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
-import VarDAG from '../../../shared/modules/Var/graph/VarDAG';
+import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import FakeDataHandler from './fakes/FakeDataHandler';
 import FakeDataVO from './fakes/vos/FakeDataVO';
@@ -40,7 +40,7 @@ describe('VarsImportsHandler', () => {
         let selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
         let remaning_calcs: FakeDataVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings([var_data_C, var_data_B], [var_data_F]);
 
-        let node_F = VarDAGNode.getInstance(new VarDAG(), var_data_F);
+        let node_F = VarDAGNode.getInstance(new DAG(), var_data_F);
         VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs);
         expect(node_F.is_aggregator).to.equal(true);
         expect(node_F.aggregated_nodes).to.deep.equal({

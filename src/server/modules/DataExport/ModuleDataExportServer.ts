@@ -18,7 +18,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
-import DAOCreateTriggerHook from '../DAO/triggers/DAOCreateTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import ModuleServerBase from '../ModuleServerBase';
 import DataExportBGThread from './bgthreads/DataExportBGThread';
 
@@ -41,7 +41,7 @@ export default class ModuleDataExportServer extends ModuleServerBase {
 
         ModuleBGThreadServer.getInstance().registerBGThread(DataExportBGThread.getInstance());
 
-        let preCreateTrigger: DAOCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preCreateTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
         preCreateTrigger.registerHandler(ExportHistoricVO.API_TYPE_ID, this.handleTriggerExportHistoricVOCreate);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

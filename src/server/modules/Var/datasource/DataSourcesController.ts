@@ -61,46 +61,46 @@ export default class DataSourcesController {
         }
     }
 
-    public getUpdatedParamsFromVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase): { [index: string]: VarDataBaseVO } {
+    // public getUpdatedParamsFromVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase): { [index: string]: VarDataBaseVO } {
 
-        let res_before: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_before_update);
-        let res_after: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_after_update);
+    //     let res_before: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_before_update);
+    //     let res_after: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_after_update);
 
-        return Object.assign(res_before, res_after);
-    }
+    //     return Object.assign(res_before, res_after);
+    // }
 
-    /**
-     * Fonction qui permet de renvoyer de manière précis
-     * @param vo_before_update
-     * @param vo_after_update
-     */
-    public getUpdatedParamsFromVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase): { [index: string]: VarDataBaseVO } {
+    // /**
+    //  * Fonction qui permet de renvoyer de manière précis
+    //  * @param vo_before_update
+    //  * @param vo_after_update
+    //  */
+    // public getUpdatedParamsFromVoUpdate(vo_before_update: IDistantVOBase, vo_after_update: IDistantVOBase): { [index: string]: VarDataBaseVO } {
 
-        let res_before: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_before_update);
-        let res_after: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_after_update);
+    //     let res_before: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_before_update);
+    //     let res_after: { [index: string]: VarDataBaseVO } = this.getUpdatedParamsFromVo(vo_after_update);
 
-        return Object.assign(res_before, res_after);
-    }
+    //     return Object.assign(res_before, res_after);
+    // }
 
-    private getUpdatedParamsFromVo(vo: IDistantVOBase): { [index: string]: VarDataBaseVO } {
+    // private getUpdatedParamsFromVo(vo: IDistantVOBase): { [index: string]: VarDataBaseVO } {
 
-        if ((!vo) || (!vo._type) || (!this.registeredDataSourcesControllerByVoTypeDep[vo._type])) {
-            return {};
-        }
+    //     if ((!vo) || (!vo._type) || (!this.registeredDataSourcesControllerByVoTypeDep[vo._type])) {
+    //         return {};
+    //     }
 
-        let res: { [index: string]: VarDataBaseVO } = {};
+    //     let res: { [index: string]: VarDataBaseVO } = {};
 
-        for (let i in this.registeredDataSourcesControllerByVoTypeDep[vo._type]) {
-            let dataSourceController: DataSourceControllerBase<any> = this.registeredDataSourcesControllerByVoTypeDep[vo._type][i];
+    //     for (let i in this.registeredDataSourcesControllerByVoTypeDep[vo._type]) {
+    //         let dataSourceController: DataSourceControllerBase<any> = this.registeredDataSourcesControllerByVoTypeDep[vo._type][i];
 
-            let temps: { [index: string]: VarDataBaseVO } = dataSourceController.get_updated_params_from_vo_update(vo);
+    //         let temps: { [index: string]: VarDataBaseVO } = dataSourceController.get_updated_params_from_vo_update(vo);
 
-            for (let index in temps) {
+    //         for (let index in temps) {
 
-                res[index] = temps[index];
-            }
-        }
+    //             res[index] = temps[index];
+    //         }
+    //     }
 
-        return res;
-    }
+    //     return res;
+    // }
 }
