@@ -1,4 +1,4 @@
-import { isMoment, isDuration } from 'moment';
+import { isMoment, isDuration, Moment } from 'moment';
 
 export default class TypesHandler {
 
@@ -12,6 +12,18 @@ export default class TypesHandler {
     private static instance: TypesHandler = null;
 
     private constructor() {
+    }
+
+    public isSameMoment(a: Moment, b: Moment): boolean {
+
+        if ((a && a.isValid()) && ((!b) || !b.isValid())) {
+            return false;
+        }
+        if ((b && b.isValid()) && ((!a) || !a.isValid())) {
+            return false;
+        }
+
+        return a.isSame(b);
     }
 
     public isMoment(e: any): boolean {
