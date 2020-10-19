@@ -53,12 +53,12 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     /**
      * Returns the datasources this var depends on
      */
-    public abstract getDataSourcesDependencies(): Array<DataSourceControllerBase<any>>;
+    public abstract getDataSourcesDependencies(): DataSourceControllerBase[];
 
     /**
      * Returns the datasources this var depends on predeps
      */
-    public getDataSourcesPredepsDependencies(): Array<DataSourceControllerBase<any>> {
+    public getDataSourcesPredepsDependencies(): DataSourceControllerBase[] {
         return null;
     }
 
@@ -158,13 +158,13 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * Méthode appelée par les triggers de POST Create / POST Delete sur les vos dont cette var dépend (via les déclarations dans les Datasources)
      * @param c_or_d_vo le vo créé ou supprimé
      */
-    public abstract get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase);
+    public abstract get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): TData[];
 
     /**
      * Méthode appelée par les triggers de POST update sur les vos dont cette var dépend (via les déclarations dans les Datasources)
      * @param c_or_d_vo le vo créé ou supprimé
      */
-    public abstract get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>);
+    public abstract get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): TData[];
 
     /**
      * Méthode appelée par les triggers de POST update sur les vos dont cette var dépend (via les déclarations dans les Datasources)

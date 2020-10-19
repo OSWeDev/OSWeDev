@@ -77,7 +77,7 @@ export default class VarsComputeController {
         /**
          * On charge toutes les datas restantes
          */
-        let dss: Array<DataSourceControllerBase<any>> = node.var_controller.getDataSourcesDependencies();
+        let dss: DataSourceControllerBase[] = node.var_controller.getDataSourcesDependencies();
         await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
 
         node.var_controller.computeValue(node);
@@ -198,7 +198,7 @@ export default class VarsComputeController {
         /**
          * On charge toutes les datas predeps
          */
-        let predeps_dss: Array<DataSourceControllerBase<any>> = node.var_controller.getDataSourcesPredepsDependencies();
+        let predeps_dss: DataSourceControllerBase[] = node.var_controller.getDataSourcesPredepsDependencies();
         if (predeps_dss && predeps_dss.length) {
             await DataSourcesController.getInstance().load_node_datas(predeps_dss, node, ds_cache);
         }

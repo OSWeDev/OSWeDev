@@ -1,5 +1,5 @@
-import { Moment } from 'moment';
 import * as moment from 'moment';
+import { Moment } from 'moment';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
@@ -15,8 +15,8 @@ export default class VarDataBaseVO {
     public static VALUE_TYPE_COMPUTED: number = 1;
 
     /**
-     * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et 
-     *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas 
+     * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
+     *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas
      *  dont il faut aussi indiquer ces var datas valides
      */
     get has_valid_value(): boolean {
@@ -46,7 +46,7 @@ export default class VarDataBaseVO {
     /**
      * Méthode pour créer un nouveau paramètre de var, quelque soit le type
      * @param _type Le vo_type cible
-     * @param var_id La var_id cible
+     * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      * @param fields_ordered_as_in_moduletable_definition Les ranges du matroid ordonnés dans le même ordre que dans la définition du moduletable
      */
@@ -73,15 +73,39 @@ export default class VarDataBaseVO {
     /**
      * Méthode pour créer un nouveau paramètre de var, quelque soit le type
      * @param param_to_clone Le param que l'on doit cloner
+     * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFrom<T extends VarDataBaseVO>(param_to_clone: T, clone_fields: boolean = true): T {
+    public static cloneFrom<T extends VarDataBaseVO>(param_to_clone: T, var_name: string, clone_fields: boolean = true): T {
 
         if (!param_to_clone) {
             return null;
         }
 
-        return this.cloneFieldsFromId(param_to_clone._type, param_to_clone.var_id, param_to_clone, clone_fields);
+        return this.cloneFieldsFromId(param_to_clone._type, VarsController.getInstance().var_id_by_names[var_name], param_to_clone, clone_fields);
+    }
+
+    /**
+     * Méthode pour créer un nouveau paramètre de var, quelque soit le type
+     * @param param_to_clone Le param que l'on doit cloner
+     * @param var_name Le nom de la var cible
+     * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
+     */
+    public static cloneArrayFrom<T extends VarDataBaseVO>(params_to_clone: T[], var_name: string, clone_fields: boolean = true): T[] {
+
+        if (!params_to_clone) {
+            return null;
+        }
+
+        let res: T[] = [];
+
+        for (let i in params_to_clone) {
+            let param_to_clone = params_to_clone[i];
+
+            res.push(this.cloneFrom(param_to_clone, var_name, clone_fields));
+        }
+
+        return res;
     }
 
 

@@ -374,6 +374,54 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return true;
     }
 
+    public async getSumFieldFilterByMatroids(
+        api_type_id: string,
+        field_id: string,
+        matroids: IMatroid[],
+        fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
+
+        if ((!matroids) || (!matroids.length)) {
+            return null;
+        }
+
+        let moduleTable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
+
+        if (!moduleTable) {
+            return null;
+        }
+
+        // On vérifie qu'on peut faire un select
+        if (!await ModuleDAOServer.getInstance().checkAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
+            return null;
+        }
+
+        let value: number = 0;
+        for (let matroid_i in matroids) {
+            let matroid: VarDataBaseVO = matroids[matroid_i] as VarDataBaseVO;
+
+            if (!matroid) {
+                ConsoleHandler.getInstance().error('Matroid vide:getSumFieldFilterByMatroids:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
+                continue;
+            }
+
+            let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', moduleTable.full_name);
+
+            if (!filter_by_matroid_clause) {
+                continue;
+            }
+
+            let res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t." + field_id + ") res FROM " + moduleTable.full_name + " t WHERE  " +
+                filter_by_matroid_clause + ";");
+
+            if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
+            } else {
+                value += res[0]['res'];
+            }
+        }
+
+        return value;
+    }
+
     /**
      * Objectif : Renvoyer la partie de la requête à intégrer dans le where pour faire un filter by matroid (inclusif, pas intersect)
      * Return null si on a pas de filtre

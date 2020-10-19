@@ -178,14 +178,14 @@ export default class VarsServerController {
         this._registered_vars_controller[varConf.name] = controller;
         this._registered_vars_by_ids[varConf.id] = varConf;
 
-        let datasource_deps: Array<DataSourceControllerBase<any>> = controller.getDataSourcesDependencies();
+        let datasource_deps: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
         datasource_deps = (!!datasource_deps) ? datasource_deps : [];
         datasource_deps.forEach((datasource_dep) => {
             datasource_dep.registerDataSource();
         });
 
         // On enregistre le lien entre DS et VAR
-        let dss: Array<DataSourceControllerBase<any>> = this.get_datasource_deps(controller);
+        let dss: DataSourceControllerBase[] = this.get_datasource_deps(controller);
         for (let i in dss) {
             let ds = dss[i];
 
@@ -235,8 +235,8 @@ export default class VarsServerController {
     /**
      * @param controller
      */
-    private get_datasource_deps(controller: VarServerControllerBase<any>): Array<DataSourceControllerBase<any>> {
-        let datasource_deps: Array<DataSourceControllerBase<any>> = controller.getDataSourcesDependencies();
+    private get_datasource_deps(controller: VarServerControllerBase<any>): DataSourceControllerBase[] {
+        let datasource_deps: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
         datasource_deps = (!!datasource_deps) ? datasource_deps : [];
 
         return datasource_deps;
