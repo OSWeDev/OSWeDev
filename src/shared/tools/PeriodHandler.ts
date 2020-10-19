@@ -26,7 +26,6 @@ export default class PeriodHandler {
     }
 
     public lowerMoment(period: string, base: unitOfTime.Base = 'days'): Moment {
-
         let split = this.split(period);
 
         if ((!split) || (!split[2]) || (split[2] == '')) {
@@ -38,7 +37,7 @@ export default class PeriodHandler {
 
     public split(period: string, return_null_values: boolean = false): string[] {
         let regexpPeriod = /(\(|\[)(.*),(.*)(\)|\])/i;
-        let res = period.match(regexpPeriod);
+        let res = (!!period) ? period.match(regexpPeriod) : null;
 
         if (!res) {
             return null;
