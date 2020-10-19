@@ -1,14 +1,15 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import ModuleAPI from '../API/ModuleAPI';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleDAO from '../DAO/ModuleDAO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
 import SetParamParamVO from './vos/apis/SetParamParamVO';
 import ParamVO from './vos/ParamVO';
-import { Moment } from 'moment';
 
 export default class ModuleParams extends Module {
 
@@ -39,6 +40,7 @@ export default class ModuleParams extends Module {
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, string>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_getParamValue,
             [ParamVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
@@ -48,12 +50,14 @@ export default class ModuleParams extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue,
             [ParamVO.API_TYPE_ID],
             SetParamParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<SetParamParamVO, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ParamVO.API_TYPE_ID),
             ModuleParams.APINAME_setParamValue_if_not_exists,
             [ParamVO.API_TYPE_ID],
             SetParamParamVO.translateCheckAccessParams
@@ -84,6 +88,12 @@ export default class ModuleParams extends Module {
         return res ? parseInt(res) : null;
     }
 
+    public async getParamValueAsBoolean(param_name: string): Promise<boolean> {
+        let res = await this.getParamValueAsInt(param_name);
+
+        return res ? true : false;
+    }
+
     public async getParamValueAsFloat(param_name: string): Promise<number> {
         let res = await this.getParamValue(param_name);
 
@@ -92,6 +102,14 @@ export default class ModuleParams extends Module {
 
     public async setParamValue(param_name: string, param_value: string): Promise<void> {
         return await ModuleAPI.getInstance().handleAPI<SetParamParamVO, void>(ModuleParams.APINAME_setParamValue, param_name, param_value);
+    }
+
+    public async setParamValueAsBoolean(param_name: string, param_value: boolean): Promise<void> {
+        return await this.setParamValue(param_name, param_value ? '1' : '0');
+    }
+
+    public async setParamValueAsNumber(param_name: string, param_value: number): Promise<void> {
+        return await this.setParamValue(param_name, param_value.toString());
     }
 
     public async setParamValue_if_not_exists(param_name: string, param_value: string): Promise<void> {

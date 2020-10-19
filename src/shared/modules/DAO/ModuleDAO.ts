@@ -67,6 +67,8 @@ export default class ModuleDAO extends Module {
     // inherit DAO_ACCESS_TYPE_READ
     public static DAO_ACCESS_TYPE_DELETE: string = "DELETE";
 
+    public static DAO_ACCESS_QUERY: string = ModuleDAO.POLICY_GROUP_OVERALL + '.' + "QUERY";
+
     public static getInstance() {
         if (!ModuleDAO.instance) {
             ModuleDAO.instance = new ModuleDAO();
@@ -84,6 +86,7 @@ export default class ModuleDAO extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], any[]>(
+            null,
             ModuleDAO.APINAME_DELETE_VOS,
             (params: IDistantVOBase[]) => {
                 let res: string[] = [];
@@ -100,11 +103,13 @@ export default class ModuleDAO extends Module {
             }
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAOParamsVO, any[]>(
+            null,
             ModuleDAO.APINAME_DELETE_VOS_BY_IDS,
             (param: APIDAOParamsVO) => [param.API_TYPE_ID],
             APIDAOParamsVO.translateCheckAccessParams
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase[], InsertOrDeleteQueryResult[]>(
+            null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VOS,
             (params: IDistantVOBase[]) => {
                 let res: string[] = [];
@@ -121,22 +126,26 @@ export default class ModuleDAO extends Module {
             }
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IDistantVOBase, InsertOrDeleteQueryResult>(
+            null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_VO,
             (param: IDistantVOBase) => [param._type]
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APIDAODATATABLEVOParamVO, InsertOrDeleteQueryResult>(
+            null,
             ModuleDAO.APINAME_INSERT_OR_UPDATE_DATATABLE_VO,
             (param: APIDAODATATABLEVOParamVO) => param.datatable_vo ? [param.datatable_vo._type] : null
         ));
 
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamsVO, IDistantVOBase[]>(
+            null,
             ModuleDAO.APINAME_GET_VOS_BY_IDS,
             (param: APIDAOParamsVO) => [param.API_TYPE_ID],
             APIDAOParamsVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOIdsRangesParamsVO, IDistantVOBase[]>(
+            null,
             ModuleDAO.APINAME_GET_VOS_BY_IDS_RANGES,
             (param: APIDAOIdsRangesParamsVO) => [param.API_TYPE_ID],
             APIDAOIdsRangesParamsVO.translateCheckAccessParams
@@ -162,59 +171,69 @@ export default class ModuleDAO extends Module {
 
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+            null,
             ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
+            null,
             ModuleDAO.APINAME_getColSumFilterByMatroid,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+            null,
             ModuleDAO.APINAME_FILTER_VOS_BY_MATROIDS_INTERSECTIONS,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, IDistantVOBase[]>(
+            null,
             ModuleDAO.APINAME_GET_VOS_BY_EXACT_MATROIDS,
             (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
             APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAORefFieldParamsVO, IDistantVOBase[]>(
+            null,
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELD_IDS,
             (param: APIDAORefFieldParamsVO) => [param.API_TYPE_ID],
             APIDAORefFieldParamsVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAORefFieldsParamsVO, IDistantVOBase[]>(
+            null,
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS,
             (param: APIDAORefFieldsParamsVO) => [param.API_TYPE_ID],
             APIDAORefFieldsParamsVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAORefFieldsAndFieldsStringParamsVO, IDistantVOBase[]>(
+            null,
             ModuleDAO.APINAME_GET_VOS_BY_REFFIELDS_IDS_AND_FIELDS_STRING,
             (param: APIDAORefFieldsAndFieldsStringParamsVO) => [param.API_TYPE_ID],
             APIDAORefFieldsAndFieldsStringParamsVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAONamedParamVO, IDistantVOBase>(
+            null,
             ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME,
             (param: APIDAONamedParamVO) => [param.API_TYPE_ID],
             APIDAONamedParamVO.translateCheckAccessParams
         ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOParamVO, IDistantVOBase>(
+            null,
             ModuleDAO.APINAME_GET_VO_BY_ID,
             (param: APIDAOParamVO) => [param.API_TYPE_ID],
             APIDAOParamVO.translateCheckAccessParams
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, IDistantVOBase[]>(
+            null,
             ModuleDAO.APINAME_GET_VOS,
             (API_TYPE_ID: StringParamVO) => [API_TYPE_ID.text],
             StringParamVO.translateCheckAccessParams,
@@ -224,6 +243,7 @@ export default class ModuleDAO extends Module {
         ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, string>(
+            null,
             ModuleDAO.APINAME_GET_BASE_URL,
             []
         ));
@@ -395,6 +415,9 @@ export default class ModuleDAO extends Module {
     }
 
     public getAccessPolicyName(access_type: string, vo_type: string): string {
+        if ((!access_type) || (!vo_type)) {
+            return null;
+        }
         let isModulesParams: boolean = VOsTypesManager.getInstance().moduleTables_by_voType[vo_type].isModuleParamTable;
         return (isModulesParams ? ModuleDAO.POLICY_GROUP_MODULES_CONF : ModuleDAO.POLICY_GROUP_DATAS) + '.' + access_type + "." + vo_type;
     }

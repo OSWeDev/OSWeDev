@@ -82,8 +82,14 @@ describe('TestFilters', () => {
 
         ModuleFormatDatesNombres.getInstance().actif = true;
 
-        expect(toFixedFilter.read(null)).to.equal(null);
+        expect(toFixedFilter.read(null, null)).to.equal(null);
         expect(toFixedFilter.read(0)).to.equal('0');
+        expect(toFixedFilter.read(0, null)).to.equal('0');
+        expect(toFixedFilter.read(0, 0)).to.equal('0');
+        expect(toFixedFilter.read(0.3)).to.equal('0');
+        expect(toFixedFilter.read(0.3, null)).to.equal('0,3');
+        expect(toFixedFilter.read(0.3, null, 0.5)).to.equal('0,5');
+        expect(toFixedFilter.read(0.3, 0)).to.equal('0');
         expect(toFixedFilter.read("0.5", null, 0.5)).to.equal("0,5");
         expect(toFixedFilter.read(-1.6, null, 0.5)).to.equal("-1,5");
         expect(toFixedFilter.read(-1.9, null, 0.5)).to.equal("-2");
@@ -326,33 +332,131 @@ describe('TestFilters', () => {
 
     it('test: toFixedCeilFilte read', () => {
         ModuleFormatDatesNombres.getInstance().actif = true;
-        expect(toFixedCeilFilter.read(null, null)).to.equal(null);
-        expect(toFixedCeilFilter.read(1, null)).to.equal(null);
-        expect(toFixedCeilFilter.read(null, 1)).to.equal(null);
-        expect(toFixedCeilFilter.read(3.6, 0)).to.equal('4');
-        expect(toFixedCeilFilter.read(3.3, 0)).to.equal('4');
-        expect(toFixedCeilFilter.read(3.38, 1)).to.equal('3,4');
-        expect(toFixedCeilFilter.read(3.34, 1)).to.equal('3,4');
-        expect(toFixedCeilFilter.read(-3.34, 1)).to.equal('-3,3');
-        expect(toFixedCeilFilter.read(-3.3, 0)).to.equal('-3');
-        expect(toFixedCeilFilter.read(3.38, -1)).to.equal('3.38');
-        expect(toFixedCeilFilter.read(0, 0)).to.equal('0');
-        expect(toFixedCeilFilter.read(0, 1)).to.equal('0');
+        // param : value, fractionalDigits, arrondi
+        expect(toFixedCeilFilter.read(null, null, null)).to.equal(null);
+        expect(toFixedCeilFilter.read(null, null, 1)).to.equal(null);
+        expect(toFixedCeilFilter.read(null, 1, null)).to.equal(null);
+        expect(toFixedCeilFilter.read(10, null, null)).to.equal('10');
+        expect(toFixedCeilFilter.read(10, 1, null)).to.equal('10,0');
+        expect(toFixedCeilFilter.read(10, 3, null)).to.equal('10,000');
+        expect(toFixedCeilFilter.read(10, null, 1)).to.equal('10');
+        expect(toFixedCeilFilter.read(10, null, 0.5)).to.equal('10');
 
+        expect(toFixedCeilFilter.read(13.3, null, null)).to.equal('13,3');
+        expect(toFixedCeilFilter.read(13.3, null)).to.equal('13,3');
+        expect(toFixedCeilFilter.read(13.3, 1, null)).to.equal('13,3');
+        expect(toFixedCeilFilter.read(13.3, 1)).to.equal('13,3');
+        expect(toFixedCeilFilter.read(13.3, 2, null)).to.equal('13,30');
+        expect(toFixedCeilFilter.read(13.3, 2)).to.equal('13,30');
+        expect(toFixedCeilFilter.read(13.3, null, 1)).to.equal('14');
+        expect(toFixedCeilFilter.read(13.3, null, 0.5)).to.equal('13,5');
+        expect(toFixedCeilFilter.read(13.6, null, 0.5)).to.equal('14');
+        expect(toFixedCeilFilter.read(13.6, null, 0.25)).to.equal('13,75');
+        expect(toFixedCeilFilter.read(13.01, null, 0.25)).to.equal('13,25');
+
+        expect(toFixedCeilFilter.read(13.01, 1, 0.25)).to.equal('13,3'); // param absurde : discutable
+        expect(toFixedCeilFilter.read(13.01, 2, 0.25)).to.equal('13,25');
+        expect(toFixedCeilFilter.read(13.01, 3, 0.25)).to.equal('13,250');
+
+        expect(toFixedCeilFilter.read(13.6, 0, null)).to.equal('14'); // param absurde : discutable
+        expect(toFixedCeilFilter.read(13.6, 0)).to.equal('14'); // param absurde : discutable
+        expect(toFixedCeilFilter.read(13.3, 0, null)).to.equal('14'); // param absurde : discutable ?
+        expect(toFixedCeilFilter.read(13.3, 0)).to.equal('14'); // param absurde : discutable
+        expect(toFixedCeilFilter.read(13.38, 1, null)).to.equal('13,4'); // param absurde : discutable
+        expect(toFixedCeilFilter.read(13.38, 1)).to.equal('13,4'); // param absurde : discutable
+        expect(toFixedCeilFilter.read(13.34, 1, null)).to.equal('13,4');  // param absurde : discutable
+        expect(toFixedCeilFilter.read(13.34, 1)).to.equal('13,4');  // param absurde : discutable
+
+        expect(toFixedCeilFilter.read(-13.34, 1, null)).to.equal('-13,3');
+        expect(toFixedCeilFilter.read(-13.34, 1)).to.equal('-13,3');
+        expect(toFixedCeilFilter.read(-13.34, 1, 0.5)).to.equal('-13,0');
+        expect(toFixedCeilFilter.read(-13.34, null, 0.5)).to.equal('-13');
+        expect(toFixedCeilFilter.read(-13.3, 0, null)).to.equal('-13');
+        expect(toFixedCeilFilter.read(-13.3, 0)).to.equal('-13');
+
+        expect(toFixedCeilFilter.read(-13.64, 2, 0.5)).to.equal('-13,50');
+        expect(toFixedCeilFilter.read(-13.64, 1, 0.5)).to.equal('-13,5');
+        expect(toFixedCeilFilter.read(-13.64, null, 0.5)).to.equal('-13,5');
+
+        expect(toFixedCeilFilter.read(-13.25, 0, null)).to.equal('-13');
+        expect(toFixedCeilFilter.read(-13.25, 0)).to.equal('-13');
+        expect(toFixedCeilFilter.read(-13.25, 0, 0.5)).to.equal('-13'); // param absurde
+        expect(toFixedCeilFilter.read(-13.75, 0, 0.5)).to.equal('-14'); // param absurde
+
+        expect(toFixedCeilFilter.read(13.38, -1)).to.equal('13,38'); // what ?
+        expect(toFixedCeilFilter.read(40.5, 1)).to.equal('40,5');
+        expect(toFixedCeilFilter.read(0, 0)).to.equal('0');
+        expect(toFixedCeilFilter.read(0, 0, 0.5)).to.equal('0'); // param absurde
+        expect(toFixedCeilFilter.read(0, 0, 1)).to.equal('0'); // param absurde
+        expect(toFixedCeilFilter.read(0, 1)).to.equal('0'); // discutable, arrait pu etre 0,0
+        expect(toFixedCeilFilter.read(0, 1, 0.5)).to.equal('0'); // discutable, arrait pu etre 0,0
+        expect(toFixedCeilFilter.read(0, 2, null)).to.equal('0'); // discutable, arrait pu etre 0,00
+        expect(toFixedCeilFilter.read(0, 2, 0.5)).to.equal('0'); // discutable, arrait pu etre 0,50
     });
 
     it('test: toFixedFloorFilte read', () => {
         ModuleFormatDatesNombres.getInstance().actif = true;
-        expect(toFixedFloorFilter.read(null, null)).to.equal(null);
-        expect(toFixedFloorFilter.read(1, null)).to.equal(null);
-        expect(toFixedFloorFilter.read(null, 1)).to.equal(null);
-        expect(toFixedFloorFilter.read(3.6, 0)).to.equal('3');
-        expect(toFixedFloorFilter.read(3.33, 1)).to.equal('3,3');
-        expect(toFixedFloorFilter.read(3.38, 1)).to.equal('3,3');
-        expect(toFixedFloorFilter.read(-3.38, 1)).to.equal('-3,4');
-        expect(toFixedCeilFilter.read(3.38, -1)).to.equal('3.38');
-        expect(toFixedCeilFilter.read(0, 0)).to.equal('0');
-        expect(toFixedCeilFilter.read(0, 1)).to.equal('0');
+        // param : value, fractionalDigits, arrondi
+        expect(toFixedFloorFilter.read(null, null, null)).to.equal(null);
+        expect(toFixedFloorFilter.read(null, null, 1)).to.equal(null);
+        expect(toFixedFloorFilter.read(null, 1, null)).to.equal(null);
+        expect(toFixedFloorFilter.read(10, null, null)).to.equal('10');
+        expect(toFixedFloorFilter.read(10, 1, null)).to.equal('10,0');
+        expect(toFixedFloorFilter.read(10, 3, null)).to.equal('10,000');
+        expect(toFixedFloorFilter.read(10, null, 1)).to.equal('10');
+        expect(toFixedFloorFilter.read(10, null, 0.5)).to.equal('10');
+
+        expect(toFixedFloorFilter.read(13.3, null, null)).to.equal('13,3');
+        expect(toFixedFloorFilter.read(13.3, null)).to.equal('13,3');
+        expect(toFixedFloorFilter.read(13.3, 1, null)).to.equal('13,3');
+        expect(toFixedFloorFilter.read(13.3, 1)).to.equal('13,3');
+        expect(toFixedFloorFilter.read(13.3, 2, null)).to.equal('13,30');
+        expect(toFixedFloorFilter.read(13.3, 2)).to.equal('13,30');
+        expect(toFixedFloorFilter.read(13.3, null, 1)).to.equal('13');
+        expect(toFixedFloorFilter.read(13.3, null, 0.5)).to.equal('13');
+        expect(toFixedFloorFilter.read(13.6, null, 0.5)).to.equal('13,5');
+        expect(toFixedFloorFilter.read(13.6, null, 0.25)).to.equal('13,5');
+        expect(toFixedFloorFilter.read(13.01, null, 0.25)).to.equal('13');
+
+        expect(toFixedFloorFilter.read(13.26, 1, 0.25)).to.equal('13,3'); // param absurde : discutable
+        expect(toFixedFloorFilter.read(13.26, 2, 0.25)).to.equal('13,25');
+        expect(toFixedFloorFilter.read(13.26, 3, 0.25)).to.equal('13,250');
+
+        expect(toFixedFloorFilter.read(13.6, 0, null)).to.equal('13'); // param absurde : discutable
+        expect(toFixedFloorFilter.read(13.6, 0)).to.equal('13'); // param absurde : discutable
+        expect(toFixedFloorFilter.read(13.3, 0, null)).to.equal('13'); // param absurde : discutable ?
+        expect(toFixedFloorFilter.read(13.3, 0)).to.equal('13'); // param absurde : discutable
+        expect(toFixedFloorFilter.read(13.38, 1, null)).to.equal('13,3'); // param absurde : discutable
+        expect(toFixedFloorFilter.read(13.38, 1)).to.equal('13,3'); // param absurde : discutable
+        expect(toFixedFloorFilter.read(13.34, 1, null)).to.equal('13,3');  // param absurde : discutable
+        expect(toFixedFloorFilter.read(13.34, 1)).to.equal('13,3');  // param absurde : discutable
+
+        expect(toFixedFloorFilter.read(-13.34, 1, null)).to.equal('-13,4');
+        expect(toFixedFloorFilter.read(-13.34, 1)).to.equal('-13,4');
+        expect(toFixedFloorFilter.read(-13.34, 1, 0.5)).to.equal('-13,5');
+        expect(toFixedFloorFilter.read(-13.34, null, 0.5)).to.equal('-13,5');
+        expect(toFixedFloorFilter.read(-13.3, 0, null)).to.equal('-14');
+        expect(toFixedFloorFilter.read(-13.3, 0)).to.equal('-14');
+
+        expect(toFixedFloorFilter.read(-13.64, 2, 0.5)).to.equal('-14,00');
+        expect(toFixedFloorFilter.read(-13.64, 1, 0.5)).to.equal('-14,0');
+        expect(toFixedFloorFilter.read(-13.64, null, 0.5)).to.equal('-14');
+
+        expect(toFixedFloorFilter.read(-13.25, 0, null)).to.equal('-14');
+        expect(toFixedFloorFilter.read(-13.25, 0)).to.equal('-14');
+        expect(toFixedFloorFilter.read(-13.25, 0, 0.5)).to.equal('-14'); // param absurde
+        expect(toFixedFloorFilter.read(-13.75, 0, 0.5)).to.equal('-14'); // param absurde
+
+        expect(toFixedFloorFilter.read(13.38, -1)).to.equal('13,38'); // what ?
+        expect(toFixedFloorFilter.read(40.5, 1)).to.equal('40,5');
+        expect(toFixedFloorFilter.read(0, 0)).to.equal('0');
+        expect(toFixedFloorFilter.read(0, 0, 0.5)).to.equal('0'); // param absurde
+        expect(toFixedFloorFilter.read(0, 0, 1)).to.equal('0'); // param absurde
+        expect(toFixedFloorFilter.read(0, 1)).to.equal('0'); // discutable, arrait pu etre 0,0
+        expect(toFixedFloorFilter.read(0, 1, 0.5)).to.equal('0'); // discutable, arrait pu etre 0,0
+        expect(toFixedFloorFilter.read(0, 2, null)).to.equal('0'); // discutable, arrait pu etre 0,00
+        expect(toFixedFloorFilter.read(0, 2, 0.5)).to.equal('0'); // discutable, arrait pu etre 0,50
+
     });
 
     it('test: toFixedFilter write', () => {

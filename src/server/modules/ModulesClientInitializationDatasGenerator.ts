@@ -1,7 +1,7 @@
-import ModuleServiceBase from "./ModuleServiceBase";
 import Module from "../../shared/modules/Module";
 import ConfigurationService from '../env/ConfigurationService';
 import ModuleFileServer from './File/ModuleFileServer';
+import ModuleServiceBase from "./ModuleServiceBase";
 
 export default class ModulesClientInitializationDatasGenerator {
 
@@ -67,6 +67,7 @@ export default class ModulesClientInitializationDatasGenerator {
         fileContent += "    EnvHandler.getInstance().IS_DEV = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().ISDEV) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.getInstance().MSGPCK = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().MSGPCK) ? 'true' : 'false') + ';\n';
         fileContent += "    EnvHandler.getInstance().COMPRESS = " + ((!!ConfigurationService.getInstance().getNodeConfiguration().COMPRESS) ? 'true' : 'false') + ';\n';
+        fileContent += "    EnvHandler.getInstance().BASE_URL = '" + ConfigurationService.getInstance().getNodeConfiguration().BASE_URL + "';\n";
 
         fileContent += this.generateModulesCode(this.generateModuleData, target);
 

@@ -31,6 +31,7 @@ export default class ModuleVersioned extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<IVersionedVO, boolean>(
+            null,
             ModuleVersioned.APINAME_RESTORE_TRASHED_VO,
             (param: IVersionedVO) => [param._type]
         ));

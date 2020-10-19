@@ -130,7 +130,7 @@ export default class AccessPolicyResetComponent extends VueComponentBase {
     }
 
     private async load_logo_url() {
-        this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES + '.logo_url');
+        this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
         if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
             return;
         }

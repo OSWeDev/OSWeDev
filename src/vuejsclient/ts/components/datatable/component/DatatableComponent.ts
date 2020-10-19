@@ -1,4 +1,5 @@
 import * as $ from 'jquery';
+import { cloneDeep } from 'lodash';
 import debounce from 'lodash/debounce';
 import * as moment from 'moment';
 import { Moment } from 'moment';
@@ -16,6 +17,7 @@ import TimeSegment from '../../../../../shared/modules/DataRender/vos/TimeSegmen
 import ModuleFormatDatesNombres from '../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
 import IDistantVOBase from '../../../../../shared/modules/IDistantVOBase';
 import ModuleTableField from '../../../../../shared/modules/ModuleTableField';
+import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 import DefaultTranslation from '../../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
@@ -31,8 +33,6 @@ import CustomFilterItem from './CustomFilterItem';
 import './DatatableComponent.scss';
 import DatatableComponentField from './fields/DatatableComponentField';
 import FileDatatableFieldComponent from './fields/file/file_datatable_field';
-import { cloneDeep } from 'lodash';
-import TableFieldTypesManager from '../../../../../shared/modules/TableFieldTypes/TableFieldTypesManager';
 
 @Component({
     template: require('./DatatableComponent.pug'),
@@ -144,7 +144,7 @@ export default class DatatableComponent extends VueComponentBase {
 
     private handle_filters_preload() {
 
-        // this.custom_filters_values = {};
+        this.custom_filters_values = {};
         this.preload_custom_filters = [];
 
         // En fait, on parcourt le type et pour chaque champ, si il existe en param un 'FILTER__' + field_id
@@ -224,7 +224,13 @@ export default class DatatableComponent extends VueComponentBase {
 
                     if ((!!this.custom_filters_options) && (!!this.custom_filters_options[field.datatable_field_uid])) {
                         for (let k in this.custom_filters_options[field.datatable_field_uid]) {
-                            if (this.custom_filters_options[field.datatable_field_uid][k] && this.custom_filters_options[field.datatable_field_uid][k].value == this.$route.query[j]) {
+                            let option_value = this.custom_filters_options[field.datatable_field_uid][k].value;
+
+                            if (typeof option_value == 'string') {
+                                option_value = option_value.trim();
+                            }
+
+                            if ((this.custom_filters_options[field.datatable_field_uid][k]) && (option_value == this.$route.query[j])) {
                                 this.custom_filters_values[field.datatable_field_uid] = [this.custom_filters_options[field.datatable_field_uid][k]];
                             }
                         }
@@ -636,10 +642,10 @@ export default class DatatableComponent extends VueComponentBase {
         AppVuexStoreManager.getInstance().appVuexStore.dispatch('register_hook_export_data_to_XLSX', this.get_export_params_for_xlsx);
     }
 
-    @Watch('embed_filter', { deep: true })
+    @Watch('embed_filter', { immediate: true, deep: true })
     private onFilterChange() {
         if (!!this.embed_filter) {
-            this.update_datatable_data();
+            this.debounced_update_datatable_data();
         }
     }
 

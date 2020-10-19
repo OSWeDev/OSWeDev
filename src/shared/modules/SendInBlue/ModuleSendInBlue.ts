@@ -9,6 +9,8 @@ export default class ModuleSendInBlue extends Module {
 
     public static MODULE_NAME: string = 'SendInBlue';
 
+    public static PARAM_NAME_SMS_ACTIVATION: string = 'ModuleSendInBlue.SMS_ACTIVATION';
+
     public static POLICY_GROUP: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleSendInBlue.MODULE_NAME;
 
     public static POLICY_BO_ACCESS: string = AccessPolicyTools.POLICY_UID_PREFIX + ModuleSendInBlue.MODULE_NAME + '.BO_ACCESS';

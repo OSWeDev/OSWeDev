@@ -9,6 +9,7 @@ import DefaultTranslation from '../Translation/vos/DefaultTranslation';
 import VOsTypesManager from '../VOsTypesManager';
 import MaintenanceVO from './vos/MaintenanceVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
+import ModuleDAO from '../DAO/ModuleDAO';
 
 export default class ModuleMaintenance extends Module {
 
@@ -46,14 +47,17 @@ export default class ModuleMaintenance extends Module {
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_START_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<void, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_PLANNED_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<NumberParamVO, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, MaintenanceVO.API_TYPE_ID),
             ModuleMaintenance.APINAME_END_MAINTENANCE,
             [MaintenanceVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams

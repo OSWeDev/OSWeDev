@@ -15,6 +15,7 @@ export default class EnvHandler {
     public NODE_VERBOSE: boolean = true;
     public MSGPCK: boolean = false;
     public COMPRESS: boolean = false;
+    public BASE_URL: string = null;
 
     private constructor() {
     }

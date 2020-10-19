@@ -16,13 +16,14 @@ import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
 import IVarMatroidDataParamVO from '../../../shared/modules/Var/interfaces/IVarMatroidDataParamVO';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
 import SimpleVarDataValueRes from '../../../shared/modules/Var/simple_vars/SimpleVarDataValueRes';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
-import ServerBase from '../../ServerBase';
+import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -33,7 +34,6 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarServerController from './VarServerController';
-import ConfigureVarCacheParamVO from '../../../shared/modules/Var/params/ConfigureVarCacheParamVO';
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -356,14 +356,10 @@ export default class ModuleVarServer extends ModuleServerBase {
             // Si on a un vardata mais pas de value_ts,
             //  On stocke l'info pour le batch BG de recompilation qu'on veut renvoyer le res de ces vars datas à l'utilisateur et /ou aux
             //  utilisateurs qui sont à l'origine de la demande. Et c'est le bgthread qui gère de notifier du coup
-            let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-            if (!!httpContext) {
-
-                let uid: number = httpContext ? httpContext.get('UID') : null;
-                if (!!uid) {
-                    let var_index: string = VarsController.getInstance().getIndex(vardata);
-                    VarServerController.getInstance().add_uid_waiting_for_indexes(uid, var_index);
-                }
+            let uid: number = StackContext.getInstance().get('UID');
+            if (!!uid) {
+                let var_index: string = VarsController.getInstance().getIndex(vardata);
+                VarServerController.getInstance().add_uid_waiting_for_indexes(uid, var_index);
             }
 
             // // Si on a un vardata mais pas de value_ts, on attend qu'il se remplisse, au max 20 secondes

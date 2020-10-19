@@ -6,6 +6,7 @@ import NumberParamVO from '../API/vos/apis/NumberParamVO';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleDAO from '../DAO/ModuleDAO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
@@ -85,10 +86,12 @@ export default class ModuleDataImport extends Module {
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<DataImportHistoricVO, void>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_reimportdih,
             [DataImportHistoricVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO[]>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportHistorics,
             [DataImportHistoricVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
@@ -97,6 +100,7 @@ export default class ModuleDataImport extends Module {
             NumberParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportHistoricVO>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportHistoricVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportHistoric,
             [DataImportHistoricVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
@@ -105,6 +109,7 @@ export default class ModuleDataImport extends Module {
             NumberParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportLogVO[]>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportLogVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportLogs,
             [DataImportLogVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
@@ -113,10 +118,12 @@ export default class ModuleDataImport extends Module {
             NumberParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, DataImportFormatVO[]>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportFormatVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportFiles,
             [DataImportFormatVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, DataImportFormatVO>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportFormatVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportFile,
             [DataImportFormatVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
@@ -125,6 +132,7 @@ export default class ModuleDataImport extends Module {
             StringParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, DataImportColumnVO[]>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_READ, DataImportColumnVO.API_TYPE_ID),
             ModuleDataImport.APINAME_getDataImportColumnsFromFormatId,
             [DataImportColumnVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,

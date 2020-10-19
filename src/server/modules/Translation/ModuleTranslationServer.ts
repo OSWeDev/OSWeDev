@@ -493,6 +493,20 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }, 'multiselect.deselectGroupLabel.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Début'
+        }, 'num_range_input.debut.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Fin'
+        }, 'num_range_input.fin.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Valeur Simple'
+        }, 'num_range_input.is_single.on.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tranche de valeurs'
+        }, 'num_range_input.is_single.off.___LABEL___'));
+
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Accès au choix de la langue'
         }, 'access.policies.names.Translation.LANG_SELECTOR_PER_LANG_ACCESS_PREFIX_1.___LABEL___'));
     }

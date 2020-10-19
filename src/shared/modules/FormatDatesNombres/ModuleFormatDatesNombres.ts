@@ -129,12 +129,15 @@ export default class ModuleFormatDatesNombres extends Module {
     // Formatter une date de type 31/01/2017
     public formatDate_FullyearMonthDay(dateToFormat: moment.Moment | string): string {
 
-        let momentToFormat = this.getMomentFromDate(dateToFormat);
+        if (dateToFormat == null) {
+            return null;
+        }
 
+        let momentToFormat = this.getMomentFromDate(dateToFormat);
         return momentToFormat.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date));
     }
 
-    public getMomentFromFormatted_FullyearMonthDay(dateToFormat: string): moment.Moment {
+    public getMomentFromFormatted_FullyearMonthDay(dateToFormat: moment.Moment | string): moment.Moment {
         if (dateToFormat == null) {
             return null;
         }

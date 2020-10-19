@@ -38,11 +38,13 @@ export default class ModuleProduit extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, ProduitVO>(
+            null,
             ModuleProduit.APINAME_getProduitAjoutPanier,
             [ProduitVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, FacturationProduitVO[]>(
+            null,
             ModuleProduit.APINAME_getFacturationProduitByIdProduit,
             [FacturationProduitVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
@@ -51,6 +53,7 @@ export default class ModuleProduit extends Module {
             NumberParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ProduitAndServiceParamVO, number>(
+            null,
             ModuleProduit.APINAME_getPrixProduit,
             [],
             ProduitAndServiceParamVO.translateCheckAccessParams,

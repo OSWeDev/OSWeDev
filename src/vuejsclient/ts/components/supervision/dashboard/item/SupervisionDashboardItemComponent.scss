@@ -1,0 +1,56 @@
+.supervision_dashboard_item {
+
+    border-radius: 6px;
+    font-size: small;
+    text-align: center;
+    color: white;
+    margin: 0.1em 0.3em;
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 0.5em 0em;
+    max-width: 898px;
+
+    &:hover{
+        opacity: 1;
+    }
+
+    &.STATE_ERROR{
+        background-color: red;
+    }
+
+    &.STATE_ERROR_READ{
+        background-color: orangered;
+    }
+
+    &.STATE_WARN{
+        background-color: orange;
+    }
+
+    &.STATE_WARN_READ{
+        background-color: #ffd400;
+    }
+
+    &.STATE_OK{
+        background-color: green;
+    }
+
+    &.STATE_PAUSED{
+        background-color: blue;
+    }
+
+    &.STATE_UNKOWN{
+        background-color: grey;
+    }
+
+    .supervision_dashboard_item_type {
+    }
+
+    .supervision_dashboard_item_name {
+    }
+
+    .supervision_dashboard_item_date {
+    }
+
+    .supervision_dashboard_item_value {
+    }
+}

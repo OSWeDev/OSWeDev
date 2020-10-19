@@ -1,6 +1,7 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import ModuleDAO from '../DAO/ModuleDAO';
 import FileVO from '../File/vos/FileVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
@@ -45,6 +46,7 @@ export default class ModuleImageFormat extends Module {
     public registerApis() {
 
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<GetFormattedImageParamVO, FormattedImageVO>(
+            ModuleDAO.getInstance().getAccessPolicyName(ModuleDAO.DAO_ACCESS_TYPE_INSERT_OR_UPDATE, ImageFormatVO.API_TYPE_ID),
             ModuleImageFormat.APINAME_get_formatted_image,
             [ImageFormatVO.API_TYPE_ID],
             GetFormattedImageParamVO.translateCheckAccessParams

@@ -1,3 +1,5 @@
+import TypesHandler from './TypesHandler';
+
 export default class TextHandler {
 
     public static Challenge_Cars: string[] =
@@ -36,6 +38,49 @@ export default class TextHandler {
     private static instance: TextHandler = null;
 
     private constructor() {
+    }
+
+    public sanityze(src: string): string {
+
+        if (!src) {
+            return null;
+        }
+
+        let sanitized_res: string = '';
+        let length: number = src.length;
+
+        for (let i = 0; i < length; i++) {
+            let c = src[i];
+
+            if (!!TextHandler.accents_replacements[c]) {
+                sanitized_res += TextHandler.accents_replacements[c];
+                continue;
+            }
+
+            sanitized_res += c;
+        }
+
+        return sanitized_res;
+    }
+
+    /**
+     * On supprime tous les accents récursivement
+     * @param object
+     */
+    public sanityze_object(object: any) {
+        for (let field_id in object) {
+            let field = object[field_id];
+
+            if (TypesHandler.getInstance().isString(field)) {
+                object[field_id] = this.sanityze(field);
+                continue;
+            }
+
+            if (typeof field === 'object') {
+                object[field_id] = this.sanityze_object(object[field_id]);
+            }
+        }
+        return object;
     }
 
     public standardize_for_comparaison(src: string): string {

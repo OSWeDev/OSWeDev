@@ -10,6 +10,7 @@ import ManyToManyReferenceDatatableField from '../../../../../shared/modules/DAO
 import ManyToOneReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import OneToManyReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/OneToManyReferenceDatatableField';
 import ReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/ReferenceDatatableField';
+import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 import SimpleDatatableField from '../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import InsertOrDeleteQueryResult from '../../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import FileVO from '../../../../../shared/modules/File/vos/FileVO';
@@ -29,7 +30,6 @@ import DatatableComponent from '../../datatable/component/DatatableComponent';
 import VueComponentBase from '../../VueComponentBase';
 import CRUDComponentManager from '../CRUDComponentManager';
 import "./CRUDComponent.scss";
-import RefRangesReferenceDatatableField from '../../../../../shared/modules/DAO/vos/datatable/RefRangesReferenceDatatableField';
 
 @Component({
     template: require('./CRUDComponent.pug'),
@@ -620,6 +620,16 @@ export default class CRUDComponent extends VueComponentBase {
             // On passe la traduction depuis IHM sur les champs
             let apiokVo = this.IHMToData(this.newVO, this.crud.createDatatable, false);
 
+            // On utilise le trigger si il est présent sur le crud
+            if (this.crud.preCreate) {
+                let errorMsg = await this.crud.preCreate(apiokVo, this.newVO);
+                if (errorMsg) {
+                    this.snotify.error(this.label(errorMsg));
+                    this.updating_vo = false;
+                    return;
+                }
+            }
+
             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(apiokVo);
             if ((!res) || (!res.id)) {
                 this.snotify.error(this.label('crud.create.errors.create_failure'));
@@ -819,6 +829,10 @@ export default class CRUDComponent extends VueComponentBase {
         // On check que tous les champs obligatoire soient bien remplis
         for (let i in datatable.fields) {
             let field: DatatableField<any, any> = datatable.fields[i];
+
+            if (field.is_readonly) {
+                continue;
+            }
 
             // Si c'est required et que j'ai pas de valeur, j'affiche une erreur
             if (!field.is_required) {

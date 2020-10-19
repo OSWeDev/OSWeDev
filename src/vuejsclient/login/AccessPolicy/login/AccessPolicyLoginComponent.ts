@@ -1,7 +1,6 @@
 import { Component, Prop } from "vue-property-decorator";
 import './AccessPolicyLoginComponent.scss';
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
-import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import ModuleSASSSkinConfigurator from '../../../../shared/modules/SASSSkinConfigurator/ModuleSASSSkinConfigurator';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
 import ModuleParams from "../../../../shared/modules/Params/ModuleParams";
@@ -15,6 +14,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     private password: string = "";
 
     private redirect_to: string = "/";
+    private message: string = null;
 
     private logo_url: string = null;
 
@@ -33,7 +33,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
     }
 
     private async load_logo_url() {
-        this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.SASS_PARAMS_VALUES + '.logo_url');
+        this.logo_url = await ModuleParams.getInstance().getParamValue(ModuleSASSSkinConfigurator.MODULE_NAME + '.logo_url');
         if (this.logo_url && (this.logo_url != '""') && (this.logo_url != '')) {
             return;
         }
@@ -49,6 +49,7 @@ export default class AccessPolicyLoginComponent extends VueComponentBase {
         if (!logged_id) {
             this.snotify.error(this.label('login.failed'));
             this.password = "";
+            this.message = this.label('login.failed.message');
         } else {
             window.location = this.redirect_to as any;
         }

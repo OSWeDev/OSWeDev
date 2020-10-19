@@ -55,14 +55,17 @@ export default class ModuleTranslation extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, TranslationVO[]>(
+            null,
             ModuleTranslation.APINAME_GET_ALL_TRANSLATIONS,
             [TranslationVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, LangVO[]>(
+            null,
             ModuleTranslation.APINAME_GET_LANGS,
             [LangVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, LangVO>(
+            null,
             ModuleTranslation.APINAME_GET_LANG,
             [LangVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
@@ -71,6 +74,7 @@ export default class ModuleTranslation extends Module {
             StringParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<StringParamVO, TranslatableTextVO>(
+            null,
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXT,
             [TranslatableTextVO.API_TYPE_ID],
             StringParamVO.translateCheckAccessParams,
@@ -79,10 +83,12 @@ export default class ModuleTranslation extends Module {
             StringParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, TranslatableTextVO[]>(
+            null,
             ModuleTranslation.APINAME_GET_TRANSLATABLE_TEXTS,
             [TranslatableTextVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<GetTranslationParamVO, TranslationVO>(
+            null,
             ModuleTranslation.APINAME_GET_TRANSLATION,
             [TranslationVO.API_TYPE_ID],
             GetTranslationParamVO.translateCheckAccessParams,
@@ -91,6 +97,7 @@ export default class ModuleTranslation extends Module {
             GetTranslationParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<NumberParamVO, TranslationVO[]>(
+            null,
             ModuleTranslation.APINAME_GET_TRANSLATIONS,
             [TranslationVO.API_TYPE_ID],
             NumberParamVO.translateCheckAccessParams,
@@ -99,10 +106,12 @@ export default class ModuleTranslation extends Module {
             NumberParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, { [code_lang: string]: { [code_text: string]: string } }>(
+            null,
             ModuleTranslation.APINAME_getALL_LOCALES,
             [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, TranslationVO.API_TYPE_ID]
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<TParamVO, string>(
+            null,
             ModuleTranslation.APINAME_T,
             [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, TranslationVO.API_TYPE_ID],
             TParamVO.translateCheckAccessParams,
@@ -111,6 +120,7 @@ export default class ModuleTranslation extends Module {
             TParamVO.translateFromREQ
         ));
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<TParamVO, string>(
+            null,
             ModuleTranslation.APINAME_LABEL,
             [TranslatableTextVO.API_TYPE_ID, LangVO.API_TYPE_ID, TranslationVO.API_TYPE_ID],
             TParamVO.translateCheckAccessParams,
@@ -168,7 +178,8 @@ export default class ModuleTranslation extends Module {
         let label_field = new ModuleTableField('code_lang', ModuleTableField.FIELD_TYPE_string, 'Code de la langue', true);
         let datatable_fields = [
             label_field,
-            new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false)
+            new ModuleTableField('code_flag', ModuleTableField.FIELD_TYPE_string, 'Code du drapeau', false),
+            new ModuleTableField('code_phone', ModuleTableField.FIELD_TYPE_string, 'Indicatif (+33)', false),
         ];
         let datatable_lang = new ModuleTable(this, LangVO.API_TYPE_ID, () => new LangVO(), datatable_fields, label_field, "Langues");
         this.datatables.push(datatable_lang);

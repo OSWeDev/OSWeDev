@@ -3,15 +3,17 @@ import AccessPolicyGroupVO from '../../../../shared/modules/AccessPolicy/vos/Acc
 import AccessPolicyVO from '../../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import RolePolicyVO from '../../../../shared/modules/AccessPolicy/vos/RolePolicyVO';
 import RoleVO from '../../../../shared/modules/AccessPolicy/vos/RoleVO';
+import UserLogVO from '../../../../shared/modules/AccessPolicy/vos/UserLogVO';
 import UserVO from '../../../../shared/modules/AccessPolicy/vos/UserVO';
 import CRUD from '../../../../shared/modules/DAO/vos/CRUD';
 import ComponentDatatableField from '../../../../shared/modules/DAO/vos/datatable/ComponentDatatableField';
 import Datatable from '../../../../shared/modules/DAO/vos/datatable/Datatable';
 import ManyToOneReferenceDatatableField from '../../../../shared/modules/DAO/vos/datatable/ManyToOneReferenceDatatableField';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
+import ExportLogVO from '../../../../shared/modules/DataExport/vos/apis/ExportLogVO';
 import LangVO from '../../../../shared/modules/Translation/vos/LangVO';
-import TextHandler from '../../../../shared/tools/TextHandler';
 import VOsTypesManager from '../../../../shared/modules/VOsTypesManager';
+import TextHandler from '../../../../shared/tools/TextHandler';
 import VueModuleBase from '../../modules/VueModuleBase';
 import CRUDComponentManager from '../crud/CRUDComponentManager';
 import MenuBranch from '../menu/vos/MenuBranch';
@@ -126,6 +128,7 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
 
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("name"));
         crud.readDatatable.pushField(new SimpleDatatableField<any, any>("email"));
+        crud.readDatatable.pushField(new SimpleDatatableField<any, any>("phone"));
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_IMPERSONATE)) {
             crud.readDatatable.pushField(new ComponentDatatableField(
@@ -151,6 +154,8 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
         ]));
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_USERS_MANAGMENT_ACCESS)) {
+            crud.readDatatable.pushField(new SimpleDatatableField<any, any>("blocked"));
+
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("password_change_date"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("reminded_pwd_1"));
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("reminded_pwd_2"));
@@ -159,8 +164,8 @@ export default class AccessPolicyAdminVueModule extends VueModuleBase {
             crud.readDatatable.pushField(new SimpleDatatableField<any, any>("recovery_expiration"));
         }
 
-        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
-        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID]);
+        CRUD.addManyToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
+        CRUD.addOneToManyFields(crud, VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID], [UserLogVO.API_TYPE_ID, ExportLogVO.API_TYPE_ID]);
 
         crud.reset_newvo_after_each_creation = true;
         crud.hook_prepare_new_vo_for_creation = async (vo: UserVO) => {

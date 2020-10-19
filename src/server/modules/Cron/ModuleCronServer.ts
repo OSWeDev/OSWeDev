@@ -9,7 +9,7 @@ import CronWorkerPlanification from '../../../shared/modules/Cron/vos/CronWorker
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
-import ServerBase from '../../ServerBase';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -110,8 +110,7 @@ export default class ModuleCronServer extends ModuleServerBase {
 
     public async executeWorkersManually() {
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
         PushDataServerController.getInstance().notifySimpleINFO(uid, 'cron.execute_manually.start');
         try {
 
@@ -130,8 +129,7 @@ export default class ModuleCronServer extends ModuleServerBase {
             return;
         }
 
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         PushDataServerController.getInstance().notifySimpleINFO(uid, 'cron.execute_manually_indiv.start');
         try {

@@ -1,3 +1,4 @@
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 import ModuleAPI from '../API/ModuleAPI';
 import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import Module from '../Module';
@@ -22,6 +23,7 @@ export default class ModuleGeneratePDF extends Module {
 
     public registerApis() {
         ModuleAPI.getInstance().registerApi(new PostAPIDefinition<GeneratePdfParamVO, string>(
+            ModuleAccessPolicy.POLICY_FO_ACCESS,
             ModuleGeneratePDF.APINAME_generatePDF,
             [],
             GeneratePdfParamVO.translateCheckAccessParams

@@ -25,6 +25,10 @@ import Patch20200312ChangeResetPWDMailContent from './patchs/postmodules/Patch20
 import Patch20200325PresetExistingLangsChangeRights from './patchs/postmodules/Patch20200325PresetExistingLangsChangeRights';
 import Patch20200731MailParamsInit from './patchs/postmodules/Patch20200731MailParamsInit';
 import Patch20200806InitBaseImageFormats from './patchs/postmodules/Patch20200806InitBaseImageFormats';
+import Patch20200914InitTeamsWebhookForDailyReports from './patchs/postmodules/Patch20200914InitTeamsWebhookForDailyReports';
+import Patch20200924UpgradeUserVOPost from './patchs/postmodules/Patch20200924UpgradeUserVOPost';
+import Patch20200926InitPoliciesINSERTORUPDATEUserLogs from './patchs/postmodules/Patch20200926InitPoliciesINSERTORUPDATEUserLogs';
+import Patch20201001InitPoliciesFeedback from './patchs/postmodules/Patch20201001InitPoliciesFeedback';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -36,6 +40,7 @@ import Patch20191010CheckBasicSchemas from './patchs/premodules/Patch20191010Che
 import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112CheckExtensions';
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
+import Patch20200924UpgradeUserVO from './patchs/premodules/Patch20200924UpgradeUserVO';
 import VendorBuilder from './vendor_builder/VendorBuilder';
 
 export default abstract class GeneratorBase {
@@ -72,7 +77,8 @@ export default abstract class GeneratorBase {
             ChangeCronDateHeurePlanifiee.getInstance(),
             Patch20191008ChangeDIHDateType.getInstance(),
             Patch20191008ChangeDILDateType.getInstance(),
-            Patch20191008SupprimerTacheReimport.getInstance()
+            Patch20191008SupprimerTacheReimport.getInstance(),
+            Patch20200924UpgradeUserVO.getInstance()
         ];
 
         this.post_modules_workers = [
@@ -86,7 +92,11 @@ export default abstract class GeneratorBase {
             Patch20200312ChangeResetPWDMailContent.getInstance(),
             Patch20200325PresetExistingLangsChangeRights.getInstance(),
             Patch20200731MailParamsInit.getInstance(),
-            Patch20200806InitBaseImageFormats.getInstance()
+            Patch20200806InitBaseImageFormats.getInstance(),
+            Patch20200914InitTeamsWebhookForDailyReports.getInstance(),
+            Patch20200924UpgradeUserVOPost.getInstance(),
+            Patch20200926InitPoliciesINSERTORUPDATEUserLogs.getInstance(),
+            Patch20201001InitPoliciesFeedback.getInstance()
         ];
     }
 

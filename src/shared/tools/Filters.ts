@@ -313,23 +313,30 @@ let readToFixed = (
     fractionalDigits: number = 0,
     arrondi: boolean | number = false,
     arrondi_type: number = ARRONDI_TYPE_ROUND): string => {
+
     let result: string = null;
 
-    if (!value) {
-        return value == 0 ? value.toString() : null;
+    if (!value || (fractionalDigits < 0)) {
+        return TypesHandler.getInstance().isNumber(value) ? value.toString().replace(".", ",") : null;
     }
 
     result = value.toString();
 
+    if ((!arrondi) && (arrondi_type != ARRONDI_TYPE_ROUND) && (fractionalDigits !== null)) {
+        // si pas de parametre d'arrondui, mais arrondi_type n'est pas round,
+        // il faut appliquer une arrondi par defaut avec le arrondi_type selon le nbr de decimal
+        arrondi = 1 / (10 ** fractionalDigits);
+    }
+
     if (arrondi) {
         result = ModuleFormatDatesNombres.getInstance().formatNumber_arrondi(
-            parseFloat(value.toString()),
+            parseFloat(result),
             arrondi,
             arrondi_type
         );
     }
 
-    if (TypesHandler.getInstance().isNumber(fractionalDigits) && fractionalDigits >= 0) {
+    if (TypesHandler.getInstance().isNumber(fractionalDigits) && (fractionalDigits >= 0)) {
         result = ModuleFormatDatesNombres.getInstance().formatNumber_n_decimals(parseFloat(result), fractionalDigits);
     }
 
@@ -341,68 +348,68 @@ export let toFixedFilter = FilterObj.createNew(
     writeToFixed
 );
 
-let readToFixedCeilAndFloor = (value: number | string, fractionalDigits: number = 0, arrondi_type: number = null): string => {
-    if (!value && value !== 0) {
-        return null;
-    }
+// let readToFixedCeilAndFloor = (value: number | string, fractionalDigits: number = 0, arrondi_type: number = null): string => {
+//     if (!value && value !== 0) {
+//         return null;
+//     }
 
-    if (value == null || fractionalDigits == null) {
-        return null;
-    }
+//     if (value == null || fractionalDigits == null) {
+//         return null;
+//     }
 
-    if (value == 0) {
-        return "0";
-    }
+//     if (value == 0) {
+//         return "0";
+//     }
 
-    if (fractionalDigits < 0) {
-        return String(value);
-    }
+//     if (fractionalDigits < 0) {
+//         return String(value);
+//     }
 
-    let floorPositiveCeilNegative = (valeur: number): number => {
-        let valeurString: string;
-        valeurString = String(valeur * (10 ** fractionalDigits));
-        let res: number = parseInt(valeurString.substring(0, valeurString.length - 1));
-        res = res / (10 ** fractionalDigits);
-        return res;
-    };
+//     let floorPositiveCeilNegative = (valeur: number): number => {
+//         let valeurString: string;
+//         valeurString = String(valeur * (10 ** fractionalDigits));
+//         let res: number = parseInt(valeurString.substring(0, valeurString.length - 1));
+//         res = res / (10 ** fractionalDigits);
+//         return res;
+//     };
 
-    let ceilPositiveFloorNegative = (valeur: number): number => {
+//     let ceilPositiveFloorNegative = (valeur: number): number => {
 
-        let valeurString: string;
-        valeurString = String(valeur * (10 ** fractionalDigits));
-        let res: number = parseInt(valeurString.substring(0, valeurString.length - 1)) + 1;
-        res = res / (10 ** fractionalDigits);
-        return res;
-    };
+//         let valeurString: string;
+//         valeurString = String(valeur * (10 ** fractionalDigits));
+//         let res: number = parseInt(valeurString.substring(0, valeurString.length - 1)) + 1;
+//         res = res / (10 ** fractionalDigits);
+//         return res;
+//     };
 
-    let value_number: number = parseFloat(value.toString());
+//     let value_number: number = parseFloat(value.toString());
 
-    if (arrondi_type == ARRONDI_TYPE_FLOOR) {
-        if (value > 0) {
-            value = floorPositiveCeilNegative(value_number);
-        } else {
-            value = value_number * (-1);
-            value = ceilPositiveFloorNegative(value);
-            value = value * (-1);
-        }
-    }
+//     if (arrondi_type == ARRONDI_TYPE_FLOOR) {
+//         if (value > 0) {
+//             value = floorPositiveCeilNegative(value_number);
+//         } else {
+//             value = value_number * (-1);
+//             value = ceilPositiveFloorNegative(value);
+//             value = value * (-1);
+//         }
+//     }
 
-    if (arrondi_type == ARRONDI_TYPE_CEIL) {
-        if (value > 0) {
-            value = ceilPositiveFloorNegative(value_number);
-        } else {
-            value = value_number * (-1);
-            value = floorPositiveCeilNegative(value);
-            value = value * (-1);
-        }
-    }
+//     if (arrondi_type == ARRONDI_TYPE_CEIL) {
+//         if (value > 0) {
+//             value = ceilPositiveFloorNegative(value_number);
+//         } else {
+//             value = value_number * (-1);
+//             value = floorPositiveCeilNegative(value);
+//             value = value * (-1);
+//         }
+//     }
 
-    return String(value).replace(".", ",");
-};
+//     return String(value).replace(".", ",");
+// };
 
 
-let readToFixedCeilFilter = (value: number, fractionalDigits: number): string => {
-    return readToFixedCeilAndFloor(value, fractionalDigits, ARRONDI_TYPE_CEIL);
+let readToFixedCeilFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false): string => {
+    return readToFixed(value, fractionalDigits, arrondi, ARRONDI_TYPE_CEIL);
 };
 
 export let toFixedCeilFilter = FilterObj.createNew(
@@ -410,8 +417,8 @@ export let toFixedCeilFilter = FilterObj.createNew(
     writeToFixed
 );
 
-let readToFixedFloorFilter = (value: number, fractionalDigits: number): string => {
-    return readToFixedCeilAndFloor(value, fractionalDigits, ARRONDI_TYPE_FLOOR);
+let readToFixedFloorFilter = (value: number, fractionalDigits: number, arrondi: number | boolean = false): string => {
+    return readToFixed(value, fractionalDigits, arrondi, ARRONDI_TYPE_FLOOR);
 };
 
 export let toFixedFloorFilter = FilterObj.createNew(

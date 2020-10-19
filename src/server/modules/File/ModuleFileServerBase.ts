@@ -8,6 +8,7 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import ModuleFile from '../../../shared/modules/File/ModuleFile';
 import FileVO from '../../../shared/modules/File/vos/FileVO';
 import ServerBase from '../../ServerBase';
+import StackContext from '../../StackContext';
 import ModuleServerBase from '../ModuleServerBase';
 import PushDataServerController from '../PushData/PushDataServerController';
 import FileServerController from './FileServerController';
@@ -100,8 +101,7 @@ export default abstract class ModuleFileServerBase<T extends FileVO> extends Mod
     private async uploadFile(req: Request, res: Response) {
 
         let import_file: fileUpload.UploadedFile = null;
-        let httpContext = ServerBase.getInstance() ? ServerBase.getInstance().getHttpContext() : null;
-        let uid: number = httpContext ? httpContext.get('UID') : null;
+        let uid: number = StackContext.getInstance().get('UID');
 
         try {
             import_file = req.files[Object.keys(req.files)[0]] as fileUpload.UploadedFile;
