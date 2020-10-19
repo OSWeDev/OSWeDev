@@ -312,12 +312,17 @@ let readToFixed = (
     value: number | string,
     fractionalDigits: number = 0,
     arrondi: boolean | number = false,
-    arrondi_type: number = ARRONDI_TYPE_ROUND): string => {
+    arrondi_type: number = ARRONDI_TYPE_ROUND,
+    onlyPositive: boolean = false): string => {
 
     let result: string = null;
 
     if (!value || (fractionalDigits < 0)) {
         return TypesHandler.getInstance().isNumber(value) ? value.toString().replace(".", ",") : null;
+    }
+
+    if (onlyPositive && value < 0) {
+        value = 0;
     }
 
     result = value.toString();
