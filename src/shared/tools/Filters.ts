@@ -524,3 +524,31 @@ export let bignumFilter = FilterObj.createNew(
     writeToBignumFilter
 );
 
+let readTopositiveNumberFilter = (value: number | string): string => {
+    if (value == null) {
+        return (null);
+    }
+
+    let res: number = null;
+    if (typeof value == 'string') {
+        res = parseFloat(value);
+    } else {
+        res = value;
+    }
+    if (res > 0) {
+        return (res.toString());
+    }
+    return "0";
+};
+
+let writeTopositiveNumberFilter = (value: string): number => {
+    if (value == null) {
+        return null;
+    }
+    return parseFloat(value);
+};
+
+export let positiveNumberFilter = FilterObj.createNew(
+    readTopositiveNumberFilter,
+    writeTopositiveNumberFilter
+);
