@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import ModuleFormatDatesNombres from '../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
-import { amountFilter, hourFilter, percentFilter, toFixedFilter, planningCheckFilter, alerteCheckFilter, hideZeroFilter, booleanFilter, truncateFilter, bignumFilter, padHourFilter, toFixedCeilFilter, toFixedFloorFilter, ARRONDI_TYPE_FLOOR } from '../../../shared/tools/Filters';
+import { amountFilter, hourFilter, percentFilter, toFixedFilter, planningCheckFilter, alerteCheckFilter, hideZeroFilter, booleanFilter, truncateFilter, bignumFilter, padHourFilter, toFixedCeilFilter, toFixedFloorFilter, ARRONDI_TYPE_FLOOR, positiveNumberFilter } from '../../../shared/tools/Filters';
 
 
 describe('TestFilters', () => {
@@ -139,6 +139,9 @@ describe('TestFilters', () => {
         expect(amountFilter.read("dix")).to.equal(null);
         expect(amountFilter.read("1000000")).to.equal("€1 000 000");
         expect(amountFilter.read("-1000")).to.equal("€-1 000");
+        expect(amountFilter.read("-1000", 0, false, true)).to.equal("€0");
+        expect(amountFilter.read("-12", 0, false, true)).to.equal("€0");
+        expect(amountFilter.read(-12, 0, false, true)).to.equal("€0");
     });
 
     it('test amountFilter write', () => {
@@ -360,5 +363,25 @@ describe('TestFilters', () => {
         expect(toFixedFilter.write("-3.3")).to.equal(-3.3);
         expect(toFixedFilter.write("0")).to.equal(0);
     });
-});
 
+    it('test: positiveNumberFilter read', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
+        expect(positiveNumberFilter.read(null)).to.equal(null);
+        expect(positiveNumberFilter.read(undefined)).to.equal(null);
+        expect(positiveNumberFilter.read(11.2)).to.equal('11.2');
+        expect(positiveNumberFilter.read(-11.2)).to.equal('0');
+        expect(positiveNumberFilter.read(0)).to.equal('0');
+        expect(positiveNumberFilter.read('11.2')).to.equal('11.2');
+        expect(positiveNumberFilter.read('-11.2')).to.equal('0');
+        expect(positiveNumberFilter.read('0')).to.equal('0');
+
+    });
+
+    it('test: positiveNumberFilter write', () => {
+        ModuleFormatDatesNombres.getInstance().actif = true;
+        expect(positiveNumberFilter.write(null)).to.equal(null);
+        expect(positiveNumberFilter.write('22')).to.equal(22);
+        expect(positiveNumberFilter.write('-22')).to.equal(-22);
+
+    });
+});

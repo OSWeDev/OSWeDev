@@ -159,7 +159,7 @@ export let alerteCheckFilter = FilterObj.createNew(
     writeToAlerteCheckFilter
 );
 
-let readToAmountFilter = (value: number | string, fractionalDigits: number = 0, k: boolean = false): string => {
+let readToAmountFilter = (value: number | string, fractionalDigits: number = 0, k: boolean = false, onlyPositive: boolean = false): string => {
 
     if ((value == null) || (typeof value === "undefined")) {
         return null;
@@ -169,6 +169,11 @@ let readToAmountFilter = (value: number | string, fractionalDigits: number = 0, 
     if (!isFinite(value) || (!value && value !== 0)) {
         return null;
     }
+
+    if (onlyPositive && value < 0) {
+        value = 0;
+    }
+
     let stringified;
     let decalageComa;
     let _int;
@@ -517,3 +522,31 @@ export let bignumFilter = FilterObj.createNew(
     writeToBignumFilter
 );
 
+let readTopositiveNumberFilter = (value: number | string): string => {
+    if (value == null) {
+        return (null);
+    }
+
+    let res: number = null;
+    if (typeof value == 'string') {
+        res = parseFloat(value);
+    } else {
+        res = value;
+    }
+    if (res > 0) {
+        return (res.toString());
+    }
+    return "0";
+};
+
+let writeTopositiveNumberFilter = (value: string): number => {
+    if (value == null) {
+        return null;
+    }
+    return parseFloat(value);
+};
+
+export let positiveNumberFilter = FilterObj.createNew(
+    readTopositiveNumberFilter,
+    writeTopositiveNumberFilter
+);
