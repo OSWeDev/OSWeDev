@@ -155,22 +155,34 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     }
 
     /**
+     * ATTENTION à redéfinir si on a des datasources - la valeur par défaut de la fonction est pour le cas d'une var sans datasource
      * Méthode appelée par les triggers de POST Create / POST Delete sur les vos dont cette var dépend (via les déclarations dans les Datasources)
+     *  Par défaut si on a pas de Datasources on renvoie null.
      * @param c_or_d_vo le vo créé ou supprimé
      */
-    public abstract get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): TData[];
+    public get_invalid_params_intersectors_on_POST_C_POST_D(c_or_d_vo: IDistantVOBase): TData[] {
+        return null;
+    }
 
     /**
+     * ATTENTION à redéfinir si on a des datasources - la valeur par défaut de la fonction est pour le cas d'une var sans datasource
      * Méthode appelée par les triggers de POST update sur les vos dont cette var dépend (via les déclarations dans les Datasources)
      * @param c_or_d_vo le vo créé ou supprimé
      */
-    public abstract get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): TData[];
+    public get_invalid_params_intersectors_on_POST_U<T extends IDistantVOBase>(u_vo_holder: DAOUpdateVOHolder<T>): TData[] {
+        return null;
+    }
 
     /**
+     * ATTENTION à redéfinir si on a des dépendances - la valeur par défaut de la fonction est pour le cas d'une var sans dépendances
      * Méthode appelée par les triggers de POST update sur les vos dont cette var dépend (via les déclarations dans les Datasources)
+     *  Async pour permettre de vérifier des datas en base au besoin pour résoudre le plus précisément possible cette demande.
+     *      Il vaut mieux une requête que 10 vars invalidées par erreur qui déclencheront probablement plus de 10 requetes en DS
      * @param c_or_d_vo le vo créé ou supprimé
      */
-    public abstract get_invalid_params_intersectors_from_dep<T extends VarDataBaseVO>(dep_id: string, intersectors: T[]): TData[];
+    public async get_invalid_params_intersectors_from_dep<T extends VarDataBaseVO>(dep_id: string, intersectors: T[]): Promise<TData[]> {
+        return null;
+    }
 
     /**
      * La fonction de calcul, qui doit utiliser directement les datasources préchargés disponibles dans le noeud (.datasources)

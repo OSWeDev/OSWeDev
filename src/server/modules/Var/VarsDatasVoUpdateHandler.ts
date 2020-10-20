@@ -68,8 +68,8 @@ export default class VarsDatasVoUpdateHandler {
          * ALGO en photo... TODO FIXME a remettre au propre
          */
         let markers: { [var_id: number]: number } = {};
-        this.init_markers(ctrls_to_update_1st_stage, markers);
-        this.compute_intersectors(ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
+        await this.init_markers(ctrls_to_update_1st_stage, markers);
+        await this.compute_intersectors(ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
 
         /**
          * Une fois qu'on a tous les intercepteurs à appliquer, on charge tous les var_data correspondant de la base
@@ -110,7 +110,7 @@ export default class VarsDatasVoUpdateHandler {
         }
     }
 
-    private compute_intersectors(
+    private async compute_intersectors(
         ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> },
         markers: { [var_id: number]: number },
         intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] }) {
@@ -126,14 +126,14 @@ export default class VarsDatasVoUpdateHandler {
 
                 let Nx = VarCtrlDAGNode.getInstance(VarsServerController.getInstance().varcontrollers_dag, ctrl);
 
-                this.compute_deps_intersectors_and_union(Nx, intersectors_by_var_id);
+                await this.compute_deps_intersectors_and_union(Nx, intersectors_by_var_id);
                 let self = this;
 
-                DAGController.getInstance().visit_bottom_up_from_node(Nx, async (Ny: VarCtrlDAGNode) => {
+                await DAGController.getInstance().visit_bottom_up_from_node(Nx, async (Ny: VarCtrlDAGNode) => {
                     markers[Ny.var_controller.varConf.id]--;
 
                     if (!markers[Ny.var_controller.varConf.id]) {
-                        self.compute_deps_intersectors_and_union(Ny, intersectors_by_var_id);
+                        await self.compute_deps_intersectors_and_union(Ny, intersectors_by_var_id);
                     }
                 });
 
@@ -143,7 +143,7 @@ export default class VarsDatasVoUpdateHandler {
         }
     }
 
-    private compute_deps_intersectors_and_union(
+    private async compute_deps_intersectors_and_union(
         Nx: VarCtrlDAGNode,
         intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] }
     ) {
@@ -153,17 +153,17 @@ export default class VarsDatasVoUpdateHandler {
         for (let j in Nx.outgoing_deps) {
             let dep = Nx.outgoing_deps[j];
 
-            intersectors = intersectors.concat(Nx.var_controller.get_invalid_params_intersectors_from_dep(dep.dep_name, intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id]));
+            intersectors = intersectors.concat(await Nx.var_controller.get_invalid_params_intersectors_from_dep(dep.dep_name, intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id]));
         }
 
         intersectors_by_var_id[Nx.var_controller.varConf.id] = MatroidController.getInstance().union(intersectors);
     }
 
-    private init_markers(ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }, markers: { [var_id: number]: number }) {
+    private async init_markers(ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }, markers: { [var_id: number]: number }) {
         for (let i in ctrls_to_update_1st_stage) {
             let ctrl = ctrls_to_update_1st_stage[i];
 
-            DAGController.getInstance().visit_bottom_up_from_node(
+            await DAGController.getInstance().visit_bottom_up_from_node(
                 VarCtrlDAGNode.getInstance(VarsServerController.getInstance().varcontrollers_dag, ctrl),
                 async (node) => {
                     if (!markers[node.var_controller.varConf.id]) {
