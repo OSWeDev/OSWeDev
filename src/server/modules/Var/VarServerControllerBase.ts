@@ -53,7 +53,9 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     /**
      * Returns the datasources this var depends on
      */
-    public abstract getDataSourcesDependencies(): DataSourceControllerBase[];
+    public getDataSourcesDependencies(): DataSourceControllerBase[] {
+        return null;
+    }
 
     /**
      * Returns the datasources this var depends on predeps
@@ -65,7 +67,9 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     /**
      * Returns the var_controller we depend upon (or might depend) by dependents name
      */
-    public abstract getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> };
+    public getVarControllerDependencies(): { [dep_name: string]: VarServerControllerBase<any> } {
+        return null;
+    }
 
     /**
      * Fonction de calcul de la valeur pour ce param et stockage dans le var_data du noeud
@@ -95,42 +99,14 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
         varDAGNode.var_data.value_ts = moment().utc(true);
     }
 
-    // TODO FIXME PEUT etre plus utile ?
-    // /**
-    //  * Get params that intersect with any potential parent params depending on the one in arg
-    //  * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
-    //  * This is the default behaviour, using all refering vars defined in the varscontroller, and cloning the param to match that of the parent
-    //  * @param param
-    //  */
-    // public getParamDependents(param: TData): VarDataBaseVO[] {
-    //     let res: VarDataBaseVO[] = [];
-
-    //     if (!param) {
-    //         return res;
-    //     }
-
-    //     // On fait le tour des vars qui dépendent de ce param
-    //     let parent_controllers: { [parent_var_id: number]: VarServerControllerBase<any> } = VarsServerController.getInstance().parent_vars_by_var_id[param.var_id];
-
-    //     for (let parent_controlleri in parent_controllers) {
-    //         let parent_controller = parent_controllers[parent_controlleri];
-
-    //         // On clone le param et au besoin en traduisant vers le type de param cible
-    //         let parent_param: VarDataBaseVO;
-    //         let parent_var_data_vo_type = parent_controller.varConf.var_data_vo_type;
-    //         parent_param = VarDataBaseVO.cloneFieldsFromId(parent_var_data_vo_type, parent_controller.varConf.id, param);
-    //         res.push(parent_param);
-    //     }
-
-    //     return res;
-    // }
-
     /**
      * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
      * @param varDAGNode
      * @param varDAG
      */
-    public abstract getParamDependencies(varDAGNode: VarDAGNode): { [dep_id: string]: VarDataBaseVO };
+    public getParamDependencies(varDAGNode: VarDAGNode): { [dep_id: string]: VarDataBaseVO } {
+        return null;
+    }
 
     /**
      * Fonction spécifique aux tests unitaires qui permet de tester la fonction getParamDependencies plus facilement

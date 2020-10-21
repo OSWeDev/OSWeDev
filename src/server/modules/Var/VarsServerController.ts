@@ -2,6 +2,7 @@ import debounce = require('lodash/debounce');
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -166,6 +167,39 @@ export default class VarsServerController {
         }
         this._varcacheconf_by_api_type_ids[var_conf.var_data_vo_type][var_conf.id] = var_cache_conf;
         return var_cache_conf;
+    }
+
+    /**
+     * On fait la somme des deps dont le nopm débute par le filtre en param.
+     * @param varDAGNode Noeud dont on somme les deps
+     * @param dep_name_starts_with Le filtre sur le nom des deps (dep_name.startsWith(dep_name_starts_with) ? sum : ignore)
+     * @param start_value 0 par défaut, mais peut être null aussi dans certains cas ?
+     */
+    public get_outgoing_deps_sum(varDAGNode: VarDAGNode, dep_name_starts_with: string, start_value: number = 0) {
+        let res: number = start_value;
+
+        for (let i in varDAGNode.outgoing_deps) {
+            let outgoing = varDAGNode.outgoing_deps[i];
+
+            let var_data = (outgoing.outgoing_node as VarDAGNode).var_data;
+            let value = var_data ? var_data.value : null;
+            if ((!var_data) || (isNaN(value))) {
+                continue;
+            }
+
+            if (value == null) {
+                continue;
+            }
+
+            // 0 ou null ça marche
+            if (!res) {
+                res = value;
+            }
+
+            res += value;
+        }
+
+        return res;
     }
 
     /**
