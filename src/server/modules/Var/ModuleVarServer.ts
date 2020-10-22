@@ -453,250 +453,31 @@ export default class ModuleVarServer extends ModuleServerBase {
         access_dependency = await ModuleAccessPolicyServer.getInstance().registerPolicyDependency(access_dependency);
     }
 
-    // private async getSimpleVarDataCachedValueFromParam(param: APISimpleVOParamVO): Promise<VarDataValueResVO> {
+    public async get_var_data_or_ask_to_bgthread(param: VarDataBaseVO): Promise<VarDataBaseVO> {
 
-    //     if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, param)) {
-    //         return;
-    //     }
+        let varsdata: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(param._type, [param as any], {});
 
-    //     if ((!param) || (!param.vo)) {
-    //         return new VarDataValueResVO();
-    //     }
+        let vardata: VarDataBaseVO = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
 
-    //     VarsdatasComputerBGThread.getInstance().disable();
-    //     let disabled: boolean = true;
+        if (!vardata) {
 
-    //     try {
-    //         let vo: VarDataBaseVO = param ? param.vo as VarDataBaseVO : null;
-    //         let varsdata: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(vo._type, [vo as any], {});
+            // On a rien en base, on le crée et on attend le résultat
+            param.value_ts = null;
+            param.value = null;
+            param.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
 
-    //         let vardata: VarDataBaseVO = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
+            // On push dans le buffer de mise à jour de la BDD
+            VarsDatasProxy.getInstance().prepend_var_datas([param]);
+            return null;
+        } else {
 
-    //         if (!vardata) {
+            if (!!vardata.value_ts) {
+                return vardata;
+            }
+        }
 
-    //             // On a rien en base, on le crée et on attend le résultat
-    //             vardata = Object.assign(VOsTypesManager.getInstance().moduleTables_by_voType[vo._type].voConstructor(), vo);
-    //             vardata.value_ts = null;
-    //             vardata.value = null;
-    //             vardata.value_type = VarDataBaseVO.VALUE_TYPE_IMPORT;
-
-    //             let res: InsertOrDeleteQueryResult = await ModuleDAO.getInstance().insertOrUpdateVO(vardata);
-    //             if ((!res) || (!res.id)) {
-    //                 disabled = false;
-    //                 VarsdatasComputerBGThread.getInstance().enable();
-    //                 return new VarDataValueResVO();
-    //             }
-
-    //             vardata.id = parseInt(res.id.toString());
-    //         } else {
-
-    //             if (!!vardata.value_ts) {
-    //                 disabled = false;
-    //                 VarsdatasComputerBGThread.getInstance().enable();
-    //                 return new VarDataValueResVO().set_from_vardata(vardata);
-    //             }
-    //         }
-
-    //         // Si on a un vardata mais pas de value_ts,
-    //         //  On stocke l'info pour le batch BG de recompilation qu'on veut renvoyer le res de ces vars datas à l'utilisateur et /ou aux
-    //         //  utilisateurs qui sont à l'origine de la demande. Et c'est le bgthread qui gère de notifier du coup
-    //         let uid: number = StackContext.getInstance().get('UID');
-    //         if (!!uid) {
-    //             let var_index: string = vardata.index;
-    //             VarServerController.getInstance().add_uid_waiting_for_indexes(uid, var_index);
-    //         }
-
-    //         // // Si on a un vardata mais pas de value_ts, on attend qu'il se remplisse, au max 20 secondes
-    //         // //  pour pas dépasser les timeouts de 30 secondes sur les requetes
-    //         // let started: Moment = moment().utc(true);
-    //         // let interval: number = 500;
-    //         // let timeout: number = 20000;
-    //         // let delta: number = 0;
-
-    //         // disabled = false;
-    //         // VarsdatasComputerBGThread.getInstance().enable();
-    //         // do {
-
-    //         //     await ThreadHandler.getInstance().sleep(interval);
-    //         //     vardata = await ModuleDAO.getInstance().getVoById(vo._type, vardata.id);
-
-    //         //     if (!vardata) {
-    //         //         return null;
-    //         //     }
-
-    //         //     if (!!vardata.value_ts) {
-    //         //         return vardata.value;
-    //         //     }
-
-    //         //     delta = Math.abs(moment().utc(true).diff(started, 'ms'));
-    //         // } while (delta < timeout);
-
-    //     } catch (error) {
-    //         ConsoleHandler.getInstance().error("getSimpleVarDataCachedValueFromParam:" + error);
-    //     }
-
-    //     if (disabled) {
-    //         disabled = false;
-    //         VarsdatasComputerBGThread.getInstance().enable();
-    //     }
-
-    //     // ConsoleHandler.getInstance().warn('TIMEOUT on var data request:' + JSON.stringify(vo) + ':');
-    //     return new VarDataValueResVO();
-    // }
-
-    // private async getSimpleVarDataValueSumFilterByMatroids<T extends VarDataBaseVO>(param: APIDAOApiTypeAndMatroidsParamsVO): Promise<number> {
-
-    //     let matroids: IMatroid[] = param ? param.matroids as IMatroid[] : null;
-    //     let api_type_id: string = param ? param.API_TYPE_ID : null;
-    //     let fields_ids_mapper: { [matroid_field_id: string]: string } = param ? param.fields_ids_mapper : null;
-
-    //     if ((!matroids) || (!matroids.length)) {
-    //         return null;
-    //     }
-
-    //     let datatable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-
-    //     if (!datatable) {
-    //         return null;
-    //     }
-
-    //     // On vérifie qu'on peut faire un select
-    //     if (!await ModuleDAOServer.getInstance().checkAccess(datatable, ModuleDAO.DAO_ACCESS_TYPE_READ)) {
-    //         return null;
-    //     }
-
-    //     let res: number = 0;
-    //     for (let matroid_i in matroids) {
-    //         let matroid: VarDataBaseVO = matroids[matroid_i] as VarDataBaseVO;
-
-    //         if (!matroid) {
-    //             ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
-    //             return null;
-    //         }
-
-    //         res += await this.getSimpleVarDataValueSumFilterByMatroid<T>(api_type_id, matroid, fields_ids_mapper);
-    //     }
-
-    //     return res;
-    // }
-
-    // private async getSimpleVarDataValueSumFilterByMatroid<T extends VarDataBaseVO>(api_type_id: string, matroid: VarDataBaseVO, fields_ids_mapper: { [matroid_field_id: string]: string }): Promise<number> {
-
-    //     if (!matroid) {
-    //         return null;
-    //     }
-
-    //     if (!api_type_id) {
-    //         return null;
-    //     }
-
-    //     if (!fields_ids_mapper) {
-    //         return null;
-    //     }
-
-    //     let moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
-
-    //     if (!moduleTable) {
-    //         return null;
-    //     }
-
-    //     let exact_search_fields = {};
-    //     if (!!matroid.var_id) {
-
-    //         exact_search_fields = VarsController.getInstance().getVarControllerById(matroid.var_id).datas_fields_type_combinatory;
-    //     }
-
-    //     let res = null;
-
-    //     if (moduleTable.is_segmented) {
-
-    //         // TODO FIXME : on part du principe que si on a segmenté sur une var, on doit avoir des cardinaux atomiques sur la segmentation
-    //         // donc pas de union ou autre, ya qu'une table cible suffit de la trouver
-
-    //         // On cherche dans le matroid le field qui est la segmentation. Si on a pas, on refuse de chercher en masse
-    //         let segmented_matroid_filed_id = moduleTable.table_segmented_field.field_id;
-    //         for (let matroid_field_id in fields_ids_mapper) {
-    //             let field_id = fields_ids_mapper[matroid_field_id];
-
-    //             if (field_id == moduleTable.table_segmented_field.field_id) {
-    //                 segmented_matroid_filed_id = matroid_field_id;
-    //                 break;
-    //             }
-    //         }
-
-    //         if (!segmented_matroid_filed_id) {
-    //             throw new Error('Not Implemented');
-    //         }
-
-    //         let segmentations: Array<IRange<any>> = matroid[segmented_matroid_filed_id];
-
-    //         // Si c'est un matroid on devrait avoir un cas simple de ranges directement mais on pourrait adapter à tous les types de field matroid
-    //         // let matroid_moduleTable: ModuleTable<T> = VOsTypesManager.getInstance().moduleTables_by_voType[matroid._type];
-    //         // let matroid_field = matroid_moduleTable.getFieldFromId(segmented_matroid_filed_id);
-
-    //         // switch (matroid_field.field_type) {
-    //         // }
-
-    //         for (let segmentation_i in segmentations) {
-    //             let segmentation: NumRange = segmentations[segmentation_i];
-    //             let segmented_value = segmentation.min;
-
-    //             if (!ModuleDAOServer.getInstance().has_segmented_known_database(moduleTable, segmented_value)) {
-    //                 continue;
-    //             }
-
-    //             let full_name = moduleTable.database + '.' + moduleTable.get_segmented_name(segmented_value);
-    //             let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', full_name, exact_search_fields);
-
-    //             if (!filter_by_matroid_clause) {
-    //                 return null;
-    //             }
-
-    //             let local_res = null;
-    //             try {
-    //                 local_res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + full_name + " t WHERE " + filter_by_matroid_clause + ";");
-    //             } catch (error) {
-    //             }
-
-    //             if ((!local_res) || (!local_res[0]) || (local_res[0]['res'] === null) || (typeof local_res[0]['res'] == 'undefined')) {
-    //                 local_res = null;
-    //             } else {
-    //                 local_res = local_res[0]['res'];
-    //             }
-
-    //             if (res == null) {
-    //                 res = local_res;
-    //             } else {
-    //                 if (!!local_res) {
-    //                     res += local_res;
-    //                 }
-    //             }
-    //         }
-
-    //         return res;
-
-    //     } else {
-
-    //         let filter_by_matroid_clause: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroid(api_type_id, matroid, fields_ids_mapper, 't', moduleTable.full_name, exact_search_fields);
-
-    //         if (!filter_by_matroid_clause) {
-    //             return null;
-    //         }
-
-    //         try {
-    //             res = await ModuleServiceBase.getInstance().db.query("SELECT sum(t.value) res FROM " + moduleTable.full_name + " t WHERE " + filter_by_matroid_clause + ";");
-    //         } catch (error) {
-    //         }
-
-    //         if ((!res) || (!res[0]) || (res[0]['res'] === null) || (typeof res[0]['res'] == 'undefined')) {
-    //             return null;
-    //         }
-
-    //         return res[0]['res'];
-    //     }
-    // }
-
-
+        return null;
+    }
 
     private async onCVarCacheConf(vcc: VarCacheConfVO) {
         if (!vcc) {
@@ -773,6 +554,8 @@ export default class ModuleVarServer extends ModuleServerBase {
                 needs_var_computation = true;
                 continue;
             }
+
+            vars_to_notif.push(new VarDataValueResVO().set_from_vardata(in_db_data));
         }
 
         if (needs_var_computation) {
@@ -792,31 +575,5 @@ export default class ModuleVarServer extends ModuleServerBase {
     private async unregister_params(api_param: APISimpleVOsParamVO): Promise<void> {
         // TODO FIXME SOCKETS
         VarsSocketsSubsController.getInstance().unregister_sub(/*TODO_SOCKET*/ null, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.index) : []);
-    }
-
-    private async get_var_data_or_ask_to_bgthread(param: VarDataBaseVO): Promise<VarDataBaseVO> {
-
-        let varsdata: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(param._type, [param as any], {});
-
-        let vardata: VarDataBaseVO = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
-
-        if (!vardata) {
-
-            // On a rien en base, on le crée et on attend le résultat
-            param.value_ts = null;
-            param.value = null;
-            param.value_type = VarDataBaseVO.VALUE_TYPE_COMPUTED;
-
-            // On push dans le buffer de mise à jour de la BDD
-            VarsDatasProxy.getInstance().prepend_var_datas([param]);
-            return null;
-        } else {
-
-            if (!!vardata.value_ts) {
-                return vardata;
-            }
-        }
-
-        return null;
     }
 }
