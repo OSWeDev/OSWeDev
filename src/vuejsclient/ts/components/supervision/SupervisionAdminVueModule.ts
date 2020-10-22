@@ -1,6 +1,7 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleSupervision from '../../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
+import SupervisedCategoryVO from '../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
@@ -74,5 +75,11 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
                 supervised_item_vo_type: route.params.vo_type
             }),
         });
+
+        CRUDComponentManager.getInstance().registerCRUD(SupervisedCategoryVO.API_TYPE_ID, null, new MenuPointer(
+            new MenuLeaf("SupervisedCategoryVO", MenuElementBase.PRIORITY_HIGH, "fa-table"),
+            SupervisionAdminVueModule.DEFAULT_MENU_BRANCH),
+            this.routes
+        );
     }
 }
