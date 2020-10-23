@@ -25,7 +25,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     public MIN_timeout: number = 100;
 
     public timeout: number = 500;
-    public request_limit: number = 500;
+    public request_limit: number = 5000;
 
     private enabled: boolean = true;
     private invalidations: number = 0;
@@ -87,8 +87,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             let end_notification: number;
             let end_update: number;
 
-            let nb_computed: number = 0;
-
             if (!this.silent) {
                 start = moment().utc(true).valueOf();
             }
@@ -148,12 +146,12 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 let length_notif = end_notification - end_computation;
                 let length_update = end_update - end_notification;
 
-                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + nb_computed + ': vars : took [' +
-                    moment.duration(length_total).humanize() + '] total : [' +
-                    moment.duration(length_selection).humanize() + '] selecting [' +
-                    moment.duration(length_computation).humanize() + '] computing [' +
-                    moment.duration(length_notif).humanize() + '] notifying [' +
-                    moment.duration(length_update).humanize() + '] updating');
+                ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
+                    length_total + ' ms] total : [' +
+                    length_selection + ' ms] selecting, [' +
+                    length_computation + ' ms] computing, [' +
+                    length_notif + ' ms] notifying, [' +
+                    length_update + ' ms] updating');
             }
         } catch (error) {
             console.error(error);

@@ -1,44 +1,44 @@
 .var_desc
-    .card
-        .card-header {{ var_name }}
-            i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_data')
-        .card-body
-            h5.card-title {{ label('var.desc_mode.var_description') }}
-            p.card-text {{ var_description }}
-            h5.card-title {{ label('var.desc_mode.var_params') }}
-            p.card-text {{ var_params_desc }}
+    //- .card
+    //-     .card-header {{ var_name }}
+    //-         i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_data')
+    //-     .card-body
+    //-         h5.card-title {{ label('var.desc_mode.var_description') }}
+    //-         p.card-text {{ var_description }}
+    //-         h5.card-title {{ label('var.desc_mode.var_params') }}
+    //-         p.card-text {{ var_params_desc }}
             
-            h5.card-title {{ label('var.desc_mode.loaded_datas_matroids') }}
-            p.card-text {{ loaded_datas_matroids_desc }}
+    //-         h5.card-title {{ label('var.desc_mode.loaded_datas_matroids') }}
+    //-         p.card-text {{ loaded_datas_matroids_desc }}
 
-            h5.card-title {{ label('var.desc_mode.loaded_datas_matroids_sum_value') }}
-            p.card-text {{ loaded_datas_matroids_sum_value_desc }}
+    //-         h5.card-title {{ label('var.desc_mode.loaded_datas_matroids_sum_value') }}
+    //-         p.card-text {{ loaded_datas_matroids_sum_value_desc }}
 
-            h5.card-title {{ label('var.desc_mode.computed_datas_matroids') }}
-            p.card-text {{ computed_datas_matroids_desc }}
+    //-         h5.card-title {{ label('var.desc_mode.computed_datas_matroids') }}
+    //-         p.card-text {{ computed_datas_matroids_desc }}
 
-            h5.card-title {{ label('var.desc_mode.var_markers') }}
-            //- p.card-text {{ var_markers_json }}
-            ul
-                li(v-for='(marker_value, marker_name) in var_markers')
-                    b {{ marker_name + ' : ' }}
-                    | {{ marker_value }}
-            h5.card-title {{ label('var.desc_mode.var_datasources') }}
-            i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_datasources')
-            ul
-                li(v-for='(datasource_value, datasource_name) in var_datasources')
-                    b {{ datasource_name + ' : ' }}
-                    | {{ datasource_value }}
-            template(v-if='!!var_dependencies_count')
-                h5.card-title {{ label('var.desc_mode.dependencies_number') }}
-                p.card-text {{ var_dependencies_count }}
-                h5.card-title {{ label('var.desc_mode.dependencies_tree_prct') }}
-                p.card-text {{ var_dependencies_tree_prct + '%' }}
+    //-         h5.card-title {{ label('var.desc_mode.var_markers') }}
+    //-         //- p.card-text {{ var_markers_json }}
+    //-         ul
+    //-             li(v-for='(marker_value, marker_name) in var_markers')
+    //-                 b {{ marker_name + ' : ' }}
+    //-                 | {{ marker_value }}
+    //-         h5.card-title {{ label('var.desc_mode.var_datasources') }}
+    //-         i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_datasources')
+    //-         ul
+    //-             li(v-for='(datasource_value, datasource_name) in var_datasources')
+    //-                 b {{ datasource_name + ' : ' }}
+    //-                 | {{ datasource_value }}
+    //-         template(v-if='!!var_dependencies_count')
+    //-             h5.card-title {{ label('var.desc_mode.dependencies_number') }}
+    //-             p.card-text {{ var_dependencies_count }}
+    //-             h5.card-title {{ label('var.desc_mode.dependencies_tree_prct') }}
+    //-             p.card-text {{ var_dependencies_tree_prct + '%' }}
                 
-            h5.card-title {{ label('var.desc_mode.var_data') }}
-            var-data(:var_param='var_param')
+    //-         h5.card-title {{ label('var.desc_mode.var_data') }}
+    //-         var-data(:var_param='var_param')
 
-            .row
-                .col-md-12
-                    svg(width=400 height=300)
+    //-         .row
+    //-             .col-md-12
+    //-                 svg(width=400 height=300)
 

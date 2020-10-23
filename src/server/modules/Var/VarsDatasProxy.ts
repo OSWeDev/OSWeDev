@@ -177,14 +177,14 @@ export default class VarsDatasProxy {
                         ' var_id = ' + varcacheconf.var_id +
                         ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') ' +
                         ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') +
-                        ' and value_type != ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
+                        ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
                         ' limit ' + request_limit + ';', [ignore_ids_list]);
                 } else {
                     vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
                         ' value_ts is null' +
                         ' and var_id = ' + varcacheconf.var_id +
                         ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') +
-                        ' and value_type != ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
+                        ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
                         ' limit ' + request_limit + ';', [ignore_ids_list]);
                 }
 

@@ -47,7 +47,10 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     }
 
     public getVarCacheConf(): VarCacheConfVO {
-        return null;
+        let res: VarCacheConfVO = new VarCacheConfVO();
+        res.var_id = this.varConf.id;
+        res.cache_timeout_ms = 0;
+        return res;
     }
 
     /**

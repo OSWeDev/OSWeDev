@@ -864,9 +864,8 @@ export default abstract class ServerBase {
     /* istanbul ignore next: nothing to test here */
     protected abstract hook_configure_express();
     /* istanbul ignore next: nothing to test here */
-    protected getVersion() {
-        return require('../../package.json').version;
-    }
+
+    protected abstract getVersion();
 
     /* istanbul ignore next: nothing to test here */
     protected registerApis(app) {

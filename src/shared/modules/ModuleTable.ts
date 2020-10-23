@@ -95,9 +95,17 @@ export default class ModuleTable<T extends IDistantVOBase> {
     public database: string;
     public vo_type: string;
     public label: DefaultTranslation = null;
-    public forceNumeric: (e: T) => void = null;
-    public get_bdd_version: (e: T) => T = null;
+
+    /**
+     * ATTENTION : Il faut bien récupérer la valeur du forcenumeric, l'objet peut être reconstruit
+     */
+    public forceNumeric: (e: T) => T = null;
+    /**
+     * ATTENTION : Il faut bien récupérer la valeur du forcenumeric, l'objet peut être reconstruit
+     */
     public forceNumerics: (es: T[]) => T[] = null;
+
+    public get_bdd_version: (e: T) => T = null;
 
     public get_api_version: (e: T) => any = null;
     public from_api_version: (e: any) => T = null;
@@ -838,11 +846,16 @@ export default class ModuleTable<T extends IDistantVOBase> {
             return null;
         }
 
-        e.id = ConversionHandler.getInstance().forceNumber(e.id);
-        e._type = this.vo_type;
+        // Si le type diffère, on veut créer une nouvelle instance et réinitialiser tous les champs ensuite
+        let res: T = e;
+        if (e._type != this.vo_type) {
+            res = Object.assign(this.voConstructor(), e);
+            res._type = this.vo_type;
+        }
+        res.id = ConversionHandler.getInstance().forceNumber(e.id);
 
         if (!this.fields_) {
-            return e;
+            return res;
         }
         for (let i in this.fields_) {
             let field = this.fields_[i];
@@ -858,7 +871,7 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_timestamp:
                     // A priori c'est without time zone du coup....
                     // e[field.field_id] = e[field.field_id] ? moment(e[field.field_id]).format('Y-MM-DDTHH:mm:SS.sss') + 'Z' : e[field.field_id];
-                    e[field.field_id] = moment(field_value).utc(true).format('Y-MM-DDTHH:mm:SS.sss');
+                    res[field.field_id] = moment(field_value).utc(true).format('Y-MM-DDTHH:mm:SS.sss');
                     break;
 
                 case ModuleTableField.FIELD_TYPE_float:
@@ -871,74 +884,76 @@ export default class ModuleTable<T extends IDistantVOBase> {
                 case ModuleTableField.FIELD_TYPE_int:
                 case ModuleTableField.FIELD_TYPE_enum:
                 case ModuleTableField.FIELD_TYPE_prct:
-                    e[field.field_id] = ConversionHandler.getInstance().forceNumber(field_value);
+                    res[field.field_id] = ConversionHandler.getInstance().forceNumber(field_value);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_int_array:
-                    e[field.field_id] = field_value.map(Number);
+                    res[field.field_id] = field_value.map(Number);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_numrange:
-                    e[field.field_id] = RangeHandler.getInstance().parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(NumRange.RANGE_TYPE, field_value, NumSegment.TYPE_INT);
                     break;
                 case ModuleTableField.FIELD_TYPE_numrange_array:
                 case ModuleTableField.FIELD_TYPE_refrange_array:
                 case ModuleTableField.FIELD_TYPE_isoweekdays:
                     // TODO FIXME ASAP : ALORS là c'est du pif total, on a pas l'info du tout en base, donc on peut pas conserver le segment_type......
                     //  on prend les plus petits segments possibles, a priori ça pose 'moins' de soucis [?]
-                    e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(NumRange.RANGE_TYPE, field_value);
                     break;
                 case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                    e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(TSRange.RANGE_TYPE, field_value);
                     break;
                 case ModuleTableField.FIELD_TYPE_hourrange_array:
-                    e[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value);
+                    res[field.field_id] = RangeHandler.getInstance().translate_from_bdd(HourRange.RANGE_TYPE, field_value);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_day:
                 case ModuleTableField.FIELD_TYPE_date:
                 case ModuleTableField.FIELD_TYPE_month:
-                    e[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true));
+                    res[field.field_id] = DateHandler.getInstance().formatDayForIndex(moment(field_value).utc(true));
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tstz:
-                    e[field.field_id] = moment(parseInt(field_value) * 1000).utc();
+                    res[field.field_id] = moment(parseInt(field_value) * 1000).utc();
                     break;
 
                 case ModuleTableField.FIELD_TYPE_tsrange:
-                    e[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, TimeSegment.TYPE_MS);
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(TSRange.RANGE_TYPE, field_value, TimeSegment.TYPE_MS);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hourrange:
-                    e[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_MS);
+                    res[field.field_id] = RangeHandler.getInstance().parseRangeBDD(HourRange.RANGE_TYPE, field_value, HourSegment.TYPE_MS);
                     break;
 
                 case ModuleTableField.FIELD_TYPE_hour:
-                    e[field.field_id] = moment.duration(parseInt(field_value));
+                    res[field.field_id] = moment.duration(parseInt(field_value));
                     break;
 
                 case ModuleTableField.FIELD_TYPE_geopoint:
                     if (e[field.field_id]) {
-                        e[field.field_id] = GeoPointVO.clone(field_value);
+                        res[field.field_id] = GeoPointVO.clone(field_value);
                     }
                     break;
 
                 case ModuleTableField.FIELD_TYPE_email:
                     if (e[field.field_id] && e[field.field_id].trim) {
-                        e[field.field_id] = e[field.field_id].trim();
+                        res[field.field_id] = e[field.field_id].trim();
                     }
                     break;
 
                 default:
+                    res[field.field_id] = e[field.field_id];
+                    break;
             }
         }
 
-        return e;
+        return res;
     }
 
     private defaultforceNumerics(es: T[]): T[] {
         for (let i in es) {
-            this.defaultforceNumeric(es[i]);
+            es[i] = this.defaultforceNumeric(es[i]);
         }
         return es;
     }

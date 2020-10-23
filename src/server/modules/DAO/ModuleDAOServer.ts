@@ -784,14 +784,14 @@ export default class ModuleDAOServer extends ModuleServerBase {
                 return null;
             }
 
-            moduleTable.forceNumeric(segmented_vo);
+            segmented_vo = moduleTable.forceNumeric(segmented_vo);
 
             // On filtre les vo suivant les droits d'accès
             return await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, segmented_vo);
         }
 
         let vo: T = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t " + (query ? query : '') + ";", queryParams ? queryParams : []) as T;
-        moduleTable.forceNumeric(vo);
+        vo = moduleTable.forceNumeric(vo);
 
         // On filtre suivant les droits d'accès
         return await this.filterVOAccess(moduleTable, ModuleDAO.DAO_ACCESS_TYPE_READ, vo);
@@ -823,7 +823,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) AND password = crypt($2, password)", [login, password]) as UserVO;
-        datatable.forceNumeric(vo);
+        vo = datatable.forceNumeric(vo);
         return vo;
     }
 
@@ -834,7 +834,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE (name = $1 OR email = $1) and blocked = false", [login]) as UserVO;
-        datatable.forceNumeric(vo);
+        vo = datatable.forceNumeric(vo);
         return vo;
     }
 
@@ -845,7 +845,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
         let datatable: ModuleTable<UserVO> = VOsTypesManager.getInstance().moduleTables_by_voType[UserVO.API_TYPE_ID];
 
         let vo: UserVO = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + datatable.full_name + " t " + "WHERE id = $1 and blocked = false", [uid]) as UserVO;
-        datatable.forceNumeric(vo);
+        vo = datatable.forceNumeric(vo);
         return vo;
     }
 
@@ -1520,7 +1520,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
             vo = await ModuleServiceBase.getInstance().db.oneOrNone("SELECT t.* FROM " + moduleTable.full_name + " t WHERE id=" + apiDAOParamVO.id + ";") as T;
         }
 
-        moduleTable.forceNumeric(vo);
+        vo = moduleTable.forceNumeric(vo);
 
         if (!vo) {
             return vo;

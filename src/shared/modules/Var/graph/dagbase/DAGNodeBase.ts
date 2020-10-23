@@ -7,7 +7,7 @@ export default abstract class DAGNodeBase {
     /**
      * Les dépendances ascendantes.
      */
-    public incoming_deps: { [dep_name: string]: DAGNodeDep<DAGNodeBase> };
+    public incoming_deps: { [dep_name: string]: DAGNodeDep<DAGNodeBase> } = {};
 
     /**
      * Le contrôleur de ce noeud
@@ -17,7 +17,7 @@ export default abstract class DAGNodeBase {
     /**
      * Les dépendances descendantes.
      */
-    public outgoing_deps: { [dep_name: string]: DAGNodeDep<DAGNodeBase> };
+    public outgoing_deps: { [dep_name: string]: DAGNodeDep<DAGNodeBase> } = {};
 
     /**
      * @returns true si le noeuds à des deps descendantes, false sinon => dans ce cas on parle de noeud feuille/leaf

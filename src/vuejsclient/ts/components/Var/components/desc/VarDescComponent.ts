@@ -1,10 +1,7 @@
 import * as d3 from 'd3';
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
-import SimpleDatatableField from '../../../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
-import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
@@ -15,10 +12,10 @@ import './VarDescComponent.scss';
 })
 export default class VarDescComponent extends VueComponentBase {
 
-    @ModuleVarGetter
-    public getStepNumber: number;
-    @ModuleVarGetter
-    public isStepping: number;
+    // @ModuleVarGetter
+    // public getStepNumber: number;
+    // @ModuleVarGetter
+    // public isStepping: number;
 
     @ModuleVarGetter
     public getDescSelectedVarParam: VarDataBaseVO;
@@ -274,7 +271,7 @@ export default class VarDescComponent extends VueComponentBase {
     private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
-        if (new_var_param.index == old_var_param.index) {
+        if (((!new_var_param) && ((new_var_param == null) == (old_var_param == null))) || (new_var_param.index == old_var_param.index)) {
             return;
         }
 
@@ -286,25 +283,25 @@ export default class VarDescComponent extends VueComponentBase {
         }
     }
 
-    @Watch('getStepNumber')
-    private async onStepNumber(new_var_param: number, old_var_param: number) {
+    // @Watch('getStepNumber')
+    // private async onStepNumber(new_var_param: number, old_var_param: number) {
 
-        // On refresh le graph automatiquement si le step_number change et que l'on est en train de step
-        if (new_var_param == old_var_param) {
-            return;
-        }
+    //     // On refresh le graph automatiquement si le step_number change et que l'on est en train de step
+    //     if (new_var_param == old_var_param) {
+    //         return;
+    //     }
 
-        if (new_var_param == this.step_number) {
-            return;
-        }
+    //     if (new_var_param == this.step_number) {
+    //         return;
+    //     }
 
-        if (!this.isStepping) {
-            return;
-        }
+    //     if (!this.isStepping) {
+    //         return;
+    //     }
 
-        this.step_number = new_var_param;
-        // await this.createGraph();
-    }
+    //     this.step_number = new_var_param;
+    //     // await this.createGraph();
+    // }
 
     private select_var() {
         this.setDescSelectedVarParam(this.var_param);

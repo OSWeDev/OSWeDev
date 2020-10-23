@@ -1,14 +1,9 @@
-import * as moment from 'moment';
-import { Moment } from 'moment';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
-import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
-import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
-import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import VarsDatasProxy from './VarsDatasProxy';
@@ -250,66 +245,5 @@ export default class VarsDatasVoUpdateHandler {
         }
 
         return limit;
-    }
-
-    /**
-     * TODO FIXME REFONTE VARS c'est à que la plus grosse opti doit se faire, et peut-etre via du machine learning par ce que pas évident de savoir quelle est la bonne strat
-     *  Il faut à tout prix pouvoir monitorer la performance de cette fonction
-     */
-    private async get_vars_to_compute_from_bdd(request_limit: number, ignore_ids_list: number[]): Promise<{ [index: string]: VarDataBaseVO }> {
-        let vars_datas: { [index: string]: VarDataBaseVO } = {};
-        let nb_vars_datas: number = 0;
-
-        // OPTI TODO : possible de regrouper les requetes d'une meme api_type_id, en préparant en amont les condition de la requête et en faisant pour tous les var_id en 1 fois
-        for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
-
-            if (request_limit <= nb_vars_datas) {
-                return vars_datas;
-            }
-
-            let varcacheconf_by_var_ids = VarsServerController.getInstance().varcacheconf_by_api_type_ids[api_type_id];
-            for (let var_id in varcacheconf_by_var_ids) {
-                let varcacheconf: VarCacheConfVO = varcacheconf_by_var_ids[var_id];
-
-                // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
-                //  Attention les données importées ne doivent pas être remises en question
-                let vars_datas_tmp: VarDataBaseVO[] = [];
-                if (!!varcacheconf.cache_timeout_ms) {
-                    let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
-                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
-                        ' var_id = ' + varcacheconf.var_id +
-                        ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') ' +
-                        ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') +
-                        ' and value_type != ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
-                        ' limit ' + request_limit + ';', [ignore_ids_list]);
-                } else {
-                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
-                        ' value_ts is null' +
-                        ' and var_id = ' + varcacheconf.var_id +
-                        ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') +
-                        ' and value_type != ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
-                        ' limit ' + request_limit + ';', [ignore_ids_list]);
-                }
-
-                for (let vars_datas_tmp_i in vars_datas_tmp) {
-                    if (nb_vars_datas >= request_limit) {
-                        return vars_datas;
-                    }
-
-                    let var_data_tmp = vars_datas_tmp[vars_datas_tmp_i];
-
-                    nb_vars_datas++;
-                    vars_datas[var_data_tmp.index] = var_data_tmp;
-                }
-                if (nb_vars_datas >= request_limit) {
-                    return vars_datas;
-                }
-            }
-            if (nb_vars_datas >= request_limit) {
-                return vars_datas;
-            }
-        }
-
-        return vars_datas;
     }
 }

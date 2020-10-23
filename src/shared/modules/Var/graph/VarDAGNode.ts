@@ -35,12 +35,12 @@ export default class VarDAGNode extends DAGNodeBase {
      * CAS B : On a une noeud aggregateur - qui utilise la fonction aggregate du VarController : Les noeuds aggrégés :
      *  - undefined indique qu'on est en cas A
      */
-    public aggregated_nodes: { [var_data_index: string]: VarDAGNode };
+    public aggregated_nodes: { [var_data_index: string]: VarDAGNode } = {};
 
     /**
      * Toutes les données chargées pour ce noeud sont disponibles directement ici, classées par datasource
      */
-    public datasources: { [ds_name: string]: any };
+    public datasources: { [ds_name: string]: any } = {};
 
     /**
      * L'usage du constructeur est prohibé, il faut utiliser la factory
