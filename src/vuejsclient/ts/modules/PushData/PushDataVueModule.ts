@@ -4,8 +4,10 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
+import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import VueAppBase from '../../../VueAppBase';
+import VarsClientController from '../../components/Var/VarsClientController';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
 import VueModuleBase from '../VueModuleBase';
 
@@ -99,10 +101,11 @@ export default class PushDataVueModule extends VueModuleBase {
 
                 notification = APIController.getInstance().try_translate_vo_from_api(notification);
 
-                let vos: IDistantVOBase[] = null;
+                let vos: VarDataBaseVO[] = null;
                 if (!!notification.vos) {
                     vos = APIController.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
                     VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
+                    await VarsClientController.getInstance().notifyCallbacks(vos);
 
                     let types: { [name: string]: boolean } = {};
                     for (let i in vos) {

@@ -7,6 +7,7 @@ import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseV
 import VOsTypesManager from '../../../../../../shared/modules/VOsTypesManager';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
 import './VarDescComponent.scss';
 
 @Component({
@@ -137,7 +138,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_name_code(this.var_param.var_id));
+        return this.t(VarsClientController.getInstance().get_translatable_name_code_by_var_id(this.var_param.var_id));
     }
 
     get var_description(): string {
@@ -145,47 +146,47 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsController.getInstance().get_translatable_description_code(this.var_param.var_id));
+        return this.t(VarsClientController.getInstance().get_translatable_description_code_by_var_id(this.var_param.var_id));
     }
 
     public async get_copy_with_explaining_fields(matroid): Promise<VarDataBaseVO> {
         if ((!this.var_param) || (!matroid)) {
             return null;
         }
+        return null;
+        // let controller = VarsClientController.getInstance().getVarControllerById(this.var_param.var_id);
 
-        let controller = VarsController.getInstance().getVarControllerById(this.var_param.var_id);
+        // if (!controller) {
+        //     return null;
+        // }
 
-        if (!controller) {
-            return null;
-        }
+        // // On essaie de proposer des params pré-travaillés
+        // let param: any = {};
+        // let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
 
-        // On essaie de proposer des params pré-travaillés
-        let param: any = {};
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[controller.varConf.var_data_vo_type];
+        // for (let i in moduletable.get_fields()) {
+        //     let field = moduletable.get_fields()[i];
 
-        for (let i in moduletable.get_fields()) {
-            let field = moduletable.get_fields()[i];
+        //     if ([
+        //         //VarDataBaseVO
+        //         "var_id",
 
-            if ([
-                //VarDataBaseVO
-                "var_id",
+        //         //IDistantVOBase
+        //         "id",
+        //         "_type",
 
-                //IDistantVOBase
-                "id",
-                "_type",
+        //         //IVarDataVOBase
+        //         "value_type",
+        //         "value_ts",
+        //         "missing_datas_infos",
+        //     ].indexOf(field.field_id) >= 0) {
+        //         continue;
+        //     }
 
-                //IVarDataVOBase
-                "value_type",
-                "value_ts",
-                "missing_datas_infos",
-            ].indexOf(field.field_id) >= 0) {
-                continue;
-            }
+        //     param[field.field_id] = await SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
+        // }
 
-            param[field.field_id] = await SimpleDatatableField.defaultDataToReadIHM(matroid[field.field_id], field, matroid);
-        }
-
-        return param;
+        // return param;
     }
 
     public cleanUpGraph() {
@@ -273,7 +274,7 @@ export default class VarDescComponent extends VueComponentBase {
     private async onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
+        if (new_var_param.index == old_var_param.index) {
             return;
         }
 
@@ -319,10 +320,10 @@ export default class VarDescComponent extends VueComponentBase {
         await this.set_var_params_desc();
     }
 
-    private async update_var_data() {
-        await VarsController.getInstance().registerDataParamAndReturnVarData(this.var_param, true, true);
-        await this.update_var_infos();
-    }
+    // private async update_var_data() {
+    //     await VarsController.getInstance().registerDataParamAndReturnVarData(this.var_param, true, true);
+    //     await this.update_var_infos();
+    // }
 
     // private async set_loaded_datas_matroids_desc(): Promise<void> {
     //     if (!this.var_index) {

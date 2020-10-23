@@ -1,6 +1,5 @@
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
-import VarsController from '../../../../shared/modules/Var/VarsController';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import VueAppBase from '../../../VueAppBase';
 import EditablePageEditInfo from './EditablePageEditInfo';
@@ -92,7 +91,7 @@ export default class EditablePageController {
                 let tmp = edit_info.vo ? edit_info.vo[edit_info.field.module_table_field_id] : null;
                 try {
 
-                    VarsController.getInstance().stageUpdateVoUpdate(edit_info.vo, null);
+                    // VarsController.getInstance().stageUpdateVoUpdate(edit_info.vo, null);
 
                     edit_info.vo[edit_info.field.module_table_field_id] = edit_info.field_value;
 
@@ -100,7 +99,7 @@ export default class EditablePageController {
 
                     if ((!!res) && (!!res.id)) {
                         edit_info.vo.id = parseInt(res.id.toString());
-                        VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
+                        // VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
@@ -117,7 +116,7 @@ export default class EditablePageController {
 
                     if ((!!res) && (!!res.id)) {
                         edit_info.vo.id = parseInt(res.id.toString());
-                        VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
+                        // VarsController.getInstance().stageUpdateVoUpdate(null, edit_info.vo);
                     }
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);

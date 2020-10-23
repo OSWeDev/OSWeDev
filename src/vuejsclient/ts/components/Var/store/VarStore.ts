@@ -11,9 +11,6 @@ export type VarContext = ActionContext<IVarState, any>;
 
 export interface IVarState {
     varDatas: { [index: string]: VarDataValueResVO };
-    is_waiting: boolean;
-    is_stepping: boolean;
-    step_number: number;
     desc_mode: boolean;
     desc_selected_var_param: VarDataBaseVO;
     desc_opened: boolean;
@@ -66,17 +63,8 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             getVarDatas(state: IVarState): { [index: string]: VarDataValueResVO } {
                 return state.varDatas;
             },
-            isStepping(state: IVarState): boolean {
-                return state.is_stepping;
-            },
-            getStepNumber(state: IVarState): number {
-                return state.step_number;
-            },
             get_dependencies_heatmap_version(state: IVarState): number {
                 return state.dependencies_heatmap_version;
-            },
-            isWaiting(state: IVarState): boolean {
-                return state.is_waiting;
             },
             isDescOpened(state: IVarState): boolean {
                 return state.desc_opened;
@@ -100,23 +88,8 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
         this.mutations = {
 
-            setStepNumber(state: IVarState, step_number: number) {
-                state.step_number = step_number;
-                VarsController.getInstance().step_number = step_number;
-            },
-
             set_dependencies_heatmap_version(state: IVarState, dependencies_heatmap_version: number) {
                 state.dependencies_heatmap_version = dependencies_heatmap_version;
-            },
-
-            setIsWaiting(state: IVarState, is_waiting: boolean) {
-                state.is_waiting = is_waiting;
-                VarsController.getInstance().is_waiting = is_waiting;
-            },
-
-            setIsStepping(state: IVarState, is_stepping: boolean) {
-                state.is_stepping = is_stepping;
-                VarsController.getInstance().is_stepping = is_stepping;
             },
 
             setDescOpened(state: IVarState, desc_opened: boolean) {
@@ -186,12 +159,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
 
         this.actions = {
-            setIsWaiting(context: VarContext, is_waiting: boolean) {
-                commitSetIsWaiting(context, is_waiting);
-            },
-            setIsStepping(context: VarContext, is_stepping: boolean) {
-                commitSetIsStepping(context, is_stepping);
-            },
             setDescMode(context: VarContext, desc_mode: boolean) {
                 commitSetDescMode(context, desc_mode);
             },
@@ -200,9 +167,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 commit_set_dependencies_heatmap_version(context, dependencies_heatmap_version);
             },
 
-            setStepNumber(context: VarContext, step_number: number) {
-                commitSetStepNumber(context, step_number);
-            },
             setDescOpened(context: VarContext, desc_opened: boolean) {
                 commitSetDescOpened(context, desc_opened);
             },
@@ -245,7 +209,4 @@ export const commitSetDescRegistrationsOpened = commit(VarStore.getInstance().mu
 export const commitsetDescFuncStatsOpened = commit(VarStore.getInstance().mutations.setDescFuncStatsOpened);
 export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);
 export const commitSetDescSelectedVarParam = commit(VarStore.getInstance().mutations.setDescSelectedVarParam);
-export const commitSetIsWaiting = commit(VarStore.getInstance().mutations.setIsWaiting);
-export const commitSetIsStepping = commit(VarStore.getInstance().mutations.setIsStepping);
-export const commitSetStepNumber = commit(VarStore.getInstance().mutations.setStepNumber);
 export const commit_set_dependencies_heatmap_version = commit(VarStore.getInstance().mutations.set_dependencies_heatmap_version);

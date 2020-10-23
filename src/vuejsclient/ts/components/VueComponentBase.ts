@@ -8,8 +8,7 @@ import ModuleFormatDatesNombres from "../../../shared/modules/FormatDatesNombres
 import Module from "../../../shared/modules/Module";
 import ModulesManager from "../../../shared/modules/ModulesManager";
 import DefaultTranslation from "../../../shared/modules/Translation/vos/DefaultTranslation";
-import ISimpleNumberVarData from '../../../shared/modules/Var/interfaces/ISimpleNumberVarData';
-import IVarDataVOBase from '../../../shared/modules/Var/interfaces/IVarDataVOBase';
+import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import CRUDHandler from '../../../shared/tools/CRUDHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import { alerteCheckFilter, amountFilter, bignumFilter, booleanFilter, hideZeroFilter, hourFilter, padHourFilter, percentFilter, planningCheckFilter, toFixedCeilFilter, toFixedFilter, toFixedFloorFilter, truncateFilter } from '../../../shared/tools/Filters';
@@ -556,11 +555,11 @@ export default class VueComponentBase extends Vue
         return AppVuexStoreManager.getInstance().appVuexStore.state.editionMode;
     }
 
-    protected varif_simplenumber_boolean_condition(value: ISimpleNumberVarData) {
+    protected varif_simplenumber_boolean_condition(value: VarDataBaseVO) {
         return (!!value) && (!!value.value);
     }
 
-    protected simple_var_div(values: ISimpleNumberVarData[]): number {
+    protected simple_var_div(values: VarDataBaseVO[]): number {
         if ((!values) || (!values[0]) || (!values[1])) {
             return null;
         }
@@ -572,7 +571,7 @@ export default class VueComponentBase extends Vue
         return values[0].value / values[1].value;
     }
 
-    protected simple_var_add(values: ISimpleNumberVarData[]): number {
+    protected simple_var_add(values: VarDataBaseVO[]): number {
         if ((!values) || (!values.length)) {
             return null;
         }
@@ -595,7 +594,7 @@ export default class VueComponentBase extends Vue
         return res;
     }
 
-    protected simple_var_supp_zero(var_data: ISimpleNumberVarData): boolean {
+    protected simple_var_supp_zero(var_data: VarDataBaseVO): boolean {
         if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
             return false;
         }
@@ -603,7 +602,7 @@ export default class VueComponentBase extends Vue
         return var_data.value > 0;
     }
 
-    protected simple_var_supp_egal_zero(var_data: ISimpleNumberVarData): boolean {
+    protected simple_var_supp_egal_zero(var_data: VarDataBaseVO): boolean {
         if ((!var_data) || (var_data.value == null) || (typeof var_data.value == 'undefined')) {
             return false;
         }
@@ -611,7 +610,7 @@ export default class VueComponentBase extends Vue
         return var_data.value >= 0;
     }
 
-    protected simple_var_sub(values: ISimpleNumberVarData[]): number {
+    protected simple_var_sub(values: VarDataBaseVO[]): number {
         if ((!values) || (!values[0]) || (!values[1])) {
             return null;
         }
@@ -619,7 +618,7 @@ export default class VueComponentBase extends Vue
         return values[0].value - values[1].value;
     }
 
-    protected simple_var_times(values: ISimpleNumberVarData[]): number {
+    protected simple_var_times(values: VarDataBaseVO[]): number {
         if ((!values) || (!values.length)) {
             return null;
         }
@@ -642,7 +641,7 @@ export default class VueComponentBase extends Vue
         return res;
     }
 
-    protected simple_var_evolution(datas: ISimpleNumberVarData[]) {
+    protected simple_var_evolution(datas: VarDataBaseVO[]) {
 
         try {
 
@@ -749,8 +748,8 @@ export default class VueComponentBase extends Vue
         el.className = (res ? res : '');
     }
 
-    protected on_every_update_simple_number_sign_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+    protected on_every_update_simple_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
@@ -762,8 +761,8 @@ export default class VueComponentBase extends Vue
         this.addClassName(className, el);
     }
 
-    protected on_every_update_simple_revert_number_sign_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+    protected on_every_update_simple_revert_number_sign_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-danger', el);
         this.removeClassName('text-success', el);
@@ -782,8 +781,8 @@ export default class VueComponentBase extends Vue
      * @param binding
      * @param vnode
      */
-    protected on_every_update_simple_number_1_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+    protected on_every_update_simple_number_1_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
         simple_value--;
 
         this.removeClassName('text-danger', el);
@@ -796,8 +795,8 @@ export default class VueComponentBase extends Vue
         this.addClassName(className, el);
     }
 
-    protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: IVarDataVOBase, el, binding, vnode) {
-        let simple_value = (!!varData) ? ((varData as ISimpleNumberVarData).value) : null;
+    protected on_every_update_simple_prct_supp_egal_100_coloration_handler(varData: VarDataBaseVO, el, binding, vnode) {
+        let simple_value = (!!varData) ? ((varData as VarDataBaseVO).value) : null;
 
         this.removeClassName('text-success', el);
 
@@ -845,7 +844,7 @@ export default class VueComponentBase extends Vue
 
     protected routeExists(url: string): boolean {
 
-        let resolved = this.$router.resolve(url);
+        let resolved = this['$router'].resolve(url);
         if (resolved.route.name != '404') {
             return true;
         }

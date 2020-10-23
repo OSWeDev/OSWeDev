@@ -76,13 +76,17 @@ export default class VarDataBaseVO {
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFrom<T extends VarDataBaseVO>(param_to_clone: T, var_name: string, clone_fields: boolean = true): T {
+    public static cloneFrom<T extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): T {
 
         if (!param_to_clone) {
             return null;
         }
 
-        return this.cloneFieldsFromId(param_to_clone._type, VarsController.getInstance().var_id_by_names[var_name], param_to_clone, clone_fields);
+        return this.cloneFieldsFromId(
+            param_to_clone._type,
+            var_name ? VarsController.getInstance().var_id_by_names[var_name] : param_to_clone.var_id,
+            param_to_clone,
+            clone_fields);
     }
 
     /**
@@ -91,7 +95,7 @@ export default class VarDataBaseVO {
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneArrayFrom<T extends VarDataBaseVO>(params_to_clone: T[], var_name: string, clone_fields: boolean = true): T[] {
+    public static cloneArrayFrom<T extends VarDataBaseVO>(params_to_clone: T[], var_name: string = null, clone_fields: boolean = true): T[] {
 
         if (!params_to_clone) {
             return null;

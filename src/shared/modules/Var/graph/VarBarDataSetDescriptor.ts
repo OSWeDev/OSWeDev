@@ -9,11 +9,11 @@ export default class VarBarDataSetDescriptor extends VarDataSetDescriptor {
     public var_value_filter: (param: VarDataBaseVO, value: number) => boolean = null;
 
     public constructor(
-        public var_id: number,
+        public var_name: string,
         public label_translatable_code: string,
         public y_axis_id: string
     ) {
-        super(var_id, label_translatable_code);
+        super(var_name, label_translatable_code);
     }
 
     public set_bg_color(bg_color: string): VarBarDataSetDescriptor {

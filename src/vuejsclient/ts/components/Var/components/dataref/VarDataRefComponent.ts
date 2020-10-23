@@ -1,10 +1,10 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
 import './VarDataRefComponent.scss';
 
 @Component({
@@ -155,7 +155,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-        VarsController.getInstance().registerDataParam(var_param ? var_param : this.var_param, this.reload_on_mount);
+        VarsClientController.getInstance().registerParams([var_param ? var_param : this.var_param]);
     }
 
     private unregister(var_param: VarDataBaseVO = null) {
@@ -163,7 +163,7 @@ export default class VarDataRefComponent extends VueComponentBase {
             return;
         }
 
-        VarsController.getInstance().unregisterDataParam(var_param ? var_param : this.var_param);
+        VarsClientController.getInstance().unRegisterParams([var_param ? var_param : this.var_param]);
     }
 
     @Watch('var_param')

@@ -6,23 +6,20 @@ export default class VarUpdateCallback {
     public static TYPE_EVERY: number = 1;
 
     public static newCallbackOnce(
-        param_index: string,
-        callback: (varData: VarDataBaseVO) => void) {
-        return new VarUpdateCallback(VarUpdateCallback.UID++, param_index, callback, VarUpdateCallback.TYPE_ONCE);
+        callback: (varData: VarDataBaseVO) => Promise<void>) {
+        return new VarUpdateCallback(VarUpdateCallback.UID++, callback, VarUpdateCallback.TYPE_ONCE);
     }
 
     public static newCallbackEvery(
-        param_index: string,
-        callback: (varData: VarDataBaseVO) => void) {
-        return new VarUpdateCallback(VarUpdateCallback.UID++, param_index, callback, VarUpdateCallback.TYPE_EVERY);
+        callback: (varData: VarDataBaseVO) => Promise<void>) {
+        return new VarUpdateCallback(VarUpdateCallback.UID++, callback, VarUpdateCallback.TYPE_EVERY);
     }
 
     private static UID: number = 0;
 
     private constructor(
         public UID: number,
-        public param_index: string,
-        public callback: (varData: VarDataBaseVO) => void,
+        public callback: (varData: VarDataBaseVO) => Promise<void>,
         public type: number) {
     }
 }

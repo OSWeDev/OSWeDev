@@ -8,6 +8,7 @@ import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataV
 import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
 
 @Component({
     extends: Pie
@@ -54,12 +55,7 @@ export default class VarPieChartComponent extends VueComponentBase {
 
     public destroyed() {
 
-        for (let i in this.var_params) {
-
-            let var_param: VarDataBaseVO = Object.assign({}, this.var_params[i]);
-
-            VarsController.getInstance().unregisterDataParam(var_param);
-        }
+        VarsClientController.getInstance().unRegisterParams(this.var_params);
     }
 
     get all_data_loaded(): boolean {
@@ -110,19 +106,11 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         if (old_var_params) {
-            for (let i in old_var_params) {
-
-                let var_param: VarDataBaseVO = Object.assign({}, old_var_params[i]);
-                VarsController.getInstance().unregisterDataParam(var_param);
-            }
+            VarsClientController.getInstance().unRegisterParams(old_var_params);
         }
 
         if (new_var_params) {
-            for (let i in new_var_params) {
-
-                let var_param: VarDataBaseVO = Object.assign({}, new_var_params[i]);
-                VarsController.getInstance().registerDataParam(var_param);
-            }
+            VarsClientController.getInstance().registerParams(new_var_params);
         }
 
         // this.set_datasets();
@@ -139,24 +127,19 @@ export default class VarPieChartComponent extends VueComponentBase {
         let same: boolean = true;
         if (((!old_var_dataset_descriptor) && (!!new_var_dataset_descriptor)) ||
             ((!!old_var_dataset_descriptor) && (!new_var_dataset_descriptor)) ||
-            ((!!new_var_dataset_descriptor) && (!!old_var_dataset_descriptor) && (new_var_dataset_descriptor.var_id != old_var_dataset_descriptor.var_id))) {
+            ((!!new_var_dataset_descriptor) && (!!old_var_dataset_descriptor) && (new_var_dataset_descriptor.var_name != old_var_dataset_descriptor.var_name))) {
             same = false;
         }
         if (same) {
             return;
         }
 
-        for (let i in this.var_params) {
-
-            // sur chaque dimension
-            if (!!old_var_dataset_descriptor) {
-                let var_param: VarDataBaseVO = Object.assign({}, this.var_params[i]);
-                VarsController.getInstance().unregisterDataParam(var_param);
-            }
-            if (!!new_var_dataset_descriptor) {
-                let var_param: VarDataBaseVO = Object.assign({}, this.var_params[i]);
-                VarsController.getInstance().registerDataParam(var_param);
-            }
+        // sur chaque dimension
+        if (!!old_var_dataset_descriptor) {
+            VarsClientController.getInstance().unRegisterParams(this.var_params);
+        }
+        if (!!new_var_dataset_descriptor) {
+            VarsClientController.getInstance().registerParams(this.var_params);
         }
 
         this.set_labels();
@@ -211,7 +194,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         let dataset = {
             label: (!!this.var_dataset_descriptor.label_translatable_code) ?
                 this.t(this.var_dataset_descriptor.label_translatable_code) :
-                this.t(VarsController.getInstance().get_translatable_name_code(this.var_dataset_descriptor.var_id)),
+                this.t(VarsClientController.getInstance().get_translatable_name_code(this.var_dataset_descriptor.var_name)),
             data: dataset_datas,
             backgroundColor: backgrounds
         };

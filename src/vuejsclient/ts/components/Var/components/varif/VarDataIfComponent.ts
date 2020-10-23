@@ -1,10 +1,10 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
 
 @Component({
     template: require('./VarDataIfComponent.pug')
@@ -38,23 +38,23 @@ export default class VarDataIfComponent extends VueComponentBase {
 
     public destroyed() {
 
-        VarsController.getInstance().unregisterDataParam(this.var_param);
+        VarsClientController.getInstance().unRegisterParams([this.var_param]);
     }
 
     @Watch('var_param', { immediate: true })
     private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParam(new_var_param, old_var_param)) {
+        if (new_var_param.index == old_var_param.index) {
             return;
         }
 
         if (old_var_param) {
-            VarsController.getInstance().unregisterDataParam(old_var_param);
+            VarsClientController.getInstance().unRegisterParams([old_var_param]);
         }
 
         if (new_var_param) {
-            VarsController.getInstance().registerDataParam(new_var_param, this.reload_on_mount);
+            VarsClientController.getInstance().registerParams([new_var_param]);
         }
     }
 

@@ -202,11 +202,6 @@ export default class VarsServerController {
         return res;
     }
 
-    /**
-     * TODO FIXME REFONTE A FAIRE - A VOIR si on a toujours besoin de ces logiques
-     * @param varConf
-     * @param controller
-     */
     private setVar(varConf: VarConfVOBase, controller: VarServerControllerBase<any>) {
         this._registered_vars[varConf.name] = varConf;
         this._registered_vars_controller[varConf.name] = controller;
@@ -214,9 +209,11 @@ export default class VarsServerController {
 
         let datasource_deps: DataSourceControllerBase[] = controller.getDataSourcesDependencies();
         datasource_deps = (!!datasource_deps) ? datasource_deps : [];
-        datasource_deps.forEach((datasource_dep) => {
-            datasource_dep.registerDataSource();
-        });
+        if (datasource_deps && datasource_deps.length) {
+            datasource_deps.forEach((datasource_dep) => {
+                datasource_dep.registerDataSource();
+            });
+        }
 
         // On enregistre le lien entre DS et VAR
         let dss: DataSourceControllerBase[] = this.get_datasource_deps(controller);
@@ -236,34 +233,7 @@ export default class VarsServerController {
                 }
                 this._registered_vars_controller_by_api_type_id[vo_api_type_id][controller.varConf.id] = controller;
             }
-            // if (!!controller.getVarCacheConf()) {
-
-            //     this._cached_var_by_var_id[varConf.id] = controller;
-            //     for (let j in ds.vo_api_type_ids) {
-            //         let vo_api_type_id = ds.vo_api_type_ids[j];
-
-            //         if (!this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id]) {
-            //             this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id] = {};
-            //         }
-
-            //         if (!this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name]) {
-            //             this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name] = {};
-            //         }
-
-            //         this._cached_var_id_by_datasource_by_api_type_id[vo_api_type_id][ds.name][varConf.id] = controller;
-            //     }
-            // }
         }
-
-        // let deps: number[] = controller.getVarsIdsDependencies();
-        // for (let i in deps) {
-        //     let dep = deps[i];
-
-        //     if (!this._parent_vars_by_var_id[dep]) {
-        //         this._parent_vars_by_var_id[dep] = {};
-        //     }
-        //     this._parent_vars_by_var_id[dep][varConf.id] = controller;
-        // }
     }
 
     /**

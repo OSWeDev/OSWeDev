@@ -4,7 +4,8 @@ import VarsController from '../../../../../../shared/modules/Var/VarsController'
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
+import { ModuleVarGetter } from '../../store/VarStore';
+import VarsClientController from '../../VarsClientController';
 import './VarDatasRefsComponent.scss';
 
 @Component({
@@ -221,43 +222,33 @@ export default class VarDatasRefsComponent extends VueComponentBase {
     }
 
     public destroyed() {
-
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-            this.unregister(var_param);
-        }
+        this.unregister(this.var_params);
     }
 
     private intersect_in() {
         this.entered_once = true;
 
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-            this.register(var_param);
-        }
+        this.register(this.var_params);
     }
 
     private intersect_out() {
-        for (let i in this.var_params) {
-            let var_param = this.var_params[i];
-            this.unregister(var_param);
-        }
+        this.unregister(this.var_params);
     }
 
-    private register(var_param: VarDataBaseVO) {
+    private register(var_params: VarDataBaseVO[]) {
         if (!this.entered_once) {
             return;
         }
 
-        VarsController.getInstance().registerDataParam(var_param, this.reload_on_mount);
+        VarsClientController.getInstance().registerParams(var_params);
     }
 
-    private unregister(var_param: VarDataBaseVO) {
+    private unregister(var_params: VarDataBaseVO[]) {
         if (!this.entered_once) {
             return;
         }
 
-        VarsController.getInstance().unregisterDataParam(var_param);
+        VarsClientController.getInstance().unRegisterParams(var_params);
     }
 
     @Watch('var_params')
@@ -268,29 +259,16 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         }
 
         // On doit vérifier qu'ils sont bien différents
-        if ((!!new_var_params) && (!!old_var_params)) {
-
-            if (new_var_params.length == old_var_params.length) {
-
-                for (let i in new_var_params) {
-                    if (!VarsController.getInstance().isSameParam(new_var_params[i], old_var_params[i])) {
-                        break;
-                    }
-                }
-                return;
-            }
+        if (VarsController.getInstance().isSameParamArray(new_var_params, old_var_params)) {
+            return;
         }
 
         if (old_var_params && old_var_params.length) {
-            for (let i in old_var_params) {
-                this.unregister(old_var_params[i]);
-            }
+            this.unregister(old_var_params);
         }
 
         if (new_var_params) {
-            for (let i in new_var_params) {
-                this.register(new_var_params[i]);
-            }
+            this.register(new_var_params);
         }
     }
 }

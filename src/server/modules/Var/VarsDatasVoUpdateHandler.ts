@@ -101,10 +101,12 @@ export default class VarsDatasVoUpdateHandler {
              */
             var_datas = var_datas.filter((vd: VarDataBaseVO) => vd.value_type != VarDataBaseVO.VALUE_TYPE_IMPORT);
 
-            var_datas.forEach((vd: VarDataBaseVO) => {
-                delete vd.value;
-                vd.value_ts = null;
-            });
+            if (var_datas && var_datas.length) {
+                var_datas.forEach((vd: VarDataBaseVO) => {
+                    delete vd.value;
+                    vd.value_ts = null;
+                });
+            }
 
             VarsDatasProxy.getInstance().append_var_datas(var_datas);
         }

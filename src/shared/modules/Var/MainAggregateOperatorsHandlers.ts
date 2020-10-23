@@ -22,7 +22,7 @@ export default class MainAggregateOperatorsHandlers {
 
         let res: number;
 
-        if (!values) {
+        if ((!values) || !values.length) {
             return undefined;
         }
 
@@ -51,7 +51,7 @@ export default class MainAggregateOperatorsHandlers {
 
         let res: number;
 
-        if (!values) {
+        if ((!values) || !values.length) {
             return undefined;
         }
 
@@ -80,7 +80,7 @@ export default class MainAggregateOperatorsHandlers {
 
         let res: number;
 
-        if (!values) {
+        if ((!values) || !values.length) {
             return undefined;
         }
 
@@ -109,7 +109,7 @@ export default class MainAggregateOperatorsHandlers {
 
         let res: number;
 
-        if (!values) {
+        if ((!values) || !values.length) {
             return undefined;
         }
 
@@ -137,7 +137,7 @@ export default class MainAggregateOperatorsHandlers {
 
         let res: boolean;
 
-        if (!values) {
+        if ((!values) || !values.length) {
             return undefined;
         }
 
@@ -165,7 +165,7 @@ export default class MainAggregateOperatorsHandlers {
 
         let res: boolean;
 
-        if (!values) {
+        if ((!values) || !values.length) {
             return undefined;
         }
 
@@ -193,7 +193,7 @@ export default class MainAggregateOperatorsHandlers {
 
         let res: boolean;
 
-        if (!values) {
+        if ((!values) || !values.length) {
             return undefined;
         }
 
