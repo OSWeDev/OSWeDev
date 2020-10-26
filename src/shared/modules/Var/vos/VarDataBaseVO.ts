@@ -14,6 +14,22 @@ export default class VarDataBaseVO {
     public static VALUE_TYPE_IMPORT: number = 0;
     public static VALUE_TYPE_COMPUTED: number = 1;
 
+    public static are_same(a: VarDataBaseVO, b: VarDataBaseVO): boolean {
+        if (a && !b) {
+            return false;
+        }
+
+        if (b && !a) {
+            return false;
+        }
+
+        if ((!b) && (!a)) {
+            return true;
+        }
+
+        return a.index == b.index;
+    }
+
     /**
      * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
      *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas

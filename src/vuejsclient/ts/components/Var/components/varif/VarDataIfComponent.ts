@@ -45,7 +45,7 @@ export default class VarDataIfComponent extends VueComponentBase {
     private onChangeVarParam(new_var_param: VarDataBaseVO, old_var_param: VarDataBaseVO) {
 
         // On doit vérifier qu'ils sont bien différents
-        if (new_var_param.index == old_var_param.index) {
+        if (VarDataBaseVO.are_same(new_var_param, old_var_param)) {
             return;
         }
 

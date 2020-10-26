@@ -7,6 +7,7 @@ import FileVO from '../../../shared/modules/File/vos/FileVO';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
+import StackContext from '../../StackContext';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
@@ -82,11 +83,12 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
     private async check_secured_files_conf(f: FileVO): Promise<boolean> {
         let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
 
         if (f.is_secured && !f.file_access_policy_name) {
 
             if (!!uid) {
-                await PushDataServerController.getInstance().notifySimpleERROR(uid, 'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing');
+                await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.file_access_policy_name_missing');
             }
             return false;
         }
@@ -98,7 +100,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
             if (!f.path.startsWith(ModuleFile.FILES_ROOT)) {
                 if (!!uid) {
-                    await PushDataServerController.getInstance().notifySimpleERROR(uid, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
+                    await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }
@@ -119,7 +121,7 @@ export default class ModuleFileServer extends ModuleFileServerBase<FileVO> {
 
             if (!f.path.startsWith(ModuleFile.SECURED_FILES_ROOT)) {
                 if (!!uid) {
-                    await PushDataServerController.getInstance().notifySimpleERROR(uid, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
+                    await PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'ModuleFileServer.check_secured_files_conf.f_path_start_unknown');
                 }
                 return false;
             }

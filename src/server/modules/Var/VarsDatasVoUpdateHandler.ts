@@ -5,6 +5,8 @@ import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGControll
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+import ForkedTasksController from '../Fork/ForkedTasksController';
+import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarServerControllerBase from './VarServerControllerBase';
@@ -16,6 +18,8 @@ import VarsServerController from './VarsServerController';
  *  on sépare en revanche les vos par type_id et par type de modification (si on modifie 3 fois un vo on veut toutes les modifications pour l'invalidation donc on ignore rien par contre)
  */
 export default class VarsDatasVoUpdateHandler {
+
+    public static TASK_NAME_register_vo_cud = 'VarsDatasVoUpdateHandler.register_vo_cud';
 
     /**
      * Multithreading notes :
@@ -34,9 +38,15 @@ export default class VarsDatasVoUpdateHandler {
     private ordered_vos_cud: Array<DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase> = [];
 
     protected constructor() {
+        ForkedTasksController.getInstance().register_task(VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, this.register_vo_cud.bind(this));
     }
 
     public register_vo_cud(vo_cud: DAOUpdateVOHolder<IDistantVOBase> | IDistantVOBase) {
+
+        if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasVoUpdateHandler.TASK_NAME_register_vo_cud, vo_cud)) {
+            return;
+        }
+
         this.ordered_vos_cud.push(vo_cud);
     }
 
@@ -46,6 +56,9 @@ export default class VarsDatasVoUpdateHandler {
      */
     public async handle_buffer(limit: number): Promise<number> {
 
+        if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
+            return limit;
+        }
 
         let vo_types: string[] = [];
         let vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> } = {};
@@ -153,7 +166,12 @@ export default class VarsDatasVoUpdateHandler {
             intersectors = intersectors.concat(await Nx.var_controller.get_invalid_params_intersectors_from_dep(dep.dep_name, intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id]));
         }
 
-        intersectors_by_var_id[Nx.var_controller.varConf.id] = MatroidController.getInstance().union(intersectors);
+        intersectors = MatroidController.getInstance().union(intersectors);
+
+        if ((!intersectors) || (!intersectors.length)) {
+            return;
+        }
+        intersectors_by_var_id[Nx.var_controller.varConf.id] = intersectors;
     }
 
     private async init_markers(ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }, markers: { [var_id: number]: number }) {
@@ -197,13 +215,21 @@ export default class VarsDatasVoUpdateHandler {
                 for (let k in vos_create_or_delete_buffer[vo_type]) {
                     let vo_create_or_delete = vos_create_or_delete_buffer[vo_type][k];
 
-                    intersectors_by_var_id[vo_type] = intersectors_by_var_id[vo_type].concat(var_controller.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete));
+                    let tmp = var_controller.get_invalid_params_intersectors_on_POST_C_POST_D(vo_create_or_delete);
+                    if ((!tmp) || (!tmp.length)) {
+                        continue;
+                    }
+                    intersectors_by_var_id[vo_type] = intersectors_by_var_id[vo_type].concat(tmp);
                 }
 
                 for (let k in vos_update_buffer[vo_type]) {
                     let vo_update_buffer = vos_update_buffer[vo_type][k];
 
-                    intersectors_by_var_id[vo_type] = intersectors_by_var_id[vo_type].concat(var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer));
+                    let tmp = var_controller.get_invalid_params_intersectors_on_POST_U(vo_update_buffer);
+                    if ((!tmp) || (!tmp.length)) {
+                        continue;
+                    }
+                    intersectors_by_var_id[vo_type] = intersectors_by_var_id[vo_type].concat(tmp);
                 }
             }
         }
@@ -218,7 +244,7 @@ export default class VarsDatasVoUpdateHandler {
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
      */
     private prepare_updates(limit: number, vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> }, vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] }, vo_types: string[]): number {
-        while ((limit > 0) && this.ordered_vos_cud) {
+        while ((limit > 0) && this.ordered_vos_cud && this.ordered_vos_cud.length) {
 
             let vo_cud = this.ordered_vos_cud.shift();
             // Si on a un champ _type, on est sur un VO, sinon c'est un update

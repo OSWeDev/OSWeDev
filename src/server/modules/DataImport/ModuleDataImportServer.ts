@@ -673,7 +673,7 @@ export default class ModuleDataImportServer extends ModuleServerBase {
 
     public async updateImportHistoric(importHistoric: DataImportHistoricVO) {
         await ModuleDAO.getInstance().insertOrUpdateVO(importHistoric);
-        await PushDataServerController.getInstance().notifyDAOGetVoById(importHistoric.user_id, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
+        await PushDataServerController.getInstance().notifyDAOGetVoById(importHistoric.user_id, null, DataImportHistoricVO.API_TYPE_ID, importHistoric.id);
     }
 
     public async logAndUpdateHistoric(importHistoric: DataImportHistoricVO, format: DataImportFormatVO, import_state: number, logmsg: string, notif_code: string, log_lvl: number) {
@@ -684,16 +684,16 @@ export default class ModuleDataImportServer extends ModuleServerBase {
         switch (log_lvl) {
             case DataImportLogVO.LOG_LEVEL_FATAL:
             case DataImportLogVO.LOG_LEVEL_ERROR:
-                await PushDataServerController.getInstance().notifySimpleERROR(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleERROR(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_WARN:
-                await PushDataServerController.getInstance().notifySimpleWARN(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleWARN(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_SUCCESS:
-                await PushDataServerController.getInstance().notifySimpleSUCCESS(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleSUCCESS(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_INFO:
-                await PushDataServerController.getInstance().notifySimpleINFO(importHistoric.user_id, notif_code);
+                await PushDataServerController.getInstance().notifySimpleINFO(importHistoric.user_id, null, notif_code);
                 break;
             case DataImportLogVO.LOG_LEVEL_DEBUG:
             default:

@@ -41,7 +41,7 @@ import VarsDatasProxy from './VarsDatasProxy';
 import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerController from './VarsServerController';
-import VarsSocketsSubsController from './VarsSocketsSubsController';
+import VarsTabsSubsController from './VarsTabsSubsController';
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -155,7 +155,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         ModuleServiceBase.getInstance().post_modules_installation_hooks.push(() => {
 
-            let carcontrollers_dag: DAG<VarCtrlDAGNode> = new DAG();
+            let varcontrollers_dag: DAG<VarCtrlDAGNode> = new DAG();
 
             /**
              * Ajout des triggers d'invalidation des données de cache en BDD
@@ -172,18 +172,20 @@ export default class ModuleVarServer extends ModuleServerBase {
             for (let i in VarsServerController.getInstance().registered_vars_controller_) {
                 let var_controller: VarServerControllerBase<any> = VarsServerController.getInstance().registered_vars_controller_[i];
 
-                let node = VarCtrlDAGNode.getInstance(carcontrollers_dag, var_controller);
+                let node = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_controller);
 
                 let var_dependencies: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
 
                 for (let dep_name in var_dependencies) {
                     let var_dependency = var_dependencies[dep_name];
 
-                    let dependency = VarCtrlDAGNode.getInstance(carcontrollers_dag, var_dependency);
+                    let dependency = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_dependency);
 
                     node.addOutgoingDep(dep_name, dependency);
                 }
             }
+
+            VarsServerController.getInstance().init_varcontrollers_dag(varcontrollers_dag);
         });
     }
 
@@ -198,6 +200,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo);
+            CronServerController.getInstance().executeWorker(VarsdatasComputerBGThread.getInstance().name);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
@@ -213,6 +216,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo_update_handler);
+            CronServerController.getInstance().executeWorker(VarsdatasComputerBGThread.getInstance().name);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
@@ -455,6 +459,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     public async get_var_data_or_ask_to_bgthread(param: VarDataBaseVO): Promise<VarDataBaseVO> {
 
+        // TODO FIXME OPTI - ou pas ... - on peut aller demander aussi aux vars en attente de maj en bdd - mais une perte de perf légère tout le temps pour un gain très ponctuel mais probablement élevé
         let varsdata: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(param._type, [param as any], {});
 
         let vardata: VarDataBaseVO = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
@@ -537,9 +542,10 @@ export default class ModuleVarServer extends ModuleServerBase {
      */
     private async register_params(api_param: APISimpleVOsParamVO): Promise<void> {
         let params: VarDataBaseVO[] = api_param.vos as VarDataBaseVO[];
+        let uid = StackContext.getInstance().get('UID');
+        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
 
-        // TODO FIXME SOCKETS
-        VarsSocketsSubsController.getInstance().register_sub(/*TODO_SOCKET*/ null, params ? params.map((param) => param.index) : []);
+        VarsTabsSubsController.getInstance().register_sub(uid, client_tab_id, params ? params.map((param) => param.index) : []);
 
         /**
          * Si on trouve des datas existantes et valides en base, on les envoie, sinon on indique qu'on attend ces valeurs
@@ -563,7 +569,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         if (vars_to_notif && vars_to_notif.length) {
-            await PushDataServerController.getInstance().notifyVarsDatas(StackContext.getInstance().get('UID'), vars_to_notif);
+            await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);
         }
     }
 
@@ -573,7 +579,8 @@ export default class ModuleVarServer extends ModuleServerBase {
      * @param api_param
      */
     private async unregister_params(api_param: APISimpleVOsParamVO): Promise<void> {
-        // TODO FIXME SOCKETS
-        VarsSocketsSubsController.getInstance().unregister_sub(/*TODO_SOCKET*/ null, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.index) : []);
+        let uid = StackContext.getInstance().get('UID');
+        let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
+        VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.index) : []);
     }
 }

@@ -6,6 +6,8 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import StackContext from '../../StackContext';
 import ServerBase from '../../ServerBase';
 import ModuleServerBase from '../ModuleServerBase';
+import ServerExpressController from '../../ServerExpressController';
+import IServerUserSession from '../../IServerUserSession';
 
 export default class ModuleAPIServer extends ModuleServerBase {
 
@@ -52,7 +54,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             if (api.PARAM_TRANSLATE_FROM_REQ) {
                 try {
                     param = await StackContext.getInstance().runPromise(
-                        { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                        ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                         async () => await api.PARAM_TRANSLATE_FROM_REQ(req));
                 } catch (error) {
                     ConsoleHandler.getInstance().error(error);
@@ -77,7 +79,7 @@ export default class ModuleAPIServer extends ModuleServerBase {
             let returnvalue = null;
             try {
                 returnvalue = await StackContext.getInstance().runPromise(
-                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                    ServerExpressController.getInstance().getStackContextFromReq(req, req.session as IServerUserSession),
                     async () => await api.SERVER_HANDLER(param));
             } catch (error) {
                 ConsoleHandler.getInstance().error(error);

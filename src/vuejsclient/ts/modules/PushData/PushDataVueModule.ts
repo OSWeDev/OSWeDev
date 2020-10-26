@@ -34,7 +34,49 @@ export default class PushDataVueModule extends VueModuleBase {
         let self = this;
 
         // test suppression base api url this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
-        this.socket = io.connect('');
+        this.socket = io.connect({
+            transportOptions: {
+                polling: {
+                    extraHeaders: {
+                        client_tab_id: AjaxCacheClientController.getInstance().client_tab_id
+                    }
+                }
+            }
+        });
+        this.socket.on('disconnect', () => {
+            self.socket.open();
+        });
+        this.socket.on('error', async () => {
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                self.socket.open();
+            }, 5000);
+        });
+        this.socket.on('connect_error', async () => {
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                self.socket.open();
+            }, 5000);
+        });
+        this.socket.on('connect_timeout', async () => {
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                self.socket.open();
+            }, 5000);
+        });
+        this.socket.on('reconnect_error', async () => {
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                self.socket.open();
+            }, 5000);
+        });
+        this.socket.on('reconnect_failed', async () => {
+            // On tente une reconnexion toutes les 10 secondes
+            setTimeout(() => {
+                self.socket.open();
+            }, 5000);
+        });
+
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {
 
             if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {

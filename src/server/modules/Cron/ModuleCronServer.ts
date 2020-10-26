@@ -111,13 +111,15 @@ export default class ModuleCronServer extends ModuleServerBase {
     public async executeWorkersManually() {
 
         let uid: number = StackContext.getInstance().get('UID');
-        PushDataServerController.getInstance().notifySimpleINFO(uid, 'cron.execute_manually.start');
+        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+
+        PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually.start');
         try {
 
             CronServerController.getInstance().executeWorkers();
-            PushDataServerController.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually.success');
+            PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'cron.execute_manually.success');
         } catch (error) {
-            PushDataServerController.getInstance().notifySimpleERROR(uid, 'cron.execute_manually.failed');
+            PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'cron.execute_manually.failed');
         }
     }
 
@@ -130,14 +132,15 @@ export default class ModuleCronServer extends ModuleServerBase {
         }
 
         let uid: number = StackContext.getInstance().get('UID');
+        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
 
-        PushDataServerController.getInstance().notifySimpleINFO(uid, 'cron.execute_manually_indiv.start');
+        PushDataServerController.getInstance().notifySimpleINFO(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.start');
         try {
 
             CronServerController.getInstance().executeWorker(worker_uid);
-            PushDataServerController.getInstance().notifySimpleSUCCESS(uid, 'cron.execute_manually_indiv.success');
+            PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.success');
         } catch (error) {
-            PushDataServerController.getInstance().notifySimpleERROR(uid, 'cron.execute_manually_indiv.failed');
+            PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'cron.execute_manually_indiv.failed');
         }
     }
 }

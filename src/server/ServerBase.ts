@@ -27,18 +27,22 @@ import ModuleAPI from '../shared/modules/API/ModuleAPI';
 import ModuleCommerce from '../shared/modules/Commerce/ModuleCommerce';
 import ModuleDAO from '../shared/modules/DAO/ModuleDAO';
 import ModuleFile from '../shared/modules/File/ModuleFile';
+import FileVO from '../shared/modules/File/vos/FileVO';
 import ModulesManager from '../shared/modules/ModulesManager';
 import ModuleTranslation from '../shared/modules/Translation/ModuleTranslation';
 import ConsoleHandler from '../shared/tools/ConsoleHandler';
 import EnvHandler from '../shared/tools/EnvHandler';
+import ThreadHandler from '../shared/tools/ThreadHandler';
 import ConfigurationService from './env/ConfigurationService';
 import EnvParam from './env/EnvParam';
+import FileLoggerHandler from './FileLoggerHandler';
 import I18nextInit from './I18nextInit';
 import IServerUserSession from './IServerUserSession';
 import ModuleAccessPolicyServer from './modules/AccessPolicy/ModuleAccessPolicyServer';
 import ServerAPIController from './modules/API/ServerAPIController';
 import BGThreadServerController from './modules/BGThread/BGThreadServerController';
 import CronServerController from './modules/Cron/CronServerController';
+import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
 import ModuleFileServer from './modules/File/ModuleFileServer';
 import ForkedTasksController from './modules/Fork/ForkedTasksController';
 import ForkServerController from './modules/Fork/ForkServerController';
@@ -46,10 +50,7 @@ import MaintenanceServerController from './modules/Maintenance/MaintenanceServer
 import ModuleServiceBase from './modules/ModuleServiceBase';
 import PushDataServerController from './modules/PushData/PushDataServerController';
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
-import FileVO from '../shared/modules/File/vos/FileVO';
-import ModuleDAOServer from './modules/DAO/ModuleDAOServer';
-import FileLoggerHandler from './FileLoggerHandler';
-import ThreadHandler from '../shared/tools/ThreadHandler';
+import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
 require('moment-json-parser').overrideDefault();
 
@@ -438,7 +439,7 @@ export default abstract class ServerBase {
                 if (MaintenanceServerController.getInstance().has_planned_maintenance) {
 
                     await StackContext.getInstance().runPromise(
-                        { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                        ServerExpressController.getInstance().getStackContextFromReq(req, session),
                         async () => await MaintenanceServerController.getInstance().inform_user_on_request(session.uid));
                 }
 
@@ -486,7 +487,7 @@ export default abstract class ServerBase {
             let has_access: boolean = false;
 
             await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => {
                     file = await ModuleDAOServer.getInstance().selectOne<FileVO>(FileVO.API_TYPE_ID, " where is_secured and path = $1;", [ModuleFile.SECURED_FILES_ROOT + folders + file_name]);
                     has_access = (file && file.file_access_policy_name) ? await ModuleAccessPolicy.getInstance().checkAccess(file.file_access_policy_name) : false;
@@ -517,7 +518,7 @@ export default abstract class ServerBase {
             let session: IServerUserSession = req.session as IServerUserSession;
 
             let has_access: boolean = await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_FO_ACCESS));
 
             if (!has_access) {
@@ -533,7 +534,7 @@ export default abstract class ServerBase {
             let session: IServerUserSession = req.session as IServerUserSession;
 
             let has_access: boolean = await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_ACCESS));
 
             if (!has_access) {
@@ -554,7 +555,7 @@ export default abstract class ServerBase {
 
             if (file_name) {
                 await StackContext.getInstance().runPromise(
-                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                    ServerExpressController.getInstance().getStackContextFromReq(req, session),
                     async () => {
                         has_access = await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS) && await ModuleAccessPolicy.getInstance().checkAccess(ModuleAccessPolicy.POLICY_BO_RIGHTS_MANAGMENT_ACCESS);
                     });
@@ -607,7 +608,7 @@ export default abstract class ServerBase {
                 }
 
                 await StackContext.getInstance().runPromise(
-                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: session.uid, SESSION: session },
+                    ServerExpressController.getInstance().getStackContextFromReq(req, session),
                     async () => await ModuleDAO.getInstance().insertOrUpdateVO(user_log));
             }
 
@@ -634,7 +635,7 @@ export default abstract class ServerBase {
                 user_log.log_type = UserLogVO.LOG_TYPE_LOGOUT;
 
                 await StackContext.getInstance().runPromise(
-                    { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                    ServerExpressController.getInstance().getStackContextFromReq(req, req.session),
                     async () => await ModuleDAO.getInstance().insertOrUpdateVO(user_log));
             }
 
@@ -688,7 +689,7 @@ export default abstract class ServerBase {
             const session = req.session;
 
             let user: UserVO = await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
 
             res.json(JSON.stringify(
@@ -706,7 +707,7 @@ export default abstract class ServerBase {
             const session = req.session;
 
             let user: UserVO = await StackContext.getInstance().runPromise(
-                { IS_CLIENT: true, REFERER: req.headers.referer, UID: req.session.uid, SESSION: req.session },
+                ServerExpressController.getInstance().getStackContextFromReq(req, session),
                 async () => await ModuleAccessPolicyServer.getInstance().getSelfUser());
 
             res.json(JSON.stringify(

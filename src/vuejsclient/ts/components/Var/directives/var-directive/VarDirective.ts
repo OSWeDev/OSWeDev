@@ -39,9 +39,9 @@ export default class VarDirective {
             return;
         }
 
-        this.callbacks[var_param.index] = VarDirective.getInstance().getVarUpdateCallbacks(el, binding, vnode);
+        VarDirective.getInstance().callbacks[var_param.index] = VarDirective.getInstance().getVarUpdateCallbacks(el, binding, vnode);
 
-        VarsClientController.getInstance().registerParams([var_param], this.callbacks[var_param.index]);
+        VarsClientController.getInstance().registerParams([var_param], VarDirective.getInstance().callbacks[var_param.index]);
     }
 
     public async unbind(el, binding, vnode) {
@@ -56,7 +56,7 @@ export default class VarDirective {
             return;
         }
 
-        VarsClientController.getInstance().unRegisterParams([var_param], this.callbacks[var_param.index]);
+        VarsClientController.getInstance().unRegisterParams([var_param], VarDirective.getInstance().callbacks[var_param.index]);
     }
 
     private getVarUpdateCallbacks(el, binding, vnode): VarUpdateCallback[] {

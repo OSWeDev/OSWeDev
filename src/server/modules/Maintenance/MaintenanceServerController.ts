@@ -77,11 +77,11 @@ export default class MaintenanceServerController {
         let timeout_minutes_msg3: number = ModuleMaintenance.getInstance().getParamValue(ModuleMaintenance.PARAM_NAME_SEND_MSG1_WHEN_SHORTER_THAN_MINUTES);
 
         if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg3, 'minute').isSameOrBefore(moment().utc(true))) {
-            await PushDataServerController.getInstance().notifySimpleERROR(user_id, ModuleMaintenance.MSG3_code_text);
+            await PushDataServerController.getInstance().notifySimpleERROR(user_id, null, ModuleMaintenance.MSG3_code_text);
         } else if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg2, 'minute').isSameOrBefore(moment().utc(true))) {
-            await PushDataServerController.getInstance().notifySimpleWARN(user_id, ModuleMaintenance.MSG2_code_text);
+            await PushDataServerController.getInstance().notifySimpleWARN(user_id, null, ModuleMaintenance.MSG2_code_text);
         } else if (moment(this.planned_maintenance.start_ts).utc(true).add(-timeout_minutes_msg1, 'minute').isSameOrBefore(moment().utc(true))) {
-            await PushDataServerController.getInstance().notifySimpleINFO(user_id, ModuleMaintenance.MSG1_code_text);
+            await PushDataServerController.getInstance().notifySimpleINFO(user_id, null, ModuleMaintenance.MSG1_code_text);
         }
 
         this.informed_users_tstzs[user_id] = moment().utc(true);

@@ -2,6 +2,8 @@ import ForkMessageController from './ForkMessageController';
 import ForkServerController from './ForkServerController';
 import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
+import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
 
 export default class ForkedTasksController {
 
@@ -55,6 +57,20 @@ export default class ForkedTasksController {
     public exec_self_on_main_process(task_uid: string, ...task_params): boolean {
         if (!ForkServerController.getInstance().is_main_process) {
             ForkMessageController.getInstance().send(new MainProcessTaskForkMessage(task_uid, task_params));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Objectif : Exécuter la fonction sur un thread particulier. On envoie la demande à tous au besoin, sinon on exécute directement
+     * @param bgthread le nom de la tache de type bgthread, dont on va chercher le thread actuel
+     * @param task_uid
+     * @param task_params
+     */
+    public exec_self_on_bgthread(bgthread: string, task_uid: string, ...task_params): boolean {
+        if (!BGThreadServerController.getInstance().valid_bgthreads_names[bgthread]) {
+            ForkMessageController.getInstance().broadcast(new BGThreadProcessTaskForkMessage(bgthread, task_uid, task_params));
             return false;
         }
         return true;

@@ -353,7 +353,15 @@ export default class ModuleTableDBService {
             if (!fields_by_field_id[i]) {
                 console.error('-');
                 console.error('INFO  : Champs en trop dans la base de données par rapport à la description logicielle :' + i + ':table:' + full_name + ':');
-                console.error('ACTION: AUCUNE, résoudre manuellement');
+                console.error('ACTION: Suppression automatique...');
+
+                try {
+                    let pgSQL: string = 'ALTER TABLE ' + full_name + ' DROP COLUMN ' + i + ';';
+                    await this.db.none(pgSQL);
+                    console.error('ACTION: OK');
+                } catch (error) {
+                    console.error(error);
+                }
                 console.error('---');
             }
         }

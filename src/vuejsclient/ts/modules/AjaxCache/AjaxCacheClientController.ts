@@ -24,6 +24,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
     private static instance: AjaxCacheClientController = null;
 
+    /**
+     * This is used to identify the tab the app is running in to send appropriate notifications to the corresponding tab
+     */
+    public client_tab_id: string = moment().valueOf() + '_' + Math.floor(Math.random() * 100000);
+
     public ajaxcache_debouncer: number = 200;
     public api_logs: LightWeightSendableRequestVO[] = [];
 
@@ -188,7 +193,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 const { default: axios } = await import(/* webpackChunkName: "axios" */ 'axios');
                 let axios_headers: any = {
                     'Content-Type': contentType,
-                    'Accept': 'application/x-msgpack'
+                    'Accept': 'application/x-msgpack',
+                    'client_tab_id': AjaxCacheClientController.getInstance().client_tab_id
                 };
                 if (!!self.csrf_token) {
                     axios_headers['X-CSRF-Token'] = self.csrf_token;
@@ -238,6 +244,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         options.headers = {};
                     }
                     options.headers['X-CSRF-Token'] = self.csrf_token;
+                    options.headers['client_tab_id'] = AjaxCacheClientController.getInstance().client_tab_id;
                 }
                 self.addCallback(cache, resolve, reject);
 
@@ -590,7 +597,8 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                                 responseType: 'blob',
                                 headers: {
                                     'Content-Type': request.contentType,
-                                    'Accept': 'application/x-msgpack'
+                                    'Accept': 'application/x-msgpack',
+                                    'client_tab_id': AjaxCacheClientController.getInstance().client_tab_id
                                 }
                             }
                         ).then(function (response) {

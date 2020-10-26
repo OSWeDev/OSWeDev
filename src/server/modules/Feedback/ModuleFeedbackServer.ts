@@ -30,6 +30,7 @@ import PushDataServerController from '../PushData/PushDataServerController';
 import ModuleTrelloAPIServer from '../TrelloAPI/ModuleTrelloAPIServer';
 import FeedbackConfirmationMail from './FeedbackConfirmationMail/FeedbackConfirmationMail';
 import FileHandler from '../../../shared/tools/FileHandler';
+import StackContext from '../../StackContext';
 const { parse } = require('flatted/cjs');
 
 export default class ModuleFeedbackServer extends ModuleServerBase {
@@ -210,6 +211,9 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             return false;
         }
 
+        let uid = ModuleAccessPolicyServer.getInstance().getLoggedUserId();
+        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
+
         try {
 
             let user_session: IServerUserSession = ModuleAccessPolicyServer.getInstance().getUserSession();
@@ -314,12 +318,12 @@ export default class ModuleFeedbackServer extends ModuleServerBase {
             // Envoyer un mail pour confirmer la prise en compte du feedback
             await FeedbackConfirmationMail.getInstance().sendConfirmationEmail(feedback);
 
-            PushDataServerController.getInstance().notifySimpleSUCCESS(ModuleAccessPolicyServer.getInstance().getLoggedUserId(), 'feedback.feedback.success');
+            PushDataServerController.getInstance().notifySimpleSUCCESS(uid, CLIENT_TAB_ID, 'feedback.feedback.success');
 
             return true;
         } catch (error) {
             ConsoleHandler.getInstance().error(error);
-            PushDataServerController.getInstance().notifySimpleERROR(ModuleAccessPolicyServer.getInstance().getLoggedUserId(), 'feedback.feedback.error');
+            PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, 'feedback.feedback.error');
             return false;
         }
     }

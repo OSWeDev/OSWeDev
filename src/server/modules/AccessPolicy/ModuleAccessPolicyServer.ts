@@ -1375,6 +1375,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
         try {
             let session = StackContext.getInstance().get('SESSION');
+            let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
 
             if ((!session) || (!session.uid)) {
                 return null;
@@ -1396,7 +1397,7 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
             if (user.blocked || user.invalidated) {
                 ConsoleHandler.getInstance().error("impersonate login:" + param.email + ":blocked or invalidated");
-                await PushDataServerController.getInstance().notifySimpleERROR(session.uid, 'Impossible de se connecter avec un compte bloqué ou invalidé', true);
+                await PushDataServerController.getInstance().notifySimpleERROR(session.uid, CLIENT_TAB_ID, 'Impossible de se connecter avec un compte bloqué ou invalidé', true);
                 return null;
             }
 
@@ -1450,8 +1451,9 @@ export default class ModuleAccessPolicyServer extends ModuleServerBase {
 
     private async sendErrorMsg(msg_translatable_code: string) {
         let uid: number = StackContext.getInstance().get('UID');
+        let CLIENT_TAB_ID: string = StackContext.getInstance().get('CLIENT_TAB_ID');
 
-        PushDataServerController.getInstance().notifySimpleERROR(uid, msg_translatable_code);
+        PushDataServerController.getInstance().notifySimpleERROR(uid, CLIENT_TAB_ID, msg_translatable_code);
     }
 
     private async get_roles_ids_by_name(): Promise<{ [role_name: string]: number }> {

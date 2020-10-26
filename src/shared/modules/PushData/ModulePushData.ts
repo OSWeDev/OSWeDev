@@ -1,9 +1,9 @@
+import UserVO from '../AccessPolicy/vos/UserVO';
 import Module from '../Module';
 import ModuleTable from '../ModuleTable';
 import ModuleTableField from '../ModuleTableField';
-import NotificationVO from './vos/NotificationVO';
 import VOsTypesManager from '../VOsTypesManager';
-import UserVO from '../AccessPolicy/vos/UserVO';
+import NotificationVO from './vos/NotificationVO';
 
 export default class ModulePushData extends Module {
 
@@ -45,6 +45,7 @@ export default class ModulePushData extends Module {
                 [NotificationVO.DAO_GET_VO_BY_ID]: NotificationVO.DAO_NAMES[NotificationVO.DAO_GET_VO_BY_ID],
                 [NotificationVO.DAO_GET_VOS]: NotificationVO.DAO_NAMES[NotificationVO.DAO_GET_VOS]
             }),
+            new ModuleTableField('client_tab_id', ModuleTableField.FIELD_TYPE_string, 'ID Tab Client'),
             new ModuleTableField('api_type_id', ModuleTableField.FIELD_TYPE_string, 'API Type ID'),
             new ModuleTableField('dao_notif_vo_id', ModuleTableField.FIELD_TYPE_int, 'Dao Vo Id'),
             new ModuleTableField('read', ModuleTableField.FIELD_TYPE_boolean, 'Lu', false),

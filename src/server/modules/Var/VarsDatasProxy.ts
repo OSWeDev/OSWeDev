@@ -5,7 +5,10 @@ import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import DateHandler from '../../../shared/tools/DateHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
+import ForkedTasksController from '../Fork/ForkedTasksController';
+import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarsServerController from './VarsServerController';
 
 /**
@@ -14,6 +17,9 @@ import VarsServerController from './VarsServerController';
  *  On cherchera alors à dépiler ce buffer dès qu'on a moins de calculs en cours et donc moins besoin de ressources pour les calculs
  */
 export default class VarsDatasProxy {
+
+    public static TASK_NAME_prepend_var_datas = 'VarsDatasProxy.prepend_var_datas';
+    public static TASK_NAME_append_var_datas = 'VarsDatasProxy.append_var_datas';
 
     /**
      * Multithreading notes :
@@ -35,9 +41,12 @@ export default class VarsDatasProxy {
     private vars_datas_buffer: VarDataBaseVO[] = [];
 
     protected constructor() {
+        ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_prepend_var_datas, this.prepend_var_datas.bind(this));
+        ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_append_var_datas, this.append_var_datas.bind(this));
     }
 
     /**
+     * ATTENTION - Appeler uniquement sur le thread du VarsComputer
      * A utiliser pour prioriser normalement la demande - FIFO
      *  Cas standard
      */
@@ -45,10 +54,16 @@ export default class VarsDatasProxy {
         if ((!var_datas) || (!var_datas.length)) {
             return;
         }
+
+        if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_append_var_datas, var_datas)) {
+            return;
+        }
+
         this.vars_datas_buffer = this.vars_datas_buffer.concat(var_datas);
     }
 
     /**
+     * ATTENTION - Appeler uniquement sur le thread du VarsComputer
      * A utiliser pour prioriser la demande par rapport à toutes les autres - LIFO
      *  Principalement pour le cas d'une demande du navigateur client, on veut répondre ASAP
      *  et si on doit ajuster le calcul on renverra l'info plus tard
@@ -57,7 +72,13 @@ export default class VarsDatasProxy {
         if ((!var_datas) || (!var_datas.length)) {
             return;
         }
-        var_datas.forEach((vd) => this.vars_datas_buffer.unshift(vd));
+
+        if (!ForkedTasksController.getInstance().exec_self_on_bgthread(VarsdatasComputerBGThread.getInstance().name, VarsDatasProxy.TASK_NAME_prepend_var_datas, var_datas)) {
+            return;
+        }
+
+        let self = this;
+        var_datas.forEach((vd) => self.vars_datas_buffer.unshift(vd));
     }
 
     /**
@@ -129,7 +150,10 @@ export default class VarsDatasProxy {
             }
         }
 
-        if (request_limit <= 0) {
+        /**
+         * Si on a des datas en attente dans le buffer on commence par ça
+         */
+        if (ObjectHandler.getInstance().hasAtLeastOneAttribute(res)) {
             return res;
         }
 
@@ -139,7 +163,7 @@ export default class VarsDatasProxy {
          *  des vars qui sont dans le buffer... (avantage ça concerne pas celles qui sont pas créées puisqu'il faut un id et la liste
          *  des ids reste relativement dense)...
          */
-        let bdd_datas: { [index: string]: VarDataBaseVO } = await this.get_vars_to_compute_from_bdd(request_limit, this.vars_datas_buffer.filter((data) => !!data.id).map((data) => data.id));
+        let bdd_datas: { [index: string]: VarDataBaseVO } = await this.get_vars_to_compute_from_bdd(request_limit);
         for (let i in bdd_datas) {
             let bdd_data = bdd_datas[i];
 
@@ -153,7 +177,7 @@ export default class VarsDatasProxy {
      * TODO FIXME REFONTE VARS c'est à que la plus grosse opti doit se faire, et peut-etre via du machine learning par ce que pas évident de savoir quelle est la bonne strat
      *  Il faut à tout prix pouvoir monitorer la performance de cette fonction
      */
-    private async get_vars_to_compute_from_bdd(request_limit: number, ignore_ids_list: number[]): Promise<{ [index: string]: VarDataBaseVO }> {
+    private async get_vars_to_compute_from_bdd(request_limit: number, ignore_ids_list_by_api_type: { [api_type: string]: number[] }): Promise<{ [index: string]: VarDataBaseVO }> {
         let vars_datas: { [index: string]: VarDataBaseVO } = {};
         let nb_vars_datas: number = 0;
 
@@ -176,16 +200,16 @@ export default class VarsDatasProxy {
                     vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
                         ' var_id = ' + varcacheconf.var_id +
                         ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') ' +
-                        ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') +
+                        ((ignore_ids_list_by_api_type[api_type_id] && ignore_ids_list_by_api_type[api_type_id].length) ? ' and id not in ' + this.get_ignore_ids_list(ignore_ids_list_by_api_type[api_type_id]) : '') +
                         ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
-                        ' limit ' + request_limit + ';', [ignore_ids_list]);
+                        ' limit ' + request_limit + ';');
                 } else {
                     vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
                         ' value_ts is null' +
                         ' and var_id = ' + varcacheconf.var_id +
-                        ((ignore_ids_list && ignore_ids_list.length) ? ' and id not in $1' : '') +
+                        ((ignore_ids_list_by_api_type[api_type_id] && ignore_ids_list_by_api_type[api_type_id].length) ? ' and id not in ' + this.get_ignore_ids_list(ignore_ids_list_by_api_type[api_type_id]) : '') +
                         ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
-                        ' limit ' + request_limit + ';', [ignore_ids_list]);
+                        ' limit ' + request_limit + ';', [ignore_ids_list_by_api_type[api_type_id]]);
                 }
 
                 for (let vars_datas_tmp_i in vars_datas_tmp) {
@@ -208,5 +232,22 @@ export default class VarsDatasProxy {
         }
 
         return vars_datas;
+    }
+
+    private get_ignore_ids_list(ignore_ids_list: number[]): string {
+
+        let res: string = '(';
+        let first: boolean = true;
+
+        for (let i in ignore_ids_list) {
+
+            if (!first) {
+                res += ',';
+            }
+            res += ignore_ids_list[i];
+            first = false;
+        }
+
+        return res + ')';
     }
 }

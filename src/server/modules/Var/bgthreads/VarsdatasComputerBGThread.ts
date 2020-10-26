@@ -7,7 +7,8 @@ import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
-import VarsSocketsSubsController from '../VarsSocketsSubsController';
+import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
+import VarsTabsSubsController from '../VarsTabsSubsController';
 
 export default class VarsdatasComputerBGThread implements IBGThread {
 
@@ -22,10 +23,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     public current_timeout: number = 500;
     public MAX_timeout: number = 5000;
-    public MIN_timeout: number = 100;
+    public MIN_timeout: number = 1;
 
     public timeout: number = 500;
-    public request_limit: number = 5000;
+    public request_limit: number = 500;
 
     private enabled: boolean = true;
     private invalidations: number = 0;
@@ -102,6 +103,16 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 if (!remaining) {
                     return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
                 }
+
+                /**
+                 * Si on a vidé le buffer également, on peut aussi dépiler les CUD sur les VOs et faire les invalidations
+                 */
+                remaining = await VarsDatasVoUpdateHandler.getInstance().handle_buffer(500);
+
+                if (!remaining) {
+                    return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
+                }
+
                 return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
             }
 
@@ -128,7 +139,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 end_computation = moment().utc(true).valueOf();
             }
 
-            VarsSocketsSubsController.getInstance().notify_vardatas(vars_datas);
+            VarsTabsSubsController.getInstance().notify_vardatas(vars_datas);
 
             if (!this.silent) {
                 end_notification = moment().utc(true).valueOf();

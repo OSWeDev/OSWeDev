@@ -87,7 +87,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
 
     private async handleTriggerVOPreUpdate(vo_update_handler: DAOUpdateVOHolder<IVersionedVO>) {
 
-        let cloned: IVersionedVO = vo_update_handler.pre_update_vo;
+        let cloned: IVersionedVO = Object.create(vo_update_handler.pre_update_vo);
 
         cloned.id = null;
         cloned._type = VersionedVOController.getInstance().getVersionedVoType(cloned._type);
