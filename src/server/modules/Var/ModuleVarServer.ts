@@ -22,6 +22,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import CronServerController from '../Cron/CronServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
@@ -200,7 +201,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo);
-            CronServerController.getInstance().executeWorker(VarsdatasComputerBGThread.getInstance().name);
+            BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
@@ -216,7 +217,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo_update_handler);
-            CronServerController.getInstance().executeWorker(VarsdatasComputerBGThread.getInstance().name);
+            BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
@@ -565,7 +566,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         if (needs_var_computation) {
-            CronServerController.getInstance().executeWorker(VarsdatasComputerBGThread.getInstance().name);
+            BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
         }
 
         if (vars_to_notif && vars_to_notif.length) {

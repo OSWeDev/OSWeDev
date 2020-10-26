@@ -181,7 +181,6 @@ export default class VarsDatasProxy {
         let vars_datas: { [index: string]: VarDataBaseVO } = {};
         let nb_vars_datas: number = 0;
 
-        // OPTI TODO : possible de regrouper les requetes d'une meme api_type_id, en préparant en amont les condition de la requête et en faisant pour tous les var_id en 1 fois
         for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
 
             if (request_limit <= nb_vars_datas) {
@@ -189,40 +188,46 @@ export default class VarsDatasProxy {
             }
 
             let varcacheconf_by_var_ids = VarsServerController.getInstance().varcacheconf_by_api_type_ids[api_type_id];
+            let condition = '(';
+            let first: boolean = true;
+
             for (let var_id in varcacheconf_by_var_ids) {
                 let varcacheconf: VarCacheConfVO = varcacheconf_by_var_ids[var_id];
 
-                // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
-                //  Attention les données importées ne doivent pas être remises en question
-                let vars_datas_tmp: VarDataBaseVO[] = [];
+                if (!first) {
+                    condition += ' OR (';
+                } else {
+                    condition += '(';
+                }
+                first = false;
+
                 if (!!varcacheconf.cache_timeout_ms) {
                     let timeout: Moment = moment().utc(true).add(-varcacheconf.cache_timeout_ms, 'ms');
-                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
-                        ' var_id = ' + varcacheconf.var_id +
-                        ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') ' +
-                        ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
-                        ' limit ' + request_limit + ';');
+                    condition += 'var_id = ' + varcacheconf.var_id + ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ')';
                 } else {
-                    vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
-                        ' value_ts is null' +
-                        ' and var_id = ' + varcacheconf.var_id +
-                        ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
-                        ' limit ' + request_limit + ';');
+                    condition += 'var_id = ' + varcacheconf.var_id + ' and value_ts is null';
                 }
 
-                for (let vars_datas_tmp_i in vars_datas_tmp) {
-                    if (nb_vars_datas >= request_limit) {
-                        return vars_datas;
-                    }
+                condition += ')';
+            }
+            condition += ')';
 
-                    let var_data_tmp = vars_datas_tmp[vars_datas_tmp_i];
+            condition += ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ' limit ' + request_limit + ';';
 
-                    nb_vars_datas++;
-                    vars_datas[var_data_tmp.index] = var_data_tmp;
-                }
+            // On doit aller chercher toutes les varsdatas connues pour être cachables (on se fout du var_id à ce stade on veut juste des api_type_ids des varsdatas compatibles)
+            //  Attention les données importées ne doivent pas être remises en question
+            let vars_datas_tmp: VarDataBaseVO[] = [];
+            vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' + condition);
+
+            for (let vars_datas_tmp_i in vars_datas_tmp) {
                 if (nb_vars_datas >= request_limit) {
                     return vars_datas;
                 }
+
+                let var_data_tmp = vars_datas_tmp[vars_datas_tmp_i];
+
+                nb_vars_datas++;
+                vars_datas[var_data_tmp.index] = var_data_tmp;
             }
             if (nb_vars_datas >= request_limit) {
                 return vars_datas;
@@ -230,22 +235,5 @@ export default class VarsDatasProxy {
         }
 
         return vars_datas;
-    }
-
-    private get_ignore_ids_list(ignore_ids_list: number[]): string {
-
-        let res: string = '(';
-        let first: boolean = true;
-
-        for (let i in ignore_ids_list) {
-
-            if (!first) {
-                res += ',';
-            }
-            res += ignore_ids_list[i];
-            first = false;
-        }
-
-        return res + ')';
     }
 }

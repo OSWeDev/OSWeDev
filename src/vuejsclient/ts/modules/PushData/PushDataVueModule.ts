@@ -32,6 +32,7 @@ export default class PushDataVueModule extends VueModuleBase {
 
     public initialize() {
         let self = this;
+        let first = true;
 
         // test suppression base api url this.socket = io.connect(VueAppBase.getInstance().appController.data_base_api_url);
         this.socket = io.connect({
@@ -44,37 +45,63 @@ export default class PushDataVueModule extends VueModuleBase {
             }
         });
         this.socket.on('disconnect', () => {
-            self.socket.open();
+            setTimeout(() => {
+                first = false;
+                self.socket.open();
+            }, 5000);
         });
         this.socket.on('error', async () => {
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
+                first = false;
                 self.socket.open();
             }, 5000);
         });
         this.socket.on('connect_error', async () => {
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
+                first = false;
                 self.socket.open();
             }, 5000);
         });
         this.socket.on('connect_timeout', async () => {
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
+                first = false;
                 self.socket.open();
             }, 5000);
         });
         this.socket.on('reconnect_error', async () => {
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
+                first = false;
                 self.socket.open();
             }, 5000);
         });
         this.socket.on('reconnect_failed', async () => {
             // On tente une reconnexion toutes les 10 secondes
             setTimeout(() => {
+                first = false;
                 self.socket.open();
             }, 5000);
+        });
+
+        /**
+         * Sur une reco on veut rejouer tous les registerParams
+         */
+        this.socket.on('connect', () => {
+            if (!first) {
+
+                setTimeout(() => {
+                    VarsClientController.getInstance().registerAllParamsAgain();
+                }, 10000);
+            }
+        });
+
+        this.socket.on('reconnect', () => {
+            setTimeout(() => {
+                VarsClientController.getInstance().registerAllParamsAgain();
+            }, 10000);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {

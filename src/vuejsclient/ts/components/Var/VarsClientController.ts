@@ -91,6 +91,23 @@ export default class VarsClientController {
     }
 
     /**
+     * En cas de reco du serveur, qui peut avoir reboot par exemple, on relance tous les registers sans exception
+     */
+    public async registerAllParamsAgain() {
+
+        let needs_registration: VarDataBaseVO[] = [];
+
+        for (let i in this.registered_var_params) {
+            let var_param_wrapper = this.registered_var_params[i];
+            needs_registration.push(var_param_wrapper.var_param);
+        }
+
+        if (needs_registration && needs_registration.length) {
+            await ModuleVar.getInstance().register_params(needs_registration);
+        }
+    }
+
+    /**
      * L'objectif est de register et attendre les résultats
      * @param var_params les params sur lesquels on veut s'abonner
      * @param callbacks les callbacks pour le suivi des mises à jour si on utilise pas simplement le store des vars (exemple les directives). Attention il faut bien les unregisters aussi
