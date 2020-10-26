@@ -177,7 +177,7 @@ export default class VarsDatasProxy {
      * TODO FIXME REFONTE VARS c'est à que la plus grosse opti doit se faire, et peut-etre via du machine learning par ce que pas évident de savoir quelle est la bonne strat
      *  Il faut à tout prix pouvoir monitorer la performance de cette fonction
      */
-    private async get_vars_to_compute_from_bdd(request_limit: number, ignore_ids_list_by_api_type: { [api_type: string]: number[] }): Promise<{ [index: string]: VarDataBaseVO }> {
+    private async get_vars_to_compute_from_bdd(request_limit: number): Promise<{ [index: string]: VarDataBaseVO }> {
         let vars_datas: { [index: string]: VarDataBaseVO } = {};
         let nb_vars_datas: number = 0;
 
@@ -200,16 +200,14 @@ export default class VarsDatasProxy {
                     vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
                         ' var_id = ' + varcacheconf.var_id +
                         ' and (value_ts is null or value_ts < ' + DateHandler.getInstance().getUnixForBDD(timeout) + ') ' +
-                        ((ignore_ids_list_by_api_type[api_type_id] && ignore_ids_list_by_api_type[api_type_id].length) ? ' and id not in ' + this.get_ignore_ids_list(ignore_ids_list_by_api_type[api_type_id]) : '') +
                         ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
                         ' limit ' + request_limit + ';');
                 } else {
                     vars_datas_tmp = await ModuleDAOServer.getInstance().selectAll<VarDataBaseVO>(api_type_id, ' where ' +
                         ' value_ts is null' +
                         ' and var_id = ' + varcacheconf.var_id +
-                        ((ignore_ids_list_by_api_type[api_type_id] && ignore_ids_list_by_api_type[api_type_id].length) ? ' and id not in ' + this.get_ignore_ids_list(ignore_ids_list_by_api_type[api_type_id]) : '') +
                         ' and value_type = ' + VarDataBaseVO.VALUE_TYPE_COMPUTED +
-                        ' limit ' + request_limit + ';', [ignore_ids_list_by_api_type[api_type_id]]);
+                        ' limit ' + request_limit + ';');
                 }
 
                 for (let vars_datas_tmp_i in vars_datas_tmp) {
