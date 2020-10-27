@@ -86,7 +86,8 @@ export default class VarsClientController {
         }
 
         if (needs_registration && needs_registration.length) {
-            await ModuleVar.getInstance().register_params(needs_registration);
+            // On await pas pour permettre d'envoyer les requetes en parallèle TODO FIXME CA MARCHE PAS ET copier la solution sur unregister
+            ModuleVar.getInstance().register_params(needs_registration);
         }
     }
 

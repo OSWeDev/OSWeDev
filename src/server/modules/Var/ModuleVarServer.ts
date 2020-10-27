@@ -22,9 +22,7 @@ import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
-import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
-import CronServerController from '../Cron/CronServerController';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
@@ -201,7 +199,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo);
-            BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
+            // BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo._type + ':id:' + vo.id + ':' + vo + ':' + error);
         }
@@ -217,7 +215,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         try {
             VarsDatasVoUpdateHandler.getInstance().register_vo_cud(vo_update_handler);
-            BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
+            // BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
@@ -463,7 +461,28 @@ export default class ModuleVarServer extends ModuleServerBase {
         // TODO FIXME OPTI - ou pas ... - on peut aller demander aussi aux vars en attente de maj en bdd - mais une perte de perf légère tout le temps pour un gain très ponctuel mais probablement élevé
         let varsdata: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids<VarDataBaseVO, VarDataBaseVO>(param._type, [param as any], {});
 
-        let vardata: VarDataBaseVO = varsdata && (varsdata.length == 1) ? varsdata[0] : null;
+        // Si on a plus de 1 vardata il faut supprimer les plus anciens et logger un pb
+        let vardata: VarDataBaseVO = null;
+
+        if (varsdata && (varsdata.length > 1)) {
+            ConsoleHandler.getInstance().error('get_var_data_or_ask_to_bgthread:On ne devrait trouver qu\'une var de cet index :' + param.index + ':on en trouve:' + varsdata.length + ':Suppression auto des plus anciennes...');
+
+            let maxid = 0;
+            let maxi = 0;
+            for (let i in varsdata) {
+                let tmp = varsdata[i];
+                if (maxid < tmp.id) {
+                    maxid = tmp.id;
+                    maxi = parseInt(i.toString());
+                    vardata = tmp;
+                }
+            }
+
+            varsdata.splice(maxi, 1);
+            await ModuleDAO.getInstance().deleteVOs(varsdata);
+        }
+
+        vardata = vardata ? vardata : ((varsdata && (varsdata.length == 1)) ? varsdata[0] : null);
 
         if (!vardata) {
 
@@ -551,23 +570,30 @@ export default class ModuleVarServer extends ModuleServerBase {
         /**
          * Si on trouve des datas existantes et valides en base, on les envoie, sinon on indique qu'on attend ces valeurs
          */
+        let promises = [];
+
         let vars_to_notif: VarDataValueResVO[] = [];
         let needs_var_computation: boolean = false;
         for (let i in params) {
             let param = params[i];
 
-            let in_db_data: VarDataBaseVO = await this.get_var_data_or_ask_to_bgthread(param);
-            if (!in_db_data) {
-                needs_var_computation = true;
-                continue;
-            }
+            promises.push((async () => {
 
-            vars_to_notif.push(new VarDataValueResVO().set_from_vardata(in_db_data));
+                let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
+                if (!in_db_data) {
+                    needs_var_computation = true;
+                    return;
+                }
+
+                vars_to_notif.push(new VarDataValueResVO().set_from_vardata(in_db_data));
+            })());
         }
 
-        if (needs_var_computation) {
-            BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
-        }
+        await Promise.all(promises);
+
+        // if (needs_var_computation) {
+        //     BGThreadServerController.getInstance().executeBGThread(VarsdatasComputerBGThread.getInstance().name);
+        // }
 
         if (vars_to_notif && vars_to_notif.length) {
             await PushDataServerController.getInstance().notifyVarsDatas(uid, client_tab_id, vars_to_notif);

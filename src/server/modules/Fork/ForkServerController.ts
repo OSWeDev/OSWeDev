@@ -26,11 +26,11 @@ export default class ForkServerController {
     /**
      * Local thread cache -----
      */
+    public forks_are_initialized: boolean = false;
+    public forks_waiting_to_be_alive: number = 0;
     private forks: { [uid: number]: IFork } = {};
     private fork_by_type_and_name: { [exec_type: string]: { [name: string]: IFork } } = {};
     private UID: number = 0;
-    public forks_are_initialized: boolean = false;
-    public forks_waiting_to_be_alive: number = 0;
     /**
      * ----- Local thread cache
      */

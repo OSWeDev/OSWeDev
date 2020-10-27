@@ -16,6 +16,7 @@ export default class VarDataValueResVO {
     public constructor() { }
 
     public set_from_vardata(vardata: VarDataBaseVO): VarDataValueResVO {
+        this.id = vardata.id;
         this.value = vardata.value;
         this.index = vardata.index;
         this.value_ts = vardata.value_ts;

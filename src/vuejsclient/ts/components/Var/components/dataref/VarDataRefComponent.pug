@@ -25,7 +25,7 @@ mixin var_data_content()
 
 .var-data--intersector-wrapper
     template(v-if='use_intersector')
-        Intersect(@enter="intersect_in" @leave="intersect_out")
+        Intersect(@enter.once="intersect_in")
             +var_data_content()
     template(v-else)
         +var_data_content()

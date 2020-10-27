@@ -39,6 +39,7 @@ export default class VarsDatasProxy {
      * Version liste pour prioriser les demandes
      */
     private vars_datas_buffer: VarDataBaseVO[] = [];
+    private vars_datas_buffer_indexes: { [index: string]: VarDataBaseVO } = {};
 
     protected constructor() {
         ForkedTasksController.getInstance().register_task(VarsDatasProxy.TASK_NAME_prepend_var_datas, this.prepend_var_datas.bind(this));
@@ -59,6 +60,7 @@ export default class VarsDatasProxy {
             return;
         }
 
+        var_datas = this.filter_var_datas_by_indexes(var_datas);
         this.vars_datas_buffer = this.vars_datas_buffer.concat(var_datas);
     }
 
@@ -78,6 +80,7 @@ export default class VarsDatasProxy {
         }
 
         let self = this;
+        var_datas = this.filter_var_datas_by_indexes(var_datas);
         var_datas.forEach((vd) => self.vars_datas_buffer.unshift(vd));
     }
 
@@ -91,7 +94,9 @@ export default class VarsDatasProxy {
 
         while ((limit > 0) && this.vars_datas_buffer.length) {
 
-            await ModuleDAO.getInstance().insertOrUpdateVO(this.vars_datas_buffer[0]);
+            let handle_var = this.vars_datas_buffer[0];
+            await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
+            delete this.vars_datas_buffer_indexes[handle_var.index];
             this.vars_datas_buffer.splice(0, 1);
             limit--;
         }
@@ -104,9 +109,8 @@ export default class VarsDatasProxy {
      */
     public async get_exact_param_from_buffer_or_bdd<T extends VarDataBaseVO>(var_data: T): Promise<T> {
 
-        let test = this.vars_datas_buffer.filter((vd: VarDataBaseVO) => vd.index == var_data.index);
-        if (test && test.length) {
-            return test[0] as T;
+        if (this.vars_datas_buffer_indexes[var_data.index]) {
+            return this.vars_datas_buffer_indexes[var_data.index] as T;
         }
 
         if (var_data.id) {
@@ -235,5 +239,28 @@ export default class VarsDatasProxy {
         }
 
         return vars_datas;
+    }
+
+    /**
+     * On filtre les demande de append ou prepend par les indexes déjà en attente par ce qu'on peut pas avoir 2 fois le même index dans la liste
+     * Du coup si on demande quelque chose sur un index déjà listé, on ignore juste la demande pour le moment
+     * On met à jour la map des indexs au passage
+     * @param var_datas
+     */
+    private filter_var_datas_by_indexes(var_datas: VarDataBaseVO[]): VarDataBaseVO[] {
+
+        let res: VarDataBaseVO[] = [];
+
+        for (let i in var_datas) {
+            let var_data = var_datas[i];
+
+            if (this.vars_datas_buffer_indexes[var_data.index]) {
+                continue;
+            }
+            this.vars_datas_buffer_indexes[var_data.index] = var_data;
+            res.push(var_data);
+        }
+
+        return res;
     }
 }

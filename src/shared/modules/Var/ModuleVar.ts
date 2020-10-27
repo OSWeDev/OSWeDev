@@ -1,7 +1,8 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
+import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
 import ModuleAPI from '../API/ModuleAPI';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
-import PostAPIDefinition from '../API/vos/PostAPIDefinition';
+import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import APISimpleVOsParamVO from '../DAO/vos/APISimpleVOsParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
@@ -62,19 +63,19 @@ export default class ModuleVar extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_register_params,
-            (params: APISimpleVOsParamVO) => (params && params.vos) ? params.vos.map((param) => param._type) : null,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVO.translateCheckAccessParams
-        ));
+        ).define_as_opti__aggregate_param((a: APISimpleVOsParamVO, b: APISimpleVOsParamVO) => a.vos = a.vos.concat(b.vos)));
 
-        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_unregister_params,
-            (params: APISimpleVOsParamVO) => (params && params.vos) ? params.vos.map((param) => param._type) : null,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVO.translateCheckAccessParams
-        ));
+        ).define_as_opti__aggregate_param((a: APISimpleVOsParamVO, b: APISimpleVOsParamVO) => a.vos = a.vos.concat(b.vos)));
 
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, VarConfIds>(

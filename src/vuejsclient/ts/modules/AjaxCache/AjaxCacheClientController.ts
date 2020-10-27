@@ -10,6 +10,7 @@ import LightWeightSendableRequestVO from '../../../../shared/modules/AjaxCache/v
 import RequestResponseCacheVO from '../../../../shared/modules/AjaxCache/vos/RequestResponseCacheVO';
 import RequestsCacheVO from '../../../../shared/modules/AjaxCache/vos/RequestsCacheVO';
 import RequestsWrapperResult from '../../../../shared/modules/AjaxCache/vos/RequestsWrapperResult';
+import APIDefinition from '../../../../shared/modules/API/vos/APIDefinition';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import EnvHandler from '../../../../shared/tools/EnvHandler';
 
@@ -53,7 +54,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     private debounced_requests_wrapper = debounce(this.processRequestsWrapper, this.ajaxcache_debouncer);
 
     public async getCSRFToken() {
-        let res = await this.get('/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
+        let res = await this.get(null, '/api/getcsrftoken', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED);
         if (!res) {
             return;
         }
@@ -72,6 +73,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      * @param post_for_get USE ONLY : si post for get
      */
     public async get(
+        apiDefinition: APIDefinition<any, any>,
         url: string,
         api_types_involved: string[],
         postdatas = null,
@@ -116,6 +118,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 }
             } else {
                 let cache = self.addCache(
+                    apiDefinition,
                     url,
                     postdatas,
                     dataType,
@@ -143,6 +146,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
      * @param post_for_get True indique qu'on invalide rien et qu'on fait juste la requête
      */
     public post(
+        apiDefinition: APIDefinition<any, any>,
         url: string, api_types_involved: string[], postdatas = null, dataType: string = 'json',
         contentType: string = 'application/json; charset=utf-8', processData = null, timeout: number = null, post_for_get: boolean = false,
         is_wrapper: boolean = false): Promise<any> {
@@ -167,6 +171,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
             // On ajoute le système de catch code retour pour les POST aussi
             let cache = self.addCache(
+                apiDefinition,
                 url,
                 postdatas,
                 dataType,
@@ -319,6 +324,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
     //  - requete : string
 
     private addCache(
+        apiDefinition: APIDefinition<any, any>,
         url: string,
         postdatas: any,
         dataType: string,
@@ -329,7 +335,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
         let index = ModuleAjaxCache.getInstance().getUIDIndex(url, postdatas, type);
         if (!this.cache.requestResponseCaches[index]) {
-            this.cache.requestResponseCaches[index] = new RequestResponseCacheVO(url, api_types_involved, type);
+            this.cache.requestResponseCaches[index] = new RequestResponseCacheVO(apiDefinition, url, api_types_involved, type);
             this.cache.requestResponseCaches[index].postdatas = postdatas;
             this.cache.requestResponseCaches[index].dataType = dataType;
             this.cache.requestResponseCaches[index].contentType = contentType;
@@ -522,6 +528,43 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
 
                 // On map les index de retour
+                // On met en place une opti sur les fonctions déclarées comme ayant 1 unique param de type array, concatenable sur les différents appels au sein du wrapper
+                let aggregated_requests: { [api_name: string]: RequestResponseCacheVO } = {};
+                let callbacks_to_call_on_these_requests: RequestResponseCacheVO[] = [];
+                let new_requests: RequestResponseCacheVO[] = [];
+                for (let i in requests) {
+                    let request = requests[i];
+
+                    if (request.type != RequestResponseCacheVO.API_TYPE_POST_FOR_GET) {
+                        new_requests.push(request);
+                        continue;
+                    }
+
+                    if ((!request.apiDefinition) || (!request.apiDefinition.opti__aggregate_params) || (!request.apiDefinition.opti__aggregate_method)) {
+                        new_requests.push(request);
+                        continue;
+                    }
+
+                    if (!aggregated_requests[request.apiDefinition.api_name]) {
+                        aggregated_requests[request.apiDefinition.api_name] = request;
+                        new_requests.push(request);
+                        continue;
+                    }
+
+                    if (!aggregated_requests[request.apiDefinition.api_name].postdatas) {
+                        aggregated_requests[request.apiDefinition.api_name].postdatas = request.postdatas;
+                    } else {
+                        let aggregated_postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(aggregated_requests[request.apiDefinition.api_name].postdatas) : aggregated_requests[request.apiDefinition.api_name].postdatas;
+                        let this_postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(request.postdatas) : request.postdatas;
+
+                        request.apiDefinition.opti__aggregate_method(aggregated_postdatas, this_postdatas);
+                        aggregated_requests[request.apiDefinition.api_name].postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(aggregated_postdatas) : aggregated_postdatas;
+                    }
+                    callbacks_to_call_on_these_requests.push(request);
+                }
+
+                requests = new_requests;
+
                 let correspondance: { [id_local: string]: string } = {};
                 for (let i in requests) {
                     let request = requests[i];
@@ -543,6 +586,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 // On encapsule les gets dans une requête de type post
                 try {
                     let results: RequestsWrapperResult = await this.post(
+                        null,
                         "/api_handler/requests_wrapper", [],
                         (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(sendable_objects) : sendable_objects,
                         null,
@@ -564,13 +608,18 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
                         self.resolve_request(wrapped_request, results.requests_results[i]);
                     }
+
+                    for (let i in callbacks_to_call_on_these_requests) {
+                        let request = callbacks_to_call_on_these_requests[i];
+                        self.resolve_request(request, null);
+                    }
                 } catch (error) {
                     // Si ça échoue, on utilise juste le système normal de requêtage individuel.
                     ConsoleHandler.getInstance().error("Echec de requête groupée : " + error);
                     everything_went_well = false;
                 }
                 if (everything_went_well) {
-                    self.waitingForRequest = self.waitingForRequest.filter((req: RequestResponseCacheVO) => (requests.indexOf(req) < 0));
+                    self.waitingForRequest = self.waitingForRequest.filter((req: RequestResponseCacheVO) => (requests.indexOf(req) < 0) && (callbacks_to_call_on_these_requests.indexOf(req) < 0));
                 }
             }
         }
@@ -645,6 +694,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
                 case RequestResponseCacheVO.API_TYPE_POST_FOR_GET:
                     let res = await this.post(
+                        request.apiDefinition,
                         request.url, request.api_types_involved, request.postdatas,
                         request.dataType, request.contentType, request.processData, request.timeout,
                         true);

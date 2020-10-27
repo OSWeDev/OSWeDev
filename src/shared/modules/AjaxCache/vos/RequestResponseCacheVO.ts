@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { Moment } from 'moment';
+import APIDefinition from '../../API/vos/APIDefinition';
 
 export default class RequestResponseCacheVO {
 
@@ -37,7 +38,11 @@ export default class RequestResponseCacheVO {
 
     public api_types_involved: string[] = [];
 
-    public constructor(url: string, api_types_involved: string[], type: number) {
+    public constructor(
+        public apiDefinition: APIDefinition<any, any>,
+        url: string,
+        api_types_involved: string[],
+        type: number) {
         this.url = url;
         this.api_types_involved = api_types_involved;
         this.type = type;

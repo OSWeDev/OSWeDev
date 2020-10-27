@@ -70,8 +70,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
     }
 
     private get_var_param(var_param: VarDataBaseVO, var_dataset_descriptor: VarBarDataSetDescriptor): VarDataBaseVO {
-        let res: VarDataBaseVO = Object.assign({}, var_param);
-        res.var_id = VarsController.getInstance().var_id_by_names[var_dataset_descriptor.var_name];
+        let res: VarDataBaseVO = VarDataBaseVO.cloneFrom(var_param, var_dataset_descriptor.var_name);
         if (var_dataset_descriptor.var_param_transformer) {
             res = var_dataset_descriptor.var_param_transformer(res);
         }

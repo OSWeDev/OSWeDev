@@ -102,7 +102,8 @@ export default class ModuleAjaxCacheServer extends ModuleServerBase {
                         }
                 }
 
-                res.requests_results[wrapped_request.index] = await apiDefinition.SERVER_HANDLER(param);
+                let api_res = await apiDefinition.SERVER_HANDLER(param);
+                res.requests_results[wrapped_request.index] = (typeof api_res === 'undefined') ? null : api_res;
 
                 // if ((apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_JSON) ||
                 //     (apiDefinition.api_return_type == APIDefinition.API_RETURN_TYPE_FILE)) {

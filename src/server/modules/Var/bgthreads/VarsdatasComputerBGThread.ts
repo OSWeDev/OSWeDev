@@ -21,11 +21,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
 
     private static instance: VarsdatasComputerBGThread = null;
 
-    public current_timeout: number = 500;
-    public MAX_timeout: number = 5000;
+    public current_timeout: number = 100;
+    public MAX_timeout: number = 500;
     public MIN_timeout: number = 1;
 
-    public timeout: number = 500;
     public request_limit: number = 500;
 
     private enabled: boolean = true;
