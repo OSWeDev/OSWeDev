@@ -24,47 +24,47 @@ export default class ConsoleHandler {
 
     private constructor() {
         this.old_console_log = console.log;
-        console.log = function (msg) {
-            ConsoleHandler.getInstance().log(msg);
+        console.log = function (msg, ...params) {
+            ConsoleHandler.getInstance().log(msg, ...params);
         };
 
         this.old_console_warn = console.warn;
-        console.warn = function (msg) {
-            ConsoleHandler.getInstance().warn(msg);
+        console.warn = function (msg, ...params) {
+            ConsoleHandler.getInstance().warn(msg, ...params);
         };
 
         this.old_console_error = console.error;
-        console.error = function (msg) {
-            ConsoleHandler.getInstance().error(msg);
+        console.error = function (msg, ...params) {
+            ConsoleHandler.getInstance().error(msg, ...params);
         };
     }
 
-    public error(error: string | Error): void {
+    public error(error: string | Error, ...params): void {
 
         let msg = this.get_text_msg(error);
 
         if (!!this.logger_handler) {
-            this.logger_handler.log("ERROR -- " + msg);
+            this.logger_handler.log("ERROR -- " + msg, ...params);
         }
-        this.old_console_error(msg);
+        this.old_console_error(msg, ...params);
     }
 
-    public warn(error: string | Error): void {
+    public warn(error: string | Error, ...params): void {
         let msg = this.get_text_msg(error);
 
         if (!!this.logger_handler) {
-            this.logger_handler.log("WARN  -- " + msg);
+            this.logger_handler.log("WARN  -- " + msg, ...params);
         }
-        this.old_console_warn(msg);
+        this.old_console_warn(msg, ...params);
     }
 
-    public log(error: string | Error): void {
+    public log(error: string | Error, ...params): void {
         let msg = this.get_text_msg(error);
 
         if (!!this.logger_handler) {
-            this.logger_handler.log("DEBUG -- " + msg);
+            this.logger_handler.log("DEBUG -- " + msg, ...params);
         }
-        this.old_console_log(msg);
+        this.old_console_log(msg, ...params);
     }
 
     private get_text_msg(error: string | Error): string {

@@ -1,3 +1,3 @@
 export default interface ILoggerHandler {
-    log(msg: string);
+    log(msg: string, ...params);
 }

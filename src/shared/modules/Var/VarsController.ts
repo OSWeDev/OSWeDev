@@ -1,4 +1,5 @@
 import ModuleVar from './ModuleVar';
+import VarConfIds from './vos/VarConfIds';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 
 export default class VarsController {
@@ -27,11 +28,11 @@ export default class VarsController {
     }
 
     public async initialize() {
-        let res = await ModuleVar.getInstance().get_var_id_by_names();
-        if (res) {
-            this.var_id_by_names = res ? res.var_id_by_names : {};
-            for (let name in res) {
-                let id = res[name];
+        let res: VarConfIds = await ModuleVar.getInstance().get_var_id_by_names();
+        if (res && res.var_id_by_names) {
+            this.var_id_by_names = (res && res.var_id_by_names) ? res.var_id_by_names : {};
+            for (let name in res.var_id_by_names) {
+                let id = res.var_id_by_names[name];
                 this.var_names_by_ids[id] = name;
             }
         }

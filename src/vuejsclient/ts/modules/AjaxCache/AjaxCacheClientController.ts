@@ -183,7 +183,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 reject,
                 post_for_get ? RequestResponseCacheVO.API_TYPE_POST_FOR_GET : RequestResponseCacheVO.API_TYPE_POST);
 
-            if (!post_for_get) {
+            if ((!post_for_get) || (apiDefinition.opti__aggregate_params)) {
                 // On invalide le cache directement
                 self.invalidateCachedItem(cache);
 
@@ -530,6 +530,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                 // On map les index de retour
                 // On met en place une opti sur les fonctions déclarées comme ayant 1 unique param de type array, concatenable sur les différents appels au sein du wrapper
                 let aggregated_requests: { [api_name: string]: RequestResponseCacheVO } = {};
+                let aggregated_requests_old_postdatas: { [api_name: string]: any } = {};
                 let callbacks_to_call_on_these_requests: RequestResponseCacheVO[] = [];
                 let new_requests: RequestResponseCacheVO[] = [];
                 for (let i in requests) {
@@ -553,6 +554,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
 
                     if (!aggregated_requests[request.apiDefinition.api_name].postdatas) {
                         aggregated_requests[request.apiDefinition.api_name].postdatas = request.postdatas;
+                        aggregated_requests_old_postdatas[request.apiDefinition.api_name] = request.postdatas;
                     } else {
                         let aggregated_postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(aggregated_requests[request.apiDefinition.api_name].postdatas) : aggregated_requests[request.apiDefinition.api_name].postdatas;
                         let this_postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(request.postdatas) : request.postdatas;
@@ -609,9 +611,17 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         self.resolve_request(wrapped_request, results.requests_results[i]);
                     }
 
+                    /**
+                     * Pour les requêtes agrégées on doit remettre les postdatas initiales
+                     *  et appeler les callbacks pas encore appelés (donc sur les agrégées)
+                     */
                     for (let i in callbacks_to_call_on_these_requests) {
                         let request = callbacks_to_call_on_these_requests[i];
                         self.resolve_request(request, null);
+                    }
+                    for (let i in aggregated_requests) {
+                        let request = aggregated_requests[i];
+                        request.postdatas = aggregated_requests_old_postdatas[i];
                     }
                 } catch (error) {
                     // Si ça échoue, on utilise juste le système normal de requêtage individuel.

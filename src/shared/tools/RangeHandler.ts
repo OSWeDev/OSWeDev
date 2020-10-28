@@ -54,6 +54,24 @@ export default class RangeHandler {
 
     private constructor() { }
 
+    /**
+     * On part d'un ensemble continu de ranges, et on en sort le plus petit ensemble couvrant le segment_type (supérieur) indiqué en param
+     *  Par exemple on a du 01/01/2020 au 10/01/2020 et du 02/02/2020 au 03/02/2020 en segment type DAY, on passe en MONTH, on renvoie 01/2020 - 02/2020
+     */
+    public get_continuous_ranges_on_new_segment_type<T>(ranges: Array<IRange<T>>, target_segment_type: number): Array<IRange<T>> {
+
+        return [
+            RangeHandler.getInstance().createNew(
+                TSRange.RANGE_TYPE,
+                RangeHandler.getInstance().getSegmentedMin_from_ranges(ranges, target_segment_type),
+                RangeHandler.getInstance().getSegmentedMax_from_ranges(ranges, target_segment_type),
+                true,
+                true,
+                target_segment_type
+            )
+        ];
+    }
+
     public get_all_segmented_elements_from_range<T>(range: IRange<T>): T[] {
 
         if (!range) {

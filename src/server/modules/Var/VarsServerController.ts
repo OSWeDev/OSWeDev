@@ -194,6 +194,7 @@ export default class VarsServerController {
             // 0 ou null ça marche
             if (!res) {
                 res = value;
+                continue;
             }
 
             res += value;

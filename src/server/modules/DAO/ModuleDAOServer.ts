@@ -415,7 +415,7 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
             if ((!res) || (!res[0]) || (res[0]['res'] == null) || (typeof res[0]['res'] == 'undefined')) {
             } else {
-                value += res[0]['res'];
+                value += parseFloat(res[0]['res']);
             }
         }
 

@@ -43,9 +43,6 @@ export default class VarPieChartComponent extends VueComponentBase {
     @Prop({ default: false })
     public reload_on_mount: boolean;
 
-    // private datasets: any[] = [];
-    private labels: string[] = [];
-
     private rendered: boolean = false;
 
     public mounted() {
@@ -114,8 +111,8 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         // this.set_datasets();
-        this.set_labels();
-        this.onchange_all_data_loaded();
+        // this.set_labels();
+        // this.onchange_all_data_loaded();
     }
 
     @Watch('var_dataset_descriptor')
@@ -142,16 +139,15 @@ export default class VarPieChartComponent extends VueComponentBase {
             VarsClientController.getInstance().registerParams(this.var_params);
         }
 
-        this.set_labels();
-        this.onchange_all_data_loaded();
+        // this.onchange_all_data_loaded();
     }
 
-    @Watch("all_data_loaded")
-    private onchange_all_data_loaded() {
-        if (this.all_data_loaded) {
-            this.set_labels();
-        }
-    }
+    // @Watch("all_data_loaded")
+    // private onchange_all_data_loaded() {
+    //     if (this.all_data_loaded) {
+    //         this.set_labels();
+    //     }
+    // }
 
     get chartData() {
         if (!this.all_data_loaded) {
@@ -236,13 +232,13 @@ export default class VarPieChartComponent extends VueComponentBase {
         this.render_chart_js();
     }
 
-    private set_labels(): string[] {
-        this.labels = [];
+    get labels(): string[] {
+        let res = [];
 
         for (let i in this.var_params) {
-            this.labels.push(this.getlabel(this.var_params[i]));
+            res.push(this.t(VarsClientController.getInstance().get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
         }
 
-        return this.labels;
+        return res;
     }
 }
