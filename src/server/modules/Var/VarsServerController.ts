@@ -39,7 +39,7 @@ export default class VarsServerController {
     private _registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
 
     // TODO FIXME est-ce que tout n'est pas en cache à ce stade, si on demande toujours en insérant en base ?
-    private _registered_vars_controller_by_api_type_id: { [api_type_id: string]: { [var_id: number]: VarServerControllerBase<any> } } = {};
+    private _registered_vars_controller_by_api_type_id: { [api_type_id: string]: Array<VarServerControllerBase<any>> } = {};
 
     // CUD during run, broadcasting CUD
     private _varcacheconf_by_var_ids: { [var_id: number]: VarCacheConfVO } = {};
@@ -71,7 +71,7 @@ export default class VarsServerController {
         return this._varcacheconf_by_var_ids;
     }
 
-    get registered_vars_controller_by_api_type_id(): { [api_type_id: string]: { [var_id: number]: VarServerControllerBase<any> } } {
+    get registered_vars_controller_by_api_type_id(): { [api_type_id: string]: Array<VarServerControllerBase<any>> } {
         return this._registered_vars_controller_by_api_type_id;
     }
 
@@ -230,9 +230,9 @@ export default class VarsServerController {
                 let vo_api_type_id = ds.vo_api_type_ids[j];
 
                 if (!this._registered_vars_controller_by_api_type_id[vo_api_type_id]) {
-                    this._registered_vars_controller_by_api_type_id[vo_api_type_id] = {};
+                    this._registered_vars_controller_by_api_type_id[vo_api_type_id] = [];
                 }
-                this._registered_vars_controller_by_api_type_id[vo_api_type_id][controller.varConf.id] = controller;
+                this._registered_vars_controller_by_api_type_id[vo_api_type_id].push(controller);
             }
         }
     }

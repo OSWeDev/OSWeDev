@@ -55,6 +55,7 @@ import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTableDBService from '../ModuleTableDBService';
+import DAOCronWorkersHandler from './DAOCronWorkersHandler';
 import DAOServerController from './DAOServerController';
 import DAOPostCreateTriggerHook from './triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from './triggers/DAOPostDeleteTriggerHook';
@@ -307,6 +308,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Enregistrement terminé'
         }, 'EditablePageController.save.success.___LABEL___'));
+    }
+
+    public registerCrons(): void {
+        DAOCronWorkersHandler.getInstance();
     }
 
     public registerAccessHook<T extends IDistantVOBase>(API_TYPE_ID: string, access_type: string, hook: IHookFilterVos<T>) {

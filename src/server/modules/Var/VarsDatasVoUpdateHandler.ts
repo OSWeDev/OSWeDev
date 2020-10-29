@@ -163,7 +163,12 @@ export default class VarsDatasVoUpdateHandler {
         for (let j in Nx.outgoing_deps) {
             let dep = Nx.outgoing_deps[j];
 
-            intersectors = intersectors.concat(await Nx.var_controller.get_invalid_params_intersectors_from_dep(dep.dep_name, intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id]));
+            let tmp = await Nx.var_controller.get_invalid_params_intersectors_from_dep(
+                dep.dep_name,
+                intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id] ? intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id] : []);
+            if (tmp && tmp.length) {
+                intersectors = intersectors.concat(tmp);
+            }
         }
 
         intersectors = MatroidController.getInstance().union(intersectors);
@@ -206,10 +211,10 @@ export default class VarsDatasVoUpdateHandler {
             for (let j in VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type]) {
                 let var_controller = VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type][j];
 
-                ctrls_to_update_1st_stage[vo_type] = var_controller;
+                ctrls_to_update_1st_stage[var_controller.varConf.id] = var_controller;
 
-                if (!intersectors_by_var_id[vo_type]) {
-                    intersectors_by_var_id[vo_type] = [];
+                if (!intersectors_by_var_id[var_controller.varConf.id]) {
+                    intersectors_by_var_id[var_controller.varConf.id] = [];
                 }
 
                 for (let k in vos_create_or_delete_buffer[vo_type]) {
@@ -219,7 +224,7 @@ export default class VarsDatasVoUpdateHandler {
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }
-                    intersectors_by_var_id[vo_type] = intersectors_by_var_id[vo_type].concat(tmp);
+                    intersectors_by_var_id[var_controller.varConf.id] = intersectors_by_var_id[var_controller.varConf.id].concat(tmp);
                 }
 
                 for (let k in vos_update_buffer[vo_type]) {
@@ -229,7 +234,7 @@ export default class VarsDatasVoUpdateHandler {
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }
-                    intersectors_by_var_id[vo_type] = intersectors_by_var_id[vo_type].concat(tmp);
+                    intersectors_by_var_id[var_controller.varConf.id] = intersectors_by_var_id[var_controller.varConf.id].concat(tmp);
                 }
             }
         }

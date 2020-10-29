@@ -56,7 +56,7 @@ export default abstract class VueAppController {
         })());
 
         promises.push((async () => {
-            datas = JSON.parse(await AjaxCacheClientController.getInstance().get('/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
+            datas = JSON.parse(await AjaxCacheClientController.getInstance().get(null, '/api/clientappcontrollerinit', CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
         })());
 
         promises.push((async () => {
@@ -72,7 +72,7 @@ export default abstract class VueAppController {
         })());
 
         promises.push((async () => {
-            self.SERVER_HEADERS = JSON.parse(await AjaxCacheClientController.getInstance().get('/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
+            self.SERVER_HEADERS = JSON.parse(await AjaxCacheClientController.getInstance().get(null, '/api/reflect_headers?v=' + Date.now(), CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED) as string);
         })());
 
         promises.push((async () => {
