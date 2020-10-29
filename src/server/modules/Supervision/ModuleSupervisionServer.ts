@@ -9,6 +9,7 @@ import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISup
 import ISupervisedItemURL from '../../../shared/modules/Supervision/interfaces/ISupervisedItemURL';
 import ModuleSupervision from '../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../shared/modules/Supervision/SupervisionController';
+import SupervisedCategoryVO from '../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import TeamsWebhookContentActionCardOpenURITargetVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardOpenURITargetVO';
 import TeamsWebhookContentActionCardVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentActionCardVO';
 import TeamsWebhookContentSectionVO from '../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
@@ -78,6 +79,18 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'WARN - READ'
         }, 'supervision.STATE_WARN_READ'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tout'
+        }, 'supervision.dashboard.all.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Catégories'
+        }, 'supervision.dashboard.category.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Catégories'
+        }, 'menu.menuelements.SupervisedCategoryVO.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Types de sonde'
+        }, 'supervision.dashboard.types_de_sonde.___LABEL___'));
 
 
         /**
@@ -237,6 +250,15 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
             return;
         }
 
+        // Si on a une catégorie sans notif, on sort
+        if (supervised_item.category_id) {
+            let category: SupervisedCategoryVO = await ModuleDAO.getInstance().getVoById<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID, supervised_item.category_id);
+
+            if (category && !category.notify) {
+                return;
+            }
+        }
+
         let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();
         message.title = 'Supervision - Nouvelle ERREUR';
         message.summary = 'ERREUR : ' + supervised_item.name;
@@ -271,6 +293,15 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
         if (ConfigurationService.getInstance().getNodeConfiguration().BLOCK_MAIL_DELIVERY) {
             return;
+        }
+
+        // Si on a une catégorie sans notif, on sort
+        if (supervised_item.category_id) {
+            let category: SupervisedCategoryVO = await ModuleDAO.getInstance().getVoById<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID, supervised_item.category_id);
+
+            if (category && !category.notify) {
+                return;
+            }
         }
 
         let message: TeamsWebhookContentVO = new TeamsWebhookContentVO();

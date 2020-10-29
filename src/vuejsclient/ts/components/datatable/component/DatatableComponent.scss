@@ -9,8 +9,16 @@ ul.multi-input {
     margin: 1px;
 }
 
+.VueTables__table {
+    overflow: inherit !important;
+}
+
+.multiselect__content-wrapper {
+    min-width: 100%;
+}
+
 @media print
-{    
+{
     .d-print-none, .d-print-none *,
     .VueTables__sort-icon, .VueTables__sort-icon *
     {

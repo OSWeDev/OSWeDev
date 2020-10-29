@@ -154,6 +154,8 @@ export default abstract class DatatableField<T, U> {
      */
     public setUID_for_readDuplicateOnly(datatable_field_uid: string): DatatableField<T, U> {
         this.datatable_field_uid = datatable_field_uid;
+
+        // TODO FIXME FORCE READONLY ???
         return this;
     }
 

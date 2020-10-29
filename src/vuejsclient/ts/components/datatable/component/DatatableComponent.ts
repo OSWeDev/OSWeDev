@@ -290,6 +290,17 @@ export default class DatatableComponent extends VueComponentBase {
                 this.custom_filters_values[field.datatable_field_uid].push(this.embed_filter[field.datatable_field_uid]);
             }
         }
+
+        for (let i in this.date_filtered_fields) {
+            if (this.custom_filters_values[this.date_filtered_fields[i].datatable_field_uid]) {
+                continue;
+            }
+
+            this.custom_filters_values[this.date_filtered_fields[i].datatable_field_uid] = {
+                start: null,
+                end: null,
+            };
+        }
     }
 
     get api_type_id(): string {
@@ -538,8 +549,8 @@ export default class DatatableComponent extends VueComponentBase {
 
     private setBooleanFilterOptions(datatable_field_uid: string) {
         this.custom_filters_options[datatable_field_uid] = [
-            new CustomFilterItem(this.t('YES'), true, datatable_field_uid),
-            new CustomFilterItem(this.t('NO'), false, datatable_field_uid)
+            new CustomFilterItem(this.t('YES'), true, datatable_field_uid, 1),
+            new CustomFilterItem(this.t('NO'), false, datatable_field_uid, 0)
         ];
     }
 
@@ -554,17 +565,17 @@ export default class DatatableComponent extends VueComponentBase {
 
         // console.info('setMultiSelectFilterOptions: ' + datatable_field.datatable_field_uid);
 
-        let field_values: any[] = [];
-        let ids_marker: any[] = [];
+        let field_values: { [id: number]: any } = {};
 
         for (let i in this.datatable_data) {
             let data = this.datatable_data[i];
             let field_value = data[datatable_field.datatable_field_uid];
+            let field_value_id = data[datatable_field.datatable_field_uid + '___id___'];
 
             switch (datatable_field.type) {
                 case DatatableField.MANY_TO_ONE_FIELD_TYPE:
-                    if (field_values.indexOf(field_value) < 0) {
-                        field_values.push(field_value);
+                    if (!field_values[field_value_id]) {
+                        field_values[field_value_id] = field_value;
                     }
                     break;
                 case DatatableField.MANY_TO_MANY_FIELD_TYPE:
@@ -575,10 +586,10 @@ export default class DatatableComponent extends VueComponentBase {
                     }
 
                     for (let j in field_value) {
+                        let field_value_vo: IDistantVOBase = field_value[j];
 
-                        if (ids_marker.indexOf(field_value[j]['id']) < 0) {
-                            field_values.push(field_value[j]);
-                            ids_marker.push(field_value[j]['id']);
+                        if (!field_values[field_value_vo.id]) {
+                            field_values[field_value_vo.id] = field_value_vo;
                         }
                     }
                     break;
@@ -589,38 +600,49 @@ export default class DatatableComponent extends VueComponentBase {
                     }
 
                     RangeHandler.getInstance().foreach_ranges_sync(field_value, (id: number) => {
-                        if (field_values.indexOf(id.toString()) < 0) {
-                            field_values.push(id.toString());
+                        if (!field_values[id]) {
+                            field_values[id] = id.toString();
                         }
                     });
                     break;
             }
         }
 
-        field_values.sort();
-
-        for (let i in field_values) {
+        for (let id in field_values) {
+            let field_value = field_values[id];
 
             switch (datatable_field.type) {
                 case ManyToOneReferenceDatatableField.REF_RANGES_FIELD_TYPE:
                 case OneToManyReferenceDatatableField.MANY_TO_ONE_FIELD_TYPE:
                     res.push(new CustomFilterItem(
-                        (field_values[i] && field_values[i] != '') ? field_values[i] : '-',
-                        field_values[i],
-                        datatable_field.datatable_field_uid
+                        (field_value && field_value != '') ? field_value : '-',
+                        field_value,
+                        datatable_field.datatable_field_uid,
+                        parseInt(id),
                     ));
                     break;
                 case ManyToOneReferenceDatatableField.MANY_TO_MANY_FIELD_TYPE:
                 case ManyToManyReferenceDatatableField.ONE_TO_MANY_FIELD_TYPE:
 
                     res.push(new CustomFilterItem(
-                        (field_values[i] && field_values[i] != '') ? field_values[i]['label'] : '-',
-                        field_values[i]['id'],
-                        datatable_field.datatable_field_uid
+                        (field_value && field_value != '') ? field_value.label : '-',
+                        field_value.id,
+                        datatable_field.datatable_field_uid,
+                        parseInt(id),
                     ));
                     break;
             }
         }
+
+        res.sort((a: CustomFilterItem, b: CustomFilterItem) => {
+            if (a.label < b.label) {
+                return -1;
+            }
+            if (a.label > b.label) {
+                return 1;
+            }
+            return 0;
+        });
 
         return res;
     }
@@ -1055,14 +1077,7 @@ export default class DatatableComponent extends VueComponentBase {
         for (let i in this.multiselect_filtered_fields) {
             this.setMultiSelectFilterOptions(this.multiselect_filtered_fields[i]);
         }
-        for (let i in this.date_filtered_fields) {
-            this.custom_filters_values[this.date_filtered_fields[i].datatable_field_uid] = {
-                start: null,
-                end: null,
-                // start: DateHandler.getInstance().formatDayForIndex(moment('2020-01-01').utc(true)),
-                // end: DateHandler.getInstance().formatDayForIndex(moment('2020-12-15').utc(true)),
-            };
-        }
+
         this.handle_filters_preload();
 
         this.onChangeFilterValue();

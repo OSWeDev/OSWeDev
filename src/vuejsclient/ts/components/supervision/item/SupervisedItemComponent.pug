@@ -1,7 +1,7 @@
 .supervised_item
     template(v-if='!!supervised_item')
         .row
-            .col-md-12.supervised_item_header
+            .col-md-7.supervised_item_header
                 Supervisiondashboarditemcomponent(:item='supervised_item' :switch_paused='switch_paused')
 
         .row
@@ -55,7 +55,7 @@
                                 .col-md-12.supervised_item_description {{ supervised_item_controller && supervised_item_controller.get_description(supervised_item) }}
 
                     .col-md-4
- 
+
                         template(v-if='supervised_item_controller')
                             template(v-for='supervised_item_url in supervised_item_urls')
                                 .row

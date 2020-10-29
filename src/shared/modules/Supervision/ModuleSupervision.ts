@@ -1,5 +1,8 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import Module from '../Module';
+import ModuleTable from '../ModuleTable';
+import ModuleTableField from '../ModuleTableField';
+import SupervisedCategoryVO from './vos/SupervisedCategoryVO';
 
 export default class ModuleSupervision extends Module {
 
@@ -21,5 +24,24 @@ export default class ModuleSupervision extends Module {
 
         super("supervision", ModuleSupervision.MODULE_NAME);
         this.forceActivationOnInstallation();
+    }
+
+    public initialize() {
+        this.datatables = [];
+
+        this.initializeSupervisedCategoryVO();
+    }
+
+    private initializeSupervisedCategoryVO() {
+        let name_field = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, "Nom", true);
+
+        let fields = [
+            name_field,
+            new ModuleTableField('notify', ModuleTableField.FIELD_TYPE_boolean, "Notification", true, true, false),
+        ];
+
+        let datatable = new ModuleTable(this, SupervisedCategoryVO.API_TYPE_ID, () => new SupervisedCategoryVO(), fields, name_field, "Supervision - Catégorie");
+
+        this.datatables.push(datatable);
     }
 }

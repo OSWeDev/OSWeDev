@@ -830,6 +830,10 @@ export default class CRUDComponent extends VueComponentBase {
         for (let i in datatable.fields) {
             let field: DatatableField<any, any> = datatable.fields[i];
 
+            if (field.is_readonly) {
+                continue;
+            }
+
             // Si c'est required et que j'ai pas de valeur, j'affiche une erreur
             if (!field.is_required) {
                 continue;

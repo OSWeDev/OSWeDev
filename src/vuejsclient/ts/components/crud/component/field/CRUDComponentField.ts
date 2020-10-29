@@ -36,10 +36,10 @@ import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputCompo
 import ImageComponent from '../../../image/ImageComponent';
 import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
+import NumRangeInputComponent from '../../../numrange/NumRangeInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';
-import NumRangeInputComponent from '../../../numrange/NumRangeInputComponent';
 import VueComponentBase from '../../../VueComponentBase';
 import './CRUDComponentField.scss';
 let debounce = require('lodash/debounce');
@@ -131,6 +131,8 @@ export default class CRUDComponentField extends VueComponentBase
 
     private select_options_enabled: number[] = [];
 
+    private is_readonly: boolean = false;
+
     private debounced_reload_field_value = debounce(this.reload_field_value, 50);
 
     public async mounted() {
@@ -144,10 +146,6 @@ export default class CRUDComponentField extends VueComponentBase
          *  a voir à l'usage ce qu'on en fait
          */
         this.field.vue_component = this;
-    }
-
-    get hourrange_input_component() {
-        return HourrangeInputComponent;
     }
 
     /**
@@ -198,23 +196,6 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
-    get alert_path(): string {
-        if (!this.field) {
-            return null;
-        }
-
-        return this.field.alert_path;
-    }
-
-
-
-    get is_segmented_day_tsrange_array() {
-        let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
-        if (!!field) {
-            return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
-        }
-    }
-
 
     // TODO FIXME là on appel 5* la fonction au démarrage... il faut debounce ou autre mais c'est pas normal
     // @Watch('field_select_options_enabled')
@@ -227,18 +208,19 @@ export default class CRUDComponentField extends VueComponentBase
         this.debounced_reload_field_value();
     }
 
-    get needs_options(): boolean {
-        let simpleField: SimpleDatatableField<any, any> = (this.field as SimpleDatatableField<any, any>);
-        return ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
-            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
-            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) ||
-            ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) && (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum));
+    @Watch('inline_input_read_value', { immediate: true })
+    private onchange_inline_input_read_value() {
+        if (!this.inline_input_mode) {
+            return;
+        }
+        this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
     }
 
     private async reload_field_value() {
 
         this.can_insert_or_update_target = false;
+
+        this.is_readonly = this.field.is_readonly || this.is_disabled;
 
         if (this.inline_input_mode && this.inline_input_read_value && ((!this.needs_options) || ((!!this.select_options) && this.select_options.length))) {
             // Si inline input mode et inline_input_read_value on esquive cette mise à jour puisque la valeur par défaut du champ est déjà définie à ce stade normalement
@@ -396,14 +378,6 @@ export default class CRUDComponentField extends VueComponentBase
         }
 
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
-    }
-
-    get show_mandatory_star(): boolean {
-        return this.field.is_required && (this.field_type != 'boolean');
-    }
-
-    get hide_inline_controls(): boolean {
-        return this.field.is_required && (this.field_type == 'boolean');
     }
 
     private validateToggle() {
@@ -778,26 +752,6 @@ export default class CRUDComponentField extends VueComponentBase
         this.$emit('onchangevo', this.vo, this.field, this.field.UpdateIHMToData(this.field_value, this.vo), this);
     }
 
-    get is_custom_field_type(): boolean {
-        return !!this.custom_field_types[this.field_type];
-    }
-
-    get custom_field_types(): { [name: string]: TableFieldTypeControllerBase } {
-        return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
-    }
-
-    get field_type(): string {
-        if (this.field.type == 'Simple') {
-            return (this.field as SimpleDatatableField<any, any>).moduleTableField.field_type;
-        }
-
-        return this.field.type;
-    }
-
-    get random_number(): number {
-        return Math.floor(Math.random() * 1000);
-    }
-
     /**
      * On est sur un field de type array par définition
      */
@@ -913,24 +867,12 @@ export default class CRUDComponentField extends VueComponentBase
         this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
     }
 
-    @Watch('inline_input_read_value', { immediate: true })
-    private onchange_inline_input_read_value() {
-        if (!this.inline_input_mode) {
-            return;
-        }
-        this.field_value = this.field.dataToUpdateIHM(this.inline_input_read_value, this.vo);
-    }
-
     private async inline_input_submit() {
         if (!this.inline_input_mode) {
             return;
         }
 
         this.validate_inline_input();
-    }
-
-    get is_readonly(): boolean {
-        return this.field.is_readonly || this.is_disabled;
     }
 
     get targetModuleTable_count(): number {
@@ -944,5 +886,61 @@ export default class CRUDComponentField extends VueComponentBase
 
     get field_value_length(): number {
         return this.field_value ? this.field_value.length : 0;
+    }
+
+    get is_custom_field_type(): boolean {
+        return !!this.custom_field_types[this.field_type];
+    }
+
+    get custom_field_types(): { [name: string]: TableFieldTypeControllerBase } {
+        return TableFieldTypesManager.getInstance().registeredTableFieldTypeControllers;
+    }
+
+    get field_type(): string {
+        if (this.field.type == 'Simple') {
+            return (this.field as SimpleDatatableField<any, any>).moduleTableField.field_type;
+        }
+
+        return this.field.type;
+    }
+
+    get random_number(): number {
+        return Math.floor(Math.random() * 1000);
+    }
+
+    get show_mandatory_star(): boolean {
+        return this.field.is_required && (this.field_type != 'boolean');
+    }
+
+    get hide_inline_controls(): boolean {
+        return this.field.is_required && (this.field_type == 'boolean');
+    }
+
+    get needs_options(): boolean {
+        let simpleField: SimpleDatatableField<any, any> = (this.field as SimpleDatatableField<any, any>);
+        return ((this.field.type == DatatableField.MANY_TO_ONE_FIELD_TYPE) ||
+            (this.field.type == DatatableField.ONE_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.MANY_TO_MANY_FIELD_TYPE) ||
+            (this.field.type == DatatableField.REF_RANGES_FIELD_TYPE)) ||
+            ((this.field.type == DatatableField.SIMPLE_FIELD_TYPE) && (simpleField.moduleTableField.field_type == ModuleTableField.FIELD_TYPE_enum));
+    }
+
+    get hourrange_input_component() {
+        return HourrangeInputComponent;
+    }
+
+    get alert_path(): string {
+        if (!this.field) {
+            return null;
+        }
+
+        return this.field.alert_path;
+    }
+
+    get is_segmented_day_tsrange_array() {
+        let field = (this.field as SimpleDatatableField<any, any>).moduleTableField;
+        if (!!field) {
+            return (field.field_type == ModuleTableField.FIELD_TYPE_tstzrange_array) && (field.segmentation_type == TimeSegment.TYPE_DAY);
+        }
     }
 }

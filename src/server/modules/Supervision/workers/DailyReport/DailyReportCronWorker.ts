@@ -3,8 +3,10 @@ import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
+import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import TeamsWebhookContentSectionVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
 import TeamsWebhookContentVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentVO';
+import VOsTypesManager from '../../../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../../../shared/tools/ConsoleHandler';
 import ConfigurationService from '../../../../env/ConfigurationService';
 import ICronWorker from '../../../Cron/interfaces/ICronWorker';
@@ -39,8 +41,11 @@ export default class DailyReportCronWorker implements ICronWorker {
          * On génère les infos pour le rapport et ensuite on tente de l'envoyer à qui veut (Teams, mail *TODO*, logs, ...)
          *  suivant les paramètres de l'application
          */
-        // On commence par récupérer toutes les sondes
-        let supervised_items_by_names: { [name: string]: ISupervisedItem } = await this.load_supervised_items();
+        // On commence par récupérer toutes les sondes et catégories
+        let category_by_ids: { [id: number]: SupervisedCategoryVO } = VOsTypesManager.getInstance().vosArray_to_vosByIds(
+            await ModuleDAO.getInstance().getVos<SupervisedCategoryVO>(SupervisedCategoryVO.API_TYPE_ID)
+        );
+        let supervised_items_by_names: { [name: string]: ISupervisedItem } = await this.load_supervised_items(category_by_ids);
         let ordered_supervised_items_by_state: { [state: number]: ISupervisedItem[] } = this.get_ordered_supervised_items_by_state(supervised_items_by_names);
 
         // En suite on décide d'envoyer là où on a une conf valide
@@ -166,7 +171,7 @@ export default class DailyReportCronWorker implements ICronWorker {
         );
     }
 
-    private async load_supervised_items(): Promise<{ [name: string]: ISupervisedItem }> {
+    private async load_supervised_items(category_by_ids: { [id: number]: SupervisedCategoryVO }): Promise<{ [name: string]: ISupervisedItem }> {
 
         let supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
         let promises = [];
@@ -178,6 +183,11 @@ export default class DailyReportCronWorker implements ICronWorker {
 
                 for (let i in items) {
                     let item = items[i];
+
+                    // Si on a une catégorie sans notif, on passe au suivant
+                    if (item.category_id && category_by_ids[item.category_id] && !category_by_ids[item.category_id].notify) {
+                        continue;
+                    }
 
                     supervised_items_by_names[item.name] = item;
                 }

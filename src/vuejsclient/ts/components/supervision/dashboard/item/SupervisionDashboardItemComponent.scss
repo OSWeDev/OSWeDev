@@ -8,7 +8,6 @@
     opacity: 0.5;
     cursor: pointer;
     padding: 0.5em 0em;
-    max-width: 898px;
 
     &:hover{
         opacity: 1;
@@ -40,17 +39,5 @@
 
     &.STATE_UNKOWN{
         background-color: grey;
-    }
-
-    .supervision_dashboard_item_type {
-    }
-
-    .supervision_dashboard_item_name {
-    }
-
-    .supervision_dashboard_item_date {
-    }
-
-    .supervision_dashboard_item_value {
     }
 }
