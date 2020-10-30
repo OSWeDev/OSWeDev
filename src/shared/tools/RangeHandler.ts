@@ -798,7 +798,6 @@ export default class RangeHandler {
      * @param range_cutter
      * @param range_to_cut
      */
-
     public cut_range<T, U extends IRange<T>>(range_cutter: U, range_to_cut: U, segment_type?: number): RangesCutResult<U> {
 
         if (!range_to_cut) {
@@ -812,6 +811,14 @@ export default class RangeHandler {
         let avant: U = this.cloneFrom(range_to_cut);
         let coupe: U = this.cloneFrom(range_to_cut);
         let apres: U = this.cloneFrom(range_to_cut);
+
+        /**
+         * ATTENTION il faut aussi prendre la segmentation la plus petite des 2 entre cutter et to_cut
+         */
+        let min_segment_type = this.get_smallest_segment_type_from_ranges([range_to_cut, range_cutter]);
+        avant.segment_type = min_segment_type;
+        coupe.segment_type = min_segment_type;
+        apres.segment_type = min_segment_type;
 
         if (this.isStartABeforeStartB(range_to_cut, range_cutter, segment_type)) {
             // SC > STC
@@ -1378,7 +1385,7 @@ export default class RangeHandler {
         let res: U[] = [];
         try {
 
-            // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis 
+            // Cas étrange des int8range[] qui arrivent en string et pas en array. On gère ici tant pis
             // TODO FIXME comprendre la source du pb
             if (!ranges) {
                 return null;
@@ -2233,6 +2240,41 @@ export default class RangeHandler {
         }
     }
 
+    /**
+     * Renvoie le plus petit segment_type parmi ceux en param (par exemple si on a un range minute et un année, on renvoie minute)
+     * @param ranges
+     */
+    public get_smallest_segment_type_from_ranges(ranges: Array<IRange<any>>): number {
+
+        if ((!ranges) || (!ranges.length)) {
+            return null;
+        }
+
+        let min: number = null;
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            if (min == null) {
+                min = range.segment_type;
+                continue;
+            }
+
+            switch (ranges[i].range_type) {
+                case NumRange.RANGE_TYPE:
+                    min = NumSegmentHandler.getInstance().getSmallestNumSegmentationType(min, range.segment_type);
+                    break;
+
+                case HourRange.RANGE_TYPE:
+                    min = HourSegmentHandler.getInstance().getSmallestHourSegmentationType(min, range.segment_type);
+                    break;
+
+                case TSRange.RANGE_TYPE:
+                    min = TimeSegmentHandler.getInstance().getSmallestTimeSegmentationType(min, range.segment_type);
+                    break;
+            }
+        }
+        return min;
+    }
 
     public max<T>(range_type: number, a: T, b: T): T {
         switch (range_type) {

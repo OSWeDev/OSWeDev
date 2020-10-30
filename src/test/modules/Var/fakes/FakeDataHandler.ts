@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import TSRange from '../../../../shared/modules/DataRender/vos/TSRange';
 import ModuleTableField from '../../../../shared/modules/ModuleTableField';
 import DAG from '../../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
@@ -9,13 +10,13 @@ import FakeDataVO from './vos/FakeDataVO';
 
 export default class FakeDataHandler {
 
-    public static initializeDayDataRangesVO() {
+    public static initializeFakeDataVO() {
 
         let datatable_fields = [
             new ModuleTableField('ts_ranges', ModuleTableField.FIELD_TYPE_tstzrange_array, 'Dates').set_segmentation_type(TimeSegment.TYPE_DAY),
         ];
 
-        VarsInitController.getInstance().register_var_data(FakeDataVO.API_TYPE_ID, () => FakeDataVO.createNew(null, null), datatable_fields, null);
+        VarsInitController.getInstance().register_var_data(FakeDataVO.API_TYPE_ID, () => new FakeDataVO(), datatable_fields, null);
     }
 
     /**
@@ -144,5 +145,57 @@ export default class FakeDataHandler {
     }
     public static get_expected_var_data_H_index() {
         return "1_[[1577836800000,1609459200000)]";
+    }
+
+    public static get_var_data_F_moins_BC(): FakeDataVO {
+        let var_data: FakeDataVO = new FakeDataVO();
+        var_data.var_id = 4;
+        var_data.ts_ranges = [
+            RangeHandler.getInstance().createNew(
+                TSRange.RANGE_TYPE,
+                moment('2020-04-01').utc(true).startOf('day'),
+                moment('2021-02-01').utc(true).startOf('day'),
+                true,
+                false,
+                TimeSegment.TYPE_MONTH)
+        ];
+        return var_data;
+    }
+
+    public static get_var_data_F_moins_C(): FakeDataVO {
+        let var_data: FakeDataVO = new FakeDataVO();
+        var_data.var_id = 4;
+        var_data.ts_ranges = [
+            RangeHandler.getInstance().createNew(
+                TSRange.RANGE_TYPE,
+                moment('2020-02-01').utc(true).startOf('day'),
+                moment('2020-03-01').utc(true).startOf('day'),
+                true,
+                false,
+                TimeSegment.TYPE_MONTH),
+            RangeHandler.getInstance().createNew(
+                TSRange.RANGE_TYPE,
+                moment('2020-04-01').utc(true).startOf('day'),
+                moment('2021-02-01').utc(true).startOf('day'),
+                true,
+                false,
+                TimeSegment.TYPE_MONTH)
+        ];
+        return var_data;
+    }
+
+    public static get_var_data_F_moins_B(): FakeDataVO {
+        let var_data: FakeDataVO = new FakeDataVO();
+        var_data.var_id = 4;
+        var_data.ts_ranges = [
+            RangeHandler.getInstance().createNew(
+                TSRange.RANGE_TYPE,
+                moment('2020-03-01').utc(true).startOf('day'),
+                moment('2021-02-01').utc(true).startOf('day'),
+                true,
+                false,
+                TimeSegment.TYPE_MONTH)
+        ];
+        return var_data;
     }
 }

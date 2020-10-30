@@ -40,10 +40,13 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     protected constructor(public varConf: VarConfVOBase) {
     }
 
+    /**
+     * Pour les TUs passer un id au varconf et au varcacheconf
+     */
     public async initialize() {
         this.varConf = await VarsServerController.getInstance().registerVar(this.varConf, this);
         let var_cache_conf = this.getVarCacheConf();
-        this.var_cache_conf = var_cache_conf ? await VarsServerController.getInstance().configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
+        this.var_cache_conf = (var_cache_conf && !var_cache_conf.id) ? await VarsServerController.getInstance().configureVarCache(this.varConf, var_cache_conf) : var_cache_conf;
     }
 
     public getVarCacheConf(): VarCacheConfVO {

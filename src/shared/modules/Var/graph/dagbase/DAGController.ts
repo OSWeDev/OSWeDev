@@ -152,7 +152,7 @@ export default class DAGController {
             let incoming_dep = through_node.incoming_deps[i];
 
             if ((!visit_condition) || visit_condition(incoming_dep.incoming_node)) {
-                await this.visit_bottom_up_to_node(incoming_dep.incoming_node, callback, visit_condition);
+                await this.visit_bottom_up_from_node(incoming_dep.incoming_node, callback, visit_condition);
             }
         }
     }
@@ -177,7 +177,7 @@ export default class DAGController {
             let incoming_dep = through_node.incoming_deps[i];
 
             if ((!visit_condition) || visit_condition(incoming_dep.incoming_node)) {
-                await this.visit_bottom_up_to_node(incoming_dep.incoming_node, callback, visit_condition);
+                await this.visit_top_bottom_to_node(incoming_dep.incoming_node, callback, visit_condition);
             }
         }
 
@@ -187,7 +187,7 @@ export default class DAGController {
             let outgoing_dep = through_node.outgoing_deps[i];
 
             if ((!visit_condition) || visit_condition(outgoing_dep.outgoing_node)) {
-                await this.visit_bottom_up_to_node(outgoing_dep.outgoing_node, callback, visit_condition);
+                await this.visit_top_bottom_from_node(outgoing_dep.outgoing_node, callback, visit_condition);
             }
         }
     }

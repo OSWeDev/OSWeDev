@@ -25,7 +25,7 @@ describe('VarsImportsHandler', () => {
 
     it('test aggregate_imports_and_remaining_datas', async () => {
 
-        FakeDataHandler.initializeDayDataRangesVO();
+        FakeDataHandler.initializeFakeDataVO();
 
         /**
          * E dans B
@@ -38,7 +38,9 @@ describe('VarsImportsHandler', () => {
         let var_data_F: FakeDataVO = FakeDataHandler.get_var_data_F();
         let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
         let selected_imports: FakeDataVO[] = [var_data_C, var_data_B];
-        let remaning_calcs: FakeDataVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings([var_data_C, var_data_B], [var_data_F]);
+        let remaning_calcs: FakeDataVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings(
+            [var_data_C, var_data_B],
+            [var_data_F]);
 
         let node_F = VarDAGNode.getInstance(new DAG(), var_data_F);
         VarsImportsHandler.getInstance().aggregate_imports_and_remaining_datas(node_F, selected_imports, remaning_calcs);
@@ -54,24 +56,24 @@ describe('VarsImportsHandler', () => {
 
     it('test sort_matroids_per_cardinal_desc', async () => {
 
-        FakeDataHandler.initializeDayDataRangesVO();
+        FakeDataHandler.initializeFakeDataVO();
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
         let var_data_B: FakeDataVO = FakeDataHandler.get_var_data_B();
         let var_data_C: FakeDataVO = FakeDataHandler.get_var_data_C();
 
-        expect(VarsImportsHandler.getInstance().sort_matroids_per_cardinal_desc(var_data_A, var_data_B)).to.equal(1);
-        expect(VarsImportsHandler.getInstance().sort_matroids_per_cardinal_desc(var_data_A, var_data_A)).to.equal(0);
-        expect(VarsImportsHandler.getInstance().sort_matroids_per_cardinal_desc(var_data_B, var_data_A)).to.equal(-1);
-        expect(VarsImportsHandler.getInstance().sort_matroids_per_cardinal_desc(var_data_A, var_data_C)).to.equal(1);
-        expect(VarsImportsHandler.getInstance().sort_matroids_per_cardinal_desc(var_data_C, var_data_A)).to.equal(-1);
-        expect(VarsImportsHandler.getInstance().sort_matroids_per_cardinal_desc(var_data_B, var_data_C)).to.equal(1);
-        expect(VarsImportsHandler.getInstance().sort_matroids_per_cardinal_desc(var_data_C, var_data_B)).to.equal(-1);
+        expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_B)).to.be.gte(1);
+        expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_A)).to.equal(0);
+        expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_B, var_data_A)).to.be.lte(-1);
+        expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_A, var_data_C)).to.be.gte(1);
+        expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_C, var_data_A)).to.be.lte(-1);
+        expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_B, var_data_C)).to.be.gte(1);
+        expect(VarsImportsHandler.getInstance()['sort_matroids_per_cardinal_desc'](var_data_C, var_data_B)).to.be.lte(-1);
     });
 
     it('test get_selection_imports', async () => {
 
-        FakeDataHandler.initializeDayDataRangesVO();
+        FakeDataHandler.initializeFakeDataVO();
 
         /**
          * E dans B

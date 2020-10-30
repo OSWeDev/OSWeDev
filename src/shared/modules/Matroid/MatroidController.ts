@@ -345,9 +345,6 @@ export default class MatroidController {
         return false;
     }
 
-    /**
-     * FIXME TODO ASAP WITH TU
-     */
     public cut_matroids<T extends IMatroid>(matroid_cutter: T, matroids_to_cut: T[]): Array<MatroidCutResult<T>> {
 
         let res: Array<MatroidCutResult<T>> = [];
@@ -366,13 +363,10 @@ export default class MatroidController {
         return res;
     }
 
-    /**
-     * FIXME TODO ASAP WITH TU
-     */
     public matroids_cut_matroids_get_remainings<T extends IMatroid>(matroid_cutters: T[], matroids_to_cut: T[]): T[] {
 
         let remaining_matroids: T[] = [];
-        remaining_matroids = this.cloneFromRanges(matroids_to_cut);
+        remaining_matroids = matroids_to_cut;
         for (let j in matroid_cutters) {
 
             let matroid_cutter = matroid_cutters[j];
@@ -381,11 +375,13 @@ export default class MatroidController {
 
             remaining_matroids = [];
             for (let k in cut_results) {
-                remaining_matroids = remaining_matroids.concat(cut_results[k].remaining_items);
+                if (cut_results[k].remaining_items && cut_results[k].remaining_items.length) {
+                    remaining_matroids = remaining_matroids.concat(cut_results[k].remaining_items);
+                }
             }
         }
 
-        return remaining_matroids;
+        return this.union(remaining_matroids);
     }
 
     /**
@@ -414,9 +410,6 @@ export default class MatroidController {
         return res;
     }
 
-    /**
-     * FIXME TODO ASAP WITH TU
-     */
     public cut_matroid<T extends IMatroid>(matroid_cutter: T, matroid_to_cut: T): MatroidCutResult<T> {
 
         if (!matroid_to_cut) {
@@ -529,10 +522,18 @@ export default class MatroidController {
         res._type = _type;
 
         // Compatibilité avec les vars
-        res['var_id'] = from['var_id'];
-        res['value'] = from['value'];
-        res['value_type'] = from['value_type'];
-        res['value_ts'] = from['value_ts'] ? from['value_ts'].clone() : from['value_ts'];
+        if (typeof from['var_id'] !== 'undefined') {
+            res['var_id'] = from['var_id'];
+        }
+        if (typeof from['value'] !== 'undefined') {
+            res['value'] = from['value'];
+        }
+        if (typeof from['value_type'] !== 'undefined') {
+            res['value_type'] = from['value_type'];
+        }
+        if (typeof from['value_ts'] !== 'undefined') {
+            res['value_ts'] = from['value_ts'] ? from['value_ts'].clone() : from['value_ts'];
+        }
 
         let needs_mapping: boolean = moduletable_from != moduletable_to;
         let mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids[_type];

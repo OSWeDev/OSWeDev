@@ -14,13 +14,13 @@ export default class NumSegmentHandler {
 
     private constructor() { }
 
-    // public getBiggestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
-    //     return NumSegment.TYPE_INT;
-    // }
+    public getBiggestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
+        return NumSegment.TYPE_INT;
+    }
 
-    // public getSmallestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
-    //     return NumSegment.TYPE_INT;
-    // }
+    public getSmallestNumSegmentationType(segment_type_a: number, segment_type_b: number): number {
+        return NumSegment.TYPE_INT;
+    }
 
     /**
      * ATTENTION : modifie le TS sans copie

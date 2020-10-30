@@ -3,12 +3,13 @@ import { Moment } from 'moment';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import RangeHandler from '../../../tools/RangeHandler';
 import IRange from '../../DataRender/interfaces/IRange';
+import IMatroid from '../../Matroid/interfaces/IMatroid';
 import MatroidController from '../../Matroid/MatroidController';
 import VOsTypesManager from '../../VOsTypesManager';
 import VarsController from '../VarsController';
 import VarCacheConfVO from './VarCacheConfVO';
 
-export default class VarDataBaseVO {
+export default class VarDataBaseVO implements IMatroid {
 
     public static VALUE_TYPE_LABELS: string[] = ['var_data.value_type.import', 'var_data.value_type.computed'];
     public static VALUE_TYPE_IMPORT: number = 0;

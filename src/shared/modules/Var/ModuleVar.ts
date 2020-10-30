@@ -200,7 +200,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('yearly_reset_month', ModuleTableField.FIELD_TYPE_int, 'Mois du reset (0-11)', false, true, 0),
         ];
 
-        let datatable = new ModuleTable(this, VarConfVOBase.API_TYPE_ID, () => new VarConfVOBase(), datatable_fields, labelField);
+        let datatable = new ModuleTable(this, VarConfVOBase.API_TYPE_ID, () => new VarConfVOBase(undefined, undefined), datatable_fields, labelField);
         this.datatables.push(datatable);
     }
 

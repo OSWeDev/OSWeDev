@@ -65,19 +65,6 @@ export default class VarsImportsHandler {
     }
 
     /**
-     * Fonction utilisée pour le classement des imports du cardinal le plus élevé au plus faible
-     * Public pour TU
-     * @param a
-     * @param b
-     */
-    public sort_matroids_per_cardinal_desc(a: VarDataBaseVO, b: VarDataBaseVO): number {
-        let card_a = MatroidController.getInstance().get_cardinal(a);
-        let card_b = MatroidController.getInstance().get_cardinal(b);
-
-        return card_b - card_a;
-    }
-
-    /**
      * Fonction qui retourne la sélection des imports acceptés pour résoudre le vardata en param
      * @param ordered_imports le liste des imports chargés depuis la base ordonnée par cardinal desc
      * @param var_data la cible des imports, qui englobe les imports par définition
@@ -132,5 +119,17 @@ export default class VarsImportsHandler {
 
         node.is_aggregator = true;
         node.aggregated_nodes = aggregated_nodes;
+    }
+
+    /**
+     * Fonction utilisée pour le classement des imports du cardinal le plus élevé au plus faible
+     * @param a
+     * @param b
+     */
+    private sort_matroids_per_cardinal_desc(a: VarDataBaseVO, b: VarDataBaseVO): number {
+        let card_a = MatroidController.getInstance().get_cardinal(a);
+        let card_b = MatroidController.getInstance().get_cardinal(b);
+
+        return card_b - card_a;
     }
 }

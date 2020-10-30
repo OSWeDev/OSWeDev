@@ -32,8 +32,7 @@ export default class VarDAGNode extends DAGNodeBase {
      */
 
     /**
-     * CAS B : On a une noeud aggregateur - qui utilise la fonction aggregate du VarController : Les noeuds aggrégés :
-     *  - undefined indique qu'on est en cas A
+     * CAS B : On a une noeud aggregateur - qui utilise la fonction aggregate du VarController : Les noeuds aggrégés
      */
     public aggregated_nodes: { [var_data_index: string]: VarDAGNode } = {};
 

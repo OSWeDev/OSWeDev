@@ -128,7 +128,7 @@ export default class TimeSegmentHandler {
                 if (segment_type_b == TimeSegment.TYPE_MS) {
                     return TimeSegment.TYPE_MS;
                 }
-                return TimeSegment.TYPE_MS;
+                return TimeSegment.TYPE_SECOND;
             case TimeSegment.TYPE_MINUTE:
                 if (segment_type_b == TimeSegment.TYPE_MS) {
                     return TimeSegment.TYPE_MS;
@@ -136,7 +136,7 @@ export default class TimeSegmentHandler {
                 if (segment_type_b == TimeSegment.TYPE_SECOND) {
                     return TimeSegment.TYPE_SECOND;
                 }
-                return TimeSegment.TYPE_MS;
+                return TimeSegment.TYPE_MINUTE;
             case TimeSegment.TYPE_HOUR:
                 if (segment_type_b == TimeSegment.TYPE_MS) {
                     return TimeSegment.TYPE_MS;
@@ -147,7 +147,7 @@ export default class TimeSegmentHandler {
                 if (segment_type_b == TimeSegment.TYPE_MINUTE) {
                     return TimeSegment.TYPE_MINUTE;
                 }
-                return TimeSegment.TYPE_MS;
+                return TimeSegment.TYPE_HOUR;
 
             case TimeSegment.TYPE_DAY:
                 if (segment_type_b == TimeSegment.TYPE_MS) {

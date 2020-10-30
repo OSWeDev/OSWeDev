@@ -12,20 +12,20 @@ import FakeDataVO from './fakes/vos/FakeDataVO';
 describe('DAG', () => {
 
     it('test add nodes', async () => {
+        FakeDataHandler.initializeFakeDataVO();
 
-        FakeDataHandler.initializeDayDataRangesVO();
         let dag: DAG<VarDAGNode> = new DAG();
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
         let dagnodeA: VarDAGNode = VarDAGNode.getInstance(dag, var_data_A);
 
         expect(dagnodeA.var_data.index).to.equal("1_[[1577836800000,1577923200000)]");
-        expect(dagnodeA.aggregated_nodes).to.be.undefined;
+        expect(dagnodeA.aggregated_nodes).to.deep.equal({});
         expect(dagnodeA.hasIncoming).to.equal(false);
         expect(dagnodeA.hasOutgoing).to.equal(false);
-        expect(dagnodeA.incoming_deps).to.be.undefined;
+        expect(dagnodeA.incoming_deps).to.deep.equal({});
         expect(dagnodeA.is_aggregator).to.equal(false);
-        expect(dagnodeA.outgoing_deps).to.be.undefined;
+        expect(dagnodeA.outgoing_deps).to.deep.equal({});
         expect(dagnodeA.var_data).to.deep.equal(var_data_A);
         expect(dagnodeA.dag).to.deep.equal(dag);
 
@@ -38,12 +38,12 @@ describe('DAG', () => {
         let dagnodeB: VarDAGNode = VarDAGNode.getInstance(dag, var_data_B);
 
         expect(dagnodeB.var_data.index).to.equal("2_[[1580515200000,1583020800000)]");
-        expect(dagnodeB.aggregated_nodes).to.be.undefined;
+        expect(dagnodeB.aggregated_nodes).to.deep.equal({});
         expect(dagnodeB.hasIncoming).to.equal(false);
         expect(dagnodeB.hasOutgoing).to.equal(false);
         expect(dagnodeB.is_aggregator).to.equal(false);
-        expect(dagnodeB.incoming_deps).to.be.undefined;
-        expect(dagnodeB.outgoing_deps).to.be.undefined;
+        expect(dagnodeB.incoming_deps).to.deep.equal({});
+        expect(dagnodeB.outgoing_deps).to.deep.equal({});
         expect(dagnodeB.var_data).to.deep.equal(var_data_B);
         expect(dagnodeB.dag).to.deep.equal(dag);
 
@@ -63,8 +63,8 @@ describe('DAG', () => {
     });
 
     it('test add deps', async () => {
+        FakeDataHandler.initializeFakeDataVO();
 
-        FakeDataHandler.initializeDayDataRangesVO();
         let dag: DAG<VarDAGNode> = new DAG();
 
         let var_data_A: FakeDataVO = FakeDataHandler.get_var_data_A();
@@ -81,20 +81,20 @@ describe('DAG', () => {
         expect(dag.roots).to.deep.equal({ [var_data_A.index]: dagnodeA, [var_data_B.index]: dagnodeB });
 
         expect(dagnodeB.var_data.index).to.equal("2_[[1580515200000,1583020800000)]");
-        expect(dagnodeB.aggregated_nodes).to.be.undefined;
+        expect(dagnodeB.aggregated_nodes).to.deep.equal({});
         expect(dagnodeB.is_aggregator).to.equal(false);
         expect(dagnodeB.hasIncoming).to.equal(false);
         expect(dagnodeB.hasOutgoing).to.equal(false);
-        expect(dagnodeB.incoming_deps).to.be.undefined;
-        expect(dagnodeB.outgoing_deps).to.be.undefined;
+        expect(dagnodeB.incoming_deps).to.deep.equal({});
+        expect(dagnodeB.outgoing_deps).to.deep.equal({});
 
         expect(dagnodeA.var_data.index).to.equal("1_[[1577836800000,1577923200000)]");
-        expect(dagnodeA.aggregated_nodes).to.be.undefined;
+        expect(dagnodeA.aggregated_nodes).to.deep.equal({});
         expect(dagnodeA.is_aggregator).to.equal(false);
         expect(dagnodeA.hasIncoming).to.equal(false);
         expect(dagnodeA.hasOutgoing).to.equal(false);
-        expect(dagnodeA.incoming_deps).to.be.undefined;
-        expect(dagnodeA.outgoing_deps).to.be.undefined;
+        expect(dagnodeA.incoming_deps).to.deep.equal({});
+        expect(dagnodeA.outgoing_deps).to.deep.equal({});
 
         dagnodeA.addOutgoingDep("AB", dagnodeB);
 
@@ -109,22 +109,24 @@ describe('DAG', () => {
         expect(dag.leafs).to.deep.equal({ [var_data_B.index]: dagnodeB });
         expect(dag.roots).to.deep.equal({ [var_data_A.index]: dagnodeA });
 
-        expect(dagnodeB.aggregated_nodes).to.be.undefined;
+        expect(dagnodeB.aggregated_nodes).to.deep.equal({});
         expect(dagnodeB.is_aggregator).to.equal(false);
         expect(dagnodeB.hasIncoming).to.equal(true);
         expect(dagnodeB.hasOutgoing).to.equal(false);
         expect(dagnodeB.incoming_deps).to.deep.equal({ AB: dep_ab });
-        expect(dagnodeB.outgoing_deps).to.be.undefined;
+        expect(dagnodeB.outgoing_deps).to.deep.equal({});
 
-        expect(dagnodeA.aggregated_nodes).to.be.undefined;
+        expect(dagnodeA.aggregated_nodes).to.deep.equal({});
         expect(dagnodeA.is_aggregator).to.equal(false);
         expect(dagnodeA.hasIncoming).to.equal(false);
         expect(dagnodeA.hasOutgoing).to.equal(true);
         expect(dagnodeA.outgoing_deps).to.deep.equal({ AB: dep_ab });
-        expect(dagnodeA.incoming_deps).to.be.undefined;
+        expect(dagnodeA.incoming_deps).to.deep.equal({});
     });
 
     it('test visit bottom->up to node', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple :
          *                           A
@@ -150,6 +152,8 @@ describe('DAG', () => {
     });
 
     it('test visit top->bottom from node', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple :
          *                           A
@@ -175,6 +179,8 @@ describe('DAG', () => {
     });
 
     it('test visit bottom->up from node', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple :
          *                           A
@@ -199,6 +205,8 @@ describe('DAG', () => {
     });
 
     it('test visit top->bottom to node', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple :
          *                           A
@@ -223,6 +231,8 @@ describe('DAG', () => {
     });
 
     it('test visit bottom->up through node', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple :
          *                           A
@@ -249,6 +259,8 @@ describe('DAG', () => {
     });
 
     it('test visit top->bottom through node', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple :
          *                           A
@@ -279,6 +291,8 @@ describe('DAG', () => {
 
 
     it('test visit bottom->up to node with condition', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple : (condition != 'E')
          *                           A
@@ -297,7 +311,7 @@ describe('DAG', () => {
         await DAGController.getInstance().visit_bottom_up_to_node(
             node_b,
             async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
-            (node: VarDAGNode) => node.var_data.index != 'E'
+            (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_E_index()
         );
 
         expect(visit_res).to.equal(
@@ -307,6 +321,8 @@ describe('DAG', () => {
     });
 
     it('test visit top->bottom from node with condition', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple : (condition != 'E')
          *                           A
@@ -325,7 +341,7 @@ describe('DAG', () => {
         await DAGController.getInstance().visit_top_bottom_from_node(
             node_b,
             async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
-            (node: VarDAGNode) => node.var_data.index != 'E'
+            (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_E_index()
         );
 
         expect(visit_res).to.equal(
@@ -335,6 +351,8 @@ describe('DAG', () => {
     });
 
     it('test visit bottom->up from node with condition', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple : (condition != 'A')
          *                           A
@@ -353,7 +371,7 @@ describe('DAG', () => {
         await DAGController.getInstance().visit_bottom_up_from_node(
             node_b,
             async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
-            (node: VarDAGNode) => node.var_data.index != 'A'
+            (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_A_index()
         );
 
         expect(visit_res).to.equal(
@@ -362,6 +380,8 @@ describe('DAG', () => {
     });
 
     it('test visit top->bottom to node with condition', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple : (condition != 'A')
          *                           A
@@ -380,7 +400,7 @@ describe('DAG', () => {
         await DAGController.getInstance().visit_top_bottom_to_node(
             node_b,
             async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
-            (node: VarDAGNode) => node.var_data.index != 'A'
+            (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_A_index()
         );
 
         expect(visit_res).to.equal(
@@ -389,6 +409,8 @@ describe('DAG', () => {
     });
 
     it('test visit bottom->up through node with condition', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple : (condition != 'E')
          *                           A
@@ -407,7 +429,7 @@ describe('DAG', () => {
         await DAGController.getInstance().visit_bottom_up_through_node(
             node_b,
             async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
-            (node: VarDAGNode) => node.var_data.index != 'E'
+            (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_E_index()
         );
 
         expect(visit_res).to.equal(
@@ -418,6 +440,8 @@ describe('DAG', () => {
     });
 
     it('test visit top->bottom through node with condition', async () => {
+        FakeDataHandler.initializeFakeDataVO();
+
         /**
          * exemple : (condition != 'E')
          *                           A
@@ -436,7 +460,7 @@ describe('DAG', () => {
         await DAGController.getInstance().visit_top_bottom_through_node(
             node_b,
             async (node: VarDAGNode) => visit_res = (visit_res ? visit_res + ',' + node.var_data.index : node.var_data.index),
-            (node: VarDAGNode) => node.var_data.index != 'E'
+            (node: VarDAGNode) => node.var_data.index != FakeDataHandler.get_expected_var_data_E_index()
         );
 
         expect(visit_res).to.equal(
