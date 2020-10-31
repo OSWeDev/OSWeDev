@@ -48,10 +48,9 @@ describe('VarsImportsHandler', () => {
         expect(node_F.aggregated_nodes).to.deep.equal({
             [var_data_C.index]: VarDAGNode.getInstance(node_F.dag, var_data_C),
             [var_data_B.index]: VarDAGNode.getInstance(node_F.dag, var_data_B),
-            [remaning_calcs[0].index]: VarDAGNode.getInstance(node_F.dag, remaning_calcs[0]),
-            [remaning_calcs[1].index]: VarDAGNode.getInstance(node_F.dag, remaning_calcs[1]),
-            [remaning_calcs[2].index]: VarDAGNode.getInstance(node_F.dag, remaning_calcs[2]),
+            [remaning_calcs[0].index]: VarDAGNode.getInstance(node_F.dag, remaning_calcs[0])
         });
+        expect(remaning_calcs.length).to.equal(1);
     });
 
     it('test sort_matroids_per_cardinal_desc', async () => {

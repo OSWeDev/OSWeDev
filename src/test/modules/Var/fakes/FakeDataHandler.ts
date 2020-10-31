@@ -75,6 +75,25 @@ export default class FakeDataHandler {
         return "1_[[1577836800000,1577923200000)]";
     }
 
+    public static get_var_data_A2(): FakeDataVO {
+        let var_data: FakeDataVO = new FakeDataVO();
+        var_data.var_id = 1;
+        var_data.ts_ranges = [
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
+        ];
+        return var_data;
+    }
+
+    public static get_var_data_A_A2(): FakeDataVO {
+        let var_data: FakeDataVO = new FakeDataVO();
+        var_data.var_id = 1;
+        var_data.ts_ranges = [
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY),
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
+        ];
+        return var_data;
+    }
+
     public static get_var_data_B(): FakeDataVO {
         let var_data: FakeDataVO = new FakeDataVO();
         var_data.var_id = 2;

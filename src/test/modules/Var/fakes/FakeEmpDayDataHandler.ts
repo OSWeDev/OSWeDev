@@ -11,13 +11,13 @@ import FakeEmpDayDataVO from './vos/FakeEmpDayDataVO';
 
 export default class FakeEmpDayDataHandler {
 
-    public static zero: moment.Moment = moment().startOf('day').add(1, 'hour');
-    public static zero_cinq: moment.Moment = moment(FakeEmpDayDataHandler.zero).add(12, 'hour');
-    public static moins_zero_cinq: moment.Moment = moment(FakeEmpDayDataHandler.zero).add(-12, 'hour');
-    public static un: moment.Moment = moment(FakeEmpDayDataHandler.zero).add(1, 'day');
-    public static deux: moment.Moment = moment(FakeEmpDayDataHandler.zero).add(2, 'day');
-    public static moins_un: moment.Moment = moment(FakeEmpDayDataHandler.zero).add(-1, 'day');
-    public static moins_deux: moment.Moment = moment(FakeEmpDayDataHandler.zero).add(-2, 'day');
+    public static zero: moment.Moment = moment().utc(true).startOf('day');
+    public static zero_cinq: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(12, 'hour');
+    public static moins_zero_cinq: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(-12, 'hour');
+    public static un: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(1, 'day');
+    public static deux: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(2, 'day');
+    public static moins_un: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(-1, 'day');
+    public static moins_deux: moment.Moment = moment(FakeEmpDayDataHandler.zero).utc(true).add(-2, 'day');
 
     public static initializeFakeEmpDayDataVO() {
 
@@ -52,6 +52,26 @@ export default class FakeEmpDayDataHandler {
                 FakeEmpDayDataHandler.moins_zero_cinq,
                 FakeEmpDayDataHandler.zero_cinq,
                 true, true, TimeSegment.TYPE_DAY)
+        ];
+        var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        return var_data;
+    }
+
+    public static get_data_A(): FakeEmpDayDataVO {
+        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        var_data.var_id = 2;
+        var_data.ts_ranges = [
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
+        ];
+        var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
+        return var_data;
+    }
+
+    public static get_data_A_Var3(): FakeEmpDayDataVO {
+        let var_data: FakeEmpDayDataVO = new FakeEmpDayDataVO();
+        var_data.var_id = 3;
+        var_data.ts_ranges = [
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_MONTH)
         ];
         var_data.employee_id_ranges = [NumRange.createNew(1, 1, true, true, NumSegment.TYPE_INT)];
         return var_data;

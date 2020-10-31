@@ -73,14 +73,12 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
                 FakeDataVO.API_TYPE_ID,
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().getMaxNumRange()],
                 [RangeHandler.getInstance().create_single_elt_TSRange((typed.pre_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
             ),
             VarDataBaseVO.createNew(
                 FakeDataVO.API_TYPE_ID,
                 this.varConf.name,
                 false,
-                [RangeHandler.getInstance().getMaxNumRange()],
                 [RangeHandler.getInstance().create_single_elt_TSRange((typed.post_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
             )
         ];

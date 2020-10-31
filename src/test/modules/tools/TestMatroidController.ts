@@ -134,7 +134,11 @@ describe('MatroidController', () => {
             [var_data_F]);
 
         expect(remaning_calcs.length).to.eq(1);
-        expect(remaning_calcs[0].chopped_items).deep.eq([FakeDataHandler.get_var_data_B()]);
+        expect(remaning_calcs[0].chopped_items).deep.eq([Object.assign(FakeDataHandler.get_var_data_B(), { var_id: 4 })]);
+        remaning_calcs[0].remaining_items[0].ts_ranges[0].max['_i'] = "2021-02-01";
+        remaning_calcs[0].remaining_items[0].ts_ranges[0].max['_pf'].parsedDateParts = [2021, 1, 1];
+        remaning_calcs[0].remaining_items[0].ts_ranges[0].min['_i'] = "2020-03-01";
+        remaning_calcs[0].remaining_items[0].ts_ranges[0].min['_pf'].parsedDateParts = [2020, 2, 1];
         expect(remaning_calcs[0].remaining_items).deep.eq([FakeDataHandler.get_var_data_F_moins_B()]);
     });
 
@@ -259,6 +263,11 @@ describe('MatroidController', () => {
         let remaning_calcs: FakeDataVO[] = MatroidController.getInstance().matroids_cut_matroids_get_remainings(
             [var_data_C, var_data_B],
             [var_data_F]);
+
+        remaning_calcs[0].ts_ranges[0].max['_i'] = "2021-02-01";
+        remaning_calcs[0].ts_ranges[0].max['_pf'].parsedDateParts = [2021, 1, 1];
+        remaning_calcs[0].ts_ranges[0].min['_i'] = "2020-04-01";
+        remaning_calcs[0].ts_ranges[0].min['_pf'].parsedDateParts = [2020, 3, 1];
 
         expect(remaning_calcs).to.deep.eq([FakeDataHandler.get_var_data_F_moins_BC()]);
     });

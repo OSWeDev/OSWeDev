@@ -27,12 +27,15 @@ export default class VarsController {
     protected constructor() {
     }
 
-    public async initialize() {
-        let res: VarConfIds = await ModuleVar.getInstance().get_var_id_by_names();
-        if (res && res.var_id_by_names) {
-            this.var_id_by_names = (res && res.var_id_by_names) ? res.var_id_by_names : {};
-            for (let name in res.var_id_by_names) {
-                let id = res.var_id_by_names[name];
+    public async initialize(var_id_by_names: { [name: string]: number } = null) {
+        if (!var_id_by_names) {
+            let res: VarConfIds = await ModuleVar.getInstance().get_var_id_by_names();
+            var_id_by_names = (res && res.var_id_by_names) ? res.var_id_by_names : null;
+        }
+        if (var_id_by_names) {
+            this.var_id_by_names = var_id_by_names ? var_id_by_names : {};
+            for (let name in var_id_by_names) {
+                let id = var_id_by_names[name];
                 this.var_names_by_ids[id] = name;
             }
         }

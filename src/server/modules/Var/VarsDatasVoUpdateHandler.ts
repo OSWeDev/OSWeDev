@@ -211,11 +211,7 @@ export default class VarsDatasVoUpdateHandler {
             for (let j in VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type]) {
                 let var_controller = VarsServerController.getInstance().registered_vars_controller_by_api_type_id[vo_type][j];
 
-                ctrls_to_update_1st_stage[var_controller.varConf.id] = var_controller;
-
-                if (!intersectors_by_var_id[var_controller.varConf.id]) {
-                    intersectors_by_var_id[var_controller.varConf.id] = [];
-                }
+                let intersectors = intersectors_by_var_id[var_controller.varConf.id] ? intersectors_by_var_id[var_controller.varConf.id] : [];
 
                 for (let k in vos_create_or_delete_buffer[vo_type]) {
                     let vo_create_or_delete = vos_create_or_delete_buffer[vo_type][k];
@@ -224,7 +220,7 @@ export default class VarsDatasVoUpdateHandler {
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }
-                    intersectors_by_var_id[var_controller.varConf.id] = intersectors_by_var_id[var_controller.varConf.id].concat(tmp);
+                    intersectors = intersectors.concat(tmp);
                 }
 
                 for (let k in vos_update_buffer[vo_type]) {
@@ -234,7 +230,12 @@ export default class VarsDatasVoUpdateHandler {
                     if ((!tmp) || (!tmp.length)) {
                         continue;
                     }
-                    intersectors_by_var_id[var_controller.varConf.id] = intersectors_by_var_id[var_controller.varConf.id].concat(tmp);
+                    intersectors = intersectors.concat(tmp);
+                }
+
+                if (intersectors && intersectors.length) {
+                    intersectors_by_var_id[var_controller.varConf.id] = MatroidController.getInstance().union(intersectors);
+                    ctrls_to_update_1st_stage[var_controller.varConf.id] = var_controller;
                 }
             }
         }
