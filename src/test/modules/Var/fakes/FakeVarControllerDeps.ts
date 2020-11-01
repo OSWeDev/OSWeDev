@@ -1,13 +1,13 @@
 import VarServerControllerBase from '../../../../server/modules/Var/VarServerControllerBase';
 import VarsServerController from '../../../../server/modules/Var/VarsServerController';
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
+import DataConvertionsController from '../../../../shared/modules/Var/DataConvertionsController';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
-import VarConfVOBase from '../../../../shared/modules/Var/vos/VarConfVOBase';
+import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import FakeVarControllerDsDistant from './FakeVarControllerDsDistant';
 import FakeVarControllerDsEmpDistant from './FakeVarControllerDsEmpDistant';
-import TestDataConvertionsController from './TestDataConvertionsController';
 import FakeDataVO from './vos/FakeDataVO';
 import FakeEmpDayDataVO from './vos/FakeEmpDayDataVO';
 import FakeEmpDistantVO from './vos/FakeEmpDistantVO';
@@ -26,10 +26,8 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
 
     protected static instance: FakeVarControllerDeps = null;
 
-    public segment_type: number = TimeSegment.TYPE_MONTH;
-
     protected constructor() {
-        super(new VarConfVOBase('FakeVarControllerDeps', FakeEmpDistantVO.API_TYPE_ID, 3));
+        super(new VarConfVO('FakeVarControllerDeps', FakeEmpDistantVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, 3));
 
         this.optimization__has_no_imports = true;
     }
@@ -52,10 +50,11 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
 
         return {
             [FakeVarControllerDeps.DEP_DsDistant]:
-                TestDataConvertionsController.getInstance().convert_EmpData_to_Data(
-                    VarDataBaseVO.cloneFrom(varDAGNode.var_data as FakeEmpDayDataVO, FakeVarControllerDsDistant.getInstance().varConf.name, true)),
+                DataConvertionsController.getInstance().convertVarDataFromVarName(
+                    VarDataBaseVO.cloneFromVarName(varDAGNode.var_data as FakeEmpDayDataVO),
+                    FakeVarControllerDsDistant.getInstance().varConf.name),
             [FakeVarControllerDeps.DEP_DsEmpDistant]:
-                VarDataBaseVO.cloneFrom(varDAGNode.var_data as FakeEmpDayDataVO, FakeVarControllerDsEmpDistant.getInstance().varConf.name, true)
+                VarDataBaseVO.cloneFromVarName(varDAGNode.var_data as FakeEmpDayDataVO, FakeVarControllerDsEmpDistant.getInstance().varConf.name)
         };
     }
     /**
@@ -68,9 +67,9 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
                 return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeEmpDayDataVO[], this.varConf.name);
 
             case FakeVarControllerDeps.DEP_DsDistant:
-                let DEP_DsDistant = VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name);
-                DEP_DsDistant.forEach((e) => TestDataConvertionsController.getInstance().convert_Data_to_EmpData(e));
-                return DEP_DsDistant as FakeEmpDayDataVO[];
+                return DataConvertionsController.getInstance().convertVarDatasFromVarName(
+                    VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[]),
+                    this.varConf.name) as FakeEmpDayDataVO[];
         }
 
         return null;

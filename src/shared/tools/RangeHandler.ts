@@ -10,6 +10,7 @@ import TimeSegment from '../modules/DataRender/vos/TimeSegment';
 import TSRange from '../modules/DataRender/vos/TSRange';
 import IDistantVOBase from '../modules/IDistantVOBase';
 import RangesCutResult from '../modules/Matroid/vos/RangesCutResult';
+import ModuleTableField from '../modules/ModuleTableField';
 import ConsoleHandler from './ConsoleHandler';
 import DateHandler from './DateHandler';
 import HourHandler from './HourHandler';
@@ -1106,12 +1107,26 @@ export default class RangeHandler {
 
 
 
+    public getMaxRange<T>(table_field: ModuleTableField<any>): IRange<T> {
+        switch (table_field.field_type) {
+            case ModuleTableField.FIELD_TYPE_numrange:
+            case ModuleTableField.FIELD_TYPE_numrange_array:
+            case ModuleTableField.FIELD_TYPE_refrange_array:
+                return this.getMaxNumRange() as any as IRange<T>;
 
+            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_tsrange:
+                return this.getMaxTSRange() as any as IRange<T>;
 
+            case ModuleTableField.FIELD_TYPE_hourrange:
+            case ModuleTableField.FIELD_TYPE_hourrange_array:
+                return this.getMaxHourRange() as any as IRange<T>;
 
-
-
-
+            default:
+                return null;
+        }
+        return this.createNew(NumRange.RANGE_TYPE, RangeHandler.MIN_INT, RangeHandler.MAX_INT, true, true, NumSegment.TYPE_INT);
+    }
 
     public getMaxNumRange(): NumRange {
         return this.createNew(NumRange.RANGE_TYPE, RangeHandler.MIN_INT, RangeHandler.MAX_INT, true, true, NumSegment.TYPE_INT);

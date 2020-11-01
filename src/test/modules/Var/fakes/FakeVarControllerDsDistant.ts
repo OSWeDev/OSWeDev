@@ -6,7 +6,7 @@ import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
-import VarConfVOBase from '../../../../shared/modules/Var/vos/VarConfVOBase';
+import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
@@ -25,10 +25,8 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
     protected static instance: FakeVarControllerDsDistant = null;
 
-    public segment_type: number = TimeSegment.TYPE_DAY;
-
     protected constructor() {
-        super(new VarConfVOBase('FakeVarControllerDsDistant', FakeDistantVO.API_TYPE_ID, 1));
+        super(new VarConfVO('FakeVarControllerDsDistant', FakeDistantVO.API_TYPE_ID, TimeSegment.TYPE_DAY, 1));
 
         this.optimization__has_no_imports = true;
     }
@@ -51,7 +49,6 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
         return [
             VarDataBaseVO.createNew(
-                FakeDataVO.API_TYPE_ID,
                 this.varConf.name,
                 false,
                 [RangeHandler.getInstance().create_single_elt_TSRange((c_or_d_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
@@ -70,13 +67,11 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
         return [
             VarDataBaseVO.createNew(
-                FakeDataVO.API_TYPE_ID,
                 this.varConf.name,
                 false,
                 [RangeHandler.getInstance().create_single_elt_TSRange((typed.pre_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
             ),
             VarDataBaseVO.createNew(
-                FakeDataVO.API_TYPE_ID,
                 this.varConf.name,
                 false,
                 [RangeHandler.getInstance().create_single_elt_TSRange((typed.post_update_vo as FakeDistantVO).date, TimeSegment.TYPE_DAY)]
@@ -94,7 +89,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
             res += (datas && datas[date.valueOf()]) ? datas[date.valueOf()].value : 0;
 
-        }, this.segment_type);
+        }, this.varConf.segment_type);
         return res;
     }
 }

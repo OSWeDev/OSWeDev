@@ -12,7 +12,7 @@ import VOsTypesManager from '../VOsTypesManager';
 import VarsController from './VarsController';
 import VarCacheConfVO from './vos/VarCacheConfVO';
 import VarConfIds from './vos/VarConfIds';
-import VarConfVOBase from './vos/VarConfVOBase';
+import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 import VarDataValueResVO from './vos/VarDataValueResVO';
 const moment = require('moment');
@@ -56,7 +56,7 @@ export default class ModuleVar extends Module {
         this.fields = [];
         this.datatables = [];
 
-        this.initializeVarConfVOBase();
+        this.initializeVarConfVO();
         this.initializeVarCacheConfVO();
         this.initializeVarDataValueResVO();
     }
@@ -81,7 +81,7 @@ export default class ModuleVar extends Module {
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, VarConfIds>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_get_var_id_by_names,
-            [VarConfVOBase.API_TYPE_ID]
+            [VarConfVO.API_TYPE_ID]
         ));
 
         // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ConfigureVarCacheParamVO, VarCacheConfVO>(
@@ -118,7 +118,7 @@ export default class ModuleVar extends Module {
         return await ModuleAPI.getInstance().handleAPI<void, VarConfIds>(ModuleVar.APINAME_get_var_id_by_names);
     }
 
-    // public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
+    // public async configureVarCache(var_conf: VarConfVO, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
     //     let server_side: boolean = (!!ModulesManager.getInstance().isServerSide);
     //     // Si on est côté client, on a pas besoin de la conf du cache
 
@@ -177,12 +177,12 @@ export default class ModuleVar extends Module {
             datatable.defineAsMatroid();
         }
         datatable.addAlias(param_api_type_id);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVOBase.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
         this.datatables.push(datatable);
         return datatable;
     }
 
-    private initializeVarConfVOBase() {
+    private initializeVarConfVO() {
 
         let labelField = new ModuleTableField('name', ModuleTableField.FIELD_TYPE_string, 'Nom du compteur');
         let datatable_fields = [
@@ -194,13 +194,9 @@ export default class ModuleVar extends Module {
             new ModuleTableField('translatable_name', ModuleTableField.FIELD_TYPE_translatable_text, 'Code de traduction du nom'),
             new ModuleTableField('translatable_description', ModuleTableField.FIELD_TYPE_translatable_text, 'Code de traduction de la description'),
             new ModuleTableField('translatable_params_desc', ModuleTableField.FIELD_TYPE_translatable_text, 'Code de traduction de la desc des params'),
-
-            new ModuleTableField('has_yearly_reset', ModuleTableField.FIELD_TYPE_boolean, 'Reset annuel ?', true, true, false),
-            new ModuleTableField('yearly_reset_day_in_month', ModuleTableField.FIELD_TYPE_int, 'Jour du mois de reset (1-31)', false, true, 1),
-            new ModuleTableField('yearly_reset_month', ModuleTableField.FIELD_TYPE_int, 'Mois du reset (0-11)', false, true, 0),
         ];
 
-        let datatable = new ModuleTable(this, VarConfVOBase.API_TYPE_ID, () => new VarConfVOBase(undefined, undefined), datatable_fields, labelField);
+        let datatable = new ModuleTable(this, VarConfVO.API_TYPE_ID, () => new VarConfVO(undefined, undefined, undefined), datatable_fields, labelField);
         this.datatables.push(datatable);
     }
 
@@ -216,7 +212,7 @@ export default class ModuleVar extends Module {
 
         let datatable = new ModuleTable(this, VarCacheConfVO.API_TYPE_ID, () => new VarCacheConfVO(), datatable_fields, null);
         this.datatables.push(datatable);
-        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVOBase.API_TYPE_ID]);
+        var_id.addManyToOneRelation(VOsTypesManager.getInstance().moduleTables_by_voType[VarConfVO.API_TYPE_ID]);
     }
 
     private initializeVarDataValueResVO() {

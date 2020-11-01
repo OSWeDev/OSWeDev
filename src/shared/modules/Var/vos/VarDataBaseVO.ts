@@ -8,6 +8,7 @@ import MatroidController from '../../Matroid/MatroidController';
 import VOsTypesManager from '../../VOsTypesManager';
 import VarsController from '../VarsController';
 import VarCacheConfVO from './VarCacheConfVO';
+import VarConfVO from './VarConfVO';
 
 export default class VarDataBaseVO implements IMatroid {
 
@@ -67,15 +68,16 @@ export default class VarDataBaseVO implements IMatroid {
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      * @param fields_ordered_as_in_moduletable_definition Les ranges du matroid ordonnés dans le même ordre que dans la définition du moduletable
      */
-    public static createNew<T extends VarDataBaseVO>(_type: string, var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: Array<Array<IRange<any>>>): T {
+    public static createNew<T extends VarDataBaseVO>(var_name: string, clone_fields: boolean = true, ...fields_ordered_as_in_moduletable_definition: Array<Array<IRange<any>>>): T {
 
-        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[_type];
+        let varConf = VarsController.getInstance().var_conf_by_name[var_name];
+        let moduletable = VOsTypesManager.getInstance().moduleTables_by_voType[varConf.var_data_vo_type];
 
         let res: T = moduletable.voConstructor();
-        res._type = _type;
-        res.var_id = VarsController.getInstance().var_id_by_names[var_name];
+        res._type = varConf.var_data_vo_type;
+        res.var_id = varConf.id;
 
-        let fields = MatroidController.getInstance().getMatroidFields(_type);
+        let fields = MatroidController.getInstance().getMatroidFields(varConf.var_data_vo_type);
         let param_i: number = 0;
         for (let i in fields) {
             let field = fields[i];
@@ -93,17 +95,31 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFrom<T extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): T {
+    public static cloneFromVarName<T extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): T {
 
-        if (!param_to_clone) {
-            return null;
-        }
+        return this.cloneFieldsFromVarName(var_name, param_to_clone, clone_fields);
+    }
 
-        return this.cloneFieldsFromId(
-            param_to_clone._type,
-            var_name ? VarsController.getInstance().var_id_by_names[var_name] : param_to_clone.var_id,
-            param_to_clone,
-            clone_fields);
+    /**
+     * Méthode pour créer un nouveau paramètre de var, quelque soit le type
+     * @param param_to_clone Le param que l'on doit cloner
+     * @param var_id Identifiant de la var cible
+     * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
+     */
+    public static cloneFromVarId<T extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): T {
+
+        return this.cloneFieldsFromVarId(var_id, param_to_clone, clone_fields);
+    }
+
+    /**
+     * Méthode pour créer un nouveau paramètre de var, quelque soit le type
+     * @param param_to_clone Le param que l'on doit cloner
+     * @param var_conf La conf de la var cible
+     * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
+     */
+    public static cloneFromVarConf<T extends VarDataBaseVO>(param_to_clone: T, var_conf: VarConfVO = null, clone_fields: boolean = true): T {
+
+        return this.cloneFieldsFromVarConf(var_conf, param_to_clone, clone_fields);
     }
 
     /**
@@ -123,7 +139,7 @@ export default class VarDataBaseVO implements IMatroid {
         for (let i in params_to_clone) {
             let param_to_clone = params_to_clone[i];
 
-            res.push(this.cloneFrom(param_to_clone, var_name, clone_fields));
+            res.push(this.cloneFromVarName(param_to_clone, var_name, clone_fields));
         }
 
         return res;
@@ -131,32 +147,44 @@ export default class VarDataBaseVO implements IMatroid {
 
 
     /**
+     * Perf : préférer cloneFieldsFromVarConf si on a déjà la conf à dispo, sinon aucun impact
      * Méthode pour créer un nouveau paramètre de var, en clonant les fields depuis un autre paramètre, et en traduisant au besoin le matroid
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFrom<T extends VarDataBaseVO>(_type: string, var_name: string, param_to_clone: T, clone_fields: boolean = true): T {
+    public static cloneFieldsFromVarName<T extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): T {
 
-        let res: T = MatroidController.getInstance().cloneFrom(param_to_clone, _type, clone_fields);
-        if (!res) {
-            return null;
-        }
-        res.var_id = VarsController.getInstance().var_id_by_names[var_name];
-        return res;
+        return this.cloneFieldsFromVarConf(param_to_clone, VarsController.getInstance().var_conf_by_name[var_name], clone_fields);
+    }
+
+    /**
+     * Perf : préférer cloneFieldsFromVarConf si on a déjà la conf à dispo, sinon aucun impact
+     * Méthode pour créer un nouveau paramètre de var, en clonant les fields depuis un autre paramètre, et en traduisant au besoin le matroid
+     * @param param_to_clone Le param que l'on doit cloner
+     * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
+     */
+    public static cloneFieldsFromVarId<T extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): T {
+
+        return this.cloneFieldsFromVarConf(param_to_clone, VarsController.getInstance().var_conf_by_id[var_id], clone_fields);
     }
 
     /**
      * Méthode pour créer un nouveau paramètre de var, en clonant les fields depuis un autre paramètre, et en traduisant au besoin le matroid
+     * @param varConf Si on passe un varConf on applique une conversion sinon on fait un simple clone vers la même var et type d'objet
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromId<T extends VarDataBaseVO>(_type: string, var_id: number, param_to_clone: T, clone_fields: boolean = true): T {
+    public static cloneFieldsFromVarConf<T extends VarDataBaseVO>(param_to_clone: T, varConf: VarConfVO = null, clone_fields: boolean = true): T {
 
-        let res: T = MatroidController.getInstance().cloneFrom(param_to_clone, _type, clone_fields);
+        if (!param_to_clone) {
+            return null;
+        }
+
+        let res: T = MatroidController.getInstance().cloneFrom(param_to_clone, varConf ? varConf.var_data_vo_type : param_to_clone._type, varConf ? clone_fields : true);
         if (!res) {
             return null;
         }
-        res.var_id = var_id;
+        res.var_id = varConf.id;
         return res;
     }
 

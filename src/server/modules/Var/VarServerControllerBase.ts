@@ -4,7 +4,7 @@ import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import MainAggregateOperatorsHandlers from '../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
-import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -37,7 +37,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     public var_cache_conf: VarCacheConfVO = null;
     protected aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;
 
-    protected constructor(public varConf: VarConfVOBase) {
+    protected constructor(public varConf: VarConfVO) {
     }
 
     /**

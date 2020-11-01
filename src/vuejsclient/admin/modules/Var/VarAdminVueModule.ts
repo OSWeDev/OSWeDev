@@ -1,7 +1,7 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
-import VarConfVOBase from '../../../../shared/modules/Var/vos/VarConfVOBase';
+import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import CRUDComponentManager from '../../../ts/components/crud/CRUDComponentManager';
 import MenuBranch from '../../../ts/components/menu/vos/MenuBranch';
 import MenuElementBase from '../../../ts/components/menu/vos/MenuElementBase';
@@ -37,7 +37,7 @@ export default class VarAdminVueModule extends VueModuleBase {
 
         if (await ModuleAccessPolicy.getInstance().checkAccess(ModuleVar.POLICY_BO_VARCONF_ACCESS)) {
             CRUDComponentManager.getInstance().registerCRUD(
-                VarConfVOBase.API_TYPE_ID,
+                VarConfVO.API_TYPE_ID,
                 null,
                 new MenuPointer(
                     new MenuLeaf("SimpleVarConfVO", MenuElementBase.PRIORITY_ULTRAHIGH, "fa-calculator"),

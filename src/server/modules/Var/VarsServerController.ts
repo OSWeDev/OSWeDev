@@ -4,7 +4,7 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
-import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
@@ -33,8 +33,8 @@ export default class VarsServerController {
     private _varcontrollers_dag: DAG<VarCtrlDAGNode> = null;
 
     // NO CUD during run, just init in each thread - no multithreading special handlers needed
-    private _registered_vars: { [name: string]: VarConfVOBase } = {};
-    private _registered_vars_by_ids: { [id: number]: VarConfVOBase } = {};
+    private _registered_vars: { [name: string]: VarConfVO } = {};
+    private _registered_vars_by_ids: { [id: number]: VarConfVO } = {};
     private _registered_vars_controller: { [name: string]: VarServerControllerBase<any> } = {};
     private _registered_vars_by_datasource: { [datasource_id: string]: Array<VarServerControllerBase<any>> } = {};
 
@@ -79,11 +79,11 @@ export default class VarsServerController {
         this._varcontrollers_dag = varcontrollers_dag;
     }
 
-    public getVarConf(var_name: string): VarConfVOBase {
+    public getVarConf(var_name: string): VarConfVO {
         return this._registered_vars ? (this._registered_vars[var_name] ? this._registered_vars[var_name] : null) : null;
     }
 
-    public getVarConfById(var_id: number): VarConfVOBase {
+    public getVarConfById(var_id: number): VarConfVO {
         return this._registered_vars_by_ids ? (this._registered_vars_by_ids[var_id] ? this._registered_vars_by_ids[var_id] : null) : null;
     }
 
@@ -101,7 +101,7 @@ export default class VarsServerController {
         return res ? res : null;
     }
 
-    public async registerVar(varConf: VarConfVOBase, controller: VarServerControllerBase<any>): Promise<VarConfVOBase> {
+    public async registerVar(varConf: VarConfVO, controller: VarServerControllerBase<any>): Promise<VarConfVO> {
         if ((!varConf) || (!controller)) {
             return null;
         }
@@ -117,7 +117,7 @@ export default class VarsServerController {
             return varConf;
         }
 
-        let daoVarConf: VarConfVOBase = await ModuleDAO.getInstance().getNamedVoByName<VarConfVOBase>(varConf._type, varConf.name);
+        let daoVarConf: VarConfVO = await ModuleDAO.getInstance().getNamedVoByName<VarConfVO>(varConf._type, varConf.name);
 
         if (daoVarConf) {
             this.setVar(daoVarConf, controller);
@@ -135,7 +135,7 @@ export default class VarsServerController {
         return varConf;
     }
 
-    public async configureVarCache(var_conf: VarConfVOBase, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
+    public async configureVarCache(var_conf: VarConfVO, var_cache_conf: VarCacheConfVO): Promise<VarCacheConfVO> {
 
         let existing_bdd_conf: VarCacheConfVO[] = await ModuleDAO.getInstance().getVosByRefFieldIds<VarCacheConfVO>(VarCacheConfVO.API_TYPE_ID, 'var_id', [var_cache_conf.var_id]);
 
@@ -203,7 +203,7 @@ export default class VarsServerController {
         return res;
     }
 
-    private setVar(varConf: VarConfVOBase, controller: VarServerControllerBase<any>) {
+    private setVar(varConf: VarConfVO, controller: VarServerControllerBase<any>) {
         this._registered_vars[varConf.name] = varConf;
         this._registered_vars_controller[varConf.name] = controller;
         this._registered_vars_by_ids[varConf.id] = varConf;

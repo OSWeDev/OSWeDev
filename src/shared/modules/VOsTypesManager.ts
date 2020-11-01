@@ -1,3 +1,4 @@
+import ObjectHandler from '../tools/ObjectHandler';
 import IDistantVOBase from './IDistantVOBase';
 import ModuleTable from './ModuleTable';
 import ModuleTableField from './ModuleTableField';
@@ -128,5 +129,38 @@ export default class VOsTypesManager {
             return field;
         }
         return null;
+    }
+
+    /**
+     * Indique dans new_fields et deleted_fields respectivement les nouveaux champs et ceux ayant disparus en passant de type_src à type_dest.
+     *  On se base sur le field_id
+     * @param type_src La table de l'objet source de la conversion
+     * @param type_dest La table de l'objet destination de la conversion
+     * @param new_fields Un tableau passé en param et que l'on rempli dans la fonction pour indiquer les champs qui apparaissent dans la cible
+     * @param deleted_fields Un tableau passé en param et que l'on rempli dans la fonction pour indiquer les champs qui disparaissent dans la cible
+     */
+    public getChangingFieldsFromDifferentApiTypes(
+        type_src: ModuleTable<any>,
+        type_dest: ModuleTable<any>,
+        new_fields: Array<ModuleTableField<any>>,
+        deleted_fields: Array<ModuleTableField<any>>) {
+
+        let src_fields = ObjectHandler.getInstance().mapByStringFieldFromArray(type_src.get_fields(), 'field_id');
+        let dest_fields = ObjectHandler.getInstance().mapByStringFieldFromArray(type_dest.get_fields(), 'field_id');
+        for (let i in src_fields) {
+            let src_field = src_fields[i];
+
+            if (!dest_fields[src_field.field_id]) {
+                deleted_fields.push(src_field);
+            }
+        }
+
+        for (let i in dest_fields) {
+            let dest_field = dest_fields[i];
+
+            if (!src_fields[dest_field.field_id]) {
+                new_fields.push(dest_field);
+            }
+        }
     }
 }

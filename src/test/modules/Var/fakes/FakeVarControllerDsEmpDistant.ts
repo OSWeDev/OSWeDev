@@ -6,7 +6,7 @@ import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
-import VarConfVOBase from '../../../../shared/modules/Var/vos/VarConfVOBase';
+import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
@@ -25,10 +25,8 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
 
     protected static instance: FakeVarControllerDsEmpDistant = null;
 
-    public segment_type: number = TimeSegment.TYPE_MONTH;
-
     protected constructor() {
-        super(new VarConfVOBase('FakeVarControllerDsEmpDistant', FakeEmpDistantVO.API_TYPE_ID, 2));
+        super(new VarConfVO('FakeVarControllerDsEmpDistant', FakeEmpDistantVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, 2));
 
         this.optimization__has_no_imports = true;
     }
@@ -51,7 +49,6 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
 
         return [
             VarDataBaseVO.createNew(
-                FakeEmpDayDataVO.API_TYPE_ID,
                 this.varConf.name,
                 false,
                 [RangeHandler.getInstance().create_single_elt_NumRange((c_or_d_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
@@ -72,14 +69,12 @@ export default class FakeVarControllerDsEmpDistant extends VarServerControllerBa
 
         return [
             VarDataBaseVO.createNew(
-                FakeEmpDayDataVO.API_TYPE_ID,
                 this.varConf.name,
                 false,
                 [RangeHandler.getInstance().create_single_elt_NumRange((typed.pre_update_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],
                 [RangeHandler.getInstance().create_single_elt_TSRange((typed.pre_update_vo as FakeEmpDistantVO).date, TimeSegment.TYPE_MONTH)]
             ),
             VarDataBaseVO.createNew(
-                FakeEmpDayDataVO.API_TYPE_ID,
                 this.varConf.name,
                 false,
                 [RangeHandler.getInstance().create_single_elt_NumRange((typed.post_update_vo as FakeEmpDistantVO).employee_id, NumSegment.TYPE_INT)],

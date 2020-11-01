@@ -1,5 +1,6 @@
-import ModuleVar from './ModuleVar';
-import VarConfIds from './vos/VarConfIds';
+import ModuleDAO from '../DAO/ModuleDAO';
+import VOsTypesManager from '../VOsTypesManager';
+import VarConfVO from './vos/VarConfVO';
 import VarDataBaseVO from './vos/VarDataBaseVO';
 
 export default class VarsController {
@@ -15,29 +16,23 @@ export default class VarsController {
     private static instance: VarsController = null;
 
     /**
-     * La correspondance des noms de vars vers les ids, pour garder des indexs compacts
+     * Les confs de var par nom, pour avoir les infos les plus importantes sur les vars partout
      */
-    public var_id_by_names: { [name: string]: number } = {};
-
-    /**
-     * La correspondance des ids vers les noms de vars, pour récupérer les trads par exemple
-     */
-    public var_names_by_ids: { [var_id: number]: string } = {};
+    public var_conf_by_name: { [name: string]: VarConfVO } = {};
+    public var_conf_by_id: { [var_id: number]: VarConfVO } = {};
 
     protected constructor() {
     }
 
-    public async initialize(var_id_by_names: { [name: string]: number } = null) {
-        if (!var_id_by_names) {
-            let res: VarConfIds = await ModuleVar.getInstance().get_var_id_by_names();
-            var_id_by_names = (res && res.var_id_by_names) ? res.var_id_by_names : null;
+    public async initialize(var_conf_by_id: { [var_id: number]: VarConfVO } = null) {
+        if (!var_conf_by_id) {
+            this.var_conf_by_id = VOsTypesManager.getInstance().vosArray_to_vosByIds(await ModuleDAO.getInstance().getVos<VarConfVO>(VarConfVO.API_TYPE_ID));
+        } else {
+            this.var_conf_by_id = var_conf_by_id;
         }
-        if (var_id_by_names) {
-            this.var_id_by_names = var_id_by_names ? var_id_by_names : {};
-            for (let name in var_id_by_names) {
-                let id = var_id_by_names[name];
-                this.var_names_by_ids[id] = name;
-            }
+        for (let i in this.var_conf_by_id) {
+            let conf = this.var_conf_by_id[i];
+            this.var_conf_by_name[conf.name] = conf;
         }
     }
 

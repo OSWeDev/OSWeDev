@@ -15,7 +15,7 @@ import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
-import VarConfVOBase from '../../../shared/modules/Var/vos/VarConfVOBase';
+import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -543,7 +543,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private async get_var_id_by_names(): Promise<VarConfIds> {
         let res: VarConfIds = new VarConfIds();
-        let var_confs: VarConfVOBase[] = await ModuleDAO.getInstance().getVos<VarConfVOBase>(VarConfVOBase.API_TYPE_ID);
+        let var_confs: VarConfVO[] = await ModuleDAO.getInstance().getVos<VarConfVO>(VarConfVO.API_TYPE_ID);
         res.var_id_by_names = {};
 
         for (let i in var_confs) {
