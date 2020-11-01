@@ -1,5 +1,4 @@
 import RangeHandler from '../../tools/RangeHandler';
-import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import VarsController from './VarsController';
@@ -25,18 +24,18 @@ export default class DataConvertionsController {
      * ATTENTION : on change le param directement sans copie, on le renvoie juste pour assurer une continuité dans l'écriture - Proxy Pattern
      * @param param l'objet que l'on veut convertir
      */
-    public convertVarDataFromVarName(param: VarDataBaseVO, target_var_name: string): VarDataBaseVO {
+    public convertVarDataFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(param: T, target_var_name: string): U {
 
-        return this.convertVarDataFromVarConf(param, VarsController.getInstance().var_conf_by_name[target_var_name]);
+        return this.convertVarDataFromVarConf<T, U>(param, VarsController.getInstance().var_conf_by_name[target_var_name]);
     }
 
     /**
      * ATTENTION : on change le param directement sans copie, on le renvoie juste pour assurer une continuité dans l'écriture - Proxy Pattern
      * @param param l'objet que l'on veut convertir
      */
-    public convertVarDataFromVarId(param: VarDataBaseVO, target_var_id: number): VarDataBaseVO {
+    public convertVarDataFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(param: T, target_var_id: number): U {
 
-        return this.convertVarDataFromVarConf(param, VarsController.getInstance().var_conf_by_id[target_var_id]);
+        return this.convertVarDataFromVarConf<T, U>(param, VarsController.getInstance().var_conf_by_id[target_var_id]);
     }
 
 
@@ -45,10 +44,10 @@ export default class DataConvertionsController {
      *  On adapte aussi le segment_type du ts_ranges (ou nom équivalent définit dans la conf de la var)
      * @param param l'objet que l'on veut convertir
      */
-    public convertVarDataFromVarConf(param: VarDataBaseVO, target_var_conf: VarConfVO): VarDataBaseVO {
+    public convertVarDataFromVarConf<T extends VarDataBaseVO, U extends VarDataBaseVO>(param: T, target_var_conf: VarConfVO): U {
 
         if ((!param) || (!target_var_conf) || (target_var_conf.id == param.var_id)) {
-            return param;
+            return param as any as U;
         }
 
         let moduletable_from = VOsTypesManager.getInstance().moduleTables_by_voType[param._type];
@@ -76,7 +75,7 @@ export default class DataConvertionsController {
 
         param._type = target_var_conf.var_data_vo_type;
         delete param['_index'];
-        return param;
+        return param as any as U;
     }
 
 
@@ -85,31 +84,31 @@ export default class DataConvertionsController {
      * ATTENTION : on change les params directement sans copie, on les renvoie juste pour assurer une continuité dans l'écriture - Proxy Pattern
      * @param params les objets que l'on veut convertir
      */
-    public convertVarDatasFromVarName(params: VarDataBaseVO[], target_var_name: string): VarDataBaseVO[] {
+    public convertVarDatasFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(params: T[], target_var_name: string): U[] {
 
-        params.forEach((param) => DataConvertionsController.getInstance().convertVarDataFromVarConf(
+        params.forEach((param) => DataConvertionsController.getInstance().convertVarDataFromVarConf<T, U>(
             param, VarsController.getInstance().var_conf_by_name[target_var_name]));
-        return params;
+        return params as any as U[];
     }
 
     /**
      * ATTENTION : on change les params directement sans copie, on les renvoie juste pour assurer une continuité dans l'écriture - Proxy Pattern
      * @param params les objets que l'on veut convertir
      */
-    public convertVarDatasFromVarId(params: VarDataBaseVO[], target_var_id: number): VarDataBaseVO[] {
+    public convertVarDatasFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(params: T[], target_var_id: number): U[] {
 
-        params.forEach((param) => DataConvertionsController.getInstance().convertVarDataFromVarConf(
+        params.forEach((param) => DataConvertionsController.getInstance().convertVarDataFromVarConf<T, U>(
             param, VarsController.getInstance().var_conf_by_id[target_var_id]));
-        return params;
+        return params as any as U[];
     }
 
     /**
      * ATTENTION : on change les params directement sans copie, on les renvoie juste pour assurer une continuité dans l'écriture - Proxy Pattern
      * @param params les objets que l'on veut convertir
      */
-    public convertVarDatasFromVarConf(params: VarDataBaseVO[], target_var_conf: VarConfVO): VarDataBaseVO[] {
+    public convertVarDatasFromVarConf<T extends VarDataBaseVO, U extends VarDataBaseVO>(params: T[], target_var_conf: VarConfVO): U[] {
 
-        params.forEach((param) => DataConvertionsController.getInstance().convertVarDataFromVarConf(param, target_var_conf));
-        return params;
+        params.forEach((param) => DataConvertionsController.getInstance().convertVarDataFromVarConf<T, U>(param, target_var_conf));
+        return params as any as U[];
     }
 }
