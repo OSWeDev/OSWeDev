@@ -23,6 +23,15 @@ export default class NumSegmentHandler {
     }
 
     /**
+     * Renvoi 1 si le semgent_type a est plus grand que b, -1 si plus petit, 0 si égaux
+     * @param segment_type_a
+     * @param segment_type_b
+     */
+    public compareSegmentTypes(segment_type_a: number, segment_type_b: number): number {
+        return 0;
+    }
+
+    /**
      * ATTENTION : modifie le TS sans copie
      * @param timeSegment
      * @param type defaults to the type of the timeSegment provided as first argument

@@ -31,6 +31,41 @@ export default class HourSegmentHandler {
     }
 
     /**
+     * Renvoi 1 si le semgent_type a est plus grand que b, -1 si plus petit, 0 si égaux
+     * @param segment_type_a
+     * @param segment_type_b
+     */
+    public compareSegmentTypes(segment_type_a: number, segment_type_b: number): number {
+        if (segment_type_a == segment_type_b) {
+            return 0;
+        }
+
+        if (segment_type_b == HourSegment.TYPE_HOUR) {
+            return -1;
+        }
+
+        switch (segment_type_a) {
+            case HourSegment.TYPE_HOUR:
+                return 1;
+            case HourSegment.TYPE_MINUTE:
+                if (segment_type_b == HourSegment.TYPE_HOUR) {
+                    return -1;
+                }
+                return 1;
+            case HourSegment.TYPE_SECOND:
+                if ((segment_type_b == HourSegment.TYPE_MINUTE) ||
+                    (segment_type_b == HourSegment.TYPE_HOUR)) {
+                    return -1;
+                }
+                return 1;
+            case HourSegment.TYPE_MS:
+                return -1;
+        }
+
+        return null;
+    }
+
+    /**
      *
      * @param start
      * @param end

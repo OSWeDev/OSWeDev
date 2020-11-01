@@ -56,6 +56,54 @@ export default class RangeHandler {
     private constructor() { }
 
     /**
+     * Renvoi une liste (union) de ranges optimisée pour correspondre au nouveau segment_type
+     * si le segment_type est le même que celui actuellement en place dans le param, on renvoie le param
+     * sinon on change le segment_type et on adapte le range. On renvoie l'union des ranges modifiés
+     * @param ranges
+     * @param target_segment_type
+     */
+    public get_ranges_according_to_segment_type<T>(ranges: Array<IRange<T>>, target_segment_type: number): Array<IRange<T>> {
+
+        let has_changed: boolean = false;
+        let res: Array<IRange<T>> = [];
+
+        for (let i in ranges) {
+            let range = ranges[i];
+
+            let comparison: number = null;
+            switch (range.range_type) {
+                case TSRange.RANGE_TYPE:
+                    comparison = TimeSegmentHandler.getInstance().compareSegmentTypes(range.segment_type, target_segment_type);
+                    break;
+                case NumRange.RANGE_TYPE:
+                    comparison = NumSegmentHandler.getInstance().compareSegmentTypes(range.segment_type, target_segment_type);
+                    break;
+                case HourRange.RANGE_TYPE:
+                    comparison = HourSegmentHandler.getInstance().compareSegmentTypes(range.segment_type, target_segment_type);
+                    break;
+            }
+            if (comparison >= 0) {
+                res.push(range);
+                continue;
+            }
+
+            res.push(this.createNew(
+                range.range_type,
+                this.getSegmentedMin(range, target_segment_type),
+                this.getSegmentedMax(range, target_segment_type),
+                true,
+                true,
+                target_segment_type));
+            has_changed = true;
+        }
+
+        if (!has_changed) {
+            return ranges;
+        }
+        return this.getRangesUnion(res);
+    }
+
+    /**
      * On part d'un ensemble continu de ranges, et on en sort le plus petit ensemble couvrant le segment_type (supérieur) indiqué en param
      *  Par exemple on a du 01/01/2020 au 10/01/2020 et du 02/02/2020 au 03/02/2020 en segment type DAY, on passe en MONTH, on renvoie 01/2020 - 02/2020
      */
@@ -1125,7 +1173,6 @@ export default class RangeHandler {
             default:
                 return null;
         }
-        return this.createNew(NumRange.RANGE_TYPE, RangeHandler.MIN_INT, RangeHandler.MAX_INT, true, true, NumSegment.TYPE_INT);
     }
 
     public getMaxNumRange(): NumRange {

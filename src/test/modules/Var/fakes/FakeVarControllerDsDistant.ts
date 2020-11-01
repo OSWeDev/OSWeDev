@@ -89,7 +89,7 @@ export default class FakeVarControllerDsDistant extends VarServerControllerBase<
 
             res += (datas && datas[date.valueOf()]) ? datas[date.valueOf()].value : 0;
 
-        }, this.varConf.segment_type);
+        }, this.varConf.ts_ranges_segment_type);
         return res;
     }
 }

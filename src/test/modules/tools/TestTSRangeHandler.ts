@@ -18,7 +18,35 @@ describe('TSRangeHandler', () => {
     let moins_un = moment(zero).add(-1, 'day').utc(true);
     let moins_deux = moment(zero).add(-2, 'day').utc(true);
 
+    let zero_startofmonth = moment('2020-02-01').startOf('day').utc(true);
+    let zero_startofnextmonth = moment('2020-03-01').startOf('day').utc(true);
+
     let bidon = moment(zero).add(10, 'day').utc(true);
+
+    it('test get_ranges_according_to_segment_type', () => {
+        expect(RangeHandler.getInstance().get_ranges_according_to_segment_type(null, null)).to.equal(null);
+        expect(RangeHandler.getInstance().get_ranges_according_to_segment_type([
+            TSRange.createNew(zero, zero, true, true, TimeSegment.TYPE_DAY)
+        ], TimeSegment.TYPE_DAY)).to.deep.equal([
+            TSRange.createNew(zero, un, true, false, TimeSegment.TYPE_DAY)
+        ]);
+
+        // Le assign est juste à cause d'un pb de momentjs....
+        let month_ranges = RangeHandler.getInstance().get_ranges_according_to_segment_type([
+            TSRange.createNew(moment(zero), moment(zero), true, true, TimeSegment.TYPE_DAY)
+        ], TimeSegment.TYPE_MONTH);
+        month_ranges[0].max['_i'] = "2020-03-01";
+        month_ranges[0].max['_pf'].parsedDateParts = [2020, 2, 1];
+        month_ranges[0].min['_i'] = "2020-02-01";
+        // comprends pas le lien entre month_ranges[0].min['_pf'] et month_ranges[0].max['_pf']... mais sans ça c'est le même obj...
+        month_ranges[0].min['_pf'] = Object.create(month_ranges[0].min['_pf']);
+        month_ranges[0].min['_pf'].parsedDateParts = [2020, 1, 1];
+
+        expect(month_ranges).to.deep.equal([
+            TSRange.createNew(moment(zero_startofmonth), moment(zero_startofnextmonth), true, false, TimeSegment.TYPE_MONTH)
+        ]);
+    });
+
 
     it('test getCardinal', () => {
         expect(RangeHandler.getInstance().getCardinal(null)).to.equal(null);

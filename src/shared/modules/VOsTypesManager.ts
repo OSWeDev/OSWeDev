@@ -142,6 +142,7 @@ export default class VOsTypesManager {
     public getChangingFieldsFromDifferentApiTypes(
         type_src: ModuleTable<any>,
         type_dest: ModuleTable<any>,
+        common_fields: Array<ModuleTableField<any>>,
         new_fields: Array<ModuleTableField<any>>,
         deleted_fields: Array<ModuleTableField<any>>) {
 
@@ -152,6 +153,8 @@ export default class VOsTypesManager {
 
             if (!dest_fields[src_field.field_id]) {
                 deleted_fields.push(src_field);
+            } else {
+                common_fields.push(src_field);
             }
         }
 

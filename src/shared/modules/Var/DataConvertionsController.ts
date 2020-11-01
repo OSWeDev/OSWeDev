@@ -1,4 +1,5 @@
 import RangeHandler from '../../tools/RangeHandler';
+import TimeSegmentHandler from '../../tools/TimeSegmentHandler';
 import ModuleTableField from '../ModuleTableField';
 import VOsTypesManager from '../VOsTypesManager';
 import VarsController from './VarsController';
@@ -41,6 +42,7 @@ export default class DataConvertionsController {
 
     /**
      * ATTENTION : on change le param directement sans copie, on le renvoie juste pour assurer une continuité dans l'écriture - Proxy Pattern
+     *  On adapte aussi le segment_type du ts_ranges (ou nom équivalent définit dans la conf de la var)
      * @param param l'objet que l'on veut convertir
      */
     public convertVarDataFromVarConf(param: VarDataBaseVO, target_var_conf: VarConfVO): VarDataBaseVO {
@@ -56,13 +58,21 @@ export default class DataConvertionsController {
          * Les champs manquants dans le type cible on les supprime
          * Les champs nouveaux dans le type cible on les crée en max range
          * On supprime l'index et on change le type
+         *
+         * Pour les champs qui restent valides mais qui changent de segmentation => si la nouvelle est plus large que l'ancienne, on adapte le(s) range(s)
          */
+        let common_fields: Array<ModuleTableField<any>> = [];
         let new_fields: Array<ModuleTableField<any>> = [];
         let deleted_fields: Array<ModuleTableField<any>> = [];
-        VOsTypesManager.getInstance().getChangingFieldsFromDifferentApiTypes(moduletable_from, moduletable_to, new_fields, deleted_fields);
+        VOsTypesManager.getInstance().getChangingFieldsFromDifferentApiTypes(moduletable_from, moduletable_to, common_fields, new_fields, deleted_fields);
 
         new_fields.forEach((field: ModuleTableField<any>) => param[field.field_id] = RangeHandler.getInstance().getMaxRange(field));
         deleted_fields.forEach((field: ModuleTableField<any>) => delete param[field.field_id]);
+
+        if (target_var_conf.ts_ranges_segment_type != null) {
+
+            param[target_var_conf.ts_ranges_field_name] = RangeHandler.getInstance().get_ranges_according_to_segment_type(param[target_var_conf.ts_ranges_field_name], target_var_conf.ts_ranges_segment_type);
+        }
 
         param._type = target_var_conf.var_data_vo_type;
         delete param['_index'];

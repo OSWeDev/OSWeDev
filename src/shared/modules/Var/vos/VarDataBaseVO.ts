@@ -95,9 +95,9 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarName<T extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): T {
+    public static cloneFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): U {
 
-        return this.cloneFieldsFromVarName(var_name, param_to_clone, clone_fields);
+        return this.cloneFieldsFromVarName<T, U>(param_to_clone, var_name, clone_fields);
     }
 
     /**
@@ -106,9 +106,9 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_id Identifiant de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarId<T extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): T {
+    public static cloneFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): U {
 
-        return this.cloneFieldsFromVarId(var_id, param_to_clone, clone_fields);
+        return this.cloneFieldsFromVarId<T, U>(param_to_clone, var_id, clone_fields);
     }
 
     /**
@@ -117,9 +117,9 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_conf La conf de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFromVarConf<T extends VarDataBaseVO>(param_to_clone: T, var_conf: VarConfVO = null, clone_fields: boolean = true): T {
+    public static cloneFromVarConf<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_conf: VarConfVO = null, clone_fields: boolean = true): U {
 
-        return this.cloneFieldsFromVarConf(var_conf, param_to_clone, clone_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, var_conf, clone_fields);
     }
 
     /**
@@ -128,18 +128,18 @@ export default class VarDataBaseVO implements IMatroid {
      * @param var_name Le nom de la var cible
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneArrayFrom<T extends VarDataBaseVO>(params_to_clone: T[], var_name: string = null, clone_fields: boolean = true): T[] {
+    public static cloneArrayFrom<T extends VarDataBaseVO, U extends VarDataBaseVO>(params_to_clone: T[], var_name: string = null, clone_fields: boolean = true): U[] {
 
         if (!params_to_clone) {
             return null;
         }
 
-        let res: T[] = [];
+        let res: U[] = [];
 
         for (let i in params_to_clone) {
             let param_to_clone = params_to_clone[i];
 
-            res.push(this.cloneFromVarName(param_to_clone, var_name, clone_fields));
+            res.push(this.cloneFromVarName<T, U>(param_to_clone, var_name, clone_fields));
         }
 
         return res;
@@ -152,9 +152,9 @@ export default class VarDataBaseVO implements IMatroid {
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromVarName<T extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): T {
+    public static cloneFieldsFromVarName<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_name: string = null, clone_fields: boolean = true): U {
 
-        return this.cloneFieldsFromVarConf(param_to_clone, VarsController.getInstance().var_conf_by_name[var_name], clone_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.getInstance().var_conf_by_name[var_name], clone_fields);
     }
 
     /**
@@ -163,9 +163,9 @@ export default class VarDataBaseVO implements IMatroid {
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromVarId<T extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): T {
+    public static cloneFieldsFromVarId<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, var_id: number = null, clone_fields: boolean = true): U {
 
-        return this.cloneFieldsFromVarConf(param_to_clone, VarsController.getInstance().var_conf_by_id[var_id], clone_fields);
+        return this.cloneFieldsFromVarConf<T, U>(param_to_clone, VarsController.getInstance().var_conf_by_id[var_id], clone_fields);
     }
 
     /**
@@ -174,13 +174,13 @@ export default class VarDataBaseVO implements IMatroid {
      * @param param_to_clone Le param que l'on doit cloner
      * @param clone_ranges Est-ce qu'on clone les champs ou pas (par défaut il faut cloner, mais on peut dans certains contextes optimiser en ne clonant pas)
      */
-    public static cloneFieldsFromVarConf<T extends VarDataBaseVO>(param_to_clone: T, varConf: VarConfVO = null, clone_fields: boolean = true): T {
+    public static cloneFieldsFromVarConf<T extends VarDataBaseVO, U extends VarDataBaseVO>(param_to_clone: T, varConf: VarConfVO = null, clone_fields: boolean = true): U {
 
         if (!param_to_clone) {
             return null;
         }
 
-        let res: T = MatroidController.getInstance().cloneFrom(param_to_clone, varConf ? varConf.var_data_vo_type : param_to_clone._type, varConf ? clone_fields : true);
+        let res: U = MatroidController.getInstance().cloneFrom<T, U>(param_to_clone, varConf ? varConf.var_data_vo_type : param_to_clone._type, varConf ? clone_fields : true);
         if (!res) {
             return null;
         }
