@@ -1,4 +1,5 @@
 import ModuleAccessPolicy from '../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
+import ISupervisedItemController from '../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import ModuleSupervision from '../../../../shared/modules/Supervision/ModuleSupervision';
 import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
@@ -42,13 +43,18 @@ export default class SupervisionAdminVueModule extends VueModuleBase {
         }
 
         let registered_api_types = SupervisionController.getInstance().registered_controllers;
-        for (let registered_api_type in registered_api_types) {
+        for (let api_type in registered_api_types) {
+            let registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type];
+
+            if (!registered_api_type.is_actif()) {
+                continue;
+            }
 
             CRUDComponentManager.getInstance().registerCRUD(
-                registered_api_type,
+                api_type,
                 null,
                 new MenuPointer(
-                    new MenuLeaf(registered_api_type, MenuElementBase.PRIORITY_HIGH, "fa-table"),
+                    new MenuLeaf(api_type, MenuElementBase.PRIORITY_HIGH, "fa-table"),
                     SupervisionAdminVueModule.DEFAULT_MENU_BRANCH),
                 this.routes);
         }
