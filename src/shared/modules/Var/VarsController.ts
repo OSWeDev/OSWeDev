@@ -1271,6 +1271,9 @@ export default class VarsController {
         if (needs_new_batch) {
 
             await this.updateDatas();
+        } else {
+
+            this.clean_caches_and_vardag();
         }
     }
 
