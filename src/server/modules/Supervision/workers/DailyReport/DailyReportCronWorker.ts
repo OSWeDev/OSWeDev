@@ -2,6 +2,7 @@ import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../../../shared/modules/Params/ModuleParams';
 import SendInBlueMailVO from '../../../../../shared/modules/SendInBlue/vos/SendInBlueMailVO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
+import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import TeamsWebhookContentSectionVO from '../../../../../shared/modules/TeamsAPI/vos/TeamsWebhookContentSectionVO';
@@ -176,7 +177,14 @@ export default class DailyReportCronWorker implements ICronWorker {
         let supervised_items_by_names: { [name: string]: ISupervisedItem } = {};
         let promises = [];
 
-        for (let api_type_id in SupervisionController.getInstance().registered_controllers) {
+        let registered_api_types = SupervisionController.getInstance().registered_controllers;
+
+        for (let api_type_id in registered_api_types) {
+            let registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type_id];
+
+            if (!registered_api_type.is_actif()) {
+                continue;
+            }
 
             promises.push((async () => {
                 let items = await ModuleDAO.getInstance().getVos<ISupervisedItem>(api_type_id);

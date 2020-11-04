@@ -1,6 +1,7 @@
 import Component from 'vue-class-component';
 import ModuleDAO from '../../../../../shared/modules/DAO/ModuleDAO';
 import ISupervisedItem from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItem';
+import ISupervisedItemController from '../../../../../shared/modules/Supervision/interfaces/ISupervisedItemController';
 import SupervisionController from '../../../../../shared/modules/Supervision/SupervisionController';
 import SupervisedCategoryVO from '../../../../../shared/modules/Supervision/vos/SupervisedCategoryVO';
 import VueComponentBase from '../../../../ts/components/VueComponentBase';
@@ -70,7 +71,14 @@ export default class SupervisionDashboardComponent extends VueComponentBase {
 
         let already_add_api_type_ids_by_category_ids: { [id: number]: { [api_type_id: string]: boolean } } = {};
 
-        for (let api_type_id in SupervisionController.getInstance().registered_controllers) {
+        let registered_api_types = SupervisionController.getInstance().registered_controllers;
+
+        for (let api_type_id in registered_api_types) {
+            let registered_api_type: ISupervisedItemController<any> = registered_api_types[api_type_id];
+
+            if (!registered_api_type.is_actif()) {
+                continue;
+            }
 
             if (first_build) {
                 this.api_type_ids.push(api_type_id);

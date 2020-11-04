@@ -59,5 +59,4 @@ export default class VarsController {
         }
         return true;
     }
-
 }
