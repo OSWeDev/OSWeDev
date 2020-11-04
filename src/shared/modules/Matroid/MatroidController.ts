@@ -538,9 +538,9 @@ export default class MatroidController {
         let needs_mapping: boolean = moduletable_from != moduletable_to;
         let mappings: { [field_id_a: string]: string } = moduletable_from.mapping_by_api_type_ids[_type];
 
-        if (needs_mapping && (typeof mappings === 'undefined')) {
-            throw new Error('Mapping missing:from:' + from._type + ":to:" + _type + ":");
-        }
+        // if (needs_mapping && (typeof mappings === 'undefined')) {
+        //     throw new Error('Mapping missing:from:' + from._type + ":to:" + _type + ":");
+        // }
 
         let to_fields = MatroidController.getInstance().getMatroidFields(_type);
         for (let to_fieldi in to_fields) {
@@ -548,11 +548,22 @@ export default class MatroidController {
 
             let from_field_id = to_field.field_id;
             if (needs_mapping) {
-                for (let mappingi in mappings) {
+                /**
+                 * Si on a un mapping predef on l'utilise
+                 */
+                if (typeof mappings !== 'undefined') {
+                    for (let mappingi in mappings) {
 
-                    if (mappings[mappingi] == to_field.field_id) {
-                        from_field_id = mappingi;
+                        if (mappings[mappingi] == to_field.field_id) {
+                            from_field_id = mappingi;
+                        }
                     }
+                } else {
+                    /**
+                     * Sinon on check que le champ existait dans le type from
+                     */
+                    let from_field = moduletable_from.get_field_by_id(to_field.field_id);
+                    from_field_id = from_field ? to_field.field_id : null;
                 }
             }
 
@@ -561,13 +572,17 @@ export default class MatroidController {
             } else {
                 switch (to_field.field_type) {
                     case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxTSRange()];
                     case ModuleTableField.FIELD_TYPE_refrange_array:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
                     case ModuleTableField.FIELD_TYPE_numrange_array:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxNumRange()];
                     case ModuleTableField.FIELD_TYPE_hourrange_array:
-                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxHourRange()];
+                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxRange(to_field)];
+                        break;
+                    case ModuleTableField.FIELD_TYPE_tsrange:
+                    case ModuleTableField.FIELD_TYPE_numrange:
+                    case ModuleTableField.FIELD_TYPE_hourrange:
+                    case ModuleTableField.FIELD_TYPE_daterange:
+                        res[to_field.field_id] = [RangeHandler.getInstance().getMaxRange(to_field)];
+                        break;
                     default:
                 }
             }

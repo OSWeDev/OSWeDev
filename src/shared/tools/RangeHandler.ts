@@ -1163,6 +1163,7 @@ export default class RangeHandler {
                 return this.getMaxNumRange() as any as IRange<T>;
 
             case ModuleTableField.FIELD_TYPE_tstzrange_array:
+            case ModuleTableField.FIELD_TYPE_daterange:
             case ModuleTableField.FIELD_TYPE_tsrange:
                 return this.getMaxTSRange() as any as IRange<T>;
 

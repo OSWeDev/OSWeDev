@@ -75,10 +75,6 @@ export default class VarsServerController {
         return this._registered_vars_controller_by_api_type_id;
     }
 
-    public init_varcontrollers_dag(varcontrollers_dag: DAG<VarCtrlDAGNode>) {
-        this._varcontrollers_dag = varcontrollers_dag;
-    }
-
     public getVarConf(var_name: string): VarConfVO {
         return this._registered_vars ? (this._registered_vars[var_name] ? this._registered_vars[var_name] : null) : null;
     }
@@ -99,6 +95,29 @@ export default class VarsServerController {
 
         let res = this._registered_vars_controller[this._registered_vars_by_ids[var_id].name];
         return res ? res : null;
+    }
+
+    public init_varcontrollers_dag() {
+
+        let varcontrollers_dag: DAG<VarCtrlDAGNode> = new DAG();
+
+        for (let i in VarsServerController.getInstance().registered_vars_controller_) {
+            let var_controller: VarServerControllerBase<any> = VarsServerController.getInstance().registered_vars_controller_[i];
+
+            let node = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_controller);
+
+            let var_dependencies: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
+
+            for (let dep_name in var_dependencies) {
+                let var_dependency = var_dependencies[dep_name];
+
+                let dependency = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_dependency);
+
+                node.addOutgoingDep(dep_name, dependency);
+            }
+        }
+
+        this._varcontrollers_dag = varcontrollers_dag;
     }
 
     public async registerVar(varConf: VarConfVO, controller: VarServerControllerBase<any>): Promise<VarConfVO> {

@@ -55,7 +55,7 @@ export default class FakeDistantHandler {
 
     public static get_distant_A2(): FakeDistantVO {
         let var_data: FakeDistantVO = new FakeDistantVO();
-        var_data.id = 2;
+        var_data.id = 1;
         var_data.date = moment('2020-03-01').utc(true).startOf('day');
         var_data.value = 5;
         return var_data;
@@ -63,12 +63,12 @@ export default class FakeDistantHandler {
 
     public static get_distant_A2_Update(): DAOUpdateVOHolder<FakeDistantVO> {
         let var_data_pre: FakeDistantVO = new FakeDistantVO();
-        var_data_pre.id = 2;
+        var_data_pre.id = 1;
         var_data_pre.date = moment('2020-03-01').utc(true).startOf('day');
         var_data_pre.value = 5;
 
         let var_data_post: FakeDistantVO = new FakeDistantVO();
-        var_data_post.id = 2;
+        var_data_post.id = 1;
         var_data_post.date = moment('2020-01-01').utc(true).startOf('day');
         var_data_post.value = 5;
 

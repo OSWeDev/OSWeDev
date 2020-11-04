@@ -160,15 +160,26 @@ export default class VarsDatasVoUpdateHandler {
         let intersectors = intersectors_by_var_id[Nx.var_controller.varConf.id];
         intersectors = intersectors ? intersectors : [];
 
+        let has_deps_to_compute: boolean = false;
+
         for (let j in Nx.outgoing_deps) {
             let dep = Nx.outgoing_deps[j];
 
+            if (!intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id]) {
+                continue;
+            }
+
+            has_deps_to_compute = true;
             let tmp = await Nx.var_controller.get_invalid_params_intersectors_from_dep(
                 dep.dep_name,
-                intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id] ? intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id] : []);
+                intersectors_by_var_id[dep.outgoing_node.var_controller.varConf.id]);
             if (tmp && tmp.length) {
                 intersectors = intersectors.concat(tmp);
             }
+        }
+
+        if (!has_deps_to_compute) {
+            return;
         }
 
         intersectors = MatroidController.getInstance().union(intersectors);
@@ -179,6 +190,12 @@ export default class VarsDatasVoUpdateHandler {
         intersectors_by_var_id[Nx.var_controller.varConf.id] = intersectors;
     }
 
+    /**
+     * L'idée est de noter les noeuds de l'arbre en partant des noeuds de base (ctrls_to_update_1st_stage) et en remontant dans l'arbre en
+     *  indiquant un +1 sur chaque noeud. Ce marqueur est utlisé par le suite pour savoir les dépendances en attente ou résolues
+     * @param ctrls_to_update_1st_stage
+     * @param markers
+     */
     private async init_markers(ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }, markers: { [var_id: number]: number }) {
         for (let i in ctrls_to_update_1st_stage) {
             let ctrl = ctrls_to_update_1st_stage[i];

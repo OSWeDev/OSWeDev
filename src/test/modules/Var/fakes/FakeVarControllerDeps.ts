@@ -27,7 +27,7 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
     protected static instance: FakeVarControllerDeps = null;
 
     protected constructor() {
-        super(new VarConfVO('FakeVarControllerDeps', FakeEmpDistantVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, 3));
+        super(new VarConfVO('FakeVarControllerDeps', FakeEmpDayDataVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, 3));
 
         this.optimization__has_no_imports = true;
     }
@@ -67,9 +67,7 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
                 return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeEmpDayDataVO[], this.varConf.name);
 
             case FakeVarControllerDeps.DEP_DsDistant:
-                return DataConvertionsController.getInstance().convertVarDatasFromVarName(
-                    VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[]),
-                    this.varConf.name) as FakeEmpDayDataVO[];
+                return VarDataBaseVO.cloneArrayFrom(intersectors as any as FakeDataVO[], this.varConf.name) as FakeEmpDayDataVO[];
         }
 
         return null;

@@ -154,8 +154,6 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         ModuleServiceBase.getInstance().post_modules_installation_hooks.push(() => {
 
-            let varcontrollers_dag: DAG<VarCtrlDAGNode> = new DAG();
-
             /**
              * Ajout des triggers d'invalidation des données de cache en BDD
              *  - on part de la liste des vars qui ont un cache et des datasources
@@ -167,24 +165,7 @@ export default class ModuleVarServer extends ModuleServerBase {
                 postDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
             }
 
-
-            for (let i in VarsServerController.getInstance().registered_vars_controller_) {
-                let var_controller: VarServerControllerBase<any> = VarsServerController.getInstance().registered_vars_controller_[i];
-
-                let node = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_controller);
-
-                let var_dependencies: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
-
-                for (let dep_name in var_dependencies) {
-                    let var_dependency = var_dependencies[dep_name];
-
-                    let dependency = VarCtrlDAGNode.getInstance(varcontrollers_dag, var_dependency);
-
-                    node.addOutgoingDep(dep_name, dependency);
-                }
-            }
-
-            VarsServerController.getInstance().init_varcontrollers_dag(varcontrollers_dag);
+            VarsServerController.getInstance().init_varcontrollers_dag();
         });
     }
 

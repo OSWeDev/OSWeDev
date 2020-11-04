@@ -184,7 +184,7 @@ export default class VarDataBaseVO implements IMatroid {
         if (!res) {
             return null;
         }
-        res.var_id = varConf.id;
+        res.var_id = varConf ? varConf.id : param_to_clone.var_id;
         return res;
     }
 

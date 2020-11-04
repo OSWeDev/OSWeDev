@@ -403,6 +403,10 @@ export default class ModuleTable<T extends IDistantVOBase> {
         return this.fields_;
     }
 
+    public get_field_by_id(field_id: string): ModuleTableField<any> {
+        return this.fields_by_ids[field_id];
+    }
+
     public push_field(field: ModuleTableField<any>) {
         this.fields_.push(field);
         this.fields_by_ids[field.field_id] = field;

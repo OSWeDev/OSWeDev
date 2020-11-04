@@ -74,6 +74,7 @@ export default class DataConvertionsController {
         }
 
         param._type = target_var_conf.var_data_vo_type;
+        param.var_id = target_var_conf.id;
         delete param['_index'];
         return param as any as U;
     }

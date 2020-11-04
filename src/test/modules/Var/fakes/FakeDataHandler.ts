@@ -217,4 +217,14 @@ export default class FakeDataHandler {
         ];
         return var_data;
     }
+
+    public static get_var_data_A2_Update(): FakeDataVO {
+        let var_data: FakeDataVO = new FakeDataVO();
+        var_data.var_id = 1;
+        var_data.ts_ranges = [
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-01-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY),
+            RangeHandler.getInstance().create_single_elt_TSRange(moment('2020-03-01').utc(true).startOf('day'), TimeSegment.TYPE_DAY)
+        ];
+        return var_data;
+    }
 }
