@@ -68,14 +68,14 @@ export default class ModuleVar extends Module {
             ModuleVar.APINAME_register_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVO.translateCheckAccessParams
-        ).define_as_opti__aggregate_param((a: APISimpleVOsParamVO, b: APISimpleVOsParamVO) => a.vos = a.vos.concat(b.vos)));
+        ).define_as_opti__aggregate_param((a: APISimpleVOsParamVO, b: APISimpleVOsParamVO) => a.vos = (b && b.vos && b.vos.length) ? a.vos.concat(b.vos) : a.vos));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_unregister_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVO.translateCheckAccessParams
-        ).define_as_opti__aggregate_param((a: APISimpleVOsParamVO, b: APISimpleVOsParamVO) => a.vos = a.vos.concat(b.vos)));
+        ).define_as_opti__aggregate_param((a: APISimpleVOsParamVO, b: APISimpleVOsParamVO) => a.vos = (b && b.vos && b.vos.length) ? a.vos.concat(b.vos) : a.vos));
 
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, VarConfIds>(

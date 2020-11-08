@@ -86,6 +86,14 @@ export default class VarDataBaseVO implements IMatroid {
             param_i++;
         }
 
+        /**
+         * Si on change le type se segmentation on adapte aussi le param
+         */
+        if (varConf && (varConf.ts_ranges_segment_type != null)) {
+            res[varConf.ts_ranges_field_name] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
+                res[varConf.ts_ranges_field_name], varConf.ts_ranges_segment_type);
+        }
+
         return res;
     }
 
@@ -183,6 +191,13 @@ export default class VarDataBaseVO implements IMatroid {
         let res: U = MatroidController.getInstance().cloneFrom<T, U>(param_to_clone, varConf ? varConf.var_data_vo_type : param_to_clone._type, varConf ? clone_fields : true);
         if (!res) {
             return null;
+        }
+        /**
+         * Si on change le type se segmentation on adapte aussi le param
+         */
+        if (varConf && (varConf.ts_ranges_segment_type != null)) {
+            res[varConf.ts_ranges_field_name] = RangeHandler.getInstance().get_ranges_according_to_segment_type(
+                res[varConf.ts_ranges_field_name], varConf.ts_ranges_segment_type);
         }
         res.var_id = varConf ? varConf.id : param_to_clone.var_id;
         return res;

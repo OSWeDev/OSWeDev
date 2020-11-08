@@ -107,6 +107,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
 
     /**
      * WARNING : The param NEEDS to be clean => if resetable var, needs not include the reset date, ...
+     * WARNING : the dep_id is UNIQUE amonst ALL varcontrollers
      * @param varDAGNode
      * @param varDAG
      */

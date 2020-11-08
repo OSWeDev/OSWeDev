@@ -18,6 +18,18 @@ export default class DateHandler {
     private constructor() {
     }
 
+    public isSameMoment(a: Moment, b: Moment): boolean {
+        if ((a == null) != (b == null)) {
+            return false;
+        }
+
+        if (a == null) {
+            return true;
+        }
+
+        return a.valueOf() == b.valueOf();
+    }
+
     public getUnixForBDD(date: Moment): number {
         if ((date === null) || (typeof date == 'undefined')) {
             return null;

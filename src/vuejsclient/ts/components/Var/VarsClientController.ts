@@ -32,15 +32,15 @@ export default class VarsClientController {
     }
 
     public get_translatable_name_code_by_var_id(var_id: number): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_names_by_ids[var_id] + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_translatable_description_code_by_var_id(var_id: number): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_names_by_ids[var_id] + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_translatable_params_desc_code_by_var_id(var_id: number): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_names_by_ids[var_id] + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     public get_translatable_name_code(var_name: string): string {
@@ -148,20 +148,22 @@ export default class VarsClientController {
             let var_param = var_params[i];
 
             if (!this.registered_var_params[var_param.index]) {
-                ConsoleHandler.getInstance().error('unRegisterParams on unregistered param... ' + var_param.index);
-            } else {
-                this.registered_var_params[var_param.index].nb_registrations--;
-                if (this.registered_var_params[var_param.index].nb_registrations < 0) {
-                    ConsoleHandler.getInstance().error('unRegisterParams on unregistered param... ' + var_param.index);
-                }
+                continue;
+                // ConsoleHandler.getInstance().error('unRegisterParams on unregistered param... ' + var_param.index);
+            }
 
-                if (this.registered_var_params[var_param.index].nb_registrations <= 0) {
-                    needs_unregistration.push(var_param);
-                    delete this.registered_var_params[var_param.index];
-                } else {
-                    if (callbacks) {
-                        this.registered_var_params[var_param.index].remove_callbacks(callbacks);
-                    }
+            this.registered_var_params[var_param.index].nb_registrations--;
+            if (this.registered_var_params[var_param.index].nb_registrations < 0) {
+                continue;
+                // ConsoleHandler.getInstance().error('unRegisterParams on unregistered param... ' + var_param.index);
+            }
+
+            if (this.registered_var_params[var_param.index].nb_registrations <= 0) {
+                needs_unregistration.push(var_param);
+                delete this.registered_var_params[var_param.index];
+            } else {
+                if (callbacks) {
+                    this.registered_var_params[var_param.index].remove_callbacks(callbacks);
                 }
             }
         }

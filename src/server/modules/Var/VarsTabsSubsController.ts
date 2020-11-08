@@ -1,5 +1,6 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
@@ -45,6 +46,7 @@ export default class VarsTabsSubsController {
             if (!this._tabs_subs[param_index][user_id]) {
                 this._tabs_subs[param_index][user_id] = {};
             }
+            // ConsoleHandler.getInstance().log('REMOVETHIS:register_sub:' + param_index + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':');
             this._tabs_subs[param_index][user_id][client_tab_id] = true;
         }
     }
@@ -61,6 +63,7 @@ export default class VarsTabsSubsController {
             if ((!this._tabs_subs[param_index]) || (!this._tabs_subs[param_index][user_id]) || (!this._tabs_subs[param_index][user_id][client_tab_id])) {
                 continue;
             }
+            // ConsoleHandler.getInstance().log('REMOVETHIS:unregister_sub:' + param_index + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':');
             delete this._tabs_subs[param_index][user_id][client_tab_id];
         }
     }
@@ -78,6 +81,8 @@ export default class VarsTabsSubsController {
         let datas_by_socketid_for_notif: { [socketid: number]: VarDataValueResVO[] } = {};
         for (let i in var_datas) {
             let var_data = var_datas[i];
+
+            // ConsoleHandler.getInstance().log('REMOVETHIS:notify_vardatas.1:' + var_data.index + ':');
 
             for (let user_id in this._tabs_subs[var_data.index]) {
 
@@ -102,6 +107,7 @@ export default class VarsTabsSubsController {
 
         for (let socketid in datas_by_socketid_for_notif) {
 
+            // datas_by_socketid_for_notif[socketid].forEach((vd) => ConsoleHandler.getInstance().log('REMOVETHIS:notify_vardatas.2:' + vd.index + ':'));
             PushDataServerController.getInstance().notifyVarsDatasBySocket(socketid, datas_by_socketid_for_notif[socketid]);
         }
         return true;

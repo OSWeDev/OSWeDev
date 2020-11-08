@@ -557,7 +557,7 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         aggregated_requests_old_postdatas[request.apiDefinition.api_name] = request.postdatas;
                     } else {
                         let aggregated_postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(aggregated_requests[request.apiDefinition.api_name].postdatas) : aggregated_requests[request.apiDefinition.api_name].postdatas;
-                        let this_postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.parse(request.postdatas) : request.postdatas;
+                        let this_postdatas = ((!EnvHandler.getInstance().MSGPCK) && request.postdatas) ? JSON.parse(request.postdatas) : request.postdatas;
 
                         request.apiDefinition.opti__aggregate_method(aggregated_postdatas, this_postdatas);
                         aggregated_requests[request.apiDefinition.api_name].postdatas = (!EnvHandler.getInstance().MSGPCK) ? JSON.stringify(aggregated_postdatas) : aggregated_postdatas;
@@ -595,6 +595,11 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                         (!EnvHandler.getInstance().MSGPCK) ? 'application/json; charset=utf-8' : ModuleAjaxCache.MSGPACK_REQUEST_TYPE,
                         null, null, false, true) as RequestsWrapperResult;
 
+                    for (let i in aggregated_requests) {
+                        let request = aggregated_requests[i];
+                        request.postdatas = aggregated_requests_old_postdatas[i];
+                    }
+
                     if ((!results) || (!results.requests_results)) {
                         throw new Error('Pas de résultat pour la requête groupée.');
                     }
@@ -618,10 +623,6 @@ export default class AjaxCacheClientController implements IAjaxCacheClientContro
                     for (let i in callbacks_to_call_on_these_requests) {
                         let request = callbacks_to_call_on_these_requests[i];
                         self.resolve_request(request, null);
-                    }
-                    for (let i in aggregated_requests) {
-                        let request = aggregated_requests[i];
-                        request.postdatas = aggregated_requests_old_postdatas[i];
                     }
                 } catch (error) {
                     // Si ça échoue, on utilise juste le système normal de requêtage individuel.

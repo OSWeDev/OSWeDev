@@ -5,6 +5,7 @@ import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
 import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
@@ -172,6 +173,7 @@ export default class PushDataVueModule extends VueModuleBase {
 
                 let vos: VarDataBaseVO[] = null;
                 if (!!notification.vos) {
+                    // ConsoleHandler.getInstance().log('REMOVETHIS:PushDataVueModule:TYPE_NOTIF_VARDATA');
                     vos = APIController.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
                     VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
                     await VarsClientController.getInstance().notifyCallbacks(vos);

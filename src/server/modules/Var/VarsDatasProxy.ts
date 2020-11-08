@@ -4,12 +4,15 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import DateHandler from '../../../shared/tools/DateHandler';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import StackContext from '../../StackContext';
 import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
 import VarsServerController from './VarsServerController';
+import VarsTabsSubsController from './VarsTabsSubsController';
 
 /**
  * L'objectif est de créer un proxy d'accès aux données des vars_datas en base pour qu'on puisse intercaler un buffer de mise à jour progressif en BDD
@@ -82,6 +85,8 @@ export default class VarsDatasProxy {
         let self = this;
         var_datas = this.filter_var_datas_by_indexes(var_datas);
         var_datas.forEach((vd) => self.vars_datas_buffer.unshift(vd));
+
+        // var_datas.forEach((vd) => ConsoleHandler.getInstance().log('REMOVETHIS:prepend_var_datas:' + vd.index + ':'));
     }
 
     /**
@@ -92,13 +97,25 @@ export default class VarsDatasProxy {
      */
     public async handle_buffer(limit: number): Promise<number> {
 
+        let handled: VarDataBaseVO[] = [];
         while ((limit > 0) && this.vars_datas_buffer.length) {
 
             let handle_var = this.vars_datas_buffer[0];
+            // Si on a des vars à gérer (!has_valid_value) qui s'insèrent en début de buffer, on doit arrêter le dépilage
+            if (!handle_var.has_valid_value) {
+                break;
+            }
+
+            // ConsoleHandler.getInstance().log('REMOVETHIS:handle_buffer:' + handle_var.index + ':');
+            handled.push(handle_var);
             await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
             delete this.vars_datas_buffer_indexes[handle_var.index];
             this.vars_datas_buffer.splice(0, 1);
             limit--;
+        }
+
+        if (handled && handled.length) {
+            VarsTabsSubsController.getInstance().notify_vardatas(handled);
         }
 
         return limit;
@@ -149,6 +166,9 @@ export default class VarsDatasProxy {
 
             if (!var_data.has_valid_value) {
                 res[var_data.index] = var_data;
+
+                // ConsoleHandler.getInstance().log('REMOVETHIS:get_vars_to_compute_from_buffer_or_bdd:' + var_data.index + ':');
+
                 request_limit--;
                 continue;
             }

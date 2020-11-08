@@ -9,6 +9,7 @@ import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrD
 import NotificationVO from '../../../shared/modules/PushData/vos/NotificationVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import ThreadHandler from '../../../shared/tools/ThreadHandler';
 import IServerUserSession from '../../IServerUserSession';
 import StackContext from '../../StackContext';
@@ -617,6 +618,7 @@ export default class PushDataServerController {
         ForkedTasksController.getInstance().assert_is_main_process();
 
         let newUserSockets: { [sessId: string]: SocketWrapper[] } = {};
+        let toclose_tabs: string[] = [];
         for (let i in this.registeredSockets[userId][client_tab_id]) {
 
             let sessionSockets = this.registeredSockets[userId][client_tab_id][i];
@@ -631,6 +633,14 @@ export default class PushDataServerController {
             for (let j in toclose) {
                 delete sessionSockets[toclose[j]];
             }
+
+            if (!ObjectHandler.getInstance().hasAtLeastOneAttribute(sessionSockets)) {
+                toclose_tabs.push(client_tab_id);
+            }
+        }
+
+        for (let j in toclose_tabs) {
+            delete this.registeredSockets[userId][toclose_tabs[j]];
         }
     }
 
