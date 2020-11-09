@@ -15,14 +15,6 @@ export default class VarDescRegistrationsComponent extends VueComponentBase {
     @ModuleVarAction
     public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
 
-    // @ModuleVarGetter
-    // public isWaiting: boolean;
-    // @ModuleVarGetter
-    // public isStepping: boolean;
-
-    // @ModuleVarGetter
-    // public getStepNumber: number;
-
     private graph_params: string = null;
     private hover_desc: string = null;
 

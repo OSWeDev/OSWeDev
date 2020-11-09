@@ -1,13 +1,11 @@
-import { Duration } from 'moment';
 import Component from 'vue-class-component';
 import { Prop, Watch } from 'vue-property-decorator';
 import SimpleDatatableField from '../../../../shared/modules/DAO/vos/datatable/SimpleDatatableField';
 import NumRange from '../../../../shared/modules/DataRender/vos/NumRange';
+import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
-import HourHandler from '../../../../shared/tools/HourHandler';
 import RangeHandler from '../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../VueComponentBase';
-import NumSegment from '../../../../shared/modules/DataRender/vos/NumSegment';
 
 @Component({
     template: require('./NumRangeInputComponent.pug'),

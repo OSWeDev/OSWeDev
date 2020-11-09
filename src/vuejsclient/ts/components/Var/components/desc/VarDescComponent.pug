@@ -1,10 +1,37 @@
 .var_desc
-    //- .card
-    //-     .card-header {{ var_name }}
-    //-         i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_data')
-    //-     .card-body
-    //-         h5.card-title {{ label('var.desc_mode.var_description') }}
-    //-         p.card-text {{ var_description }}
+    template(v-if='var_param')
+        .var_desc_header
+            .var_controller_ref {{ var_name }}
+            i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_data')
+
+        .var_desc_body
+            p.var_controller_desc.card-text(v-if='var_description') {{ var_description }}
+
+            var-data(:var_param='var_param')
+
+            .var_data_is_import(v-if='var_data_has_valid_value')
+                toggle-button(
+                    :value="var_data_is_import" 
+                    :sync="true"
+                    :width="60"
+                    :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
+                    :disabled="true")
+            .var_data_last_update(v-if='var_data_has_valid_value') {{ var_data_last_update }}
+            
+            template(v-if='var_data_has_tsranges && var_data_ts_ranges')
+                .var_param_field_title {{ label('fields.labels.ref.'+param_table_name+'.'+var_data_ts_ranges_field_id) }}
+                Tsrangescomponent.var_data_ts_range(:ranges='var_data_ts_ranges')
+
+            template(v-if='var_data_other_fields')
+                template(v-for='field in var_data_other_fields')
+                    .var_param_field_title {{ label('fields.labels.ref.'+param_table_name+'.'+field.field_id) }}
+                    template(v-if='var_param[field.field_id] && var_param[field.field_id].length && (var_param[field.field_id][0].range_type == ts_range_type)')
+                        Tsrangescomponent.var_data_ts_range(:ranges='var_param[field.field_id]')
+                    template(v-if='var_param[field.field_id] && var_param[field.field_id].length && (var_param[field.field_id][0].range_type == hour_range_type)')
+                        Hourrangescomponent.var_data_ts_range(:ranges='var_param[field.field_id]')
+                    template(v-if='var_param[field.field_id] && var_param[field.field_id].length && (var_param[field.field_id][0].range_type == num_range_type)')
+                        Numrangescomponent.var_data_ts_range(:ranges='var_param[field.field_id]' :vo_field='field')
+
     //-         h5.card-title {{ label('var.desc_mode.var_params') }}
     //-         p.card-text {{ var_params_desc }}
             

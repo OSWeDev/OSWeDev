@@ -34,12 +34,36 @@ export default class ModuleFormatDatesNombres extends Module {
         return moment(dateToConvert).utc(true);
     }
 
+    public formatMoment_to_YYYYMMDD_HHmmss_ms(date: moment.Moment): string {
+        if (date == null) {
+            return null;
+        }
+
+        return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss.SSS");
+    }
+
     public formatMoment_to_YYYYMMDD_HHmmss(date: moment.Moment): string {
         if (date == null) {
             return null;
         }
 
         return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm:ss");
+    }
+
+    public formatMoment_to_YYYYMMDD_HHmm(date: moment.Moment): string {
+        if (date == null) {
+            return null;
+        }
+
+        return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:mm");
+    }
+
+    public formatMoment_to_YYYYMMDD_HH(date: moment.Moment): string {
+        if (date == null) {
+            return null;
+        }
+
+        return date.format(this.getParamValue(ModuleFormatDatesNombres.PARAM_NAME_date_format_fullyear_month_day_date) + " HH:");
     }
 
     public formatYYYYMMDD_HHmmss_to_Moment(date: string): moment.Moment {
@@ -54,6 +78,38 @@ export default class ModuleFormatDatesNombres extends Module {
             ConsoleHandler.getInstance().error(error);
         }
         return null;
+    }
+
+    public formatDuration_to_HHmmss_ms(durationToFormat: moment.Duration): string {
+        if (durationToFormat == null) {
+            return null;
+        }
+
+        return moment().utc(true).startOf('day').add(durationToFormat).format('HH:mm:ss.SSS');
+    }
+
+    public formatDuration_to_HHmmss(durationToFormat: moment.Duration): string {
+        if (durationToFormat == null) {
+            return null;
+        }
+
+        return moment().utc(true).startOf('day').add(durationToFormat).format('HH:mm:ss');
+    }
+
+    public formatDuration_to_HHmm(durationToFormat: moment.Duration): string {
+        if (durationToFormat == null) {
+            return null;
+        }
+
+        return moment().utc(true).startOf('day').add(durationToFormat).format('HH:mm');
+    }
+
+    public formatDuration_to_HH(durationToFormat: moment.Duration): string {
+        if (durationToFormat == null) {
+            return null;
+        }
+
+        return moment().utc(true).startOf('day').add(durationToFormat).format('HH:');
     }
 
     // Formatter un moment en HoursAndMinutes pour la BDD

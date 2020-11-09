@@ -46,11 +46,8 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
         this.state = {
             varDatas: {},
-            is_stepping: false,
-            step_number: 1,
-            is_waiting: false,
             desc_mode: false,
-            desc_selected_index: null,
+            desc_selected_var_param: null,
             desc_opened: false,
             desc_deps_opened: false,
             desc_registrations_opened: false,

@@ -12,6 +12,9 @@ import './VarDataSumComponent.scss';
     template: require('./VarDataSumComponent.pug')
 })
 export default class VarDataSumComponent extends VueComponentBase {
+
+    private static UID: number = 0;
+
     @ModuleVarGetter
     public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
@@ -49,6 +52,8 @@ export default class VarDataSumComponent extends VueComponentBase {
     public consider_zero_value_as_null: boolean;
 
     private entered_once: boolean = false;
+
+    private this_uid: number = VarDataSumComponent.UID++;
 
     get is_being_updated(): boolean {
 

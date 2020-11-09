@@ -1,8 +1,30 @@
 .var_desc {
 
+    .var_data_ref {
+        display: inline-block;
+        padding: 2px 1em;
+        margin: 2px;
+    }
+
     padding: 10px;
     max-width: 32em;
     word-break: break-all;
+
+    .var_controller_ref {
+        border-radius: 4px;
+        background-color: lightsteelblue;
+        color: white;
+        cursor: pointer;
+        padding: 2px 1em;
+        display: inline-block;
+        margin: 2px;
+        font-weight: bold;
+    }
+
+    .var_param_field_title {
+        margin-top: .5em;
+        color: #555;
+    }
 
     .card {
 

@@ -23,19 +23,6 @@
             //-     .col-md-12
             //-         hr
 
-            //- .row
-            //-     .col-md-12(v-if='(!is_stepping)')
-            //-         button.btn.btn-sm.btn-secondary.pull-right(@click="switch_stepper")
-            //-             i.fa.fa-pause.fa-lg.btn_icon(aria-hidden="true")
-            //-             | {{ label('var_desc.pause') + ' (' + getStepNumber + ')' }}
-            //-     .col-md-12(v-if='is_stepping && is_waiting')
-            //-         button.btn.btn-sm.btn-secondary.pull-right(@click="continue_stepper")
-            //-             i.fa.fa-play.fa-lg.btn_icon(aria-hidden="true")
-            //-             | {{ label('var_desc.next') + ' (' + getStepNumber + ')' }}
-            //-     .col-md-12(v-if='is_stepping')
-            //-         button.btn.btn-sm.btn-secondary.pull-right(@click="switch_stepper")
-            //-             i.fa.fa-forward.fa-lg.btn_icon(aria-hidden="true")
-            //-             | {{ label('var_desc.play') + ' (' + getStepNumber + ')' }}
             .row
                 .col-md-12
                     //- var-desc(:var_param='descSelectedParam')

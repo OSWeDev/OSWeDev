@@ -342,6 +342,12 @@ export default abstract class VueAppBase {
         Vue.component('Multipleselectfiltercomponent', MultipleSelectFilterComponent);
         Vue.component('Datepicker', Datepicker);
         Vue.component('Alertcomponent', AlertComponent);
+        Vue.component('Numrangecomponent', () => import(/* webpackChunkName: "NumRangeComponent" */ './ts/components/ranges/numrange/NumRangeComponent'));
+        Vue.component('Numrangescomponent', () => import(/* webpackChunkName: "NumRangesComponent" */ './ts/components/ranges/numranges/NumRangesComponent'));
+        Vue.component('Tsrangecomponent', () => import(/* webpackChunkName: "TSRangeComponent" */ './ts/components/ranges/tsrange/TSRangeComponent'));
+        Vue.component('Tsrangescomponent', () => import(/* webpackChunkName: "TSRangesComponent" */ './ts/components/ranges/tsranges/TSRangesComponent'));
+        Vue.component('Hourrangecomponent', () => import(/* webpackChunkName: "HourRangeComponent" */ './ts/components/ranges/hourrange/HourRangeComponent'));
+        Vue.component('Hourrangescomponent', () => import(/* webpackChunkName: "HourRangesComponent" */ './ts/components/ranges/hourranges/HourRangesComponent'));
 
         Vue.directive('var-directive', VarDirective.getInstance());
 

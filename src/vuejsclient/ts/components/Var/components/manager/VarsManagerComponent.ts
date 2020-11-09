@@ -21,10 +21,6 @@ export default class VarsManagerComponent extends VueComponentBase {
     @ModuleVarGetter
     private getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
-    private isWaiting: boolean;
-    @ModuleVarGetter
-    private isStepping: boolean;
-    @ModuleVarGetter
     private isDescMode: boolean;
     @ModuleVarGetter
     private isDescOpened: boolean;
@@ -39,12 +35,6 @@ export default class VarsManagerComponent extends VueComponentBase {
     private setVarsData: (varsData: VarDataBaseVO[]) => void;
     @ModuleVarAction
     private removeVarData: (varDataParam: VarDataBaseVO) => void;
-    @ModuleVarAction
-    private setIsStepping: (is_stepping: boolean) => void;
-    @ModuleVarAction
-    private setIsWaiting: (is_waiting: boolean) => void;
-    @ModuleVarAction
-    private setStepNumber: (step_number: number) => void;
 
     @ModuleVarAction
     private set_dependencies_heatmap_version: (dependencies_heatmap_version: number) => void;

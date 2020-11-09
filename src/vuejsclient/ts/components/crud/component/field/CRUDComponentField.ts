@@ -36,7 +36,7 @@ import HourrangeInputComponent from '../../../hourrangeinput/HourrangeInputCompo
 import ImageComponent from '../../../image/ImageComponent';
 import IsoWeekDaysInputComponent from '../../../isoweekdaysinput/IsoWeekDaysInputComponent';
 import MultiInputComponent from '../../../multiinput/MultiInputComponent';
-import NumRangeInputComponent from '../../../numrange/NumRangeInputComponent';
+import NumRangeInputComponent from '../../../numrangeinput/NumRangeInputComponent';
 import TSRangeInputComponent from '../../../tsrangeinput/TSRangeInputComponent';
 import TSRangesInputComponent from '../../../tsrangesinput/TSRangesInputComponent';
 import TSTZInputComponent from '../../../tstzinput/TSTZInputComponent';

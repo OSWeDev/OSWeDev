@@ -1,0 +1,6 @@
+.ts_range.range
+    template(v-if='segmented_min')
+        .segmented_min {{ segmented_min }}
+        template(v-if='segmented_min != segmented_max')
+            .segmented_separator
+            .segmented_max {{ segmented_max }}

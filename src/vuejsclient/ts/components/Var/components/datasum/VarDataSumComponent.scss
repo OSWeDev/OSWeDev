@@ -1,3 +1,12 @@
+.var_data_sum {
+    border-radius: 4px;
+    opacity: 1;
+
+    &.is_being_updated{
+        opacity: .5;
+    }
+}
+
 .var_data_sum.selectable_var{
     cursor: pointer;
     background: rgba(0,0,0,0.1);

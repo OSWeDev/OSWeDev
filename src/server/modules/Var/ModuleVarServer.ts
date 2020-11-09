@@ -112,6 +112,10 @@ export default class ModuleVarServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Variable invalidée, calcul en cours...'
+        }, 'var.desc_mode.update_var_data.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Indicateurs - Objectif'
         }, 'fields.labels.ref.module_psa_primes_indicateur.___LABEL____var_objectif_id'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
