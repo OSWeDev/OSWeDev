@@ -1,0 +1,19 @@
+.var_desc_explain_dep
+    .row
+        .col-md-12
+            .dep_name {{ dep_name }}
+    .row
+        .col-md-12.var_controller_label_wrapper
+            .var_controller_label {{ label('var_desc.var_controller_label') }}
+                Vardesccontrollercomponent(:var_id='var_id')
+            
+    .row
+        .col-md-12
+            template(v-for='(param, i) in params')
+                .param_wrapper
+                    .var_data_label {{ label('var_desc.var_data_label') }}
+                        var-data(:var_param='param')
+                        i.update_var_data.fa.fa-refresh(aria-hidden="true" @click='update_var_data(param)')
+                    Vardescparamfieldscomponent(:var_param='param')
+
+                

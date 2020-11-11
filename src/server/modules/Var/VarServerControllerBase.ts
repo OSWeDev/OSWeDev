@@ -122,7 +122,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param datasources_values les datas de chaque datasource, par nom du datasource
      * @param deps_values les valeurs des deps, par id de dep
      */
-    public UT__getParamDependencies(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): { [dep_id: string]: VarDataBaseVO } {
+    public UT__getParamDependencies(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number } = null): { [dep_id: string]: VarDataBaseVO } {
         return this.getParamDependencies(this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
     }
 
@@ -133,7 +133,7 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param datasources_values les datas de chaque datasource, par nom du datasource
      * @param deps_values les valeurs des deps, par id de dep
      */
-    public UT__getValue(param: TData, datasources_values: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): number {
+    public UT__getValue(param: TData, datasources_values: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): number {
         return this.getValue(this.UT__getTestVarDAGNode(param, datasources_values, deps_values));
     }
 
@@ -181,12 +181,15 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
      * @param datasources les datas de chaque datasource, par nom du datasource
      * @param deps_values les valeurs des deps, par id de dep
      */
-    private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any }, deps_values: { [dep_id: string]: number }): VarDAGNode {
+    private UT__getTestVarDAGNode(param: TData, datasources: { [ds_name: string]: any } = null, deps_values: { [dep_id: string]: number } = null): VarDAGNode {
         let dag: DAG<VarDAGNode> = new DAG();
         let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
 
-        for (let i in deps_values) {
-            let dep_value = deps_values[i];
+        let deps = this.getParamDependencies(varDAGNode);
+
+        for (let i in deps) {
+            let dep = deps[i];
+            let dep_value = deps_values ? deps_values[i] : undefined;
 
             varDAGNode.addOutgoingDep(i, VarDAGNode.getInstance(dag, Object.assign(cloneDeep(param), { value: dep_value })));
         }

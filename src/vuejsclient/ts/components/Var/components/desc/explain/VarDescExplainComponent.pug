@@ -1,0 +1,10 @@
+.var_desc_explain
+    .var_desc_explain_title {{ label('var_desc.explaination') }}
+    .var_desc_explain_content
+        .row(v-if='explaination && explaination.length')
+            .col-md-12        
+                .var_desc_explaination {{ explaination }}
+        .row(v-if='deps_params_loaded')
+            .col-md-12
+                template(v-for='(var_dep, dep_id) in vars_deps')
+                    Vardescexplaindepcomponent(:dep_id="dep_id" :var_id="var_id_from_name(var_dep)" :params="params_from_var_dep_id(dep_id)")

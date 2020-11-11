@@ -78,4 +78,12 @@ export default class TSRangeComponent extends VueComponentBase {
             default: return null;
         }
     }
+
+    get is_MAX_RANGE(): boolean {
+        if (!this.range) {
+            return false;
+        }
+
+        return (RangeHandler.getInstance().getSegmentedMin(this.range) == RangeHandler.MIN_TS) && (RangeHandler.getInstance().getSegmentedMax(this.range) == RangeHandler.MAX_TS);
+    }
 }

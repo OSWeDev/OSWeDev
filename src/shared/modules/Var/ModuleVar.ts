@@ -1,8 +1,10 @@
 import AccessPolicyTools from '../../tools/AccessPolicyTools';
 import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO';
 import ModuleAPI from '../API/ModuleAPI';
+import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
+import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO from '../DAO/vos/APISimpleVOsParamVO';
 import TimeSegment from '../DataRender/vos/TimeSegment';
 import Module from '../Module';
@@ -36,6 +38,11 @@ export default class ModuleVar extends Module {
     public static APINAME_get_var_id_by_names: string = 'get_var_id_by_names';
     public static APINAME_register_params: string = 'register_params';
     public static APINAME_unregister_params: string = 'unregister_params';
+
+    public static APINAME_getVarControllerVarsDeps: string = 'getVarControllerVarsDeps';
+    public static APINAME_getParamDependencies: string = 'getParamDependencies';
+    public static APINAME_getVarControllerDSDeps: string = 'getVarControllerDSDeps';
+    public static APINAME_getVarParamDatas: string = 'getVarParamDatas';
 
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
@@ -77,33 +84,42 @@ export default class ModuleVar extends Module {
             APISimpleVOsParamVO.translateCheckAccessParams
         ).define_as_opti__aggregate_param((a: APISimpleVOsParamVO, b: APISimpleVOsParamVO) => a.vos = (b && b.vos && b.vos.length) ? a.vos.concat(b.vos) : a.vos));
 
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, { [dep_name: string]: string }>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_getVarControllerVarsDeps,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            StringParamVO.translateCheckAccessParams
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [dep_id: string]: VarDataBaseVO }>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_getParamDependencies,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            APISimpleVOParamVO.translateCheckAccessParams
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [ds_name: string]: any }>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_getVarParamDatas,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            APISimpleVOParamVO.translateCheckAccessParams
+        ));
 
         ModuleAPI.getInstance().registerApi(new GetAPIDefinition<void, VarConfIds>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_get_var_id_by_names,
             [VarConfVO.API_TYPE_ID]
         ));
+    }
 
-        // ModuleAPI.getInstance().registerApi(new PostAPIDefinition<ConfigureVarCacheParamVO, VarCacheConfVO>(
-        //     ModuleVar.POLICY_BO_VARCONF_ACCESS,
-        //     ModuleVar.APINAME_configureVarCache,
-        //     [VarCacheConfVO.API_TYPE_ID],
-        //     ConfigureVarCacheParamVO.translateCheckAccessParams,
-        // ));
-
-        // ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APIDAOApiTypeAndMatroidsParamsVO, number>(
-        //     null,
-        //     ModuleVar.APINAME_getSimpleVarDataValueSumFilterByMatroids,
-        //     (param: APIDAOApiTypeAndMatroidsParamsVO) => (param ? [param.API_TYPE_ID] : null),
-        //     APIDAOApiTypeAndMatroidsParamsVO.translateCheckAccessParams
-        // ));
-
-        // ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, VarDataValueResVO>(
-        //     null,
-        //     ModuleVar.APINAME_getSimpleVarDataCachedValueFromParam,
-        //     (param: APISimpleVOParamVO) => ((param && param.vo) ? [param.vo._type] : null),
-        //     APISimpleVOParamVO.translateCheckAccessParams
-        // ));
+    public async getVarControllerVarsDeps(var_name: string): Promise<{ [dep_name: string]: string }> {
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [dep_name: string]: string }>(ModuleVar.APINAME_getVarControllerVarsDeps, var_name);
+    }
+    public async getParamDependencies(param: VarDataBaseVO): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [dep_id: string]: VarDataBaseVO }>(ModuleVar.APINAME_getParamDependencies, param);
+    }
+    public async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: any }> {
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [ds_name: string]: any }>(ModuleVar.APINAME_getVarParamDatas, param);
     }
 
     public async register_params(params: VarDataBaseVO[]): Promise<void> {

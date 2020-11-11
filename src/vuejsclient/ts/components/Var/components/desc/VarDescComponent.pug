@@ -1,71 +1,26 @@
 .var_desc
     template(v-if='var_param')
         .var_desc_header
-            .var_controller_ref {{ var_name }}
-            i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_data')
+            .var_controller_label {{ label('var_desc.var_controller_label') }}
+                Vardesccontrollercomponent(:var_id='var_id')
 
         .var_desc_body
-            p.var_controller_desc.card-text(v-if='var_description') {{ var_description }}
+            p.var_controller_desc.card-text(v-if='var_description && (var_description.length > 1)') {{ var_description }}
 
-            var-data(:var_param='var_param')
+            .var_data_label {{ label('var_desc.var_data_label') }}
+                var-data(:var_param='var_param')
+                i.update_var_data.fa.fa-refresh(aria-hidden="true" @click='update_var_data')
 
+            .var_data_last_update(v-if='var_data_has_valid_value') {{ label('var_desc.var_data_last_update', { last_update: var_data_last_update }) }}
             .var_data_is_import(v-if='var_data_has_valid_value')
+                .var_data_is_import_label {{ label('var_desc.var_data_is_import') }}
                 toggle-button(
                     :value="var_data_is_import" 
                     :sync="true"
                     :width="60"
                     :labels="{checked: label('crud.field.boolean.true'), unchecked: label('crud.field.boolean.false')}"
                     :disabled="true")
-            .var_data_last_update(v-if='var_data_has_valid_value') {{ var_data_last_update }}
             
-            template(v-if='var_data_has_tsranges && var_data_ts_ranges')
-                .var_param_field_title {{ label('fields.labels.ref.'+param_table_name+'.'+var_data_ts_ranges_field_id) }}
-                Tsrangescomponent.var_data_ts_range(:ranges='var_data_ts_ranges')
+            Vardescparamfieldscomponent(:var_param='var_param')
 
-            template(v-if='var_data_other_fields')
-                template(v-for='field in var_data_other_fields')
-                    .var_param_field_title {{ label('fields.labels.ref.'+param_table_name+'.'+field.field_id) }}
-                    template(v-if='var_param[field.field_id] && var_param[field.field_id].length && (var_param[field.field_id][0].range_type == ts_range_type)')
-                        Tsrangescomponent.var_data_ts_range(:ranges='var_param[field.field_id]')
-                    template(v-if='var_param[field.field_id] && var_param[field.field_id].length && (var_param[field.field_id][0].range_type == hour_range_type)')
-                        Hourrangescomponent.var_data_ts_range(:ranges='var_param[field.field_id]')
-                    template(v-if='var_param[field.field_id] && var_param[field.field_id].length && (var_param[field.field_id][0].range_type == num_range_type)')
-                        Numrangescomponent.var_data_ts_range(:ranges='var_param[field.field_id]' :vo_field='field')
-
-    //-         h5.card-title {{ label('var.desc_mode.var_params') }}
-    //-         p.card-text {{ var_params_desc }}
-            
-    //-         h5.card-title {{ label('var.desc_mode.loaded_datas_matroids') }}
-    //-         p.card-text {{ loaded_datas_matroids_desc }}
-
-    //-         h5.card-title {{ label('var.desc_mode.loaded_datas_matroids_sum_value') }}
-    //-         p.card-text {{ loaded_datas_matroids_sum_value_desc }}
-
-    //-         h5.card-title {{ label('var.desc_mode.computed_datas_matroids') }}
-    //-         p.card-text {{ computed_datas_matroids_desc }}
-
-    //-         h5.card-title {{ label('var.desc_mode.var_markers') }}
-    //-         //- p.card-text {{ var_markers_json }}
-    //-         ul
-    //-             li(v-for='(marker_value, marker_name) in var_markers')
-    //-                 b {{ marker_name + ' : ' }}
-    //-                 | {{ marker_value }}
-    //-         h5.card-title {{ label('var.desc_mode.var_datasources') }}
-    //-         i.fa.fa-refresh.fa-fw(aria-hidden="true" @click='update_var_datasources')
-    //-         ul
-    //-             li(v-for='(datasource_value, datasource_name) in var_datasources')
-    //-                 b {{ datasource_name + ' : ' }}
-    //-                 | {{ datasource_value }}
-    //-         template(v-if='!!var_dependencies_count')
-    //-             h5.card-title {{ label('var.desc_mode.dependencies_number') }}
-    //-             p.card-text {{ var_dependencies_count }}
-    //-             h5.card-title {{ label('var.desc_mode.dependencies_tree_prct') }}
-    //-             p.card-text {{ var_dependencies_tree_prct + '%' }}
-                
-    //-         h5.card-title {{ label('var.desc_mode.var_data') }}
-    //-         var-data(:var_param='var_param')
-
-    //-         .row
-    //-             .col-md-12
-    //-                 svg(width=400 height=300)
-
+            Vardescexplaincomponent(:var_param='var_param')

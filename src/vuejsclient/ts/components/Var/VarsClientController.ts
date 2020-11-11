@@ -39,6 +39,14 @@ export default class VarsClientController {
         return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
+    public get_translatable_explaination(var_id: number): string {
+        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    }
+
+    public get_translatable_dep_name(dep_id: string): string {
+        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + '__DEPS__' + dep_id + '.name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
+    }
+
     public get_translatable_params_desc_code_by_var_id(var_id: number): string {
         return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }

@@ -5,6 +5,10 @@ import VarDataBaseVO from './vos/VarDataBaseVO';
 
 export default class VarsController {
 
+    /**
+     * Suffix obligatoire pour les deps_ids pour s'assurer de pouvoir utiliser le startsWith sans problème
+     */
+    public static MANDATORY_DEP_ID_SUFFIX: string = '_._';
 
     public static getInstance(): VarsController {
         if (!VarsController.instance) {

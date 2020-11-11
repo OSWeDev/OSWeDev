@@ -3,6 +3,7 @@ import VarsServerController from '../../../../server/modules/Var/VarsServerContr
 import TimeSegment from '../../../../shared/modules/DataRender/vos/TimeSegment';
 import DataConvertionsController from '../../../../shared/modules/Var/DataConvertionsController';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
+import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -10,12 +11,11 @@ import FakeVarControllerDsDistant from './FakeVarControllerDsDistant';
 import FakeVarControllerDsEmpDistant from './FakeVarControllerDsEmpDistant';
 import FakeDataVO from './vos/FakeDataVO';
 import FakeEmpDayDataVO from './vos/FakeEmpDayDataVO';
-import FakeEmpDistantVO from './vos/FakeEmpDistantVO';
 
 export default class FakeVarControllerDeps extends VarServerControllerBase<FakeEmpDayDataVO> {
 
-    public static DEP_DsDistant: string = 'DsDistant';
-    public static DEP_DsEmpDistant: string = 'DsEmpDistant';
+    public static DEP_DsDistant: string = 'DsDistant' + VarsController.MANDATORY_DEP_ID_SUFFIX;
+    public static DEP_DsEmpDistant: string = 'DsEmpDistant' + VarsController.MANDATORY_DEP_ID_SUFFIX;
 
     public static getInstance(): FakeVarControllerDeps {
         if (!FakeVarControllerDeps.instance) {

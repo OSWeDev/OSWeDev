@@ -57,4 +57,12 @@ export default class HourRangeComponent extends VueComponentBase {
             default: return null;
         }
     }
+
+    get is_MAX_RANGE(): boolean {
+        if (!this.range) {
+            return false;
+        }
+
+        return (RangeHandler.getInstance().getSegmentedMin(this.range) == RangeHandler.MIN_HOUR) && (RangeHandler.getInstance().getSegmentedMax(this.range) == RangeHandler.MAX_HOUR);
+    }
 }

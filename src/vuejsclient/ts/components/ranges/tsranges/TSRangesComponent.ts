@@ -12,4 +12,9 @@ export default class TSRangesComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private ranges: TSRange[];
+
+    @Prop({ default: 10 })
+    private limit: number;
+
+    private force_override_limit: boolean = false;
 }

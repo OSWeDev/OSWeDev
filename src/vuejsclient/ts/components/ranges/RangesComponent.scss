@@ -5,4 +5,10 @@
     padding: 2px;
     margin: 2px;
     display: inline-block;
+
+    .ranges_limited {
+        cursor: pointer;
+        color: darkseagreen;
+        padding: 2px;
+    }
 }

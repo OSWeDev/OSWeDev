@@ -27,6 +27,17 @@ export default class NumRangeComponent extends VueComponentBase {
     private segmented_min: string = null;
     private segmented_max: string = null;
 
+    private segmented_min_as_num: number = null;
+    private segmented_max_as_num: number = null;
+
+    get is_MAX_RANGE(): boolean {
+        if (!this.range) {
+            return false;
+        }
+
+        return (this.segmented_min_as_num == RangeHandler.MIN_INT) && (this.segmented_max_as_num == RangeHandler.MAX_INT);
+    }
+
     @Watch('range', { immediate: true, deep: true })
     private async update_segment() {
 
@@ -48,7 +59,11 @@ export default class NumRangeComponent extends VueComponentBase {
             default: return;
         }
 
-        if (NumRangeComponentController.getInstance().num_ranges_label_handler &&
+        this.segmented_min_as_num = segmented_min;
+        this.segmented_max_as_num = segmented_max;
+
+        if ((!this.is_MAX_RANGE) &&
+            NumRangeComponentController.getInstance().num_ranges_label_handler &&
             NumRangeComponentController.getInstance().num_ranges_label_handler[this.vo_field.module_table.vo_type] &&
             NumRangeComponentController.getInstance().num_ranges_label_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id]) {
             this.segmented_min = await NumRangeComponentController.getInstance().num_ranges_label_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id](

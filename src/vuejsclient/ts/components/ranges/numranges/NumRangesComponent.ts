@@ -16,4 +16,9 @@ export default class NumRangesComponent extends VueComponentBase {
 
     @Prop({ default: null })
     private vo_field: ModuleTableField<any>;
+
+    @Prop({ default: 10 })
+    private limit: number;
+
+    private force_override_limit: boolean = false;
 }

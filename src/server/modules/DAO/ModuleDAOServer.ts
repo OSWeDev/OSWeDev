@@ -308,6 +308,21 @@ export default class ModuleDAOServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Enregistrement terminé'
         }, 'EditablePageController.save.success.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Afficher / masquer les {ranges_length} elts...'
+        }, 'ranges.limited.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Toutes les dates'
+        }, 'tsrange.max_range.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Toutes les heures'
+        }, 'hourrange.max_range.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tous/Toutes'
+        }, 'numrange.max_range.___LABEL___'));
+
     }
 
     public registerCrons(): void {

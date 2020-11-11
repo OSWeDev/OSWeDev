@@ -3,7 +3,9 @@ import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/Access
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
 import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
+import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO from '../../../shared/modules/DAO/vos/APISimpleVOsParamVO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
@@ -12,7 +14,9 @@ import DefaultTranslationManager from '../../../shared/modules/Translation/Defau
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
+import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
+import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
@@ -34,7 +38,7 @@ import ModuleServiceBase from '../ModuleServiceBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import PushDataServerController from '../PushData/PushDataServerController';
 import VarsdatasComputerBGThread from './bgthreads/VarsdatasComputerBGThread';
-import VarCtrlDAGNode from './controllerdag/VarCtrlDAGNode';
+import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import VarCronWorkersHandler from './VarCronWorkersHandler';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
@@ -143,6 +147,16 @@ export default class ModuleVarServer extends ModuleServerBase {
 
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Import ?'
+        }, 'var_desc.var_data_is_import.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Date màj : {last_update}'
+        }, 'var_desc.var_data_last_update.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Explication du calcul'
+        }, 'var_desc.explaination.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Markers'
         }, 'var.desc_mode.var_markers.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
@@ -151,6 +165,13 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'StepByStep'
         }, 'var_desc.pause.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Variable'
+        }, 'var_desc.var_controller_label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Valeur non formatée'
+        }, 'var_desc.var_data_label.___LABEL___'));
 
         // ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
@@ -373,8 +394,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_register_params, this.register_params.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
     }
-
     public registerCrons(): void {
         VarCronWorkersHandler.getInstance();
     }
@@ -594,5 +617,65 @@ export default class ModuleVarServer extends ModuleServerBase {
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
         VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.index) : []);
+    }
+
+    private async getVarControllerVarsDeps(params: StringParamVO): Promise<{ [dep_name: string]: string }> {
+        if ((!params) || (!params.text) || (!VarsController.getInstance().var_conf_by_name[params.text])) {
+            return null;
+        }
+
+        let var_controller = VarsServerController.getInstance().registered_vars_controller_[params.text];
+
+        let res: { [dep_name: string]: string } = {};
+        let deps: { [dep_name: string]: VarServerControllerBase<any> } = var_controller.getVarControllerDependencies();
+
+        for (let i in deps) {
+            res[i] = deps[i].varConf.name;
+        }
+        return res;
+    }
+
+    private async getParamDependencies(params: APISimpleVOParamVO): Promise<{ [dep_id: string]: VarDataBaseVO }> {
+        if ((!params) || (!params.vo) || (!params.vo._type)) {
+            return null;
+        }
+
+        let param: VarDataBaseVO = params.vo as VarDataBaseVO;
+        let var_controller = VarsServerController.getInstance().registered_vars_controller_[VarsController.getInstance().var_conf_by_id[param.var_id].name];
+
+        if (!var_controller) {
+            return null;
+        }
+
+        return var_controller.UT__getParamDependencies(params.vo, await this.getVarParamDatas(params));
+    }
+
+    private async getVarParamDatas(params: APISimpleVOParamVO): Promise<{ [ds_name: string]: any }> {
+        if ((!params) || (!params.vo) || (!params.vo._type)) {
+            return null;
+        }
+
+        let param: VarDataBaseVO = params.vo as VarDataBaseVO;
+        let var_controller = VarsServerController.getInstance().registered_vars_controller_[VarsController.getInstance().var_conf_by_id[param.var_id].name];
+
+        if (!var_controller) {
+            return null;
+        }
+
+        let datasources_values: { [ds_name: string]: any; } = {};
+        let datasources_deps: DataSourceControllerBase[] = var_controller.getDataSourcesPredepsDependencies();
+
+        // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
+        let dag: DAG<VarDAGNode> = new DAG();
+        let varDAGNode: VarDAGNode = VarDAGNode.getInstance(dag, param);
+
+        for (let i in datasources_deps) {
+            let datasource_dep = datasources_deps[i];
+
+            let cache = {};
+            await datasource_dep.load_node_data(varDAGNode, cache);
+            datasources_values[datasource_dep.name] = await datasource_dep.get_data(param, cache);
+        }
+        return datasources_values;
     }
 }

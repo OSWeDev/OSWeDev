@@ -1,0 +1,22 @@
+.var_desc_explain_dep {
+    border: solid 1px #DDD;
+    border-radius: 4px;
+    padding: 1em;
+    margin: 2px;
+
+    .dep_name {
+        text-transform: uppercase;
+        text-align: right;
+    }
+
+    .var_controller_label_wrapper {
+        text-align: right;
+    }
+    .var_controller_label {
+        margin: 0;
+    }
+
+    .var_data_ref {
+        background: whitesmoke;
+    }
+}

@@ -1,4 +1,6 @@
 .num_ranges.ranges
-    template(v-if='ranges')
+    template(v-if='ranges && ((ranges.length <= limit) || force_override_limit)')
         template(v-for='range in ranges')
             Numrangecomponent.var_data_num_range(:range='range' :vo_field='vo_field')
+    template(v-if='ranges && (ranges.length > limit)')
+        .ranges_limited(@click='force_override_limit=!force_override_limit') {{ label('ranges.limited', { ranges_length: ranges.length, limit }) }}

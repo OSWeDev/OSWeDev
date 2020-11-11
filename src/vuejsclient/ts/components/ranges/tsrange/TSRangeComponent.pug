@@ -1,5 +1,7 @@
 .ts_range.range
-    template(v-if='segmented_min')
+    template(v-if='is_MAX_RANGE')
+        .segmented_min {{ label('tsrange.max_range') }}
+    template(v-if='segmented_min && !is_MAX_RANGE')
         .segmented_min {{ segmented_min }}
         template(v-if='segmented_min != segmented_max')
             .segmented_separator

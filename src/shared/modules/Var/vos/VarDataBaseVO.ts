@@ -36,7 +36,8 @@ export default class VarDataBaseVO implements IMatroid {
      * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
      *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas
      *  dont il faut aussi indiquer ces var datas valides
-     * Si on est côté client, le varcacheconf est null donc on ignore cette question
+     * Si on est côté client, le varcacheconf est null donc on ignore cette question => en fait si on est client on doit
+     *  surtout pas utiliser cette méthode par ce qu'elle ne voit pas les vardatares or les valeurs sont là bas et pas dans le vardata
      */
     get has_valid_value(): boolean {
 

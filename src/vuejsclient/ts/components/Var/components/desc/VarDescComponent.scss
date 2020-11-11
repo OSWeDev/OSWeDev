@@ -1,5 +1,18 @@
 .var_desc {
 
+    .var_desc_header {
+        background: #2c3e50;
+        text-align: right;
+        border-top-right-radius: 7px;
+        border-top-left-radius: 7px;
+        padding: 3px 0px;
+    }    
+
+    .var_desc_body {
+        border: solid 1px #2c3e50;
+        padding: 1em;
+    }
+
     .var_data_ref {
         display: inline-block;
         padding: 2px 1em;
@@ -21,93 +34,52 @@
         font-weight: bold;
     }
 
+    .var_controller_desc {
+        font-size: smaller;
+        margin: 2px;
+        margin-bottom: 1em;
+        border: solid 1px #EEE;
+        padding: 1em;
+        border-radius: 4px;
+    }
+
     .var_param_field_title {
-        margin-top: .5em;
-        color: #555;
+        color: #999;
+        margin: 2px;
+        font-size: smaller;
+        margin-top: .3em;
+        margin-bottom: -3px;
     }
 
-    .card {
-
-        .card-header {
-            font-size: 1.2em;
-            text-decoration: underline;
-        }
-
-        h5 {
-            font-weight: bold;
-        }
-
-        .fa {
-            font-size: larger;
-            margin-left: 6px;
-        }
-
-
-
-        svg {
-            margin: 10px;
-            background: rgba(0,0,0,0.1);
-        }
-
-        g.type_leaf > rect {
-            fill: #00ffd0;
-        }
-        g.type_root > rect {
-            fill:lightgoldenrodyellow;
-        }
-
-        g.marker_COMPUTED_AT_LEAST_ONCE > rect {
-            stroke: blue;
-            stroke-width: 3;
-        }
-
-        g.marker_NEEDS_DEPS_LOADING > rect {
-            fill: lightcoral !important;
-        }
-
-        g.marker_MARKED_FOR_NEXT_UPDATE > rect {
-            stroke: lightcoral !important;
-            stroke-width: 3;
-        }
-
-        g.marker_MARKED_FOR_UPDATE > rect {
-            stroke: red !important;
-            stroke-width: 3;
-        }
-
-        g.marker_ONGOING_UPDATE > rect {
-            stroke: orange !important;
-            stroke-width: 3;
-        }
-
-        g.marker_COMPUTED > rect {
-            stroke: green !important;
-            stroke-width: 3;
-        }
-
-        .cluster rect {
-            fill: lightgrey;
-        }
-
-        text {
-            font-weight: 300;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-size: 14px;
-        }
-
-        .node rect {
-            stroke: #999;
-            fill: #fff;
-            stroke-width: 1.5px;
-        }
-
-        .edgePath path {
-            stroke: #333;
-            stroke-width: 1.5px;
-        }
+    .var_data_is_import,
+    .var_desc_explaination_label,
+    .var_controller_label,
+    .var_data_label {
+        color: #999;
+        margin: 2px;
+        font-size: smaller;
+        margin-top: .3em;
+        margin-right: 5px;
+        display: inline-block;
     }
 
-    i {
+    .var_data_last_update {
+        color: #999;
+        margin: 2px;
+        font-size: smaller;
+        margin-top: .3em;
+    }
+
+    .var-data--intersector-wrapper {
+        display: inline-block;
+    }
+
+    i.update_var_data {
         cursor: pointer;
+        margin: 0px 2px;
+        padding: 5px 0px 4px 5px;
+        background: #aaa;
+        border-radius: 4px;
+        color: white;
     }
 }

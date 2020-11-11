@@ -12,9 +12,21 @@
                     
         i.fa.fa-check-circle.fa-fw(aria-hidden="true" :class="{'fa-2x': isDescMode}" @click='switchDescMode')
 
-    .desc_window(v-show='isDescMode && isDescOpened')
-        template(v-show='!!getDescSelectedVarParam')
-            var-desc(:var_param='getDescSelectedVarParam')
+
+    template(v-if='isDescMode && isDescOpened')
+        vue-draggable-resizable.row#var_desc_dragsize(:resizable="false" ref="var_desc_dragsize" :w="width_var_desc" :h="height_var_desc" :minh="minh_var_desc" :minw="minw_var_desc" :x="initialx_var_desc" :y="initialy_var_desc" :z="10000" drag-handle="#var_desc_dragsize_handle" :class="{'opened':opened_var_desc}")
+            .col-md-12
+                .row#var_desc_dragsize_handle
+                    .col-md-12  
+                        i.fa.fa-minus.fa-fw.pull-right(aria-hidden="true" v-show="opened_var_desc" @click="opened_var_desc = !opened_var_desc")
+                        i.fa.fa-plus.fa-fw.pull-right(aria-hidden="true" v-show="!opened_var_desc" @click="opened_var_desc = !opened_var_desc")
+                        i.fa.fa-arrows.fa-fw.pull-right(aria-hidden="true")
+
+                        i.fa.fa-repeat.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_redo}" @click='redo')
+                        i.fa.fa-undo.fa-fw.pull-right(aria-hidden="true" :class="{'disabled':!can_undo}" @click='undo')
+                .row.var_desc_dragsize_content
+                    .col-md-12.no-padding
+                        var-desc(:var_param='getDescSelectedVarParam' ref="var_desc_wrapper")
 
     //- .desc_window(v-show='isDescMode && isDescRegistrationsOpened')
     //-     var-desc-registrations
