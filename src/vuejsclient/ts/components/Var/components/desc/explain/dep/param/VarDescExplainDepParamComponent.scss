@@ -7,7 +7,6 @@
     .dep_name {
         text-transform: uppercase;
         text-align: right;
-        cursor: pointer;
     }
 
     .var_controller_label_wrapper {
@@ -22,7 +21,7 @@
     }
 
     .param_wrapper {
-        background: rgba(0,0,0,.3);
+        background: rgba(0,0,0,.1);
         padding: 1em;
         margin-top: 1em;
     }

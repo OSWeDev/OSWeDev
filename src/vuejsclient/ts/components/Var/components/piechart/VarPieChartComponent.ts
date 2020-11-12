@@ -9,6 +9,7 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
+import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 
 @Component({
     extends: Pie
@@ -161,7 +162,25 @@ export default class VarPieChartComponent extends VueComponentBase {
     }
 
     get chartOptions() {
+        let self = this;
         return Object.assign({
+            options: {
+            },
+            onClick: (point, event) => {
+                if (!self.isDescMode) {
+                    return;
+                }
+
+                self.$modal.show(
+                    VarDatasRefsParamSelectComponent,
+                    { var_params: this.var_params },
+                    {
+                        width: 465,
+                        height: 'auto',
+                        scrollable: true
+                    }
+                );
+            }
         },
             this.options);
     }

@@ -134,6 +134,7 @@
         "vue-property-decorator": "7.0.0",
         "vue-quill-editor": "3.0.5",
         "vue-scrolling-table": "0.2.2",
+        "vue-js-modal": "2.0.0-rc.6",
         "vuedraggable": "2.16.0",
         "vueisotope": "3.1.2",
         "vuejs-datepicker": "1.6.2",

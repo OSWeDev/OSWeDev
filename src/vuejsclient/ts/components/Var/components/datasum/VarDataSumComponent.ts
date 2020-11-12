@@ -6,6 +6,7 @@ import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataV
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
+import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 import './VarDataSumComponent.scss';
 
 @Component({
@@ -270,5 +271,24 @@ export default class VarDataSumComponent extends VueComponentBase {
         if (new_var_params) {
             this.register(new_var_params);
         }
+    }
+
+    private selectVar() {
+        if (!this.isDescMode) {
+            return;
+        }
+
+        /**
+         * On ouvre la modal qui propose de choisir la var à sélectionner
+         */
+        this.$modal.show(
+            VarDatasRefsParamSelectComponent,
+            { var_params: this.var_params },
+            {
+                width: 465,
+                height: 'auto',
+                scrollable: true
+            }
+        );
     }
 }

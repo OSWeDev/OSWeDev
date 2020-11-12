@@ -9,6 +9,7 @@ import ConsoleHandler from '../../../../../../shared/tools/ConsoleHandler';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
+import VarDatasRefsParamSelectComponent from '../datasrefs/paramselect/VarDatasRefsParamSelectComponent';
 
 @Component({
     extends: Bar
@@ -96,6 +97,25 @@ export default class VarDataBarChartComponent extends VueComponentBase {
             }
         }
         return true;
+    }
+
+    get all_datas(): VarDataBaseVO[] {
+
+        if ((!this.var_params) || (!this.var_params.length) || (!this.var_dataset_descriptors) || (!this.var_dataset_descriptors.length)) {
+            return null;
+        }
+
+        let res: { [index: string]: VarDataBaseVO } = {};
+        for (let i in this.var_params) {
+
+            for (let j in this.var_dataset_descriptors) {
+                let var_dataset_descriptor: VarBarDataSetDescriptor = this.var_dataset_descriptors[j];
+
+                let param = this.get_var_param(this.var_params[i], var_dataset_descriptor);
+                res[param.index] = param;
+            }
+        }
+        return Object.values(res);
     }
 
     private get_filtered_value(var_data: VarDataValueResVO) {
@@ -243,9 +263,25 @@ export default class VarDataBarChartComponent extends VueComponentBase {
     // }
 
     get chartOptions() {
+        let self = this;
         return Object.assign({
             // responsive: true,
             // maintainAspectRatio: true,
+            onClick: (point, event) => {
+                if (!self.isDescMode) {
+                    return;
+                }
+
+                self.$modal.show(
+                    VarDatasRefsParamSelectComponent,
+                    { var_params: this.all_datas },
+                    {
+                        width: 465,
+                        height: 'auto',
+                        scrollable: true
+                    }
+                );
+            }
         },
             this.options);
     }

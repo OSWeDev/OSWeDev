@@ -2,18 +2,16 @@ import { Component, Watch } from 'vue-property-decorator';
 import 'vue-tables-2';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
-import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
-import VarDescRegistrationsComponent from '../desc/registrations/VarDescRegistrationsComponent';
 import './VarsManagerComponent.scss';
 
 @Component({
     template: require('./VarsManagerComponent.pug'),
     components: {
-        "var-desc-registrations": VarDescRegistrationsComponent,
+        //"var-desc-registrations": VarDescRegistrationsComponent,
         // "perfmon-funcstats": () => import(/* webpackChunkName: "FuncStatsComponent" */ '../../../PerfMon/components/funcStats/FuncStatsComponent')
     }
 })

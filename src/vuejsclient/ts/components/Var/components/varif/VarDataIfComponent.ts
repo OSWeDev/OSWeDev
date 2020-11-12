@@ -3,13 +3,16 @@ import 'vue-tables-2';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
-import { ModuleVarGetter } from '../../store/VarStore';
+import { ModuleVarAction, ModuleVarGetter } from '../../store/VarStore';
 import VarsClientController from '../../VarsClientController';
 
 @Component({
     template: require('./VarDataIfComponent.pug')
 })
 export default class VarDataIfComponent extends VueComponentBase {
+    @ModuleVarAction
+    public setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
+
     @ModuleVarGetter
     public getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
@@ -64,5 +67,13 @@ export default class VarDataIfComponent extends VueComponentBase {
         }
 
         return this.condition(this.var_data);
+    }
+
+    private selectVar() {
+        if (!this.isDescMode) {
+            return;
+        }
+
+        this.setDescSelectedVarParam(this.var_param);
     }
 }

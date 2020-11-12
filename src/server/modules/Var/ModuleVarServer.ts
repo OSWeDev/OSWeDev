@@ -569,6 +569,11 @@ export default class ModuleVarServer extends ModuleServerBase {
      * @param api_param
      */
     private async register_params(api_param: APISimpleVOsParamVO): Promise<void> {
+
+        if (!api_param) {
+            return;
+        }
+
         let params: VarDataBaseVO[] = api_param.vos as VarDataBaseVO[];
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
@@ -614,6 +619,11 @@ export default class ModuleVarServer extends ModuleServerBase {
      * @param api_param
      */
     private async unregister_params(api_param: APISimpleVOsParamVO): Promise<void> {
+
+        if (!api_param) {
+            return;
+        }
+
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
         VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.index) : []);

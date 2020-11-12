@@ -10,7 +10,8 @@ import './VarDescExplainDepComponent.scss';
     template: require('./VarDescExplainDepComponent.pug'),
     components: {
         Vardesccontrollercomponent: () => import(/* webpackChunkName: "VarDescControllerComponent" */ '../../controller/VarDescControllerComponent'),
-        Vardescparamfieldscomponent: () => import(/* webpackChunkName: "VarDescParamFieldsComponent" */ '../../param_fields/VarDescParamFieldsComponent')
+        Vardescparamfieldscomponent: () => import(/* webpackChunkName: "VarDescParamFieldsComponent" */ '../../param_fields/VarDescParamFieldsComponent'),
+        Vardescexplaindepparamcomponent: () => import(/* webpackChunkName: "VarDescExplainDepParamComponent" */ './param/VarDescExplainDepParamComponent'),
     }
 })
 export default class VarDescExplainDepComponent extends VueComponentBase {
@@ -24,16 +25,12 @@ export default class VarDescExplainDepComponent extends VueComponentBase {
     @Prop()
     private params: VarDataBaseVO[];
 
+    private opened: boolean = true;
+
     get dep_name(): string {
         if (!this.dep_id) {
             return null;
         }
         return this.t(VarsClientController.getInstance().get_translatable_dep_name(this.dep_id));
-    }
-
-    private async update_var_data(param: VarDataBaseVO) {
-        param.value_ts = null;
-        await ModuleDAO.getInstance().insertOrUpdateVO(param);
-        this.snotify.info(this.label('var.desc_mode.update_var_data'));
     }
 }

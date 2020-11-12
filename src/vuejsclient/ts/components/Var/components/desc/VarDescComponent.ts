@@ -25,6 +25,15 @@ export default class VarDescComponent extends VueComponentBase {
     @Prop()
     private var_param: VarDataBaseVO;
 
+    @Prop({ default: true })
+    private show_deps: boolean;
+
+    @Prop({ default: true })
+    private show_imports: boolean;
+
+    @Prop({ default: true })
+    private show_last_update: boolean;
+
     get var_data_has_valid_value(): boolean {
         if (!this.var_param) {
             return false;

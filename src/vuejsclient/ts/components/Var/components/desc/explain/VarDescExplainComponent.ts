@@ -29,6 +29,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
     private deps_params: { [dep_id: string]: VarDataBaseVO } = {};
     private vars_deps: { [dep_name: string]: string } = {};
 
+    private opened: boolean = true;
+
     private var_id_from_name(name: string): number {
         return VarsController.getInstance().var_conf_by_name[name].id;
     }
@@ -148,12 +150,28 @@ export default class VarDescExplainComponent extends VueComponentBase {
         return this.t(VarsClientController.getInstance().get_translatable_explaination(this.var_param.var_id), this.explaination_sample_param);
     }
 
+    get has_explaination(): boolean {
+        if ((!this.deps_params_loaded) || (!this.self_param_loaded)) {
+            return false;
+        }
+
+        return VarsClientController.getInstance().get_translatable_explaination(this.var_param.var_id) != this.explaination;
+    }
+
+    get has_deps_params(): boolean {
+        if ((!this.deps_params_loaded) || (!this.self_param_loaded)) {
+            return false;
+        }
+
+        return ObjectHandler.getInstance().hasAtLeastOneAttribute(this.deps_params);
+    }
+
     private destroyed() {
         this.unregister(this.deps_params);
     }
 
     private register(deps_params: { [dep_id: string]: VarDataBaseVO }) {
-        if ((!deps_params) || (!deps_params.length)) {
+        if (!deps_params) {
             return;
         }
 
@@ -161,14 +179,14 @@ export default class VarDescExplainComponent extends VueComponentBase {
     }
 
     private unregister(deps_params: { [dep_id: string]: VarDataBaseVO }) {
-        if ((!deps_params) || (!deps_params.length)) {
+        if (!deps_params) {
             return;
         }
 
         VarsClientController.getInstance().unRegisterParams(Object.values(deps_params));
     }
 
-    @Watch('vars_deps')
+    @Watch('deps_params')
     private onChangeVarParam(new_var_params: { [dep_id: string]: VarDataBaseVO }, old_var_params: { [dep_id: string]: VarDataBaseVO }) {
 
         if ((!new_var_params) && (!old_var_params)) {
@@ -176,7 +194,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
         }
 
         // On doit vérifier qu'ils sont bien différents
-        if (VarsController.getInstance().isSameParamArray(Object.values(new_var_params), Object.values(old_var_params))) {
+        if (new_var_params && old_var_params && VarsController.getInstance().isSameParamArray(Object.values(new_var_params), Object.values(old_var_params))) {
             return;
         }
 

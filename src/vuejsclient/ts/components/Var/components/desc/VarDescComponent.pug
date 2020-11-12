@@ -11,8 +11,8 @@
                 var-data(:var_param='var_param')
                 i.update_var_data.fa.fa-refresh(aria-hidden="true" @click='update_var_data')
 
-            .var_data_last_update(v-if='var_data_has_valid_value') {{ label('var_desc.var_data_last_update', { last_update: var_data_last_update }) }}
-            .var_data_is_import(v-if='var_data_has_valid_value')
+            .var_data_last_update(v-if='var_data_has_valid_value && show_last_update') {{ label('var_desc.var_data_last_update', { last_update: var_data_last_update }) }}
+            .var_data_is_import(v-if='var_data_has_valid_value && show_imports')
                 .var_data_is_import_label {{ label('var_desc.var_data_is_import') }}
                 toggle-button(
                     :value="var_data_is_import" 
@@ -22,5 +22,4 @@
                     :disabled="true")
             
             Vardescparamfieldscomponent(:var_param='var_param')
-
-            Vardescexplaincomponent(:var_param='var_param')
+            Vardescexplaincomponent(:var_param='var_param' v-if='show_deps')

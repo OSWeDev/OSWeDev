@@ -1,3 +1,4 @@
+import VModal from 'vue-js-modal';
 import VueFlags from "@growthbunker/vueflags";
 import 'bootstrap';
 import "fullcalendar-scheduler";
@@ -323,6 +324,7 @@ export default abstract class VueAppBase {
 
         Vue.component('vue-draggable-resizable', VueDraggableResizable);
         Vue.use(ToggleButton);
+        Vue.use(VModal);
         Vue.component('Vuequilleditor', async () => (await import(/* webpackChunkName: "quillEditor" */  'vue-quill-editor')).quillEditor);
         Vue.component('Usernotifsmarkercomponent', UserNotifsMarkerComponent);
         Vue.component('multiselect', Multiselect);
