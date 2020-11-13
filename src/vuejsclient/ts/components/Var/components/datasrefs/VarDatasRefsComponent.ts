@@ -1,5 +1,4 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';

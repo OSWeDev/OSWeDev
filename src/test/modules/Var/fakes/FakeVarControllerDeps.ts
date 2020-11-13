@@ -27,7 +27,10 @@ export default class FakeVarControllerDeps extends VarServerControllerBase<FakeE
     protected static instance: FakeVarControllerDeps = null;
 
     protected constructor() {
-        super(new VarConfVO('FakeVarControllerDeps', FakeEmpDayDataVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, 3));
+        super(
+            new VarConfVO('FakeVarControllerDeps', FakeEmpDayDataVO.API_TYPE_ID, TimeSegment.TYPE_MONTH, 3),
+            {}, {}, {}, {}
+        );
 
         this.optimization__has_no_imports = true;
     }

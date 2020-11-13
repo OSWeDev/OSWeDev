@@ -172,6 +172,10 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Valeur non formatée'
         }, 'var_desc.var_data_label.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Source de données'
+        }, 'var_desc.var_ds_label.___LABEL___'));
+
 
         // ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
@@ -193,7 +197,6 @@ export default class ModuleVarServer extends ModuleServerBase {
             VarsServerController.getInstance().init_varcontrollers_dag();
         });
     }
-
 
     /**
      * Trigger qui gère l'invalidation des vars en fonction du vo passé en param
@@ -395,6 +398,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_unregister_params, this.unregister_params.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_get_var_id_by_names, this.get_var_id_by_names.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerVarsDeps, this.getVarControllerVarsDeps.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
     }
@@ -629,6 +633,23 @@ export default class ModuleVarServer extends ModuleServerBase {
         VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.index) : []);
     }
 
+    private async getVarControllerDSDeps(params: StringParamVO): Promise<string[]> {
+        if ((!params) || (!params.text) || (!VarsController.getInstance().var_conf_by_name[params.text])) {
+            return null;
+        }
+
+        let var_controller = VarsServerController.getInstance().registered_vars_controller_[params.text];
+
+        let res: string[] = [];
+        let deps: DataSourceControllerBase[] = var_controller.getDataSourcesDependencies();
+
+        for (let i in deps) {
+            res.push(deps[i].name);
+        }
+        return res;
+    }
+
+
     private async getVarControllerVarsDeps(params: StringParamVO): Promise<{ [dep_name: string]: string }> {
         if ((!params) || (!params.text) || (!VarsController.getInstance().var_conf_by_name[params.text])) {
             return null;
@@ -660,10 +681,16 @@ export default class ModuleVarServer extends ModuleServerBase {
         return var_controller.UT__getParamDependencies(params.vo, await this.getVarParamDatas(params));
     }
 
-    private async getVarParamDatas(params: APISimpleVOParamVO): Promise<{ [ds_name: string]: any }> {
+    private async getVarParamDatas(params: APISimpleVOParamVO): Promise<{ [ds_name: string]: string }> {
         if ((!params) || (!params.vo) || (!params.vo._type)) {
             return null;
         }
+
+        /**
+         * On limite à 10k caractères par ds et si on dépasse on revoie '[... >10k ...]' pour indiquer qu'on
+         *  a filtré et garder un json valide
+         */
+        let value_size_limit: number = 10000;
 
         let param: VarDataBaseVO = params.vo as VarDataBaseVO;
         let var_controller = VarsServerController.getInstance().registered_vars_controller_[VarsController.getInstance().var_conf_by_id[param.var_id].name];
@@ -684,7 +711,23 @@ export default class ModuleVarServer extends ModuleServerBase {
 
             let cache = {};
             await datasource_dep.load_node_data(varDAGNode, cache);
-            datasources_values[datasource_dep.name] = await datasource_dep.get_data(param, cache);
+            let data = await datasource_dep.get_data(param, cache);
+
+            let data_jsoned: string = null;
+            try {
+                data_jsoned = JSON.stringify(data);
+            } catch (error) {
+                ConsoleHandler.getInstance().error('getVarParamDatas:failed JSON:' + error);
+            }
+
+            if ((!data_jsoned) || (!data_jsoned.length)) {
+                continue;
+            }
+            if (data_jsoned.length > value_size_limit) {
+                datasources_values[datasource_dep.name] = "[... >10ko ...]";
+            } else {
+                datasources_values[datasource_dep.name] = data_jsoned;
+            }
         }
         return datasources_values;
     }

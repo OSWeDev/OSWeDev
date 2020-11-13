@@ -1,9 +1,7 @@
 import { Component, Prop } from 'vue-property-decorator';
-import 'vue-tables-2';
-import ModuleDAO from '../../../../../../../../shared/modules/DAO/ModuleDAO';
+import VarsController from '../../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VueComponentBase from '../../../../../VueComponentBase';
-import VarsClientController from '../../../../VarsClientController';
 import './VarDescExplainDepComponent.scss';
 
 @Component({
@@ -31,6 +29,6 @@ export default class VarDescExplainDepComponent extends VueComponentBase {
         if (!this.dep_id) {
             return null;
         }
-        return this.t(VarsClientController.getInstance().get_translatable_dep_name(this.dep_id));
+        return this.t(VarsController.getInstance().get_translatable_dep_name(this.dep_id));
     }
 }

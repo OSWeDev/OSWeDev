@@ -1,11 +1,13 @@
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
+import IRange from '../../../../../../../shared/modules/DataRender/interfaces/IRange';
+import MatroidController from '../../../../../../../shared/modules/Matroid/MatroidController';
 import MainAggregateOperatorsHandlers from '../../../../../../../shared/modules/Var/MainAggregateOperatorsHandlers';
 import ModuleVar from '../../../../../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import ObjectHandler from '../../../../../../../shared/tools/ObjectHandler';
+import RangeHandler from '../../../../../../../shared/tools/RangeHandler';
 import VueComponentBase from '../../../../VueComponentBase';
 import { ModuleVarGetter } from '../../../store/VarStore';
 import VarsClientController from '../../../VarsClientController';
@@ -14,7 +16,8 @@ import './VarDescExplainComponent.scss';
 @Component({
     template: require('./VarDescExplainComponent.pug'),
     components: {
-        Vardescexplaindepcomponent: () => import(/* webpackChunkName: "VarDescExplainDepComponent" */ './dep/VarDescExplainDepComponent')
+        Vardescexplaindepcomponent: () => import(/* webpackChunkName: "VarDescExplainDepComponent" */ './dep/VarDescExplainDepComponent'),
+        Vardescexplaindscomponent: () => import(/* webpackChunkName: "VarDescExplainDsComponent" */ './ds/VarDescExplainDsComponent')
     }
 })
 export default class VarDescExplainComponent extends VueComponentBase {
@@ -28,6 +31,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
     private deps_loading: boolean = true;
     private deps_params: { [dep_id: string]: VarDataBaseVO } = {};
     private vars_deps: { [dep_name: string]: string } = {};
+    private ds_values_jsoned: { [ds_name: string]: string } = null;
 
     private opened: boolean = true;
 
@@ -59,6 +63,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
 
         this.deps_params = await ModuleVar.getInstance().getParamDependencies(this.var_param);
         this.vars_deps = await ModuleVar.getInstance().getVarControllerVarsDeps(VarsController.getInstance().var_conf_by_id[this.var_param.var_id].name);
+        this.ds_values_jsoned = await ModuleVar.getInstance().getVarParamDatas(this.var_param);
 
         this.deps_loading = false;
     }
@@ -107,6 +112,8 @@ export default class VarDescExplainComponent extends VueComponentBase {
      *  - DEP_ID + '__' + i = valeur de chaque dep 0 indexed
      *
      * + 'self' pour la value du param
+     *
+     * + FIELD_ID + '__card' = le cardinal de chaque dimension du matroid
      */
     get explaination_sample_param() {
         if ((!this.deps_params_loaded) || (!this.self_param_loaded)) {
@@ -116,6 +123,16 @@ export default class VarDescExplainComponent extends VueComponentBase {
         let res = {
             self: this.getVarDatas[this.var_param.index].value
         };
+        let matroid_bases = MatroidController.getInstance().getMatroidBases(this.var_param);
+        for (let i in matroid_bases) {
+            let matroid_base = matroid_bases[i];
+
+            if (!this.var_param[matroid_base.field_id]) {
+                continue;
+            }
+            res[VarsController.getInstance().get_card_field_code(matroid_base.field_id)] =
+                RangeHandler.getInstance().getCardinalFromArray(this.var_param[matroid_base.field_id] as Array<IRange<any>>);
+        }
         for (let var_dep_id in this.vars_deps) {
 
             let values: number[] = [];
@@ -130,13 +147,13 @@ export default class VarDescExplainComponent extends VueComponentBase {
                 continue;
             }
 
-            res[var_dep_id + '__sum'] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM(values);
-            res[var_dep_id + '__max'] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_MAX(values);
-            res[var_dep_id + '__and'] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_AND(values);
-            res[var_dep_id + '__min'] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_MIN(values);
-            res[var_dep_id + '__or'] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_OR(values);
-            res[var_dep_id + '__times'] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_TIMES(values);
-            res[var_dep_id + '__xor'] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_XOR(values);
+            res[VarsController.getInstance().get_sum_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM(values);
+            res[VarsController.getInstance().get_max_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_MAX(values);
+            res[VarsController.getInstance().get_and_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_AND(values);
+            res[VarsController.getInstance().get_min_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_MIN(values);
+            res[VarsController.getInstance().get_or_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_OR(values);
+            res[VarsController.getInstance().get_times_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_TIMES(values);
+            res[VarsController.getInstance().get_xor_dep_code(var_dep_id)] = MainAggregateOperatorsHandlers.getInstance().aggregateValues_XOR(values);
         }
 
         return res;
@@ -147,7 +164,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsClientController.getInstance().get_translatable_explaination(this.var_param.var_id), this.explaination_sample_param);
+        return this.t(VarsController.getInstance().get_translatable_explaination_by_var_id(this.var_param.var_id), this.explaination_sample_param);
     }
 
     get has_explaination(): boolean {
@@ -155,7 +172,7 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return false;
         }
 
-        return VarsClientController.getInstance().get_translatable_explaination(this.var_param.var_id) != this.explaination;
+        return VarsController.getInstance().get_translatable_explaination_by_var_id(this.var_param.var_id) != this.explaination;
     }
 
     get has_deps_params(): boolean {

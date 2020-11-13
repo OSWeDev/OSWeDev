@@ -1,5 +1,4 @@
 import { Component, Prop } from 'vue-property-decorator';
-import 'vue-tables-2';
 import NotificationVO from '../../../../../../shared/modules/PushData/vos/NotificationVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleNotificationAction } from '../../store/NotificationStore';

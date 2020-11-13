@@ -1,5 +1,4 @@
 import { Component, Prop } from 'vue-property-decorator';
-import 'vue-tables-2';
 import ModuleDAO from '../../../../../../../../../shared/modules/DAO/ModuleDAO';
 import VarDataBaseVO from '../../../../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VueComponentBase from '../../../../../../VueComponentBase';

@@ -1,3 +1,4 @@
+import ObjectHandler from '../../tools/ObjectHandler';
 import DefaultTranslation from './vos/DefaultTranslation';
 
 export default class DefaultTranslationManager {
@@ -21,8 +22,9 @@ export default class DefaultTranslationManager {
     private constructor() { }
 
     public registerDefaultTranslation(defaultTranslation: DefaultTranslation) {
-        if ((!defaultTranslation) || (!defaultTranslation.code_text)) {
-            return null;
+        if ((!defaultTranslation) || (!defaultTranslation.code_text) ||
+            (!ObjectHandler.getInstance().hasAtLeastOneAttribute(defaultTranslation.default_translations))) {
+            return;
         }
         this.registered_default_translations[defaultTranslation.code_text] = defaultTranslation;
     }

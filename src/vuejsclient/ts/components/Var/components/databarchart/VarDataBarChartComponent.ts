@@ -1,6 +1,5 @@
 import { Bar } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
 import VarBarDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarBarDataSetDescriptor';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -318,7 +317,7 @@ export default class VarDataBarChartComponent extends VueComponentBase {
             if (!!var_dataset_descriptor.label_translatable_code) {
                 dataset['label'] = this.t(var_dataset_descriptor.label_translatable_code);
             } else {
-                dataset['label'] = this.t(VarsClientController.getInstance().get_translatable_name_code(var_dataset_descriptor.var_name));
+                dataset['label'] = this.t(VarsController.getInstance().get_translatable_name_code(var_dataset_descriptor.var_name));
             }
 
             if (!!var_dataset_descriptor.bg_color) {

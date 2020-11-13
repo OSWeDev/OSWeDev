@@ -5,6 +5,10 @@
             .row(v-if='has_explaination')
                 .col-md-12        
                     .var_desc_explaination {{ explaination }}
+            .row(v-if='ds_values_jsoned && !deps_loading')
+                .col-md-12
+                    template(v-for='(ds_value_jsoned, ds_name) in ds_values_jsoned')
+                        Vardescexplaindscomponent(:ds_name="ds_name" :ds_data_jsoned="ds_value_jsoned")
             .row(v-if='deps_params_loaded')
                 .col-md-12
                     template(v-for='(var_dep, dep_id) in vars_deps')

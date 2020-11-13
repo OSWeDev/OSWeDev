@@ -1,0 +1,11 @@
+.var_desc_explain_ds
+    .row
+        .col-md-12.var_ds_label_wrapper(@click='opened=!opened')
+            .var_ds_label {{ label('var_desc.var_ds_label') }}
+                Vardescdscomponent(:ds_name='ds_name')
+            
+    .row(v-show='opened')
+        .col-md-12
+            vue-json-pretty(:data='ds_data_jsoned' v-if='ds_data_jsoned')
+
+                

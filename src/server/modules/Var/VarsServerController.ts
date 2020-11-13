@@ -1,8 +1,11 @@
 import debounce = require('lodash/debounce');
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import InsertOrDeleteQueryResult from '../../../shared/modules/DAO/vos/InsertOrDeleteQueryResult';
+import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
@@ -254,6 +257,9 @@ export default class VarsServerController {
                 this._registered_vars_controller_by_api_type_id[vo_api_type_id].push(controller);
             }
         }
+
+        // On enregistre les defaults translations
+        this.register_var_default_translations(varConf.name, controller);
     }
 
     /**
@@ -265,4 +271,40 @@ export default class VarsServerController {
 
         return datasource_deps;
     }
+
+    private register_var_default_translations(varConf_name: string, controller: VarServerControllerBase<any>) {
+        if (!!controller.var_name_default_translations) {
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+                controller.var_name_default_translations,
+                VarsController.getInstance().get_translatable_name_code(varConf_name)));
+        }
+
+        if (!!controller.var_description_default_translations) {
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+                controller.var_description_default_translations,
+                VarsController.getInstance().get_translatable_description_code(varConf_name)));
+        }
+
+        if (!!controller.var_explaination_default_translations) {
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+                controller.var_explaination_default_translations,
+                VarsController.getInstance().get_translatable_explaination(varConf_name)));
+        }
+
+        if (!!controller.var_deps_names_default_translations) {
+
+            let deps: { [dep_name: string]: VarServerControllerBase<any> } = controller.getVarControllerDependencies();
+            for (let i in deps) {
+                let dep = deps[i];
+
+                if (!controller.var_deps_names_default_translations[i]) {
+                    continue;
+                }
+                DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+                    controller.var_deps_names_default_translations[i],
+                    VarsController.getInstance().get_translatable_dep_name(i)));
+            }
+        }
+    }
+
 }

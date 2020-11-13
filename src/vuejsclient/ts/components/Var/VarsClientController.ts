@@ -1,9 +1,6 @@
-import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
-import VarsController from '../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarUpdateCallback from '../../../../shared/modules/Var/vos/VarUpdateCallback';
-import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
@@ -16,8 +13,6 @@ export default class VarsClientController {
         return VarsClientController.instance;
     }
 
-    private static VARS_DESC_TRANSLATABLE_PREFIXES: string = "var.desc.";
-
     private static instance: VarsClientController = null;
 
     /**
@@ -26,41 +21,7 @@ export default class VarsClientController {
      */
     public registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
 
-
-
     protected constructor() {
-    }
-
-    public get_translatable_name_code_by_var_id(var_id: number): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public get_translatable_description_code_by_var_id(var_id: number): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public get_translatable_explaination(var_id: number): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_explaination' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public get_translatable_dep_name(dep_id: string): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + '__DEPS__' + dep_id + '.name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public get_translatable_params_desc_code_by_var_id(var_id: number): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + VarsController.getInstance().var_conf_by_id[var_id].name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public get_translatable_name_code(var_name: string): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_name' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public get_translatable_description_code(var_name: string): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_description' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
-    }
-
-    public get_translatable_params_desc_code(var_name: string): string {
-        return VarsClientController.VARS_DESC_TRANSLATABLE_PREFIXES + var_name + '.translatable_params_desc' + DefaultTranslation.DEFAULT_LABEL_EXTENSION;
     }
 
     /**

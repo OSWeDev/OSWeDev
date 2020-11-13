@@ -37,7 +37,13 @@ export default abstract class VarServerControllerBase<TData extends VarDataBaseV
     public var_cache_conf: VarCacheConfVO = null;
     protected aggregateValues: (values: number[]) => number = MainAggregateOperatorsHandlers.getInstance().aggregateValues_SUM;
 
-    protected constructor(public varConf: VarConfVO) {
+    protected constructor(
+        public varConf: VarConfVO,
+        public var_name_default_translations: { [code_lang: string]: string },
+        public var_description_default_translations: { [code_lang: string]: string },
+        public var_explaination_default_translations: { [code_lang: string]: string },
+        public var_deps_names_default_translations: { [dep_id: string]: { [code_lang: string]: string } }
+    ) {
     }
 
     /**

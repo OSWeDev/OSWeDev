@@ -91,6 +91,13 @@ export default class ModuleVar extends Module {
             StringParamVO.translateCheckAccessParams
         ));
 
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, string[]>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_getVarControllerDSDeps,
+            CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
+            StringParamVO.translateCheckAccessParams
+        ));
+
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [dep_id: string]: VarDataBaseVO }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getParamDependencies,
@@ -98,7 +105,7 @@ export default class ModuleVar extends Module {
             APISimpleVOParamVO.translateCheckAccessParams
         ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [ds_name: string]: any }>(
+        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOParamVO, { [ds_name: string]: string }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
             ModuleVar.APINAME_getVarParamDatas,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
@@ -112,14 +119,17 @@ export default class ModuleVar extends Module {
         ));
     }
 
+    public async getVarControllerDSDeps(var_name: string): Promise<string[]> {
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, string[]>(ModuleVar.APINAME_getVarControllerDSDeps, var_name);
+    }
     public async getVarControllerVarsDeps(var_name: string): Promise<{ [dep_name: string]: string }> {
         return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [dep_name: string]: string }>(ModuleVar.APINAME_getVarControllerVarsDeps, var_name);
     }
     public async getParamDependencies(param: VarDataBaseVO): Promise<{ [dep_id: string]: VarDataBaseVO }> {
         return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [dep_id: string]: VarDataBaseVO }>(ModuleVar.APINAME_getParamDependencies, param);
     }
-    public async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: any }> {
-        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [ds_name: string]: any }>(ModuleVar.APINAME_getVarParamDatas, param);
+    public async getVarParamDatas(param: VarDataBaseVO): Promise<{ [ds_name: string]: string }> {
+        return await ModuleAPI.getInstance().handleAPI<APISimpleVOParamVO, { [ds_name: string]: string }>(ModuleVar.APINAME_getVarParamDatas, param);
     }
 
     public async register_params(params: VarDataBaseVO[]): Promise<void> {

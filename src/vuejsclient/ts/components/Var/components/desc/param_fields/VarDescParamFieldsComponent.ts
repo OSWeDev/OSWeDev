@@ -1,5 +1,4 @@
 import { Component, Prop } from 'vue-property-decorator';
-import 'vue-tables-2';
 import HourRange from '../../../../../../../shared/modules/DataRender/vos/HourRange';
 import NumRange from '../../../../../../../shared/modules/DataRender/vos/NumRange';
 import TSRange from '../../../../../../../shared/modules/DataRender/vos/TSRange';

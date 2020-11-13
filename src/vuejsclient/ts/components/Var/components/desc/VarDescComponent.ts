@@ -1,12 +1,11 @@
 import { Component, Prop } from 'vue-property-decorator';
-import 'vue-tables-2';
 import ModuleDAO from '../../../../../../shared/modules/DAO/ModuleDAO';
 import ModuleFormatDatesNombres from '../../../../../../shared/modules/FormatDatesNombres/ModuleFormatDatesNombres';
+import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VueComponentBase from '../../../VueComponentBase';
 import { ModuleVarGetter } from '../../store/VarStore';
-import VarsClientController from '../../VarsClientController';
 import './VarDescComponent.scss';
 
 @Component({
@@ -70,7 +69,7 @@ export default class VarDescComponent extends VueComponentBase {
             return null;
         }
 
-        return this.t(VarsClientController.getInstance().get_translatable_description_code_by_var_id(this.var_param.var_id));
+        return this.t(VarsController.getInstance().get_translatable_description_code_by_var_id(this.var_param.var_id));
     }
 
     private async update_var_data() {

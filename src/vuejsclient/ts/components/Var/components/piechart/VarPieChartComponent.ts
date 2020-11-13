@@ -1,6 +1,5 @@
 import { Pie } from 'vue-chartjs';
 import { Component, Prop, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
 import VarPieDataSetDescriptor from '../../../../../../shared/modules/Var/graph/VarPieDataSetDescriptor';
 import VarsController from '../../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';
@@ -209,7 +208,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         let dataset = {
             label: (!!this.var_dataset_descriptor.label_translatable_code) ?
                 this.t(this.var_dataset_descriptor.label_translatable_code) :
-                this.t(VarsClientController.getInstance().get_translatable_name_code(this.var_dataset_descriptor.var_name)),
+                this.t(VarsController.getInstance().get_translatable_name_code(this.var_dataset_descriptor.var_name)),
             data: dataset_datas,
             backgroundColor: backgrounds
         };
@@ -255,7 +254,7 @@ export default class VarPieChartComponent extends VueComponentBase {
         let res = [];
 
         for (let i in this.var_params) {
-            res.push(this.t(VarsClientController.getInstance().get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
+            res.push(this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.var_params[i].var_id)));
         }
 
         return res;

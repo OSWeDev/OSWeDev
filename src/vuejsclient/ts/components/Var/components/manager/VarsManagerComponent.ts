@@ -1,5 +1,4 @@
 import { Component, Watch } from 'vue-property-decorator';
-import 'vue-tables-2';
 import ModuleAccessPolicy from '../../../../../../shared/modules/AccessPolicy/ModuleAccessPolicy';
 import ModuleVar from '../../../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../../../shared/modules/Var/vos/VarDataBaseVO';

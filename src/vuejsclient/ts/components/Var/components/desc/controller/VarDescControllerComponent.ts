@@ -1,7 +1,6 @@
 import { Component, Prop } from 'vue-property-decorator';
-import 'vue-tables-2';
+import VarsController from '../../../../../../../shared/modules/Var/VarsController';
 import VueComponentBase from '../../../../VueComponentBase';
-import VarsClientController from '../../../VarsClientController';
 import './VarDescControllerComponent.scss';
 
 @Component({
@@ -19,6 +18,6 @@ export default class VarDescControllerComponent extends VueComponentBase {
             return null;
         }
 
-        return this.var_id + ' | ' + this.t(VarsClientController.getInstance().get_translatable_name_code_by_var_id(this.var_id));
+        return this.var_id + ' | ' + this.t(VarsController.getInstance().get_translatable_name_code_by_var_id(this.var_id));
     }
 }
