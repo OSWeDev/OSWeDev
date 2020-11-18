@@ -3,6 +3,7 @@ import CacheInvalidationRulesVO from '../AjaxCache/vos/CacheInvalidationRulesVO'
 import ModuleAPI from '../API/ModuleAPI';
 import StringParamVO from '../API/vos/apis/StringParamVO';
 import GetAPIDefinition from '../API/vos/GetAPIDefinition';
+import PostAPIDefinition from '../API/vos/PostAPIDefinition';
 import PostForGetAPIDefinition from '../API/vos/PostForGetAPIDefinition';
 import APISimpleVOParamVO from '../DAO/vos/APISimpleVOParamVO';
 import APISimpleVOsParamVO from '../DAO/vos/APISimpleVOsParamVO';
@@ -43,6 +44,10 @@ export default class ModuleVar extends Module {
     public static APINAME_getParamDependencies: string = 'getParamDependencies';
     public static APINAME_getVarControllerDSDeps: string = 'getVarControllerDSDeps';
     public static APINAME_getVarParamDatas: string = 'getVarParamDatas';
+
+    public static APINAME_invalidate_cache_intersection: string = 'invalidate_cache_intersection';
+    public static APINAME_delete_cache_intersection: string = 'delete_cache_intersection';
+    public static APINAME_delete_cache_and_imports_intersection: string = 'delete_cache_and_imports_intersection';
 
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
@@ -117,6 +122,70 @@ export default class ModuleVar extends Module {
             ModuleVar.APINAME_get_var_id_by_names,
             [VarConfVO.API_TYPE_ID]
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_invalidate_cache_intersection,
+            (params: VarDataBaseVO[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_delete_cache_and_imports_intersection,
+            (params: VarDataBaseVO[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_delete_cache_intersection,
+            (params: VarDataBaseVO[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
+    }
+
+    public async invalidate_cache_intersection(vos: VarDataBaseVO[]): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_invalidate_cache_intersection, vos);
+    }
+    public async delete_cache_and_imports_intersection(vos: VarDataBaseVO[]): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_delete_cache_and_imports_intersection, vos);
+    }
+    public async delete_cache_intersection(vos: VarDataBaseVO[]): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_delete_cache_intersection, vos);
     }
 
     public async getVarControllerDSDeps(var_name: string): Promise<string[]> {
@@ -231,6 +300,10 @@ export default class ModuleVar extends Module {
 
             new ModuleTableField('consider_null_as_0_and_auto_clean_0_in_cache', ModuleTableField.FIELD_TYPE_boolean, 'Nettoyer si 0', true, true, true),
             new ModuleTableField('cache_timeout_ms', ModuleTableField.FIELD_TYPE_int, 'Timeout invalidation', false, true, 1000 * 12 * 60 * 60),
+            new ModuleTableField('cache_seuil_a', ModuleTableField.FIELD_TYPE_float, 'Seuil cache A', true, true, 1000),
+            new ModuleTableField('cache_seuil_b', ModuleTableField.FIELD_TYPE_float, 'Seuil cache B', true, true, 1000),
+            new ModuleTableField('cache_seuil_c', ModuleTableField.FIELD_TYPE_float, 'Seuil cache C', true, true, 1000),
+            new ModuleTableField('calculation_cost_for_1000_card', ModuleTableField.FIELD_TYPE_float, 'Ms calcul pour 1000', true, true, 1000)
         ];
 
         let datatable = new ModuleTable(this, VarCacheConfVO.API_TYPE_ID, () => new VarCacheConfVO(), datatable_fields, null);

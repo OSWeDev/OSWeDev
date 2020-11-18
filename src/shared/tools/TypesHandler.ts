@@ -65,4 +65,8 @@ export default class TypesHandler {
     public isNull(e: any): boolean {
         return e === null;
     }
+
+    public isObject(e: any): boolean {
+        return (typeof e === 'object') && (e !== null);
+    }
 }

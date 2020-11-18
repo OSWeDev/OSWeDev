@@ -45,6 +45,11 @@ describe('TestFilters', () => {
         expect(percentFilter.read("1000000")).to.equal("&infin;");
         expect(percentFilter.read("-1000000")).to.equal("-&infin;");
         expect(percentFilter.read("-1000")).to.equal("-&infin;");
+
+        expect(percentFilter.read(0.9666, 1, false, true, true, true)).to.equal("-3,3 %");
+        expect(percentFilter.read(0.9, 1, false, true, true, true)).to.equal("-10,0 %");
+        expect(percentFilter.read(1, 1, false, true, true, true)).to.equal("0,0 %");
+        expect(percentFilter.read(1.1, 1, false, true, true, true)).to.equal("+10,0 %");
     });
 
     it('test percentFilter write', () => {
@@ -112,9 +117,6 @@ describe('TestFilters', () => {
         expect(toFixedFilter.read(1.6888, 2, 0.1, ARRONDI_TYPE_FLOOR)).to.equal("1,60");
         expect(toFixedFilter.read(1.6888, 2, 0.01, ARRONDI_TYPE_FLOOR)).to.equal("1,68");
         expect(toFixedFilter.read(1.6888, 2, 0.01)).to.equal("1,69");
-
-
-
 
     });
 

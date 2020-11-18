@@ -11,6 +11,9 @@ import './VarsManagerComponent.scss';
     template: require('./VarsManagerComponent.pug'),
     components: {
         //"var-desc-registrations": VarDescRegistrationsComponent,
+        Varsdatasexplorercomponent: () => import(/* webpackChunkName: "VarsDatasExplorerComponent" */ '../explorer/VarsDatasExplorerComponent'),
+        Draggablewindowcomponent: () => import(/* webpackChunkName: "DraggableWindowComponent" */ '../../../draggable_window/DraggableWindowComponent'),
+
         // "perfmon-funcstats": () => import(/* webpackChunkName: "FuncStatsComponent" */ '../../../PerfMon/components/funcStats/FuncStatsComponent')
     }
 })
@@ -26,8 +29,6 @@ export default class VarsManagerComponent extends VueComponentBase {
     private getVarDatas: { [paramIndex: string]: VarDataValueResVO };
     @ModuleVarGetter
     private isDescMode: boolean;
-    @ModuleVarGetter
-    private isDescOpened: boolean;
     @ModuleVarGetter
     private isDescRegistrationsOpened: boolean;
     @ModuleVarGetter
@@ -51,8 +52,6 @@ export default class VarsManagerComponent extends VueComponentBase {
     private setDescSelectedVarParam: (desc_selected_var_param: VarDataBaseVO) => void;
     @ModuleVarAction
     private setDescFuncStatsOpened: (desc_funcstats_opened: boolean) => void;
-    @ModuleVarAction
-    private setDescOpened: (desc_opened: boolean) => void;
     @ModuleVarAction
     private setDescMode: (desc_mode: boolean) => void;
     @ModuleVarAction
@@ -85,57 +84,6 @@ export default class VarsManagerComponent extends VueComponentBase {
         }
 
         this.setDescMode(!this.isDescMode);
-    }
-
-    // v-on:resizing="onResize_var_desc"
-    // private onResize_var_desc(x, y, width, height) {
-
-    //     if (!this.opened_var_desc) {
-    //         return;
-    //     }
-
-    //     if ((this.width_var_desc == width) && (this.height_var_desc == height)) {
-    //         return;
-    //     }
-
-    //     this.width_var_desc = width ? width : this.width_var_desc;
-    //     this.height_var_desc = height ? height : this.height_var_desc;
-    //     this.opened_width_var_desc = this.width_var_desc;
-    //     this.opened_height_var_desc = this.height_var_desc;
-
-    //     (this.$refs.var_desc_wrapper as any).$el.style.maxHeight = "" + (this.height_var_desc - this.unusable_height_var_desc) + "px";
-    // }
-
-    @Watch('opened_var_desc')
-    private onOpenClose_var_desc() {
-        if (this.opened_var_desc) {
-
-            this.width_var_desc = this.opened_width_var_desc;
-            this.height_var_desc = this.opened_height_var_desc;
-
-            this.minh_var_desc = this.opened_minh_var_desc;
-            this.minw_var_desc = this.opened_minw_var_desc;
-
-            (this.$refs.var_desc_wrapper as any).$el.style.maxHeight = "" + (this.height_var_desc - this.unusable_height_var_desc) + "px";
-        } else {
-
-            this.width_var_desc = this.closed_width_var_desc;
-            this.height_var_desc = this.closed_height_var_desc;
-
-            this.minh_var_desc = this.closed_minh_var_desc;
-            this.minw_var_desc = this.closed_minw_var_desc;
-
-            (this.$refs.var_desc_wrapper as any).$el.style.maxHeight = "0px";
-        }
-
-        (this.$refs.var_desc_dragsize as any).$el.width = this.width_var_desc;
-        (this.$refs.var_desc_dragsize as any).$el.height = this.height_var_desc;
-
-        (this.$refs.var_desc_dragsize as any).$el.style.width = "" + this.width_var_desc + "px";
-        (this.$refs.var_desc_dragsize as any).$el.style.height = "" + this.height_var_desc + "px";
-
-        (this.$refs.var_desc_dragsize as any).$el.elmH = this.height_var_desc;
-        (this.$refs.var_desc_dragsize as any).$el.elmW = this.width_var_desc;
     }
 
     get can_undo(): boolean {

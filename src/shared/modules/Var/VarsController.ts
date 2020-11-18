@@ -31,28 +31,28 @@ export default class VarsController {
     }
 
     public get_card_field_code(field_id: string): string {
-        return '{' + field_id + '__card}';
+        return field_id.replace(/[.]/g, '_') + '__card';
     }
     public get_sum_dep_code(dep_id: string): string {
-        return '{' + dep_id + '__sum}';
+        return dep_id.replace(/[.]/g, '_') + '__sum';
     }
     public get_max_dep_code(dep_id: string): string {
-        return '{' + dep_id + '__max}';
+        return dep_id.replace(/[.]/g, '_') + '__max';
     }
     public get_and_dep_code(dep_id: string): string {
-        return '{' + dep_id + '__and}';
+        return dep_id.replace(/[.]/g, '_') + '__and';
     }
     public get_min_dep_code(dep_id: string): string {
-        return '{' + dep_id + '__min}';
+        return dep_id.replace(/[.]/g, '_') + '__min';
     }
     public get_or_dep_code(dep_id: string): string {
-        return '{' + dep_id + '__or}';
+        return dep_id.replace(/[.]/g, '_') + '__or';
     }
     public get_times_dep_code(dep_id: string): string {
-        return '{' + dep_id + '__times}';
+        return dep_id.replace(/[.]/g, '_') + '__times';
     }
     public get_xor_dep_code(dep_id: string): string {
-        return '{' + dep_id + '__xor}';
+        return dep_id.replace(/[.]/g, '_') + '__xor';
     }
 
     public get_translatable_ds_name(ds_name: string): string {

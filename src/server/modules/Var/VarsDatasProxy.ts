@@ -181,17 +181,28 @@ export default class VarsDatasProxy {
             return res;
         }
 
-        /**
-         * Attention : à ce stade en base on va trouver des datas qui sont pas computed mais qu'on retrouve par exemple comme computed
-         *  et valide (donc pas sélectionnées) dans le buffer d'attente de mise à jour en bdd. Donc on doit ignorer tous les ids
-         *  des vars qui sont dans le buffer... (avantage ça concerne pas celles qui sont pas créées puisqu'il faut un id et la liste
-         *  des ids reste relativement dense)...
-         */
         let bdd_datas: { [index: string]: VarDataBaseVO } = await this.get_vars_to_compute_from_bdd(request_limit);
         for (let i in bdd_datas) {
             let bdd_data = bdd_datas[i];
 
+            /**
+             * Attention : à ce stade en base on va trouver des datas qui sont pas computed mais qu'on retrouve par exemple comme computed
+             *  et valide (donc pas sélectionnées) dans le buffer d'attente de mise à jour en bdd. Donc on doit ignorer tous les ids
+             *  des vars qui sont dans le buffer... (avantage ça concerne pas celles qui sont pas créées puisqu'il faut un id et la liste
+             *  des ids reste relativement dense)...
+             */
+            if (!!this.vars_datas_buffer.find((var_data: VarDataBaseVO) => var_data.index == bdd_data.index)) {
+                continue;
+            }
+
             res[bdd_data.index] = bdd_data;
+        }
+
+        /**
+         * Si on fait les calculs depuis la Bdd, on mets les vardats dans la pile de mise en cache
+         */
+        if (bdd_datas && ObjectHandler.getInstance().hasAtLeastOneAttribute(bdd_datas)) {
+            this.prepend_var_datas(Object.values(bdd_datas));
         }
 
         return res;

@@ -63,16 +63,18 @@ export default class NumRangeComponent extends VueComponentBase {
         this.segmented_max_as_num = segmented_max;
 
         if ((!this.is_MAX_RANGE) &&
-            NumRangeComponentController.getInstance().num_ranges_label_handler &&
-            NumRangeComponentController.getInstance().num_ranges_label_handler[this.vo_field.module_table.vo_type] &&
-            NumRangeComponentController.getInstance().num_ranges_label_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id]) {
-            this.segmented_min = await NumRangeComponentController.getInstance().num_ranges_label_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id](
-                segmented_min
-            );
-            if (segmented_min != segmented_max) {
-                this.segmented_max = await NumRangeComponentController.getInstance().num_ranges_label_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id](
-                    RangeHandler.getInstance().getSegmentedMax(this.range)
+            NumRangeComponentController.getInstance().num_ranges_enum_handler &&
+            NumRangeComponentController.getInstance().num_ranges_enum_handler[this.vo_field.module_table.vo_type] &&
+            NumRangeComponentController.getInstance().num_ranges_enum_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id]) {
+            this.segmented_min = await
+                NumRangeComponentController.getInstance().num_ranges_enum_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id].label_handler(
+                    segmented_min
                 );
+            if (segmented_min != segmented_max) {
+                this.segmented_max =
+                    await NumRangeComponentController.getInstance().num_ranges_enum_handler[this.vo_field.module_table.vo_type][this.vo_field.field_id].label_handler(
+                        RangeHandler.getInstance().getSegmentedMax(this.range)
+                    );
             } else {
                 this.segmented_max = this.segmented_min;
             }

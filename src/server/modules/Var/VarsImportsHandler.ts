@@ -42,12 +42,34 @@ export default class VarsImportsHandler {
             return;
         }
 
+        await this.split_nodes(node, vars_datas, ds_cache, imports, node.var_controller.optimization__has_only_atomic_imports);
+    }
+
+    /**
+     * Méthode qui fait le découpage du noeud depuis une liste d'imports ou de caches
+     * @param node
+     * @param vars_datas
+     * @param ds_cache
+     * @param imports import ou cache
+     * @param optimization__has_only_atomic_imports
+     */
+    public async split_nodes(
+        node: VarDAGNode,
+        vars_datas: { [index: string]: VarDataBaseVO },
+        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } },
+        imports: VarDataBaseVO[],
+        optimization__has_only_atomic_imports: boolean) {
+
+        if ((!imports) || (!imports.length)) {
+            return;
+        }
+
         imports.sort(this.sort_matroids_per_cardinal_desc);
 
         let imports_valides: VarDataBaseVO[];
 
         // Si on a que des imports isolés, on prend toujours tous les imports, inutile de suivre une stratégie
-        if (node.var_controller.optimization__has_only_atomic_imports) {
+        if (optimization__has_only_atomic_imports) {
             imports_valides = imports;
         } else {
             imports_valides = this.get_selection_imports(imports, node.var_data);

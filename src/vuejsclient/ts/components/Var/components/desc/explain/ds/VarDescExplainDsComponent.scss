@@ -8,10 +8,16 @@
         text-align: right;
     }
     .var_ds_label {
+        color: #999;
+        margin: 2px;
+        font-size: smaller;
+        margin-top: .3em;
+        margin-right: 5px;
+        display: inline-block;
         margin: 0;
     }
 
     .vjs-tree {
-        background: whitesmoke;
+        background: rgba(0,0,0,.5);
     }
 }

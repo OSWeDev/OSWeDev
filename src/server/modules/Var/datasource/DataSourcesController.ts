@@ -1,5 +1,8 @@
+import DefaultTranslationManager from '../../../../shared/modules/Translation/DefaultTranslationManager';
+import DefaultTranslation from '../../../../shared/modules/Translation/vos/DefaultTranslation';
 import VarDAGNode from '../../../../shared/modules/Var/graph/VarDAGNode';
 import DataSourceControllerBase from './DataSourceControllerBase';
+import VarsController from '../../../../shared/modules/Var/VarsController';
 
 export default class DataSourcesController {
 
@@ -51,6 +54,16 @@ export default class DataSourcesController {
                 this.registeredDataSourcesControllerByVoTypeDep[vo_type_dep] = [];
             }
             this.registeredDataSourcesControllerByVoTypeDep[vo_type_dep].push(dataSourcesController);
+        }
+
+        this.register_ds_default_translations(dataSourcesController);
+    }
+
+    private register_ds_default_translations(ds: DataSourceControllerBase) {
+        if (!!ds.ds_name_default_translations) {
+            DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation(
+                ds.ds_name_default_translations,
+                VarsController.getInstance().get_translatable_ds_name(ds.name)));
         }
     }
 }

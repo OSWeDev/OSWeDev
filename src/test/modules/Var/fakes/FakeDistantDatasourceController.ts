@@ -10,7 +10,10 @@ export default class FakeDistantDatasourceController extends DataSourceControlle
 
     public static getInstance(): FakeDistantDatasourceController {
         if (!FakeDistantDatasourceController.instance) {
-            FakeDistantDatasourceController.instance = new FakeDistantDatasourceController('FakeDistantDatasourceController', [FakeDistantVO.API_TYPE_ID]);
+            FakeDistantDatasourceController.instance = new FakeDistantDatasourceController(
+                'FakeDistantDatasourceController',
+                [FakeDistantVO.API_TYPE_ID],
+                {});
         }
         return FakeDistantDatasourceController.instance;
     }

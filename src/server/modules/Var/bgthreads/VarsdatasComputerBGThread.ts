@@ -133,7 +133,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              */
 
             await VarsComputeController.getInstance().compute(vars_datas);
-            let vars_array = Object.values(vars_datas);
+            // let vars_array = Object.values(vars_datas);
 
             if (!this.silent) {
                 end_computation = moment().utc(true).valueOf();
@@ -147,7 +147,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             }
 
             // vars_array.forEach((vd) => ConsoleHandler.getInstance().log('REMOVETHIS:do_calculation_run.insertOrUpdateVOs:' + vd.index + ':'));
-            await ModuleDAO.getInstance().insertOrUpdateVOs(vars_array);
+            // await ModuleDAO.getInstance().insertOrUpdateVOs(vars_array);
 
             if (!this.silent) {
                 end_update = moment().utc(true).valueOf();

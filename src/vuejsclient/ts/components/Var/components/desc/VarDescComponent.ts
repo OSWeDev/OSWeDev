@@ -73,6 +73,10 @@ export default class VarDescComponent extends VueComponentBase {
     }
 
     private async update_var_data() {
+        if (this.var_param.value_type == VarDataBaseVO.VALUE_TYPE_IMPORT) {
+            this.snotify.error(this.label('var.desc_mode.update_var_data.not_allowed_on_imports'));
+            return;
+        }
         this.var_param.value_ts = null;
         await ModuleDAO.getInstance().insertOrUpdateVO(this.var_param);
         this.snotify.info(this.label('var.desc_mode.update_var_data'));

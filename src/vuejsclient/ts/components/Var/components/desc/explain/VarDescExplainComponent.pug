@@ -1,5 +1,5 @@
 .var_desc_explain
-    template(v-if='has_explaination || has_deps_params')
+    template(v-if='has_explaination || has_deps_params || ds_values_jsoned')
         .var_desc_explain_title(@click='opened=!opened') {{ label('var_desc.explaination') }}
         .var_desc_explain_content(v-show='opened')
             .row(v-if='has_explaination')

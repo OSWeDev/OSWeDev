@@ -15,4 +15,9 @@ export default class VarCacheConfVO implements IDistantVOBase {
      *      correctement, on devrait pouvoir invalider par les datasources, et pas par un délai
      */
     public cache_timeout_ms: number;
+
+    public cache_seuil_a: number;
+    public cache_seuil_b: number;
+    public cache_seuil_c: number;
+    public calculation_cost_for_1000_card: number;
 }

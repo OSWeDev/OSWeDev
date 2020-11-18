@@ -72,6 +72,7 @@ export default class VarsClientController {
         }
 
         if (needs_registration && needs_registration.length) {
+            await ModuleVar.getInstance().unregister_params(needs_registration);
             await ModuleVar.getInstance().register_params(needs_registration);
         }
     }

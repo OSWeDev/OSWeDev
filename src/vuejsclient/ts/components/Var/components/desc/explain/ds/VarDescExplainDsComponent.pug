@@ -6,6 +6,6 @@
             
     .row(v-show='opened')
         .col-md-12
-            vue-json-pretty(:data='ds_data_jsoned' v-if='ds_data_jsoned')
+            vue-json-pretty(:data='ds_data_parsed' v-if='ds_data_jsoned' :deep='0')
 
                 

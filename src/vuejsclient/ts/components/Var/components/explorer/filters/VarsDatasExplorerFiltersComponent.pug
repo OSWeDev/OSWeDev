@@ -1,0 +1,74 @@
+.vars_datas_explorer_filters
+    .form
+        .row
+            .col-md-12
+                multiselect(
+                    :preselect-first="false"
+                    :multiple="true"
+                    v-model="fitered_vars_confs"
+                    :placeholder="label('vars_datas_explorer_filters.vars_confs')"
+                    :options="filterable_vars_confs"
+
+                    :custom-label="var_conf_label"
+                    :searchable="true"
+                    :internal-search="true"
+                    
+                    track-by="id"
+                    
+                    id="multifilter_vars_datas_explorer_filters_vars_confs"
+                    
+                    :select-label='label("multiselect.selectLabel")'
+                    :select-group-label='label("multiselect.selectGroupLabel")'
+                    :selected-label='label("multiselect.selectedLabel")'
+                    :deselect-label='label("multiselect.deselectLabel")'
+                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                )
+                    span(slot="noOptions") -
+
+        template(v-for='(field, field_id) in fields')
+            template(v-if='fields_filters_is_valid[field_id]')
+                .row
+                    .col-md-12
+                        template(v-if='is_ts_range_type(field)')
+                            Tsrangeinputcomponent(
+                                :value='fields_filters_range[field_id]'
+                                :segmentation_type='tsrange_segmentation_type'
+                                @input='(range) => on_edit_range(range, field_id)'    
+                            )
+                        template(v-if='is_num_range_type(field)')
+                            template(v-if='fields_filters_is_enum[field_id]')
+                                multiselect(
+                                    :preselect-first="false"
+                                    :multiple="true"
+                                    v-model="fields_filters_list[field_id]"
+                                    :placeholder="label('fields.labels.ref.'+fields[field_id].module_table.name+'.'+field_id)"
+                                    :options="enum_initial_options[field_id]"
+
+                                    :custom-label="enum_field_label_handler(fields[field_id])"
+                                    :searchable="true"
+                                    :internal-search="!has_enum_search[field_id]"
+                                    @search-change="enum_search_handler ? enum_search_handler : null"
+
+                                    track-by="id"
+                                    
+                                    :id="'multifilter_vars_datas_explorer_filters_' + field_id"
+                                    
+                                    :select-label='label("multiselect.selectLabel")'
+                                    :select-group-label='label("multiselect.selectGroupLabel")'
+                                    :selected-label='label("multiselect.selectedLabel")'
+                                    :deselect-label='label("multiselect.deselectLabel")'
+                                    :deselect-group-label='label("multiselect.deselectGroupLabel")'
+                                )
+                                    span(slot="noOptions") -
+                            template(v-else)
+                                Numrangeinputcomponent(
+                                :value='fields_filters_range[field_id]'
+                                :segmentation_type='numrange_segmentation_type'
+                                @input='(range) => on_edit_range(range, field_id)'    
+                            )
+                        template(v-if='is_hour_range_type(field)')
+                            Hourrangeinputcomponent(
+                                :value='fields_filters_range[field_id]'
+                                :segmentation_type='hourrange_segmentation_type'
+                                @input='(range) => on_edit_range(range, field_id)'    
+                            )

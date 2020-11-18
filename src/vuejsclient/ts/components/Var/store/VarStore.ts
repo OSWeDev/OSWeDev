@@ -14,7 +14,6 @@ export interface IVarState {
     desc_mode: boolean;
     desc_selected_var_param: VarDataBaseVO;
     desc_selected_var_param_historic: VarDataBaseVO[];
-    desc_opened: boolean;
     desc_deps_opened: boolean;
     desc_registrations_opened: boolean;
     desc_funcstats_opened: boolean;
@@ -52,7 +51,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             desc_selected_var_param: null,
             desc_selected_var_param_historic_i: -1,
             desc_selected_var_param_historic: [],
-            desc_opened: false,
             desc_deps_opened: false,
             desc_registrations_opened: false,
             desc_funcstats_opened: false,
@@ -66,9 +64,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
             },
             get_dependencies_heatmap_version(state: IVarState): number {
                 return state.dependencies_heatmap_version;
-            },
-            isDescOpened(state: IVarState): boolean {
-                return state.desc_opened;
             },
             isDescDepsOpened(state: IVarState): boolean {
                 return state.desc_deps_opened;
@@ -99,10 +94,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 state.dependencies_heatmap_version = dependencies_heatmap_version;
             },
 
-            setDescOpened(state: IVarState, desc_opened: boolean) {
-                state.desc_opened = desc_opened;
-            },
-
             setDescDepsOpened(state: IVarState, desc_deps_opened: boolean) {
                 state.desc_deps_opened = desc_deps_opened;
             },
@@ -125,7 +116,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
             setDescSelectedVarParam(state: IVarState, desc_selected_var_param: VarDataBaseVO) {
                 state.desc_selected_var_param = desc_selected_var_param;
-                state.desc_opened = true;
                 state.desc_deps_opened = false;
 
                 /**
@@ -197,9 +187,6 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                 commit_set_dependencies_heatmap_version(context, dependencies_heatmap_version);
             },
 
-            setDescOpened(context: VarContext, desc_opened: boolean) {
-                commitSetDescOpened(context, desc_opened);
-            },
             setDescDepsOpened(context: VarContext, desc_deps_opened: boolean) {
                 commitSetDescDepsOpened(context, desc_deps_opened);
             },
@@ -237,7 +224,6 @@ export const commitSetVarData = commit(VarStore.getInstance().mutations.setVarDa
 export const commitSetVarsData = commit(VarStore.getInstance().mutations.setVarsData);
 export const commitRemoveVarData = commit(VarStore.getInstance().mutations.removeVarData);
 export const commitSetDescMode = commit(VarStore.getInstance().mutations.setDescMode);
-export const commitSetDescOpened = commit(VarStore.getInstance().mutations.setDescOpened);
 export const commitSetDescRegistrationsOpened = commit(VarStore.getInstance().mutations.setDescRegistrationsOpened);
 export const commitsetDescFuncStatsOpened = commit(VarStore.getInstance().mutations.setDescFuncStatsOpened);
 export const commitSetDescDepsOpened = commit(VarStore.getInstance().mutations.setDescDepsOpened);

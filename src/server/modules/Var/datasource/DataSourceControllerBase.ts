@@ -14,6 +14,8 @@ export default abstract class DataSourceControllerBase {
          * Les api_type_ids qui engendrent un refresh potentiel du cache
          */
         public vo_api_type_ids: string[],
+
+        public ds_name_default_translations: { [code_lang: string]: string }
     ) { }
 
     /**

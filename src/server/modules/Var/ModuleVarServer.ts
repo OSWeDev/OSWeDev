@@ -9,7 +9,6 @@ import APISimpleVOParamVO from '../../../shared/modules/DAO/vos/APISimpleVOParam
 import APISimpleVOsParamVO from '../../../shared/modules/DAO/vos/APISimpleVOsParamVO';
 import NumRange from '../../../shared/modules/DataRender/vos/NumRange';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
-import ModuleTable from '../../../shared/modules/ModuleTable';
 import DefaultTranslationManager from '../../../shared/modules/Translation/DefaultTranslationManager';
 import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultTranslation';
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
@@ -22,6 +21,7 @@ import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
+import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
 import StackContext from '../../StackContext';
@@ -118,6 +118,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Variable invalidée, calcul en cours...'
         }, 'var.desc_mode.update_var_data.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Invalidation impossible sur un import'
+        }, 'var.desc_mode.update_var_data.not_allowed_on_imports.___LABEL___'));
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Indicateurs - Objectif'
@@ -176,6 +179,27 @@ export default class ModuleVarServer extends ModuleServerBase {
             fr: 'Source de données'
         }, 'var_desc.var_ds_label.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer le cache par intersection'
+        }, 'vars_datas_explorer_actions.delete_cache_intersection.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Afficher les données exactes'
+        }, 'vars_datas_explorer_actions.get_exact.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Afficher les données incluses'
+        }, 'vars_datas_explorer_actions.get_included.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Afficher les données intersectées'
+        }, 'vars_datas_explorer_actions.get_intersection.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Invalider le cache par intersection'
+        }, 'vars_datas_explorer_actions.invalidate_cache_intersection.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer le cache et les imports par intersection'
+        }, 'vars_datas_explorer_actions.delete_cache_and_import_intersection.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Variables'
+        }, 'vars_datas_explorer_filters.vars_confs.___LABEL___'));
 
         // ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
@@ -372,19 +396,106 @@ export default class ModuleVarServer extends ModuleServerBase {
     //     return true;
     // }
 
-    public async invalider_tout(moduletable_vardata: ModuleTable<VarDataBaseVO>) {
-        if (moduletable_vardata.is_segmented) {
+    // public async invalider_tout(moduletable_vardata: ModuleTable<VarDataBaseVO>) {
+    //     if (moduletable_vardata.is_segmented) {
 
-            let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+    //         let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
 
-            await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
-                let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value_ts=null;';
+    //         await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
+    //             let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value_ts=null;';
+    //             await ModuleServiceBase.getInstance().db.query(request);
+    //         }, moduletable_vardata.table_segmented_field_segment_type);
+
+    //     } else {
+    //         let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null;';
+    //         await ModuleServiceBase.getInstance().db.query(request);
+    //     }
+    // }
+
+    public async invalidate_cache_intersection(vos: VarDataBaseVO[]) {
+
+        if ((!vos) || (!vos.length)) {
+            return;
+        }
+
+        for (let i in vos) {
+            let vo = vos[i];
+            let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+            let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
+
+            if (moduletable_vardata.is_segmented) {
+
+                let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+
+                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
+                    let request: string = 'update ' + moduletable_vardata.get_segmented_full_name(segment) + ' t set value=null, value_ts=null where ' +
+                        query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
+                    await ModuleServiceBase.getInstance().db.query(request);
+                }, moduletable_vardata.table_segmented_field_segment_type);
+
+            } else {
+                let request: string = 'update ' + moduletable_vardata.full_name + ' t set value=null, value_ts=null where ' +
+                    query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
                 await ModuleServiceBase.getInstance().db.query(request);
-            }, moduletable_vardata.table_segmented_field_segment_type);
+            }
+        }
+    }
 
-        } else {
-            let request: string = 'update ' + moduletable_vardata.full_name + ' t set value_ts=null;';
-            await ModuleServiceBase.getInstance().db.query(request);
+    public async delete_cache_intersection(vos: VarDataBaseVO[]) {
+
+        if ((!vos) || (!vos.length)) {
+            return;
+        }
+
+        for (let i in vos) {
+            let vo = vos[i];
+            let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+            let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
+
+            if (moduletable_vardata.is_segmented) {
+
+                let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+
+                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
+                    let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
+                        query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
+                    await ModuleServiceBase.getInstance().db.query(request);
+                }, moduletable_vardata.table_segmented_field_segment_type);
+
+            } else {
+                let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
+                    query + ' and value_type=' + VarDataBaseVO.VALUE_TYPE_COMPUTED + ';';
+                await ModuleServiceBase.getInstance().db.query(request);
+            }
+        }
+    }
+
+    public async delete_cache_and_imports_intersection(vos: VarDataBaseVO[]) {
+
+        if ((!vos) || (!vos.length)) {
+            return;
+        }
+
+        for (let i in vos) {
+            let vo = vos[i];
+            let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
+            let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
+
+            if (moduletable_vardata.is_segmented) {
+
+                let ranges: NumRange[] = ModuleDAOServer.getInstance().get_all_ranges_from_segmented_table(moduletable_vardata);
+
+                await RangeHandler.getInstance().foreach_ranges(ranges, async (segment: number | Duration | Moment) => {
+                    let request: string = 'delete from ' + moduletable_vardata.get_segmented_full_name(segment) + ' t where ' +
+                        query + ';';
+                    await ModuleServiceBase.getInstance().db.query(request);
+                }, moduletable_vardata.table_segmented_field_segment_type);
+
+            } else {
+                let request: string = 'delete from ' + moduletable_vardata.full_name + ' t where ' +
+                    query + ';';
+                await ModuleServiceBase.getInstance().db.query(request);
+            }
         }
     }
 
@@ -401,6 +512,9 @@ export default class ModuleVarServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarControllerDSDeps, this.getVarControllerDSDeps.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getParamDependencies, this.getParamDependencies.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_getVarParamDatas, this.getVarParamDatas.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
     }
     public registerCrons(): void {
         VarCronWorkersHandler.getInstance();
@@ -700,7 +814,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let datasources_values: { [ds_name: string]: any; } = {};
-        let datasources_deps: DataSourceControllerBase[] = var_controller.getDataSourcesPredepsDependencies();
+        let datasources_deps: DataSourceControllerBase[] = var_controller.getDataSourcesDependencies();
 
         // WARNING on se base sur un fake node par ce que je vois pas comment faire autrement...
         let dag: DAG<VarDAGNode> = new DAG();
@@ -710,8 +824,9 @@ export default class ModuleVarServer extends ModuleServerBase {
             let datasource_dep = datasources_deps[i];
 
             let cache = {};
+            await datasource_dep.get_data(param, cache);
             await datasource_dep.load_node_data(varDAGNode, cache);
-            let data = await datasource_dep.get_data(param, cache);
+            let data = varDAGNode.datasources[datasource_dep.name];
 
             let data_jsoned: string = null;
             try {

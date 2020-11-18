@@ -1,4 +1,4 @@
-import '../RangeComponent.scss';
+import NumRangeEnumHandler from './NumRangeEnumHandler';
 
 export default class NumRangeComponentController {
 
@@ -12,14 +12,21 @@ export default class NumRangeComponentController {
 
     private static instance: NumRangeComponentController = null;
 
-    public num_ranges_label_handler: { [vo_type: string]: { [field_id: string]: (value: number) => Promise<string> } } = {};
+    public num_ranges_enum_handler: { [vo_type: string]: { [field_id: string]: NumRangeEnumHandler } } = {};
 
     protected constructor() { }
 
-    public register_label_handler(vo_type: string, field_id: string, handler: (value: number) => Promise<string>) {
-        if (!this.num_ranges_label_handler[vo_type]) {
-            this.num_ranges_label_handler[vo_type] = {};
+    public register_enum_handler(vo_type: string, field_id: string, handler: NumRangeEnumHandler) {
+        if (!this.num_ranges_enum_handler[vo_type]) {
+            this.num_ranges_enum_handler[vo_type] = {};
         }
-        this.num_ranges_label_handler[vo_type][field_id] = handler;
+        this.num_ranges_enum_handler[vo_type][field_id] = handler;
+    }
+
+    public get_enum_handler(vo_type: string, field_id: string): NumRangeEnumHandler {
+        if (!this.num_ranges_enum_handler[vo_type]) {
+            return null;
+        }
+        return this.num_ranges_enum_handler[vo_type][field_id] ? this.num_ranges_enum_handler[vo_type][field_id] : null;
     }
 }

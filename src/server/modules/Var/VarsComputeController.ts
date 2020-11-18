@@ -1,9 +1,11 @@
+import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import DataSourceControllerBase from './datasource/DataSourceControllerBase';
 import DataSourcesController from './datasource/DataSourcesController';
+import VarsCacheController from './VarsCacheController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsImportsHandler from './VarsImportsHandler';
 
@@ -66,6 +68,27 @@ export default class VarsComputeController {
         /**
          * Les vars sont calculées, plus rien à faire ici on libère
          */
+
+        /**
+         * MAJ : Ajout de la mise en cache, suivant stratégie pour chaque param
+         */
+        this.cache_datas(dag, vars_datas);
+    }
+
+    /**
+     * Tous les noeuds du vars_datas sont par définition en cache, donc on se pose la question que pour les autres
+     * @param dag
+     * @param vars_datas
+     */
+    private cache_datas(dag: DAG<VarDAGNode>, vars_datas: { [index: string]: VarDataBaseVO }) {
+        for (let i in vars_datas) {
+            let var_data = vars_datas[i];
+
+            let node = dag.nodes[var_data.index];
+            if (VarsCacheController.getInstance().A_do_cache_param(node)) {
+                VarsDatasProxy.getInstance().prepend_var_datas([var_data]);
+            }
+        }
     }
 
     /**
@@ -122,6 +145,17 @@ export default class VarsComputeController {
      */
     private async deploy_deps(node: VarDAGNode, vars_datas: { [index: string]: VarDataBaseVO }, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
 
+        /**
+         * Cache step B : cache complet - inutile si on est sur un noeud du vars_datas
+         */
+        if ((typeof node.var_data.value === 'undefined') && (!vars_datas[node.var_data.index]) &&
+            (VarsCacheController.getInstance().B_use_cache(node))) {
+            await this.try_load_cache_complet(node);
+        }
+
+        /**
+         * Imports
+         */
         if ((typeof node.var_data.value === 'undefined') && (!node.var_controller.optimization__has_no_imports)) {
 
             /**
@@ -129,18 +163,26 @@ export default class VarsComputeController {
              *  si on a des données parcellaires par définition on doit quand même déployer les deps
              */
             VarsImportsHandler.getInstance().load_imports_and_split_nodes(node, vars_datas, ds_cache);
+        }
 
-            // Si on est sur un aggrégateur, on déploie les deps des noeuds restants à calculer
-            if (node.is_aggregator) {
-                for (let i in node.aggregated_nodes) {
-                    let aggregated_node = node.aggregated_nodes[i];
+        /**
+         * Cache step C : cache partiel : uniquement si on a pas splitt sur import
+         */
+        if ((typeof node.var_data.value === 'undefined') && (!vars_datas[node.var_data.index]) &&
+            (!node.is_aggregator)) {
+            await this.try_load_cache_partiel(node, vars_datas, ds_cache);
+        }
 
-                    if (typeof aggregated_node.var_data.value === 'undefined') {
-                        await this.deploy_deps(aggregated_node, vars_datas, ds_cache);
-                    }
+        // Si on est sur un aggrégateur, on déploie les deps des noeuds restants à calculer
+        if (node.is_aggregator) {
+            for (let i in node.aggregated_nodes) {
+                let aggregated_node = node.aggregated_nodes[i];
+
+                if (typeof aggregated_node.var_data.value === 'undefined') {
+                    await this.deploy_deps(aggregated_node, vars_datas, ds_cache);
                 }
-                return;
             }
+            return;
         }
 
         let deps: { [index: string]: VarDataBaseVO } = await this.get_node_deps(node, ds_cache);
@@ -186,6 +228,47 @@ export default class VarsComputeController {
                 await this.deploy_deps(dep_node, vars_datas, ds_cache);
             }
         }
+    }
+
+    private async try_load_cache_complet(node: VarDAGNode) {
+        let cache_complet = await VarsDatasProxy.getInstance().get_exact_param_from_buffer_or_bdd(node.var_data);
+
+        if (!cache_complet) {
+            return;
+        }
+
+        node.var_data.value = cache_complet.value;
+        node.var_data.value_ts = cache_complet.value_ts;
+        node.var_data.value_type = cache_complet.value_type;
+    }
+
+    private async try_load_cache_partiel(
+        node: VarDAGNode,
+        vars_datas: { [index: string]: VarDataBaseVO },
+        ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+        let caches_partiels: VarDataBaseVO[] = await ModuleDAO.getInstance().filterVosByMatroids(node.var_data._type, [node.var_data], null);
+
+        if ((!caches_partiels) || (!caches_partiels.length)) {
+            return;
+        }
+
+        let validated_caches_partiels: VarDataBaseVO[] = [];
+
+        for (let i in caches_partiels) {
+            let cache_partiel = caches_partiels[i];
+
+            if (!VarsCacheController.getInstance().C_use_partial_cache_element(node, cache_partiel)) {
+                continue;
+            }
+
+            validated_caches_partiels.push(cache_partiel);
+        }
+
+        /**
+         * On utilise la même méthode ensuite que pour les imports, sinon qu'on sait pas ce qui est en cache donc on peut pas optimiser en caches atomiques
+         */
+        await VarsImportsHandler.getInstance().split_nodes(node, vars_datas, ds_cache, validated_caches_partiels, false);
+
     }
 
     /**
