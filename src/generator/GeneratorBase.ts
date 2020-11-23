@@ -42,6 +42,7 @@ import Patch20191112CheckExtensions from './patchs/premodules/Patch20191112Check
 import Patch20200131DeleteVersioningVOAccessPolicies from './patchs/premodules/Patch20200131DeleteVersioningVOAccessPolicies';
 import Patch20200331DeleteOrphanTranslations from './patchs/premodules/Patch20200331DeleteOrphanTranslations';
 import Patch20200924UpgradeUserVO from './patchs/premodules/Patch20200924UpgradeUserVO';
+import Patch20201123UpdateVarCacheConfVO from './patchs/premodules/Patch20201123UpdateVarCacheConfVO';
 import VendorBuilder from './vendor_builder/VendorBuilder';
 
 export default abstract class GeneratorBase {
@@ -79,7 +80,8 @@ export default abstract class GeneratorBase {
             Patch20191008ChangeDIHDateType.getInstance(),
             Patch20191008ChangeDILDateType.getInstance(),
             Patch20191008SupprimerTacheReimport.getInstance(),
-            Patch20200924UpgradeUserVO.getInstance()
+            Patch20200924UpgradeUserVO.getInstance(),
+            Patch20201123UpdateVarCacheConfVO.getInstance()
         ];
 
         this.post_modules_workers = [
