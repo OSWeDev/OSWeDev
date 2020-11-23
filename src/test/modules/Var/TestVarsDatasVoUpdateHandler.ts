@@ -62,7 +62,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A()]
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A_month()]
         });
 
         vo_types = [];
@@ -79,7 +79,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A()]
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A_month()]
         });
 
         vo_types = [];
@@ -96,7 +96,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A2()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2()],
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_month()],
         });
 
         vo_types = [];
@@ -113,7 +113,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A2_Update()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_Update()],
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_Update_month()],
         });
 
         vo_types = [];
@@ -132,7 +132,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         await VarsDatasVoUpdateHandler.getInstance()['compute_intersectors'](ctrls_to_update_1st_stage, markers, intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A2_Update()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_Update()],
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_Update_month()],
         });
 
         vo_types = [];
@@ -195,7 +195,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A()],
             [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: [FakeEmpDayDataHandler.get_data_A()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A(), FakeDepsDataHandler.get_ds_var_empday_data_A()],
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A_month()],
         });
     });
 
@@ -255,7 +255,7 @@ describe('VarsDatasVoUpdateHandler', () => {
             intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A()]
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A_month()]
         });
 
         vo_types = [];
@@ -280,7 +280,7 @@ describe('VarsDatasVoUpdateHandler', () => {
             intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A()]
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A_month()]
         });
 
         vo_types = [];
@@ -305,7 +305,7 @@ describe('VarsDatasVoUpdateHandler', () => {
             intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A2()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2()],
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_month()],
         });
 
         vo_types = [];
@@ -330,7 +330,7 @@ describe('VarsDatasVoUpdateHandler', () => {
             intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A2_Update()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_Update()],
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_Update_month()],
         });
 
         vo_types = [];
@@ -357,7 +357,7 @@ describe('VarsDatasVoUpdateHandler', () => {
             intersectors_by_var_id);
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A2_Update()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_Update()],
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A2_Update_month()],
         });
 
         vo_types = [];
@@ -452,7 +452,7 @@ describe('VarsDatasVoUpdateHandler', () => {
         expect(intersectors_by_var_id).to.deep.equal({
             [FakeVarControllerDsDistant.getInstance().varConf.id]: [FakeDataHandler.get_var_data_A()],
             [FakeVarControllerDsEmpDistant.getInstance().varConf.id]: [FakeEmpDayDataHandler.get_data_A()],
-            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A(), FakeDepsDataHandler.get_ds_var_empday_data_A()],
+            [FakeVarControllerDeps.getInstance().varConf.id]: [FakeDepsDataHandler.get_ds_var_data_A_month()],
         });
     });
 
