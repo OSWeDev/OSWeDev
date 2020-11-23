@@ -52,12 +52,17 @@ export default class VarsDatasVoUpdateHandler {
 
     /**
      * On passe en param le nombre max de cud qu'on veut gérer, et on dépile en FIFO
+     * @param limit null indique de gérer toute la liste
      * @returns 0 si on a géré limit éléments dans le buffer, != 0 sinon (et donc le buffer est vide)
      */
     public async handle_buffer(limit: number): Promise<number> {
 
         if ((!this.ordered_vos_cud) || (!this.ordered_vos_cud.length)) {
             return limit;
+        }
+
+        if (limit == null) {
+            limit = this.ordered_vos_cud.length;
         }
 
         let vo_types: string[] = [];

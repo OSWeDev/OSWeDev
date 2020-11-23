@@ -40,6 +40,10 @@ export default class VarsTabsSubsController {
         for (let i in param_indexs) {
             let param_index = param_indexs[i];
 
+            if (!param_index) {
+                continue;
+            }
+
             if (!this._tabs_subs[param_index]) {
                 this._tabs_subs[param_index] = {};
             }
@@ -60,7 +64,7 @@ export default class VarsTabsSubsController {
         for (let i in param_indexs) {
             let param_index = param_indexs[i];
 
-            if ((!this._tabs_subs[param_index]) || (!this._tabs_subs[param_index][user_id]) || (!this._tabs_subs[param_index][user_id][client_tab_id])) {
+            if ((!param_index) || (!this._tabs_subs[param_index]) || (!this._tabs_subs[param_index][user_id]) || (!this._tabs_subs[param_index][user_id][client_tab_id])) {
                 continue;
             }
             // ConsoleHandler.getInstance().log('REMOVETHIS:unregister_sub:' + param_index + ':user_id:' + user_id + ':client_tab_id:' + client_tab_id + ':');

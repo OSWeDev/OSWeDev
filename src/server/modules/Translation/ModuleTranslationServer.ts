@@ -160,6 +160,20 @@ export default class ModuleTranslationServer extends ModuleServerBase {
             fr: 'Actualiser'
         }, 'crud.actions.refresh.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Tout supprimer'
+        }, 'crud.actions.delete_all.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Supprimer TOUTES les données ? Les filtrages sont ignorés'
+        }, 'crud.actions.delete_all.confirmation.body.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'ATTENTION'
+        }, 'crud.actions.delete_all.confirmation.title.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Suppression en cours...'
+        }, 'crud.actions.delete_all.start.___LABEL___'));
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Ajouter'
         }, 'crud.create.modal.add.___LABEL___'));
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({

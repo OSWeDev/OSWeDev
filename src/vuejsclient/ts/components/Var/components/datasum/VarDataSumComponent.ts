@@ -243,11 +243,15 @@ export default class VarDataSumComponent extends VueComponentBase {
     }
 
     private register(var_params: VarDataBaseVO[]) {
-        VarsClientController.getInstance().registerParams(var_params);
+        if (var_params && var_params.length) {
+            VarsClientController.getInstance().registerParams(var_params);
+        }
     }
 
     private unregister(var_params: VarDataBaseVO[]) {
-        VarsClientController.getInstance().unRegisterParams(var_params);
+        if (var_params && var_params.length) {
+            VarsClientController.getInstance().unRegisterParams(var_params);
+        }
     }
 
 

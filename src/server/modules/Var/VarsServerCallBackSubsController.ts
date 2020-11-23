@@ -1,4 +1,5 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleVarServer from './ModuleVarServer';
 
@@ -35,6 +36,11 @@ export default class VarsServerCallBackSubsController {
      */
     public async get_var_data(param: VarDataBaseVO): Promise<VarDataBaseVO> {
         ForkedTasksController.getInstance().assert_is_main_process();
+
+        if (!param.check_param_is_valid(param._type)) {
+            ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+            return;
+        }
 
         return new Promise(async (resolve, reject) => {
 

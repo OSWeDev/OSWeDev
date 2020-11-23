@@ -201,6 +201,11 @@ export default class ModuleVarServer extends ModuleServerBase {
             fr: 'Variables'
         }, 'vars_datas_explorer_filters.vars_confs.___LABEL___'));
 
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Performances'
+        }, 'menu.menuelements.VarPerfVO.___LABEL___'));
+
+
         // ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_getSimpleVarDataCachedValueFromParam, this.getSimpleVarDataCachedValueFromParam.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, this.delete_varcacheconf_from_cache.bind(this));
         ForkedTasksController.getInstance().register_task(ModuleVarServer.TASK_NAME_update_varcacheconf_from_cache, this.update_varcacheconf_from_cache.bind(this));
@@ -420,6 +425,12 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         for (let i in vos) {
             let vo = vos[i];
+
+            if (!vo.check_param_is_valid(vo._type)) {
+                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                continue;
+            }
+
             let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
             let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
@@ -449,6 +460,12 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         for (let i in vos) {
             let vo = vos[i];
+
+            if (!vo.check_param_is_valid(vo._type)) {
+                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                continue;
+            }
+
             let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
             let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
@@ -478,6 +495,12 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         for (let i in vos) {
             let vo = vos[i];
+
+            if (!vo.check_param_is_valid(vo._type)) {
+                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                continue;
+            }
+
             let moduletable_vardata = VOsTypesManager.getInstance().moduleTables_by_voType[vo._type];
             let query: string = ModuleDAOServer.getInstance().getWhereClauseForFilterByMatroidIntersection(vo._type, vo, null);
 
@@ -708,6 +731,11 @@ export default class ModuleVarServer extends ModuleServerBase {
         for (let i in params) {
             let param = params[i];
 
+            if (!param.check_param_is_valid(param._type)) {
+                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                continue;
+            }
+
             promises.push((async () => {
 
                 let in_db_data: VarDataBaseVO = await ModuleVarServer.getInstance().get_var_data_or_ask_to_bgthread(param);
@@ -744,7 +772,7 @@ export default class ModuleVarServer extends ModuleServerBase {
 
         let uid = StackContext.getInstance().get('UID');
         let client_tab_id = StackContext.getInstance().get('CLIENT_TAB_ID');
-        VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.index) : []);
+        VarsTabsSubsController.getInstance().unregister_sub(uid, client_tab_id, api_param.vos ? (api_param.vos as VarDataBaseVO[]).map((param) => param.check_param_is_valid(param._type) ? param.index : null) : []);
     }
 
     private async getVarControllerDSDeps(params: StringParamVO): Promise<string[]> {
@@ -786,6 +814,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
 
         let param: VarDataBaseVO = params.vo as VarDataBaseVO;
+
+        if (!param.check_param_is_valid(param._type)) {
+            ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+            return null;
+        }
+
         let var_controller = VarsServerController.getInstance().registered_vars_controller_[VarsController.getInstance().var_conf_by_id[param.var_id].name];
 
         if (!var_controller) {
@@ -807,6 +841,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         let value_size_limit: number = 10000;
 
         let param: VarDataBaseVO = params.vo as VarDataBaseVO;
+
+        if (!param.check_param_is_valid(param._type)) {
+            ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+            return null;
+        }
+
         let var_controller = VarsServerController.getInstance().registered_vars_controller_[VarsController.getInstance().var_conf_by_id[param.var_id].name];
 
         if (!var_controller) {

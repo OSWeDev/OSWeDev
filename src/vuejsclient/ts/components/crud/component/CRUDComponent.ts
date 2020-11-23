@@ -1057,4 +1057,36 @@ export default class CRUDComponent extends VueComponentBase {
 
         return false;
     }
+
+    private async delete_all() {
+        let self = this;
+
+        // On demande confirmation avant toute chose.
+        // si on valide, on lance la suppression
+        self.snotify.confirm(self.label('crud.actions.delete_all.confirmation.body'), self.label('crud.actions.delete_all.confirmation.title'), {
+            timeout: 10000,
+            showProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: true,
+            buttons: [
+                {
+                    text: self.t('YES'),
+                    action: async (toast) => {
+                        self.$snotify.remove(toast.id);
+                        self.snotify.info(self.label('crud.actions.delete_all.start'));
+
+                        await ModuleDAO.getInstance().truncate(self.api_type_id);
+                        await self.reload_datas();
+                    },
+                    bold: false
+                },
+                {
+                    text: self.t('NO'),
+                    action: (toast) => {
+                        self.$snotify.remove(toast.id);
+                    }
+                }
+            ]
+        });
+    }
 }

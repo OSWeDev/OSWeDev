@@ -294,11 +294,15 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
 
                     if (this.fields_filters_list[matroid_field.field_id] && this.fields_filters_list[matroid_field.field_id].length) {
                         param[matroid_field.field_id] = RangeHandler.getInstance().get_ids_ranges_from_vos(this.fields_filters_list[matroid_field.field_id]);
+                    } else {
+                        param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxRange(matroid_field)];
                     }
                 } else {
 
                     if (!!this.fields_filters_range[matroid_field.field_id]) {
                         param[matroid_field.field_id] = [this.fields_filters_range[matroid_field.field_id]];
+                    } else {
+                        param[matroid_field.field_id] = [RangeHandler.getInstance().getMaxRange(matroid_field)];
                     }
                 }
             }
@@ -315,9 +319,8 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     }
 
     private enum_field_label_handler(field: ModuleTableField<any>) {
-        return (e: IDistantVOBase) => {
+        return (e: IDistantVOBase) =>
             NumRangeComponentController.getInstance().get_enum_handler(field.module_table.vo_type, field.field_id).sync_label_handler(e);
-        };
     }
 
     private async enum_search_handler(field: ModuleTableField<any>) {

@@ -365,6 +365,8 @@ export default class ModuleDAOServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_NAMED_VO_BY_NAME, this.getNamedVoByName.bind(this));
 
         ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_GET_BASE_URL, this.getBaseUrl.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleDAO.APINAME_truncate, this.truncate_api.bind(this));
+
     }
 
     public async checkAccess<T extends IDistantVOBase>(datatable: ModuleTable<T>, access_type: string): Promise<boolean> {
@@ -682,6 +684,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
         return where_clause;
     }
 
+    public async truncate_api(api_type_id: StringParamVO) {
+        await this.truncate(api_type_id.text);
+    }
+
 
     public async truncate(api_type_id: string, ranges: Array<IRange<any>> = null) {
         let datatable: ModuleTable<any> = VOsTypesManager.getInstance().moduleTables_by_voType[api_type_id];
@@ -693,7 +699,10 @@ export default class ModuleDAOServer extends ModuleServerBase {
 
         if (datatable.is_segmented) {
 
-            // Si on est sur une table segmentée on adapte le comportement
+            if (!ranges) {
+                ranges = this.get_all_ranges_from_segmented_table(datatable);
+            }
+
             if ((!ranges) || (RangeHandler.getInstance().getCardinalFromArray(ranges) < 1)) {
                 return null;
             }

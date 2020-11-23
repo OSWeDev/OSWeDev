@@ -7,10 +7,13 @@
     z-index: 10000;
     overflow: auto;
     overflow-y: scroll;
-    position: fixed;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
     box-shadow: -1px 1px 3px #888;
+
+    &.vdr.row.draggable{
+        position: fixed;
+    }
 
     .dragsize_content {
         margin-top: 2.8em;

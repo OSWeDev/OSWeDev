@@ -157,7 +157,9 @@ export default class VarDataBarChartComponent extends VueComponentBase {
                     let var_dataset_descriptor: VarBarDataSetDescriptor = this.var_dataset_descriptors[j];
 
                     let var_param: VarDataBaseVO = this.get_var_param(old_var_params[i], var_dataset_descriptor);
-                    VarsClientController.getInstance().unRegisterParams([var_param]);
+                    if (var_param) {
+                        VarsClientController.getInstance().unRegisterParams([var_param]);
+                    }
                 }
             }
         }
@@ -170,7 +172,10 @@ export default class VarDataBarChartComponent extends VueComponentBase {
                     let var_dataset_descriptor: VarBarDataSetDescriptor = this.var_dataset_descriptors[j];
 
                     let var_param: VarDataBaseVO = this.get_var_param(new_var_params[i], var_dataset_descriptor);
-                    VarsClientController.getInstance().registerParams([var_param]);
+
+                    if (var_param) {
+                        VarsClientController.getInstance().registerParams([var_param]);
+                    }
                 }
             }
         }
@@ -205,7 +210,9 @@ export default class VarDataBarChartComponent extends VueComponentBase {
                     let var_dataset_descriptor: VarBarDataSetDescriptor = old_var_dataset_descriptors[j];
 
                     let var_param: VarDataBaseVO = this.get_var_param(this.var_params[i], var_dataset_descriptor);
-                    VarsClientController.getInstance().unRegisterParams([var_param]);
+                    if (var_param) {
+                        VarsClientController.getInstance().unRegisterParams([var_param]);
+                    }
                 }
             }
             if (!!new_var_dataset_descriptors) {
@@ -213,7 +220,9 @@ export default class VarDataBarChartComponent extends VueComponentBase {
                     let var_dataset_descriptor: VarBarDataSetDescriptor = new_var_dataset_descriptors[j];
 
                     let var_param: VarDataBaseVO = this.get_var_param(this.var_params[i], var_dataset_descriptor);
-                    VarsClientController.getInstance().registerParams([var_param]);
+                    if (var_param) {
+                        VarsClientController.getInstance().registerParams([var_param]);
+                    }
                 }
             }
         }

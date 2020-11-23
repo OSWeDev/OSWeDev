@@ -34,6 +34,7 @@
                                 :value='fields_filters_range[field_id]'
                                 :segmentation_type='tsrange_segmentation_type'
                                 @input='(range) => on_edit_range(range, field_id)'    
+                                :form_control='false'
                             )
                         template(v-if='is_num_range_type(field)')
                             template(v-if='fields_filters_is_enum[field_id]')

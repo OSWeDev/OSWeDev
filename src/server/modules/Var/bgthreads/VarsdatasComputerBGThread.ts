@@ -1,10 +1,11 @@
-import * as moment from 'moment';
-import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
+import { performance } from 'perf_hooks';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
 import ObjectHandler from '../../../../shared/tools/ObjectHandler';
+import ConfigurationService from '../../../env/ConfigurationService';
 import IBGThread from '../../BGThread/interfaces/IBGThread';
 import ModuleBGThreadServer from '../../BGThread/ModuleBGThreadServer';
+import VarsPerfsController from '../perf/VarsPerfsController';
 import VarsComputeController from '../VarsComputeController';
 import VarsDatasProxy from '../VarsDatasProxy';
 import VarsDatasVoUpdateHandler from '../VarsDatasVoUpdateHandler';
@@ -30,12 +31,9 @@ export default class VarsdatasComputerBGThread implements IBGThread {
     private enabled: boolean = true;
     private invalidations: number = 0;
 
-    private silent: boolean = false;
-
     private semaphore: boolean = false;
 
-    private constructor() {
-    }
+    private constructor() { }
 
     public disable() {
         this.invalidations++;
@@ -81,42 +79,53 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              *  Dans tous les cas la plus grosse optimisation est certainement sur le choix des vars à grouper pour un calcul le plus efficace possible et dans la limite
              *      de temps par batch qu'on veut se donner (si le plus efficace c'est de calculer toute la base d'un coup mais que ça prend 1H on fera pas ça dans tous les cas)
              */
-            let start: number;
-            let end_selection: number;
-            let end_computation: number;
-            let end_notification: number;
-            let end_update: number;
 
-            if (!this.silent) {
-                start = moment().utc(true).valueOf();
-            }
-
+            VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.selection"], true);
             let vars_datas: { [index: string]: VarDataBaseVO } = await VarsDatasProxy.getInstance().get_vars_to_compute_from_buffer_or_bdd(this.request_limit);
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.selection", false);
+
             if ((!vars_datas) || (!ObjectHandler.getInstance().hasAtLeastOneAttribute(vars_datas))) {
 
                 /**
                  * Si on a rien à dépiler, alors là on peut prendre le temps de vider une partie du buffer avant de rendre la main.
                  */
+                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", true);
                 let remaining: number = await VarsDatasProxy.getInstance().handle_buffer(500);
+                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasProxy.buffer", false);
 
                 if (!remaining) {
+                    VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread", false);
+
+                    if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
+                        // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread VarsDatasProxy : took [' +
+                        //     VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
+                        //     VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasProxy.buffer"].sum_ms + ' ms] VarsDatasProxy');
+                        await VarsPerfsController.update_perfs_in_bdd();
+                    }
+
                     return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
                 }
 
                 /**
                  * Si on a vidé le buffer également, on peut aussi dépiler les CUD sur les VOs et faire les invalidations
                  */
-                remaining = await VarsDatasVoUpdateHandler.getInstance().handle_buffer(500);
+                VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer", true);
+                remaining = await VarsDatasVoUpdateHandler.getInstance().handle_buffer(null);
+                VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"], false);
 
-                if (!remaining) {
-                    return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
+                if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
+                    // ConsoleHandler.getInstance().log('VarsdatasComputerBGThread VarsDatasProxy && VarsDatasVoUpdateHandler : took [' +
+                    //     VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
+                    //     VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasProxy.buffer"].sum_ms + ' ms] VarsDatasProxy, [' +
+                    //     VarsPerfsController.current_batch_perfs["__computing_bg_thread.VarsDatasVoUpdateHandler.buffer"].sum_ms + ' ms] VarsDatasVoUpdateHandler');
+                    await VarsPerfsController.update_perfs_in_bdd();
                 }
 
-                return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
-            }
+                if (remaining == null) {
+                    return ModuleBGThreadServer.TIMEOUT_COEF_SLEEP;
+                }
 
-            if (!this.silent) {
-                end_selection = moment().utc(true).valueOf();
+                return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
             }
 
             /**
@@ -132,38 +141,21 @@ export default class VarsdatasComputerBGThread implements IBGThread {
              *  - on libère le bgthread, en indiquant qu'on a eu des choses à gérer donc il faut revenir très rapidement
              */
 
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
             await VarsComputeController.getInstance().compute(vars_datas);
-            // let vars_array = Object.values(vars_datas);
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", false);
 
-            if (!this.silent) {
-                end_computation = moment().utc(true).valueOf();
-            }
-
-            // vars_array.forEach((vd) => ConsoleHandler.getInstance().log('REMOVETHIS:do_calculation_run.notify_vardatas:' + vd.index + ':'));
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas", true);
             VarsTabsSubsController.getInstance().notify_vardatas(vars_datas);
+            VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.notify_vardatas"], false);
 
-            if (!this.silent) {
-                end_notification = moment().utc(true).valueOf();
-            }
-
-            // vars_array.forEach((vd) => ConsoleHandler.getInstance().log('REMOVETHIS:do_calculation_run.insertOrUpdateVOs:' + vd.index + ':'));
-            // await ModuleDAO.getInstance().insertOrUpdateVOs(vars_array);
-
-            if (!this.silent) {
-                end_update = moment().utc(true).valueOf();
-
-                let length_total = end_update - start;
-                let length_selection = end_selection - start;
-                let length_computation = end_computation - end_selection;
-                let length_notif = end_notification - end_computation;
-                let length_update = end_update - end_notification;
-
+            if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +
-                    length_total + ' ms] total : [' +
-                    length_selection + ' ms] selecting, [' +
-                    length_computation + ' ms] computing, [' +
-                    length_notif + ' ms] notifying, [' +
-                    length_update + ' ms] updating');
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.selection"].sum_ms + ' ms] selecting, [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute"].sum_ms + ' ms] computing, [' +
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.notify_vardatas"].sum_ms + ' ms] notifying');
+                await VarsPerfsController.update_perfs_in_bdd();
             }
         } catch (error) {
             console.error(error);

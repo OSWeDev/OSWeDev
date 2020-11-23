@@ -25,6 +25,9 @@ export default class TSRangeInputComponent extends VueComponentBase {
     @Prop({ default: false })
     private disabled: boolean;
 
+    @Prop({ default: true })
+    private form_control: boolean;
+
     @Prop({ default: null })
     private value: TSRange;
 

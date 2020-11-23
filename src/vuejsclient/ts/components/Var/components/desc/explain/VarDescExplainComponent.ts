@@ -192,7 +192,9 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return;
         }
 
-        VarsClientController.getInstance().registerParams(Object.values(deps_params));
+        if (deps_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_params)) {
+            VarsClientController.getInstance().registerParams(Object.values(deps_params));
+        }
     }
 
     private unregister(deps_params: { [dep_id: string]: VarDataBaseVO }) {
@@ -200,7 +202,9 @@ export default class VarDescExplainComponent extends VueComponentBase {
             return;
         }
 
-        VarsClientController.getInstance().unRegisterParams(Object.values(deps_params));
+        if (deps_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(deps_params)) {
+            VarsClientController.getInstance().unRegisterParams(Object.values(deps_params));
+        }
     }
 
     @Watch('deps_params')

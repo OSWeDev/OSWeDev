@@ -245,7 +245,9 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return;
         }
 
-        VarsClientController.getInstance().registerParams(var_params);
+        if (var_params && var_params.length) {
+            VarsClientController.getInstance().registerParams(var_params);
+        }
     }
 
     private unregister(var_params: VarDataBaseVO[]) {
@@ -253,7 +255,9 @@ export default class VarDatasRefsComponent extends VueComponentBase {
             return;
         }
 
-        VarsClientController.getInstance().unRegisterParams(var_params);
+        if (var_params && var_params.length) {
+            VarsClientController.getInstance().unRegisterParams(var_params);
+        }
     }
 
     @Watch('var_params')

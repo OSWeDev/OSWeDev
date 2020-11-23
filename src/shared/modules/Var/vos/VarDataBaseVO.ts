@@ -242,4 +242,26 @@ export default class VarDataBaseVO implements IMatroid {
 
         return this._index;
     }
+
+    /**
+     * Fonction qui check que le type de l'object est cohérent avec le type demandé. Même type et champs a minima avec un range
+     */
+    public check_param_is_valid(target_type: string): boolean {
+
+        if (this._type != target_type) {
+            return false;
+        }
+
+        let fields = MatroidController.getInstance().getMatroidFields(this._type);
+
+        for (let i in fields) {
+            let field = fields[i];
+
+            if ((!this[field.field_id]) || (!this[field.field_id].length)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

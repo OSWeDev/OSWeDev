@@ -24,8 +24,8 @@ export default class RangeHandler {
     /**
      * DIRTY [ou pas?] Pseudo max int pour int8 en bdd (théotiquement -9223372036854775808 to 9223372036854775807
      */
-    public static MIN_INT: number = -9223372036854775800;
-    public static MAX_INT: number = 9223372036854775800;
+    public static MIN_INT: number = Number.MIN_SAFE_INTEGER;
+    public static MAX_INT: number = Number.MAX_SAFE_INTEGER;
 
     /**
      * DIRTY [ou pas?] Pseudo max int pour int8 en bdd (théotiquement -9223372036854775808 to 9223372036854775807

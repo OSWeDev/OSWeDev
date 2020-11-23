@@ -21,7 +21,12 @@ export default class VarsClientController {
      */
     public registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
 
+    private timeout_check_registrations: number = 10000;
+
     protected constructor() {
+
+        // On lance un process parallèle qui check en permanence que les vars pour lesquels on a pas de valeurs sont bien enregistrées côté serveur
+        this.prepare_next_check();
     }
 
     /**
@@ -55,7 +60,7 @@ export default class VarsClientController {
         }
 
         if (needs_registration && needs_registration.length) {
-            await ModuleVar.getInstance().register_params(needs_registration);
+            ModuleVar.getInstance().register_params(needs_registration);
         }
     }
 
@@ -72,8 +77,8 @@ export default class VarsClientController {
         }
 
         if (needs_registration && needs_registration.length) {
-            await ModuleVar.getInstance().unregister_params(needs_registration);
-            await ModuleVar.getInstance().register_params(needs_registration);
+            ModuleVar.getInstance().unregister_params(needs_registration);
+            ModuleVar.getInstance().register_params(needs_registration);
         }
     }
 
@@ -139,7 +144,7 @@ export default class VarsClientController {
         }
 
         if (needs_unregistration && needs_unregistration.length) {
-            await ModuleVar.getInstance().unregister_params(needs_unregistration);
+            ModuleVar.getInstance().unregister_params(needs_unregistration);
         }
     }
 
@@ -174,5 +179,41 @@ export default class VarsClientController {
                 delete registered_var.callbacks[uids_to_remove[j]];
             }
         }
+    }
+
+    private async check_invalid_valued_params_registration() {
+
+        try {
+
+            /**
+             * On prend toutes les datas registered et si on en trouve auxquelles il manque des valeurs, on renvoie un register pour s'assurer qu'on
+             *  est bien en attente d'un résultat de calcul
+             */
+            let check_params: VarDataBaseVO[] = [];
+            for (let i in this.registered_var_params) {
+                let registered_var_param: RegisteredVarDataWrapper = this.registered_var_params[i];
+                if (registered_var_param.var_param.has_valid_value) {
+                    continue;
+                }
+                check_params.push(registered_var_param.var_param);
+            }
+
+            if ((!check_params) || (!check_params.length)) {
+                return;
+            }
+
+            ModuleVar.getInstance().register_params(check_params);
+        } catch (error) {
+        }
+        this.prepare_next_check();
+    }
+
+    private prepare_next_check() {
+        let self = this;
+
+        // On lance un process parrallèle qui check en permanence que les vars pour lesquels on a pas de valeurs sont bien enregistrées côté serveur
+        setTimeout(() => {
+            self.check_invalid_valued_params_registration();
+        }, self.timeout_check_registrations);
     }
 }

@@ -102,11 +102,11 @@ export default class VarPieChartComponent extends VueComponentBase {
             return;
         }
 
-        if (old_var_params) {
+        if (old_var_params && old_var_params.length) {
             VarsClientController.getInstance().unRegisterParams(old_var_params);
         }
 
-        if (new_var_params) {
+        if (new_var_params && new_var_params.length) {
             VarsClientController.getInstance().registerParams(new_var_params);
         }
 
@@ -132,10 +132,10 @@ export default class VarPieChartComponent extends VueComponentBase {
         }
 
         // sur chaque dimension
-        if (!!old_var_dataset_descriptor) {
+        if ((!!old_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
             VarsClientController.getInstance().unRegisterParams(this.var_params);
         }
-        if (!!new_var_dataset_descriptor) {
+        if ((!!new_var_dataset_descriptor) && (this.var_params) && this.var_params.length) {
             VarsClientController.getInstance().registerParams(this.var_params);
         }
 

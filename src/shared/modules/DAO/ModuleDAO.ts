@@ -22,6 +22,7 @@ import APIDAORefFieldsAndFieldsStringParamsVO from './vos/APIDAORefFieldsAndFiel
 import APIDAORefFieldsParamsVO from './vos/APIDAORefFieldsParamsVO';
 import InsertOrDeleteQueryResult from './vos/InsertOrDeleteQueryResult';
 import NumberParamVO from '../API/vos/apis/NumberParamVO';
+import ModuleAccessPolicy from '../AccessPolicy/ModuleAccessPolicy';
 
 export default class ModuleDAO extends Module {
 
@@ -31,6 +32,7 @@ export default class ModuleDAO extends Module {
     public static POLICY_GROUP_DATAS: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_DATAS';
     public static POLICY_GROUP_MODULES_CONF: string = AccessPolicyTools.POLICY_GROUP_UID_PREFIX + ModuleDAO.MODULE_NAME + '_MODULES_CONF';
 
+    public static APINAME_truncate = "truncate";
     public static APINAME_DELETE_VOS = "DAO_DELETE_VOS";
     public static APINAME_DELETE_VOS_BY_IDS = "DAO_DELETE_VOS_BY_IDS";
     public static APINAME_INSERT_OR_UPDATE_VOS = "DAO_INSERT_OR_UPDATE_VOS";
@@ -254,6 +256,17 @@ export default class ModuleDAO extends Module {
             ModuleDAO.APINAME_GET_BASE_URL,
             []
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<StringParamVO, void>(
+            ModuleAccessPolicy.POLICY_BO_MODULES_MANAGMENT_ACCESS,
+            ModuleDAO.APINAME_truncate,
+            (param: StringParamVO) => [param.text],
+            StringParamVO.translateCheckAccessParams
+        ));
+
+    }
+    public async truncate(api_type_id: string): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<StringParamVO, void>(ModuleDAO.APINAME_truncate, api_type_id);
     }
 
     public async getBaseUrl(): Promise<string> {
