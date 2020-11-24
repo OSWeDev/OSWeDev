@@ -613,11 +613,12 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
     }
 
-    private async onPreDVarCacheConf(vcc: VarCacheConfVO) {
+    private async onPreDVarCacheConf(vcc: VarCacheConfVO): Promise<boolean> {
         if (!vcc) {
-            return;
+            return false;
         }
 
         await ForkedTasksController.getInstance().broadexec(ModuleVarServer.TASK_NAME_delete_varcacheconf_from_cache, vcc);
+        return true;
     }
 }
