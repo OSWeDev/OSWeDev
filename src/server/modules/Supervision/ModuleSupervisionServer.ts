@@ -3,6 +3,8 @@ import ModuleAccessPolicy from '../../../shared/modules/AccessPolicy/ModuleAcces
 import AccessPolicyGroupVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyGroupVO';
 import AccessPolicyVO from '../../../shared/modules/AccessPolicy/vos/AccessPolicyVO';
 import PolicyDependencyVO from '../../../shared/modules/AccessPolicy/vos/PolicyDependencyVO';
+import ModuleAPI from '../../../shared/modules/API/ModuleAPI';
+import StringParamVO from '../../../shared/modules/API/vos/apis/StringParamVO';
 import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import ModuleParams from '../../../shared/modules/Params/ModuleParams';
 import ISupervisedItem from '../../../shared/modules/Supervision/interfaces/ISupervisedItem';
@@ -30,6 +32,7 @@ import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTeamsAPIServer from '../TeamsAPI/ModuleTeamsAPIServer';
 import SupervisionBGThread from './bgthreads/SupervisionBGThread';
 import SupervisionCronWorkersHandler from './SupervisionCronWorkersHandler';
+import SupervisionServerController from './SupervisionServerController';
 
 export default class ModuleSupervisionServer extends ModuleServerBase {
 
@@ -51,6 +54,10 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
 
     public registerCrons() {
         SupervisionCronWorkersHandler.getInstance();
+    }
+
+    public registerServerApiHandlers() {
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleSupervision.APINAME_execute_manually, this.execute_manually.bind(this));
     }
 
     public async configure() {
@@ -327,5 +334,17 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
         }
 
         await ModuleTeamsAPIServer.getInstance().send_to_teams_webhook(webhook, message);
+    }
+
+    private async execute_manually(param: StringParamVO) {
+        if ((!param) || (!param.text)) {
+            return null;
+        }
+
+        if (!SupervisionServerController.getInstance().registered_controllers[param.text]) {
+            return null;
+        }
+
+        await SupervisionServerController.getInstance().registered_controllers[param.text].work_all();
     }
 }

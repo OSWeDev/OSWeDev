@@ -40,6 +40,18 @@ export default class ModuleCronServer extends ModuleServerBase {
             fr: '{worker_uid}'
         }, 'cron.run_cron_individuel.___LABEL___'));
 
+
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: '{supervised_uid}'
+        }, 'cron.update_supervised.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mise à jour supervision {supervised_uid} débutée'
+        }, 'CronComponent.info.update_supervised.started.___LABEL___'));
+        DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
+            fr: 'Mise à jour supervision {supervised_uid} terminée'
+        }, 'CronComponent.info.update_supervised.ended.___LABEL___'));
+
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Tâche manuelle en cours'
         }, 'CronComponent.info.executeWorkerManually.started.___LABEL___'));

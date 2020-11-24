@@ -1,5 +1,7 @@
 import Component from 'vue-class-component';
 import ModuleCron from '../../../../shared/modules/Cron/ModuleCron';
+import ModuleSupervision from '../../../../shared/modules/Supervision/ModuleSupervision';
+import SupervisionController from '../../../../shared/modules/Supervision/SupervisionController';
 import CronWorkerPlanification from '../../../../shared/modules/Cron/vos/CronWorkerPlanification';
 import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import VueComponentBase from '../../../ts/components/VueComponentBase';
@@ -43,5 +45,15 @@ export default class CronComponent extends VueComponentBase {
         setTimeout(() => {
             self.is_running = false;
         }, 1000);
+    }
+
+    get supervised_items(): string[] {
+        return Object.keys(SupervisionController.getInstance().registered_controllers);
+    }
+
+    private async update_supervised_items(api_type_id: string) {
+        this.snotify.info(this.label('CronComponent.info.update_supervised.started'));
+        await ModuleSupervision.getInstance().execute_manually(api_type_id);
+        this.snotify.info(this.label('CronComponent.info.update_supervised.ended'));
     }
 }
