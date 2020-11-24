@@ -202,6 +202,8 @@ export default abstract class ServerBase {
 
         this.app = express();
 
+        createTerminus(this.app, { onSignal: ServerBase.getInstance().terminus });
+
         this.app.use(cookieParser());
 
         // this.app.use(helmet({
