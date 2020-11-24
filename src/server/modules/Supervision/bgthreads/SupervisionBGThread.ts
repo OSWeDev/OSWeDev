@@ -55,7 +55,7 @@ export default class SupervisionBGThread implements IBGThread {
                 // Si j'ai des items invalid, je vais throttle le controller
                 if (items && items.length) {
                     if (!this.throttle_by_api_type_id[api_type_id]) {
-                        this.throttle_by_api_type_id[api_type_id] = throttle(registered_api_type.work_invalid.bind(registered_api_type), registered_api_type.get_execute_time_ms());
+                        this.throttle_by_api_type_id[api_type_id] = throttle(registered_api_type.work_invalid.bind(registered_api_type), registered_api_type.get_execute_time_ms(), { leading: false });
                     }
 
                     this.throttle_by_api_type_id[api_type_id]();
