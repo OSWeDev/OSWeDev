@@ -72,6 +72,7 @@
         "@types/node": "13.1.1",
         "@types/nodemailer": "4.6.0",
         "@types/socket.io": "1.4.38",
+        "@godaddy/terminus": "4.4.1",
         "axios": "0.19.0",
         "body-parser-with-msgpack": "1.17.0",
         "bootstrap": "4.4.1",

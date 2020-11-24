@@ -52,6 +52,8 @@ import PushDataServerController from './modules/PushData/PushDataServerControlle
 import DefaultTranslationsServerManager from './modules/Translation/DefaultTranslationsServerManager';
 import ServerExpressController from './ServerExpressController';
 import StackContext from './StackContext';
+import { createTerminus } from '@godaddy/terminus';
+import VarsDatasVoUpdateHandler from './modules/Var/VarsDatasVoUpdateHandler';
 require('moment-json-parser').overrideDefault();
 
 export default abstract class ServerBase {
@@ -896,5 +898,12 @@ export default abstract class ServerBase {
 
     protected check_session_validity(session: IServerUserSession): boolean {
         return true;
+    }
+
+    protected terminus() {
+        ConsoleHandler.getInstance().log('Server is starting cleanup');
+        return Promise.all([
+            VarsDatasVoUpdateHandler.getInstance().handle_buffer(null)
+        ]);
     }
 }
