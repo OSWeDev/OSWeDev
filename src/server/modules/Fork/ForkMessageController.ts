@@ -1,8 +1,10 @@
 import { ChildProcess } from 'child_process';
+import { throttle } from 'lodash';
 import { Server, Socket } from 'net';
 import APIController from '../../../shared/modules/API/APIController';
 import ForkServerController from './ForkServerController';
 import IForkMessage from './interfaces/IForkMessage';
+import IForkMessageWrapper from './interfaces/IForkMessageWrapper';
 import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
 
 export default class ForkMessageController {
@@ -20,6 +22,7 @@ export default class ForkMessageController {
      * Local thread cache -----
      */
     private registered_messages_handlers: { [message_type: string]: (msg: IForkMessage, sendHandle: Socket | Server) => Promise<boolean> } = {};
+    private stacked_msg_waiting: IForkMessageWrapper[] = [];
     /**
      * ----- Local thread cache
      */
@@ -60,14 +63,43 @@ export default class ForkMessageController {
         }
     }
 
-    public send(msg: IForkMessage, child_process: ChildProcess = null) {
+    public send(msg: IForkMessage, child_process: ChildProcess = null): boolean {
 
         msg = APIController.getInstance().try_translate_vo_to_api(msg);
+        let res: boolean = false;
+        let sendHandle = (!child_process) ? process : child_process;
 
-        if (!child_process) {
-            process.send(msg);
-        } else {
-            child_process.send(msg);
+        res = sendHandle.send(msg);
+        if (!res) {
+            this.stacked_msg_waiting.push({
+                message: msg,
+                sendHandle: sendHandle
+            });
+        }
+
+        if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
+            throttle(this.throttled_retry, 1000, { leading: false });
+        }
+
+        return res;
+    }
+
+    public throttled_retry() {
+        if ((!this.stacked_msg_waiting) || (!this.stacked_msg_waiting.length)) {
+            return;
+        }
+
+        let stacked_msg_waiting = this.stacked_msg_waiting;
+        this.stacked_msg_waiting = [];
+
+        stacked_msg_waiting.forEach((msg_wrapper: IForkMessageWrapper) => {
+            if (!msg_wrapper.sendHandle.send(msg_wrapper.message)) {
+                this.stacked_msg_waiting.push(msg_wrapper);
+            }
+        });
+
+        if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
+            throttle(this.throttled_retry, 1000, { leading: false });
         }
     }
 }

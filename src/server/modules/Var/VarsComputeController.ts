@@ -12,6 +12,7 @@ import VarsPerfsController from './perf/VarsPerfsController';
 import VarsCacheController from './VarsCacheController';
 import VarsDatasProxy from './VarsDatasProxy';
 import VarsImportsHandler from './VarsImportsHandler';
+import VarsTabsSubsController from './VarsTabsSubsController';
 
 export default class VarsComputeController {
 
@@ -321,6 +322,7 @@ export default class VarsComputeController {
 
             if (typeof dep_node.var_data.value === 'undefined') {
 
+                VarsTabsSubsController.getInstance().notify_vardatas([dep_node.var_data], true);
                 await this.deploy_deps(dep_node, vars_datas, ds_cache);
             }
         }

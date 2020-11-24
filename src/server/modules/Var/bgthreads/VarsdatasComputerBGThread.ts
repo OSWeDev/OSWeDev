@@ -128,6 +128,10 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                 return ModuleBGThreadServer.TIMEOUT_COEF_RUN;
             }
 
+            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas_computing", true);
+            VarsTabsSubsController.getInstance().notify_vardatas(vars_datas, true);
+            VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.notify_vardatas_computing"], false);
+
             /**
              * Fonctionnement :
              *  - On a sélectionné une liste de vars à calculer.
@@ -144,10 +148,6 @@ export default class VarsdatasComputerBGThread implements IBGThread {
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", true);
             await VarsComputeController.getInstance().compute(vars_datas);
             VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute", false);
-
-            VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.notify_vardatas", true);
-            VarsTabsSubsController.getInstance().notify_vardatas(vars_datas);
-            VarsPerfsController.addPerfs(performance.now(), ["__computing_bg_thread", "__computing_bg_thread.notify_vardatas"], false);
 
             if (ConfigurationService.getInstance().getNodeConfiguration().VARS_PERF_MONITORING) {
                 ConsoleHandler.getInstance().log('VarsdatasComputerBGThread computed :' + Object.keys(vars_datas).length + ': vars : took [' +

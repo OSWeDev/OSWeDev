@@ -1,16 +1,16 @@
+import { Server, Socket } from 'net';
 import ModuleFork from '../../../shared/modules/Fork/ModuleFork';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
+import BGThreadServerController from '../BGThread/BGThreadServerController';
 import ModuleServerBase from '../ModuleServerBase';
+import ForkedTasksController from './ForkedTasksController';
 import ForkMessageController from './ForkMessageController';
+import ForkServerController from './ForkServerController';
 import IForkMessage from './interfaces/IForkMessage';
 import AliveForkMessage from './messages/AliveForkMessage';
-import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
-import { Socket, Server } from 'net';
-import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
-import ForkedTasksController from './ForkedTasksController';
-import ForkServerController from './ForkServerController';
 import BGThreadProcessTaskForkMessage from './messages/BGThreadProcessTaskForkMessage';
-import BGThreadServerController from '../BGThread/BGThreadServerController';
+import BroadcastWrapperForkMessage from './messages/BroadcastWrapperForkMessage';
+import MainProcessTaskForkMessage from './messages/MainProcessTaskForkMessage';
 
 export default class ModuleForkServer extends ModuleServerBase {
 

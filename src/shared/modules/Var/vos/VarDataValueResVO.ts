@@ -9,6 +9,7 @@ export default class VarDataValueResVO {
     public _type: string = VarDataValueResVO.API_TYPE_ID;
     public index: string;
 
+    public is_computing: boolean;
     public value: number;
     public value_type: number;
     public value_ts: Moment;
@@ -21,6 +22,7 @@ export default class VarDataValueResVO {
         this.index = vardata.index;
         this.value_ts = vardata.value_ts;
         this.value_type = vardata.value_type;
+        this.is_computing = false;
         return this;
     }
 
@@ -41,6 +43,11 @@ export default class VarDataValueResVO {
 
     public set_index(index: string): VarDataValueResVO {
         this.index = index;
+        return this;
+    }
+
+    public set_is_computing(is_computing: boolean): VarDataValueResVO {
+        this.is_computing = is_computing;
         return this;
     }
 }

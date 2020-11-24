@@ -2,7 +2,6 @@ import Vue from 'vue';
 import { ActionContext, ActionTree, GetterTree, MutationTree } from "vuex";
 import { Action, Getter, namespace } from 'vuex-class/lib/bindings';
 import { getStoreAccessors } from "vuex-typescript";
-import VarsController from '../../../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../../shared/modules/Var/vos/VarDataValueResVO';
 import IStoreModule from '../../../store/IStoreModule';
@@ -153,7 +152,16 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
 
                 for (let i in varsData) {
 
-                    let varData = varsData[i];
+                    let varData: VarDataValueResVO = varsData[i];
+
+                    // if varData is_computing, on veut écraser un seul champs
+                    if (varData.is_computing && (state.varDatas as any)[varData.index]) {
+                        let stored_var: VarDataValueResVO = (state.varDatas as any)[varData.index];
+                        varData.value = stored_var.value;
+                        varData.value_ts = stored_var.value_ts;
+                        varData.value_type = stored_var.value_type;
+                        varData.id = stored_var.id;
+                    }
 
                     Vue.set(state.varDatas as any, varData.index, varData);
                 }

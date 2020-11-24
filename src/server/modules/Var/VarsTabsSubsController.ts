@@ -1,6 +1,5 @@
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
-import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import PushDataServerController from '../PushData/PushDataServerController';
 import SocketWrapper from '../PushData/vos/SocketWrapper';
@@ -75,10 +74,11 @@ export default class VarsTabsSubsController {
     /**
      * Sera exécutée dans tous les cas sur le main thread (express). Objectif : notifier tous les sockets qui s'intéressent à ces vardatas
      * @param var_datas Tableau ou map (sur index) des vars datas
+     * @param is_computing true indique au client de ne pas prendre en compte les valeurs envoyées uniquement le fait q'un calcul est en cours
      */
-    public notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }): boolean {
+    public notify_vardatas(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }, is_computing: boolean = false): boolean {
 
-        if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, var_datas)) {
+        if (!ForkedTasksController.getInstance().exec_self_on_main_process(VarsTabsSubsController.TASK_NAME_notify_vardatas, var_datas, is_computing)) {
             return;
         }
 
@@ -103,7 +103,7 @@ export default class VarsTabsSubsController {
                         if (!datas_by_socketid_for_notif[socket.socketId]) {
                             datas_by_socketid_for_notif[socket.socketId] = [];
                         }
-                        datas_by_socketid_for_notif[socket.socketId].push(new VarDataValueResVO().set_from_vardata(var_data));
+                        datas_by_socketid_for_notif[socket.socketId].push(new VarDataValueResVO().set_from_vardata(var_data).set_is_computing(is_computing));
                     }
                 }
             }

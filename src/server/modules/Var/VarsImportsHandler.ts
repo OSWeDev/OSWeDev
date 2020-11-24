@@ -2,6 +2,8 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
+import ObjectHandler from '../../../shared/tools/ObjectHandler';
+import VarsTabsSubsController from './VarsTabsSubsController';
 
 export default class VarsImportsHandler {
 
@@ -141,6 +143,10 @@ export default class VarsImportsHandler {
 
         node.is_aggregator = true;
         node.aggregated_nodes = aggregated_nodes;
+
+        if (aggregated_nodes && ObjectHandler.getInstance().hasAtLeastOneAttribute(aggregated_nodes)) {
+            VarsTabsSubsController.getInstance().notify_vardatas(Object.values(aggregated_nodes).map((n) => n.var_data), true);
+        }
     }
 
     /**

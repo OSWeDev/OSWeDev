@@ -319,6 +319,7 @@ export default class ModuleVar extends Module {
             new ModuleTableField('value', ModuleTableField.FIELD_TYPE_float, 'Valeur', false),
             new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_int, 'Type', true),
             new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date', false),
+            new ModuleTableField('is_computing', ModuleTableField.FIELD_TYPE_boolean, 'En cours de calcul...', false, true, false),
         ];
 
         let datatable = new ModuleTable(this, VarDataValueResVO.API_TYPE_ID, () => new VarDataValueResVO(), datatable_fields, null);

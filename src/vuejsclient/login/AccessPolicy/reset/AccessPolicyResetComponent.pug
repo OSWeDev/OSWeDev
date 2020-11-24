@@ -6,7 +6,7 @@
             h2.text-center {{ label('login.reset.sub_title') }}
             p.server-answer(v-if='message') {{ message }}
             .center(v-if='!!status')
-                a.btn.btn-primary.btn-block.btn-flat(href='/login') {{ label('login.reset.reco') }}
+                a.btn.btn-primary.btn-block.btn-flat(href='/logout') {{ label('login.reset.reco') }}
             div(v-if="!status")
                 p.login-box-msg(v-if='!is_simplified') {{ label('login.reset.desc') }}
                 p.login-box-msg(v-if='!!is_simplified') {{ label('login.reset.desc_simplified') }}

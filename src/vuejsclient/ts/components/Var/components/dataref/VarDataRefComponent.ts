@@ -149,6 +149,14 @@ export default class VarDataRefComponent extends VueComponentBase {
         this.unregister();
     }
 
+    get is_computing() {
+        if (!this.var_data) {
+            return false;
+        }
+
+        return this.var_data.is_computing;
+    }
+
     private register(var_param: VarDataBaseVO = null) {
         if (!this.entered_once) {
             return;
