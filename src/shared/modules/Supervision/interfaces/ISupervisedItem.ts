@@ -12,4 +12,6 @@ export default interface ISupervisedItem extends IDistantVOBase, INamedVO {
     state_before_pause: number;
 
     category_id: number;
+
+    invalid: boolean;
 }

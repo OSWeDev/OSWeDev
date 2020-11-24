@@ -211,7 +211,7 @@ export default class ModuleMaintenanceServer extends ModuleServerBase {
     private async handleTriggerPreC_MaintenanceVO(maintenance: MaintenanceVO): Promise<boolean> {
 
         if (!ForkedTasksController.getInstance().exec_self_on_main_process(ModuleMaintenanceServer.TASK_NAME_handleTriggerPreC_MaintenanceVO, maintenance)) {
-            return;
+            return false;
         }
 
         // Si une maintenance est déjà en cours, on doit pas pouvoir en rajouter

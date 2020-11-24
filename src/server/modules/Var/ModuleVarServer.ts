@@ -14,6 +14,7 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
+
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
@@ -21,6 +22,7 @@ import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
+
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -32,6 +34,7 @@ import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
+
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
@@ -45,6 +48,7 @@ import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
+
 const moment = require('moment');
 
 export default class ModuleVarServer extends ModuleServerBase {
@@ -84,7 +88,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
         postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onCVarCacheConf);
         postUTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onUVarCacheConf);
-        postDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onPreDVarCacheConf);
+        postDTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onPostDVarCacheConf);
 
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Calculée'
@@ -682,7 +686,7 @@ export default class ModuleVarServer extends ModuleServerBase {
         }
     }
 
-    private async onPreDVarCacheConf(vcc: VarCacheConfVO) {
+    private async onPostDVarCacheConf(vcc: VarCacheConfVO) {
         if (!vcc) {
             return;
         }

@@ -56,6 +56,7 @@ export default class SupervisionController {
         moduleTable.push_field((new ModuleTableField('first_update', ModuleTableField.FIELD_TYPE_tstz, 'Date de dernière mise à jour', false)).setModuleTable(moduleTable));
         moduleTable.push_field((new ModuleTableField('state', ModuleTableField.FIELD_TYPE_tstz, 'Etat', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS)).setModuleTable(moduleTable));
         moduleTable.push_field((new ModuleTableField('state_before_pause', ModuleTableField.FIELD_TYPE_tstz, 'Etat - avant pause', true, true, SupervisionController.STATE_UNKOWN).setEnumValues(SupervisionController.STATE_LABELS)).setModuleTable(moduleTable));
+        moduleTable.push_field((new ModuleTableField('invalid', ModuleTableField.FIELD_TYPE_boolean, 'Invalide', false, true, false)).setModuleTable(moduleTable));
         moduleTable.push_field((category_id_field).setModuleTable(moduleTable));
         moduleTable.default_label_field = name;
 

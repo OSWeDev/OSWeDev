@@ -691,12 +691,13 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         }), await ModulesManagerServer.getInstance().getModuleVOByName(ModuleTranslationServer.getInstance().name));
     }
 
-    private async trigger_ondelete_lang(lang: LangVO) {
-        let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = await AccessPolicyServerController.getInstance().get_registered_policy(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id));
+    private async trigger_ondelete_lang(lang: LangVO): Promise<boolean> {
+        let LANG_SELECTOR_PER_LANG_ACCESS: AccessPolicyVO = AccessPolicyServerController.getInstance().get_registered_policy(ModuleTranslation.getInstance().get_LANG_SELECTOR_PER_LANG_ACCESS_name(lang.id));
         if (!LANG_SELECTOR_PER_LANG_ACCESS) {
-            return null;
+            return false;
         }
         await ModuleDAO.getInstance().deleteVOs([LANG_SELECTOR_PER_LANG_ACCESS]);
+        return true;
     }
 
     private async getALL_LOCALES(): Promise<{ [code_lang: string]: any }> {
@@ -754,7 +755,7 @@ export default class ModuleTranslationServer extends ModuleServerBase {
         return await ModuleTranslationServer.getInstance().isCodeOk(vo_update_handler.post_update_vo.code_text);
     }
 
-    private async isCodeOk(code_text: string) {
+    private async isCodeOk(code_text: string): Promise<boolean> {
 
         // On vérifie qu'il existe pas en base un code conflictuel. Sinon on refuse l'insert
         let something_longer: TranslatableTextVO[] = await ModuleDAOServer.getInstance().selectAll<TranslatableTextVO>(

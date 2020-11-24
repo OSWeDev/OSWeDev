@@ -21,12 +21,14 @@ import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConfigurationService from '../../env/ConfigurationService';
 import AccessPolicyServerController from '../AccessPolicy/AccessPolicyServerController';
 import ModuleAccessPolicyServer from '../AccessPolicy/ModuleAccessPolicyServer';
+import ModuleBGThreadServer from '../BGThread/ModuleBGThreadServer';
 import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
 import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
 import ModuleServerBase from '../ModuleServerBase';
 import ModulesManagerServer from '../ModulesManagerServer';
 import ModuleTeamsAPIServer from '../TeamsAPI/ModuleTeamsAPIServer';
+import SupervisionBGThread from './bgthreads/SupervisionBGThread';
 import SupervisionCronWorkersHandler from './SupervisionCronWorkersHandler';
 
 export default class ModuleSupervisionServer extends ModuleServerBase {
@@ -52,6 +54,8 @@ export default class ModuleSupervisionServer extends ModuleServerBase {
     }
 
     public async configure() {
+        ModuleBGThreadServer.getInstance().registerBGThread(SupervisionBGThread.getInstance());
+
         DefaultTranslationManager.getInstance().registerDefaultTranslation(new DefaultTranslation({
             fr: 'Supervision'
         }, 'menu.menuelements.SupervisionAdminVueModule.___LABEL___'));

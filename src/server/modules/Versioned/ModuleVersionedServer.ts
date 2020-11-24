@@ -51,7 +51,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
     }
 
 
-    private async handleTriggerVOPreCreate(vo: IVersionedVO) {
+    private async handleTriggerVOPreCreate(vo: IVersionedVO): Promise<boolean> {
 
         vo.version_num = (!!vo.version_num) ? vo.version_num : 1;
         vo.parent_id = null;
@@ -85,7 +85,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         return true;
     }
 
-    private async handleTriggerVOPreUpdate(vo_update_handler: DAOUpdateVOHolder<IVersionedVO>) {
+    private async handleTriggerVOPreUpdate(vo_update_handler: DAOUpdateVOHolder<IVersionedVO>): Promise<boolean> {
 
         let cloned: IVersionedVO = Object.create(vo_update_handler.pre_update_vo);
 
@@ -111,7 +111,7 @@ export default class ModuleVersionedServer extends ModuleServerBase {
         return true;
     }
 
-    private async handleTriggerVOPreDelete(vo: IVersionedVO) {
+    private async handleTriggerVOPreDelete(vo: IVersionedVO): Promise<boolean> {
 
         // On crée une nouvelle version pour garder trace de la date + utilisateur qui a fait la suppression
         vo.trashed = true;
