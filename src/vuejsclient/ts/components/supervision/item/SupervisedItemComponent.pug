@@ -50,9 +50,13 @@
                                             i.fa.fa-envelope-open
 
                         template(v-if='supervised_item_controller')
+                            template(v-if="supervised_item_controller.get_description(supervised_item)")
+                                .row
+                                    .col-md-12.supervised_item_description {{ supervised_item_controller.get_description(supervised_item) }}
 
-                            .row
-                                .col-md-12.supervised_item_description {{ supervised_item_controller && supervised_item_controller.get_description(supervised_item) }}
+                            template(v-if="supervised_item_controller.get_description_html(supervised_item)")
+                                .row
+                                    .col-md-12.supervised_item_description(v-html="supervised_item_controller.get_description_html(supervised_item)")
 
                     .col-md-4
 
