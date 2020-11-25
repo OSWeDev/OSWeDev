@@ -50,6 +50,9 @@ export default class ModuleVar extends Module {
     public static APINAME_delete_cache_intersection: string = 'delete_cache_intersection';
     public static APINAME_delete_cache_and_imports_intersection: string = 'delete_cache_and_imports_intersection';
 
+    public static APINAME_invalidate_cache_exact: string = 'invalidate_cache_exact';
+    public static APINAME_invalidate_cache_intersection_and_parents: string = 'invalidate_cache_intersection_and_parents';
+
     public static getInstance(): ModuleVar {
         if (!ModuleVar.instance) {
             ModuleVar.instance = new ModuleVar();
@@ -77,19 +80,19 @@ export default class ModuleVar extends Module {
 
     public registerApis() {
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOsParamVO, void>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_register_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVO.translateCheckAccessParams
-        ).define_as_opti__aggregate_param((a: APISimpleVOsParamVO, b: APISimpleVOsParamVO) => a.vos = (b && b.vos && b.vos.length) ? a.vos.concat(b.vos) : a.vos));
+        ));
 
-        ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<APISimpleVOsParamVO, void>(
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<APISimpleVOsParamVO, void>(
             ModuleVar.POLICY_FO_ACCESS,
             ModuleVar.APINAME_unregister_params,
             CacheInvalidationRulesVO.ALWAYS_FORCE_INVALIDATION_API_TYPES_INVOLVED,
             APISimpleVOsParamVO.translateCheckAccessParams
-        ).define_as_opti__aggregate_param((a: APISimpleVOsParamVO, b: APISimpleVOsParamVO) => a.vos = (b && b.vos && b.vos.length) ? a.vos.concat(b.vos) : a.vos));
+        ));
 
         ModuleAPI.getInstance().registerApi(new PostForGetAPIDefinition<StringParamVO, { [dep_name: string]: string }>(
             ModuleVar.POLICY_DESC_MODE_ACCESS,
@@ -178,6 +181,49 @@ export default class ModuleVar extends Module {
                 return res;
             }
         ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_invalidate_cache_exact,
+            (params: VarDataBaseVO[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
+
+        ModuleAPI.getInstance().registerApi(new PostAPIDefinition<VarDataBaseVO[], void>(
+            ModuleVar.POLICY_DESC_MODE_ACCESS,
+            ModuleVar.APINAME_invalidate_cache_intersection_and_parents,
+            (params: VarDataBaseVO[]) => {
+                let res: string[] = [];
+
+                for (let i in params) {
+                    let param = params[i];
+
+                    if (res.indexOf(param._type) < 0) {
+                        res.push(param._type);
+                    }
+                }
+
+                return res;
+            }
+        ));
+    }
+
+    public async invalidate_cache_exact(vos: VarDataBaseVO[]): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_invalidate_cache_exact, vos);
+    }
+    public async invalidate_cache_intersection_and_parents(vos: VarDataBaseVO[]): Promise<void> {
+        return await ModuleAPI.getInstance().handleAPI<VarDataBaseVO[], void>(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, vos);
     }
 
     public async invalidate_cache_intersection(vos: VarDataBaseVO[]): Promise<void> {
@@ -265,8 +311,9 @@ export default class ModuleVar extends Module {
             new ModuleTableField('value_type', ModuleTableField.FIELD_TYPE_enum, 'Type', true, true, VarDataBaseVO.VALUE_TYPE_COMPUTED).setEnumValues({
                 [VarDataBaseVO.VALUE_TYPE_IMPORT]: VarDataBaseVO.VALUE_TYPE_LABELS[VarDataBaseVO.VALUE_TYPE_IMPORT],
                 [VarDataBaseVO.VALUE_TYPE_COMPUTED]: VarDataBaseVO.VALUE_TYPE_LABELS[VarDataBaseVO.VALUE_TYPE_COMPUTED]
-            }),
+            }).index(),
             new ModuleTableField('value_ts', ModuleTableField.FIELD_TYPE_tstz, 'Date mise à jour').set_segmentation_type(TimeSegment.TYPE_SECOND),
+            new ModuleTableField('_bdd_only_index', ModuleTableField.FIELD_TYPE_string, 'Index pour recherche exacte', false, false).index(), // TODO FIXME passer obligatoire quand tous les projets ont migrés en V3 ça sera plus simple
         ]);
 
         let datatable = new ModuleTable(this, api_type_id, constructor, var_fields, null);

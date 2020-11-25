@@ -28,6 +28,8 @@ export default class DataSourcesController {
     private constructor() { }
 
     public async load_node_datas(dss: DataSourceControllerBase[], node: VarDAGNode, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }): Promise<void> {
+
+        let promises = [];
         for (let i in dss) {
             let ds = dss[i];
 
@@ -35,8 +37,9 @@ export default class DataSourcesController {
                 ds_cache[ds.name] = {};
             }
 
-            await ds.load_node_data(node, ds_cache[ds.name]);
+            promises.push(ds.load_node_data(node, ds_cache[ds.name]));
         }
+        await Promise.all(promises);
     }
 
     public registerDataSource(

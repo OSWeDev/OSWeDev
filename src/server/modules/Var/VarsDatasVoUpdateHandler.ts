@@ -2,6 +2,7 @@ import ModuleDAO from '../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../shared/modules/IDistantVOBase';
 import MatroidController from '../../../shared/modules/Matroid/MatroidController';
 import DAGController from '../../../shared/modules/Var/graph/dagbase/DAGController';
+import VarsController from '../../../shared/modules/Var/VarsController';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import ObjectHandler from '../../../shared/tools/ObjectHandler';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
@@ -71,11 +72,30 @@ export default class VarsDatasVoUpdateHandler {
 
         let intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] } = {};
 
-        let ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = [];
+        let ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = {};
 
         limit = this.prepare_updates(limit, vos_update_buffer, vos_create_or_delete_buffer, vo_types);
 
         this.init_leaf_intersectors(vo_types, intersectors_by_var_id, vos_update_buffer, vos_create_or_delete_buffer, ctrls_to_update_1st_stage);
+
+        await this.invalidate_datas_and_parents(intersectors_by_var_id, ctrls_to_update_1st_stage);
+
+        return limit;
+    }
+
+    public async invalidate_datas_and_parents(
+        intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] },
+        ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> } = null
+    ) {
+
+        // Si on veut juste invalider directement des vos, on a pas besoin de fournir le ctrls to update
+        if (!ctrls_to_update_1st_stage) {
+            ctrls_to_update_1st_stage = {};
+            for (let var_id_s in intersectors_by_var_id) {
+                ctrls_to_update_1st_stage[var_id_s] = VarsServerController.getInstance().registered_vars_controller_[
+                    VarsController.getInstance().var_conf_by_id[var_id_s].name];
+            }
+        }
 
         /**
          * ALGO en photo... TODO FIXME a remettre au propre
@@ -89,8 +109,6 @@ export default class VarsDatasVoUpdateHandler {
          *  et on les enfilent dans le buffer de calcul / mise à jour des var_datas
          */
         this.find_invalid_datas_and_push_for_update(intersectors_by_var_id);
-
-        return limit;
     }
 
     /**
@@ -222,7 +240,7 @@ export default class VarsDatasVoUpdateHandler {
      */
     private init_leaf_intersectors(
         vo_types: string[],
-        intersectors_by_var_id: { [var_id: string]: VarDataBaseVO[] },
+        intersectors_by_var_id: { [var_id: number]: VarDataBaseVO[] },
         vos_update_buffer: { [vo_type: string]: Array<DAOUpdateVOHolder<IDistantVOBase>> },
         vos_create_or_delete_buffer: { [vo_type: string]: IDistantVOBase[] },
         ctrls_to_update_1st_stage: { [var_id: number]: VarServerControllerBase<VarDataBaseVO> }) {

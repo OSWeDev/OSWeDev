@@ -154,7 +154,7 @@ export default class VarsdatasComputerBGThread implements IBGThread {
                     VarsPerfsController.current_batch_perfs["__computing_bg_thread"].sum_ms + ' ms] total : [' +
                     VarsPerfsController.current_batch_perfs["__computing_bg_thread.selection"].sum_ms + ' ms] selecting, [' +
                     VarsPerfsController.current_batch_perfs["__computing_bg_thread.compute"].sum_ms + ' ms] computing, [' +
-                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.notify_vardatas"].sum_ms + ' ms] notifying');
+                    VarsPerfsController.current_batch_perfs["__computing_bg_thread.notify_vardatas_computing"].sum_ms + ' ms] notifying');
                 await VarsPerfsController.update_perfs_in_bdd();
             }
         } catch (error) {

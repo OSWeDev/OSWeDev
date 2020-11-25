@@ -10,6 +10,8 @@
             .var_data_label {{ label('var_desc.var_data_label') }}
                 var-data(:var_param='var_param')
                 i.update_var_data.fa.fa-refresh(aria-hidden="true" @click='update_var_data')
+                i.update_var_data.fa.fa-sitemap(aria-hidden="true" @click='update_var_data_and_parents')
+                i.update_var_data.fa.fa-filter(aria-hidden="true" @click='filter_on_this_param')
 
             .var_data_last_update(v-if='var_data_has_valid_value && show_last_update') {{ label('var_desc.var_data_last_update', { last_update: var_data_last_update }) }}
             .var_data_is_import(v-if='var_data_has_valid_value && show_imports')

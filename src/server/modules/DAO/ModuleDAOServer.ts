@@ -2309,98 +2309,126 @@ export default class ModuleDAOServer extends ModuleServerBase {
             return null;
         }
 
+        /**
+         * Changement de fonctionnement si on est sur un matroid de var on peut utiliser une recherche directe sur l'index
+         */
         let where_clauses: string[] = [];
+        if (moduleTable.isMatroidTable && (!!moduleTable.getFieldFromId('var_id'))) {
+            // Cas d'un param de var
 
-        let first_matroid = true;
-        for (let matroid_i in matroids) {
-            let matroid = matroids[matroid_i];
+            let first_matroid = true;
+            for (let matroid_i in matroids) {
+                let matroid = matroids[matroid_i];
 
-            if (!matroid) {
-                ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
-                return null;
-            }
-
-            let where_clause: string = '';
-
-            // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
-            // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
-            if (!!(matroid as VarDataBaseVO).var_id) {
-
-                if (!!moduleTable.getFieldFromId('var_id')) {
-                    where_clause += '(var_id = ' + (matroid as VarDataBaseVO).var_id + ') AND ';
-                }
-            }
-
-            let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
-
-            let first = true;
-            for (let i in matroid_fields) {
-                let matroid_field = matroid_fields[i];
-                let ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
-                let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
-
-                if (!field) {
-                    continue;
-                }
-
-                if (moduleTable.is_segmented && (field.field_id == moduleTable.table_segmented_field.field_id)) {
-                    continue;
-                }
-
-                if ((!ranges) || (!ranges.length)) {
-                    ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
+                if (!matroid) {
+                    ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
                     return null;
                 }
 
-                where_clause += first ? "(" : ") AND (";
+                let where_clause: string = '';
 
-                let ranges_clause = "'{";
-                for (let j in ranges) {
-                    let field_range: IRange<any> = ranges[j];
+                where_clause += "(_bdd_only_index = '" + (matroid as VarDataBaseVO).bdd_only_index + "')";
 
-                    if (!RangeHandler.getInstance().isValid(field_range)) {
-                        ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
+                where_clauses.push(where_clause);
+                first_matroid = false;
+            }
+
+            if (first_matroid) {
+                return null;
+            }
+        } else {
+            // Cas général
+
+            let first_matroid = true;
+            for (let matroid_i in matroids) {
+                let matroid = matroids[matroid_i];
+
+                if (!matroid) {
+                    ConsoleHandler.getInstance().error('Matroid vide:' + api_type_id + ':' + (matroid ? matroid._type : null) + ':');
+                    return null;
+                }
+
+                let where_clause: string = '';
+
+                // On ajoute un segment dédié à la gestion des vars pour faciliter le fonctionnement
+                // Si on a un param de type varparam ou vardata, et une cible de type vardata, on ajoute un filtrage sur le var_id, si il existe dans le param
+                if (!!(matroid as VarDataBaseVO).var_id) {
+
+                    if (!!moduleTable.getFieldFromId('var_id')) {
+                        where_clause += '(var_id = ' + (matroid as VarDataBaseVO).var_id + ') AND ';
+                    }
+                }
+
+                let matroid_fields = MatroidController.getInstance().getMatroidFields(matroid._type);
+
+                let first = true;
+                for (let i in matroid_fields) {
+                    let matroid_field = matroid_fields[i];
+                    let ranges: Array<IRange<any>> = matroid[matroid_field.field_id];
+                    let field = moduleTable.getFieldFromId((fields_ids_mapper && fields_ids_mapper[matroid_field.field_id]) ? fields_ids_mapper[matroid_field.field_id] : matroid_field.field_id);
+
+                    if (!field) {
+                        continue;
+                    }
+
+                    if (moduleTable.is_segmented && (field.field_id == moduleTable.table_segmented_field.field_id)) {
+                        continue;
+                    }
+
+                    if ((!ranges) || (!ranges.length)) {
+                        ConsoleHandler.getInstance().error('Matroid field vide ou inexistant:' + api_type_id + ':' + matroid_fields[i].field_id + ':');
                         return null;
                     }
 
-                    first = false;
-                    first_matroid = false;
+                    where_clause += first ? "(" : ") AND (";
 
-                    ranges_clause += (ranges_clause == "'{") ? '' : ',';
+                    let ranges_clause = "'{";
+                    for (let j in ranges) {
+                        let field_range: IRange<any> = ranges[j];
 
-                    switch (field.field_type) {
-
-                        case ModuleTableField.FIELD_TYPE_numrange_array:
-                        case ModuleTableField.FIELD_TYPE_refrange_array:
-                        case ModuleTableField.FIELD_TYPE_isoweekdays:
-                            ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"";
-                            break;
-
-                        case ModuleTableField.FIELD_TYPE_tstzrange_array:
-                            ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "\"";
-                            break;
-
-                        default:
-                            ConsoleHandler.getInstance().error('cannot getVosByExactFieldRanges with non range array fields');
+                        if (!RangeHandler.getInstance().isValid(field_range)) {
+                            ConsoleHandler.getInstance().error('field_range invalid:' + api_type_id + ':' + JSON.stringify(field_range) + ':');
                             return null;
-                    }
-                }
-                ranges_clause += "}'";
+                        }
 
-                where_clause += ranges_clause + " = " + field.field_id;
+                        first = false;
+                        first_matroid = false;
+
+                        ranges_clause += (ranges_clause == "'{") ? '' : ',';
+
+                        switch (field.field_type) {
+
+                            case ModuleTableField.FIELD_TYPE_numrange_array:
+                            case ModuleTableField.FIELD_TYPE_refrange_array:
+                            case ModuleTableField.FIELD_TYPE_isoweekdays:
+                                ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + field_range.min + "," + field_range.max + (field_range.max_inclusiv ? "]" : ")") + "\"";
+                                break;
+
+                            case ModuleTableField.FIELD_TYPE_tstzrange_array:
+                                ranges_clause += "\"" + (field_range.min_inclusiv ? "[" : "(") + DateHandler.getInstance().getUnixForBDD(field_range.min) + "," + DateHandler.getInstance().getUnixForBDD(field_range.max) + (field_range.max_inclusiv ? "]" : ")") + "\"";
+                                break;
+
+                            default:
+                                ConsoleHandler.getInstance().error('cannot getVosByExactFieldRanges with non range array fields');
+                                return null;
+                        }
+                    }
+                    ranges_clause += "}'";
+
+                    where_clause += ranges_clause + " = " + field.field_id;
+                }
+                if (first) {
+                    return null;
+                }
+                where_clause += ")";
+
+                where_clauses.push(where_clause);
             }
-            if (first) {
+
+            if (first_matroid) {
                 return null;
             }
-            where_clause += ")";
-
-            where_clauses.push(where_clause);
         }
-
-        if (first_matroid) {
-            return null;
-        }
-
 
         let vos: T[] = [];
 

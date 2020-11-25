@@ -665,6 +665,8 @@ export default class RangeHandler {
         for (let i in from) {
             res.push(this.cloneFrom(from[i]) as U);
         }
+
+        this.sort_ranges(res);
         return res;
     }
 
@@ -729,6 +731,7 @@ export default class RangeHandler {
         }
 
         let res: string = "[";
+        this.sort_ranges(ranges);
 
         for (let i in ranges) {
             let range = ranges[i];
@@ -745,6 +748,28 @@ export default class RangeHandler {
         res += ']';
 
         return res;
+    }
+
+    /**
+     * On ordonne pour uniformiser les indexs par exemple, en prenant le formatted_min de chaque range
+     * @param ranges
+     */
+    public sort_ranges<T>(ranges: Array<IRange<T>>) {
+        ranges.sort((a: IRange<T>, b: IRange<T>) => {
+
+            let min_a = this.getSegmentedMin(a);
+            let min_b = this.getSegmentedMin(b);
+
+            if (this.is_elt_equals_elt(a.range_type, min_a, min_b)) {
+                return 0;
+            }
+
+            if (this.is_elt_inf_elt(a.range_type, min_a, min_b)) {
+                return -1;
+            }
+
+            return 1;
+        });
     }
 
     public humanizeRanges<T>(ranges: Array<IRange<T>>): string {
@@ -1346,6 +1371,7 @@ export default class RangeHandler {
         if ((!res) || (!res.length)) {
             return null;
         }
+        this.sort_ranges(res);
         return res;
     }
 
@@ -1487,6 +1513,7 @@ export default class RangeHandler {
         if ((!res) || (!res.length)) {
             return null;
         }
+        this.sort_ranges(res);
         return res;
     }
 

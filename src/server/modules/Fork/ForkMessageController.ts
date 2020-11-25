@@ -78,7 +78,7 @@ export default class ForkMessageController {
         }
 
         if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
-            throttle(this.throttled_retry, 1000, { leading: false });
+            throttle(this.throttled_retry.bind(this), 1000, { leading: false });
         }
 
         return res;
@@ -99,7 +99,7 @@ export default class ForkMessageController {
         });
 
         if (this.stacked_msg_waiting && this.stacked_msg_waiting.length) {
-            throttle(this.throttled_retry, 1000, { leading: false });
+            throttle(this.throttled_retry.bind(this), 1000, { leading: false });
         }
     }
 }

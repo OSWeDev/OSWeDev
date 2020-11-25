@@ -30,6 +30,7 @@ import Patch20200924UpgradeUserVOPost from './patchs/postmodules/Patch20200924Up
 import Patch20200926InitPoliciesINSERTORUPDATEUserLogs from './patchs/postmodules/Patch20200926InitPoliciesINSERTORUPDATEUserLogs';
 import Patch20201001InitPoliciesFeedback from './patchs/postmodules/Patch20201001InitPoliciesFeedback';
 import Patch20201006InitFrontVarsPolicies from './patchs/postmodules/Patch20201006InitFrontVarsPolicies';
+import Patch20201125InitVarsBDDIndexes from './patchs/postmodules/Patch20201125InitVarsBDDIndexes';
 import ActivateDataImport from './patchs/premodules/ActivateDataImport';
 import ActivateDataRender from './patchs/premodules/ActivateDataRender';
 import ChangeCronDateHeurePlanifiee from './patchs/premodules/ChangeCronDateHeurePlanifiee';
@@ -100,7 +101,8 @@ export default abstract class GeneratorBase {
             Patch20200924UpgradeUserVOPost.getInstance(),
             Patch20200926InitPoliciesINSERTORUPDATEUserLogs.getInstance(),
             Patch20201001InitPoliciesFeedback.getInstance(),
-            Patch20201006InitFrontVarsPolicies.getInstance()
+            Patch20201006InitFrontVarsPolicies.getInstance(),
+            Patch20201125InitVarsBDDIndexes.getInstance()
         ];
     }
 

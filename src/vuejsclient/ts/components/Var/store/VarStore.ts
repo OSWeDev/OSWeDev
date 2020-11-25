@@ -155,8 +155,15 @@ export default class VarStore implements IStoreModule<IVarState, VarContext> {
                     let varData: VarDataValueResVO = varsData[i];
 
                     // if varData is_computing, on veut écraser un seul champs
-                    if (varData.is_computing && (state.varDatas as any)[varData.index]) {
+                    if (varData.is_computing) {
+
                         let stored_var: VarDataValueResVO = (state.varDatas as any)[varData.index];
+
+                        // Si on a encore rien reçu, l'info de calcul en cours est inutile
+                        if (!stored_var) {
+                            continue;
+                        }
+
                         varData.value = stored_var.value;
                         varData.value_ts = stored_var.value_ts;
                         varData.value_type = stored_var.value_type;

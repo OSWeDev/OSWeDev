@@ -294,4 +294,20 @@ export default class VarDataSumComponent extends VueComponentBase {
             }
         );
     }
+
+    get is_computing() {
+        if (!this.var_datas) {
+            return false;
+        }
+
+        for (let i in this.var_datas) {
+            let var_data = this.var_datas[i];
+
+            if (var_data.is_computing) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

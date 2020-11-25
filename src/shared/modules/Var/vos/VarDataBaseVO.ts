@@ -33,11 +33,11 @@ export default class VarDataBaseVO implements IMatroid {
     }
 
     /**
+     * ATTENTION : Si on est client on doit pas utiliser cette méthode par ce qu'elle ne voit pas les
+     *  vardatares or les valeurs sont là bas et pas dans le vardata
      * On considère la valeur valide si elle a une date de calcul ou d'init, une valeur pas undefined et
      *  si on a une conf de cache, pas expirée. Par contre est-ce que les imports expirent ? surement pas
      *  dont il faut aussi indiquer ces var datas valides
-     * Si on est côté client, le varcacheconf est null donc on ignore cette question => en fait si on est client on doit
-     *  surtout pas utiliser cette méthode par ce qu'elle ne voit pas les vardatares or les valeurs sont là bas et pas dans le vardata
      */
     get has_valid_value(): boolean {
 
@@ -219,6 +219,13 @@ export default class VarDataBaseVO implements IMatroid {
     public value_type: number;
     public value_ts: Moment;
 
+    /**
+     * On aimerait rajouter l'index en base pour les filtrages exactes mais ça veut dire un index définitivement unique et pour autant
+     *  si on ségmente mois janvier ou jour 01/01 au 31/01 c'est la même var mais pas les mêmes ranges donc un index pas réversible.
+     *  Est-ce qu'on parle d'un deuxième index dédié uniquement au filtrage en base du coup ?
+     */
+    private _bdd_only_index: string;
+
     private _index: string;
 
     public constructor() { }
@@ -241,6 +248,14 @@ export default class VarDataBaseVO implements IMatroid {
         }
 
         return this._index;
+    }
+
+    /**
+     * Attention : L'index de bdd est recalculé à chaque appel
+     */
+    get bdd_only_index(): string {
+
+        return this.index;
     }
 
     /**

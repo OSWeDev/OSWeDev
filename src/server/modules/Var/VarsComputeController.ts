@@ -59,7 +59,14 @@ export default class VarsComputeController {
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.create_tree", false);
 
         /**
-         * On a l'arbre. Tous les noeuds dont le var_data !has_valid_value sont à calculer
+         * On a l'arbre. On charge les données qui restent à charger
+         */
+        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.load_nodes_datas", true);
+        await this.load_nodes_datas(dag, ds_cache);
+        VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.load_nodes_datas", false);
+
+        /**
+         * Tous les noeuds dont le var_data !has_valid_value sont à calculer
          */
         VarsPerfsController.addPerf(performance.now(), "__computing_bg_thread.compute.visit_bottom_up_to_node", true);
         for (let i in vars_datas) {
@@ -114,6 +121,20 @@ export default class VarsComputeController {
         }
     }
 
+    private async load_nodes_datas(dag: DAG<VarDAGNode>, ds_cache: { [ds_name: string]: { [ds_data_index: string]: any } }) {
+        let promises = [];
+        for (let i in dag.nodes) {
+            let node = dag.nodes[i];
+
+            let dss: DataSourceControllerBase[] = node.var_controller.getDataSourcesDependencies();
+            promises.push((async () => {
+                await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
+            })());
+        }
+
+        await Promise.all(promises);
+    }
+
     /**
      * Pour calculer un noeud, il faut les datasources, et faire appel à la fonction de calcul du noeud
      * @param node
@@ -122,22 +143,6 @@ export default class VarsComputeController {
 
         VarsPerfsController.addPerfs(performance.now(), [
             "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node",
-            "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node.load_node_datas",
-            node.var_data.var_id + "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node.load_node_datas"
-        ], true);
-
-        /**
-         * On charge toutes les datas restantes
-         */
-        let dss: DataSourceControllerBase[] = node.var_controller.getDataSourcesDependencies();
-        await DataSourcesController.getInstance().load_node_datas(dss, node, ds_cache);
-
-        VarsPerfsController.addPerfs(performance.now(), [
-            "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node.load_node_datas",
-            node.var_data.var_id + "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node.load_node_datas"
-        ], false);
-
-        VarsPerfsController.addPerfs(performance.now(), [
             "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node.compute_node",
             node.var_data.var_id + "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node.compute_node"
         ], true);

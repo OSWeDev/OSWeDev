@@ -30,12 +30,18 @@ import './VarsDatasExplorerFiltersComponent.scss';
 })
 export default class VarsDatasExplorerFiltersComponent extends VueComponentBase {
 
+    public static instance: VarsDatasExplorerFiltersComponent = null;
+
+    public fitered_vars_confs: VarConfVO[] = [];
+    public fields_filters_range: { [field_id: string]: IRange<any> } = {};
+    public fields_filters_list: { [field_id: string]: IDistantVOBase[] } = {};
+
+    public fields_filters_is_enum: { [field_id: string]: boolean } = {};
+    public enum_initial_options: { [field_id: string]: IDistantVOBase[] } = {};
+
     @ModuleVarsDatasExplorerVuexAction
     private set_filter_params: (filter_params: VarDataBaseVO[]) => void;
 
-    private fitered_vars_confs: VarConfVO[] = [];
-
-    private fields_filters_is_enum: { [field_id: string]: boolean } = {};
     private fields_filters_is_valid_by_vo_type: { [vo_type: string]: { [field_id: string]: boolean } } = {};
     private valid_vars_ids_by_field_id: { [field_id: string]: { [var_id: number]: boolean } } = {};
 
@@ -47,11 +53,6 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
     private fields_filters_is_valid: { [field_id: string]: boolean } = {};
     private filtered_vo_types: { [vo_type: string]: boolean } = {};
 
-    private fields_filters_range: { [field_id: string]: IRange<any> } = {};
-    private fields_filters_list: { [field_id: string]: any[] } = {};
-
-    private enum_initial_options: { [field_id: string]: any[] } = {};
-
     private has_enum_search: { [field_id: string]: boolean } = {};
 
     private vars_confs: VarConfVO[] = [];
@@ -60,6 +61,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
 
     private async mounted() {
 
+        VarsDatasExplorerFiltersComponent.instance = this;
         let vars_confs = Object.values(VarsController.getInstance().var_conf_by_id);
 
         // On en profite pour mettre à jour le fields_filters_is_valid
@@ -70,6 +72,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
         let fields_filters_is_valid: { [field_id: string]: boolean } = {};
         let valid_vars_ids_by_field_id: { [field_id: string]: { [var_id: number]: boolean } } = {};
         let fields: { [field_id: string]: ModuleTableField<IRange<any>> } = {};
+        let empty_fields_filters_list: { [field_id: string]: IDistantVOBase[] } = {};
 
         for (let i in vars_confs) {
             let var_conf = vars_confs[i];
@@ -90,6 +93,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
                 valid_vars_ids_by_field_id[matroid_field.field_id][var_conf.id] = true;
 
                 fields[matroid_field.field_id] = matroid_field;
+                empty_fields_filters_list[matroid_field.field_id] = [];
 
                 let enum_handler = NumRangeComponentController.getInstance().get_enum_handler(var_conf.var_data_vo_type, matroid_field.field_id);
                 if (enum_handler) {
@@ -106,6 +110,7 @@ export default class VarsDatasExplorerFiltersComponent extends VueComponentBase 
             }
         }
 
+        this.fields_filters_list = empty_fields_filters_list;
         this.fields = fields;
         this.fields_filters_is_enum = fields_filters_is_enum;
         this.fields_filters_is_valid_by_vo_type = fields_filters_is_valid_by_vo_type;

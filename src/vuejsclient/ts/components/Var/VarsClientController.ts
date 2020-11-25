@@ -1,7 +1,10 @@
+import throttle from 'lodash/throttle';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
+import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../shared/modules/Var/vos/VarUpdateCallback';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
+import VueAppBase from '../../../VueAppBase';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
 export default class VarsClientController {
@@ -20,6 +23,11 @@ export default class VarsClientController {
      *  on stocke aussi le nombre d'enregistrements, pour pouvoir unregister au fur et à mesure
      */
     public registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
+    public throttled_for_server_registration: VarDataBaseVO[] = [];
+    public throttled_for_server_unregistration: VarDataBaseVO[] = [];
+
+    public throttled_server_registration = throttle(this.do_server_registration.bind(this), 100, { leading: false });
+    public throttled_server_unregistration = throttle(this.do_server_unregistration.bind(this), 100, { leading: false });
 
     private timeout_check_registrations: number = 10000;
 
@@ -60,7 +68,8 @@ export default class VarsClientController {
         }
 
         if (needs_registration && needs_registration.length) {
-            ModuleVar.getInstance().register_params(needs_registration);
+            this.throttled_for_server_registration = this.throttled_for_server_registration.concat(needs_registration);
+            this.throttled_server_registration();
         }
     }
 
@@ -77,8 +86,8 @@ export default class VarsClientController {
         }
 
         if (needs_registration && needs_registration.length) {
-            ModuleVar.getInstance().unregister_params(needs_registration);
-            ModuleVar.getInstance().register_params(needs_registration);
+            this.throttled_for_server_registration = this.throttled_for_server_registration.concat(needs_registration);
+            this.throttled_server_registration();
         }
     }
 
@@ -144,7 +153,8 @@ export default class VarsClientController {
         }
 
         if (needs_unregistration && needs_unregistration.length) {
-            ModuleVar.getInstance().unregister_params(needs_unregistration);
+            this.throttled_for_server_unregistration = this.throttled_for_server_unregistration.concat(needs_unregistration);
+            this.throttled_server_unregistration();
         }
     }
 
@@ -192,7 +202,12 @@ export default class VarsClientController {
             let check_params: VarDataBaseVO[] = [];
             for (let i in this.registered_var_params) {
                 let registered_var_param: RegisteredVarDataWrapper = this.registered_var_params[i];
-                if (registered_var_param.var_param.has_valid_value) {
+
+                let getVarDatas = VueAppBase.instance_.vueInstance.$store.getters['VarStore/getVarDatas'];
+
+                let var_data: VarDataValueResVO = getVarDatas[registered_var_param.var_param.index];
+
+                if (var_data && (typeof var_data.value !== 'undefined') && !var_data.is_computing) {
                     continue;
                 }
                 check_params.push(registered_var_param.var_param);
@@ -202,7 +217,8 @@ export default class VarsClientController {
                 return;
             }
 
-            ModuleVar.getInstance().register_params(check_params);
+            this.throttled_for_server_registration = this.throttled_for_server_registration.concat(check_params);
+            this.throttled_server_registration();
         } catch (error) {
         }
         this.prepare_next_check();
@@ -215,5 +231,19 @@ export default class VarsClientController {
         setTimeout(() => {
             self.check_invalid_valued_params_registration();
         }, self.timeout_check_registrations);
+    }
+
+    private async do_server_registration() {
+        let throttled_for_server_registration: VarDataBaseVO[] = this.throttled_for_server_registration;
+        this.throttled_for_server_registration = [];
+
+        await ModuleVar.getInstance().register_params(throttled_for_server_registration);
+    }
+
+    private async do_server_unregistration() {
+        let throttled_for_server_unregistration: VarDataBaseVO[] = this.throttled_for_server_unregistration;
+        this.throttled_for_server_unregistration = [];
+
+        await ModuleVar.getInstance().unregister_params(throttled_for_server_unregistration);
     }
 }

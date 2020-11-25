@@ -119,9 +119,9 @@ export default class VarDataRefComponent extends VueComponentBase {
 
     get var_data(): VarDataValueResVO {
 
-        if (!this.entered_once) {
-            return null;
-        }
+        // if (!this.entered_once) {
+        //     return null;
+        // }
 
         if ((!this.getVarDatas) || (!this.var_param)) {
             return null;

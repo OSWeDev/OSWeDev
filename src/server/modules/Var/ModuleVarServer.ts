@@ -14,7 +14,6 @@ import DefaultTranslation from '../../../shared/modules/Translation/vos/DefaultT
 import ModuleTrigger from '../../../shared/modules/Trigger/ModuleTrigger';
 import DAG from '../../../shared/modules/Var/graph/dagbase/DAG';
 import VarDAGNode from '../../../shared/modules/Var/graph/VarDAGNode';
-
 import ModuleVar from '../../../shared/modules/Var/ModuleVar';
 import VarsController from '../../../shared/modules/Var/VarsController';
 import VarCacheConfVO from '../../../shared/modules/Var/vos/VarCacheConfVO';
@@ -22,7 +21,6 @@ import VarConfIds from '../../../shared/modules/Var/vos/VarConfIds';
 import VarConfVO from '../../../shared/modules/Var/vos/VarConfVO';
 import VarDataBaseVO from '../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../shared/modules/Var/vos/VarDataValueResVO';
-
 import VOsTypesManager from '../../../shared/modules/VOsTypesManager';
 import ConsoleHandler from '../../../shared/tools/ConsoleHandler';
 import RangeHandler from '../../../shared/tools/RangeHandler';
@@ -33,8 +31,9 @@ import ModuleDAOServer from '../DAO/ModuleDAOServer';
 import DAOPostCreateTriggerHook from '../DAO/triggers/DAOPostCreateTriggerHook';
 import DAOPostDeleteTriggerHook from '../DAO/triggers/DAOPostDeleteTriggerHook';
 import DAOPostUpdateTriggerHook from '../DAO/triggers/DAOPostUpdateTriggerHook';
+import DAOPreCreateTriggerHook from '../DAO/triggers/DAOPreCreateTriggerHook';
+import DAOPreUpdateTriggerHook from '../DAO/triggers/DAOPreUpdateTriggerHook';
 import DAOUpdateVOHolder from '../DAO/vos/DAOUpdateVOHolder';
-
 import ForkedTasksController from '../Fork/ForkedTasksController';
 import ModuleServerBase from '../ModuleServerBase';
 import ModuleServiceBase from '../ModuleServiceBase';
@@ -48,6 +47,9 @@ import VarsDatasVoUpdateHandler from './VarsDatasVoUpdateHandler';
 import VarServerControllerBase from './VarServerControllerBase';
 import VarsServerController from './VarsServerController';
 import VarsTabsSubsController from './VarsTabsSubsController';
+
+
+
 
 const moment = require('moment');
 
@@ -84,6 +86,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         let postCTrigger: DAOPostCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostCreateTriggerHook.DAO_POST_CREATE_TRIGGER);
         let postUTrigger: DAOPostUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostUpdateTriggerHook.DAO_POST_UPDATE_TRIGGER);
         let postDTrigger: DAOPostDeleteTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPostDeleteTriggerHook.DAO_POST_DELETE_TRIGGER);
+        let preCTrigger: DAOPreCreateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreCreateTriggerHook.DAO_PRE_CREATE_TRIGGER);
+        let preUTrigger: DAOPreUpdateTriggerHook = ModuleTrigger.getInstance().getTriggerHook(DAOPreUpdateTriggerHook.DAO_PRE_UPDATE_TRIGGER);
 
         // Trigger sur les varcacheconfs pour mettre à jour les confs en cache en même temps qu'on les modifie dans l'outil
         postCTrigger.registerHandler(VarCacheConfVO.API_TYPE_ID, this.onCVarCacheConf);
@@ -219,12 +223,23 @@ export default class ModuleVarServer extends ModuleServerBase {
             /**
              * Ajout des triggers d'invalidation des données de cache en BDD
              *  - on part de la liste des vars qui ont un cache et des datasources
+             * api_type_id => les vos des datasources
              */
             for (let api_type_id in VarsServerController.getInstance().registered_vars_controller_by_api_type_id) {
 
                 postCTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
                 postUTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_u);
                 postDTrigger.registerHandler(api_type_id, this.invalidate_var_cache_from_vo_cd);
+            }
+
+            /**
+             * On ajoute les trigger preC et preU pour mettre à jour l'index bdd avant insert
+             * api_type_id => les vos des vars datas
+             */
+            for (let api_type_id in VarsServerController.getInstance().varcacheconf_by_api_type_ids) {
+
+                preCTrigger.registerHandler(api_type_id, this.prepare_bdd_index_for_c);
+                preUTrigger.registerHandler(api_type_id, this.prepare_bdd_index_for_u);
             }
 
             VarsServerController.getInstance().init_varcontrollers_dag();
@@ -261,6 +276,19 @@ export default class ModuleVarServer extends ModuleServerBase {
         } catch (error) {
             ConsoleHandler.getInstance().error('invalidate_var_cache_from_vo:type:' + vo_update_handler.post_update_vo._type + ':id:' + vo_update_handler.post_update_vo.id + ':' + vo_update_handler.post_update_vo + ':' + error);
         }
+    }
+
+
+    public async prepare_bdd_index_for_c(vo: VarDataBaseVO) {
+
+        vo['_bdd_only_index'] = vo.bdd_only_index;
+        return true;
+    }
+
+    public async prepare_bdd_index_for_u(vo_update_handler: DAOUpdateVOHolder<VarDataBaseVO>) {
+
+        vo_update_handler.post_update_vo['_bdd_only_index'] = vo_update_handler.post_update_vo.bdd_only_index;
+        return true;
     }
 
     // public async invalidate_var_cache_from_vo(vo: IDistantVOBase): Promise<void> {
@@ -421,6 +449,77 @@ export default class ModuleVarServer extends ModuleServerBase {
     //     }
     // }
 
+    public async invalidate_cache_exact(vos: VarDataBaseVO[]) {
+
+        if ((!vos) || (!vos.length)) {
+            return;
+        }
+
+        vos = vos.filter((vo) => {
+            if (!vo.check_param_is_valid(vo._type)) {
+                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                return false;
+            }
+            return true;
+        });
+
+        let vos_by_type_id: { [api_type_id: string]: VarDataBaseVO[] } = {};
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if (!vos_by_type_id[vo._type]) {
+                vos_by_type_id[vo._type] = [];
+            }
+            vos_by_type_id[vo._type].push(vo);
+        }
+
+        for (let api_type_id in vos_by_type_id) {
+            let vos_type = vos_by_type_id[api_type_id];
+
+            let bdd_vos: VarDataBaseVO[] = await ModuleDAO.getInstance().getVosByExactMatroids(api_type_id, vos_type, null);
+
+            // Impossible d'invalider un import
+            bdd_vos = bdd_vos.filter((bdd_vo) => bdd_vo.value_type !== VarDataBaseVO.VALUE_TYPE_IMPORT);
+
+            if (bdd_vos && bdd_vos.length) {
+
+                for (let j in bdd_vos) {
+                    let bdd_vo = bdd_vos[j];
+                    bdd_vo.value_ts = null;
+                }
+                await ModuleDAO.getInstance().insertOrUpdateVOs(bdd_vos);
+            }
+        }
+    }
+
+    public async invalidate_cache_intersection_and_parents(vos: VarDataBaseVO[]) {
+
+        if ((!vos) || (!vos.length)) {
+            return;
+        }
+
+        vos = vos.filter((vo) => {
+            if (!vo.check_param_is_valid(vo._type)) {
+                ConsoleHandler.getInstance().error('Les champs du matroid ne correspondent pas à son typage');
+                return false;
+            }
+            return true;
+        });
+
+        let vos_by_var_id: { [var_id: number]: VarDataBaseVO[] } = {};
+        for (let i in vos) {
+            let vo = vos[i];
+
+            if (!vos_by_var_id[vo.var_id]) {
+                vos_by_var_id[vo.var_id] = [];
+            }
+            vos_by_var_id[vo.var_id].push(vo);
+        }
+
+        // invalidate intersected && parents
+        await VarsDatasVoUpdateHandler.getInstance().invalidate_datas_and_parents(vos_by_var_id);
+    }
+
     public async invalidate_cache_intersection(vos: VarDataBaseVO[]) {
 
         if ((!vos) || (!vos.length)) {
@@ -542,6 +641,8 @@ export default class ModuleVarServer extends ModuleServerBase {
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection, this.invalidate_cache_intersection.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_intersection, this.delete_cache_intersection.bind(this));
         ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_delete_cache_and_imports_intersection, this.delete_cache_and_imports_intersection.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_exact, this.invalidate_cache_exact.bind(this));
+        ModuleAPI.getInstance().registerServerApiHandler(ModuleVar.APINAME_invalidate_cache_intersection_and_parents, this.invalidate_cache_intersection_and_parents.bind(this));
     }
     public registerCrons(): void {
         VarCronWorkersHandler.getInstance();
