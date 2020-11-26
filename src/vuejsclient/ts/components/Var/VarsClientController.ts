@@ -1,10 +1,11 @@
-import throttle from 'lodash/throttle';
 import ModuleVar from '../../../../shared/modules/Var/ModuleVar';
 import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
 import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
 import VarUpdateCallback from '../../../../shared/modules/Var/vos/VarUpdateCallback';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import TypesHandler from '../../../../shared/tools/TypesHandler';
 import VueAppBase from '../../../VueAppBase';
+import ClientThrottleHelper from '../../modules/ClientThrottleHelper';
 import RegisteredVarDataWrapper from './vos/RegisteredVarDataWrapper';
 
 export default class VarsClientController {
@@ -23,11 +24,9 @@ export default class VarsClientController {
      *  on stocke aussi le nombre d'enregistrements, pour pouvoir unregister au fur et à mesure
      */
     public registered_var_params: { [index: string]: RegisteredVarDataWrapper } = {};
-    public throttled_for_server_registration: VarDataBaseVO[] = [];
-    public throttled_for_server_unregistration: VarDataBaseVO[] = [];
 
-    public throttled_server_registration = throttle(this.do_server_registration.bind(this), 100, { leading: false });
-    public throttled_server_unregistration = throttle(this.do_server_unregistration.bind(this), 100, { leading: false });
+    public throttled_server_registration = ClientThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_registration.bind(this), 100, { leading: false });
+    public throttled_server_unregistration = ClientThrottleHelper.getInstance().declare_throttle_with_mappable_args(this.do_server_unregistration.bind(this), 100, { leading: false });
 
     private timeout_check_registrations: number = 10000;
 
@@ -48,13 +47,13 @@ export default class VarsClientController {
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
         callbacks: { [cb_uid: number]: VarUpdateCallback } = null) {
 
-        let needs_registration: VarDataBaseVO[] = [];
+        let needs_registration: { [index: string]: VarDataBaseVO } = {};
 
         for (let i in var_params) {
             let var_param = var_params[i];
 
             if (!this.registered_var_params[var_param.index]) {
-                needs_registration.push(var_param);
+                needs_registration[var_param.index] = var_param;
                 this.registered_var_params[var_param.index] = new RegisteredVarDataWrapper(var_param);
                 if (callbacks) {
                     this.registered_var_params[var_param.index].add_callbacks(callbacks);
@@ -67,9 +66,8 @@ export default class VarsClientController {
             }
         }
 
-        if (needs_registration && needs_registration.length) {
-            this.throttled_for_server_registration = this.throttled_for_server_registration.concat(needs_registration);
-            this.throttled_server_registration();
+        if (needs_registration && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_registration)) {
+            this.throttled_server_registration(needs_registration);
         }
     }
 
@@ -78,16 +76,15 @@ export default class VarsClientController {
      */
     public async registerAllParamsAgain() {
 
-        let needs_registration: VarDataBaseVO[] = [];
+        let needs_registration: { [index: string]: VarDataBaseVO } = {};
 
         for (let i in this.registered_var_params) {
             let var_param_wrapper = this.registered_var_params[i];
-            needs_registration.push(var_param_wrapper.var_param);
+            needs_registration[var_param_wrapper.var_param.index] = var_param_wrapper.var_param;
         }
 
-        if (needs_registration && needs_registration.length) {
-            this.throttled_for_server_registration = this.throttled_for_server_registration.concat(needs_registration);
-            this.throttled_server_registration();
+        if (needs_registration && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_registration)) {
+            this.throttled_server_registration(needs_registration);
         }
     }
 
@@ -126,7 +123,7 @@ export default class VarsClientController {
         var_params: VarDataBaseVO[] | { [index: string]: VarDataBaseVO },
         callbacks: { [cb_uid: number]: VarUpdateCallback } = null) {
 
-        let needs_unregistration: VarDataBaseVO[] = [];
+        let needs_unregistration: { [index: string]: VarDataBaseVO } = {};
 
         for (let i in var_params) {
             let var_param = var_params[i];
@@ -143,7 +140,7 @@ export default class VarsClientController {
             }
 
             if (this.registered_var_params[var_param.index].nb_registrations <= 0) {
-                needs_unregistration.push(var_param);
+                needs_unregistration[var_param.index] = var_param;
                 delete this.registered_var_params[var_param.index];
             } else {
                 if (callbacks) {
@@ -152,9 +149,8 @@ export default class VarsClientController {
             }
         }
 
-        if (needs_unregistration && needs_unregistration.length) {
-            this.throttled_for_server_unregistration = this.throttled_for_server_unregistration.concat(needs_unregistration);
-            this.throttled_server_unregistration();
+        if (needs_unregistration && ObjectHandler.getInstance().hasAtLeastOneAttribute(needs_unregistration)) {
+            this.throttled_server_unregistration(needs_unregistration);
         }
     }
 
@@ -162,10 +158,10 @@ export default class VarsClientController {
      * Objectif : appeler les callbacks suite à une mise à jour de VarDatas
      * @param var_datas Les datas reçues via les notifications
      */
-    public async notifyCallbacks(var_datas: VarDataBaseVO[] | { [index: string]: VarDataBaseVO }) {
+    public async notifyCallbacks(var_datas: VarDataValueResVO[] | { [index: string]: VarDataValueResVO }) {
 
         for (let i in var_datas) {
-            let var_data: VarDataBaseVO = var_datas[i];
+            let var_data: VarDataValueResVO = var_datas[i];
             let registered_var = this.registered_var_params[var_data.index];
             let uids_to_remove: number[] = [];
 
@@ -199,7 +195,8 @@ export default class VarsClientController {
              * On prend toutes les datas registered et si on en trouve auxquelles il manque des valeurs, on renvoie un register pour s'assurer qu'on
              *  est bien en attente d'un résultat de calcul
              */
-            let check_params: VarDataBaseVO[] = [];
+            let check_params: { [index: string]: VarDataBaseVO } = {};
+
             for (let i in this.registered_var_params) {
                 let registered_var_param: RegisteredVarDataWrapper = this.registered_var_params[i];
 
@@ -210,15 +207,12 @@ export default class VarsClientController {
                 if (var_data && (typeof var_data.value !== 'undefined') && !var_data.is_computing) {
                     continue;
                 }
-                check_params.push(registered_var_param.var_param);
+                check_params[registered_var_param.var_param.index] = registered_var_param.var_param;
             }
 
-            if ((!check_params) || (!check_params.length)) {
-                return;
+            if (check_params && ObjectHandler.getInstance().hasAtLeastOneAttribute(check_params)) {
+                this.throttled_server_registration(check_params);
             }
-
-            this.throttled_for_server_registration = this.throttled_for_server_registration.concat(check_params);
-            this.throttled_server_registration();
         } catch (error) {
         }
         this.prepare_next_check();
@@ -233,17 +227,11 @@ export default class VarsClientController {
         }, self.timeout_check_registrations);
     }
 
-    private async do_server_registration() {
-        let throttled_for_server_registration: VarDataBaseVO[] = this.throttled_for_server_registration;
-        this.throttled_for_server_registration = [];
-
-        await ModuleVar.getInstance().register_params(throttled_for_server_registration);
+    private async do_server_registration(params: { [index: string]: VarDataBaseVO }) {
+        await ModuleVar.getInstance().register_params(Object.values(params));
     }
 
-    private async do_server_unregistration() {
-        let throttled_for_server_unregistration: VarDataBaseVO[] = this.throttled_for_server_unregistration;
-        this.throttled_for_server_unregistration = [];
-
-        await ModuleVar.getInstance().unregister_params(throttled_for_server_unregistration);
+    private async do_server_unregistration(params: { [index: string]: VarDataBaseVO }) {
+        await ModuleVar.getInstance().unregister_params(Object.values(params));
     }
 }

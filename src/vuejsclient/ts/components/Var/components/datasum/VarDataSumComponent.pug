@@ -1,21 +1,21 @@
-Intersect(@enter="intersect_in" @leave="intersect_out")
-    transition(name="var_data_sum_transition" mode="out-in")
-        .var_data_sum(@click='selectVar', :class='{"is_computing": is_computing, "selected_var":is_selected_var, "selectable_var":isDescMode, "selected_var_dependency": is_selected_var_dependency, "selected_var_dependent": is_selected_var_dependent, "is_being_updated":is_being_updated}' :key='this_uid + "__" + var_data_value')
-            slot(v-bind:var_datas="var_datas")
-                template(v-if='(!!var_datas) && ((var_data_value != 0) || (!consider_zero_value_as_null))')
-                    template(v-if='!!prefix')
-                        span(class='var-data-prefix') {{ prefix }}
+//- Intersect(@enter="intersect_in" @leave="intersect_out")
+transition(name="var_data_sum_transition" mode="out-in")
+    .var_data_sum(@click='selectVar', :class='{"is_computing": is_computing, "selected_var":is_selected_var, "selectable_var":isDescMode, "selected_var_dependency": is_selected_var_dependency, "selected_var_dependent": is_selected_var_dependent, "is_being_updated":is_being_updated}' :key='this_uid + "__" + var_data_value')
+        slot(v-bind:var_datas="var_datas")
+            template(v-if='(!!var_datas) && ((var_data_value != 0) || (!consider_zero_value_as_null))')
+                template(v-if='!!prefix')
+                    span(class='var-data-prefix') {{ prefix }}
 
-                    template(v-if='(var_data_value === 0) && zero_value_replacement')
-                        template {{ zero_value_replacement }}
-                    template(v-if='(var_data_value !== 0) || ((var_data_value === 0) && (!zero_value_replacement))')
-                        template(v-if="filter") {{ filtered_value }}
-                        template(v-if="(!filter)") {{ var_data_value }}
+                template(v-if='(var_data_value === 0) && zero_value_replacement')
+                    template {{ zero_value_replacement }}
+                template(v-if='(var_data_value !== 0) || ((var_data_value === 0) && (!zero_value_replacement))')
+                    template(v-if="filter") {{ filtered_value }}
+                    template(v-if="(!filter)") {{ var_data_value }}
 
-                    template(v-if='!!suffix')
-                        span(class='var-data-suffix') {{ suffix }}
+                template(v-if='!!suffix')
+                    span(class='var-data-suffix') {{ suffix }}
 
-                template(v-else)
-                    template(v-if='is_being_updated')
-                        i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
-                    template(v-else) {{ null_value_replacement }}
+            template(v-else)
+                template(v-if='is_being_updated')
+                    i.fa.fa-refresh.fa-spin.fa-fw(aria-hidden="true")
+                template(v-else) {{ null_value_replacement }}

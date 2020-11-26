@@ -772,6 +772,11 @@ export default class ModuleVarServer extends ModuleServerBase {
 
     private update_varcacheconf_from_cache(vcc: VarCacheConfVO) {
         VarsServerController.getInstance().varcacheconf_by_var_ids[vcc.var_id] = vcc;
+
+        if (!VarsServerController.getInstance().getVarConfById(vcc.var_id)) {
+            return;
+        }
+
         if (!VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type]) {
             VarsServerController.getInstance().varcacheconf_by_api_type_ids[VarsServerController.getInstance().getVarConfById(vcc.var_id).var_data_vo_type] = {};
         }

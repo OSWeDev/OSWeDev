@@ -78,6 +78,13 @@ export default class NotificationStore implements IStoreModule<INotificationStat
             set_notifications_by_ids(state: INotificationState, notifications_by_ids: { [id: number]: NotificationVO }) { state.notifications_by_ids = notifications_by_ids; },
             // delete_notification(state: INotificationState, notification: NotificationVO) { Vue.delete(state.notifications_by_ids as any, notification.id); },
             add_notification(state: INotificationState, notification: NotificationVO) { Vue.set(state.notifications_by_ids as any, notification.id, notification); },
+            add_notifications(state: INotificationState, notifications: NotificationVO[]) {
+
+                for (let i in notifications) {
+                    let notification = notifications[i];
+                    Vue.set(state.notifications_by_ids as any, notification.id, notification);
+                }
+            },
             read_notification(state: INotificationState, notification: NotificationVO) {
                 state.notifications_by_ids[notification.id].read = true;
                 state.notifications_by_ids[notification.id].read_date = moment().utc(true);
@@ -95,6 +102,7 @@ export default class NotificationStore implements IStoreModule<INotificationStat
             set_notifications_by_ids(context: NotificationContext, notifications_by_ids: { [id: number]: NotificationVO }) { commit_set_notifications_by_ids(context, notifications_by_ids); },
             // delete_notification(context: NotificationContext, notification: NotificationVO) { commit_delete_notification(context, notification); },
             add_notification(context: NotificationContext, notification: NotificationVO) { commit_add_notification(context, notification); },
+            add_notifications(context: NotificationContext, notifications: NotificationVO[]) { commit_add_notifications(context, notifications); },
             read_notification(context: NotificationContext, notification: NotificationVO) { commit_read_notification(context, notification); },
             set_is_updating(context: NotificationContext, is_updating: boolean) { commit_set_is_updating(context, is_updating); },
             set_notif_viewer_opened(context: NotificationContext, notif_viewer_opened: boolean) { commit_set_notif_viewer_opened(context, notif_viewer_opened); },
@@ -118,6 +126,7 @@ export const ModuleNotificationAction = namespace('NotificationStore', Action);
 export const commit_set_notifications_by_ids = commit(NotificationStore.getInstance().mutations.set_notifications_by_ids);
 // export const commit_delete_notification = commit(NotificationStore.getInstance().mutations.delete_notification);
 export const commit_add_notification = commit(NotificationStore.getInstance().mutations.add_notification);
+export const commit_add_notifications = commit(NotificationStore.getInstance().mutations.add_notifications);
 export const commit_read_notification = commit(NotificationStore.getInstance().mutations.read_notification);
 export const commit_set_is_updating = commit(NotificationStore.getInstance().mutations.set_is_updating);
 export const commit_set_notif_viewer_opened = commit(NotificationStore.getInstance().mutations.set_notif_viewer_opened);

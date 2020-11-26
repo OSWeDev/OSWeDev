@@ -1,4 +1,5 @@
 import VarDataBaseVO from './VarDataBaseVO';
+import VarDataValueResVO from './VarDataValueResVO';
 
 export default class VarUpdateCallback {
 
@@ -6,12 +7,12 @@ export default class VarUpdateCallback {
     public static TYPE_EVERY: number = 1;
 
     public static newCallbackOnce(
-        callback: (varData: VarDataBaseVO) => Promise<void>) {
+        callback: (varData: VarDataBaseVO | VarDataValueResVO) => Promise<void>) {
         return new VarUpdateCallback(VarUpdateCallback.UID++, callback, VarUpdateCallback.TYPE_ONCE);
     }
 
     public static newCallbackEvery(
-        callback: (varData: VarDataBaseVO) => Promise<void>) {
+        callback: (varData: VarDataBaseVO | VarDataValueResVO) => Promise<void>) {
         return new VarUpdateCallback(VarUpdateCallback.UID++, callback, VarUpdateCallback.TYPE_EVERY);
     }
 
@@ -19,7 +20,7 @@ export default class VarUpdateCallback {
 
     private constructor(
         public UID: number,
-        public callback: (varData: VarDataBaseVO) => Promise<void>,
+        public callback: (varData: VarDataBaseVO | VarDataValueResVO) => Promise<void>,
         public type: number) {
     }
 }

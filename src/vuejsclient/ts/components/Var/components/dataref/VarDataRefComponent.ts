@@ -131,9 +131,9 @@ export default class VarDataRefComponent extends VueComponentBase {
     }
 
     public mounted() {
-        if (!this.use_intersector) {
-            this.intersect_in();
-        }
+        // if (!this.use_intersector) {
+        this.intersect_in();
+        // }
     }
 
     public destroyed() {

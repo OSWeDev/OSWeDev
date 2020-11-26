@@ -755,6 +755,10 @@ export default class RangeHandler {
      * @param ranges
      */
     public sort_ranges<T>(ranges: Array<IRange<T>>) {
+
+        if ((!ranges) || (!ranges.length)) {
+            return;
+        }
         ranges.sort((a: IRange<T>, b: IRange<T>) => {
 
             let min_a = this.getSegmentedMin(a);
@@ -1362,7 +1366,12 @@ export default class RangeHandler {
             for (let i in ranges) {
                 let range = ranges[i];
 
-                res.push(this.parseRangeAPI(range_type, range));
+                let parsedRange: U = this.parseRangeAPI(range_type, range);
+                if (!parsedRange) {
+                    ConsoleHandler.getInstance().error('ERROR de parsing de range translate_from_api:' + range_type + ':' + range + ':');
+                    return null;
+                }
+                res.push(parsedRange);
             }
         } catch (error) {
             ConsoleHandler.getInstance().error(error);

@@ -25,8 +25,8 @@ mixin var_data_content()
                             template(v-else) {{ null_value_replacement }}
 
 .var-data--intersector-wrapper
-    template(v-if='use_intersector')
-        Intersect(@enter.once="intersect_in")
-            +var_data_content()
-    template(v-else)
-        +var_data_content()
+    //- template(v-if='use_intersector')
+    //-     Intersect(@enter.once="intersect_in")
+    //-         +var_data_content()
+    //- template(v-else)
+    +var_data_content()

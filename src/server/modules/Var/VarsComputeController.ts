@@ -148,6 +148,7 @@ export default class VarsComputeController {
         ], true);
 
         node.var_controller.computeValue(node);
+        VarsTabsSubsController.getInstance().notify_vardatas([node.var_data]);
 
         VarsPerfsController.addPerfs(performance.now(), [
             "__computing_bg_thread.compute.visit_bottom_up_to_node.compute_node",

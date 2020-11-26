@@ -230,6 +230,10 @@ export default class VarDatasRefsComponent extends VueComponentBase {
         this.unregister(this.var_params);
     }
 
+    private mounted() {
+        this.intersect_in();
+    }
+
     private intersect_in() {
         this.entered_once = true;
 

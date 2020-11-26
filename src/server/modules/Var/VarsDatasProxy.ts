@@ -97,7 +97,7 @@ export default class VarsDatasProxy {
      */
     public async handle_buffer(limit: number): Promise<number> {
 
-        let handled: VarDataBaseVO[] = [];
+        // let handled: VarDataBaseVO[] = [];
         while ((limit > 0) && this.vars_datas_buffer.length) {
 
             let handle_var = this.vars_datas_buffer[0];
@@ -107,16 +107,16 @@ export default class VarsDatasProxy {
             }
 
             // ConsoleHandler.getInstance().log('REMOVETHIS:handle_buffer:' + handle_var.index + ':');
-            handled.push(handle_var);
+            // handled.push(handle_var);
             await ModuleDAO.getInstance().insertOrUpdateVO(handle_var);
             delete this.vars_datas_buffer_indexes[handle_var.index];
             this.vars_datas_buffer.splice(0, 1);
             limit--;
         }
 
-        if (handled && handled.length) {
-            VarsTabsSubsController.getInstance().notify_vardatas(handled);
-        }
+        // if (handled && handled.length) {
+        //     VarsTabsSubsController.getInstance().notify_vardatas(handled);
+        // }
 
         return limit;
     }

@@ -4,12 +4,13 @@ import ModuleDAO from '../../../../shared/modules/DAO/ModuleDAO';
 import IDistantVOBase from '../../../../shared/modules/IDistantVOBase';
 import ModulePushData from '../../../../shared/modules/PushData/ModulePushData';
 import NotificationVO from '../../../../shared/modules/PushData/vos/NotificationVO';
-import VarDataBaseVO from '../../../../shared/modules/Var/vos/VarDataBaseVO';
-import ConsoleHandler from '../../../../shared/tools/ConsoleHandler';
+import VarDataValueResVO from '../../../../shared/modules/Var/vos/VarDataValueResVO';
 import LocaleManager from '../../../../shared/tools/LocaleManager';
+import ObjectHandler from '../../../../shared/tools/ObjectHandler';
 import VueAppBase from '../../../VueAppBase';
 import VarsClientController from '../../components/Var/VarsClientController';
 import AjaxCacheClientController from '../AjaxCache/AjaxCacheClientController';
+import ClientThrottleHelper from '../ClientThrottleHelper';
 import VueModuleBase from '../VueModuleBase';
 
 export default class PushDataVueModule extends VueModuleBase {
@@ -24,6 +25,8 @@ export default class PushDataVueModule extends VueModuleBase {
 
     private static instance: PushDataVueModule = null;
 
+    public throttled_notifications_handler = ClientThrottleHelper.getInstance().declare_throttle_with_stackable_args(
+        this.notifications_handler.bind(this), 1000);
     protected socket;
 
     private constructor() {
@@ -107,89 +110,163 @@ export default class PushDataVueModule extends VueModuleBase {
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_SIMPLE], async function (notification: NotificationVO) {
 
-            if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {
-
-                notification = APIController.getInstance().try_translate_vo_from_api(notification);
-
-                let content = LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
-                switch (notification.simple_notif_type) {
-                    case NotificationVO.SIMPLE_SUCCESS:
-                        VueAppBase.instance_.vueInstance.snotify.success(content);
-                        break;
-                    case NotificationVO.SIMPLE_WARN:
-                        VueAppBase.instance_.vueInstance.snotify.warning(content);
-                        break;
-                    case NotificationVO.SIMPLE_ERROR:
-                        VueAppBase.instance_.vueInstance.snotify.error(content);
-                        break;
-                    case NotificationVO.SIMPLE_INFO:
-                    default:
-                        VueAppBase.instance_.vueInstance.snotify.info(content);
-                }
-
-                if (!notification.read) {
-                    VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notification', notification);
-                }
-            }
+            self.throttled_notifications_handler([notification]);
         });
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_DAO], async function (notification: NotificationVO) {
-            if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {
 
-                notification = APIController.getInstance().try_translate_vo_from_api(notification);
-
-                switch (notification.dao_notif_type) {
-                    case NotificationVO.DAO_GET_VO_BY_ID:
-                        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
-                        let vo: IDistantVOBase = await ModuleDAO.getInstance().getVoById(notification.api_type_id, notification.dao_notif_vo_id);
-                        VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeData', vo);
-                        console.debug("NotificationVO.DAO_GET_VO_BY_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
-                        break;
-                    case NotificationVO.DAO_GET_VOS:
-                        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
-                        let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos(notification.api_type_id);
-                        VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
-                        console.debug("NotificationVO.DAO_GET_VOS:" + notification.api_type_id);
-                        break;
-                    case NotificationVO.DAO_REMOVE_ID:
-                        AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
-                        VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/removeData', {
-                            API_TYPE_ID: notification.api_type_id,
-                            id: notification.dao_notif_vo_id
-                        });
-                        console.debug("NotificationVO.DAO_REMOVE_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
-                        break;
-
-                    default:
-                }
-            }
+            self.throttled_notifications_handler([notification]);
         });
 
 
         this.socket.on(NotificationVO.TYPE_NAMES[NotificationVO.TYPE_NOTIF_VARDATA], async function (notification: NotificationVO) {
-            if (VueAppBase.instance_ && LocaleManager.getInstance().i18n) {
 
-                notification = APIController.getInstance().try_translate_vo_from_api(notification);
+            self.throttled_notifications_handler([notification]);
+        });
+        // TODO: Handle other notif types
+    }
 
-                let vos: VarDataBaseVO[] = null;
-                if (!!notification.vos) {
-                    // ConsoleHandler.getInstance().log('REMOVETHIS:PushDataVueModule:TYPE_NOTIF_VARDATA');
-                    vos = APIController.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
-                    VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
-                    await VarsClientController.getInstance().notifyCallbacks(vos);
+    private async notifications_handler(notifications: NotificationVO[]) {
 
-                    let types: { [name: string]: boolean } = {};
-                    for (let i in vos) {
-                        let vo = vos[i];
+        if (!(VueAppBase.instance_ && LocaleManager.getInstance().i18n)) {
+            return;
+        }
+        notifications = APIController.getInstance().try_translate_vos_from_api(notifications);
 
-                        if (!types[vo._type]) {
-                            types[vo._type] = true;
-                            AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([vo._type]);
-                        }
+        /**
+         * On regroupe par type pour gérer en bloc ensuite
+         */
+        let TYPE_NOTIF_SIMPLE: NotificationVO[] = [];
+        let TYPE_NOTIF_DAO: NotificationVO[] = [];
+        let TYPE_NOTIF_VARDATA: NotificationVO[] = [];
+
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            switch (notification.notification_type) {
+                case NotificationVO.TYPE_NOTIF_SIMPLE:
+                    TYPE_NOTIF_SIMPLE.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_DAO:
+                    TYPE_NOTIF_DAO.push(notification);
+                    break;
+                case NotificationVO.TYPE_NOTIF_VARDATA:
+                    TYPE_NOTIF_VARDATA.push(notification);
+                    break;
+            }
+        }
+
+        if (TYPE_NOTIF_SIMPLE && TYPE_NOTIF_SIMPLE.length) {
+            this.notifications_handler_TYPE_NOTIF_SIMPLE(TYPE_NOTIF_SIMPLE);
+        }
+
+        if (TYPE_NOTIF_DAO && TYPE_NOTIF_DAO.length) {
+            this.notifications_handler_TYPE_NOTIF_DAO(TYPE_NOTIF_DAO);
+        }
+
+        if (TYPE_NOTIF_VARDATA && TYPE_NOTIF_VARDATA.length) {
+            this.notifications_handler_TYPE_NOTIF_VARDATA(TYPE_NOTIF_VARDATA);
+        }
+    }
+
+    private async notifications_handler_TYPE_NOTIF_SIMPLE(notifications: NotificationVO[]) {
+
+        let unreads: NotificationVO[] = [];
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            let content = LocaleManager.getInstance().i18n.t(notification.simple_notif_label);
+            switch (notification.simple_notif_type) {
+                case NotificationVO.SIMPLE_SUCCESS:
+                    VueAppBase.instance_.vueInstance.snotify.success(content);
+                    break;
+                case NotificationVO.SIMPLE_WARN:
+                    VueAppBase.instance_.vueInstance.snotify.warning(content);
+                    break;
+                case NotificationVO.SIMPLE_ERROR:
+                    VueAppBase.instance_.vueInstance.snotify.error(content);
+                    break;
+                case NotificationVO.SIMPLE_INFO:
+                default:
+                    VueAppBase.instance_.vueInstance.snotify.info(content);
+            }
+
+            if (!notification.read) {
+                unreads.push(notification);
+            }
+        }
+        VueAppBase.instance_.vueInstance.$store.dispatch('NotificationStore/add_notifications', unreads);
+    }
+
+    /**
+     * TODO à optimiser
+     */
+    private async notifications_handler_TYPE_NOTIF_DAO(notifications: NotificationVO[]) {
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            switch (notification.dao_notif_type) {
+                case NotificationVO.DAO_GET_VO_BY_ID:
+                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
+                    let vo: IDistantVOBase = await ModuleDAO.getInstance().getVoById(notification.api_type_id, notification.dao_notif_vo_id);
+                    VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeData', vo);
+                    console.debug("NotificationVO.DAO_GET_VO_BY_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
+                    break;
+                case NotificationVO.DAO_GET_VOS:
+                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
+                    let vos: IDistantVOBase[] = await ModuleDAO.getInstance().getVos(notification.api_type_id);
+                    VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/storeDatas', { API_TYPE_ID: notification.api_type_id, vos: vos });
+                    console.debug("NotificationVO.DAO_GET_VOS:" + notification.api_type_id);
+                    break;
+                case NotificationVO.DAO_REMOVE_ID:
+                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([notification.api_type_id]);
+                    VueAppBase.instance_.vueInstance.$store.dispatch('DAOStore/removeData', {
+                        API_TYPE_ID: notification.api_type_id,
+                        id: notification.dao_notif_vo_id
+                    });
+                    console.debug("NotificationVO.DAO_REMOVE_ID:" + notification.api_type_id + ":" + notification.dao_notif_vo_id);
+                    break;
+
+                default:
+            }
+        }
+    }
+
+    /**
+     * On ne s'intéresse que à la dernière notification d'un index donné
+     */
+    private async notifications_handler_TYPE_NOTIF_VARDATA(notifications: NotificationVO[]) {
+
+        let var_by_indexes: { [index: string]: VarDataValueResVO } = {};
+        for (let i in notifications) {
+            let notification = notifications[i];
+
+            if (!!notification.vos) {
+                let tmp = APIController.getInstance().try_translate_vos_from_api(JSON.parse(notification.vos));
+                if (tmp && tmp.length) {
+                    for (let j in tmp) {
+                        let e = tmp[j];
+                        var_by_indexes[e.index] = e;
                     }
                 }
             }
-        });
-        // TODO: Handle other notif types
+        }
+
+        if (var_by_indexes && ObjectHandler.getInstance().hasAtLeastOneAttribute(var_by_indexes)) {
+
+            let vos = Object.values(var_by_indexes);
+            VueAppBase.instance_.vueInstance.$store.dispatch('VarStore/setVarsData', vos);
+            await VarsClientController.getInstance().notifyCallbacks(vos);
+
+            let types: { [name: string]: boolean } = {};
+            for (let i in vos) {
+                let vo = vos[i];
+
+                if (!types[vo._type]) {
+                    types[vo._type] = true;
+                    AjaxCacheClientController.getInstance().invalidateCachesFromApiTypesInvolved([vo._type]);
+                }
+            }
+        }
     }
 }

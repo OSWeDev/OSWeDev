@@ -228,6 +228,10 @@ export default class VarDataSumComponent extends VueComponentBase {
         this.unregister(this.var_params);
     }
 
+    private mounted() {
+        this.intersect_in();
+    }
+
     private intersect_in() {
         this.register(this.var_params);
 
